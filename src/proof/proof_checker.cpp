@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Gereon Kremer
+ *   Andrew Reynolds, Hans-Joerg Schurr, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
@@ -139,6 +139,11 @@ Node ProofChecker::checkDebug(ProofRule id,
   Trace(traceTag) << "cchildren: " << cchildren << std::endl;
   Trace(traceTag) << "     args: " << args << std::endl;
   return res;
+}
+
+void ProofChecker::setProofCheckMode(options::ProofCheckMode pcMode)
+{
+  d_pcMode = pcMode;
 }
 
 Node ProofChecker::checkInternal(ProofRule id,

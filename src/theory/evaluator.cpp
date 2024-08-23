@@ -309,11 +309,14 @@ EvalResult Evaluator::evalInternal(
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != Kind::BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
@@ -502,10 +505,14 @@ EvalResult Evaluator::evalInternal(
           {
             if (results[currNode[i]].d_rat.isZero())
             {
-              if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-                  || k == Kind::INTS_MODULUS_TOTAL)
+              if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL)
               {
                 res = Rational(0);
+                continue;
+              }
+              else if (k == Kind::INTS_MODULUS_TOTAL)
+              {
+                // result is unchanged
                 continue;
               }
               else
@@ -623,8 +630,15 @@ EvalResult Evaluator::evalInternal(
         case Kind::INTS_LOG2:
         {
           const Rational& x = results[currNode[0]].d_rat;
-          results[currNode] =
-              EvalResult(Rational(x.getNumerator().length() - 1));
+          if (x.sgn() < 0)
+          {
+            results[currNode] = EvalResult(Rational(0));
+          }
+          else
+          {
+            results[currNode] =
+                EvalResult(Rational(x.getNumerator().length() - 1));
+          }
           break;
         }
         case Kind::CONST_STRING:
@@ -853,7 +867,52 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
+        case Kind::STRING_REV:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          std::reverse(nvec.begin(), nvec.end());
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          Kind k = currNodeVal.getKind();
+          for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
+          {
+            unsigned newChar = nvec[i];
+            // transform it
+            // upper 65 ... 90
+            // lower 97 ... 122
+            if (k == Kind::STRING_TO_UPPER)
+            {
+              if (newChar >= 97 && newChar <= 122)
+              {
+                newChar = newChar - 32;
+              }
+            }
+            else if (k == Kind::STRING_TO_LOWER)
+            {
+              if (newChar >= 65 && newChar <= 90)
+              {
+                newChar = newChar + 32;
+              }
+            }
+            nvec[i] = newChar;
+          }
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_LEQ:
+        {
+          const String& s1 = results[currNode[0]].d_str;
+          const String& s2 = results[currNode[1]].d_str;
+          results[currNode] = EvalResult(s1.isLeq(s2));
+          break;
+        }
         case Kind::CONST_BITVECTOR:
           results[currNode] = EvalResult(currNodeVal.getConst<BitVector>());
           break;

@@ -19,6 +19,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
+namespace quantifiers {
 
 QuantifiersModule::QuantifiersModule(
     Env& env,
@@ -81,5 +82,10 @@ quantifiers::TermRegistry& QuantifiersModule::getTermRegistry()
   return d_treg;
 }
 
+void QuantifiersModule::beginCallDebug() { d_qim.beginCallDebug(this); }
+
+void QuantifiersModule::endCallDebug() { d_qim.endCallDebug(); }
+
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

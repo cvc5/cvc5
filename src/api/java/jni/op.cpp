@@ -154,3 +154,18 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Op_toString(JNIEnv* env,
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
+
+/*
+ * Class:     io_github_cvc5_Op
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Op_hashCode(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* result = reinterpret_cast<Op*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::Op>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

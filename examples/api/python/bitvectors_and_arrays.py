@@ -26,7 +26,7 @@ if __name__ == "__main__":
     slv = cvc5.Solver(tm)
     slv.setOption("produce-models", "true")
     slv.setOption("output-language", "smtlib")
-    slv.setLogic("QF_AUFBV")
+    slv.setLogic("QF_ABV")
 
     # Consider the following code (where size is some previously defined constant):
     #

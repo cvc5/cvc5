@@ -163,22 +163,94 @@ Term ParserState::bindVar(const std::string& name,
   return expr;
 }
 
-Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
+Term ParserState::bindBoundVar(const std::string& name,
+                               const Sort& type,
+                               bool fresh)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
-  Term expr = d_tm.mkVar(type, name);
+  std::pair<std::string, Sort> key(name, type);
+  Term expr;
+  if (fresh)
+  {
+    expr = d_tm.mkVar(type, name);
+  }
+  else
+  {
+    std::map<std::pair<std::string, Sort>, Term>::iterator itv =
+        d_varCache.find(key);
+    if (itv != d_varCache.end())
+    {
+      expr = itv->second;
+    }
+    else
+    {
+      expr = d_tm.mkVar(type, name);
+      d_varCache[key] = expr;
+    }
+  }
   defineVar(name, expr);
   return expr;
 }
 
 std::vector<Term> ParserState::bindBoundVars(
-    std::vector<std::pair<std::string, Sort> >& sortedVarNames)
+    std::vector<std::pair<std::string, Sort> >& sortedVarNames, bool fresh)
 {
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    vars.push_back(bindBoundVar(i.first, i.second));
+    vars.push_back(bindBoundVar(i.first, i.second, fresh));
+  }
+  return vars;
+}
+
+std::vector<Term> ParserState::bindBoundVarsCtx(
+    std::vector<std::pair<std::string, Sort>>& sortedVarNames,
+    std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
+    bool fresh)
+{
+  if (fresh || letBinders.empty())
+  {
+    // does not matter if let binders are empty or if we are constructing fresh
+    return bindBoundVars(sortedVarNames, fresh);
+  }
+  std::vector<Term> vars;
+  for (std::pair<std::string, Sort>& i : sortedVarNames)
+  {
+    bool wasDecl = isDeclared(i.first);
+    Term v = bindBoundVar(i.first, i.second, fresh);
+    vars.push_back(v);
+    // If wasDecl, then:
+    // (1) we are not using fresh declarations
+    // (2) there are let binders present,
+    // (3) the current variable was shadowed.
+    // We must check whether the variable is present in the let bindings.
+    if (wasDecl)
+    {
+      // a dummy variable used for checking containment below
+      Term vr = d_tm.mkVar(v.getSort(), "dummy");
+      // check if it is contained in a let binder, if so, we fail
+      for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
+      {
+        for (std::pair<std::string, Term>& lb : lbs)
+        {
+          // To test containment, we use Term::substitute.
+          // If the substitution does anything at all, then
+          // we will throw an error. Thus, this does not
+          // incur a performance penalty versus checking containment.
+          Term slbt = lb.second.substitute({v}, {vr});
+          if (slbt != lb.second)
+          {
+            std::stringstream ss;
+            ss << "Cannot use variable shadowing for " << i.first
+               << " since this symbol occurs in a let term that is present in "
+                  "the current context. Set fresh-binders to true to avoid "
+                  "this error";
+            parseError(ss.str());
+          }
+        }
+      }
+    }
   }
   return vars;
 }

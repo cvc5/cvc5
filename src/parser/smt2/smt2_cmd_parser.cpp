@@ -402,7 +402,12 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.pushScope();
       }
-      std::vector<Term> terms = d_state.bindBoundVars(sortedVarNames);
+      bool freshBinders = d_state.usingFreshBinders();
+      // If freshBinders is false, we use fresh=false here to ensure that
+      // variables introduced by define-fun are accurate with respect to proofs,
+      // i.e. variables of the same name and type are indeed the same variable.
+      std::vector<Term> terms =
+          d_state.bindBoundVars(sortedVarNames, freshBinders);
       Term expr = d_tparser.parseTerm();
       if (!flattenVars.empty())
       {
@@ -868,6 +873,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
           || key == "in" || key == "out")
       {
         ss = d_state.stripQuotes(ss);
+      }
+      else if (key=="use-portfolio")
+      {
+        // we don't allow setting portfolio via the command line
+        d_lex.parseError("Can only enable use-portfolio via the command line");
       }
       cmd.reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but

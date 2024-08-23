@@ -52,6 +52,10 @@ class Smt2State : public ParserState
    * Add core theory symbols to the parser state.
    */
   void addCoreSymbols();
+  /**
+   * Add skolem symbols to the parser state.
+   */
+  void addSkolemSymbols();
 
   void addOperator(Kind k, const std::string& name);
 
@@ -73,6 +77,13 @@ class Smt2State : public ParserState
    * @param name The name of the symbol (e.g. "lambda")
    */
   void addClosureKind(Kind tKind, const std::string& name);
+  /**
+   * Registers a skolem
+   *
+   * @param skolemID The is of the skolem
+   * @param name The name of the skolem, e.g. @array_deq_diff
+   */
+  void addSkolemId(SkolemId skolemID, const std::string& name);
   /**
    * Checks whether an indexed operator is enabled. All indexed operators in
    * the current logic are considered to be enabled. This includes operators
@@ -245,6 +256,12 @@ class Smt2State : public ParserState
    * grammar-specific token `Constant`.
    */
   bool hasGrammars() const;
+  /**
+   * Are we using fresh binders? If this returns true, then every binder
+   * is assumed to refer to fresh variables. If this returns false, then
+   * variables are assumed to be globally unique up to their name and type.
+   */
+  bool usingFreshBinders() const;
 
   void checkThatLogicIsSet();
 
@@ -458,6 +475,8 @@ class Smt2State : public ParserState
 
   /** Are we parsing a sygus file? */
   bool d_isSygus;
+  /** are we using fresh binders? */
+  bool d_freshBinders;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
@@ -466,6 +485,8 @@ class Smt2State : public ParserState
   internal::LogicInfo d_logic;
   /** Maps strings to the operator it is bound to */
   std::unordered_map<std::string, Kind> d_operatorKindMap;
+  /** Maps strings to the skolem it is bound to */
+  std::unordered_map<std::string, SkolemId> d_skolemMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).

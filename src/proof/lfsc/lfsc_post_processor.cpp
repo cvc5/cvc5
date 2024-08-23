@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrites.h"
 #include "smt/env.h"
 #include "theory/strings/theory_strings_utils.h"
 
@@ -430,11 +431,24 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case ProofRule::BETA_REDUCE:
+    case ProofRule::THEORY_REWRITE:
     {
-      // get the term to beta-reduce
-      Node termToReduce = nm->mkNode(Kind::APPLY_UF, args);
-      addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
+      Assert(args.size() >= 2);
+      ProofRewriteRule idr;
+      if (!rewriter::getRewriteRule(args[0], idr))
+      {
+        return false;
+      }
+      if (idr == ProofRewriteRule::BETA_REDUCE)
+      {
+        // get the term to beta-reduce
+        Node termToReduce = nm->mkNode(Kind::APPLY_UF, args[1][0]);
+        addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
+      }
+      else
+      {
+        return false;
+      }
     }
     break;
     default: return false; break;

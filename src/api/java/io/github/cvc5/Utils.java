@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Hans-Jörg Schurr
+ *   Mudathir Mohamed, Aina Niemetz, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -64,7 +64,8 @@ public class Utils
   }
 
   /**
-   * return proofs array from array of pointers
+   * @return proofs array from array of pointers
+   * @param pointers The array of pointers.
    */
   public static Proof[] getProofs(long[] pointers)
   {
@@ -161,6 +162,7 @@ public class Utils
 
   /**
    * Convert a rational string a/b to a pair of BigIntegers
+   * @param rational The rational string.
    * @return The pair of big integers.
    */
   public static Pair<BigInteger, BigInteger> getRational(String rational)
@@ -175,6 +177,7 @@ public class Utils
 
   /**
    * Convert a pair of BigIntegers to a rational string a/b
+   * @param pair The pair of big integers.
    * @return The rational string.
    */
   public static String getRational(Pair<BigInteger, BigInteger> pair)

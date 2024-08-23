@@ -21,7 +21,9 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
+#include "proof/proof.h"
 #include "proof/proof_node_algorithm.h"
+#include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/print_benchmark.h"
@@ -32,13 +34,56 @@
 namespace cvc5::internal {
 namespace smt {
 
-UnsatCoreManager::UnsatCoreManager(Env& env) : EnvObj(env) {}
-
-void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
-                                    const Assertions& as,
-                                    std::vector<Node>& core,
-                                    bool isInternal)
+UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm)
+    : EnvObj(env), d_slv(slv), d_pfm(pfm)
 {
+}
+
+std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  // first get the unsat core from the prop engine
+  std::vector<Node> pcore;
+  pe->getUnsatCore(pcore);
+  // convert to input
+  return convertPreprocessedToInput(pcore, isInternal);
+}
+
+std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
+{
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  std::vector<Node> coreLemmas = pe->getUnsatCoreLemmas();
+  // output benchmark if specified
+  if (!isInternal)
+  {
+    if (isOutputOn(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK))
+    {
+      // also must compute the unsat core of input
+      std::vector<Node> core = getUnsatCore(true);
+      std::vector<Node> coreAsserts;
+      std::vector<Node> coreDefs;
+      partitionUnsatCore(core, coreDefs, coreAsserts);
+      coreAsserts.insert(
+          coreAsserts.end(), coreLemmas.begin(), coreLemmas.end());
+      std::stringstream ss;
+      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      pb.printBenchmark(
+          ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ss.str();
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; end unsat core + lemmas" << std::endl;
+    }
+  }
+  return coreLemmas;
+}
+
+void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
+                                            std::vector<Node>& core,
+                                            bool isInternal)
+{
+  const Assertions& as = d_slv.getAssertions();
   Trace("unsat-core") << "UCManager::getUnsatCore: final proof: " << *pfn.get()
                       << "\n";
   Assert(pfn->getRule() == ProofRule::SCOPE);
@@ -79,9 +124,12 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
   // output benchmark if specified
   if (isOutputOn(OutputTag::UNSAT_CORE_BENCHMARK))
   {
+    std::vector<Node> coreAsserts;
+    std::vector<Node> coreDefs;
+    partitionUnsatCore(core, coreDefs, coreAsserts);
     std::stringstream ss;
     smt::PrintBenchmark pb(Printer::getPrinter(ss));
-    pb.printBenchmark(ss, logicInfo().getLogicString(), {}, core);
+    pb.printBenchmark(ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; unsat core" << std::endl;
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ss.str();
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; end unsat core" << std::endl;
@@ -89,11 +137,16 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 }
 
 void UnsatCoreManager::getRelevantQuantTermVectors(
-    std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
     std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
+  // note that we don't have to connect the SAT proof to the input assertions,
+  // and preprocessing proofs don't impact what instantiations are used
+  prop::PropEngine* pe = d_slv.getPropEngine();
+  Assert(pe != nullptr);
+  std::shared_ptr<ProofNode> pfn = pe->getProof();
+  Assert(pfn != nullptr);
   NodeManager* nm = nodeManager();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
@@ -226,6 +279,40 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
     }
   }
   return newUcAssertions;
+}
+
+void UnsatCoreManager::partitionUnsatCore(const std::vector<Node>& core,
+                                          std::vector<Node>& coreDefs,
+                                          std::vector<Node>& coreAsserts)
+{
+  const Assertions& as = d_slv.getAssertions();
+  std::unordered_set<Node> defs = as.getCurrentAssertionListDefitions();
+  for (const Node& c : core)
+  {
+    if (defs.find(c) != defs.end())
+    {
+      coreDefs.push_back(c);
+    }
+    else
+    {
+      coreAsserts.push_back(c);
+    }
+  }
+}
+
+std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
+    const std::vector<Node>& ppa, bool isInternal)
+{
+  std::vector<Node> core;
+  CDProof cdp(d_env);
+  Node fnode = nodeManager()->mkConst(false);
+  cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
+  getUnsatCoreInternal(pfn, core, isInternal);
+  return core;
 }
 
 }  // namespace smt

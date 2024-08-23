@@ -211,6 +211,8 @@ void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
   // remember this is a substitution index
   for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
+    // ensure rewritten
+    replace(i, rewrite(d_nodes[i]));
     d_substsIndices.insert(i);
   }
 }

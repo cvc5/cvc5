@@ -1253,7 +1253,8 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
-  Unimplemented() << "getProof for CaDiCaL not supported";
+  // do not throw an exception, since we test whether the proof is available
+  // by comparing it to nullptr.
   return nullptr;
 }
 

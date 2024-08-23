@@ -123,7 +123,7 @@ void TheoryDatatypes::finishInit()
   d_valuation.setIrrelevantKind(Kind::APPLY_TESTER);
   d_valuation.setIrrelevantKind(Kind::DT_SYGUS_BOUND);
   // selectors don't always evaluate
-  d_valuation.setUnevaluatedKind(Kind::APPLY_SELECTOR);
+  d_valuation.setSemiEvaluatedKind(Kind::APPLY_SELECTOR);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
@@ -202,20 +202,20 @@ void TheoryDatatypes::postCheck(Effort level)
     Assert(!d_im.hasPendingFact());
     do {
       d_im.reset();
-      Trace("datatypes-proc") << "Check cycles..." << std::endl;
+      Trace("datatypes-check") << "Check cycles..." << std::endl;
       checkCycles();
-      Trace("datatypes-proc") << "...finish check cycles" << std::endl;
+      Trace("datatypes-check") << "...finish check cycles" << std::endl;
       d_im.process();
       if (d_state.isInConflict() || d_im.hasSentLemma())
       {
         return;
       }
-    } while (d_im.hasSentFact());
-
-    //check for splits
-    Trace("datatypes-debug") << "Check for splits " << endl;
-    do {
+      else if (d_im.hasSentFact())
+      {
+        continue;
+      }
       d_im.reset();
+      Trace("datatypes-check") << "Check for splits " << endl;
       // check for splits
       checkSplit();
       if (d_im.hasSentLemma())
@@ -231,6 +231,7 @@ void TheoryDatatypes::postCheck(Effort level)
         Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
         d_im.process();
       }
+      Trace("datatypes-check") << "...finish check splits" << std::endl;
     } while (!d_state.isInConflict() && !d_im.hasSentLemma()
              && d_im.hasSentFact());
     Trace("datatypes-debug")
@@ -381,17 +382,8 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
                      << endl;
   if (in.getKind() == Kind::EQUAL)
   {
-    Node nn;
-    std::vector< Node > rew;
-    if (utils::checkClash(in[0], in[1], rew))
-    {
-      nn = nodeManager()->mkConst(false);
-    }
-    else
-    {
-      nn = nodeManager()->mkAnd(rew);
-    }
-    if (in != nn)
+    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, in);
+    if (!nn.isNull() && in != nn)
     {
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }

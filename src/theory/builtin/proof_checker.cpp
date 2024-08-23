@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Hanna Lachnitt
+ *   Andrew Reynolds, Hans-Joerg Schurr, Hanna Lachnitt
  *
  * This file is part of the cvc5 project.
  *
@@ -49,10 +49,10 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
-  pc->registerChecker(ProofRule::ANNOTATION, this);
-  pc->registerChecker(ProofRule::REMOVE_TERM_FORMULA_AXIOM, this);
-  pc->registerChecker(ProofRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(ProofRule::ITE_EQ, this);
+  pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
+  pc->registerChecker(ProofRule::THEORY_REWRITE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -392,7 +392,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::REMOVE_TERM_FORMULA_AXIOM)
+  else if (id == ProofRule::ITE_EQ)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -416,32 +416,22 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isInteger());
     return args[1];
   }
-  else if (id == ProofRule::ENCODE_PRED_TRANSFORM)
+  else if (id == ProofRule::ENCODE_EQ_INTRO)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
     rewriter::RewriteDbNodeConverter rconv(nodeManager());
-    Node f = children[0];
-    Node g = args[0];
-    // equivalent up to conversion via utility
-    if (rconv.convert(f) != rconv.convert(g))
-    {
-      return Node::null();
-    }
-    return g;
-  }
-  else if (id == ProofRule::ANNOTATION)
-  {
-    Assert(children.size() == 1);
-    return children[0];
+    // run a single (small) step conversion
+    Node ac = rconv.postConvert(args[0]);
+    return args[0].eqNode(ac);
   }
   else if (id == ProofRule::DSL_REWRITE)
   {
     // consult rewrite db, apply args[1]...args[n] as a substitution
     // to variable list and prove equality between LHS and RHS.
     Assert(d_rdb != nullptr);
-    rewriter::DslProofRule di;
-    if (!getDslProofRule(args[0], di))
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
     {
       return Node::null();
     }
@@ -468,7 +458,25 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return rpr.getConclusionFor(subs);
   }
-
+  else if (id == ProofRule::THEORY_REWRITE)
+  {
+    Assert(args.size() == 2);
+    ProofRewriteRule di;
+    if (!rewriter::getRewriteRule(args[0], di))
+    {
+      return Node::null();
+    }
+    if (args[1].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    Node rhs = d_rewriter->rewriteViaRule(di, args[1][0]);
+    if (rhs.isNull() || rhs != args[1][1])
+    {
+      return Node::null();
+    }
+    return args[1];
+  }
   // no rule
   return Node::null();
 }

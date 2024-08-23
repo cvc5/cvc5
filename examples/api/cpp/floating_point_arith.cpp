@@ -23,13 +23,13 @@
 #include <iostream>
 #include <cassert>
 
-using namespace std;
 using namespace cvc5;
 
 int main()
 {
   TermManager tm;
   Solver solver(tm);
+  solver.setOption("incremental", "true");
   solver.setOption("produce-models", "true");
 
   // Make single precision floating-point variables
@@ -39,24 +39,51 @@ int main()
   Term c = tm.mkConst(fpt32, "c");
   Term d = tm.mkConst(fpt32, "d");
   Term e = tm.mkConst(fpt32, "e");
-
-  // Assert that floating-point addition is not associative:
-  // (a + (b + c)) != ((a + b) + c)
+  // Rounding mode
   Term rm = tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
-  Term lhs = tm.mkTerm(Kind::FLOATINGPOINT_ADD,
-                       {rm, a, tm.mkTerm(Kind::FLOATINGPOINT_ADD, {rm, b, c})});
-  Term rhs = tm.mkTerm(Kind::FLOATINGPOINT_ADD,
-                       {rm, tm.mkTerm(Kind::FLOATINGPOINT_ADD, {rm, a, b}), c});
-  solver.assertFormula(tm.mkTerm(Kind::NOT, {tm.mkTerm(Kind::EQUAL, {a, b})}));
 
+  std::cout << "Show that fused multiplication and addition `(fp.fma RM a b c)`"
+            << std::endl
+            << "is different from `(fp.add RM (fp.mul a b) c)`:" << std::endl;
+  solver.push(1);
+  Term fma = tm.mkTerm(Kind::FLOATINGPOINT_FMA, {rm, a, b, c});
+  Term mul = tm.mkTerm(Kind::FLOATINGPOINT_MULT, {rm, a, b});
+  Term add = tm.mkTerm(Kind::FLOATINGPOINT_ADD, {rm, mul, c});
+  solver.assertFormula(tm.mkTerm(Kind::DISTINCT, {fma, add}));
   Result r = solver.checkSat();  // result is sat
+  std::cout << "Expect sat: " << r << std::endl;
+  std::cout << "Value of `a`: " << solver.getValue(a) << std::endl;
+  std::cout << "Value of `b`: " << solver.getValue(b) << std::endl;
+  std::cout << "Value of `c`: " << solver.getValue(c) << std::endl;
+  std::cout << "Value of `(fp.fma RNE a b c)`: " << solver.getValue(fma)
+            << std::endl;
+  std::cout << "Value of `(fp.add RNE (fp.mul a b) c)`: "
+            << solver.getValue(add) << std::endl;
+  std::cout << std::endl;
+  solver.pop(1);
+
+  std::cout << "Show that floating-point addition is not associative:"
+            << std::endl;
+  std::cout << "(a + (b + c)) != ((a + b) + c)" << std::endl;
+  solver.push(1);
+  solver.assertFormula(tm.mkTerm(
+      Kind::DISTINCT,
+      {tm.mkTerm(Kind::FLOATINGPOINT_ADD,
+                 {rm, a, tm.mkTerm(Kind::FLOATINGPOINT_ADD, {rm, b, c})}),
+       tm.mkTerm(Kind::FLOATINGPOINT_ADD,
+                 {rm, tm.mkTerm(Kind::FLOATINGPOINT_ADD, {rm, a, b}), c})}));
+
+  r = solver.checkSat();  // result is sat
+  std::cout << "Expect sat: " << r << std::endl;
   assert (r.isSat());
 
-  cout << "a = " << solver.getValue(a) << endl;
-  cout << "b = " << solver.getValue(b) << endl;
-  cout << "c = " << solver.getValue(c) << endl;
+  std::cout << "Value of `a`: " << solver.getValue(a) << std::endl;
+  std::cout << "Value of `b`: " << solver.getValue(b) << std::endl;
+  std::cout << "Value of `c`: " << solver.getValue(c) << std::endl;
+  std::cout << std::endl;
 
-  // Now, let's restrict `a` to be either NaN or positive infinity
+  std::cout << "Now, restrict `a` to be either NaN or positive infinity:"
+            << std::endl;
   Term nan = tm.mkFloatingPointNaN(8, 24);
   Term inf = tm.mkFloatingPointPosInf(8, 24);
   solver.assertFormula(tm.mkTerm(
@@ -64,43 +91,60 @@ int main()
       {tm.mkTerm(Kind::EQUAL, {a, inf}), tm.mkTerm(Kind::EQUAL, {a, nan})}));
 
   r = solver.checkSat();  // result is sat
+  std::cout << "Expect sat: " << r << std::endl;
   assert (r.isSat());
 
-  cout << "a = " << solver.getValue(a) << endl;
-  cout << "b = " << solver.getValue(b) << endl;
-  cout << "c = " << solver.getValue(c) << endl;
+  std::cout << "Value of `a`: " << solver.getValue(a) << std::endl;
+  std::cout << "Value of `b`: " << solver.getValue(b) << std::endl;
+  std::cout << "Value of `c`: " << solver.getValue(c) << std::endl;
+  std::cout << std::endl;
+  solver.pop(1);
 
-  // And now for something completely different. Let's try to find a (normal)
-  // floating-point number that rounds to different integer values for
-  // different rounding modes.
+  std::cout << "Now, try to find a (normal) floating-point number that rounds"
+            << std::endl
+            << "to different integer values for different rounding modes:"
+            << std::endl;
+  solver.push(1);
   Term rtp = tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_POSITIVE);
   Term rtn = tm.mkRoundingMode(RoundingMode::ROUND_TOWARD_NEGATIVE);
-  Op op = tm.mkOp(Kind::FLOATINGPOINT_TO_SBV, {16});  // (_ fp.to_sbv 16)
-  lhs = tm.mkTerm(op, {rtp, d});
-  rhs = tm.mkTerm(op, {rtn, d});
+  Op op = tm.mkOp(Kind::FLOATINGPOINT_TO_UBV, {16});  // (_ fp.to_ubv 16)
+  Term lhs = tm.mkTerm(op, {rtp, d});
+  Term rhs = tm.mkTerm(op, {rtn, d});
   solver.assertFormula(tm.mkTerm(Kind::FLOATINGPOINT_IS_NORMAL, {d}));
   solver.assertFormula(
       tm.mkTerm(Kind::NOT, {tm.mkTerm(Kind::EQUAL, {lhs, rhs})}));
 
   r = solver.checkSat();  // result is sat
+  std::cout << "Expect sat: " << r << std::endl;
   assert (r.isSat());
+  std::cout << std::endl;
 
-  // Convert the result to a rational and print it
+  std::cout << "Get value of `d` as floating-point, bit-vector and real:"
+            << std::endl;
   Term val = solver.getValue(d);
-  Term realVal = solver.getValue(tm.mkTerm(Kind::FLOATINGPOINT_TO_REAL, {val}));
-  cout << "d = " << val << " = " << realVal << endl;
-  cout << "((_ fp.to_sbv 16) RTP d) = " << solver.getValue(lhs) << endl;
-  cout << "((_ fp.to_sbv 16) RTN d) = " << solver.getValue(rhs) << endl;
+  std::cout << "Value of `d`: " << val << std::endl;
+  std::cout << "Value of `((_ fp.to_ubv 16) RTP d)`: " << solver.getValue(lhs)
+            << std::endl;
+  std::cout << "Value of `((_ fp.to_ubv 16) RTN d)`: " << solver.getValue(rhs)
+            << std::endl;
+  std::cout << "Value of `(fp.to_real d)` "
+            << solver.getValue(tm.mkTerm(Kind::FLOATINGPOINT_TO_REAL, {val}))
+            << std::endl;
+  std::cout << std::endl;
+  solver.pop(1);
 
-  // For our final trick, let's try to find a floating-point number between
-  // positive zero and the smallest positive floating-point number
+  std::cout << "Finally, try to find a floating-point number between positive"
+            << std::endl
+            << "zero and the smallest positive floating-point number:"
+            << std::endl;
   Term zero = tm.mkFloatingPointPosZero(8, 24);
-  Term smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 0b001));
+  Term smallest = tm.mkFloatingPoint(8, 24, tm.mkBitVector(32, 1));
   solver.assertFormula(
       tm.mkTerm(Kind::AND,
                 {tm.mkTerm(Kind::FLOATINGPOINT_LT, {zero, e}),
                  tm.mkTerm(Kind::FLOATINGPOINT_LT, {e, smallest})}));
 
   r = solver.checkSat();  // result is unsat
-  assert (!r.isSat());
+  std::cout << "Expect unsat: " << r << std::endl;
+  assert(r.isUnsat());
 }

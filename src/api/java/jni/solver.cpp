@@ -16,6 +16,7 @@
 #include <cvc5/cvc5.h>
 
 #include "api/java/jni/api_utilities.h"
+#include "api_plugin.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -46,12 +47,7 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
-  const std::vector<jobject>& refs = globalReferences[pointer];
-  for (jobject ref : refs)
-  {
-    env->DeleteGlobalRef(ref);
-  }
-  globalReferences.erase(pointer);
+  ApiManager::currentAM()->deletePointer(env, pointer);
   delete (reinterpret_cast<Solver*>(pointer));
 }
 
@@ -76,15 +72,29 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getTermManager(JNIEnv* env,
  * Method:    simplify
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer,
-                                                            jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJ(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* term = reinterpret_cast<Term*>(termPointer);
   Term* retPointer = new Term(solver->simplify(*term));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    simplify
+ * Signature: (JJZ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_simplify__JJZ(
+    JNIEnv* env, jobject, jlong pointer, jlong termPointer, jboolean applySubs)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  Term* retPointer = new Term(solver->simplify(*term, (bool)applySubs));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -736,6 +746,74 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJI(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJILjava/util/Map;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Solver_proofToString__JJILjava_util_Map_2(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jlong proofPointer,
+    jint pfvalue,
+    jobject assertionNames)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+
+  jclass c_map = env->GetObjectClass(assertionNames);
+  jmethodID id_entrySet =
+      env->GetMethodID(c_map, "entrySet", "()Ljava/util/Set;");
+
+  jclass c_entryset = env->FindClass("java/util/Set");
+  jmethodID id_iterator =
+      env->GetMethodID(c_entryset, "iterator", "()Ljava/util/Iterator;");
+
+  jclass c_iterator = env->FindClass("java/util/Iterator");
+  jmethodID id_hasNext = env->GetMethodID(c_iterator, "hasNext", "()Z");
+  jmethodID id_next =
+      env->GetMethodID(c_iterator, "next", "()Ljava/lang/Object;");
+
+  jclass c_entry = env->FindClass("java/util/Map$Entry");
+  jmethodID id_getKey =
+      env->GetMethodID(c_entry, "getKey", "()Ljava/lang/Object;");
+  jmethodID id_getValue =
+      env->GetMethodID(c_entry, "getValue", "()Ljava/lang/Object;");
+
+  jclass c_term = env->FindClass("io/github/cvc5/Term");
+  jmethodID id_getPointer = env->GetMethodID(c_term, "getPointer", "()J");
+
+  jobject obj_entrySet = env->CallObjectMethod(assertionNames, id_entrySet);
+  jobject obj_iterator = env->CallObjectMethod(obj_entrySet, id_iterator);
+
+  std::map<Term, std::string> namesMap;
+
+  while ((bool)env->CallBooleanMethod(obj_iterator, id_hasNext))
+  {
+    jobject entry = env->CallObjectMethod(obj_iterator, id_next);
+
+    jobject key = env->CallObjectMethod(entry, id_getKey);
+    jstring value = (jstring)env->CallObjectMethod(entry, id_getValue);
+
+    jlong termPointer = (jlong)env->CallObjectMethod(key, id_getPointer);
+    Term term = *reinterpret_cast<Term*>(termPointer);
+
+    const char* termName = (env)->GetStringUTFChars(value, 0);
+    std::string termNameString = std::string(termName);
+    (env)->ReleaseStringUTFChars(value, termName);
+
+    namesMap.insert(std::pair{term, termNameString});
+  }
+
+  std::string proofStr = solver->proofToString(*proof, pf, namesMap);
+  return env->NewStringUTF(proofStr.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getValue
  * Signature: (JJ)J
  */
@@ -946,8 +1024,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  jobject oracleReference = env->NewGlobalRef(oracle);
-  globalReferences[pointer].push_back(oracleReference);
+  ApiManager* am = ApiManager::currentAM();
+  jobject oracleReference = am->addGlobalReference(env, pointer, oracle);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
@@ -962,6 +1040,30 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
       new Term(solver->declareOracleFun(cSymbol, sorts, *sort, fn));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    addPlugin
+ * Signature: (JJLio/github/cvc5/AbstractPlugin;)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
+                                     jobject,
+                                     jlong pointer,
+                                     jlong termManagerPointer,
+                                     jobject plugin)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  ApiManager* am = ApiManager::currentAM();
+  jobject pluginReference = am->addGlobalReference(env, pointer, plugin);
+  ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
+  am->addPluginPointer(pointer, reinterpret_cast<jlong>(p));
+  solver->addPlugin(*p);
+
+  CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
 /*

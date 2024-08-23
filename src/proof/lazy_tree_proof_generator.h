@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Hans-Jörg Schurr
+ *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -155,6 +155,14 @@ class LazyTreeProofGenerator : protected EnvObj, public ProofGenerator
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
+  /**
+   * Same as above, but with a trusted proof step.
+   */
+  void setCurrentTrust(size_t objectId,
+                       TrustId tid,
+                       const std::vector<Node>& premise,
+                       std::vector<Node> args,
+                       Node proven);
   /** Construct the proof as a ProofNode */
   std::shared_ptr<ProofNode> getProof() const;
   /** Return the constructed proof. Checks that we have proven f */

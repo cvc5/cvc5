@@ -79,6 +79,11 @@ bool hasBoundVar(TNode n);
 /**
  * Returns true iff the node n contains a free variable, that is, a node
  * of kind BOUND_VARIABLE that is not bound in n.
+ *
+ * NOTE: this method should only be called on terms that do not have shadowing,
+ * which is the case if n is rewritten. Otherwise, an assertion failure is
+ * thrown in debug builds.
+ *
  * @param n The node under investigation
  * @return true iff this node contains a free variable.
  */
@@ -106,6 +111,10 @@ bool hasClosure(Node n);
 /**
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n, adds these to fvs.
+ *
+ * NOTE: this method should only be called on terms that do not have shadowing,
+ * which is the case if n is rewritten.
+ *
  * @param n The node under investigation
  * @param fvs The set which free variables are added to
  * @return true iff this node contains a free variable.
@@ -136,7 +145,7 @@ bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope);
  * @param vs The set which free variables are added to
  * @return true iff this node contains a free variable.
  */
-bool getVariables(TNode n, std::unordered_set<TNode>& vs);
+bool getVariables(TNode n, std::unordered_set<Node>& vs);
 /**
  * Get all variables in n.
  * @param n The node under investigation
@@ -145,7 +154,7 @@ bool getVariables(TNode n, std::unordered_set<TNode>& vs);
  * @return true iff this node contains a free variable.
  */
 bool getVariables(TNode n,
-                  std::unordered_set<TNode>& vs,
+                  std::unordered_set<Node>& vs,
                   std::unordered_set<TNode>& visited);
 
 /**

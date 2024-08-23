@@ -29,10 +29,12 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::NONE: return "NONE";
+    case InferenceId::INPUT: return "INPUT";
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
     case InferenceId::CONFLICT_REWRITE_LIT: return "CONFLICT_REWRITE_LIT";
     case InferenceId::EXPLAINED_PROPAGATION: return "EXPLAINED_PROPAGATION";
+    case InferenceId::THEORY_PP_SKOLEM_LEM: return "THEORY_PP_SKOLEM_LEM";
     case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
@@ -344,6 +346,8 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_GT_PURIFY: return "QUANTIFIERS_GT_PURIFY";
     case InferenceId::QUANTIFIERS_TDB_DEQ_CONG:
       return "QUANTIFIERS_TDB_DEQ_CONG";
+    case InferenceId::QUANTIFIERS_CEGQI_WITNESS:
+      return "QUANTIFIERS_CEGQI_WITNESS";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
@@ -407,6 +411,9 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_JOIN_IMAGE_UP: return "SETS_RELS_JOIN_IMAGE_UP";
     case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
     case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
+    case InferenceId::SETS_RELS_TABLE_JOIN_UP: return "SETS_RELS_TABLE_JOIN_UP";
+    case InferenceId::SETS_RELS_TABLE_JOIN_DOWN:
+      return "SETS_RELS_TABLE_JOIN_DOWN";
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
@@ -551,6 +558,7 @@ const char* toString(InferenceId i)
       return "UF_HO_MODEL_EXTENSIONALITY";
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
+    case InferenceId::UF_HO_LAMBDA_LAZY_LIFT: return "UF_HO_LAMBDA_LAZY_LIFT";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
     case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:

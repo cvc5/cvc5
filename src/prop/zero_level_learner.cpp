@@ -239,13 +239,13 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
     const Node& input)
 {
   // literal was learned, determine its type
-  // apply substitutions first
-  Node lit = d_tsmap.apply(input, d_env.getRewriter());
-  TNode aatom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+  // compute whether internal prior to substitution
+  TNode aatom = input.getKind() == Kind::NOT ? input[0] : input;
   bool internal = d_ppnAtoms.find(aatom) == d_ppnAtoms.end();
+  // apply substitutions now
+  Node lit = d_tsmap.apply(input, d_env.getRewriter());
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
-  // compute if solvable
   if (internal || d_trackSimplifications)
   {
     Subs ss;
@@ -279,7 +279,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             processed = true;
             Trace("lemma-inprocess-subs")
                 << "Add subs: " << v << " -> " << ss.d_subs[i] << std::endl;
-            d_tsmap.addSubstitution(v, ss.d_subs[i]);
+            addSimplification(v, ss.d_subs[i]);
           }
         }
       }
@@ -305,7 +305,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
             {
               Trace("lemma-inprocess-subs")
                   << "Add cp: " << lit[1 - i] << " -> " << lit[i] << std::endl;
-              d_tsmap.addSubstitution(lit[1 - i], lit[i]);
+              addSimplification(lit[1 - i], lit[i]);
               processed = true;
             }
             break;
@@ -315,7 +315,7 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
           {
             Trace("lemma-inprocess-subs") << "Add cp subterm: " << lit[1 - i]
                                           << " -> " << lit[i] << std::endl;
-            d_tsmap.addSubstitution(lit[1 - i], lit[i]);
+            addSimplification(lit[1 - i], lit[i]);
             processed = true;
             break;
           }
@@ -337,6 +337,20 @@ theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
 {
   Assert(d_trackSimplifications);
   return d_tsmap;
+}
+
+void ZeroLevelLearner::addSimplification(const Node& t, const Node& s)
+{
+  // in rare cases we may already have a substitution for v, e.g. 
+  // if x -> 0, (f y) ---> a, and we learn (f (+ x y)) = b, we
+  // would substitute+rewrite to get (f y) --> b despite already
+  // having a substitution for (f y). We could avoid this by applying
+  // substitution+rewriting until fixed point at the beginning of
+  // computeLearnedLiteralType, but this may be expensive.
+  if (!d_tsmap.get().hasSubstitution(t))
+  {
+    d_tsmap.addSubstitution(t, s);
+  }
 }
 
 void ZeroLevelLearner::processLearnedLiteral(const Node& lit,

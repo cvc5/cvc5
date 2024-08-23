@@ -129,17 +129,23 @@ void getConcat(Node n, std::vector<Node>& c)
 Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
   Assert(tn.isStringLike() || tn.isRegExp());
-  if (c.empty())
-  {
-    Assert(tn.isStringLike());
-    return Word::mkEmptyWord(tn);
-  }
-  else if (c.size() == 1)
+  if (c.size() == 1)
   {
     return c[0];
   }
+  NodeManager* nm = NodeManager::currentNM();
+  if (c.empty())
+  {
+    if (tn.isRegExp())
+    {
+      TypeNode stn = nm->stringType();
+      Node emp = Word::mkEmptyWord(stn);
+      return nm->mkNode(Kind::STRING_TO_REGEXP, emp);
+    }
+    return Word::mkEmptyWord(tn);
+  }
   Kind k = tn.isStringLike() ? Kind::STRING_CONCAT : Kind::REGEXP_CONCAT;
-  return NodeManager::currentNM()->mkNode(k, c);
+  return nm->mkNode(k, c);
 }
 
 Node mkPrefix(Node t, Node n)
@@ -156,6 +162,23 @@ Node mkSuffix(Node t, Node n)
       t,
       n,
       nm->mkNode(Kind::SUB, nm->mkNode(Kind::STRING_LENGTH, t), n));
+}
+
+Node mkPrefixExceptLen(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
+  return nm->mkNode(Kind::STRING_SUBSTR,
+                    t,
+                    nm->mkConstInt(Rational(0)),
+                    nm->mkNode(Kind::SUB, lent, n));
+}
+
+Node mkSuffixOfLen(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node lent = nm->mkNode(Kind::STRING_LENGTH, t);
+  return nm->mkNode(Kind::STRING_SUBSTR, t, nm->mkNode(Kind::SUB, lent, n), n);
 }
 
 Node mkUnit(TypeNode tn, Node n)

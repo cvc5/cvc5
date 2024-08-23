@@ -22,9 +22,6 @@
 
 #include <cvc5/cvc5.h>
 
-#include <iostream>
-#include <sstream>
-
 using namespace cvc5;
 using namespace std;
 
@@ -78,7 +75,7 @@ int validate_exception(void)
 
   /* The exception message we expect to obtain */
   std::string expected(
-      "Cannot obtain separation logic expressions if not using the separation "
+      "cannot obtain separation logic expressions if not using the separation "
       "logic theory.");
 
   /* test the heap expression */

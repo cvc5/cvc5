@@ -155,13 +155,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  double clSet = 0;
-  if (TraceIsOn("pool-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
-                         << std::endl;
-  }
+  beginCallDebug();
   FirstOrderModel* fm = d_treg.getModel();
   bool inConflict = false;
   uint64_t addedLemmas = 0;
@@ -195,19 +189,10 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       break;
     }
   }
-  if (TraceIsOn("pool-engine"))
-  {
-    Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("pool-engine") << "Finished pool instantiation, time = "
-                         << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
 }
 
-std::string InstStrategyPool::identify() const
-{
-  return std::string("InstStrategyPool");
-}
+std::string InstStrategyPool::identify() const { return "pool-inst"; }
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {

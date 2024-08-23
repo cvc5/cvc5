@@ -43,12 +43,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
 JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
     JNIEnv* env, jobject, jlong pointer)
 {
-  const std::vector<jobject>& refs = globalReferences[pointer];
-  for (jobject ref : refs)
-  {
-    env->DeleteGlobalRef(ref);
-  }
-  globalReferences.erase(pointer);
+  ApiManager::currentAM()->deletePointer(env, pointer);
   delete (reinterpret_cast<TermManager*>(pointer));
 }
 
@@ -306,6 +301,41 @@ Java_io_github_cvc5_TermManager_mkParamSort__JLjava_lang_String_2(
   Sort* retPointer = new Sort(tm->mkParamSort(cSymbol));
   env->ReleaseStringUTFChars(jSymbol, s);
   return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_TermManager
+ * Method:    mkSkolem
+ * Signature: (JI[J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_mkSkolem(
+    JNIEnv* env, jobject, jlong pointer, jint jSkolemId, jlongArray jIndices)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  SkolemId id = static_cast<SkolemId>(jSkolemId);
+  std::vector<Term> indices = getObjectsFromPointers<Term>(env, jIndices);
+  Term* retPointer = new Term(tm->mkSkolem(id, indices));
+  return reinterpret_cast<jlong>(retPointer);
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_TermManager
+ * Method:    getNumIndicesForSkolemId
+ * Signature: (JI)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_TermManager_getNumIndicesForSkolemId(
+    JNIEnv* env, jobject, jlong pointer, jint jSkolemId)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  SkolemId id = static_cast<SkolemId>(jSkolemId);
+  int numIndices = tm->getNumIndicesForSkolemId(id);
+  return numIndices;
+
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

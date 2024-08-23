@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
@@ -222,12 +223,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         uint32_t var_bw = utils::getSize(extract[0]);
         std::vector<Node> children;
 
+        SkolemManager* sm = nodeManager()->getSkolemManager();
         // create sk1 with size bw(x)-1-h
         if (low == 0 || high != var_bw - 1)
         {
           Assert(high != var_bw - 1);
-          uint32_t skolem_size = var_bw - high - 1;
-          Node skolem = utils::mkVar(skolem_size);
+          Node ext = utils::mkExtract(extract[0], var_bw - 1, high + 1);
+          Node skolem = sm->mkPurifySkolem(ext);
           children.push_back(skolem);
         }
 
@@ -237,8 +239,8 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         if (high == var_bw - 1 || low != 0)
         {
           Assert(low != 0);
-          uint32_t skolem_size = low;
-          Node skolem = utils::mkVar(skolem_size);
+          Node ext = utils::mkExtract(extract[0], low - 1, 0);
+          Node skolem = sm->mkPurifySkolem(ext);
           children.push_back(skolem);
         }
 
@@ -288,6 +290,24 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   }
 
   return d_internal->ppRewrite(t);
+}
+
+TrustNode TheoryBV::ppStaticRewrite(TNode atom)
+{
+  Kind k = atom.getKind();
+  if (k == Kind::EQUAL)
+  {
+    if (RewriteRule<SolveEq>::applies(atom))
+    {
+      Node res = RewriteRule<SolveEq>::run<false>(atom);
+      if (res != atom)
+      {
+        res = d_env.getRewriter()->rewrite(res);
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::presolve() { d_internal->presolve(); }

@@ -9,4 +9,6 @@
 
 (synth-fun f ((x Int) (y Int)) Int ((Start Int)) ((Start Int (x))))
 
+(declare-var x Int)
+(constraint (= (f x x) x))
 (check-synth)
