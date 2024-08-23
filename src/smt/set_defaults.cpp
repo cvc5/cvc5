@@ -645,9 +645,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                        && !opts.base.incrementalSolving;
     // We also disable it by default if safe unsat cores are enabled, or if
     // the proof mode is FULL_STRICT.
-    bool val = qf_uf_noinc && !safeUnsatCores(opts) && opts.smt.proofMode!=options::ProofMode::FULL_STRICT;
-    SET_AND_NOTIFY_VAL_SYM(
-        uf, ufSymmetryBreaker, val, "logic and options");
+    bool val = qf_uf_noinc && !safeUnsatCores(opts)
+               && opts.smt.proofMode != options::ProofMode::FULL_STRICT;
+    SET_AND_NOTIFY_VAL_SYM(uf, ufSymmetryBreaker, val, "logic and options");
   }
 
   // If in arrays, set the UF handler to arrays
