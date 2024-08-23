@@ -640,14 +640,14 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     // We disable this technique when using unsat core production, since it
     // uses a non-standard implementation that sends (unsound) lemmas during
-    // presolve. We also disable it by default when any form of proofs are
-    // enabled.
+    // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving
-                       && !safeUnsatCores(opts)
-                       && !opts.smt.produceProofs;
+                       && !opts.base.incrementalSolving;
+    // We also disable it by default if safe unsat cores are enabled, or if
+    // the proof mode is FULL_STRICT.
+    bool val = qf_uf_noinc && !safeUnsatCores(opts) && opts.smt.proofMode!=options::ProofMode::FULL_STRICT;
     SET_AND_NOTIFY_VAL_SYM(
-        uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
+        uf, ufSymmetryBreaker, val, "logic and options");
   }
 
   // If in arrays, set the UF handler to arrays
