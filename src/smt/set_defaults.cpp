@@ -163,8 +163,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
-      || opts.smt.proofMode == options::ProofMode::FULL ||
-      opts.smt.proofMode == options::ProofMode::FULL_STRICT)
+      || opts.smt.proofMode == options::ProofMode::FULL
+      || opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
     SET_AND_NOTIFY(smt, produceProofs, true, "option requiring proofs");
   }
@@ -173,7 +173,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.smt.produceProofs)
   {
     // if the user requested proofs, proof mode is full
-    SET_AND_NOTIFY_IF_NOT_USER(smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    SET_AND_NOTIFY_IF_NOT_USER(
+        smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     // Default granularity is theory rewrite if we are intentionally using
     // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
     if (!opts.proof.proofGranularityModeWasSetByUser
@@ -1002,8 +1003,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "global-negate";
     return true;
   }
-  bool isFullPf = (opts.smt.proofMode == options::ProofMode::FULL || 
-  opts.smt.proofMode == options::ProofMode::FULL_STRICT);
+  bool isFullPf = (opts.smt.proofMode == options::ProofMode::FULL
+                   || opts.smt.proofMode == options::ProofMode::FULL_STRICT);
   if (isSygus(opts))
   {
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation

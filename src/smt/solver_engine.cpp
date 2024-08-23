@@ -1761,8 +1761,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
   // Extract the skolemizations and instantiations
   std::map<Node, std::vector<Node>> sks;
   std::map<Node, InstantiationList> rinsts;
-  if ((d_env->getOptions().smt.produceProofs
-       && d_env->isTheoryProofProducing())
+  if ((d_env->getOptions().smt.produceProofs && d_env->isTheoryProofProducing())
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize skolemizations and instantiations based on proof manager
