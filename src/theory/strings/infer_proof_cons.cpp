@@ -216,6 +216,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
+    case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
     {
       if (!ps.d_children.empty())
       {
@@ -226,6 +227,23 @@ void InferProofCons::convert(InferenceId infer,
         if (psb.applyPredTransform(psrc, conc, exps))
         {
           useBuffer = true;
+        }
+        else
+        {
+          // More aggressive: lift to original form and use extended rewriting.
+          // A common case that this covers is arithmetic bound conflicts like
+          // (= (str.len @purifyN) 5) where @purifyN is the purification skolem
+          // for (str.++ "ABCDEF" x).
+          Node psrco = SkolemManager::getOriginalForm(psrc);
+          if (psb.applyPredTransform(psrco,
+                                     conc,
+                                     exps,
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_EXT_REWRITE))
+          {
+            useBuffer = psb.applyPredTransform(psrc, psrco, {});
+          }
         }
       }
       else
@@ -647,6 +665,13 @@ void InferProofCons::convert(InferenceId infer,
           Trace("strings-ipc-deq")
               << "...main conclusion is " << mainConc << std::endl;
           useBuffer = (mainConc == conc);
+          if (!useBuffer)
+          {
+            // Should be made equal by transformation. This step is necessary
+            // if rewriting was used to change the skolem introduced in the
+            // conclusion.
+            useBuffer = psb.applyPredTransform(mainConc, conc, {});
+          }
           Trace("strings-ipc-deq")
               << "...success is " << useBuffer << std::endl;
         }
@@ -842,6 +867,7 @@ void InferProofCons::convert(InferenceId infer,
     break;
     // ========================== prefix conflict
     case InferenceId::STRINGS_PREFIX_CONFLICT:
+    case InferenceId::STRINGS_PREFIX_CONFLICT_MIN:
     {
       Trace("strings-ipc-prefix") << "Prefix conflict..." << std::endl;
       std::vector<Node> eqs;
@@ -904,13 +930,28 @@ void InferProofCons::convert(InferenceId infer,
       }
       // connect via transitivity
       Node curr = eqs[0];
+      std::vector<Node> subs;
       for (size_t i = 1, esize = eqs.size(); i < esize; i++)
       {
         Node prev = curr;
-        curr = convertTrans(curr, eqs[1], psb);
+        curr = convertTrans(curr, eqs[i], psb);
+        // if it is not a transitive step, it corresponds to a substitution
         if (curr.isNull())
         {
-          break;
+          curr = prev;
+          // This is an equality between a variable and a concatention or
+          // constant term (for example see below).
+          // orient the substitution properly
+          if (!eqs[i][1].isConst()
+              && eqs[i][1].getKind() != Kind::STRING_CONCAT)
+          {
+            subs.push_back(eqs[i][1].eqNode(eqs[i][0]));
+          }
+          else
+          {
+            subs.push_back(eqs[i]);
+          }
+          continue;
         }
         Trace("strings-ipc-prefix") << "- Via trans: " << curr << std::endl;
       }
@@ -918,14 +959,21 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
+      // Substitution is applied in reverse order
+      // An example of this inference that uses a substituion is the conflict:
+      //  (str.in_re w (re.++ (re.* re.allchar) (str.to_re "ABC")))
+      //  (= w (str.++ z y x))
+      //  (= x "D")
+      // where we apply w -> (str.++ z y x), then x -> "D" to the first
+      // predicate to obtain a conflict by rewriting (predicate elim).
+      std::reverse(subs.begin(), subs.end());
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
-      std::vector<Node> emp;
       Node concE = psb.applyPredElim(curr,
-                                     emp,
+                                     subs,
                                      MethodId::SB_DEFAULT,
                                      MethodId::SBA_SEQUENTIAL,
-                                     MethodId::RW_REWRITE_EQ_EXT);
+                                     MethodId::RW_EXT_REWRITE);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)
@@ -1150,7 +1198,7 @@ Node InferProofCons::convertTrans(Node eqa,
     Node eqaSym = i == 0 ? eqa[1].eqNode(eqa[0]) : eqa;
     for (uint32_t j = 0; j < 2; j++)
     {
-      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[1]);
+      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[0]);
       if (eqa[i] == eqb[j])
       {
         std::vector<Node> children;

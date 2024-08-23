@@ -114,7 +114,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester alf --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+            run_regression_args: --tester cpc --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
           # GPL versions
           - name: ubuntu:production-gpl

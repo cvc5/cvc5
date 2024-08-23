@@ -807,6 +807,11 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
+      if (!strictModeEnabled())
+      {
+        addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
+        addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
+      }
       addIndexedOperator(Kind::DIVISIBLE, "divisible");
     }
 
@@ -818,6 +823,7 @@ void Smt2State::setLogic(std::string name)
       if (!strictModeEnabled())
       {
         addOperator(Kind::ABS, "abs");
+        addOperator(Kind::DIVISION_TOTAL, "/_total");
       }
     }
 
@@ -892,6 +898,8 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(Kind::SET_MAP, "set.map");
     addOperator(Kind::SET_FILTER, "set.filter");
+    addOperator(Kind::SET_ALL, "set.all");
+    addOperator(Kind::SET_SOME, "set.some");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
     addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");

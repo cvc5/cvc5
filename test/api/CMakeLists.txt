@@ -13,6 +13,7 @@
 # The build system configuration.
 ##
 
+add_subdirectory(c)
 add_subdirectory(cpp)
 if (BUILD_BINDINGS_PYTHON)
   add_subdirectory(python)

@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_INTER_UNION_INCLUSION,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_CONSUME,
@@ -69,8 +71,9 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::RE_LOOP_ELIM:
-      return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+      return rewriteViaReInterUnionInclusion(n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONSUME:
       return rewriteViaStrInReConsume(n);
@@ -1050,6 +1053,75 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
+Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
+{
+  Kind nk = node.getKind();
+  if (nk != Kind::REGEXP_UNION && nk != Kind::REGEXP_INTER)
+  {
+    return Node::null();
+  }
+  std::vector<Node> polRegExp[2];
+  for (const Node& ni : node)
+  {
+    Kind nik = ni.getKind();
+    uint32_t pindex = nik == Kind::REGEXP_COMPLEMENT ? 1 : 0;
+    Node nia = pindex == 1 ? ni[0] : ni;
+    polRegExp[pindex].push_back(nia);
+  }
+  for (const Node& negMem : polRegExp[1])
+  {
+    for (const Node& posMem : polRegExp[0])
+    {
+      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
+      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
+      // inclusion test for conflicting case m1 contains m2
+      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
+      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
+      if (RegExpEntail::regExpIncludes(m1, m2))
+      {
+        NodeManager* nm = nodeManager();
+        Node retNode = nk == Kind::REGEXP_INTER
+                           ? nm->mkNode(Kind::REGEXP_NONE)
+                           : nm->mkNode(Kind::REGEXP_STAR,
+                                        nm->mkNode(Kind::REGEXP_ALLCHAR));
+        std::vector<Node> newChildren;
+        newChildren.push_back(retNode);
+        // Now go back and include all the remaining children that were
+        // not involved. This simplifies proof checking, since we can isolate
+        // which children led to the conflict.
+        // In particular, if Ri includes Rj, then we rewrite
+        //    (re.inter R1 ... (re.comp Ri) ... Rj ... Rn)
+        // to
+        //    (re.inter re.none R1...R{i-1} R{i+1} ... R{j-1} R{j+1} .. Rn)
+        // where the latter will be rewritten to re.none.
+        bool foundPos = false;
+        bool foundNeg = false;
+        for (const Node& nc : node)
+        {
+          if (!foundPos && nc == posMem)
+          {
+            foundPos = true;
+            continue;
+          }
+          if (!foundNeg && nc.getKind() == Kind::REGEXP_COMPLEMENT
+              && nc[0] == negMem)
+          {
+            foundNeg = true;
+            continue;
+          }
+          newChildren.push_back(nc);
+        }
+        if (newChildren.size() > 1)
+        {
+          retNode = nm->mkNode(nk, newChildren);
+        }
+        return retNode;
+      }
+    }
+  }
+  return Node::null();
+}
+
 Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
 {
   Kind nk = node.getKind();
@@ -1194,32 +1266,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  for (const Node& negMem : polRegExp[1])
+  Node retNode = rewriteViaReInterUnionInclusion(node);
+  if (!retNode.isNull())
   {
-    for (const Node& posMem : polRegExp[0])
-    {
-      Node m1 = nk == Kind::REGEXP_INTER ? negMem : posMem;
-      Node m2 = nk == Kind::REGEXP_INTER ? posMem : negMem;
-      // inclusion test for conflicting case m1 contains m2
-      // (re.inter (re.comp R1) R2) --> re.none where R1 includes R2
-      // (re.union R1 (re.comp R2)) --> (re.* re.allchar) where R1 includes R2
-      if (RegExpEntail::regExpIncludes(m1, m2))
-      {
-        Node retNode;
-        if (nk == Kind::REGEXP_INTER)
-        {
-          retNode = nm->mkNode(Kind::REGEXP_NONE);
-        }
-        else
-        {
-          retNode =
-              nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
-        }
-        return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
-      }
-    }
+    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
-  Node retNode;
   if (node_vec.empty())
   {
     if (nk == Kind::REGEXP_INTER)
@@ -1342,7 +1393,11 @@ Node SequencesRewriter::rewriteViaStrInReConcatStarChar(const Node& n)
     return Node::null();
   }
   Node len = RegExpEntail::getFixedLengthForRegexp(n[1][0]);
-  if (len.isNull() || !len.isConst() || len.getConst<Rational>() != Rational(1))
+  if (len.isNull())
+  {
+    return Node::null();
+  }
+  if (!len.isConst() || len.getConst<Rational>() != Rational(1))
   {
     return Node::null();
   }
@@ -1534,6 +1589,7 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
 
 Node SequencesRewriter::rewriteMembership(TNode node)
 {
+  Assert(node.getKind() == Kind::STRING_IN_REGEXP);
   NodeManager* nm = nodeManager();
   Node x = node[0];
   Node r = node[1];
@@ -1546,13 +1602,11 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     Node retNode = nodeManager()->mkConst(false);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EMPTY);
   }
-  else if (x.isConst() && RegExpEntail::isConstRegExp(r))
+  // test for constant evaluation
+  Node eval = rewriteViaStrInReEval(node);
+  if (!eval.isNull())
   {
-    // test whether x in node[1]
-    cvc5::internal::String s = x.getConst<String>();
-    bool test = RegExpEntail::testConstStringInRegExp(s, r);
-    Node retNode = nodeManager()->mkConst(test);
-    return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
+    return returnRewrite(node, eval, Rewrite::RE_IN_EVAL);
   }
   else if (r.getKind() == Kind::REGEXP_ALLCHAR)
   {
@@ -1780,38 +1834,9 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   }
   else
   {
-    std::vector<Node> children;
-    utils::getConcat(r, children);
-    std::vector<Node> mchildren;
-    utils::getConcat(x, mchildren);
-    unsigned prevSize = children.size() + mchildren.size();
-    Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children);
-    if (!scn.isNull())
+    retNode = rewriteViaStrInReConsume(node);
+    if (!retNode.isNull())
     {
-      Trace("regexp-ext-rewrite")
-          << "Regexp : const conflict : " << node << std::endl;
-      return returnRewrite(node, scn, Rewrite::RE_CONSUME_CCONF);
-    }
-    else if ((children.size() + mchildren.size()) != prevSize)
-    {
-      // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
-      // above, we strip components to construct an equivalent membership:
-      // (str.++ xi .. xj) in (re.++ rk ... rl).
-      Node xn = utils::mkConcat(mchildren, stype);
-      Node emptyStr = Word::mkEmptyWord(stype);
-      if (children.empty())
-      {
-        // If we stripped all components on the right, then the left is
-        // equal to the empty string.
-        // e.g. (str.++ "a" x) in (re.++ (str.to.re "a")) ---> (= x "")
-        retNode = xn.eqNode(emptyStr);
-      }
-      else
-      {
-        // otherwise, construct the updated regular expression
-        retNode = nm->mkNode(
-            Kind::STRING_IN_REGEXP, xn, utils::mkConcat(children, rtype));
-      }
       Trace("regexp-ext-rewrite")
           << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
       return returnRewrite(node, retNode, Rewrite::RE_SIMPLE_CONSUME);
@@ -2402,6 +2427,8 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
     }
   }
+  Node maybeRew;
+  Rewrite maybeRule = Rewrite::NONE;
   if (node[1].isConst())
   {
     size_t len = Word::getLength(node[1]);
@@ -2428,7 +2455,9 @@ Node SequencesRewriter::rewriteContains(Node node)
         Node ret = nb.constructNode();
         // str.contains( x ++ y, "A" ) --->
         //   str.contains( x, "A" ) OR str.contains( y, "A" )
-        return returnRewrite(node, ret, Rewrite::CTN_CONCAT_CHAR);
+        // Remember the rewrite, we might find a better rule in following.
+        maybeRew = ret;
+        maybeRule = Rewrite::CTN_CONCAT_CHAR;
       }
       else if (node[0].getKind() == Kind::STRING_REPLACE)
       {
@@ -2692,6 +2721,11 @@ Node SequencesRewriter::rewriteContains(Node node)
       Node ret = nm->mkNode(Kind::EQUAL, emp, node[1]);
       return returnRewrite(node, ret, Rewrite::CTN_REPL_EMPTY);
     }
+  }
+  // If we marked a rewrite but did not yet return it.
+  if (!maybeRew.isNull())
+  {
+    return returnRewrite(node, maybeRew, maybeRule);
   }
 
   return node;

@@ -18,6 +18,7 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
@@ -361,11 +362,66 @@ bool ArithCongruenceManager::propagate(TNode x){
     ConstraintCP negC = c->getNegation();
     Node neg = Constraint::externalExplainByAssertions({negC});
     Node conf = expC.andNode(neg);
-    Node final = flattenAnd(conf);
+    Node finalPf = flattenAnd(conf);
 
     ++(d_statistics.d_conflicts);
-    raiseConflict(final);
-    Trace("arith::congruenceManager") << "congruenceManager found a conflict " << final << std::endl;
+    if (isProofEnabled())
+    {
+      // we have a proof of (=> C L1) and need a proof of
+      // (not (and C L2)), where L1 and L2 are contradictory literals,
+      // stored in proven[1] and neg respectively below.
+      NodeManager* nm = NodeManager::currentNM();
+      std::vector<Node> conj(finalPf.begin(), finalPf.end());
+      CDProof cdp(d_env);
+      Node falsen = nm->mkConst(false);
+      Node finalPfNeg = finalPf.notNode();
+      cdp.addProof(texpC.toProofNode());
+      Node proven = texpC.getProven();
+      Node antec = proven[0];
+      std::vector<Node> antecc(antec.begin(), antec.end());
+      cdp.addStep(antec, ProofRule::AND_INTRO, antecc, {});
+      cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
+      std::shared_ptr<ProofNode> pf;
+      bool success = false;
+      if (neg.getKind() == Kind::NOT && neg[0] == proven[1])
+      {
+        // L1 and L2 are negation of one another, just use CONTRA
+        cdp.addStep(falsen, ProofRule::CONTRA, {proven[1], neg}, {});
+        success = true;
+      }
+      else if (proven[1].getKind() == Kind::EQUAL)
+      {
+        // otherwise typically proven[1] is of the form (= t c) or (= c t) where
+        // neg is the (negation of) a relation involving t.
+        Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
+                                          : proven[1];
+        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        Node res = pc->checkDebug(
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen}, falsen);
+        Assert(!res.isNull());
+        if (!res.isNull())
+        {
+            cdp.addStep(falsen,
+                        ProofRule::MACRO_SR_PRED_TRANSFORM,
+                        {neg, peq},
+                        {falsen});
+            success = true;
+        }
+      }
+      if (success)
+      {
+        cdp.addStep(finalPfNeg, ProofRule::SCOPE, {falsen}, conj);
+        pf = cdp.getProofFor(finalPfNeg);
+      }
+      Assert(pf != nullptr) << "Failed from " << neg << " " << proven[1];
+      raiseConflict(finalPf, pf);
+    }
+    else
+    {
+      raiseConflict(finalPf);
+    }
+    Trace("arith::congruenceManager")
+        << "congruenceManager found a conflict " << finalPf << std::endl;
     return false;
   }
 

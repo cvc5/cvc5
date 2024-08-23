@@ -1283,6 +1283,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_IS_SINGLETON: return "set.is_singleton";
     case Kind::SET_MAP: return "set.map";
     case Kind::SET_FILTER: return "set.filter";
+    case Kind::SET_ALL: return "set.all";
+    case Kind::SET_SOME: return "set.some";
     case Kind::SET_FOLD: return "set.fold";
     case Kind::RELATION_JOIN: return "rel.join";
     case Kind::RELATION_TABLE_JOIN: return "rel.table_join";
@@ -1547,6 +1549,25 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
     return;
   }
   auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::Datatype)
+  {
+    out << "(declare-datatype " << tn << " (";
+    for (size_t i=0, nelements=elements.size(); i<nelements; i++)
+    {
+      Node trn = elements[i];
+      if (i>0)
+      {
+        out << " ";
+      }
+      Assert (trn.getKind() == Kind::UNINTERPRETED_SORT_VALUE);
+      // prints as raw symbol
+      const UninterpretedSortValue& av =
+          trn.getConst<UninterpretedSortValue>();
+      out << "(" << av << ")";
+    }
+    out << "))" << std::endl;
+    return;
+  }
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
