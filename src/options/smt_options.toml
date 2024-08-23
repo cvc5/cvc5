@@ -138,7 +138,7 @@ name   = "SMT Layer"
   help = "Produce full proofs of preprocessing, SAT and theory lemmas."
 [[option.mode.FULL_STRICT]]
   name = "full-proof-strict"
-  help = "Produce full proofs of preprocessing, SAT and theory lemmas. Additionally disable techniques that may lead to incomplete proofs."
+  help = "Produce full proofs of preprocessing, SAT and theory lemmas. Additionally disable techniques that will lead to incomplete proofs."
 
 [[option]]
   name       = "checkProofs"
