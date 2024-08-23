@@ -172,9 +172,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    // if the user requested proofs, proof mode is full
-    SET_AND_NOTIFY_IF_NOT_USER(
-        smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    // if the user requested proofs, proof mode is (at least) full
+    if (opts.smt.proofMode < options::ProofMode::FULL)
+    {
+      SET_AND_NOTIFY(
+          smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    }
     // Default granularity is theory rewrite if we are intentionally using
     // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
     if (!opts.proof.proofGranularityModeWasSetByUser
