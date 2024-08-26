@@ -48,8 +48,8 @@ type_checker_class = "::cvc5::internal::theory::fp::RoundingModeConstantTypeRule
 name                     = "ROUNDINGMODE_TYPE"
 cardinality              = 5
 well_founded             = true
-wellfoundedness-computer = "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())"
-ground-term-computer     = "expr/node_manager.h"
+ground-term              = "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())"
+header                   = "expr/node_manager.h"
 comment                  = "floating-point rounding mode"
 
 [[enumerators]]
