@@ -15,7 +15,7 @@ typechecker_header = "theory/uf/theory_uf_type_rules.h"
 class  = "::cvc5::internal::theory::uf::TheoryUfRewriter"
 header = "theory/uf/theory_uf_rewriter.h"
 
-[[parametrized]]
+[[parameterized]]
 K1       = "APPLY_UF"
 K2       = "VARIABLE" 
 children = "1:"
