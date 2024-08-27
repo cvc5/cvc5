@@ -2155,12 +2155,9 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
                                  int toDepth,
                                  const LetBinding* lbind) const
 {
-  if (!cacheVal.isNull())
+  bool unappliedApp = (!isApplied && !cacheVal.isNull());
+  if (unappliedApp)
   {
-    if (isApplied)
-    {
-      out << "_ ";
-    }
     out << "(";
   }
   out << "@" << id;
@@ -2171,16 +2168,19 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
       out << " ";
       toStream(out, cv, lbind, toDepth);
     }
-    out << ")";
   }
   else if (!cacheVal.isNull())
   {
     out << " ";
     toStream(out, cacheVal, lbind, toDepth);
+  }
+  if (unappliedApp)
+  {
     out << ")";
   }
-  if (isApplied)
+  else if (isApplied)
   {
+    // separates further arguments
     out << " ";
   }
 }
