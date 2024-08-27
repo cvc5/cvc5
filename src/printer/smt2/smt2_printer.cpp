@@ -2155,6 +2155,7 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
                                  int toDepth,
                                  const LetBinding* lbind) const
 {
+  // true if this is a standalone skolem that requires printing with arguments
   bool unappliedApp = (!isApplied && !cacheVal.isNull());
   if (unappliedApp)
   {
