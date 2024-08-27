@@ -1788,6 +1788,7 @@ set(regress_0_tests
   regress0/strings/instance13131.smt2
   regress0/strings/instance15449.smt2
   regress0/strings/is_digit_simple.smt2
+  regress0/strings/issue11168.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -3971,6 +3972,7 @@ macro(cvc5_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
     --lfsc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/lfsc/signatures
+    --carcara-binary ${CMAKE_SOURCE_DIR}/deps/bin/carcara
     --ethos-binary ${CMAKE_SOURCE_DIR}/deps/bin/ethos
     --cpc-sig-dir ${CMAKE_SOURCE_DIR}/proofs/eo
     ${wrapper}
