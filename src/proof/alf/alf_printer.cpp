@@ -549,6 +549,10 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
   options::ioutils::applyPrintSkolemDefinitions(out, true);
+  // We don't need to dagify individual terms, since this is mostly handled
+  // by the global proof letification. Some terms are impacted e.g. terms
+  // printed in DSL rules.
+  options::ioutils::applyDagThresh(out, 0);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
