@@ -1,4 +1,5 @@
 (include "../theories/Ints.eo")
+(include "../programs/Arith.eo")
 
 ; note: We do not currently check that the index of this sort is positive.
 (declare-const BitVec (-> Int Type))

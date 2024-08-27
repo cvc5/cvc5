@@ -598,13 +598,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
                   << v.getType() << "))" << std::endl;
         }
       }
-      // [1] print DSL rules
-      // Note that RARE rules used in this proof are printed in the preamble of
-      // the proof here, on demand.
-      for (ProofRewriteRule r : d_dprs)
-      {
-        printDslRule(out, r);
-      }
+      // do not need to print DSL rules
       if (options().proof.proofPrintReference)
       {
         // [2] print only the universal variables
@@ -857,21 +851,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   bool handled = isHandled(pn);
   if (handled)
   {
-    if (r == ProofRule::DSL_REWRITE)
-    {
-      const std::vector<Node> aargs = pn->getArguments();
-      // if its a DSL rule, remember it
-      Node idn = aargs[0];
-      ProofRewriteRule di;
-      if (rewriter::getRewriteRule(idn, di))
-      {
-        d_dprs.insert(di);
-      }
-      else
-      {
-        Unhandled();
-      }
-    }
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);

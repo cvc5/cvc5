@@ -146,8 +146,6 @@ class AlfPrinter : protected EnvObj
   AlfListNodeConverter d_ltproc;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
-  /** The DSL rules we have seen */
-  std::unordered_set<ProofRewriteRule> d_dprs;
 };
 
 }  // namespace proof
