@@ -560,6 +560,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // We can traverse binders due to the way we print global declare-var, since
   // terms beneath binders will always have their variables in scope and hence
   // can be printed in define commands.
+  // We additionally traverse skolems with this utility.
   LetBinding lbind(d_termLetPrefix, 2, true, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);

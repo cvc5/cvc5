@@ -232,6 +232,8 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   d_keep.insert(n);  // probably not necessary
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
+  // traverse and collect all free variables in this term, which includes
+  // traversing skolem indices.
   std::vector<TNode> visit;
   TNode cur;
   SkolemId sfi;
