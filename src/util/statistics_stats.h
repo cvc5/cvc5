@@ -92,6 +92,7 @@ class HistogramStat
     }
     return *this;
   }
+  /** Get the current value for key `val` */
   uint64_t getValue(Integral val) { return d_data->getValue(val); }
 
  private:
