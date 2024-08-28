@@ -155,6 +155,7 @@ def mkexpr_main():
         except Exception as e:
             print(f"Could not parse file {filename}")
             print(e)
+            exit(1)
 
     cg.fill_typerules_template_data()
     cg.fill_type_checker_includes_template_data()
