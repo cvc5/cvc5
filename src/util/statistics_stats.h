@@ -92,10 +92,8 @@ class HistogramStat
     }
     return *this;
   }
-  uint64_t getValue(Integral val)
-  {
-    return d_data->getValue(val);
-  }
+  uint64_t getValue(Integral val) { return d_data->getValue(val); }
+
  private:
   /** Construct from a pointer to the internal data */
   HistogramStat(stat_type* data) : d_data(data) {}

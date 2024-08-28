@@ -236,7 +236,7 @@ void ResourceManager::spendResource(Resource r)
 
 uint64_t ResourceManager::getResource(Resource r) const
 {
-  return  d_statistics->d_resourceSteps.getValue(r);
+  return d_statistics->d_resourceSteps.getValue(r);
 }
 
 void ResourceManager::spendResource(theory::InferenceId iid)

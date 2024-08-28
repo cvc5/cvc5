@@ -188,12 +188,12 @@ struct StatisticHistogramValue : StatisticBaseValue
   uint64_t getValue(Integral val)
   {
     size_t index = static_cast<size_t>(val);
-    if (index<d_offset)
+    if (index < d_offset)
     {
       return 0;
     }
-    index = index-d_offset;
-    return index<d_hist.size() ? d_hist[index] : 0;
+    index = index - d_offset;
+    return index < d_hist.size() ? d_hist[index] : 0;
   }
 
   /** Actual data */
