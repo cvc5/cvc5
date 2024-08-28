@@ -351,9 +351,9 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
         // if an index term changed, we have to construct a new skolem
         if (hasChanged)
         {
+          // construct an internal app instead
           std::stringstream ss;
           ss << "@" << sfi;
-          // must convert all arguments
           return mkInternalApp(ss.str(), vals, k.getType());
         }
       }
