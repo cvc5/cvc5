@@ -187,13 +187,13 @@ struct StatisticHistogramValue : StatisticBaseValue
   /** Get the value stored for key val */
   uint64_t getValue(Integral val)
   {
-    size_t index = static_cast<size_t>(val);
+    int64_t index = static_cast<int64_t>(val);
     if (index < d_offset)
     {
       return 0;
     }
     index = index - d_offset;
-    return index < d_hist.size() ? d_hist[index] : 0;
+    return static_cast<size_t>(index) < d_hist.size() ? d_hist[index] : 0;
   }
 
   /** Actual data */
