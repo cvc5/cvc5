@@ -115,7 +115,8 @@ bool Env::isSatProofProducing() const
 bool Env::isTheoryProofProducing() const
 {
   return d_proofNodeManager != nullptr
-         && d_options.smt.proofMode == options::ProofMode::FULL;
+         && (d_options.smt.proofMode == options::ProofMode::FULL
+             || d_options.smt.proofMode == options::ProofMode::FULL_STRICT);
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
