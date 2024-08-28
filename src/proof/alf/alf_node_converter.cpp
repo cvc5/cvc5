@@ -348,12 +348,14 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
           v = convert(v);
           hasChanged = hasChanged || v != orig;
         }
+        // if an index term changed, we have to construct a new skolem
         if (hasChanged)
         {
-          // do not sort the indices
-          return sm->mkSkolemFunction(sfi, vals, false);
+          return sm->mkSkolemFunction(sfi, vals);
         }
       }
+      // otherwise we return itself, this will be printed in its full
+      // definition since applyPrintSkolemDefinitions is set to true
       return k;
     }
   }
