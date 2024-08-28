@@ -91,7 +91,7 @@ static void toStreamRational(std::ostream& out,
       }
       if (isReal)
       {
-        out << "/1";
+        out << ".0";
       }
     }
     else
