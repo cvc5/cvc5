@@ -791,13 +791,15 @@ std::vector<Node> PropEngine::getUnsatCoreLemmas()
         output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;
       }
       output(OutputTag::UNSAT_CORE_LEMMAS) << " :timestamp " << timestamp;
-      ss << id << ", " << timestamp << std::endl;
       output(OutputTag::UNSAT_CORE_LEMMAS) << ")" << std::endl;
+      // for trace below
+      ss << id << ", " << timestamp << std::endl;
     }
     output(OutputTag::UNSAT_CORE_LEMMAS)
         << ";; unsat core lemmas end" << std::endl;
-    Trace("ajr-temp") << "TIMESTAMPS" << std::endl;
-    Trace("ajr-temp") << ss.str() << std::endl;
+    // print in csv form for debugging
+    Trace("ocl-timestamp") << "TIMESTAMPS" << std::endl;
+    Trace("ocl-timestamp") << ss.str() << std::endl;
   }
   return lems;
 }

@@ -282,7 +282,10 @@ class PropPfManager : protected EnvObj
   bool d_trackLemmaClauseIds;
   /** Mapping lemma clauses to inference identifiers */
   context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
-  /** */
+  /** 
+   * Mapping lemma clauses to a timestamp. Currently, the timestamp corresponds
+   * to the number of calls to full check we have seen thus far.
+   */
   context::CDHashMap<Node, uint64_t> d_lemmaClauseTimestamp;
   /** The current identifier */
   theory::InferenceId d_currLemmaId;

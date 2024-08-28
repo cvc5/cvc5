@@ -154,6 +154,7 @@ class ResourceManager
    */
   void spendResource(Resource r);
   /**
+   * Gets the number of resources spent for r so far.
    */
   uint64_t getResource(Resource r) const;
   /**
