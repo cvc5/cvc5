@@ -406,6 +406,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
                                                         : toString(id))
                       << std::endl;
   std::vector<Node> vcs;
+  // the implied substitution if we have a rule with free variables on RHS
+  std::vector<Node> impliedVs;
+  std::vector<Node> impliedSs;
   Node transEq;
   ProvenInfo pic;
   if (id == RewriteProofStatus::CONG)
@@ -577,6 +580,25 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       Trace("rpc-debug2") << "...fail (no construct conclusion)" << std::endl;
       return false;
     }
+    if (expr::hasBoundVar(stgt))
+    {
+      rpr.getConditionalDefinitions(vars, subs, impliedVs, impliedSs);
+      Trace("rpc-debug2") << " Implied definitions: " << impliedVs << " -> "
+                          << impliedSs << std::endl;
+      if (!impliedVs.empty())
+      {
+        // evaluate them
+        for (Node& s : impliedSs)
+        {
+          s = evaluate(s, {}, {});
+        }
+        stgt = expr::narySubstitute(stgt, impliedVs, impliedSs);
+        Trace("rpc-debug2") << " Implied definitions (post-eval): " << impliedVs
+                            << " -> " << impliedSs << std::endl;
+        Trace("rpc-debug2")
+            << "Substituted RHS (post-eval): " << stgt << std::endl;
+      }
+    }
     // inflection substitution, used if conclusion does not exactly match
     std::unordered_map<Node, std::pair<Node, Node>> isubs;
     if (stgt != target[1])
@@ -603,7 +625,20 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     // do its conditions hold?
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
-    if (!rpr.getObligations(vars, subs, vcs))
+    if (!impliedVs.empty())
+    {
+      std::vector<Node> vsall = vars;
+      std::vector<Node> subsall = subs;
+      vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
+      subsall.insert(subsall.end(), impliedSs.begin(), impliedSs.end());
+      if (!rpr.getObligations(vsall, subsall, vcs))
+      {
+        // cannot get conditions, likely due to failed side condition
+        Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
+        return false;
+      }
+    }
+    else if (!rpr.getObligations(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
@@ -686,6 +721,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   {
     pi->d_vars = vars;
     pi->d_subs = subs;
+    if (!impliedVs.empty())
+    {
+      pi->d_vars.insert(pi->d_vars.end(), impliedVs.begin(), impliedVs.end());
+      pi->d_subs.insert(pi->d_subs.end(), impliedSs.begin(), impliedSs.end());
+    }
   }
   Trace("rpc-debug2") << "...target proved by " << d_pcache[target].d_id
                       << std::endl;

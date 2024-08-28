@@ -223,6 +223,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     {
       applyPass("fun-def-fmf", ap);
     }
+    if (options().quantifiers.preSkolemQuant
+        != options::PreSkolemQuantMode::OFF)
+    {
+      // needed since quantifier preprocessing may introduce skolems that were
+      // solved for already
+      applyPass("apply-substs", ap);
+    }
   }
   if (!options().strings.stringLazyPreproc)
   {

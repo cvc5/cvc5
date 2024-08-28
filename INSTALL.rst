@@ -59,7 +59,17 @@ can be found in ``<build_dir>/lib``.
 Cross-compiling for Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Cross-compiling cvc5 with Mingw-w64 can be done as follows:
+Cross-compiling cvc5 for Windows requires the POSIX version of MinGW-w64.
+On some Linux distributions, this is the default variant. On others, like Ubuntu,
+you may need to set it manually as follows:
+
+.. code:: bash
+
+  sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+Once the POSIX variant of MinGW-w64 is installed and set on your system,
+you can cross-compile cvc5 as follows:
 
 .. code:: bash
 

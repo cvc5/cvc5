@@ -83,8 +83,16 @@ operator SET_MAP           2  "set map function"
 # and returns the same set excluding those elements that do not satisfy the predicate
 operator SET_FILTER        2  "set filter operator"
 
+# set.all operator is a predicate that holds iff all elements in a given set satisfy the the given predicate.
+# (set.all p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
+operator SET_ALL           2  "set all operator"
+
+# set.some operator is a predicate that holds iff at least one element in a given set satisfies the the given predicate.
+# (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
+operator SET_SOME           2  "set some operator"
+
 # set.fold operator combines elements of a set into a single value.
-# (set.fold f t A) folds the elements of bag A starting with term t and using
+# (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
 #  f: a binary operation of type (-> T1 T2 T2)
 #  t: an initial value of type T2
@@ -129,7 +137,7 @@ operator RELATION_JOIN_IMAGE   2  "relation join image"
 operator RELATION_IDEN 	   	   1  "relation identity"
 
 typerule SET_UNION          ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
-typerule SET_INTER   ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
+typerule SET_INTER          ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_MINUS          ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_SUBSET         ::cvc5::internal::theory::sets::SubsetTypeRule
 typerule SET_MEMBER         ::cvc5::internal::theory::sets::MemberTypeRule
@@ -145,6 +153,8 @@ typerule SET_IS_SINGLETON   ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_IS_EMPTY       ::cvc5::internal::theory::sets::IsSetTypeRule
 typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
+typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllSomeTypeRule
+typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

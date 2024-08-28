@@ -1393,7 +1393,11 @@ Node SequencesRewriter::rewriteViaStrInReConcatStarChar(const Node& n)
     return Node::null();
   }
   Node len = RegExpEntail::getFixedLengthForRegexp(n[1][0]);
-  if (len.isNull() || !len.isConst() || len.getConst<Rational>() != Rational(1))
+  if (len.isNull())
+  {
+    return Node::null();
+  }
+  if (!len.isConst() || len.getConst<Rational>() != Rational(1))
   {
     return Node::null();
   }
@@ -1585,6 +1589,7 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
 
 Node SequencesRewriter::rewriteMembership(TNode node)
 {
+  Assert(node.getKind() == Kind::STRING_IN_REGEXP);
   NodeManager* nm = nodeManager();
   Node x = node[0];
   Node r = node[1];
@@ -1597,13 +1602,11 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     Node retNode = nodeManager()->mkConst(false);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EMPTY);
   }
-  else if (x.isConst() && RegExpEntail::isConstRegExp(r))
+  // test for constant evaluation
+  Node eval = rewriteViaStrInReEval(node);
+  if (!eval.isNull())
   {
-    // test whether x in node[1]
-    cvc5::internal::String s = x.getConst<String>();
-    bool test = RegExpEntail::testConstStringInRegExp(s, r);
-    Node retNode = nodeManager()->mkConst(test);
-    return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
+    return returnRewrite(node, eval, Rewrite::RE_IN_EVAL);
   }
   else if (r.getKind() == Kind::REGEXP_ALLCHAR)
   {
@@ -1831,38 +1834,9 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   }
   else
   {
-    std::vector<Node> children;
-    utils::getConcat(r, children);
-    std::vector<Node> mchildren;
-    utils::getConcat(x, mchildren);
-    unsigned prevSize = children.size() + mchildren.size();
-    Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children);
-    if (!scn.isNull())
+    retNode = rewriteViaStrInReConsume(node);
+    if (!retNode.isNull())
     {
-      Trace("regexp-ext-rewrite")
-          << "Regexp : const conflict : " << node << std::endl;
-      return returnRewrite(node, scn, Rewrite::RE_CONSUME_CCONF);
-    }
-    else if ((children.size() + mchildren.size()) != prevSize)
-    {
-      // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
-      // above, we strip components to construct an equivalent membership:
-      // (str.++ xi .. xj) in (re.++ rk ... rl).
-      Node xn = utils::mkConcat(mchildren, stype);
-      Node emptyStr = Word::mkEmptyWord(stype);
-      if (children.empty())
-      {
-        // If we stripped all components on the right, then the left is
-        // equal to the empty string.
-        // e.g. (str.++ "a" x) in (re.++ (str.to.re "a")) ---> (= x "")
-        retNode = xn.eqNode(emptyStr);
-      }
-      else
-      {
-        // otherwise, construct the updated regular expression
-        retNode = nm->mkNode(
-            Kind::STRING_IN_REGEXP, xn, utils::mkConcat(children, rtype));
-      }
       Trace("regexp-ext-rewrite")
           << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
       return returnRewrite(node, retNode, Rewrite::RE_SIMPLE_CONSUME);
@@ -2453,6 +2427,8 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
     }
   }
+  Node maybeRew;
+  Rewrite maybeRule = Rewrite::NONE;
   if (node[1].isConst())
   {
     size_t len = Word::getLength(node[1]);
@@ -2479,7 +2455,9 @@ Node SequencesRewriter::rewriteContains(Node node)
         Node ret = nb.constructNode();
         // str.contains( x ++ y, "A" ) --->
         //   str.contains( x, "A" ) OR str.contains( y, "A" )
-        return returnRewrite(node, ret, Rewrite::CTN_CONCAT_CHAR);
+        // Remember the rewrite, we might find a better rule in following.
+        maybeRew = ret;
+        maybeRule = Rewrite::CTN_CONCAT_CHAR;
       }
       else if (node[0].getKind() == Kind::STRING_REPLACE)
       {
@@ -2743,6 +2721,11 @@ Node SequencesRewriter::rewriteContains(Node node)
       Node ret = nm->mkNode(Kind::EQUAL, emp, node[1]);
       return returnRewrite(node, ret, Rewrite::CTN_REPL_EMPTY);
     }
+  }
+  // If we marked a rewrite but did not yet return it.
+  if (!maybeRew.isNull())
+  {
+    return returnRewrite(node, maybeRew, maybeRule);
   }
 
   return node;
