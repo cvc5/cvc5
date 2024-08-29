@@ -13,7 +13,7 @@ Building cvc5
     make check       # to run default set of tests
     make install     # to install into the prefix specified above
 
-All binaries are built into ``<build_dir>/bin``, the cvc5 library is built into
+All binaries are built into ``<build_dir>/bin``, the cvc5 libraries are built into
 ``<build_dir>/lib``.
 
 
@@ -51,12 +51,25 @@ install the required packages for building cvc5:
   pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
 
 Clone the cvc5 repository and follow the general build steps above.
+The built binary ``cvc5.exe`` and the DLL libraries are located in
+``<build_dir>/bin``. The import libraries and the static libraries
+can be found in ``<build_dir>/lib``.
 
 
 Cross-compiling for Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Cross-compiling cvc5 with Mingw-w64 can be done as follows:
+Cross-compiling cvc5 for Windows requires the POSIX version of MinGW-w64.
+On some Linux distributions, this is the default variant. On others, like Ubuntu,
+you may need to set it manually as follows:
+
+.. code:: bash
+
+  sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+  sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+Once the POSIX variant of MinGW-w64 is installed and set on your system,
+you can cross-compile cvc5 as follows:
 
 .. code:: bash
 
@@ -65,8 +78,9 @@ Cross-compiling cvc5 with Mingw-w64 can be done as follows:
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
 
-The built binary ``cvc5.exe`` is located in ``<build_dir>/bin`` and the cvc5
-library can be found in ``<build_dir>/lib``.
+The built binary ``cvc5.exe`` and the DLL libraries are located in
+``<build_dir>/bin``. The import libraries and the static libraries
+can be found in ``<build_dir>/lib``.
 
 
 WebAssembly Compilation

@@ -14,6 +14,7 @@ from libcpp.pair cimport pair
 from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 
 from cvc5 cimport cout
 from cvc5 cimport stringstream
@@ -3591,7 +3592,8 @@ cdef class Solver:
         return proofs
 
     def proofToString(self, proof,
-                      format = ProofFormat.DEFAULT):
+                      format = ProofFormat.DEFAULT,
+                      assertionNames = {}):
         """
             Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.
@@ -3603,11 +3605,18 @@ cdef class Solver:
                           :py:meth:`getProof()`.
             :param format: The proof format used to print the proof.  Must be
                           "None" if the proof is not a full proof.
+            :param assertionNames: Mapping between assertions and names, if
+                                   they were  given by the user.  This is used
+                                   by the Alethe proof format.
 
             :return: The proof printed in the current format.
         """
+        cdef map[c_Term, string] assertionMap
+        for k in assertionNames:
+            assertionMap[(<Term> k).cterm] = assertionNames[k].encode('utf-8')
         return self.csolver.proofToString((<Proof?> proof).cproof,
-                                         <c_ProofFormat> format.value)
+                                         <c_ProofFormat> format.value,
+                                         assertionMap)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """

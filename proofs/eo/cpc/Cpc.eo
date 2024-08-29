@@ -1,0 +1,333 @@
+; =============================================================================
+;
+; This is the official development version of the Eunoia signature for the
+; Cooperating Proof Calculus. It is a faithful formalization of cvc5's theory
+; signatures and proof rules.
+;
+; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
+; particular, it contains many extensions, including non-standard theories as
+; well as non-standard extensions of existing theories. Moreover, some standard
+; theory symbols have subtle differences with the SMT-LIB standard.
+;
+; For examples of the latter:
+; - Many arithmetic symbols in cvc5 such as +, *, >= operate on *mixed*
+; arithmetic. That is, they can be applied to mixtures of Real and Int.
+; - Most associative operators are modelled as variadic (modelled in Eunoia as
+; :left-assoc-nil and :right-assoc-nil) instead of being seen as syntax sugar
+; for an associative chain that does not distinguish a nil terminator (e.g.
+; :left-assoc and :right-assoc). Examples of these operators include or, bvand,
+; +, and so on.
+; - cvc5 generalizes strings to sequences, so that strings are defined to be
+; (Seq Char).
+; - We model quantifiers (forall, exists) using explicit function symbols taking
+; lists to model their binders.
+; Whenever applicable, these differences are marked with disclaimer: comments.
+;
+; Furthermore, this signature is designed to capture the exact definition of
+; cvc5's proof API. That is, Proof objects in our API are expected to have the
+; same expected arguments and premises as their formal definition in this
+; signature.
+;
+; This signature however intentionally does *not* formalize any proof rules that
+; are prefixed by MACRO_. These can be eliminated using the cvc5 option
+; --proof-granularity=theory-rewrite or --proof-granularity=dsl-rewrite.
+;
+; The cases of ProofRule::THEORY_REWRITE are each formalized as individual
+; proof rules. Similarly, each theory rewrite with a ProofRewriteRule that
+; is prefixed by MACRO_ are not formalized in this signature and will not
+; appear in final proofs.
+;
+; The cases of ProofRule::DSL_REWRITE are by default provided on demand in
+; the preamble of the proof that is output by cvc5.
+;
+; The rules ProofRule::TRUST and ProofRule::TRUST_THEORY_REWRITE are output in
+; proofs using a catch-all rule trust defined at the end of this file. This
+; rule is also used for any ProofRule which the Eunoia signature does not
+; currently support. In cvc5's proof ouput, an Eunoia comment will be displayed
+; above an application of this rule to indicate diagnostic information on the
+; source of this inference, in the format of a TrustId, tracked internally in
+; cvc5 to classify the source of the incompleteness.
+;
+; !!! NOTE: proofs using any instance of the trust rule should be considered
+; incomplete and not having a formal justification. The Ethos checker will
+; output "incomplete" if any trust step appears in a proof.
+;
+; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
+; also noted when applicable by disclaimer:.
+; 
+; =============================================================================
+
+(include "./rules/Builtin.eo")
+(include "./rules/Booleans.eo")
+(include "./rules/Arrays.eo")
+(include "./rules/Uf.eo")
+(include "./rules/Arith.eo")
+(include "./theories/FloatingPoints.eo")
+(include "./rules/Transcendentals.eo")
+(include "./rules/BitVectors.eo")
+(include "./rules/Strings.eo")
+(include "./rules/Sets.eo")
+(include "./theories/Bags.eo")
+(include "./theories/FiniteFields.eo")
+(include "./rules/Quantifiers.eo")
+(include "./theories/Datatypes.eo")
+(include "./theories/SepLogic.eo")
+
+; disclaimer: >
+;   All symbols prefixed by @ are not part of the SMT-LIB standard
+;   and are used to model cvc5's internal symbols, including its skolems,
+;   other internally introduced terms, and extensions.
+
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.card (-> Type Int Bool))
+(declare-type @ho-elim-sort (Type))
+(declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
+
+; program: $run_evaluate
+; args:
+; - t S: The term to evaluate.
+; conclusion: The result of evaluating t.
+(program $run_evaluate ((T Type) (S Type) 
+                       (x T) (y T) (z S) (ys S :list)
+                       (b Bool) (n Int) (m Int)
+                       (xb (BitVec m)) (ybs (BitVec m) :list)
+                       (xs (Seq T)) (yss (Seq T) :list))
+    (S) S
+    (
+      ; core
+      (($run_evaluate (= x y))             (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
+                                           (eo::define ((res (eo::is_eq ex ey)))
+                                           (eo::ite (eo::and (eo::is_q ex) (eo::is_q ey)) res
+                                           (eo::ite (eo::and (eo::is_z ex) (eo::is_z ey)) res
+                                           (eo::ite (eo::and (eo::is_bin ex) (eo::is_bin ey)) res
+                                           (eo::ite (eo::and (eo::is_str ex) (eo::is_str ey)) res
+                                           (eo::ite (eo::and (eo::is_bool ex) (eo::is_bool ey)) res
+                                             (= ex ey))))))))))
+      (($run_evaluate (not b))             (eo::not ($run_evaluate b)))
+      (($run_evaluate (ite b x y))         (eo::ite ($run_evaluate b) ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (or x ys))           (eo::or ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (and x ys))          (eo::and ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (xor x y))           (eo::xor ($run_evaluate x) ($run_evaluate y)))
+  
+      ; arithmetic
+      (($run_evaluate (< x z))             (eo::is_neg ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
+      (($run_evaluate (<= x z))            (eo::define ((d ($arith_eval_qsub ($run_evaluate x) ($run_evaluate z))))
+                                             (eo::or (eo::is_neg d) (eo::is_eq d 0/1))))
+      (($run_evaluate (> x z))             (eo::is_neg ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
+      (($run_evaluate (>= x z))            (eo::define ((d ($arith_eval_qsub ($run_evaluate z) ($run_evaluate x))))
+                                             (eo::or (eo::is_neg d) (eo::is_eq d 0/1))))
+      (($run_evaluate (+ x ys))            ($arith_eval_add ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (- x z))             ($arith_eval_sub ($run_evaluate x) ($run_evaluate z)))
+      (($run_evaluate (* x ys))            ($arith_eval_mul ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (- x))               (eo::neg ($run_evaluate x)))
+      (($run_evaluate (/ x y))             (eo::qdiv (eo::to_q ($run_evaluate x)) (eo::to_q ($run_evaluate y))))
+      (($run_evaluate (/_total x y))       (eo::define ((d (eo::to_q ($run_evaluate y))))
+                                            (eo::ite (eo::is_eq d 0/1) 0/1 (eo::qdiv (eo::to_q ($run_evaluate x)) d))))
+      (($run_evaluate (div x y))           (eo::zdiv ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (div_total x y))     (eo::define ((d ($run_evaluate y)))
+                                             (eo::ite (eo::is_eq d 0) 0 (eo::zdiv ($run_evaluate x) d))))
+      (($run_evaluate (mod x y))           (eo::zmod ($run_evaluate x) ($run_evaluate y)))
+      (($run_evaluate (mod_total x y))     (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
+                                            (eo::ite (eo::is_eq ey 0) ex (eo::zmod ex ey)))))
+      (($run_evaluate (to_real x))         (eo::to_q ($run_evaluate x)))
+      (($run_evaluate (to_int x))          (eo::to_z ($run_evaluate x)))
+      (($run_evaluate (is_int x))          (eo::is_eq (eo::to_q (eo::to_z x)) (eo::to_q x)))
+      (($run_evaluate (int.log2 x))        ($arith_eval_int_log_2 ($run_evaluate x)))
+      (($run_evaluate (int.ispow2 x))      ($arith_eval_is_pow_2 ($run_evaluate x)))
+
+      ; strings
+      (($run_evaluate (str.++ xs yss))     (eo::concat ($run_evaluate xs) ($run_evaluate yss)))
+      (($run_evaluate (str.len x))         (eo::len ($run_evaluate x)))
+      (($run_evaluate (str.substr x n m))  (eo::define ((r ($run_evaluate n)))
+                                             (eo::extract ($run_evaluate x) r (eo::add r ($run_evaluate m) -1))))
+      (($run_evaluate (str.contains x y))  (eo::not (eo::is_neg (eo::find ($run_evaluate x) ($run_evaluate y)))))
+      (($run_evaluate (str.replace x y z)) (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
+                                           (eo::define ((r (eo::find (eo::to_str ex) (eo::to_str ey)))) ; ensure string literals
+                                             (eo::ite (eo::is_neg r)
+                                               ex
+                                               (eo::concat 
+                                                 (eo::extract ex 0 (eo::add r -1)) 
+                                                 ($run_evaluate z) 
+                                                 (eo::extract ex (eo::add r (eo::len ey)) (eo::len ex)))
+                                             )
+                                           ))))
+      (($run_evaluate (str.indexof x y n)) (eo::define ((en ($run_evaluate n)))
+                                           (eo::ite (eo::is_neg en) -1
+                                             (eo::define ((ex ($run_evaluate x)))
+                                             (eo::define ((exl (eo::len ex)))
+                                             (eo::ite (eo::gt en exl) -1
+                                               (eo::define ((exs (eo::extract ex n exl)))
+                                               (eo::define ((ey ($run_evaluate y)))
+                                               (eo::define ((r (eo::find (eo::to_str exs) (eo::to_str ey))))
+                                               (eo::ite (eo::is_neg r) r (eo::add n r)))))))))))
+      (($run_evaluate (str.to_code x))     (eo::define ((ex ($run_evaluate x)))
+                                             (eo::ite (eo::is_eq (eo::len ex) 1) (eo::to_z ex) -1)))
+      (($run_evaluate (str.from_code x))   (eo::define ((ex ($run_evaluate x)))
+                                             (eo::ite ($str_is_code_point ex) (eo::to_str x) "")))
+
+      ; bitvectors
+      (($run_evaluate (bvnot xb))          (eo::not ($run_evaluate xb)))
+      (($run_evaluate (bvneg xb))          (eo::neg ($run_evaluate xb)))
+      (($run_evaluate (bvadd xb ybs))      (eo::add ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvmul xb ybs))      (eo::mul ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvand xb ybs))      (eo::and ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvor xb ybs))       (eo::or ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (concat x ys))       (eo::concat ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (bvsub x y))         (eo::add ($run_evaluate x) (eo::neg ($run_evaluate y))))
+      (($run_evaluate (extract m n x))     (eo::extract ($run_evaluate x) n m)) ; note swap n/m
+      (($run_evaluate (bvult x y))         ($run_evaluate (< (eo::to_z x) (eo::to_z y))))
+      (($run_evaluate (bvule x y))         ($run_evaluate (<= (eo::to_z x) (eo::to_z y))))
+      (($run_evaluate (bvugt x y))         ($run_evaluate (> (eo::to_z x) (eo::to_z y))))
+      (($run_evaluate (bvuge x y))         ($run_evaluate (>= (eo::to_z x) (eo::to_z y))))
+      (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
+      (($run_evaluate (@bvsize x))         ($bv_bitwidth (eo::typeof x)))
+  
+      (($run_evaluate z)                   z)
+    )
+)
+
+; rule: evaluate
+; implements: ProofRule::EVALUATE
+; args:
+; - t U: The term to evaluate.
+; conclusion: The term t is equal to what it evaluates to.
+(declare-rule evaluate ((U Type) (t U))
+  :args (t)
+  :conclusion (= t ($run_evaluate t))
+)
+
+; rule: arith_poly_norm
+; implements: ProofRule::ARITH_POLY_NORM
+; args:
+; - a U: The left-hand side of the equality.
+; - b U: The right-hand side of the equality.
+; requires: >
+;   That the arithmetic/bitvector terms a and b are equal up polynomial
+;   normalization.
+; note: >
+;   The current implementation of $is_poly_norm does not support bitvectors.
+;   Therefore, cvc5 will not output this rule for bitvector proofs; instead, it
+;   will output a trust rule.
+; conclusion: The given equality.
+(declare-rule arith_poly_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires ((($is_poly_norm a b) true))
+  :conclusion (= a b)
+)
+
+; define: $is_poly_norm_rel
+; args:
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
+; return: >
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign. For bitvectors, they must be set to
+;   1. Returns false for any other relation.
+(program $is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+  (Bool) Bool
+  (
+    (($is_poly_norm_rel (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (= cx cy))  (eo::ite (eo::and (eo::is_bin cx) (eo::is_bin cy))
+                                      (eo::and (= cx (eo::to_bin (eo::len cx) 1)) (= cy (eo::to_bin (eo::len cy) 1)))
+                                      (eo::and ($is_arith_type (eo::typeof cx)) ($is_arith_type (eo::typeof cy)))))
+    (($is_poly_norm_rel (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel b)          false)
+  )
+)
+
+; rule: arith_poly_norm_rel
+; implements: ProofRule::ARITH_POLY_NORM_REL
+; premises:
+; - eq Bool: >
+;   An equality stating that (- x1 x2) and (- y1 y2) are equal modulo polynomial
+;   normalization and scaling factors cx and cy.
+; args:
+; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
+; requires: >
+;   That r is a polynomial normalization relation. If r is an arithmetic
+;   inequality, the scaling factors must have the same sign. For bitvectors,
+;   they must be set to 1.
+; conclusion: The given equality.
+(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
+  :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
+  :args (r)
+  :requires ((($is_poly_norm_rel (r cx cy)) true))
+  :conclusion (= (r x1 x2) (r y1 y2))
+)
+
+; define: $get_aci_normal_form
+; args:
+; - t S: The term to compute the normal form for.
+; return: >
+;   The result of normalizing t for the proof rule aci_norm. In
+;   particular, if t is an application of a known operator that has the property
+;   of being either associative and commutative (resp. associative) we call
+;   the method $get_aci_norm (resp. $get_a_norm).
+(define $get_aci_normal_form ((S Type :implicit) (t S))
+  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
+              (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+              (xf1 (FiniteField m)) (xf2 (FiniteField m) :list)
+              (xs1 (Seq U)) (xs2 (Seq U) :list))
+    t
+    (
+      ((or x1 x2)        ($get_aci_norm t))
+      ((and x1 x2)       ($get_aci_norm t))
+      ((sep x1 x2)       ($get_aci_norm t))
+      ((re.union x1 x2)  ($get_aci_norm t))
+      ((re.inter x1 x2)  ($get_aci_norm t))
+      ((bvor xb1 xb2)    ($get_aci_norm t))
+      ((bvand xb1 xb2)   ($get_aci_norm t))
+      ((ff.add xf1 xf2)  ($get_aci_norm t))
+      ((ff.mul xf1 xf2)  ($get_aci_norm t))
+      ((str.++ xs1 xs2)  ($get_a_norm t))
+      ((re.++ x1 x2)     ($get_a_norm t))
+      (x                 x)
+    )
+  )
+)
+
+; rule: aci_norm
+; implements: ProofRule::ACI_NORM
+; args:
+; - eq Bool: The equality to be proven by this rule.
+; requires: >
+;   That computing the normal forms via $get_aci_normal_form of the sides of the
+;   given equality between terms a and b suffices to show that a and b are
+;   equivalent. Note that we need three checks. The first two handle the cases
+;   where one side is treated as a singleton child of the other side. The
+;   remaining case checks where both terms are not singletons.
+; conclusion: The given equality.
+(declare-rule aci_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((eo::define ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
+              (eo::ite (eo::is_eq an b) true
+              (eo::ite (eo::is_eq a bn) true
+                (eo::is_eq an bn)))) true))
+  :conclusion (= a b)
+)
+
+; rule: trust
+; premsies:
+; - P: A conjunction of the premises passed to this rule.
+; args:
+; - F Bool: The proven formula, which should be implied by P.
+; conclusion: The given formula F.
+; note: >
+;   This rule is not sound. Any proof involving this rule should be
+;   considered incomplete. We use this rule when encountering ProofRule::TRUST,
+;   ProofRule::TRUST_THEORY_REWRITE, or any other rule that is not currently
+;   formalized in the Eunoia signature.
+(declare-rule trust ((P Bool) (F Bool))
+    :premise-list P and
+    :args (F)
+    :conclusion F
+    :sorry
+)

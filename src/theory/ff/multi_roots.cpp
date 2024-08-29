@@ -24,6 +24,7 @@
 #include <CoCoA/SparsePolyOps-MinPoly.H>
 #include <CoCoA/SparsePolyOps-RingElem.H>
 #include <CoCoA/SparsePolyOps-ideal.H>
+#include <CoCoA/ring.H>
 
 #include <algorithm>
 #include <memory>
@@ -39,7 +40,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-AssignmentEnumerator::~AssignmentEnumerator(){};
+AssignmentEnumerator::~AssignmentEnumerator() {};
 
 ListEnumerator::ListEnumerator(const std::vector<CoCoA::RingElem>&& options)
     : d_remainingOptions(std::move(options))
@@ -47,7 +48,7 @@ ListEnumerator::ListEnumerator(const std::vector<CoCoA::RingElem>&& options)
   std::reverse(d_remainingOptions.begin(), d_remainingOptions.end());
 }
 
-ListEnumerator::~ListEnumerator(){};
+ListEnumerator::~ListEnumerator() {};
 
 std::optional<CoCoA::RingElem> ListEnumerator::next()
 {
@@ -113,7 +114,8 @@ std::string RoundRobinEnumerator::name() { return "round-robin"; }
 bool isUnsat(const CoCoA::ideal& ideal)
 {
   const auto& gens = CoCoA::GBasis(ideal);
-  return !(gens.size() > 1 || CoCoA::deg(gens[0]) > 0);
+  return gens.size() == 1 && !CoCoA::IsZero(gens[0])
+         && CoCoA::deg(gens[0]) <= 0;
 }
 
 template <typename T>

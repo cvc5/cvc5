@@ -1414,7 +1414,7 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::ALETHE:
       mode = options::ProofFormatMode::ALETHE;
       break;
-    case modes::ProofFormat::ALF: mode = options::ProofFormatMode::ALF; break;
+    case modes::ProofFormat::CPC: mode = options::ProofFormatMode::CPC; break;
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
@@ -1656,8 +1656,7 @@ void SolverEngine::getRelevantQuantTermVectors(
     bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
-  Assert(d_env->getOptions().smt.produceProofs
-         && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
+  Assert(d_env->isTheoryProofProducing());
   // note that we don't have to connect the SAT proof to the input assertions,
   // and preprocessing proofs don't impact what instantiations are used
   d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
@@ -1668,7 +1667,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
 {
   Trace("smt") << "SMT getProof()\n";
   const Options& opts = d_env->getOptions();
-  if (!opts.smt.produceProofs || opts.smt.proofMode != options::ProofMode::FULL)
+  if (!opts.smt.produceProofs || !d_env->isTheoryProofProducing())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
@@ -1762,8 +1761,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
   // Extract the skolemizations and instantiations
   std::map<Node, std::vector<Node>> sks;
   std::map<Node, InstantiationList> rinsts;
-  if ((d_env->getOptions().smt.produceProofs
-       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
+  if ((d_env->getOptions().smt.produceProofs && d_env->isTheoryProofProducing())
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize skolemizations and instantiations based on proof manager

@@ -22,9 +22,6 @@
 
 #include <cvc5/cvc5.h>
 
-#include <iostream>
-#include <sstream>
-
 using namespace cvc5;
 using namespace std;
 

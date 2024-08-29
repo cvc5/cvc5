@@ -16,6 +16,7 @@
 #include "prop/prop_proof_manager.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
@@ -63,6 +64,9 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
+      d_trackLemmaClauseIds(false),
+      d_lemmaClauseIds(userContext()),
+      d_currLemmaId(theory::InferenceId::NONE),
       d_satPm(nullptr)
 {
   // add trivial assumption. This is so that we can check the that the prop
@@ -72,6 +76,7 @@ PropPfManager::PropPfManager(Env& env,
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
+  d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
@@ -83,7 +88,9 @@ void PropPfManager::convertAndAssert(theory::InferenceId id,
                                      bool input,
                                      ProofGenerator* pg)
 {
+  d_currLemmaId = id;
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
+  d_currLemmaId = theory::InferenceId::NONE;
   // if input, register the assertion in the proof manager
   if (input)
   {
@@ -137,6 +144,17 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
     }
   }
   return usedLemmas;
+}
+
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const
+{
+  context::CDHashMap<Node, theory::InferenceId>::const_iterator it =
+      d_lemmaClauseIds.find(lem);
+  if (it != d_lemmaClauseIds.end())
+  {
+    return it->second;
+  }
+  return theory::InferenceId::NONE;
 }
 
 std::vector<Node> PropPfManager::getMinimizedAssumptions()
@@ -444,6 +462,10 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   else
   {
     d_lemmaClauses.insert(normClauseNode);
+    if (d_trackLemmaClauseIds)
+    {
+      d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
+    }
   }
   if (d_satPm)
   {

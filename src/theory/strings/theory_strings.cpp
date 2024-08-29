@@ -176,7 +176,7 @@ void TheoryStrings::finishInit()
   d_valuation.setIrrelevantKind(Kind::STRING_IN_REGEXP);
   d_valuation.setIrrelevantKind(Kind::STRING_LEQ);
   // seq nth doesn't always evaluate
-  d_valuation.setUnevaluatedKind(Kind::SEQ_NTH);
+  d_valuation.setSemiEvaluatedKind(Kind::SEQ_NTH);
 }
 
 std::string TheoryStrings::identify() const

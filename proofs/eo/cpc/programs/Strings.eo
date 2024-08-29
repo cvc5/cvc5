@@ -1,0 +1,1479 @@
+
+(include "../theories/Builtin.eo")
+(include "../programs/Nary.eo")
+
+(include "../theories/Arith.eo")
+(include "../theories/Strings.eo")
+
+; This signature is used for both strings and sequences, where we often
+; write "string" in the documentation to refer to a string or sequence,
+; or "string-like type" to refer to a string or sequence type.
+
+; program: $str_is_empty
+; args:
+; - s U: a string term.
+; return: true if s is the empty string or sequence.
+(program $str_is_empty ((U Type) (x U))
+  (U) Bool
+  (
+    (($str_is_empty (seq.empty U)) true)
+    (($str_is_empty "") true)
+    (($str_is_empty x) false)
+  )
+)
+
+; define: $char_type_of
+; args:
+; - T Type: The string-like type to check.
+; return: the character type of the string-like type T
+(define $char_type_of ((T Type)) 
+  (eo::match ((U Type)) T (((Seq U) U)))
+)
+
+; define: $str_concat
+; args:
+; - x (Seq T): The first string.
+; - y (Seq T): The second string.
+; return: the concatenation of strings x and y, treated as lists.
+(define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
+  (eo::list_concat str.++ x y)
+)
+
+; define: $str_cons
+; args:
+; - x (Seq T): The first string.
+; - y (Seq T): The second string.
+; return: >
+;   The result of prepending string x to string y where the former is treated
+;   as an element and the latter is treated as a list.
+(define $str_cons ((T Type :implicit) (x (Seq T)) (y (Seq T)))
+  (eo::cons str.++ x y)
+)
+
+; define: $str_is_code_point
+; args:
+; - n Int: the integer to inspect.
+; return: true if n is a valid code point [0, 196607].
+(define $str_is_code_point ((n Int))
+  (eo::ite (eo::is_z n)
+  (eo::ite ($compare_geq 196608 n)
+    (eo::not (eo::is_neg n))
+    false)
+  false))
+
+; define: $str_self_if_empty
+; args:
+; - t T: a string term.
+; return: >
+;   t if it corresponds to the empty string for its type, otherwise evaluates
+;   to an unevaluated eo::requires term.
+(define $str_self_if_empty ((T Type :implicit) (t T))
+  (eo::requires t ($mk_emptystr (eo::typeof t)) t)
+)
+
+; program: $str_fixed_len_re
+; args:
+; - r RegLan: the regular expression to inspect.
+; return: >
+;   The fixed length for the regular expression r if it can be inferred.
+;   Otherwise results in an unevaluated term.
+(program $str_fixed_len_re ((r RegLan) (s1 String) (s2 String) (r1 RegLan :list))
+  (RegLan) Int
+  (
+  (($str_fixed_len_re (re.++ r r1))     (eo::add ($str_fixed_len_re r) ($str_fixed_len_re r1)))
+  (($str_fixed_len_re re.allchar)       1)
+  (($str_fixed_len_re (re.range s1 s2)) 1)
+  (($str_fixed_len_re (str.to_re s1))   (eo::len s1))
+  (($str_fixed_len_re (re.union r r1))  (eo::define ((n ($str_fixed_len_re r)))
+                                          (eo::ite (eo::is_eq r1 re.none)
+                                            n
+                                            (eo::requires ($str_fixed_len_re r1) n n))))
+  (($str_fixed_len_re (re.inter r r1))  (eo::define ((n ($str_fixed_len_re r)))
+                                          (eo::ite (eo::is_eq r1 re.all)
+                                            n
+                                            (eo::requires ($str_fixed_len_re r1) n n))))
+  )
+)
+
+; define: $str_is_char_range
+; args:
+; - s1 String: The first string.
+; - s2 String: The second string.
+; return: >
+;   true if (re.range s1 s2) is a character
+;   range, i.e. s1 and s2 are strings of length one.
+(define $str_is_char_range ((s1 String) (s2 String))
+  (eo::and (eo::is_eq (eo::len s1) 1) (eo::is_eq (eo::len s2) 1))
+)
+
+;;-------------------- RE evaluation
+
+; note: used to represent an invalid regular expression below.
+(declare-const @re.null RegLan)
+
+; program: $str_eval_str_in_re_rec
+; args:
+; - s String: The string to inspect.
+; - n Int: The number of characters that must be consumed in s.
+; - r1 RegLan: The regular expression to inspect.
+; - r2 RegLan: The remaining regular expression to be processed after r1, if it exists.
+; return: >
+;   The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
+;   The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
+;   - s1 in r1
+;   - s2 in r2
+;   - s1 contains at least n characters.
+; note: >
+;   This method has an exponential runtime. It is a placeholder for a
+;   more efficient algorithm (via NFAs) to be written later.
+(program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String) (n Int) (r1 RegLan) (rr RegLan :list) (r2 RegLan) (sr String))
+  (String Int RegLan RegLan) Bool
+  (
+  (($str_eval_str_in_re_rec s 0 (re.++ r1 rr) @re.null)     ($str_eval_str_in_re_rec s 0 r1 rr))
+  (($str_eval_str_in_re_rec s 0 (re.inter r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
+                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)
+                                                              false))
+  (($str_eval_str_in_re_rec s 0 (re.union r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
+                                                              true
+                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)))
+  (($str_eval_str_in_re_rec s 0 (re.* r1) @re.null)         (eo::ite (eo::is_eq s "")
+                                                              true
+                                                              ; to make progress, first component must be non-empty
+                                                              ($str_eval_str_in_re_rec s 1 r1 (re.* r1))))
+  (($str_eval_str_in_re_rec s 0 (str.to_re sr) @re.null)    (eo::is_eq s sr))
+  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (eo::define ((cs (eo::to_z s)))
+                                                            (eo::requires ($str_is_char_range s1 s2) true
+                                                            (eo::ite (eo::is_eq (eo::len s) 1)
+                                                                (eo::and ($compare_geq cs (eo::to_z s1))
+                                                                         ($compare_geq (eo::to_z s2) cs))
+                                                                false))))
+  (($str_eval_str_in_re_rec s 0 re.allchar @re.null)        (eo::is_eq (eo::len s) 1))
+  (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
+  (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
+  (($str_eval_str_in_re_rec s 0 (re.comp r1) @re.null)      (eo::not ($str_eval_str_in_re_rec s 0 r1 @re.null)))
+  (($str_eval_str_in_re_rec s n r1 r2)                      (eo::define ((ls (eo::len s)))
+                                                            (eo::define ((ss1 (eo::extract s 0 (eo::add n -1))))
+                                                            (eo::define ((ss2 (eo::extract s n ls)))
+                                                            (eo::define ((res (eo::ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
+                                                                       (eo::ite ($str_eval_str_in_re_rec ss2 0 r2 @re.null)
+                                                                         true false)
+                                                                       false)))
+                                                            (eo::ite res true
+                                                            (eo::ite (eo::is_eq n ls) false
+                                                              ($str_eval_str_in_re_rec s (eo::add n 1) r1 r2))))))))
+  )
+)
+
+; define: $str_eval_str_in_re
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   true if s is in regular expression r. Does not evaluate if s is not a string
+;   literal.
+(define $str_eval_str_in_re ((s String) (r RegLan))
+  (eo::ite (eo::is_str s)
+    ($str_eval_str_in_re_rec s 0 r @re.null)
+    (str.in_re s r)))
+
+;;-------------------- Skolem terms
+
+; The following side conditions are used for computing terms that define
+; Skolems, which are used in reductions. Notice that Skolem terms may use
+; terms that are not in original form, meaning that the definitions of Skolems
+; may themselves contain Skolems. This is to avoid the use of a side condition
+; for computing the original form of a term in the Eunoia signature, which
+; naively is exponential.
+
+; define: $str_prefix
+; args:
+; - s (Seq U): The string term.
+; - n Int: A position in s.
+; return: the term corresponding to the prefix of term s of fixed length n.
+(define $str_prefix ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s 0 n)
+)
+
+; define: $str_suffix_rem
+; args:
+; - s (Seq U): The string term.
+; - n Int: A position in s.
+; return: >
+;   The term corresponding to the suffix of term s starting from position n.
+(define $str_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s n (- (str.len s) n))
+)
+
+; define: $str_prefix_rem
+; args:
+; - s (Seq U): The string term.
+; - n Int: A position in s.
+; return: the term corresponding to the prefix of term s except for length n.
+(define $str_prefix_rem ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s 0 (- (str.len s) n))
+)
+
+; define: $str_suffix
+; args:
+; - s (Seq U): The string term.
+; - n Int: A position in s.
+; return: the term corresponding to the suffix of term s of length n.
+(define $str_suffix ((U Type :implicit) (s (Seq U)) (n Int))
+  (str.substr s (- (str.len s) n) n)
+)
+
+; program: $str_unify_split
+; args:
+; - s (Seq U): The first string term.
+; - t (Seq U): The second string term.
+; - rev Bool: Whether the split term is taken from the end of s and t.
+; return:
+;   The unified splitting term for t and s, which is the term that denotes the
+;   prefix (or suffix if rev is true) remainder of t (resp. s) in the case that
+;   t (resp. s) is the longer string.
+(program $str_unify_split ((U Type) (t (Seq U)) (s (Seq U)) (rev Bool))
+  ((Seq U) (Seq U) Bool) (Seq U)
+  (
+    (($str_unify_split t s true)  (ite (>= (str.len t) (str.len s))
+                                    ($str_prefix t (- (str.len t) (str.len s)))
+                                    ($str_prefix s (- (str.len s) (str.len t)))))
+    (($str_unify_split t s false) (ite (>= (str.len t) (str.len s))
+                                    ($str_suffix_rem t (str.len s))
+                                    ($str_suffix_rem s (str.len t))))
+  )
+)
+
+; define: $str_first_ctn_pre
+; args:
+; - s (Seq U): The first string term.
+; - t (Seq U): The second string term.
+; return: >
+;   The term corresponding to the prefix of s before the first occurrence of
+;   t in s.
+(define $str_first_ctn_pre ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_prefix s (str.indexof s t 0)))
+
+; define: $str_first_ctn_post
+; args:
+; - s (Seq U): The first string term.
+; - t (Seq U): The second string term.
+; return: >
+;   The term corresponding to the suffix of s after the first occurrence of
+;   t in s.
+(define $str_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_suffix_rem s (+ (str.len (@purify ($str_first_ctn_pre s t))) (str.len t))))
+
+;;-------------------- Utilities
+
+; define: $str_rev
+; args:
+; - rev Bool: Whether to reverse the string term.
+; - t (Seq U): The string term.
+; return: the reverse of t if rev is true, return t unchanged otherwise.
+(define $str_rev ((U Type :implicit) (rev Bool) (t (Seq U))) 
+  (eo::ite rev ($nary_reverse t) t))
+
+; program: $str_nary_intro
+; args:
+; - t (Seq U): The string term.
+; return: >
+;   The result of ensuring that the input t is a str.++ list.
+;   In particular, if it is not a str.++ and not the empty string, then we
+;   return (str.++ t empty) where empty is the empty string for the type of t.
+(program $str_nary_intro
+    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+    ((Seq T)) (Seq T)
+    (
+        (($str_nary_intro (str.++ t ss)) (str.++ t ss))
+        (($str_nary_intro t)             (eo::define ((nil ($mk_emptystr (eo::typeof t))))
+                                            (eo::ite (eo::is_eq t nil) t ($str_cons t nil))))
+    )
+)
+
+; program: $re_nary_intro
+; args:
+; - t RegLan: The regular expresion.
+; return: >
+;   Regular expression nary-intro, which returns the regular expression equivalent
+;   to t that is a re.++ list. In particular, if t is not a re.++ and not the empty
+;   regular expression, then we return (re.++ t @re.empty).
+(program $re_nary_intro ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_intro (re.++ t ss))    (re.++ t ss))
+        (($re_nary_intro @re.empty)       @re.empty)
+        (($re_nary_intro t)               (eo::cons re.++ t @re.empty))
+    )
+)
+
+; program: $str_nary_elim
+; args:
+; - t (Seq U): The string term.
+; return: >
+;   The result of ensuring that the input t is not a singleton str.++
+;   application. In particular, if t is of the form (str.++ t1 empty) where
+;   empty is the empty string for the type of t, we return t1.
+(program $str_nary_elim
+    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+    ((Seq T)) (Seq T)
+    (
+        (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($mk_emptystr (eo::typeof t))))
+                                           (eo::ite (eo::is_eq ss nil) t (str.++ t ss))))
+        (($str_nary_elim t)             ($str_self_if_empty t))
+    )
+)
+
+; program: $re_nary_elim
+; args:
+; - t RegLan: The regular expresion.
+; return: >
+;   Regular expression nary-elimination, which ensures that the input t is not a
+;   singleton re.++ application. In particular, if t is of the form
+;   (re.++ t1 @re.empty), we return t1.
+(program $re_nary_elim ((t RegLan) (ss RegLan :list))
+    (RegLan) RegLan
+    (
+        (($re_nary_elim (re.++ t ss)) (eo::ite (eo::is_eq ss @re.empty) t (re.++ t ss)))
+        (($re_nary_elim t)            t)
+    )
+)
+
+;;-------------------- Reductions
+
+; In the following, a "reduction predicate" refers to a formula that is used
+; to axiomatize an extended string program in terms of (simpler) programs.
+
+; program: $str_reduction_substr
+; args:
+; - x (Seq U): The first argument to str.substr.
+; - n Int: The second argument to str.substr.
+; - m Int: The third argument to str.substr.
+; return: the reduction predicate for (str.substr x n m) of sort U.
+(program $str_reduction_substr ((U Type) (x (Seq U)) (n Int) (m Int))
+  ((Seq U) Int Int) Bool
+  (
+    (($str_reduction_substr x n m)
+      (eo::define ((k (@purify (str.substr x n m))))
+      (eo::define ((npm (+ n m)))
+      (eo::define ((k1 (@purify ($str_prefix x n))))
+      (eo::define ((k2 (@purify ($str_suffix_rem x npm))))
+      (ite
+        ; condition
+        (and (>= n 0)(> (str.len x) n) (> m 0))
+        ; if branch
+        (and (= x (str.++ k1 k k2))
+            (= (str.len k1) n)
+            (or (= (str.len k2) (- (str.len x) npm))
+                (= (str.len k2) 0))
+            (<= (str.len k) m))
+        ; else branch
+        (= k ($mk_emptystr (eo::typeof x)))
+        ))))))
+  )
+)
+
+; program: $str_reduction_indexof
+; args:
+; - x (Seq U): The first argument to str.indexof.
+; - y (Seq U): The second argument to str.indexof.
+; - n Int: The third argument to str.indexof.
+; return: the reduction predicate for (str.indexof x y n) of sort U.
+(program $str_reduction_indexof ((U Type) (x (Seq U)) (y (Seq U)) (n Int))
+  ((Seq U) (Seq U) Int) Bool
+  (
+    (($str_reduction_indexof x y n)
+      (eo::define ((k (@purify (str.indexof x y n))))
+      (eo::define ((xn (str.substr x n (- (str.len x) n))))
+      (eo::define ((k1 (@purify ($str_first_ctn_pre xn y))))
+      (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
+      (ite
+        (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
+        (= k (eo::neg 1))
+        (ite
+          (= y ($mk_emptystr (eo::typeof x)))
+          (= k n)
+          (and (= xn (str.++ k1 y k2))
+              (not (str.contains
+                        (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y))
+              (= k (+ n (str.len k1)))))))))))
+  )
+)
+
+; program: $str_reduction_pred
+; args:
+; - t (Seq U): The string term.
+; return: the reduction predicate for term t of sort s.
+; note: >
+;   The operators listed in comments are missing from the signature currently.
+(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (n Int) (m Int))
+  ((Seq U)) Bool
+  (
+    (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
+    (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    ; str.update
+    ; str.from_int
+    ; str.to_int
+    ; seq.nth
+    ; str.replaceall
+    ; str.replace_re
+    ; str.replace_re_all
+    ; str.to_lower
+    ; str.to_upper
+    ; str.rev
+    ; str.leq
+  )
+)
+
+; program: $str_eager_reduction_contains
+; args:
+; - s (Seq U): The first argument of str.contains.
+; - t (Seq U): The second argument of str.contains.
+; return: the eager reduction predicate for (str.contains s t).
+(program $str_eager_reduction_contains ((U Type) (t (Seq U)) (r (Seq U)))
+  ((Seq U) (Seq U)) Bool
+  (
+    (($str_eager_reduction_contains t r)
+        (eo::define ((k1 (@purify ($str_first_ctn_pre t r))))
+        (eo::define ((k2 (@purify ($str_first_ctn_post t r))))
+        (ite
+          (str.contains t r)
+          (= t (str.++ k1 r k2))
+          (not (= t r)))
+        )))
+  )
+)
+
+; define: $str_eager_reduction_to_code
+; args:
+; - s (Seq U): The argument of str.to_code.
+; return: the eager reduction predicate for (str.to_code s)
+(define $str_eager_reduction_to_code ((s String))
+  (eo::define ((t (str.to_code s)))
+  (ite
+    (= (str.len s) 1)
+    (and (>= t 0) (< t 196608))
+    (= t (eo::neg 1))))
+)
+
+; program: $str_eager_reduction_indexof
+; args:
+; - x (Seq U): The first argument to str.indexof.
+; - y (Seq U): The second argument to str.indexof.
+; - n Int: The third argument to str.indexof.
+; return: the eager reduction predicate for (str.indexof x y n).
+(program $str_eager_reduction_indexof ((U Type) (x U) (y U) (n Int))
+  (U U Int) Bool
+  (
+    (($str_eager_reduction_indexof x y n)
+        (eo::define ((t (str.indexof x y n)))
+        (and (or (= t (eo::neg 1)) (>= t n))
+             (<= t (str.len x)))))
+  )
+)
+
+; define: $str_eager_reduction_in_re
+; args:
+; - x (Seq U): The first argument to str.in_re.
+; - r RegLan: The second argument to str.in_re.
+; return: the eager reduction predicate for (str.in_re x r).
+(define $str_eager_reduction_in_re ((U Type :implicit) (x (Seq U)) (r RegLan))
+  (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r)))
+)
+
+; program: $mk_str_eager_reduction
+; args:
+; - t U: The term to process.
+; return: the eager reduction predicate of term t.
+(program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
+  (U) Bool
+  (
+    (($mk_str_eager_reduction (str.to_code x)) ($str_eager_reduction_to_code x))
+    (($mk_str_eager_reduction (str.contains x y)) ($str_eager_reduction_contains x y))
+    (($mk_str_eager_reduction (str.indexof x y n)) ($str_eager_reduction_indexof x y n))
+    (($mk_str_eager_reduction (str.in_re x r)) ($str_eager_reduction_in_re x r))
+  )
+)
+
+; program: $re_unfold_pos_concat_rec
+; args:
+; - t String: The string term.
+; - r RegLan: The remaining regular expression to process.
+; - ro RegLan: The original regular expression passed to this method.
+; - n Int: The number of regular expression children we have processed so far.
+; return: >
+;   For a regular expression (re.++ R1 ... Rn), $re_unfold_pos_concat returns a pair of terms
+;   where the first term is a concatenation (str.++ t1 ... tn) and the second
+;   is a conjunction M of literals of the form (str.in_re ti Ri), such that
+;     (str.in_re x (re.++ R1 ... Rn))
+;   is equivalent to
+;     (and (= x (str.++ t1 ... tn)) M)
+;   We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
+;   application of the unfolding skolem program @re_unfold_pos_component.
+; note: A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
+(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
+  (String RegLan RegLan Int) (@Pair String Bool)
+  (
+    (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
+    (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
+      ; match recursive call
+      (eo::match ((c String :list) (M Bool :list))
+        ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))
+        (((@pair c M)
+          ; match on what r1 is
+          (eo::match ((s String) (r RegLan))
+            r1
+            (
+              ; a constant regular expression, append s
+              ((str.to_re s) (@pair (str.++ s c) M))
+              ; otherwise, make the skolem and append with constraint
+              (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
+                            (@pair (str.++ k c) (and (str.in_re k r) M))))
+            )
+          )
+        ))
+      )
+    )
+  )
+)
+
+; define: $re_unfold_pos_concat
+; args:
+; - t String: The string term.
+; - r RegLan: The regular expression to process.
+; return: >
+;   A pair of terms as described in $re_unfold_pos_concat_rec.
+(define $re_unfold_pos_concat ((t String) (r RegLan))
+  ($re_unfold_pos_concat_rec t r r 0)
+)
+
+; program: $str_non_empty_concats
+; args:
+; - t (Seq U): A concatenation term.
+; return: >
+;   A formula corresponding to a conjunction saying that each of the
+;   elements of str.++ application t is empty. For example for
+;     (str.++ x (str.++ y ""))
+;   this returns:
+;     (and (= x "") (and (= y "") true)).
+(program $str_non_empty_concats ((U Type) (t (Seq U)) (s U :list))
+  ((Seq U)) Bool
+  (
+    (($str_non_empty_concats t)             ($str_self_if_empty t))
+    (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($mk_emptystr (eo::typeof t)))) ($str_non_empty_concats s)))
+  )
+)
+
+; define: $str_check_length_one
+; args:
+; - s String: The string term.
+; return: true if the length of s evaluates to one, false otherwise.
+(define $str_check_length_one ((s String)) (eo::is_eq (eo::len s) 1))
+
+; define: $str_check_len_gt_one
+; args:
+; - s String: The string term.
+; return: true if the length of s evaluates to greater than one, false otherwise.
+(define $str_check_len_gt_one ((s String)) (eo::is_eq (eo::is_neg (eo::add 1 (eo::neg (eo::len s)))) true))
+
+; program: $str_head_or_empty
+; args:
+; - t String: The string term, assumed to be a str.++ list.
+; return: >
+;   The first child of a concatenation or empty string from term t.
+;   If t is of the form (str.++ s ...), return t.
+;   If t is an empty string, return t.
+(program $str_head_or_empty ((U Type) (t (Seq U)) (tail (Seq U) :list))
+  ((Seq U)) (Seq U)
+  (
+    (($str_head_or_empty (str.++ t tail)) t)
+    (($str_head_or_empty t)               ($str_self_if_empty t))
+  )
+)
+
+; Flatten constants in str.++ application s. Notice that the rewritten form
+; of strings in cvc5 are such that constants are grouped into constants of
+; length >=1 which we call "word" constants. For example, the cvc5 rewritten
+; form of (str.++ "A" "B" x) is (str.++ "AB" x). Similarly for sequences,
+; the rewriten form of (str.++ (seq.unit 0) (seq.unit 1) x) is
+; (str.++ (str.++ (seq.unit 0) (seq.unit 1)) x).
+; Many string rules rely on processing the prefix of strings, which
+; involves reasoning about the characters one-by-one. Since the above term
+; has a level of nesting when word constants of size > 1 are involved, this
+; method is used to "flatten" str.++ applications so that we have a uniform
+; way of reasoning about them in proof rules. In this method, we take a
+; str.++ application corresponding to a string term in cvc5 rewritten form.
+; It returns the flattened form such that there are no nested applications of
+; str.++. For example, given input:
+;    (str.++ "AB" (str.++ x ""))
+; we return:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; Notice that this is done for all word constants in the chain recursively.
+; It does not insist that the nested concatenations are over characters only.
+; This rule may fail if s is not a str.++ application corresponding to a term
+; in cvc5 rewritten form.
+
+; program: $str_flatten_word
+; args:
+; - t String: A string term, assumed to be a non-empty word constant.
+; return: >
+;   The result of "flattening" t, for example given "AB", this returns the term
+;   (str.++ "A" (str.++ "B" "")).
+(program $str_flatten_word ((t String))
+  (String) String
+  (
+    (($str_flatten_word t) 
+      (eo::ite ($str_check_length_one t)
+        ($str_cons t "")
+        ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t))))))
+  )
+)
+
+; program: $str_flatten
+; args:
+; - t (Seq U): The string term.
+; return: >
+;   The result of "flattening" all children of t. For example, given
+;   (str.++ "AB" x "CD"), this returns the term
+;   (str.++ "A" (str.++ "B" (str.++ x (str.++ "C" (str.++ "D" ""))))).
+(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list) (tail2 (Seq U) :list))
+  ((Seq U)) (Seq U)
+  (
+    ; required for sequences
+    (($str_flatten (str.++ (str.++ t tail2) tail)) 
+        ($str_concat (str.++ t tail2) ($str_flatten tail)))
+    (($str_flatten (str.++ t tail))
+        ; otherwise, check whether t is a word constant of length greater than one
+        (eo::ite ($str_check_len_gt_one t)
+          ; if so, we flatten the word using the method above and concatenate it.
+          ($str_concat ($str_flatten_word t) ($str_flatten tail))
+          ; if not, we just append it to the result of the recursive call
+          ($str_cons t ($str_flatten tail))))
+    (($str_flatten t)   ($str_self_if_empty t))
+  )
+)
+
+; program: $str_collect_acc
+; args:
+; - t (Seq U): The string term, assumed to be a flattened str.++ list.
+; return: >
+;   The result of collecting adjacent constants in a flattened string t.
+;   This side condition takes as input a str.++ application s. It returns a
+;   pair whose concatenation is equal to s, whose first component corresponds
+;   to a word constant, and whose second component is a str.++ application whose
+;   first element is not a character. For example, for:
+;     (str.++ "A" (str.++ "B" (str.++ x "")))
+;   We return:
+;     (@pair "AB" (str.++ x ""))
+(program $str_collect_acc ((U Type) (t (Seq U)) (tail (Seq U) :list))
+  ((Seq U)) (@Pair (Seq U) (Seq U))
+  (
+    ; sequence not handled yet
+    ; Check if t is a word constant
+    (($str_collect_acc (str.++ t tail))
+      (eo::ite ($str_check_length_one t)
+        (eo::match ((s1 (Seq U)) (s2 (Seq U))) 
+          ($str_collect_acc tail)
+          (
+            ((@pair "" s2)  (@pair t s2))
+            ((@pair s1 s2)  (@pair (eo::concat t s1) s2))    ; concatenate the constant
+          )
+        )
+        (@pair "" (str.++ t tail))))
+    (($str_collect_acc "")            (@pair "" ""))
+  )
+)
+
+; program: $str_collect
+; args:
+; - s (Seq U): The string term, assumed to be a flattened str.++ list.
+; return: >
+;   Collect adjacent constants for the prefix of string s. For example:
+;     (str.++ "A" (str.++ "B" (str.++ x "")))
+;   we return:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+;   This side condition may fail if s is not a str.++ application.
+;   Notice that the collection of constants is done for all word constants in the
+;   term s recursively.
+(program $str_collect ((U Type) (t (Seq U)) (s (Seq U) :list))
+  ((Seq U)) (Seq U)
+  (
+    (($str_collect (str.++ t s))
+      (eo::match ((s1 (Seq U)) (s2 (Seq U)))
+        ($str_collect_acc (str.++ t s))
+        (
+          ; did not strip a constant prefix, just append t to the result of processing s
+          ((@pair "" s2)  ($str_cons t ($str_collect s)))
+          ; stripped a constant prefix, append it to second term in the pair
+          ((@pair s1 s2)  ($str_cons s1 ($str_collect s2)))
+        )
+      )
+    )
+    (($str_collect t)       ($str_self_if_empty t))
+  )
+)
+
+; program: $str_strip_prefix
+; args:
+; - s (Seq U): The first string.
+; - t (Seq U): The second string.
+; return:
+;   The pair corresponding to s and t after dropping the maximal equal prefix
+;   removed. For example, for:
+;     (str.++ x (str.++ y (str.++ z "")))
+;     (str.++ x (str.++ w ""))
+;   This method will return:
+;     (pair (str.++ y (str.++ z "")) (str.++ w ""))
+;   This side condition may fail if s or t is not a str.++ application.
+(program $str_strip_prefix ((U Type) (t (Seq U)) (s (Seq U)) (t2 (Seq U) :list) (s2 (Seq U) :list))
+  ((Seq U) (Seq U)) (@Pair (Seq U) (Seq U))
+  (
+    (($str_strip_prefix (str.++ t t2) (str.++ t s2)) ($str_strip_prefix t2 s2))
+    (($str_strip_prefix t s)                         (@pair t s))
+  )
+)
+
+; program: $str_overlap_rec
+; args:
+; - nil (Seq U): The empty string.
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be in flattened form.
+; return: >
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. See examples below.
+(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
+  ((Seq U) (Seq U) (Seq U)) Int
+  (
+  (($str_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
+                                            0
+                                            (eo::add 1 ($str_overlap_rec nil s1 t))))
+  (($str_overlap_rec nil s t)             0)
+  )
+)
+
+; define: $str_overlap
+; args:
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be in flattened form.
+; return: >
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. For example:
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
+(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
+  ($str_overlap_rec ($mk_emptystr (eo::typeof s)) s t))
+
+; program: $str_mk_re_loop_elim_rec
+; args:
+; - n Int: The minimum number of iterations for a re.loop term.
+; - d Int: The difference between the min and max iterations for a re.loop term.
+; - r RegLan: The regular expression argument of re.loop.
+; - rr RegLan: The current accumulated regular expression.
+; return: >
+;   The result of elimination re.loop for the given arguments. In particular,
+;   when we call $str_mk_re_loop_elim n d r rr, we first decrement n until it
+;   is zero, while accumulating rr. When n is zero, then rr is r^n.
+;   We then decrement d until it is zero, while adding regular expressions
+;   to a union, giving us (re.union r^n ... r^{n+d}).
+(program $str_mk_re_loop_elim_rec ((n Int) (d Int) (r RegLan) (rr RegLan :list))
+  (Int Int RegLan RegLan) RegLan
+  (
+    (($str_mk_re_loop_elim_rec 0 0 r rr) (eo::cons re.union ($singleton_elim rr) re.none))
+    (($str_mk_re_loop_elim_rec 0 d r rr) (eo::cons re.union ($singleton_elim rr) ($str_mk_re_loop_elim_rec 0 (eo::add d -1) r (re.++ r rr))))
+    (($str_mk_re_loop_elim_rec n d r rr) ($str_mk_re_loop_elim_rec (eo::add n -1) d r (re.++ r rr)))
+  )
+)
+
+; define: $str_mk_re_loop_elim
+; args:
+; - n Int: The minimum number of iterations for a re.loop term.
+; - d Int: The difference between the min and max iterations for a re.loop term.
+; - r RegLan: The regular expression argument of re.loop.
+; return: >
+;   The reduction of the regular expression
+;     (re.loop n n+d r)
+;   where d>0. This is the regular expression:
+;     (re.union r^n ... r^{n+d})
+;   where r^k is (re.++ r ... r), where r is repeated k times when k>1, or
+;   r if k=1 or @re.empty if k=0.
+(define $str_mk_re_loop_elim ((n Int) (d Int) (r RegLan))
+  ($singleton_elim ($str_mk_re_loop_elim_rec n d r @re.empty))
+)
+
+; program: $str_mk_str_in_re_concat_star_char
+; args:
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process.
+; return: >
+;   The conclusion for ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR for
+;   (str.in_re s r), where r is assumed to be a re.* whose body has fixed length
+;   of one. Note that we do not require a singleton elimination step for and
+;   since the original input should be a concatenation term.
+(program $str_mk_str_in_re_concat_star_char ((s1 String) (s2 String :list) (r RegLan))
+  (String RegLan) Bool
+  (
+    (($str_mk_str_in_re_concat_star_char (str.++ s1 s2) r) (eo::cons and (str.in_re s1 r) ($str_mk_str_in_re_concat_star_char s2 r)))
+    (($str_mk_str_in_re_concat_star_char "" r)             true)
+  )
+)
+
+; program: $str_mk_str_in_re_sigma_rec
+; args:
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process, assumed to be a re.++ list.
+; - n Int: The number of re.allchar we have seen.
+; - b Bool: false if we have seen a (re.* re.allchar).
+; return: >
+;   The conclusion used for ProofRewriteRule::STR_IN_RE_SIGMA on the membership
+;   s in r, tracking information on the children of r we have already seen.
+(program $str_mk_str_in_re_sigma_rec ((s String) (r RegLan :list) (n Int) (b Bool))
+  (String RegLan Int Bool) Bool
+  (
+    (($str_mk_str_in_re_sigma_rec s @re.empty n b)                    (eo::ite b (= (str.len s) n) (>= (str.len s) n)))
+    (($str_mk_str_in_re_sigma_rec s (re.++ re.allchar r) n b)         ($str_mk_str_in_re_sigma_rec s r (eo::add n 1) b))
+    (($str_mk_str_in_re_sigma_rec s (re.++ (re.* re.allchar) r) n b)  ($str_mk_str_in_re_sigma_rec s r n false))
+  )
+)
+
+; define: $str_mk_str_in_re_sigma
+; args:
+; - s String: The string term to process.
+; - r RegLan: The regular expression to process.
+; return: >
+;   The conclusion for ProofRewriteRule::STR_IN_RE_SIGMA for s in r.
+(define $str_mk_str_in_re_sigma ((s String) (r RegLan))
+  ($str_mk_str_in_re_sigma_rec s r 0 true))
+
+; program: $str_mk_str_in_re_sigma_star_rec
+; args:
+; - s String: The string term to process.
+; - r RegLan: The body of the regular expression to process.
+; - n Int: The number of re.allchar we have seen.
+; return:
+;   Calling $str_mk_str_in_re_sigma_star_rec s r n means we have s in r, we have
+;   stripped off n re.allchar from r so far.
+(program $str_mk_str_in_re_sigma_star_rec ((s String) (r RegLan :list) (n Int))
+  (String RegLan Int) Bool
+  (
+    (($str_mk_str_in_re_sigma_star_rec s @re.empty n)                    (= (mod (str.len s) n) 0))
+    (($str_mk_str_in_re_sigma_star_rec s (re.++ re.allchar r) n)         ($str_mk_str_in_re_sigma_star_rec s r (eo::add n 1)))
+  )
+)
+
+; define: $str_mk_str_in_re_sigma_star
+; args:
+; - s String: The string term to process.
+; - r RegLan: The body of the regular expression to process.
+; return:
+;   The conclusion for ProofRewriteRule::STR_IN_RE_SIGMA_STAR for s in (re.* r).
+(define $str_mk_str_in_re_sigma_star ((s String) (r RegLan))
+  ($str_mk_str_in_re_sigma_star_rec s r 0))
+
+; define: $str_to_flat_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "flat form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) flatten so that its constant prefix,
+;   (3) (optionally) reverse.
+(define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; intro, flatten, reverse
+  ($str_rev rev ($str_flatten ($str_nary_intro s)))
+)
+
+; program: $re_str_to_flat_form
+; args:
+; - rev Bool: Whether to reverse the strings that occur in r.
+; - r RegLan: The regular expression to process.
+; return: 
+;   The result of converting the strings s occurring as direct
+;   children (str.to_re s) of regular expression concatenation r to their flat
+;   form, reversing if rev is true.
+(program $re_str_to_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_to_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_to_flat_form s rev)) ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_to_flat_form rev r2)))
+    (($re_str_to_flat_form rev r1)                        r1)
+  )
+)
+
+; define: $re_to_flat_form
+; args:
+; - r RegLan: The regular expression to process.
+; - rev Bool: Whether to reverse the content of r.
+; return: >
+;   Converts a regular expression term to "flat form". This consists of the
+;   following steps:
+;   (1) convert r to n-ary form if it not already a re.++ application,
+;   (2) (optionally) reverse,
+;   (3) convert the strings s occurring as direct children (str.to_re s) of the
+;   result to their flat form. Note that other strings in r, i.e. those that
+;   occur beneath other children remain unchanged.
+(define $re_to_flat_form ((r RegLan) (rev Bool))
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
+)
+
+; define: $str_from_flat_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a term in "flat form" to a term that is in a form that corresponds
+;   to one in cvc5 rewritten form. This is the dual method to
+;   $str_to_flat_form. This consists of the following steps:
+;   (1) (optionally) reverse,
+;   (2) collect constants
+;   (3) eliminate n-ary form to its element if the term is a singleton list.
+(define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; reverse, collect, elim
+  ($str_nary_elim ($str_collect ($str_rev rev s)))
+)
+
+; program: $re_str_from_flat_form
+; args:
+; - rev Bool: Whether to reverse the strings that occur in r.
+; - r RegLan: The regular expression to process.
+; return:
+;   The result of converting the strings s occurring as direct
+;   children (str.to_re s) of regular expression concatenation r from their flat
+;   form, reversing if rev is true.
+(program $re_str_from_flat_form ((r1 RegLan) (r2 RegLan :list) (s String) (rev Bool))
+  (Bool RegLan) RegLan
+  (
+    (($re_str_from_flat_form rev (re.++ (str.to_re s) r2))  (eo::cons re.++ (str.to_re ($str_from_flat_form s rev)) ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev (re.++ r1 r2))             (eo::cons re.++ r1 ($re_str_from_flat_form rev r2)))
+    (($re_str_from_flat_form rev r1)                        r1)
+  )
+)
+
+; define: $re_from_flat_form
+; args:
+; - r RegLan: The regular expression to process.
+; - rev Bool: Whether to reverse the content of r.
+; return: >
+;   Converts a regular expression term in "flat form" to a term that is in a form
+;   that corresponds to one in cvc5 rewritten form. This is the dual method to
+;   $re_to_flat_form. This consists of the following steps:
+;   (1) convert the strings s occurring as direct children (str.to_re s) from their flat form,
+;   (2) (optionally) reverse,
+;   (3) eliminate n-ary form to its element if the term is a singleton list.
+(define $re_from_flat_form ((r RegLan) (rev Bool))
+  ; (un?)flatten, reverse, elim
+  ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
+)
+
+; define: $str_is_prefix
+; args:
+; - s U: The first string.
+; - s1 U: The second string.
+; - rev Bool: Whether the two arguments should be reversed.
+; return:
+;   true if s1 is a prefix of s, taking into account flattening, and reversing
+;   the strings if rev is true.
+(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (eo::define ((sf ($str_to_flat_form s rev)))
+  (eo::define ((sf1 ($str_to_flat_form s1 rev)))
+  (eo::define ((U (eo::typeof s)))
+  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
+)
+
+; note: This is a forward declaration of $str_re_includes below.
+(program $str_re_includes () (RegLan RegLan) Bool)
+
+; program: $str_re_includes_lhs_union
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if r is of the form (re.union r1 ... rn), and we can infer
+;   that s is contained in some ri.
+(program $str_re_includes_lhs_union ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_lhs_union (re.union r1 r2) r3) (eo::ite ($str_re_includes r1 r3) true ($str_re_includes_lhs_union r2 r3)))
+  (($str_re_includes_lhs_union r1 r3)               false)
+  )
+)
+
+; Helper for `$str_re_includes`.
+; program: $str_re_includes_rhs_inter
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if s is of the form (re.inter s1 ... sn), and we can infer
+;   that r is contained in some si.
+(program $str_re_includes_rhs_inter ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_rhs_inter r1 (re.inter r3 r2)) (eo::ite ($str_re_includes r1 r3) true ($str_re_includes_rhs_inter r1 r2)))
+  (($str_re_includes_rhs_inter r1 r3)               false)
+  )
+)
+
+; Helper for `$str_re_includes`.
+; program: $str_re_includes_lhs_star
+; args:
+; - r RegLan: The first regular expression.
+; - s RegLan: The second regular expression.
+; return: >
+;   true if r is of the form (re.* r1), and we can infer that either
+;   s is included in r1, or s1 is included in r1 where s is of the form
+;   (re.* s1).
+(program $str_re_includes_lhs_star ((r1 RegLan) (r2 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_lhs_star (re.* r1) r2) (eo::ite (eo::is_eq r1 re.allchar)
+                                              true
+                                              ($str_re_includes r1
+                                                (eo::match ((r3 RegLan))
+                                                  r2
+                                                  (
+                                                    ((re.* r3) r3) ; use the body if a star
+                                                    (r3 r3)        ; otherwise use self
+                                                  )))))
+  (($str_re_includes_lhs_star r1 r2)        false)
+  )
+)
+
+; Helper for `$str_re_includes`.
+; program: $str_re_includes_is_rec
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if the inclusion of r2 into r1 is not handled by one of the
+;   three cases above (union or star on LHS, or intersection on RHS).
+;   We also require that one of r1 or r2 is a concatenation, or else
+;   we already checked for their inclusion directly.
+(program $str_re_includes_is_rec ((r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes_is_rec r1 (re.inter r3 r2)) false)
+  (($str_re_includes_is_rec (re.union r1 r2) r3) false)
+  (($str_re_includes_is_rec (re.* r1) r3)        false)
+  (($str_re_includes_is_rec (re.++ r1 r2) r3)    true)
+  (($str_re_includes_is_rec r3 (re.++ r1 r2))    true)
+  (($str_re_includes_is_rec r1 r3)               false)
+  )
+)
+
+; program: $re_is_unbound_wildcard
+; args:
+; - r RegLan: The regular expression to consider.
+; return: >
+;   true if r is of the form (re.++ re.allchar ... re.allchar (re.* re.allchar) ...).
+;   This method is used for checking if there is no upper bound on the number of
+;   arbitrary characters that can be consumed at the current position.
+(program $re_is_unbound_wildcard ((r1 RegLan) (r2 RegLan :list))
+  (RegLan) Bool
+  (
+  (($re_is_unbound_wildcard (re.++ (re.* re.allchar) r2))  true)
+  (($re_is_unbound_wildcard (re.++ re.allchar r2))         ($re_is_unbound_wildcard r2))
+  (($re_is_unbound_wildcard r1)                            false)
+  )
+)
+
+; program: $str_re_includes_rec
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if we can infer r2 is included in r1. We assume that r1 and r2
+;   are re.++ lists that have been put into normal form with $re_to_flat_form.
+(program $str_re_includes_rec ((s1 String) (s2 String :list) (r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
+  (RegLan RegLan) Bool
+  (
+  ; true if equal, which includes if r1 is @re.empty
+  (($str_re_includes_rec r1 r1)                                     true)
+  ; consider components one at a time
+  (($str_re_includes_rec (re.++ (str.to_re (str.++ s1 s2)) r2) r3)  ($str_re_includes_rec (re.++ (str.to_re s1) (str.to_re s2) r2) r3))
+  (($str_re_includes_rec (re.++ (str.to_re "") r2) r3)              ($str_re_includes_rec r2 r3))
+  (($str_re_includes_rec r1 (re.++ (str.to_re (str.++ s1 s2)) r4))  ($str_re_includes_rec r1 (re.++ (str.to_re s1) (str.to_re s2) r4)))
+  (($str_re_includes_rec r1 (re.++ (str.to_re "") r4))              ($str_re_includes_rec r1 r4))
+  ; otherwise we recurse for three possible cases
+  (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4))
+    (eo::ite (eo::ite ($str_re_includes ($re_from_flat_form r1 false) ($re_from_flat_form r3 false)) ; can skip both if we have a base inclusion
+               ($str_re_includes_rec r2 r4)
+               false)
+      true
+    (eo::ite (eo::ite ($re_is_unbound_wildcard (re.++ r1 r2))  ; can skip RHS if unbounded wildcard
+              ($str_re_includes_rec (re.++ r1 r2) r4)
+              false)
+      true
+    (eo::ite (eo::ite (eo::is_eq r1 (re.* re.allchar))         ; can skip LHS if it is sigma star
+              ($str_re_includes_rec r2 (re.++ r3 r4))
+              false)
+      true
+      false))))
+  ; handles the case where there is a leftover (re.* re.allchar) on the LHS
+  (($str_re_includes_rec (re.++ r1 r2) @re.empty)       (eo::and (eo::is_eq r1 (re.* re.allchar)) (eo::is_eq r2 @re.empty)))
+  (($str_re_includes_rec r1 r3)                         false)
+  )
+)
+
+; program: $str_re_includes
+; args:
+; - r1 RegLan: The first regular expression.
+; - r2 RegLan: The second regular expression.
+; return: >
+;   true if we can infer that all strings in r2 are also in r1.
+(program $str_re_includes ((s1 String) (s2 String) (s3 String) (s4 String) (r1 RegLan) (r2 RegLan :list) (r3 RegLan))
+  (RegLan RegLan) Bool
+  (
+  (($str_re_includes r1 r1)                               true)
+  (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1))
+  (($str_re_includes (str.to_re s1) r1)                   false)
+  (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (eo::define ((z1 (eo::to_z s1)))
+                                                          (eo::define ((z2 (eo::to_z s2)))
+                                                          (eo::define ((z3 (eo::to_z s3)))
+                                                          (eo::define ((z4 (eo::to_z s4)))
+                                                          (eo::requires (eo::is_neg z1) false
+                                                          (eo::requires (eo::is_neg z2) false
+                                                          (eo::requires (eo::is_neg z3) false
+                                                          (eo::requires (eo::is_neg z4) false
+                                                            (eo::and ($compare_geq z2 z3) ($compare_geq z3 z1)
+                                                                  ($compare_geq z2 z4) ($compare_geq z4 z1)))))))))))
+  (($str_re_includes r1 r3)                               (eo::ite (eo::is_eq ($str_re_includes_lhs_union r1 r3) true) true
+                                                          (eo::ite (eo::is_eq ($str_re_includes_rhs_inter r1 r3) true) true
+                                                          (eo::ite (eo::is_eq ($str_re_includes_lhs_star r1 r3) true) true
+                                                          ; don't recurse if we checked one of the 3 cases above
+                                                          (eo::ite ($str_re_includes_is_rec r1 r3)
+                                                              ($str_re_includes_rec ($re_to_flat_form r1 false) ($re_to_flat_form r3 false))
+                                                              false)))))
+
+  )
+)
+
+; define: $str_check_re_union_inclusion
+; args:
+; - r RegLan: The regular expression to check.
+; return: >
+;   true if r is an application of re.union with 2 children for which
+;   regular expression inclusion shows r is equivalent to (re.* re.allchar).
+(define $str_check_re_union_inclusion ((r RegLan))
+  (eo::match ((r1 RegLan) (r2 RegLan))
+  r
+  (
+    ((re.union (re.comp r1) r2) ($str_re_includes r2 r1))
+    ((re.union r1 (re.comp r2)) ($str_re_includes r1 r2))
+  ))
+)
+
+; define: $str_check_re_inter_inclusion
+; args:
+; - r RegLan: The regular expression to check.
+; return: >
+;   true if r is an application of re.inter with 2 children for which
+;   regular expression inclusion shows r is equivalent to re.none.
+(define $str_check_re_inter_inclusion ((r RegLan))
+  (eo::match ((r1 RegLan) (r2 RegLan))
+  r
+  (
+    ((re.inter (re.comp r1) r2) ($str_re_includes r1 r2))
+    ((re.inter r1 (re.comp r2)) ($str_re_includes r2 r1))
+  ))
+)
+
+; program: $str_decompose_and_check_re_inter_union_inclusion
+; args:
+; - r : The regular expression to check.
+; - rr : The rewritten form of r.
+; return: >
+;   true if r can be rewritten to rr via the rule
+;   ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
+;   that rr has the result of the inclusion as the first child. We then subtract
+;   the remainder (rr1) to find the regular expressions that are relevant for this
+;   inference.
+(define $str_decompose_and_check_re_inter_union_inclusion ((r RegLan) (rr RegLan))
+  (eo::match ((rr1 RegLan :list))
+  rr
+  (
+  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion ($nary_diff re.union re.none r rr1)))
+  ((re.* re.allchar)                ($str_check_re_union_inclusion r))
+  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion ($nary_diff re.inter re.all r rr1)))
+  (re.none                          ($str_check_re_inter_inclusion r))
+  ))
+)
+
+; program: $str_arith_entail_simple
+; args:
+; - n Int: An integer term to process.
+; return: >
+;   true if we can show n is greater than or equal 0 using the fact that length
+;   is non-negative and basic properties of arithmetic.
+(program $str_arith_entail_simple ((s String) (n1 Int) (n2 Int :list))
+  (Int) Bool
+  (
+    (($str_arith_entail_simple (str.len s)) true)
+    (($str_arith_entail_simple (+ n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple (* n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
+    (($str_arith_entail_simple n1)          (eo::not (eo::is_neg n1)))
+  )
+)
+
+; program: $str_arith_entail_simple_pred
+; args:
+; - F Bool: A relation over integer terms.
+; return: >
+;   true if we can show that F holds using the fact that length
+;   is non-negative and basic properties of arithmetic. We first
+;   normalize the polynomial corresponding to F and check this
+;   using the $str_arith_entail_simple program above.
+(program $str_arith_entail_simple_pred ((n Int) (m Int))
+  (Bool) Int
+  (
+    (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
+    (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
+  )
+)
+
+; program: $str_arith_entail_is_approx_len
+; args:
+; - s String: The string whose length we are considering.
+; - n Int: An integer that may under (resp. over) approximate the length of s when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.len s) n) (or <= if b is false) holds using approximation
+;   cases as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019. When applicable, we also rely on calls that reason that string
+;   length is non-negative and basic properties of arithmetic.
+(program $str_arith_entail_is_approx_len ((s String) (t String) (r String) (n1 Int) (n2 Int) (n Int) (isUnder Bool))
+  (String Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx_len (str.substr s n1 n2) n isUnder)
+        (eo::define ((npm (+ n1 n2)))
+        (eo::define ((lx (str.len s)))
+        (eo::ite (eo::is_eq n n2)
+          (eo::ite isUnder
+            (eo::and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= lx npm)))
+            ($str_arith_entail_simple n2))
+        (eo::ite (eo::is_eq n lx)
+          (eo::not isUnder)
+        (eo::ite (eo::is_eq n (- lx n1))
+          (eo::ite isUnder
+            (eo::and ($str_arith_entail_simple n1) ($str_arith_entail_simple_pred (>= npm lx)))
+            ($str_arith_entail_simple_pred (>= lx n1)))
+          false))))))
+    (($str_arith_entail_is_approx_len (str.replace s t r) n isUnder)
+        (eo::define ((ls (str.len s)))
+        (eo::define ((lt (str.len t)))
+        (eo::define ((lr (str.len r)))
+        (eo::ite (eo::is_eq n ls)
+          (eo::ite isUnder
+            (eo::or ($str_arith_entail_simple_pred (>= lr lt)) ($str_arith_entail_simple_pred (>= lr ls)))
+            ($str_arith_entail_simple_pred (>= lt lr)))
+        (eo::ite (eo::is_eq n (+ ls lr))
+          (eo::not isUnder)
+        (eo::ite (eo::is_eq n (- ls lt))
+          isUnder
+          false)))))))
+    (($str_arith_entail_is_approx_len (str.from_int n1) n isUnder)
+        (eo::ite (eo::is_eq n (+ n1 1))
+          (eo::and (eo::not isUnder) ($str_arith_entail_simple n1))
+        (eo::ite (eo::is_eq n n1)
+          (eo::and (eo::not isUnder) ($str_arith_entail_simple_pred (> n1 0)))
+        (eo::ite (eo::is_eq n 1)
+          (eo::and isUnder ($str_arith_entail_simple n1))
+          false))))
+  )
+)
+
+; define: $str_arith_entail_is_approx_indexof
+; args:
+; - s String: The first string argument to str.indexof.
+; - t String: The second string argument to str.indexof.
+; - n Int: The third argument of str.indexof.
+; - m Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that m is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.indexof s t n) m) (or <= if b is false) holds using
+;   approximation cases as defined by Figure 2 of "High-Level Abstractions for Simplifying
+;   Extended String Constraints in SMT", CAV 2019. When applicable, we also rely on calls
+;   that reason that string length is non-negative and basic properties of arithmetic.
+(define $str_arith_entail_is_approx_indexof ((s String) (t String) (n Int) (m Int) (isUnder Bool))
+  (eo::define ((ls (str.len s)))
+  (eo::define ((lt (str.len t)))
+  (eo::ite (eo::is_eq m -1)
+    isUnder
+  (eo::ite (eo::is_eq m ls)
+    (eo::not isUnder)
+  (eo::ite (eo::is_eq m (- ls lt))
+    (eo::and (eo::not isUnder) ($str_arith_entail_simple_pred (>= ls lt)))
+    false))))))
+
+; define: $str_arith_entail_is_approx_to_int
+; args:
+; - s String: The first string argument to str.to_int.
+; - n Int: An integer that may under (resp. over) approximate the given indexof term when b is true (resp. false).
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation.
+; return: >
+;   true if we can show that (>= (str.to_int s) n) (or <= if b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
+(define $str_arith_entail_is_approx_to_int ((s String) (n Int) (isUnder Bool))
+  (eo::ite (eo::is_eq n -1) isUnder false)
+)
+
+; program: $str_arith_entail_is_approx
+; args:
+; - n Int: The first integer term.
+; - m Int: The second integer term.
+; - b Bool: Whether we are checking that n is an under (resp. over) approximation of m.
+; return: >
+;   true if we can show that (>= n m) (resp (<= n m) when b is false) holds using approximation cases
+;   as defined by Figure 2 of "High-Level Abstractions for Simplifying Extended String Constraints
+;   in SMT", CAV 2019.
+(program $str_arith_entail_is_approx ((s String) (t String) (n1 Int) (n2 Int :list) (n3 Int) (n4 Int :list) (n5 Int) (isUnder Bool))
+  (Int Int Bool) Bool
+  (
+    (($str_arith_entail_is_approx n1 n1 isUnder)                    true)
+    (($str_arith_entail_is_approx (str.len s) n1 isUnder)           ($str_arith_entail_is_approx_len s n1 isUnder))
+    (($str_arith_entail_is_approx (str.indexof s t n3) n1 isUnder)  ($str_arith_entail_is_approx_indexof s t n3 n1 isUnder))
+    (($str_arith_entail_is_approx (str.to_int s) n1 isUnder)        ($str_arith_entail_is_approx_to_int s n1 isUnder))
+    (($str_arith_entail_is_approx (+ n1 n2) (+ n3 n4) isUnder)      (eo::and
+                                                                      ($str_arith_entail_is_approx n1 n3 isUnder)
+                                                                      ($str_arith_entail_is_approx n2 n4 isUnder)))
+    (($str_arith_entail_is_approx (* n1 n3) (* n1 n5) isUnder)      (eo::ite (eo::is_neg n1)
+                                                                      ($str_arith_entail_is_approx n3 n5 (eo::not isUnder))
+                                                                      ($str_arith_entail_is_approx n3 n5 isUnder)))
+  )
+)
+
+; program: $str_re_consume_rec
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; - b Bool: >
+;   Stores temporary results when we are processing a union or intersection
+;   regular expression as argument r. Otherwise, this argument is @result.null.
+; - rev Bool: >
+;   Indicates whether s and r were reversed, in which case their components must
+;   be reversed when we recurse on non-str.to_re children.
+; return: >
+;   The result of implied consumption of string s in regular expression r.
+(program $str_re_consume_rec ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool))
+  (String RegLan Bool Bool) Bool
+  (
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)  
+        (eo::match ((s3 String) (s4 String :list) (s5 String) (r3 RegLan))
+          r1
+          (
+          ((str.to_re (str.++ s3 s4)) (eo::ite (eo::is_eq s1 s3)
+                                        ($str_re_consume_rec s2 (re.++ (str.to_re s4) r2) @result.null rev)
+                                        (eo::ite (eo::and ($str_check_length_one s1) ($str_check_length_one s3))
+                                          false                                       ; conflicting characters
+                                          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))) ; otherwise stuck
+          (@re.empty                  ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)) ; finished current component
+          ((re.range s3 s5)           (eo::ite (eo::and ($str_check_length_one s1) ($str_is_char_range s3 s5))
+                                        (eo::ite ($str_eval_str_in_re s1 (re.range s3 s5))
+                                          ($str_re_consume_rec s2 r2 @result.null rev)
+                                          false)
+                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
+          (re.allchar                 (eo::ite ($str_check_length_one s1)
+                                        ($str_re_consume_rec s2 r2 @result.null rev)
+                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
+          ((re.* r3)                  ; see what happens if we unroll once
+                                      (eo::match ((sr String) (rr RegLan))
+                                        ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)
+                                        (
+                                          ; We can't unroll even once, thus we must skip it.
+                                          (false                     ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev))
+                                          ; If we fully consumed, now we go back and check if we get a conflict if we skip.
+                                          ((str.in_re sr @re.empty)  (eo::match ((br Bool))
+                                                                        ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
+                                                                        (
+                                                                          ; Skipping would give a conflict.
+                                                                          (false (eo::ite (eo::is_eq (str.++ s1 s2) sr)
+                                                                                    ; if we did not consume anything, we are stuck.
+                                                                                    (str.in_re (str.++ s1 s2) (re.++ r1 r2))
+                                                                                    ; otherwise, we continue with the RE consumed once.
+                                                                                    ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)
+                                                                                  ))
+                                                                          ; Otherwise we are stuck.
+                                                                          (br    (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                                                        )
+                                                                      ))
+                                          ; Otherwise we are stuck.
+                                          ((str.in_re sr rr)          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                        )
+                                      ))
+          (r3                         ; likely intersection or union, process cases recursively
+                                      (eo::match ((sr String) (br Bool))
+                                        ($str_re_consume_rec (str.++ s1 s2) r3 @result.null rev)
+                                        (
+                                          ; conflict
+                                          (false                     false)
+                                          ; if all cases consumed the same, continue
+                                          ((str.in_re sr @re.empty)  ($str_re_consume_rec sr r2 @result.null rev))
+                                          ; otherwise we are stuck
+                                          (br                        (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
+                                        )
+                                      ))
+          )
+        )
+    )
+    (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
+      ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
+    ; Intersection reports conflicts eagerly, and otherwise combines the results
+    (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
+                                                       (eo::match ((bb Bool))
+                                                          ($str_re_consume_rec s1 r1r @result.null rev)
+                                                          (
+                                                            (false  false)
+                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
+                                                          )
+                                                       )))
+    (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
+    (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
+    ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
+    (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
+                                                       (eo::match ((bb Bool))
+                                                          ($str_re_consume_rec s1 r1r @result.null rev)
+                                                          (
+                                                            (false  ($str_re_consume_rec s1 r2 b rev))
+                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
+                                                          )
+                                                       )))
+    (($str_re_consume_rec s1 re.none @result.null rev) false)     ; end of re.union, conflict, also used if re.none appears in unexpected position
+    (($str_re_consume_rec s1 re.none b rev)            b)         ; end of re.union, no conflict
+    (($str_re_consume_rec s1 r1 @result.null rev)      (str.in_re s1 r1))
+  )
+)
+
+; define: $str_re_consume
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; returns: >
+;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
+;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
+;   prefixes/suffixes from s and r. We consume from the end of s and r first by
+;   reversing them initially and converting them to flat forms. We then reverse
+;   them again and consume from the beginning of the remainder. Finally, we convert
+;   back from flat form when applicable.
+(define $str_re_consume ((s String) (r RegLan))
+  (eo::define ((ss ($str_to_flat_form s true)))  
+  (eo::define ((rr ($re_to_flat_form r true)))
+  (eo::match ((s1 String) (r1 RegLan))
+      ($str_re_consume_rec ss rr @result.null true)
+      (
+        (false              false)
+        ((str.in_re s1 r1)  (eo::define ((s1r ($str_rev true s1)) (r1r ($re_to_flat_form r1 true)))
+                            (eo::match ((s2 String) (r2 RegLan))
+                              ($str_re_consume_rec s1r r1r @result.null false)
+                              (
+                                (false              false)
+                                ((str.in_re s2 r2)  (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))
+                              )
+                            ))
+        )
+      )
+  )))
+)

@@ -1,0 +1,108 @@
+(include "../theories/Builtin.eo")
+
+
+; rule: scope
+; assumption:
+; - F: The formula we have assumed.
+; premises:
+; - G: The formula proven by the body of the scope.
+; conclusion: >
+;   The assumed formula F implies G. Note that only a single assumption is
+;   given to this rule, while the cvc5 implementation may accept a list of
+;   assumptions which are collected as a conjunction.
+; note: >
+;   Since this rule has an assumption, it is expected to be referenced in
+;   a step-pop command.
+;   Along with process_scope, this rule implements ProofRule::SCOPE for a
+;   single assumption; using n applications of it is required for handling
+;   an application of ProofRule::SCOPE with n assumptions, which proves
+;   (=> F1 (=> F2 ... (=> Fn C))). We use process_scope to turn this into
+;   (=> (and F1 ... Fn) C), as required by the definition of ProofRule::SCOPE.
+(declare-rule scope
+  ((F Bool) (G Bool))
+  :assumption F
+  :premises (G)
+  :conclusion (=> F G)
+)
+
+; program: $extract_antec_rec
+; args:
+; - F Bool: The implication to extract the antecedant from.
+; - C Bool: The conclusion.
+; return: >
+;   The antecedant of F for conclusion C, e.g. this returns (and G1 G2) when F is
+;   (=> G1 (=> G2 C)), or true if F is C. Otherwise, it does not evaluate.
+(program $extract_antec_rec
+   ((C Bool) (F1 Bool) (F2 Bool))
+   (Bool Bool) Bool
+   (
+   (($extract_antec_rec C C)          true)
+   (($extract_antec_rec (=> F1 F2) C) (eo::cons and F1 ($extract_antec_rec F2 C)))
+   )
+)
+
+; program: $extract_antec
+; args:
+; - F Bool: The implication to extract the antecedant from.
+; - C Bool: The conclusion.
+; return: >
+;   The antecedant of F for conclusion C, calling $extract_antec_rec if necessary.
+;   Note that the singleton case is handled here to avoid constructing an and term with
+;   single child.
+(program $extract_antec
+   ((C Bool) (F Bool))
+   (Bool Bool) Bool
+   (
+   (($extract_antec (=> F C) C) F)
+   (($extract_antec F C)        ($extract_antec_rec F C))
+   )
+)
+
+; program: $run_process_scope
+; args:
+; - F Bool: The proof of the body of a scope.
+; - C Bool: The conclusion.
+; return: >
+;   The expected conclusion of a ProofRule::SCOPE.
+(program $run_process_scope
+   ((C Bool) (F Bool))
+   (Bool Bool) Bool
+   (
+   (($run_process_scope F false)  (not ($extract_antec F false)))
+   (($run_process_scope F C)      (=> ($extract_antec F C) C))
+   )
+)
+
+
+
+; rule: process_scope
+; premises:
+; - F: A formula, expected to be one proven by n>0 consecutive applications of scope.
+; args:
+; - C Bool: The conclusion of the innermost scope.
+; conclusion: >
+;   The conclusion of ProofRule::SCOPE based on the given applications of scope.
+;   For example, if F is (=> F1 (=> F2 ... (=> Fn C))), then this rule concludes
+;   (=> (and F1 ... Fn) C) when C is not false. Otherwise, this rule concludes
+;   (not (and F1 ... Fn)).
+(declare-rule process_scope
+  ((C Bool) (F Bool))
+  :premises (F)
+  :args (C)
+  :conclusion ($run_process_scope F C)
+)
+
+; rule: ite_eq
+; implements: ProofRule::ITE_EQ
+; args:
+; - t T: The ite term.
+; conclusion: >
+;   The axiom defining the behavior of the ite term, namely that it is equal
+;   to its then branch when its condition is true, or its else branch when its
+;   condition is false.
+(declare-rule ite_eq ((T Type) (b Bool) (t1 T) (t2 T))
+  :args ((ite b t1 t2))
+  :conclusion
+    (eo::define ((k (ite b t1 t2))) (ite b (= k t1) (= k t2)))
+)
+

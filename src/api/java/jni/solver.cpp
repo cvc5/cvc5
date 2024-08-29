@@ -746,6 +746,74 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_proofToString__JJI(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    proofToString
+ * Signature: (JJILjava/util/Map;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_Solver_proofToString__JJILjava_util_Map_2(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jlong proofPointer,
+    jint pfvalue,
+    jobject assertionNames)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  modes::ProofFormat pf = static_cast<modes::ProofFormat>(pfvalue);
+  Proof* proof = reinterpret_cast<Proof*>(proofPointer);
+
+  jclass c_map = env->GetObjectClass(assertionNames);
+  jmethodID id_entrySet =
+      env->GetMethodID(c_map, "entrySet", "()Ljava/util/Set;");
+
+  jclass c_entryset = env->FindClass("java/util/Set");
+  jmethodID id_iterator =
+      env->GetMethodID(c_entryset, "iterator", "()Ljava/util/Iterator;");
+
+  jclass c_iterator = env->FindClass("java/util/Iterator");
+  jmethodID id_hasNext = env->GetMethodID(c_iterator, "hasNext", "()Z");
+  jmethodID id_next =
+      env->GetMethodID(c_iterator, "next", "()Ljava/lang/Object;");
+
+  jclass c_entry = env->FindClass("java/util/Map$Entry");
+  jmethodID id_getKey =
+      env->GetMethodID(c_entry, "getKey", "()Ljava/lang/Object;");
+  jmethodID id_getValue =
+      env->GetMethodID(c_entry, "getValue", "()Ljava/lang/Object;");
+
+  jclass c_term = env->FindClass("io/github/cvc5/Term");
+  jmethodID id_getPointer = env->GetMethodID(c_term, "getPointer", "()J");
+
+  jobject obj_entrySet = env->CallObjectMethod(assertionNames, id_entrySet);
+  jobject obj_iterator = env->CallObjectMethod(obj_entrySet, id_iterator);
+
+  std::map<Term, std::string> namesMap;
+
+  while ((bool)env->CallBooleanMethod(obj_iterator, id_hasNext))
+  {
+    jobject entry = env->CallObjectMethod(obj_iterator, id_next);
+
+    jobject key = env->CallObjectMethod(entry, id_getKey);
+    jstring value = (jstring)env->CallObjectMethod(entry, id_getValue);
+
+    jlong termPointer = (jlong)env->CallObjectMethod(key, id_getPointer);
+    Term term = *reinterpret_cast<Term*>(termPointer);
+
+    const char* termName = (env)->GetStringUTFChars(value, 0);
+    std::string termNameString = std::string(termName);
+    (env)->ReleaseStringUTFChars(value, termName);
+
+    namesMap.insert(std::pair{term, termNameString});
+  }
+
+  std::string proofStr = solver->proofToString(*proof, pf, namesMap);
+  return env->NewStringUTF(proofStr.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    getValue
  * Signature: (JJ)J
  */
