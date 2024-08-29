@@ -1705,7 +1705,9 @@ set(regress_0_tests
   regress0/sets/proj-issue703.smt2
   regress0/sets/proj-issue720.smt2
   regress0/sets/proj-issue727.smt2
+  regress0/sets/proj-issue728.smt2
   regress0/sets/proj-issue730-sets-ipc-fail.smt2
+  regress0/sets/proj-issue731.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
@@ -2970,6 +2972,7 @@ set(regress_1_tests
   regress1/seq/issue8148-2-const-mv.smt2
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
+  regress1/seq/proj-issue733-mbqi-w.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
   regress1/sets/all3.smt2  
