@@ -1282,10 +1282,11 @@ bool InferProofCons::purifyCoreSubstitution(
     TheoryProofStepBuffer& psb,
     std::unordered_set<Node>& termsToPurify)
 {
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   for (const Node& nc : children)
   {
     Assert(nc.getKind() == Kind::EQUAL);
-    if (!nc[0].isVar())
+    if (!nc[0].isVar() || sm->getId(nc[0])==SkolemId::PURIFY)
     {
       termsToPurify.insert(nc[0]);
     }

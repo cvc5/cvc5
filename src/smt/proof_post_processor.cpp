@@ -685,6 +685,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       getMethodId(args[2], ida);
     }
+    Trace("smt-proof-pp-debug") << "Expand SUBS " << ids << " " << ida << std::endl;
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
     std::vector<TNode> ssList;
