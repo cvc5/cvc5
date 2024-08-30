@@ -1286,6 +1286,8 @@ bool InferProofCons::purifyCoreSubstitution(
   for (const Node& nc : children)
   {
     Assert(nc.getKind() == Kind::EQUAL);
+    // to avoid issues where purification variables introduced by this method
+    // already appear in the conflict, we also purify them here.
     if (!nc[0].isVar() || sm->getId(nc[0]) == SkolemId::PURIFY)
     {
       termsToPurify.insert(nc[0]);
