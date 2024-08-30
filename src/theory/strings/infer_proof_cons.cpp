@@ -1282,7 +1282,6 @@ bool InferProofCons::purifyCoreSubstitution(
     TheoryProofStepBuffer& psb,
     std::unordered_set<Node>& termsToPurify)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   for (const Node& nc : children)
   {
     Assert(nc.getKind() == Kind::EQUAL);
@@ -1292,7 +1291,8 @@ bool InferProofCons::purifyCoreSubstitution(
     }
   }
   // To avoid rare issues where purification variables introduced by this method
-  // already appear in the conflict, we also purify them here.
+  // already appear in the inference, we also purify them here.
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   SkolemId id;
   Node cval;
   for (const Node& nc : children)
