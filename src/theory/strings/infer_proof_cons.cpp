@@ -1291,7 +1291,7 @@ bool InferProofCons::purifyCoreSubstitution(
       termsToPurify.insert(nc[0]);
     }
   }
-  // To avoid issues where purification variables introduced by this method
+  // To avoid rare issues where purification variables introduced by this method
   // already appear in the conflict, we also purify them here.
   SkolemId id;
   Node cval;
