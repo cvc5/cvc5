@@ -1299,7 +1299,8 @@ bool InferProofCons::purifyCoreSubstitution(
   {
     // if this is a purification skolem of a term that is being purified,
     // we purify this.
-    if (sm->isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY && termsToPurify.find(cval)!=termsToPurify.end())
+    if (sm->isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
+        && termsToPurify.find(cval) != termsToPurify.end())
     {
       termsToPurify.insert(nc[0]);
     }
@@ -1327,11 +1328,12 @@ bool InferProofCons::purifyCoreSubstitution(
   return true;
 }
 
-Node InferProofCons::purifyPredicate(PurifyType pt,
-                                     Node lit,
-                                     bool concludeNew,
-                                     TheoryProofStepBuffer& psb,
-                                     const std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyPredicate(
+    PurifyType pt,
+    Node lit,
+    bool concludeNew,
+    TheoryProofStepBuffer& psb,
+    const std::unordered_set<Node>& termsToPurify)
 {
   bool pol = lit.getKind() != Kind::NOT;
   Node atom = pol ? lit : lit[0];
@@ -1401,8 +1403,8 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
   return newLit;
 }
 
-Node InferProofCons::purifyCoreTerm(Node n,
-                                    const std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyCoreTerm(
+    Node n, const std::unordered_set<Node>& termsToPurify)
 {
   if (n.getKind() == Kind::STRING_CONCAT)
   {
@@ -1416,7 +1418,8 @@ Node InferProofCons::purifyCoreTerm(Node n,
   return maybePurifyTerm(n, termsToPurify);
 }
 
-Node InferProofCons::purifyApp(Node n, const std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyApp(Node n,
+                               const std::unordered_set<Node>& termsToPurify)
 {
   if (n.getNumChildren() == 0)
   {
@@ -1430,8 +1433,8 @@ Node InferProofCons::purifyApp(Node n, const std::unordered_set<Node>& termsToPu
   return NodeManager::currentNM()->mkNode(n.getKind(), pcs);
 }
 
-Node InferProofCons::maybePurifyTerm(Node n,
-                                     const std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::maybePurifyTerm(
+    Node n, const std::unordered_set<Node>& termsToPurify)
 {
   if (termsToPurify.find(n) == termsToPurify.end())
   {
