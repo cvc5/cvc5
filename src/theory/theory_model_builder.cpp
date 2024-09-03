@@ -27,6 +27,8 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
 #include "util/uninterpreted_sort_value.h"
+#include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1365,8 +1367,21 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   }
   // start with the base return value (currently we use the same default value
   // for all functions)
-  TypeEnumerator te(type.getRangeType());
-  Node curr = (*te);
+  TypeNode rangeType = type.getRangeType();
+  Node curr;
+  if (options().theory.incompleteFunctionValues)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    curr = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+  }
+  else
+  {
+    TypeEnumerator te(rangeType);
+    curr = (*te);
+  }
   std::map<Node, std::vector<Node> >::iterator itht = m->d_ho_uf_terms.find(f);
   if (itht != m->d_ho_uf_terms.end())
   {
