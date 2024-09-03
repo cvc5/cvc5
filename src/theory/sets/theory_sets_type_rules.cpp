@@ -617,10 +617,9 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
         {
           (*errOut) << "Operator " << n.getKind()
                     << " expects the number of sets to match the number of "
-                    << "arguments to the predicate. "
-                    << "Found a predicate with " << argTypes.size()
-                    << " arguments and " << setsCount << " in term '" << n
-                    << "'.";
+                    << "inputs in the predicate. "
+                    << "Found " << setsCount << " sets and a predicate with "
+                    << argTypes.size() << " inputs in term '" << n << "'";
         }
         return TypeNode::null();
       }
