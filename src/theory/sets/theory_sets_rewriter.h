@@ -73,6 +73,25 @@ class TheorySetsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode node) override;
 
   /**
+   * Rewrite set quantifier nodes with at least 2 sets into
+   * nested of set quantified nodes.
+   * For lambda predicates it reuses the declared bound variables.
+   * For other predicates it uses fresh bound variables.
+   * Examples:
+   * - (set.all (lambda ((x Int) (y Int)) (> x y)) A B)
+   *   is rewritten as
+   *   (set.all (lambda ((x Int)) (set.all (lambda ((y Int)) (> x y)) B)) A)
+   *
+   * - (set.all p A B)
+   *   is rewritten as
+   *   (set.all (lambda ((x1 Int)) (set.all (lambda ((x2 Int)) (p x1 x2)) B)) A)
+   *
+   * where A, B are sets of type (Set Int),
+   * and p is a predicate of type (-> Int Int Bool).
+   */
+  RewriteResponse preRewriteSetQuantifier(TNode node);
+
+  /**
    * Rewrite an equality, in case special handling is required.
    */
   Node rewriteEquality(TNode equality)
