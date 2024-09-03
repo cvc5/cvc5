@@ -1329,6 +1329,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
     default_v = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
   }
