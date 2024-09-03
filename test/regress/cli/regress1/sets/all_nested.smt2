@@ -1,0 +1,13 @@
+; EXPECT: sat
+; EXPECT: (((set.all (lambda ((x Int)) (> x 0)) (set.singleton 4)) true))
+; EXPECT: (((set.all gt (set.singleton 4) (set.singleton 5)) false))
+; EXPECT: (((set.all (lambda ((x Int) (y Int)) (> x y)) (set.singleton 4) (set.singleton 5)) false))
+; EXPECT: (((set.some (lambda ((x Int) (y Int) (z Int)) (> z (+ x y))) (set.singleton 4) (set.singleton 5) (set.singleton 10)) true))
+(set-logic HO_ALL)
+(set-option :produce-models true)
+(define-fun gt ((x Int) (y Int)) Bool (> x y))
+(check-sat)
+(get-value ((set.all (lambda ((x Int)) (> x 0)) (set.singleton 4))))
+(get-value ((set.all gt (set.singleton 4)(set.singleton 5))))
+(get-value ((set.all (lambda ((x Int) (y Int)) (> x y)) (set.singleton 4) (set.singleton 5))))
+(get-value ((set.some (lambda ((x Int) (y Int) (z Int)) (> z (+ x y))) (set.singleton 4)(set.singleton 5)(set.singleton 10))))
