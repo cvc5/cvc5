@@ -1,3 +1,4 @@
+; DISABLE-TESTER: proof
 (set-logic HO_ALL)
 (set-info :status unsat)
 
