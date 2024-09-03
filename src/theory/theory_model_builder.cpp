@@ -1317,10 +1317,19 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     ufmt.setValue(m, simp, v);
     default_v = v;
   }
-  if (default_v.isNull())
+  TypeNode rangeType = f.getType().getRangeType();
+  if (options().theory.incompleteFunctionValues)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    default_v = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+  }
+  else if (default_v.isNull())
   {
     // choose default value from model if none exists
-    TypeEnumerator te(f.getType().getRangeType());
+    TypeEnumerator te(rangeType);
     default_v = (*te);
   }
   ufmt.setDefaultValue(m, default_v);
