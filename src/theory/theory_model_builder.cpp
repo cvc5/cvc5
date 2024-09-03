@@ -1372,23 +1372,30 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       apply_args.push_back(v);
     }
   }
-  // start with the base return value (currently we use the same default value
-  // for all functions)
+  // Depending on the default value mode, maybe set the current value (curr).
+  // We also remember a default value (currPre) in case there are no terms
+  // to assign below.
   TypeNode rangeType = type.getRangeType();
-  Node curr;
+  Node curr, currPre;
   if (dfvm == options::DefaultFunctionValueMode::HOLE)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
-    curr = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+    currPre = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+    curr = currPre;
   }
-  else if (dfvm == options::DefaultFunctionValueMode::FIRST_ENUM)
+  else
   {
     TypeEnumerator te(rangeType);
-    curr = (*te);
+    currPre = (*te);
+    if (dfvm == options::DefaultFunctionValueMode::FIRST_ENUM)
+    {
+      curr = currPre;
+    }
   }
+  curr = currPre;
   std::map<Node, std::vector<Node> >::iterator itht = m->d_ho_uf_terms.find(f);
   if (itht != m->d_ho_uf_terms.end())
   {
@@ -1435,6 +1442,11 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
       }
     }
+  }
+  // if curr was not set, we set it to currPre.
+  if (curr.isNull())
+  {
+    curr = currPre;
   }
   Node val = nodeManager()->mkNode(
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
