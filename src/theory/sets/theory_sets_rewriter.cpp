@@ -712,6 +712,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
 
 RewriteResponse TheorySetsRewriter::preRewriteSetQuantifier(TNode node)
 {
+  Assert(node.getKind() == Kind::SET_ALL || node.getKind() == Kind::SET_SOME);
   NodeManager* nm = nodeManager();
   Kind k = node.getKind();
   Node p = node[0];
