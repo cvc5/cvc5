@@ -734,13 +734,11 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
           Node x = nm->mkBoundVar("x" + std::to_string(i), argTypes[i]);
           boundVariables.push_back(x);
         }
-
-        std::cout << "Bound variables: " << boundVariables << std::endl;
+        
         std::vector<Node> terms;
         terms.push_back(p);
         terms.insert(terms.end(), boundVariables.begin(), boundVariables.end());
-        Node application = nm->mkNode(Kind::APPLY_UF, terms);
-        std::cout << "application: " << application << std::endl;
+        Node application = nm->mkNode(Kind::APPLY_UF, terms);        
         Node boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST,
                                         boundVariables[argumentsCount - 1]);
         Node lambda = nm->mkNode(Kind::LAMBDA, boundVariable, application);
@@ -750,8 +748,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
           boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST, boundVariables[i]);
           lambda = nm->mkNode(Kind::LAMBDA, boundVariable, setQuantifier);
           setQuantifier = nm->mkNode(k, lambda, node[i + 1]);
-        }
-        std::cout << "setQuantifier: " << setQuantifier << std::endl;
+        }        
         return RewriteResponse(REWRITE_AGAIN, setQuantifier);
       }
     }
