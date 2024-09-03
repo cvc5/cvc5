@@ -16,6 +16,8 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "expr/sort_type_size.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -27,8 +29,6 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
 #include "util/uninterpreted_sort_value.h"
-#include "expr/skolem_manager.h"
-#include "expr/sort_to_term.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1322,7 +1322,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   TypeNode rangeType = f.getType().getRangeType();
   if (options().theory.incompleteFunctionValues)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
@@ -1371,7 +1371,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   Node curr;
   if (options().theory.incompleteFunctionValues)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
