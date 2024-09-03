@@ -701,7 +701,30 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                    nm->mkNode(Kind::SET_UNION, node[0], node[1]),
                    node[1]));
   }
+  else if (k == Kind::SET_ALL || k == Kind::SET_SOME)
+  {
+    Node p = node[0];
+    size_t argumentsCount = p[0].getNumChildren();
+    Node body = p[1];
+    std::vector<TypeNode> argTypes = p.getType().getArgTypes();
 
+    if (p.getKind() == Kind::LAMBDA && argumentsCount > 1)
+    {
+      Node boundVariable =
+          nm->mkNode(Kind::BOUND_VAR_LIST, p[0][argumentsCount - 1]);
+      Node lambda = nm->mkNode(Kind::LAMBDA, boundVariable, body);
+      Node setQuantifier = nm->mkNode(k, lambda, node[argumentsCount]);
+      for (int i = argumentsCount - 2; i >= 0; i--)
+      {
+        boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST, p[0][i]);
+        lambda = nm->mkNode(Kind::LAMBDA, boundVariable, setQuantifier);
+        setQuantifier = nm->mkNode(k, lambda, node[i + 1]);
+      }
+      return RewriteResponse(REWRITE_AGAIN, setQuantifier);
+    }
+
+    return RewriteResponse(REWRITE_DONE, node);
+  }
   // could have an efficient normalizer for union here
 
   return RewriteResponse(REWRITE_DONE, node);
