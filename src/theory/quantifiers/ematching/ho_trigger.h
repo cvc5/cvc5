@@ -99,7 +99,8 @@ class HigherOrderTrigger : public Trigger
                      TermRegistry& tr,
                      Node q,
                      std::vector<Node>& nodes,
-                     std::map<Node, std::vector<Node> >& ho_apps);
+                     std::map<Node, std::vector<Node> >& ho_apps,
+                     bool isUser = false);
   virtual ~HigherOrderTrigger();
 
   /** Collect higher order var apply terms

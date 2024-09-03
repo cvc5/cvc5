@@ -159,7 +159,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             if (!isConstRegExp(rc))
             {
               // if a non-standard re.range term, abort
-              return Node::null();
+              break;
             }
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());

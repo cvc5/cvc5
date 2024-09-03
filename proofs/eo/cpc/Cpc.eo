@@ -128,13 +128,14 @@
       (($run_evaluate (div_total x y))     (eo::define ((d ($run_evaluate y)))
                                              (eo::ite (eo::is_eq d 0) 0 (eo::zdiv ($run_evaluate x) d))))
       (($run_evaluate (mod x y))           (eo::zmod ($run_evaluate x) ($run_evaluate y)))
-      (($run_evaluate (mod_total x y))     (let ((ex ($run_evaluate x)))
-                                           (let ((ey ($run_evaluate y)))
+      (($run_evaluate (mod_total x y))     (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
                                             (eo::ite (eo::is_eq ey 0) ex (eo::zmod ex ey)))))
       (($run_evaluate (to_real x))         (eo::to_q ($run_evaluate x)))
       (($run_evaluate (to_int x))          (eo::to_z ($run_evaluate x)))
       (($run_evaluate (is_int x))          (eo::is_eq (eo::to_q (eo::to_z x)) (eo::to_q x)))
-
+      (($run_evaluate (int.log2 x))        ($arith_eval_int_log_2 ($run_evaluate x)))
+      (($run_evaluate (int.ispow2 x))      ($arith_eval_is_pow_2 ($run_evaluate x)))
 
       ; strings
       (($run_evaluate (str.++ xs yss))     (eo::concat ($run_evaluate xs) ($run_evaluate yss)))

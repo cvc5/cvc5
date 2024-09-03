@@ -15,6 +15,8 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/alethe/alethe_proof_rule.h"
@@ -128,16 +130,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Here, (cl (or b c)) and (cl b c) cannot correspond to the same proof node
     // (or b c). Thus, we build a new proof node using the kind SEXPR
-    // that is then printed as (cl (or b c)). We denote this wrapping of a proof
-    // node by using an extra pair of parenthesis, i.e. ((or b c)) is the proof
-    // node printed as (cl (or b c)).
+    // that is then printed as (cl (or b c)).
     //
     // Adding an OR node to a premises will take place in the finalize function
     // where in the case that a step is printed as (cl (or F1 ... Fn)) but used
     // as (cl F1 ... Fn) an OR step is added to transform it to this very thing.
     // This is necessary for rules that work on clauses, i.e. RESOLUTION,
     // CHAIN_RESOLUTION, REORDERING and FACTORING.
-    //
     //
     // Some proof rules have a close correspondence in Alethe. There are two
     // very frequent patterns that, to avoid repetition, are described here and
@@ -187,40 +186,39 @@ bool AletheProofPostprocessCallback::update(Node res,
     // defined in the original documentation of the rules in proof_rule.h.
     //================================================= Core rules
     //======================== Assume and Scope
+    // nothing happens
     case ProofRule::ASSUME:
     {
-      return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
+      return false;
     }
-    // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-    // variable names as introduced there. Since the SCOPE rule originally
-    // concludes
-    // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
-    // concludes (cl (not F1) ... (not Fn) F), to keep the original shape of the
-    // proof node it is necessary to rederive the original conclusion. The
-    // transformation is described below, depending on the form of SCOPE's
-    // conclusion.
+    // The SCOPE rule is translated into Alethe using the "subproof" rule. The
+    // conclusion is either (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)), so
+    // it must be converted into (cl (not F1) ... (not Fn) F), and extra steps
+    // must be added to derive the original conclusion, which is the one to be
+    // used in the steps depending on this one.
     //
-    // Note that after the original conclusion is rederived the new proof node
-    // will actually have to be printed, respectively, (cl (=> (and F1 ... Fn)
-    // F)) or (cl (not (and F1 ... Fn))).
-    //
-    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
-    // Fn)) for i times.
+    // The following transformation is applied. Let (not (and F1 ... Fn))^i
+    // denote the repetition of (not (and F1 ...  Fn)) for i times.
     //
     // T1:
     //
-    //   P
-    // ----- ANCHOR    ------- ... ------- AND_POS
-    //  VP1             VP2_1  ...  VP2_n
-    // ------------------------------------ RESOLUTION
+    // -------------------------------- anchor
+    // ---- assume         ---- assume
+    //  F1            ...   Fn
+    //        ...
+    // -----
+    //   F
+    // ----- subproof    ------- ... ------- and_pos
+    //  VP1               VP2_1  ...  VP2_n
+    // ------------------------------------ resolution
     //               VP2a
-    // ------------------------------------ REORDERING
+    // ------------------------------------ reordering
     //  VP2b
-    // ------ CONTRACTION           ------- IMPLIES_NEG1
+    // ------ contraction           ------- implies_neg1
     //   VP3                          VP4
-    // ------------------------------------  RESOLUTION    ------- IMPLIES_NEG2
+    // ------------------------------------ resolution    ------- implies_neg2
     //    VP5                                                VP6
-    // ----------------------------------------------------------- RESOLUTION
+    // ----------------------------------------------------------- resolution
     //                               VP7
     //
     // VP1: (cl (not F1) ... (not Fn) F)
@@ -233,18 +231,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // Note that if n = 1, then the ANCHOR step yields (cl (not F1) F), which is
-    // the same as VP3. Since VP1 = VP3, the steps for that transformation are
-    // not generated.
+    // Note that if n = 1, then the "subproof" step yields (cl (not F1) F),
+    // which is the same as VP3. Since VP1 = VP3, the steps for that
+    // transformation are not generated.
     //
     //
     // If F = false:
     //
-    //                                    --------- IMPLIES_SIMPLIFY
+    //                                    --------- implies_simplify
     //    T1                                 VP9
-    // --------- CONTRACTION              --------- EQUIV_1
+    // --------- contraction              --------- equiv_1
     //    VP8                                VP10
-    // -------------------------------------------- RESOLUTION
+    // -------------------------------------------- resolution
     //          (cl (not (and F1 ... Fn)))*
     //
     // VP8: (cl (=> (and F1 ... Fn) false))
@@ -253,7 +251,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise,
     //                T1
-    //  ------------------------------ CONTRACTION
+    //  ------------------------------ contraction
     //   (cl (=> (and F1 ... Fn) F))**
     //
     //
@@ -265,20 +263,14 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       // Build vp1
       std::vector<Node> negNode{d_cl};
-      std::vector<Node> sanitized_args;
       for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(Kind::SEXPR, negNode);
-      success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
-                               vp1,
-                               vp1,
-                               children,
-                               sanitized_args,
-                               *cdp);
+      success &= addAletheStep(
+          AletheRule::ANCHOR_SUBPROOF, vp1, vp1, children, args, *cdp);
 
       Node andNode, vp3;
       if (args.size() == 1)
@@ -296,8 +288,12 @@ bool AletheProofPostprocessCallback::update(Node res,
         for (size_t i = 0, size = args.size(); i < size; i++)
         {
           vp2_i = nm->mkNode(Kind::SEXPR, d_cl, andNode.notNode(), args[i]);
-          success &=
-              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+          success &= addAletheStep(AletheRule::AND_POS,
+                                   vp2_i,
+                                   vp2_i,
+                                   {},
+                                   std::vector<Node>{nm->mkConstInt(i)},
+                                   *cdp);
           premisesVP2.push_back(vp2_i);
           notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
         }
@@ -476,7 +472,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // justify this as a REFL step. This happens with trusted purification
       // steps, for example.
       Node resConv = d_anc.maybeConvert(res);
-      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL && resConv[0] == resConv[1])
+      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL
+          && resConv[0] == resConv[1])
       {
         return addAletheStep(AletheRule::REFL,
                              res,
@@ -626,7 +623,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Fn) Otherwise, VC2 = (cl C2).
     //
     //    P
-    // ------- CONTRACTION
+    // ------- contraction
     //   VC2*
     //
     // * the corresponding proof node is C2
@@ -661,9 +658,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the SPLIT rule. This comment
     // uses variable names as introduced there.
     //
-    // --------- NOT_NOT      --------- NOT_NOT
+    // --------- not_not      --------- not_not
     //    VP1                    VP2
-    // -------------------------------- RESOLUTION
+    // -------------------------------- resolution
     //          (cl F (not F))*
     //
     // VP1: (cl (not (not (not F))) F)
@@ -725,9 +722,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // uses variable names as introduced there.
     //
     //     (P2:(=> F1 F2))
-    // ------------------------ IMPLIES
+    // ------------------------ implies
     //  (VP1:(cl (not F1) F2))             (P1:F1)
-    // -------------------------------------------- RESOLUTION
+    // -------------------------------------------- resolution
     //                   (cl F2)*
     //
     // * the corresponding proof node is F2
@@ -750,9 +747,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
     // uses variable names as introduced there.
     //
-    // ---------------------------------- NOT_NOT
+    // ---------------------------------- not_not
     //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
-    // ------------------------------------------------------------- RESOLUTION
+    // ------------------------------------------------------------- resolution
     //                            (cl F)*
     //
     // * the corresponding proof node is F
@@ -775,7 +772,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     //  P1   P2
-    // --------- RESOLUTION
+    // --------- resolution
     //   (cl)*
     //
     // * the corresponding proof node is false
@@ -805,9 +802,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     //
-    // ----- AND_NEG
+    // ----- and_neg
     //  VP1            P1 ... Pn
-    // -------------------------- RESOLUTION
+    // -------------------------- resolution
     //   (cl (and F1 ... Fn))*
     //
     // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
@@ -1035,13 +1032,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== CNF ITE Pos version 3
     //
-    // ----- ITE_POS1            ----- ITE_POS2
+    // ----- ite_pos1            ----- ite_pos2
     //  VP1                       VP2
-    // ------------------------------- RESOLUTION
+    // ------------------------------- resolution
     //             VP3
-    // ------------------------------- REORDERING
+    // ------------------------------- reordering
     //             VP4
-    // ------------------------------- CONTRACTION
+    // ------------------------------- contraction
     //  (cl (not (ite C F1 F2)) F1 F2)
     //
     // VP1: (cl (not (ite C F1 F2)) C F2)
@@ -1076,13 +1073,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== CNF ITE Neg version 3
     //
-    // ----- ITE_NEG1            ----- ITE_NEG2
+    // ----- ite_neg1            ----- ite_neg2
     //  VP1                       VP2
-    // ------------------------------- RESOLUTION
+    // ------------------------------- resolution
     //             VP3
-    // ------------------------------- REORDERING
+    // ------------------------------- reordering
     //             VP4
-    // ------------------------------- CONTRACTION
+    // ------------------------------- contraction
     //  (cl (ite C F1 F2) C (not F2))
     //
     // VP1: (cl (ite C F1 F2) C (not F2))
@@ -1596,8 +1593,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // terms of disequalities, but ARITH_SUM_UB does not have equalities as
       // conclusions
       Assert(res.getKind() != Kind::EQUAL);
-      Node one = nm->mkConstInt(Rational(1));
-      Node minusOne = nm->mkConstInt(Rational(-1));
+      Node one = nm->mkConstReal(Rational(1));
+      Node minusOne = nm->mkConstReal(Rational(-1));
       std::vector<Node> resArgs;
       std::vector<Node> resChildren;
       std::vector<Node> lits{d_cl};
@@ -1626,8 +1623,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     {
-      // We require the multiplicative factor to be a value
-      Assert(args[0].isConst());
       return addAletheStep(id == ProofRule::ARITH_MULT_POS
                                ? AletheRule::LA_MULT_POS
                                : AletheRule::LA_MULT_NEG,
@@ -1651,8 +1646,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConstInt(Rational(1)));
-      new_args.push_back(nm->mkConstInt(Rational(1)));
+      Node one = nm->mkConstReal(Rational(1));
+      new_args.push_back(one);
+      new_args.push_back(one);
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1677,8 +1673,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(Kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConstInt(Rational(1)));
-      new_args.push_back(nm->mkConstInt(Rational(1)));
+      Node one = nm->mkConstReal(Rational(1));
+      new_args.push_back(one);
+      new_args.push_back(one);
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1690,284 +1687,482 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Trichotomy of the reals
-    // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
-    // comment uses variable names as introduced there.
     //
-    // If C = (= x c) or C = (> x c) pre-processing has to transform (>= x c)
-    // into (<= c x)
+    // C is always of the format (= x c), (> x c) or (< x c). It has to be
+    // concluded from A, B, which are (=> x c), (<= x c), or (not (= x c)). In
+    // some cases, rather than (=> x c) we can actually have its negation, i.e.,
+    // (not (< x c)), which is accounted for below.
     //
-    // ------------------------------------------------------ LA_DISEQUALITY
-    //  (VP1: (cl (or (= x c) (not (<= x c)) (not (<= c x)))))
-    // -------------------------------------------------------- OR
-    //  (VP2: (cl (= x c) (not (<= x c)) (not (<= c x))))
+    // The convertion into Alethe is based on la_disequality, which has much
+    // the same semantics as ARITH_TRICHOTOMY. The following subproof is
+    // common to all the cases (we will refer to it as PI_0):
     //
-    // If C = (> x c) or C = (< x c) post-processing has to be added. In these
-    // cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and
-    // comp_simplify is used to transform it into C. Otherwise,
+    // ------------------------------------------------------ la_disequality
+    //  (cl (or (= x c) (not (<= x c)) (not (<= c x))))
+    // -------------------------------------------------------- or
+    //  (cl (= x c) (not (<= x c)) (not (<= c x)))
     //
-    //  VP2   A   B
-    // ---------------- RESOLUTION
-    //  (cl C)*
-    //
-    // * the corresponding proof node is C
+    // The transformations also use the COMP_SIMPLIFY rule in Alethe, which
+    // connects strict and non-strict inequalities. The details for each
+    // conversion are given for each case.
     case ProofRule::ARITH_TRICHOTOMY:
     {
       bool success = true;
       Node equal, lesser, greater;
-
       Kind k = res.getKind();
-      if (k == Kind::EQUAL)
+      Assert(k == Kind::EQUAL || k == Kind::GT || k == Kind::LT)
+          << "kind is " << k << "\n";
+      Node x = res[0], c = res[1];
+      switch (k)
       {
-        equal = res;
-        if (children[0].getKind() == Kind::LEQ)
+        case Kind::EQUAL:
         {
-          greater = children[0];
-          lesser = children[1];
-        }
-        else
-        {
-          greater = children[1];
-          lesser = children[0];
-        }
-      }
-      // Add case where res is not =
-      else if (res.getKind() == Kind::GT)
-      {
-        greater = res;
-        if (children[0].getKind() == Kind::NOT)
-        {
-          equal = children[0];
-          lesser = children[1];
-        }
-        else
-        {
-          equal = children[1];
-          lesser = children[0];
-        }
-      }
-      else
-      {
-        lesser = res;
-        if (children[0].getKind() == Kind::NOT)
-        {
-          equal = children[0];
-          greater = children[1];
-        }
-        else
-        {
-          equal = children[1];
-          greater = children[0];
-        }
-      }
+          Trace("alethe-proof") << "..case EQUAL\n";
+          Node leq, geq;
+          if (children[0].getKind() == Kind::LEQ)
+          {
+            leq = children[0];
+            geq = children[1];
+          }
+          else
+          {
+            leq = children[1];
+            geq = children[0];
+          }
+          Node leqInverted = nm->mkNode(Kind::LEQ, geq[1], geq[0]);
+          // The subproof built is (where @p1 is the premise for "geq", @p2 is
+          // "leqInverted")
+          //
+          // PI_1:
+          //   with @p0: (= (=> x c) (<= c x))
+          //   with @p1: (=> x c)
+          //   with @p2: (<= c x)
+          //
+          // ----- comp_simplify  -------------------equiv_pos2   --- geq
+          //  @p0                 (cl (not @p0) (not @p1) @p2)    @p1
+          // ---------------------------------------------------- resolution
+          //                     @p2
+          //
+          // Then we combine with the proof PI_0 and use the other premise
+          // (for "leq")
+          //
+          //        --------- leq
+          // PI_0    (<= x c)      PI_1
+          // --------------------------- resolution
+          //        (= x c)
+          //
+          // where (= x c) is the expected result
 
-      Node x, c;
-      if (equal.getKind() == Kind::NOT)
-      {
-        x = equal[0][0];
-        c = equal[0][1];
-      }
-      else
-      {
-        x = equal[0];
-        c = equal[1];
-      }
-      Node vp_child1 = children[0], vp_child2 = children[1];
-
-      // Preprocessing
-      if (res == equal || res == greater)
-      {  // C = (= x c) or C = (> x c)
-        // lesser = (>= x c)
-        Node vpc2 = nm->mkNode(
-            Kind::SEXPR,
-            d_cl,
-            nm->mkNode(Kind::GEQ, x, c).eqNode(nm->mkNode(Kind::LEQ, c, x)));
-        // (cl (= (>= x c) (<= c x)))
-        Node vpc1 = nm->mkNode(Kind::SEXPR,
-                               {d_cl,
-                                vpc2[1].notNode(),
-                                nm->mkNode(Kind::GEQ, x, c).notNode(),
-                                nm->mkNode(Kind::LEQ, c, x)});
-        // (cl (not(= (>= x c) (<= c x))) (not (>= x c)) (<= c x))
-        vp_child1 = nm->mkNode(
-            Kind::SEXPR, d_cl, nm->mkNode(Kind::LEQ, c, x));  // (cl (<= c x))
-
-        success &=
-            addAletheStep(AletheRule::EQUIV_POS2, vpc1, vpc1, {}, {}, *cdp)
-            && addAletheStep(
-                AletheRule::COMP_SIMPLIFY, vpc2, vpc2, {}, {}, *cdp)
-            && addAletheStep(
+          // We first build PI_0:
+          Node laDiseqOr = nm->mkNode(
+              Kind::SEXPR,
+              d_cl,
+              nm->mkNode(Kind::OR, res, leq.notNode(), leqInverted.notNode()));
+          Node laDiseqCl = nm->mkNode(
+              Kind::SEXPR, {d_cl, res, leq.notNode(), leqInverted.notNode()});
+          success &=
+              addAletheStep(AletheRule::LA_DISEQUALITY,
+                            laDiseqOr,
+                            laDiseqOr,
+                            {},
+                            {},
+                            *cdp)
+              && addAletheStep(
+                  AletheRule::OR, laDiseqCl, laDiseqCl, {laDiseqOr}, {}, *cdp);
+          // Now we build PI_1:
+          Node compSimp = geq.eqNode(leqInverted);
+          Node compSimpCl = nm->mkNode(Kind::SEXPR, d_cl, compSimp);
+          success &= addAletheStep(
+              AletheRule::COMP_SIMPLIFY, compSimpCl, compSimpCl, {}, {}, *cdp);
+          Node equivPos2Cl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, compSimp.notNode(), geq.notNode(), leqInverted});
+          success &= addAletheStep(
+              AletheRule::EQUIV_POS2, equivPos2Cl, equivPos2Cl, {}, {}, *cdp);
+          Node resPi1Conc = nm->mkNode(Kind::SEXPR, d_cl, leqInverted);
+          success &= addAletheStep(
+              AletheRule::RESOLUTION,
+              resPi1Conc,
+              resPi1Conc,
+              {compSimpCl, equivPos2Cl, geq},
+              d_resPivots ? std::vector<Node>{compSimp, d_true, geq, d_false}
+                          : std::vector<Node>(),
+              *cdp);
+          // Now we build the final resultion
+          success &= addAletheStep(
+              AletheRule::RESOLUTION,
+              res,
+              nm->mkNode(Kind::SEXPR, d_cl, res),
+              {leq, laDiseqCl, resPi1Conc},
+              d_resPivots ? std::vector<Node>{leq, d_true, leqInverted, d_false}
+                          : std::vector<Node>(),
+              *cdp);
+          break;
+        }
+        case Kind::GT:
+        {
+          Trace("alethe-proof") << "..case GT\n";
+          Node geq, notEq;
+          Kind kc0 = children[0].getKind();
+          if (kc0 == Kind::GEQ
+              || (kc0 == Kind::NOT && children[0][0].getKind() == Kind::LT))
+          {
+            geq = children[0];
+            notEq = children[1];
+          }
+          else
+          {
+            geq = children[1];
+            notEq = children[0];
+          }
+          Node leq = nm->mkNode(Kind::LEQ, x, c);
+          Node leqInverted = nm->mkNode(Kind::LEQ, c, x);
+          Assert(notEq.getKind() == Kind::NOT
+                 && notEq[0].getKind() == Kind::EQUAL);
+          // it may be that the premise supposed to be (>= x c) is actually the
+          // literal (not (< x c)). In this case we use that premise to deriv
+          // (>= x c), so that the reconstruction below remains the same
+          if (geq.getKind() != Kind::GEQ)
+          {
+            Assert(geq.getKind() == Kind::NOT && geq[0].getKind() == Kind::LT);
+            Node notLt = geq;
+            geq = nm->mkNode(Kind::GEQ, x, c);
+            //  @pa: (= (< x c) (not (<= c x)))
+            //  @pb: (< x c)
+            //  @pc: (<= c x)
+            //  notLT : (not @pb)
+            //
+            // PI_a:
+            //
+            // --- comp_simplify --------------------- equiv_pos1    ----- notLT
+            // @pa               (cl (not @pa) @pb (not (not @pc)))  (not @pb)
+            // ------------------------------------------------------ resolution
+            //              (cl (not (not @pc)))
+            //
+            //
+            // PI_b:
+            //
+            //  ------------------------------ NOT_NOT -------------------- PI_a
+            //  (cl (not (not (not @pc))) @pc)         (cl (not (not @pc)))
+            // ------------------------------------------------------ resolution
+            //                             @pc
+            //
+            // PI_c:
+            //
+            //  @pd: (= (>= x c) (<= c x))
+            //
+            // --- comp_simplify -------------------------- equiv_pos1  --- PI_b
+            // @pd               (cl (not @pd) (>= x c) (not @pc))      @pc
+            // ------------------------------------------------------ resolution
+            //              (cl (>= x c))
+            //
+            Node pb = notLt[0];
+            Node pc = leqInverted;
+            Node pa = pb.eqNode(pc.notNode());
+            // We first build PI_a:
+            Node compSimpCl = nm->mkNode(Kind::SEXPR, d_cl, pa);
+            success &= addAletheStep(AletheRule::COMP_SIMPLIFY,
+                                     compSimpCl,
+                                     compSimpCl,
+                                     {},
+                                     {},
+                                     *cdp);
+            Node equivPos1Cl = nm->mkNode(
+                Kind::SEXPR, {d_cl, pa.notNode(), pb, pc.notNode().notNode()});
+            success &= addAletheStep(
+                AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
+            Node resPiAConc =
+                nm->mkNode(Kind::SEXPR, d_cl, pc.notNode().notNode());
+            success &= addAletheStep(
                 AletheRule::RESOLUTION,
-                vp_child1,
-                vp_child1,
-                {vpc1, vpc2, lesser},
-                d_resPivots
-                    ? std::vector<Node>{vpc2[1], d_false, lesser, d_false}
-                    : std::vector<Node>(),
+                resPiAConc,
+                resPiAConc,
+                {compSimpCl, equivPos1Cl, pb.notNode()},
+                d_resPivots ? std::vector<Node>{pa, d_true, pb, d_true}
+                            : std::vector<Node>(),
                 *cdp);
-        // greater = (<= x c) or greater = (not (= x c)) -> no preprocessing
-        // necessary
-        vp_child2 = res == equal ? greater : equal;
-      }
+            // We then build PI_b:
+            Node notNot = pc.notNode().notNode().notNode();
+            Node notNotCl =
+                nm->mkNode(Kind::SEXPR, d_cl, pc.notNode().notNode().notNode());
+            success &= addAletheStep(
+                AletheRule::NOT_NOT, notNotCl, notNotCl, {}, {}, *cdp);
+            Node resPiBConc =
+                nm->mkNode(Kind::SEXPR, d_cl, pc.notNode().notNode());
+            success &= addAletheStep(
+                AletheRule::RESOLUTION,
+                resPiBConc,
+                resPiBConc,
+                {notNotCl, resPiAConc},
+                d_resPivots ? std::vector<Node>{pc.notNode().notNode(), d_false}
+                            : std::vector<Node>(),
+                *cdp);
+            // Now we conclude, building PI_c
+            Node pd = geq.eqNode(pc);
+            compSimpCl = nm->mkNode(Kind::SEXPR, d_cl, pd);
+            success &= addAletheStep(AletheRule::COMP_SIMPLIFY,
+                                     compSimpCl,
+                                     compSimpCl,
+                                     {},
+                                     {},
+                                     *cdp);
+            equivPos1Cl = nm->mkNode(Kind::SEXPR,
+                                     {d_cl, pd.notNode(), geq, pc.notNode()});
+            success &= addAletheStep(
+                AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
+            success &= addAletheStep(
+                AletheRule::RESOLUTION,
+                geq,
+                nm->mkNode(Kind::SEXPR, d_cl, geq),
+                {compSimpCl, equivPos1Cl, resPiBConc},
+                d_resPivots ? std::vector<Node>{pd, d_true, pc, d_false}
+                            : std::vector<Node>(),
+                *cdp);
+          }
+          // The subproof built here uses the PI_1 defined in the case above,
+          // where the premise for "geq" is used to conclude leqInverted. Here
+          // @p4 is "res", @p5 is "leq". The goal of PI_2 is to conclude (not
+          // (not @p5)), which can remove the element from the conclusion of
+          // PI_0 that is (not @p5). The conclusion of PI_1 and notEq exclude
+          // the other elements, such that only @p4 will remain, the expected
+          // conclusion.
+          //
+          // PI_2:
+          //   with @p3: (= (> x c) (not (<= x c)))
+          //   with @p4: (> x c)
+          //   with @p5: (<= x c)
+          //
+          // ----- comp_simplify  ----------------------------------- equiv_pos1
+          //  @p3                 (cl (not @p3) @p4 (not (not @p5)))
+          // ------------------------------------------------------- resolution
+          //              (cl @p4 (not (not @p5)))
+          //
+          // Then we combine the proofs PI_0, the premise for "notEq", and
+          // PI_1 and PI_2:
+          //
+          //        --------- notEq
+          // PI_0   (not (= x c))    PI_1    PI_2
+          // ------------------------------------- resolution
+          //        (> x c)
+          //
+          // where (= x c) is the expected result
 
-      // Process
-      Node vp1 = nm->mkNode(Kind::SEXPR,
-                            d_cl,
-                            nm->mkNode(Kind::OR,
-                                       nm->mkNode(Kind::EQUAL, x, c),
-                                       nm->mkNode(Kind::LEQ, x, c).notNode(),
-                                       nm->mkNode(Kind::LEQ, c, x).notNode()));
-      // (cl (or (= x c) (not (<= x c)) (not (<= c x))))
-      Node vp2 = nm->mkNode(Kind::SEXPR,
-                            {d_cl,
-                             nm->mkNode(Kind::EQUAL, x, c),
-                             nm->mkNode(Kind::LEQ, x, c).notNode(),
-                             nm->mkNode(Kind::LEQ, c, x).notNode()});
-      // (cl (= x c) (not (<= x c)) (not (<= c x)))
-      success &=
-          addAletheStep(AletheRule::LA_DISEQUALITY, vp1, vp1, {}, {}, *cdp)
-          && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp);
+          // We first build PI_0:
+          Node laDiseqOr = nm->mkNode(
+              Kind::SEXPR,
+              d_cl,
+              nm->mkNode(
+                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+          Node laDiseqCl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
+          success &=
+              addAletheStep(AletheRule::LA_DISEQUALITY,
+                            laDiseqOr,
+                            laDiseqOr,
+                            {},
+                            {},
+                            *cdp)
+              && addAletheStep(
+                  AletheRule::OR, laDiseqCl, laDiseqCl, {laDiseqOr}, {}, *cdp);
+          // Now we build PI_1:
+          Node compSimp = geq.eqNode(leqInverted);
+          Node compSimpCl = nm->mkNode(Kind::SEXPR, d_cl, compSimp);
+          success &= addAletheStep(
+              AletheRule::COMP_SIMPLIFY, compSimpCl, compSimpCl, {}, {}, *cdp);
+          Node equivPos2Cl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, compSimp.notNode(), geq.notNode(), leqInverted});
+          success &= addAletheStep(
+              AletheRule::EQUIV_POS2, equivPos2Cl, equivPos2Cl, {}, {}, *cdp);
+          Node resPi1Conc = nm->mkNode(Kind::SEXPR, d_cl, leqInverted);
+          success &= addAletheStep(
+              AletheRule::RESOLUTION,
+              resPi1Conc,
+              resPi1Conc,
+              {compSimpCl, equivPos2Cl, geq},
+              d_resPivots ? std::vector<Node>{compSimp, d_true, geq, d_false}
+                          : std::vector<Node>(),
+              *cdp);
+          // Now we build PI_2
+          Node compSimp2 = res.eqNode(leq.notNode());
+          Node compSimp2Cl = nm->mkNode(Kind::SEXPR, d_cl, compSimp2);
+          success &= addAletheStep(AletheRule::COMP_SIMPLIFY,
+                                   compSimp2Cl,
+                                   compSimp2Cl,
+                                   {},
+                                   {},
+                                   *cdp);
+          Node equivPos1Cl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, compSimp2.notNode(), res, leq.notNode().notNode()});
+          success &= addAletheStep(
+              AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
+          Node resPi2Conc =
+              nm->mkNode(Kind::SEXPR, d_cl, res, leq.notNode().notNode());
+          success &=
+              addAletheStep(AletheRule::RESOLUTION,
+                            resPi2Conc,
+                            resPi2Conc,
+                            {compSimp2Cl, equivPos1Cl},
+                            d_resPivots ? std::vector<Node>{compSimp2, d_true}
+                                        : std::vector<Node>(),
+                            *cdp);
+          // Now we build the final resolution
+          success &=
+              addAletheStep(AletheRule::RESOLUTION,
+                            res,
+                            nm->mkNode(Kind::SEXPR, d_cl, res),
+                            {notEq, laDiseqCl, resPi1Conc, resPi2Conc},
+                            d_resPivots ? std::vector<Node>{notEq[0],
+                                                            d_false,
+                                                            leqInverted,
+                                                            d_false,
+                                                            leq.notNode(),
+                                                            d_true}
+                                        : std::vector<Node>(),
+                            *cdp);
+          break;
+        }
+        case Kind::LT:
+        {
+          Trace("alethe-proof") << "..case LT\n";
+          Node leq, notEq;
+          Kind kc0 = children[0].getKind();
+          if (kc0 == Kind::LEQ
+              || (kc0 == Kind::NOT && children[0][0].getKind() == Kind::LT))
+          {
+            leq = children[0];
+            notEq = children[1];
+          }
+          else
+          {
+            leq = children[1];
+            notEq = children[0];
+          }
+          Assert(notEq.getKind() == Kind::NOT
+                 && notEq[0].getKind() == Kind::EQUAL);
+          Assert(leq.getKind() == Kind::LEQ);
+          Node leqInverted = nm->mkNode(Kind::LEQ, c, x);
+          // The subproof built here uses the PI_0 defined in the case
+          // above. Note that @p7 is res and @p8 is leqInverted.
+          //
+          // PI_3:
+          //   with @p6: (= (< x c) (not (<= c x)))
+          //   with @p7: (< x c)
+          //   with @p8: (<= c x)
+          //
+          // ----- comp_simplify  ----------------------------------- equiv_pos1
+          //  @p6                  (cl (not @p6) @p7 (not (not @p8)))
+          // -------------------------------------------------------- resolution
+          //              (cl @p7 (not (not @p8)))
+          //
+          // Then we combine the proofs PI_0, the premise for "notEq", the
+          // premise for "leq", and PI_3 above:
+          //
+          //        ------- notEq  -----leq  ---------------------------- PI_3
+          // PI_0   (not (= x c))  (<= x c)  (cl (< x c) (not (not (<= c x))))
+          // -------------------------------------------------------- resolution
+          //                      (< x c)
+          //
+          // where (< x c) is the expected result
 
-      // Postprocessing
-      if (res == equal)
-      {  // no postprocessing necessary
-        return success
-               && addAletheStep(
-                   AletheRule::RESOLUTION,
-                   res,
-                   nm->mkNode(Kind::SEXPR, d_cl, res),
-                   {vp2, vp_child1, vp_child2},
-                   d_resPivots
-                       ? std::vector<Node>{vp_child1[1],
-                                           d_false,
-                                           // note that vp_child2 is not a
-                                           // clause, so it is itself the pivot
-                                           vp_child2,
-                                           d_false}
-                       : std::vector<Node>(),
-                   *cdp);
+          // We first build PI_0:
+          Node laDiseqOr = nm->mkNode(
+              Kind::SEXPR,
+              d_cl,
+              nm->mkNode(
+                  Kind::OR, notEq[0], leq.notNode(), leqInverted.notNode()));
+          Node laDiseqCl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, notEq[0], leq.notNode(), leqInverted.notNode()});
+          success &=
+              addAletheStep(AletheRule::LA_DISEQUALITY,
+                            laDiseqOr,
+                            laDiseqOr,
+                            {},
+                            {},
+                            *cdp)
+              && addAletheStep(
+                  AletheRule::OR, laDiseqCl, laDiseqCl, {laDiseqOr}, {}, *cdp);
+          // Now we build PI_3:
+          Node compSimp = res.eqNode(leqInverted.notNode());
+          Node compSimpCl = nm->mkNode(Kind::SEXPR, d_cl, compSimp);
+          success &= addAletheStep(
+              AletheRule::COMP_SIMPLIFY, compSimpCl, compSimpCl, {}, {}, *cdp);
+          Node equivPos1Cl = nm->mkNode(
+              Kind::SEXPR,
+              {d_cl, compSimp.notNode(), res, leqInverted.notNode().notNode()});
+          success &= addAletheStep(
+              AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
+          // We do a single resolution step , inlining the one finishing PI_3
+          // above, to build the final resolution
+          success &= addAletheStep(
+              AletheRule::RESOLUTION,
+              res,
+              nm->mkNode(Kind::SEXPR, d_cl, res),
+              {laDiseqCl, notEq, leq, equivPos1Cl, compSimpCl},
+              d_resPivots ? std::vector<Node>{notEq[0],
+                                              d_true,
+                                              leq,
+                                              d_false,
+                                              leqInverted.notNode(),
+                                              d_true,
+                                              compSimp,
+                                              d_false}
+                          : std::vector<Node>(),
+              *cdp);
+          break;
+        }
+        default:
+        {
+          Unreachable() << "should not have gotten here";
+        }
       }
-      if (res == greater)
-      {  // have (not (<= x c)) but result should be (> x c)
-        Node vp3 = nm->mkNode(
-            Kind::SEXPR,
-            d_cl,
-            nm->mkNode(Kind::LEQ, x, c).notNode());  // (cl (not (<= x c)))
-        Node vp4 = nm->mkNode(
-            Kind::SEXPR,
-            {d_cl,
-             nm->mkNode(Kind::EQUAL,
-                        nm->mkNode(Kind::GT, x, c),
-                        nm->mkNode(Kind::LEQ, x, c).notNode())
-                 .notNode(),
-             nm->mkNode(Kind::GT, x, c),
-             nm->mkNode(Kind::LEQ, x, c)
-                 .notNode()
-                 .notNode()});  // (cl (not(= (> x c) (not (<= x c)))) (> x c)
-                                // (not (not (<= x c))))
-        Node vp5 =
-            nm->mkNode(Kind::SEXPR,
-                       d_cl,
-                       nm->mkNode(Kind::GT, x, c)
-                           .eqNode(nm->mkNode(Kind::LEQ, x, c).notNode()));
-        // (cl (= (> x c) (not (<= x c))))
-
-        return success
-               && addAletheStep(AletheRule::RESOLUTION,
-                                vp3,
-                                vp3,
-                                {vp2, vp_child1, vp_child2},
-                                d_resPivots ? std::vector<Node>{vp_child1[1],
-                                                                d_false,
-                                                                vp_child2[0],
-                                                                d_true}
-                                            : std::vector<Node>(),
-                                *cdp)
-               && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
-               && addAletheStep(
-                   AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-               && addAletheStep(
-                   AletheRule::RESOLUTION,
-                   res,
-                   nm->mkNode(Kind::SEXPR, d_cl, res),
-                   {vp3, vp4, vp5},
-                   d_resPivots
-                       ? std::vector<Node>{vp3[1], d_true, vp5[1], d_false}
-                       : std::vector<Node>(),
-                   *cdp);
-      }
-      // have (not (<= c x)) but result should be (< x c)
-      Node vp3 = nm->mkNode(
-          Kind::SEXPR,
-          d_cl,
-          nm->mkNode(Kind::LEQ, c, x).notNode());  // (cl (not (<= c x)))
-      Node vp4 =
-          nm->mkNode(Kind::SEXPR,
-                     {d_cl,
-                      nm->mkNode(Kind::LT, x, c)
-                          .eqNode(nm->mkNode(Kind::LEQ, c, x).notNode())
-                          .notNode(),
-                      nm->mkNode(Kind::LT, x, c),
-                      nm->mkNode(Kind::LEQ, c, x)
-                          .notNode()
-                          .notNode()});  // (cl (not(= (< x c) (not (<= c x))))
-                                         // (< x c) (not (not (<= c x))))
-      Node vp5 = nm->mkNode(
-          Kind::SEXPR,
-          d_cl,
-          nm->mkNode(Kind::LT, x, c)
-              .eqNode(nm->mkNode(Kind::LEQ, c, x)
-                          .notNode()));  // (cl (= (< x c) (not (<= c x))))
-      return success
-             && addAletheStep(AletheRule::RESOLUTION,
-                              vp3,
-                              vp3,
-                              {vp2, vp_child1, vp_child2},
-                              d_resPivots ? std::vector<Node>{vp_child1,
-                                                              d_false,
-                                                              vp_child2[0],
-                                                              d_true}
-                                          : std::vector<Node>(),
-                              *cdp)
-             && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
-             && addAletheStep(AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-             && addAletheStep(
-                 AletheRule::RESOLUTION,
-                 res,
-                 nm->mkNode(Kind::SEXPR, d_cl, res),
-                 {vp3, vp4, vp5},
-                 d_resPivots
-                     ? std::vector<Node>{vp3[1], d_true, vp5[1], d_false}
-                     : std::vector<Node>(),
-                 *cdp);
+      return success;
     }
     default:
     {
+      Trace("alethe-proof")
+          << "... rule not translated yet " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      std::stringstream ss;
+      ss << id;
+      Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
+      std::vector<Node> newArgs{newVar};
+      newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
   }
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
+                        << " " << children << " " << args << std::endl;
+  return false;
 }
 
 bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
                                                               CDProof* cdp)
 {
-  // This method is called only when the premise is used as a singleton
-  // clause. If its proof however concludes a non-singleton clause it'll fail
-  // the test below and we must change its proof.
+  // Test if the proof of premise concludes a non-singleton clause. Assumptions
+  // always succeed the test.
   std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
+  if (premisePf->getRule() == ProofRule::ASSUME)
+  {
+    return false;
+  }
   Node premisePfConclusion = premisePf->getArguments()[2];
+  // not a proof of a non-singleton clause
   if (premisePfConclusion.getNumChildren() <= 2
       || premisePfConclusion[0] != d_cl)
   {
     return false;
   }
   // If this resolution child is used as a singleton OR but the rule
-  // justifying it concludes a clause, then we are necessarily in this
-  // scenario:
+  // justifying it concludes a clause, then we are often in this scenario:
   //
   // (or t1 ... tn)
   // -------------- OR
@@ -2295,16 +2490,17 @@ bool AletheProofPostprocessCallback::updatePost(
     case AletheRule::CONTRACTION:
     {
       std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-      Node childConclusion = childPf->getArguments()[2];
-      AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
-      if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-           && childConclusion[1].getKind() == Kind::OR)
-          || (childRule == AletheRule::ASSUME
-              && childConclusion.getKind() == Kind::OR))
+      bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
+      Node childConclusion =
+          childPfIsAssume ? childPf->getResult() : childPf->getArguments()[2];
+      if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
+          || (childConclusion.getNumChildren() == 2
+              && childConclusion[0] == d_cl
+              && childConclusion[1].getKind() == Kind::OR))
       {
         // Add or step for child
         std::vector<Node> subterms{d_cl};
-        if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+        if (childPfIsAssume)
         {
           subterms.insert(
               subterms.end(), childConclusion.begin(), childConclusion.end());
@@ -2316,14 +2512,14 @@ bool AletheProofPostprocessCallback::updatePost(
                           childConclusion[1].end());
         }
         Node newChild = nm->mkNode(Kind::SEXPR, subterms);
-        addAletheStep(
+        success &= addAletheStep(
             AletheRule::OR, newChild, newChild, {children[0]}, {}, *cdp);
         Trace("alethe-proof")
             << "Added OR step in finalizer to child " << childConclusion
             << " / " << newChild << std::endl;
         // update res step
         cdp->addStep(res, ProofRule::ALETHE_RULE, {newChild}, args);
-        return true;
+        return success;
       }
       Trace("alethe-proof") << "... no update\n";
       return false;
@@ -2338,48 +2534,38 @@ bool AletheProofPostprocessCallback::updatePost(
   return false;
 }
 
-// If the second-last step of the proof was:
-//
-// Children:  (P1:C1) ... (Pn:Cn)
-// Arguments: (AletheRule::VRULE,false,(cl false))
-// ---------------------
-// Conclusion: (false)
-//
-// In Alethe:
-//
-//  P1 ... Pn
-// ------------------- VRULE   ---------------------- FALSE
-//  (VP1:(cl false))*           (VP2:(cl (not true)))
-// -------------------------------------------------- RESOLUTION
-//                       (cl)**
-//
-// *  the corresponding proof node is ((false))
-// ** the corresponding proof node is (false)
-//
-// This method also handles the case where the internal proof is "empty", i.e.,
-// it consists only of "false" as an assumption.
-bool AletheProofPostprocessCallback::finalStep(Node res,
-                                               ProofRule id,
-                                               std::vector<Node>& children,
-                                               const std::vector<Node>& args,
-                                               CDProof* cdp)
+bool AletheProofPostprocessCallback::ensureFinalStep(
+    Node res,
+    ProofRule id,
+    std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
 {
+  bool success = true;
   NodeManager* nm = nodeManager();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
   // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
   // if it's a false assumption
-  if (childPf->getRule() == ProofRule::ALETHE_RULE
-      && ((childPf->getArguments()[2].getNumChildren() == 2
-           && childPf->getArguments()[2][1] == d_false)
-          || childPf->getArguments()[2] == d_false))
+  //
+  //   ...
+  // -------------------    ---------------------- false
+  //  (cl false)             (cl (not false))
+  // -------------------------------------------------- resolution
+  //                       (cl)
+  if ((childPf->getRule() == ProofRule::ALETHE_RULE
+       && childPf->getArguments()[2].getNumChildren() == 2
+       && childPf->getArguments()[2][1] == d_false)
+      || (childPf->getRule() == ProofRule::ASSUME
+          && childPf->getResult() == d_false))
   {
     Node notFalse =
         nm->mkNode(Kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
     Node newChild = nm->mkNode(Kind::SEXPR, d_cl);         // (cl)
 
-    addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
-    addAletheStep(
+    success &=
+        addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
+    success &= addAletheStep(
         AletheRule::RESOLUTION,
         newChild,
         newChild,
@@ -2389,16 +2575,29 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
     children[0] = newChild;
   }
 
-  // Sanitize original assumptions and create a placeholder proof step to hold
-  // them.
-  Assert(id == ProofRule::SCOPE);
-  std::vector<Node> sanitizedArgs{
-      nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
-  for (const Node& arg : args)
+  // Sanitize original assumptions and create a double scope to hold them, where
+  // the first scope is empty. This is needed because of the expected form a
+  // proof node to be printed.
+  std::vector<Node> sanitizedArgs;
+  for (const Node& a : args)
   {
-    sanitizedArgs.push_back(d_anc.convert(arg, false));
+    Node conv = d_anc.maybeConvert(a, true);
+    if (conv.isNull())
+    {
+      d_reasonForConversionFailure = d_anc.getError();
+      success = false;
+      break;
+    }
+    // avoid repeated assumptions
+    if (std::find(sanitizedArgs.begin(), sanitizedArgs.end(), conv)
+        == sanitizedArgs.end())
+    {
+      sanitizedArgs.push_back(conv);
+    }
   }
-  return cdp->addStep(res, ProofRule::ALETHE_RULE, children, sanitizedArgs);
+  Node placeHolder = nm->mkNode(Kind::SEXPR, res);
+  cdp->addStep(placeHolder, ProofRule::SCOPE, children, sanitizedArgs);
+  return success && cdp->addStep(res, ProofRule::SCOPE, {placeHolder}, {});
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -2442,6 +2641,7 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
+  Assert(res.getKind() == Kind::OR);
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
   Node conclusion = nodeManager()->mkNode(Kind::SEXPR, subterms);
@@ -2473,31 +2673,34 @@ bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // Translate proof node
   ProofNodeUpdater updater(d_env, d_cb, false, false);
   updater.process(internalProof);
-
-  // In the Alethe proof format the final step has to be (cl). However, after
-  // the translation it might be (cl false). In that case additional steps are
-  // required.
-  // The function has the additional purpose of sanitizing the attributes of the
-  // outer SCOPEs
-  CDProof cpf(
-      d_env, nullptr, "AletheProofPostProcess::finalStep::CDProof", true);
-  std::vector<Node> ccn{internalProof->getResult()};
-  cpf.addProof(internalProof);
-  std::vector<Node> args{definitionsScope->getArguments().begin(),
-                         definitionsScope->getArguments().end()};
-  args.insert(args.end(),
-              assumptionsScope->getArguments().begin(),
-              assumptionsScope->getArguments().end());
-  if (d_cb.finalStep(
-          definitionsScope->getResult(), ProofRule::SCOPE, ccn, args, &cpf))
+  if (d_reasonForConversionFailure.empty())
   {
-    std::shared_ptr<ProofNode> npn =
-        cpf.getProofFor(definitionsScope->getResult());
+    // In the Alethe proof format the final step has to be (cl). However, after
+    // the translation, the final step might still be (cl false). In that case
+    // additional steps are required.  The function has the additional purpose
+    // of sanitizing the arguments of the outer SCOPEs
+    CDProof cpf(d_env,
+                nullptr,
+                "AletheProofPostProcess::ensureFinalStep::CDProof",
+                true);
+    std::vector<Node> ccn{internalProof->getResult()};
+    cpf.addProof(internalProof);
+    std::vector<Node> args{definitionsScope->getArguments().begin(),
+                           definitionsScope->getArguments().end()};
+    args.insert(args.end(),
+                assumptionsScope->getArguments().begin(),
+                assumptionsScope->getArguments().end());
+    if (d_cb.ensureFinalStep(
+            definitionsScope->getResult(), ProofRule::SCOPE, ccn, args, &cpf))
+    {
+      std::shared_ptr<ProofNode> npn =
+          cpf.getProofFor(definitionsScope->getResult());
 
-    // then, update the original proof node based on this one
-    Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
-    Trace("pf-process-debug") << "...update node finished." << std::endl;
+      // then, update the original proof node based on this one
+      Trace("pf-process-debug") << "Update node..." << std::endl;
+      d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
+      Trace("pf-process-debug") << "...update node finished." << std::endl;
+    }
   }
   // Since the final step may also lead to issues, need to test here again
   if (!d_cb.getError().empty())

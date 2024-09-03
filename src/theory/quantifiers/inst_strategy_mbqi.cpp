@@ -46,6 +46,8 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::STORE_ALL);
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
+  // may appear in certain models e.g. strings of excessive length
+  d_nonClosedKinds.insert(Kind::WITNESS);
 
   if (options().quantifiers.mbqiFastSygus)
   {
@@ -400,13 +402,13 @@ Node InstStrategyMbqi::convertToQuery(
           }
         }
       }
-      else if (cur.getNumChildren() == 0)
+      else if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
       {
         // if this is a bad kind, fail immediately
-        if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
-        {
-          return Node::null();
-        }
+        return Node::null();
+      }
+      else if (cur.getNumChildren() == 0)
+      {
         cmap[cur] = cur;
       }
       else
