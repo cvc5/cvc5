@@ -33,12 +33,22 @@ name   = "Theory Layer"
   help       = "condense values for functions in models rather than explicitly representing them"
 
 [[option]]
-  name       = "incompleteFunctionValues"
+  name       = "defaultFunctionValueMode"
   category   = "expert"
-  long       = "incomplete-function-values"
-  type       = "bool"
-  default    = "false"
-  help       = "only assign portions of function values that are used in the model, assigns a default variable to the remainder"
+  long       = "default-function-value-mode=MODE"
+  type       = "DefaultFunctionValueMode"
+  default    = "FIRST"
+  help       = "mode for choosing default values for functions"
+  help_mode  = "Defines mode for choosing default values for functions."
+[[option.mode.FIRST]]
+  name = "first"
+  help = "The default value is equal to the first application of that function, when applicable."
+[[option.mode.FIRST_ENUM]]
+  name = "first-enum"
+  help = "The default value is equal to the first enumerated value of its range type."
+[[option.mode.HOLE]]
+  name = "hole"
+  help = "The default value is equal to a distinguished variable."
 
 [[option]]
   name       = "relevanceFilter"

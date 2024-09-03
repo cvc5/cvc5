@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-models --incomplete-function-values
+; COMMAND-LINE: --produce-models --default-function-value-mode=hole
 ; EXPECT: sat
 ; EXPECT: (
 ; EXPECT: (define-fun f ((_arg_1 Int)) Int (ite (= _arg_1 0) 1 @ground_term_2))
