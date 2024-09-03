@@ -704,23 +704,56 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   else if (k == Kind::SET_ALL || k == Kind::SET_SOME)
   {
     Node p = node[0];
-    size_t argumentsCount = p[0].getNumChildren();
-    Node body = p[1];
     std::vector<TypeNode> argTypes = p.getType().getArgTypes();
-
-    if (p.getKind() == Kind::LAMBDA && argumentsCount > 1)
+    size_t argumentsCount = argTypes.size();
+    if (argumentsCount > 1)
     {
-      Node boundVariable =
-          nm->mkNode(Kind::BOUND_VAR_LIST, p[0][argumentsCount - 1]);
-      Node lambda = nm->mkNode(Kind::LAMBDA, boundVariable, body);
-      Node setQuantifier = nm->mkNode(k, lambda, node[argumentsCount]);
-      for (int i = argumentsCount - 2; i >= 0; i--)
+      // rewrite the set quantifier as nested terms
+      if (p.getKind() == Kind::LAMBDA)
       {
-        boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST, p[0][i]);
-        lambda = nm->mkNode(Kind::LAMBDA, boundVariable, setQuantifier);
-        setQuantifier = nm->mkNode(k, lambda, node[i + 1]);
+        // for lambda functions, reuse the declared bound variables
+        Node body = p[1];
+        Node boundVariable =
+            nm->mkNode(Kind::BOUND_VAR_LIST, p[0][argumentsCount - 1]);
+        Node lambda = nm->mkNode(Kind::LAMBDA, boundVariable, body);
+        Node setQuantifier = nm->mkNode(k, lambda, node[argumentsCount]);
+        for (int i = argumentsCount - 2; i >= 0; i--)
+        {
+          boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST, p[0][i]);
+          lambda = nm->mkNode(Kind::LAMBDA, boundVariable, setQuantifier);
+          setQuantifier = nm->mkNode(k, lambda, node[i + 1]);
+        }
+        return RewriteResponse(REWRITE_AGAIN, setQuantifier);
       }
-      return RewriteResponse(REWRITE_AGAIN, setQuantifier);
+      else
+      {
+        // for other functions, use fresh bound variables
+        std::vector<Node> boundVariables;
+        for (size_t i = 0; i < argumentsCount; i++)
+        {
+          Node x = nm->mkBoundVar("x" + std::to_string(i), argTypes[i]);
+          boundVariables.push_back(x);
+        }
+
+        std::cout << "Bound variables: " << boundVariables << std::endl;
+        std::vector<Node> terms;
+        terms.push_back(p);
+        terms.insert(terms.end(), boundVariables.begin(), boundVariables.end());
+        Node application = nm->mkNode(Kind::APPLY_UF, terms);
+        std::cout << "application: " << application << std::endl;
+        Node boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST,
+                                        boundVariables[argumentsCount - 1]);
+        Node lambda = nm->mkNode(Kind::LAMBDA, boundVariable, application);
+        Node setQuantifier = nm->mkNode(k, lambda, node[argumentsCount]);
+        for (int i = argumentsCount - 2; i >= 0; i--)
+        {
+          boundVariable = nm->mkNode(Kind::BOUND_VAR_LIST, boundVariables[i]);
+          lambda = nm->mkNode(Kind::LAMBDA, boundVariable, setQuantifier);
+          setQuantifier = nm->mkNode(k, lambda, node[i + 1]);
+        }
+        std::cout << "setQuantifier: " << setQuantifier << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, setQuantifier);
+      }
     }
 
     return RewriteResponse(REWRITE_DONE, node);
