@@ -57,8 +57,8 @@ runs:
             if [ -f ./install/lib/libcln.dylib ]; then
               install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.dylib
               install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.1.dylib
-              install_name_tool -change "/usr/local/opt/gmp/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.dylib
-              install_name_tool -change "/usr/local/opt/gmp/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.6.dylib
+              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.dylib
+              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.6.dylib
             fi
           fi
         fi
