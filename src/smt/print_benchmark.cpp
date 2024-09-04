@@ -15,25 +15,26 @@
 
 #include "smt/print_benchmark.h"
 
+#include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "printer/printer.h"
-#include "expr/attribute.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace smt {
-  
+
 /**
- * Attribute true for symbols that should be excluded from the output of this utility.
+ * Attribute true for symbols that should be excluded from the output of this
+ * utility.
  */
 struct BenchmarkNoPrintAttributeId
 {
 };
-using BenchmarkNoPrintAttribute = expr::Attribute<BenchmarkNoPrintAttributeId, bool>;
-
+using BenchmarkNoPrintAttribute =
+    expr::Attribute<BenchmarkNoPrintAttributeId, bool>;
 
 void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
                                            std::ostream& outDef,

@@ -17,13 +17,13 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "smt/print_benchmark.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

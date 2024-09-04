@@ -86,11 +86,12 @@ class PrintBenchmark
                       const std::string& logic,
                       const std::vector<Node>& defs,
                       const std::vector<Node>& assertions);
-    
-   /** 
-    * Mark that the given symbol should not be printed in benchmark outputs.
-    */
-   static void markNoPrint(Node& sym);
+
+  /**
+   * Mark that the given symbol should not be printed in benchmark outputs.
+   */
+  static void markNoPrint(Node& sym);
+
  private:
   /**
    * print declared symbols in funs but not processed; updates processed to
