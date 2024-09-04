@@ -1693,6 +1693,38 @@ TEST_F(TestCApiBlackSolver, get_proof_and_proof_to_string)
   ASSERT_FALSE(proof_str.empty());
 }
 
+TEST_F(TestCApiBlackSolver, proof_to_string_assertion_names)
+{
+  cvc5_set_option(d_solver, "produce-proofs", "true");
+
+  Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_uninterpreted, "y");
+
+  std::vector<Cvc5Term> args = {x, y};
+  Cvc5Term x_eq_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data());
+  args = {x_eq_y};
+  Cvc5Term not_x_eq_y =
+      cvc5_mk_term(d_tm, CVC5_KIND_NOT, args.size(), args.data());
+
+  cvc5_assert_formula(d_solver, x_eq_y);
+  cvc5_assert_formula(d_solver, not_x_eq_y);
+
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+
+  size_t size;
+  const Cvc5Proof* proofs =
+      cvc5_get_proof(d_solver, CVC5_PROOF_COMPONENT_FULL, &size);
+  ASSERT_TRUE(size > 0);
+  const Cvc5Term assertions[2] = {x_eq_y, not_x_eq_y};
+  const char* names[2] = {"as1", "as2"};
+  std::string proof_str = cvc5_proof_to_string(
+      d_solver, proofs[0], CVC5_PROOF_FORMAT_ALETHE, 2, assertions, names);
+  ASSERT_FALSE(proof_str.empty());
+  ASSERT_LT(proof_str.find("as1"), std::string::npos);
+  ASSERT_LT(proof_str.find("as2"), std::string::npos);
+}
+
 TEST_F(TestCApiBlackSolver, get_learned_literals)
 {
   cvc5_set_option(d_solver, "produce-learned-literals", "true");

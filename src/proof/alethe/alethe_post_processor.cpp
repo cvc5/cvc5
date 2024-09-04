@@ -15,6 +15,8 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/alethe/alethe_proof_rule.h"
@@ -128,16 +130,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Here, (cl (or b c)) and (cl b c) cannot correspond to the same proof node
     // (or b c). Thus, we build a new proof node using the kind SEXPR
-    // that is then printed as (cl (or b c)). We denote this wrapping of a proof
-    // node by using an extra pair of parenthesis, i.e. ((or b c)) is the proof
-    // node printed as (cl (or b c)).
+    // that is then printed as (cl (or b c)).
     //
     // Adding an OR node to a premises will take place in the finalize function
     // where in the case that a step is printed as (cl (or F1 ... Fn)) but used
     // as (cl F1 ... Fn) an OR step is added to transform it to this very thing.
     // This is necessary for rules that work on clauses, i.e. RESOLUTION,
     // CHAIN_RESOLUTION, REORDERING and FACTORING.
-    //
     //
     // Some proof rules have a close correspondence in Alethe. There are two
     // very frequent patterns that, to avoid repetition, are described here and
@@ -473,7 +472,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       // justify this as a REFL step. This happens with trusted purification
       // steps, for example.
       Node resConv = d_anc.maybeConvert(res);
-      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL && resConv[0] == resConv[1])
+      if (!resConv.isNull() && resConv.getKind() == Kind::EQUAL
+          && resConv[0] == resConv[1])
       {
         return addAletheStep(AletheRule::REFL,
                              res,
@@ -623,7 +623,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Fn) Otherwise, VC2 = (cl C2).
     //
     //    P
-    // ------- CONTRACTION
+    // ------- contraction
     //   VC2*
     //
     // * the corresponding proof node is C2
@@ -658,9 +658,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the SPLIT rule. This comment
     // uses variable names as introduced there.
     //
-    // --------- NOT_NOT      --------- NOT_NOT
+    // --------- not_not      --------- not_not
     //    VP1                    VP2
-    // -------------------------------- RESOLUTION
+    // -------------------------------- resolution
     //          (cl F (not F))*
     //
     // VP1: (cl (not (not (not F))) F)
@@ -722,9 +722,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // uses variable names as introduced there.
     //
     //     (P2:(=> F1 F2))
-    // ------------------------ IMPLIES
+    // ------------------------ implies
     //  (VP1:(cl (not F1) F2))             (P1:F1)
-    // -------------------------------------------- RESOLUTION
+    // -------------------------------------------- resolution
     //                   (cl F2)*
     //
     // * the corresponding proof node is F2
@@ -747,9 +747,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
     // uses variable names as introduced there.
     //
-    // ---------------------------------- NOT_NOT
+    // ---------------------------------- not_not
     //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
-    // ------------------------------------------------------------- RESOLUTION
+    // ------------------------------------------------------------- resolution
     //                            (cl F)*
     //
     // * the corresponding proof node is F
@@ -772,7 +772,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     //  P1   P2
-    // --------- RESOLUTION
+    // --------- resolution
     //   (cl)*
     //
     // * the corresponding proof node is false
@@ -802,9 +802,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     //
-    // ----- AND_NEG
+    // ----- and_neg
     //  VP1            P1 ... Pn
-    // -------------------------- RESOLUTION
+    // -------------------------- resolution
     //   (cl (and F1 ... Fn))*
     //
     // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
@@ -1032,13 +1032,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== CNF ITE Pos version 3
     //
-    // ----- ITE_POS1            ----- ITE_POS2
+    // ----- ite_pos1            ----- ite_pos2
     //  VP1                       VP2
-    // ------------------------------- RESOLUTION
+    // ------------------------------- resolution
     //             VP3
-    // ------------------------------- REORDERING
+    // ------------------------------- reordering
     //             VP4
-    // ------------------------------- CONTRACTION
+    // ------------------------------- contraction
     //  (cl (not (ite C F1 F2)) F1 F2)
     //
     // VP1: (cl (not (ite C F1 F2)) C F2)
@@ -1073,13 +1073,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== CNF ITE Neg version 3
     //
-    // ----- ITE_NEG1            ----- ITE_NEG2
+    // ----- ite_neg1            ----- ite_neg2
     //  VP1                       VP2
-    // ------------------------------- RESOLUTION
+    // ------------------------------- resolution
     //             VP3
-    // ------------------------------- REORDERING
+    // ------------------------------- reordering
     //             VP4
-    // ------------------------------- CONTRACTION
+    // ------------------------------- contraction
     //  (cl (ite C F1 F2) C (not F2))
     //
     // VP1: (cl (ite C F1 F2) C (not F2))
@@ -2123,32 +2123,46 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     default:
     {
+      Trace("alethe-proof")
+          << "... rule not translated yet " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      std::stringstream ss;
+      ss << id;
+      Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
+      std::vector<Node> newArgs{newVar};
+      newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
   }
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
+                        << " " << children << " " << args << std::endl;
+  return false;
 }
 
 bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
                                                               CDProof* cdp)
 {
-  // This method is called only when the premise is used as a singleton
-  // clause. If its proof however concludes a non-singleton clause it'll fail
-  // the test below and we must change its proof.
+  // Test if the proof of premise concludes a non-singleton clause. Assumptions
+  // always succeed the test.
   std::shared_ptr<ProofNode> premisePf = cdp->getProofFor(premise);
+  if (premisePf->getRule() == ProofRule::ASSUME)
+  {
+    return false;
+  }
   Node premisePfConclusion = premisePf->getArguments()[2];
+  // not a proof of a non-singleton clause
   if (premisePfConclusion.getNumChildren() <= 2
       || premisePfConclusion[0] != d_cl)
   {
     return false;
   }
   // If this resolution child is used as a singleton OR but the rule
-  // justifying it concludes a clause, then we are necessarily in this
-  // scenario:
+  // justifying it concludes a clause, then we are often in this scenario:
   //
   // (or t1 ... tn)
   // -------------- OR
@@ -2476,16 +2490,17 @@ bool AletheProofPostprocessCallback::updatePost(
     case AletheRule::CONTRACTION:
     {
       std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-      Node childConclusion = childPf->getArguments()[2];
-      AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
-      if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-           && childConclusion[1].getKind() == Kind::OR)
-          || (childRule == AletheRule::ASSUME
-              && childConclusion.getKind() == Kind::OR))
+      bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
+      Node childConclusion =
+          childPfIsAssume ? childPf->getResult() : childPf->getArguments()[2];
+      if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
+          || (childConclusion.getNumChildren() == 2
+              && childConclusion[0] == d_cl
+              && childConclusion[1].getKind() == Kind::OR))
       {
         // Add or step for child
         std::vector<Node> subterms{d_cl};
-        if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+        if (childPfIsAssume)
         {
           subterms.insert(
               subterms.end(), childConclusion.begin(), childConclusion.end());
@@ -2497,14 +2512,14 @@ bool AletheProofPostprocessCallback::updatePost(
                           childConclusion[1].end());
         }
         Node newChild = nm->mkNode(Kind::SEXPR, subterms);
-        addAletheStep(
+        success &= addAletheStep(
             AletheRule::OR, newChild, newChild, {children[0]}, {}, *cdp);
         Trace("alethe-proof")
             << "Added OR step in finalizer to child " << childConclusion
             << " / " << newChild << std::endl;
         // update res step
         cdp->addStep(res, ProofRule::ALETHE_RULE, {newChild}, args);
-        return true;
+        return success;
       }
       Trace("alethe-proof") << "... no update\n";
       return false;
@@ -2626,6 +2641,7 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
+  Assert(res.getKind() == Kind::OR);
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
   Node conclusion = nodeManager()->mkNode(Kind::SEXPR, subterms);
