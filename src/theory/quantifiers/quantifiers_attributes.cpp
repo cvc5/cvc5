@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -270,6 +271,10 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           if (q[2][i].getNumChildren() > 1)
           {
             std::string name = q[2][i][1].getName();
+            // mark that this symbol should not be printed with the print
+            // benchmark utility
+            Node sym = q[2][i][1];
+            smt::PrintBenchmark::markNoPrint(sym);
             Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
