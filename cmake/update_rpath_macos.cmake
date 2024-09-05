@@ -1,4 +1,3 @@
-message("Updating rpath for ${DYLIB_PATH}")
 # If RPATH is provided, add it unless it already exists
 if(RPATH)
    # otool -l output is in the format:
