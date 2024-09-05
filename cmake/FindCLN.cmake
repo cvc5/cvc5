@@ -168,4 +168,11 @@ else()
   # These libraries are required to compile a program that
   # uses the cvc5 static library.
   install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    foreach(CLN_DYLIB ${BUILD_BYPRODUCTS})
+      get_filename_component(CLN_DYLIB_NAME ${CLN_DYLIB} NAME)
+      update_rpath_macos(${CLN_DYLIB_NAME})
+    endforeach()
+  endif()
 endif()
