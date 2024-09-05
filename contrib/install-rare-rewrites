@@ -2,6 +2,8 @@
 cvc5=cvc5
 DIR=${CVC5_HOME}
 
+# To be run in the build directory where cvc5 is built.
+
 echo "[install-rare-rewrites] Generate cvc5 API include files..." 
 make gen-rewrites; cp include/cvc5/cvc5_proof_rule.h $DIR/include/cvc5/cvc5_proof_rule.h
 
