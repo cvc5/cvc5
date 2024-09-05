@@ -50,7 +50,6 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
     case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
       return "QUANTIFIERS_SYNTH_FUN_EMBED";
-    case InternalSkolemId::QUANTIFIERS_INST: return "QUANTIFIERS_INST";
     case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
     case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
