@@ -99,7 +99,6 @@ Node TermUtil::getInstConstAttr( Node n ) {
 
 bool TermUtil::hasInstConstAttr(Node n)
 {
-  n = SkolemManager::getOriginalForm(n);
   return !getInstConstAttr(n).isNull();
 }
 
