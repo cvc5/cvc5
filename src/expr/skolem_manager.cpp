@@ -303,6 +303,7 @@ Node SkolemManager::getOriginalForm(Node n)
     else if (cur.getNumChildren()==0)
     {
       cur.setAttribute(ofa, cur);
+      visit.pop_back();
       continue;
     }
     it = visited.find(cur);
