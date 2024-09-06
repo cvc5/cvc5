@@ -954,6 +954,7 @@ set(regress_0_tests
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
   regress0/incomplete-fun-value.smt2
+  regress0/incomplete-fun-value-first.smt2
   regress0/incomplete-fun-value-nullable.smt2
   regress0/int2bv2nat-rew-type.smt2
   regress0/incorrect1.smtv1.smt2
