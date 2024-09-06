@@ -1667,7 +1667,8 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
 {
   Trace("smt") << "SMT getProof()\n";
   const Options& opts = d_env->getOptions();
-  if (!opts.smt.produceProofs)
+  // must be at least SAT proof producing
+  if (!opts.smt.produceProofs || !d_env->isSatProofProducing())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
