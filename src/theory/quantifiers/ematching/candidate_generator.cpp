@@ -41,7 +41,10 @@ CandidateGenerator::CandidateGenerator(Env& env,
 {
 }
 
-bool CandidateGenerator::isLegalCandidate( const Node& n ){
+bool CandidateGenerator::isLegalCandidate(const Node& n)
+{
+  // Note that all terms with instantiation constants should be marked inactive,
+  // so we do only a single check here.
   return d_treg.getTermDatabase()->isTermActive(n);
 }
 
