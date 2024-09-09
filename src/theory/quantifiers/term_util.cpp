@@ -83,7 +83,7 @@ Node TermUtil::getInstConstAttr( Node n ) {
       // with instantiation constants in it. We get the unpurified form here
       // to handle this case.
       Node un = SkolemManager::getUnpurifiedForm(n);
-      if (!un.isNull() && un!=n)
+      if (!un.isNull() && un != n)
       {
         q = getInstConstAttr(un);
       }

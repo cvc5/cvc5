@@ -94,10 +94,12 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     }
   }
 }
-bool CandidateGeneratorQE::isLegalOpCandidate( const Node& n ) {
+bool CandidateGeneratorQE::isLegalOpCandidate(const Node& n)
+{
   const Node opm = d_treg.getTermDatabase()->getMatchOperator(n);
-  if( opm==d_op ){
-   return isLegalCandidate( n );
+  if (opm == d_op)
+  {
+    return isLegalCandidate(n);
   }
   return false;
 }
