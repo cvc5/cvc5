@@ -45,23 +45,6 @@ runs:
 
         # Create ZIP file
         pushd ${{ inputs.build-dir }}
-        if [[ "$RUNNER_OS" == "macOS" ]]; then
-          # Temporary workaround to make the cvc5 library included in release relocatable (see issue #10681)
-          if [ -f ./install/lib/libcvc5.dylib ]; then
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpoly.0.dylib" @rpath/libpoly.0.dylib ./install/lib/libcvc5.dylib
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpoly.0.dylib" @rpath/libpoly.0.dylib ./install/lib/libcvc5.1.dylib
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpolyxx.0.dylib" @rpath/libpolyxx.0.dylib ./install/lib/libcvc5.dylib
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libpolyxx.0.dylib" @rpath/libpolyxx.0.dylib ./install/lib/libcvc5.1.dylib
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcvc5.dylib
-            install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcvc5.1.dylib
-            if [ -f ./install/lib/libcln.dylib ]; then
-              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.dylib
-              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libcln.6.dylib" @rpath/libcln.6.dylib ./install/lib/libcvc5.1.dylib
-              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.dylib
-              install_name_tool -change "${{ inputs.build-dir }}/deps/lib/libgmp.10.dylib" @rpath/libgmp.10.dylib ./install/lib/libcln.6.dylib
-            fi
-          fi
-        fi
         mv install ${{ inputs.package-name }}
         zip -r ${{ inputs.package-name }} ${{ inputs.package-name }}
         popd
