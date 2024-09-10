@@ -33,7 +33,7 @@
 (program $arith_mk_zero ((T Type))
   (Type) T
   (
-    (($arith_mk_zero Real) 0.0)
+    (($arith_mk_zero Real) 0/1)
     (($arith_mk_zero Int)  0)
   )
 )

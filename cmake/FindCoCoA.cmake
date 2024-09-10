@@ -31,6 +31,24 @@ if(CoCoA_INCLUDE_DIR AND CoCoA_LIBRARIES)
   string(REGEX MATCH "[0-9]+\\.[0-9]+" CoCoA_VERSION "${CoCoA_VERSION}")
 
   check_system_version("CoCoA")
+
+  # This test checks whether CoCoA has been patched
+  try_compile(CoCoA_USABLE "${DEPS_BASE}/try_compile/CoCoA-EP"
+    "${CMAKE_CURRENT_LIST_DIR}/deps-utils/cocoa-test.cpp"
+    CMAKE_FLAGS
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+      "-DINCLUDE_DIRECTORIES=${CoCoA_INCLUDE_DIR}"
+    LINK_LIBRARIES ${CoCoA_LIBRARIES} ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
+  )
+  if(NOT CoCoA_USABLE)
+    message(STATUS "The system version of CoCoA has not been patched.")
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "A patched version of CoCoA will be built for you.")
+    else()
+      message(STATUS "Use --auto-download to let us download and build a patched version of CoCoA for you.")
+    endif()
+    set(CoCoA_FOUND_SYSTEM FALSE)
+  endif()
 endif()
 
 if(NOT CoCoA_FOUND_SYSTEM)
@@ -68,12 +86,12 @@ if(NOT CoCoA_FOUND_SYSTEM)
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
-    URL "http://cocoa.dima.unige.it/cocoa/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
+    URL https://github.com/cvc5/cvc5-deps/blob/main/CoCoALib-${CoCoA_VERSION}.tgz?raw=true
     URL_HASH SHA256=f8bb227e2e1729e171cf7ac2008af71df25914607712c35db7bcb5a044a928c6
     # CoCoA requires C++14, but the check does not work with compilers that
     # default to C++17 or newer. The patch fixes the check.
     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
-        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-${CoCoA_VERSION}-trace.patch
     BUILD_IN_SOURCE YES
     CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
         --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS}

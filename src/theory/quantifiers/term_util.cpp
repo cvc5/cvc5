@@ -74,13 +74,21 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
 }
 
 Node TermUtil::getInstConstAttr( Node n ) {
-  if (!n.hasAttribute(InstConstantAttribute()) ){
+  if (!n.hasAttribute(InstConstantAttribute()))
+  {
     Node q;
-    if (n.hasOperator())
+    if (n.isVar())
     {
-      q = getInstConstAttr(n.getOperator());
+      // If it is a purification variable, it may correspond to a term
+      // with instantiation constants in it. We get the unpurified form here
+      // to handle this case.
+      Node un = SkolemManager::getUnpurifiedForm(n);
+      if (!un.isNull() && un != n)
+      {
+        q = getInstConstAttr(un);
+      }
     }
-    if (q.isNull())
+    else
     {
       for (const Node& nc : n)
       {
@@ -88,6 +96,13 @@ Node TermUtil::getInstConstAttr( Node n ) {
         if (!q.isNull())
         {
           break;
+        }
+      }
+      if (q.isNull())
+      {
+        if (n.hasOperator())
+        {
+          q = getInstConstAttr(n.getOperator());
         }
       }
     }
@@ -99,7 +114,6 @@ Node TermUtil::getInstConstAttr( Node n ) {
 
 bool TermUtil::hasInstConstAttr(Node n)
 {
-  n = SkolemManager::getOriginalForm(n);
   return !getInstConstAttr(n).isNull();
 }
 

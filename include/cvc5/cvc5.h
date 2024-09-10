@@ -6113,7 +6113,7 @@ class CVC5_EXPORT Solver
    * `modes::ProofFormat::NONE` if the proof is from a component other than
    * `modes::ProofComponent::FULL`.
    * @param assertionNames Mapping between assertions and names, if they were
-   * given by the user.
+   * given by the user.  This is used by the Alethe proof format.
    * @return The string representation of the proof in the given format.
    */
   std::string proofToString(
