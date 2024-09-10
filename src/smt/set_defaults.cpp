@@ -37,6 +37,8 @@
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
+#include "options/sets_options.h"
+#include "options/fp_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
