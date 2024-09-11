@@ -207,14 +207,17 @@ bool SynthEngine::getSynthSolutions(
   return ret;
 }
 
-void SynthEngine::ppNotifyAssertion(Node n)
+void SynthEngine::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
-  // check if it sygus conjecture
-  if (QuantAttributes::checkSygusConjecture(n))
+  for (const Node& n : assertions)
   {
-    // this is a sygus conjecture
-    Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->ppNotifyConjecture(n);
+    // check if it sygus conjecture
+    if (QuantAttributes::checkSygusConjecture(n))
+    {
+      // this is a sygus conjecture
+      Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
+      d_conj->ppNotifyConjecture(n);
+    }
   }
 }
 
