@@ -416,7 +416,7 @@ name   = "Arithmetic Theory"
   long       = "arith-exp"
   type       = "bool"
   default    = "true"
-  help       = "enables non-standard extensions of the arithmetic solver, true by default"
+  help       = "enables non-standard extensions of the arithmetic solver"
 
 [[option]]
   name       = "nlExtTfTangentPlanes"
