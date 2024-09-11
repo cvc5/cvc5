@@ -217,6 +217,11 @@ public:
    * minimum and maximum elements, for example tn is Bool or BitVector.
    */
   static Node mkTypeConst(TypeNode tn, bool pol);
+  /**
+   * Ensure that n has type tn, return a term equivalent to it for that type
+   * if possible.
+   */
+  static Node ensureType(Node n, TypeNode tn);
 };/* class TermUtil */
 
 }  // namespace quantifiers
