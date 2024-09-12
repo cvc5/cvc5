@@ -15,47 +15,55 @@ typechecker_header = "theory/arrays/theory_arrays_type_rules.h"
 class  = "::cvc5::internal::theory::arrays::TheoryArraysRewriter"
 header = "theory/arrays/theory_arrays_rewriter.h"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "ARRAY_TYPE"
 children = 2
 comment  = "array type"
 
-[[cardinalities]]
+[[kinds]]
+type = "cardinality"
 name     = "ARRAY_TYPE"
 computer = "::cvc5::internal::theory::arrays::ArraysProperties::computeCardinality(%TYPE%)"
 header   = "theory/arrays/theory_arrays_type_rules.h"
 
-[[well-founded]]
+[[kinds]]
+type = "well-founded"
 name                     = "ARRAY_TYPE"
 wellfoundedness-computer = "::cvc5::internal::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/arrays/theory_arrays_type_rules.h"
 
-[[enumerators]]
+[[kinds]]
+type = "enumerator"
 name   = "ARRAY_TYPE"
 class  = "::cvc5::internal::theory::arrays::ArrayEnumerator"
 header = "theory/arrays/type_enumerator.h"
 
 # select a i  is  a[i]
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SELECT"
 children = 2
 comment  = "array select; first parameter is an array term, second is the selection index"
 
 # store a i e  is  a[i] <= e
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "STORE"
 children = 3
 comment  = "array store; first parameter is an array term, second is the store index, third is the term to store at the index"
 
 # eqrange a b i j  \forall k. i <= k <= j -> a[k] = b[k]
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "EQ_RANGE"
 children = 4
 comment  = "equality of two arrays over an index range lower/upper"
 
 # storeall t e  is  \all i in indexType(t) <= e
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "STORE_ALL"
 F       = "class"
 T       = "ArrayStoreAll"
@@ -68,28 +76,38 @@ comment = "array store-all; payload is an instance of the cvc5::internal::ArrayS
 # Array T of U.  Thus ARRAY_LAMBDA LAMBDA(x:INT) . (read a x) is the same array
 # as a.  ARRAY_LAMBDA LAMBDA(x:INT) . (read a (- x 1)) is the same array as
 # as a shifted over one.
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "ARRAY_LAMBDA"
 children = 1
 comment  = "array lambda (internal-only symbol)"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SELECT"
 type_checker_class = "::cvc5::internal::theory::arrays::ArraySelectTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "STORE"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "STORE_ALL"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "ARRAY_LAMBDA"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayLambdaTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "EQ_RANGE"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayEqRangeTypeRule"
 
-# store operations that are ordered (by index) over a store-all are constant
-[[construles]]
+[[kinds]]
+type = "construle"
 name               = "STORE"
 type_checker_class = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
