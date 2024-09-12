@@ -257,57 +257,67 @@ class  = "::cvc5::internal::theory::builtin::TheoryBuiltinRewriter"
 header = "theory/builtin/theory_builtin_rewriter.h"
 
 # sort K cardinality [well-founded ground-term header | not-well-founded] ["comment"]
-[[sorts]]
+[[kinds]]
+type          = "sort"
 name          = "BUILTIN_OPERATOR_TYPE"
 cardinality   = "Cardinality::INTEGERS"
 well_founded  = false
 comment       = "the type for built-in operators"
 
 # variable K ["comment"]
-[[variables]]
+[[kinds]]
+type    = "variable"
 name    = "SORT_TYPE"
 comment = "specifies types of user-declared 'uninterpreted' sorts"
 
-[[cardinalities]]
 # The cardinality of uninterpreted sorts is defined infinite here, although they are given special treatment in TypeNode::getCardinalityClass
 # cardinality K cardinality-computer [header]
+[[kinds]]
+type    = "cardinality"
 name     = "SORT_TYPE"
 computer = "Cardinality(Cardinality::INTEGERS)"
 
 # well-founded K wellfoundedness-computer ground-term-computer [header]
-[[well-founded]]
+[[kinds]]
+type                     = "well-founded"
 name                     = "SORT_TYPE"
 wellfoundedness-computer = "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/builtin/theory_builtin_type_rules.h"
 
-[[enumerators]]
+[[kinds]]
+type   = "enumerator"
 name   = "SORT_TYPE"
 class  = "::cvc5::internal::theory::builtin::UninterpretedSortEnumerator"
 header = "theory/builtin/type_enumerator.h"
 
-[[operators]]
 # an instantiated sort has the same properties as an ordinary uninterpreted sort
+[[kinds]]
+type     = "operator"
 name     = "INSTANTIATED_SORT_TYPE"
 children = "1:"
 comment  = "instantiated uninterpreted sort"
 
-[[cardinalities]]
+[[kinds]]
+type     = "cardinality"
 name     = "INSTANTIATED_SORT_TYPE"
 computer = "Cardinality(Cardinality::INTEGERS)"
 
-[[well-founded]]
+[[kinds]]
+type                     = "well-founded"
 name                     = "INSTANTIATED_SORT_TYPE"
 wellfoundedness-computer = "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/builtin/theory_builtin_type_rules.h"
 
-[[enumerators]]
+[[kinds]]
+type   = "enumerator"
 name   = "INSTANTIATED_SORT_TYPE"
 class  = "::cvc5::internal::theory::builtin::UninterpretedSortEnumerator"
 header = "theory/builtin/type_enumerator.h"
 
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "UNINTERPRETED_SORT_VALUE"
 F       = "class"
 T       = "UninterpretedSortValue"
@@ -315,7 +325,8 @@ hasher  = "::cvc5::internal::UninterpretedSortValueHashFunction"
 header  = "util/uninterpreted_sort_value.h"
 comment = "the kind of expressions representing uninterpreted sort values; payload is an instance of the cvc5::internal::AbstractValue class (used in models)"
 
-[[typerules]]
+[[kinds]]
+type               = "typerule"
 name               = "UNINTERPRETED_SORT_VALUE"
 type_checker_class = "::cvc5::internal::theory::builtin::UninterpretedSortValueTypeRule"
 
@@ -325,7 +336,8 @@ type_checker_class = "::cvc5::internal::theory::builtin::UninterpretedSortValueT
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
 #   constant K F T Hasher header ["comment"]
 
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "BUILTIN"
 F       = "skip"
 T       = "Kind"
@@ -333,39 +345,52 @@ hasher  = "::cvc5::internal::kind::KindHashFunction"
 header  = "expr/kind.h"
 comment = "the kind of expressions representing built-in operators"
 
-[[operators]]
+[[kinds]]
+type    = "operator"
 name     = "EQUAL"
 children = 2 
 comment  = "equality (two parameters only, sorts must match)"
 
-[[operators]]
+[[kinds]]
+type     = "operator"
 name     = "DISTINCT"
 children = "2:" 
 comment  = "disequality (N-ary, sorts must match)"
 
-[[variables]]
+[[kinds]]
+type    = "variable"
 name    = "VARIABLE"
 comment = "a variable (not permitted in bindings)"
-[[variables]]
+
+[[kinds]]
+type    = "variable"
 name    = "BOUND_VARIABLE"
 comment = "a bound variable (permitted in bindings and the associated lambda and quantifier bodies only)"
-[[variables]]
+
+[[kinds]]
+type    = "variable"
 name    = "SKOLEM"
 comment = "a Skolem variable"
-[[variables]]
+
+[[kinds]]
+type    = "variable"
 name    = "DUMMY_SKOLEM"
 comment = "a Skolem variable (internal only)"
-[[operators]]
+
+[[kinds]]
+type    = "operator"
 name     = "SEXPR"
 children = "0:"
 comment  = "a symbolic expression (any arity)"
 
-[[operators]]
+[[kinds]]
+type    = "operator"
 name     = "WITNESS"
 children = "2:3"
 comment  = "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "TYPE_CONSTANT"
 F       = "skip"
 T       = "TypeConstant"
@@ -373,44 +398,54 @@ hasher  = "::cvc5::internal::TypeConstantHashFunction"
 header  = "expr/kind.h"
 comment = "a representation for basic types"
 
-[[sorts]]
+[[kinds]]
+type         = "sort"
 name         = "SEXPR_TYPE"
 cardinality  = "Cardinality::INTEGERS"
 well_founded = false
 comment      = "the type of a symbolic expression"
 
-[[typerules]]
+[[kinds]]
+type               = "typerule"
 name               = "EQUAL"
 type_checker_class = "::cvc5::internal::theory::builtin::EqualityTypeRule"
 
-[[typerules]]
+[[kinds]]
+type    = "typerule"
 name               = "DISTINCT"
 type_checker_class = "::cvc5::internal::theory::builtin::DistinctTypeRule"
 
-[[typerules]]
+[[kinds]]
+type    = "typerule"
 name               = "SEXPR"
 type_checker_class = "::cvc5::internal::theory::builtin::SExprTypeRule"
 
-[[typerules]]
+[[kinds]]
+type    = "typerule"
 name               = "WITNESS"
 type_checker_class = "::cvc5::internal::theory::builtin::WitnessTypeRule"
 
-[[variables]]
+[[kinds]]
+type    = "variable"
 name    = "RAW_SYMBOL"
 comment = "a variable that is not quoted in the smt2 printer (internal only)"
 
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "ABSTRACT_TYPE"
 F       = "class"
 T       = "AbstractType"
 hasher  = "::cvc5::internal::AbstractTypeHashFunction"
 header  = "theory/builtin/abstract_type.h"
 comment = "abstract type"
-[[cardinalities]]
+
+[[kinds]]
+type    = "cardinality"
 name     = "ABSTRACT_TYPE"
 computer = "Cardinality(Cardinality::INTEGERS)"
 
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "APPLY_INDEXED_SYMBOLIC_OP"
 F       = "class"
 T       = "GenericOp"
@@ -419,27 +454,34 @@ header  = "theory/builtin/generic_op.h"
 comment = "operator for the bit-vector extract; payload is an instance of the cvc5::internal::GenericOp class"
 
 # parameterized K1 K2 #children ["comment"]
-[[parameterized]]
+[[kinds]]
+type     = "parameterized"
 K1       = "APPLY_INDEXED_SYMBOLIC"
 K2       = "APPLY_INDEXED_SYMBOLIC_OP" 
 children = "1:"
 comment  = "generic indexed operator, whose arguments are the list of terms corresponding to (symbolic) indices to the operator followed by its normal arguments"
 
-[[typerules]]
+[[kinds]]
+type    = "typerule"
 name               = "APPLY_INDEXED_SYMBOLIC_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type    = "typerule"
 name               = "APPLY_INDEXED_SYMBOLIC"
 type_checker_class = "::cvc5::internal::theory::builtin::ApplyIndexedSymbolicTypeRule"
 
 # constants
-[[constants]]
+[[kinds]]
+type    = "constant"
 name    = "SORT_TO_TERM"
 F       = "class"
 T       = "SortToTerm"
 hasher  = "::cvc5::internal::SortToTermHashFunction"
 header  = "expr/sort_to_term.h"
 comment = "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
-[[typerules]]
+
+[[kinds]]
+type    = "typerule"
 name               = "SORT_TO_TERM"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
