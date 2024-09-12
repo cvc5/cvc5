@@ -15,7 +15,8 @@ typechecker_header = "theory/bv/theory_bv_type_rules.h"
 class  = "::cvc5::internal::theory::bv::TheoryBVRewriter"
 header = "theory/bv/theory_bv_rewriter.h"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_TYPE"
 F       = "struct"
 T       = "BitVectorSize"
@@ -23,12 +24,14 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorSi
 header  = "util/bitvector.h"
 comment = "bit-vector type"
 
-[[cardinalities]]
+[[kinds]]
+type = "cardinality"
 name     = "BITVECTOR_TYPE"
 computer = "::cvc5::internal::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)"
 header   = "theory/bv/theory_bv_type_rules.h"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "CONST_BITVECTOR"
 F       = "class"
 T       = "BitVector"
@@ -36,12 +39,14 @@ hasher  = "::cvc5::internal::BitVectorHashFunction"
 header  = "util/bitvector.h"
 comment = "a fixed-width bit-vector constant; payload is an instance of the cvc5::internal::BitVector class"
 
-[[enumerators]]
+[[kinds]]
+type = "enumerator"
 name   = "BITVECTOR_TYPE"
 class  = "::cvc5::internal::theory::bv::BitVectorEnumerator"
 header = "theory/bv/type_enumerator.h"
 
-[[well-founded]]
+[[kinds]]
+type = "well-founded"
 name                     = "BITVECTOR_TYPE"
 wellfoundedness-computer = true
 ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
@@ -50,225 +55,310 @@ header                   = "theory/type_enumerator.h"
 ### non-parameterized operator kinds ------------------------------------------
 
 ## conversion to bit-vector from vector of Booleans kind
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_FROM_BOOLS"
 children = "1:"
 comment  = "create bit-vector from vector of Booleans"
 
 ## size
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SIZE"
 children = "1:"
 comment  = "Size of bitvector"
 
 ## size
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "CONST_BITVECTOR_SYMBOLIC"
 children = 2
 comment  = "A symbolic bitvector constant. The first argument is its value (an integer), and the second value is its size (also an integer)."
 
 ## concatenation kind
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_CONCAT"
 children = "2:"
 comment  = "concatenation of two or more bit-vectors"
 
 ## bit-wise kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_AND"
 children = "2:"
 comment  = "bitwise and of two or more bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_COMP"
 children = 2
 comment  = "equality comparison of two bit-vectors (returns one bit)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_OR"
 children = "2:"
 comment  = "bitwise or of two or more bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_XOR"
 children = "2:"
 comment  = "bitwise xor of two or more bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_NOT"
 children = 1
 comment  = "bitwise not of a bit-vector"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_NAND"
 children = 2
 comment  = "bitwise nand of two bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_NOR"
 children = 2
 comment  = "bitwise nor of two bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_XNOR"
 children = 2
 comment  = "bitwise xnor of two bit-vectors"
 
 ## arithmetic kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_MULT"
 children = "2:"
 comment  = "multiplication of two or more bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_NEG"
 children = 1
 comment  = "unary negation of a bit-vector"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ADD"
 children = "2:"
 comment  = "addition of two or more bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SUB"
 children = 2
 comment  = "subtraction of two bit-vectors"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UDIV"
 children = 2
 comment  = "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UREM"
 children = 2
 comment  = "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SDIV"
 children = 2
 comment  = "2's complement signed division"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SMOD"
 children = 2
 comment  = "2's complement signed remainder (sign follows divisor)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SREM"
 children = 2
 comment  = "2's complement signed remainder (sign follows dividend)"
 
 ## shift kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ASHR"
 children = 2
 comment  = "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_LSHR"
 children = 2
 comment  = "bit-vector logical shift right (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SHL"
 children = 2
 comment  = "bit-vector shift left (the two bit-vector parameters must have same width)"
 
 ## inequality kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ULE"
 children = 2
 comment  = "bit-vector unsigned less than or equal (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ULT"
 children = 2
 comment  = "bit-vector unsigned less than (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UGE"
 children = 2
 comment  = "bit-vector unsigned greater than or equal (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UGT"
 children = 2
 comment  = "bit-vector unsigned greater than (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SLE"
 children = 2
 comment  = "bit-vector signed less than or equal (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SLT"
 children = 2
 comment  = "bit-vector signed less than (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SGE"
 children = 2
 comment  = "bit-vector signed greater than or equal (the two bit-vector parameters must have same width)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SGT"
 children = 2
 comment  = "bit-vector signed greater than (the two bit-vector parameters must have same width)"
+
 # inequalities with return type bit-vector of size 1
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ULTBV"
 children = 2
 comment  = "bit-vector unsigned less than but returns bv of size 1 instead of boolean"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SLTBV"
 children = 2
 comment  = "bit-vector signed less than but returns bv of size 1 instead of boolean"
 
 ## reduction kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_REDAND"
 children = 1
 comment  = "bit-vector redand"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_REDOR"
 children = 1
 comment  = "bit-vector redor"
 
 ## overflow kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_NEGO"
 children = 1
 comment  = "bit-vector negation overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UADDO"
 children = 2
 comment  = "bit-vector unsigned addition overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SADDO"
 children = 2
 comment  = "bit-vector signed addition overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_UMULO"
 children = 2
 comment  = "bit-vector unsigned multiplication overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SMULO"
 children = 2
 comment  = "bit-vector signed multiplication overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_USUBO"
 children = 2
 comment  = "bit-vector unsigned subtraction overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SSUBO"
 children = 2
 comment  = "bit-vector signed subtraction overflow predicate"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_SDIVO"
 children = 2
 comment  = "bit-vector signed division overflow predicate"
 
 ## if-then-else kind
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ITE"
 children = 3
 comment  = "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
 
 ## internal kinds
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ACKERMANNIZE_UDIV"
 children = 1
 comment  = "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvudiv (internal-only symbol)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_ACKERMANNIZE_UREM"
 children = 1
 comment  = "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvurem (internal-only symbol)"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "BITVECTOR_EAGER_ATOM"
 children = 1
 comment  = "formula to be treated as a bv atom via eager bit-blasting (internal-only symbol)"
 
 ### parameterized operator kinds ----------------------------------------------
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_BIT_OP"
 F       = "struct"
 T       = "BitVectorBit"
@@ -276,13 +366,15 @@ hasher  = "::cvc5::internal::BitVectorBitHashFunction"
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector boolean bit extract; payload is an instance of the cvc5::internal::BitVectorBit class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_BIT"
 K2       = "BITVECTOR_BIT_OP"
 children = 1
 comment  = "bit-vector boolean bit extract; first parameter is a BITVECTOR_BIT_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_EXTRACT_OP"
 F       = "struct"
 T       = "BitVectorExtract"
@@ -290,13 +382,15 @@ hasher  = "::cvc5::internal::BitVectorExtractHashFunction"
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector extract; payload is an instance of the cvc5::internal::BitVectorExtract class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_EXTRACT"
 K2       = "BITVECTOR_EXTRACT_OP"
 children = 1
 comment  = "bit-vector extract; first parameter is a BITVECTOR_EXTRACT_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_REPEAT_OP"
 F       = "struct"
 T       = "BitVectorRepeat"
@@ -304,13 +398,15 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRe
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector repeat; payload is an instance of the cvc5::internal::BitVectorRepeat class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_REPEAT"
 K2       = "BITVECTOR_REPEAT_OP"
 children = 1
 comment  = "bit-vector repeat; first parameter is a BITVECTOR_REPEAT_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_ROTATE_LEFT_OP"
 F       = "struct"
 T       = "BitVectorRotateLeft"
@@ -318,13 +414,15 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRo
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector rotate left; payload is an instance of the cvc5::internal::BitVectorRotateLeft class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_ROTATE_LEFT"
 K2       = "BITVECTOR_ROTATE_LEFT_OP"
 children = 1
 comment  = "bit-vector rotate left; first parameter is a BITVECTOR_ROTATE_LEFT_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_ROTATE_RIGHT_OP"
 F       = "struct"
 T       = "BitVectorRotateRight"
@@ -332,13 +430,15 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorRo
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector rotate right; payload is an instance of the cvc5::internal::BitVectorRotateRight class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_ROTATE_RIGHT"
 K2       = "BITVECTOR_ROTATE_RIGHT_OP"
 children = 1
 comment  = "bit-vector rotate right; first parameter is a BITVECTOR_ROTATE_RIGHT_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_SIGN_EXTEND_OP"
 F       = "struct"
 T       = "BitVectorSignExtend"
@@ -346,13 +446,15 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorSi
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector sign-extend; payload is an instance of the cvc5::internal::BitVectorSignExtend class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_SIGN_EXTEND"
 K2       = "BITVECTOR_SIGN_EXTEND_OP"
 children = 1
 comment  = "bit-vector sign-extend; first parameter is a BITVECTOR_SIGN_EXTEND_OP, second is a bit-vector term"
 
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "BITVECTOR_ZERO_EXTEND_OP"
 F       = "struct"
 T       = "BitVectorZeroExtend"
@@ -360,7 +462,8 @@ hasher  = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::BitVectorZe
 header  = "util/bitvector.h"
 comment = "operator for the bit-vector zero-extend; payload is an instance of the cvc5::internal::BitVectorZeroExtend class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "BITVECTOR_ZERO_EXTEND"
 K2       = "BITVECTOR_ZERO_EXTEND_OP"
 children = 1
@@ -369,219 +472,331 @@ comment  = "bit-vector zero-extend; first parameter is a BITVECTOR_ZERO_EXTEND_O
 ### type rules for non-parameterized operator kinds ---------------------------
 
 ## size
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SIZE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorSizeTypeRule"
 
 ## size
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "CONST_BITVECTOR_SYMBOLIC"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorConstantSymbolicTypeRule"
 
 # const
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "CONST_BITVECTOR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorConstantTypeRule"
 
 ## conversion to bit-vector from vector of Booleans kind
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_FROM_BOOLS"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorToBVTypeRule"
 
 ## concatenation kind
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_CONCAT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorConcatTypeRule"
 
 ## bit-wise kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_AND"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_COMP"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorBVPredTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_NAND"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_NOR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_NOT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_OR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_XNOR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_XOR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
 
 ## arithmetic kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_MULT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_NEG"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ADD"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SUB"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UDIV"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UREM"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SDIV"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SMOD"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SREM"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
 
 ## shift kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ASHR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_LSHR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SHL"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
 
 ## inequality kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ULE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ULT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UGE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UGT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SLE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SLT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SGE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SGT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
 # inequalities with return type bit-vector of size 1
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ULTBV"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorBVPredTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SLTBV"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorBVPredTypeRule"
 
 ## if-then-else kind
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ITE"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorITETypeRule"
 
 ## reduction kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_REDAND"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorRedTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_REDOR"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorRedTypeRule"
 
 ## overflow kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_NEGO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UADDO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SADDO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_UMULO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SMULO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_USUBO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SSUBO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SDIVO"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorPredicateTypeRule"
 
 ## internal kinds
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ACKERMANNIZE_UDIV"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorAckermanizationUdivTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ACKERMANNIZE_UREM"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorAckermanizationUremTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_EAGER_ATOM"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorEagerAtomTypeRule"
 
 ### type rules for parameterized operator kinds -------------------------------
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_BIT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_BIT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorBitTypeRule" 
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_EXTRACT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_EXTRACT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorExtractTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_REPEAT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_REPEAT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorRepeatTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ROTATE_LEFT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ROTATE_LEFT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ROTATE_RIGHT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ROTATE_RIGHT"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorFixedWidthTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SIGN_EXTEND_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_SIGN_EXTEND"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorExtendTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ZERO_EXTEND_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "BITVECTOR_ZERO_EXTEND"
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorExtendTypeRule"
