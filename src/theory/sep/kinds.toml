@@ -15,46 +15,66 @@ typechecker_header = "theory/sep/theory_sep_type_rules.h"
 class  = "::cvc5::internal::theory::sep::TheorySepRewriter"
 header = "theory/sep/theory_sep_rewriter.h"
 
-[[nullaryoperators]]
+[[kinds]]
+type = "nullaryoperator"
 name     = "SEP_NIL"
 comment  = "separation nil"
 
-[[nullaryoperators]]
+[[kinds]]
+type = "nullaryoperator"
 name     = "SEP_EMP"
 comment  = "separation logic empty heap constraint"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SEP_PTO"
 children = 2
 comment  = "points to relation"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "SEP_STAR"
 children = "2:"
 comment  = "separation star"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "SEP_WAND"
 children = 2
 comment  = "separation magic wand"
-[[operators]]
+
+[[kinds]]
+type = "operator"
 name     = "SEP_LABEL"
 children = 2
 comment  = "separation label (internal use only)"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SEP_EMP"
 type_checker_class = "::cvc5::internal::theory::sep::SepEmpTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "SEP_PTO"
 type_checker_class = "::cvc5::internal::theory::sep::SepPtoTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "SEP_STAR"
 type_checker_class = "::cvc5::internal::theory::sep::SepStarTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "SEP_WAND"
 type_checker_class = "::cvc5::internal::theory::sep::SepWandTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "SEP_LABEL"
 type_checker_class = "::cvc5::internal::theory::sep::SepLabelTypeRule"
-[[typerules]]
+
+[[kinds]]
+type = "typerule"
 name               = "SEP_NIL"
 type_checker_class = "::cvc5::internal::theory::sep::SepNilTypeRule"
