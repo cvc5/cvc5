@@ -223,7 +223,7 @@ PreprocessingPassResult RealToInt::applyInternal(
   {
     Node a = (*assertionsToPreprocess)[i];
     Node ac = realToIntInternal(a, d_cache, var_eq);
-    if (ac!=a)
+    if (ac != a)
     {
       // this pass is refutation unsound, "unsat" will be "unknown"
       assertionsToPreprocess->markRefutationUnsound();

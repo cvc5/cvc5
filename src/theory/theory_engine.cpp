@@ -1708,7 +1708,7 @@ void TheoryEngine::setRefutationUnsound(theory::IncompleteId id)
 {
   setRefutationUnsound(TheoryId::THEORY_NONE, id);
 }
-  
+
 void TheoryEngine::setModelUnsound(theory::TheoryId theory,
                                    theory::IncompleteId id)
 {

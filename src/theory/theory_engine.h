@@ -445,6 +445,7 @@ class TheoryEngine : protected EnvObj
   void setModelUnsound(theory::IncompleteId id);
   /** Called externally that we are unsound (user-context). */
   void setRefutationUnsound(theory::IncompleteId id);
+
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
