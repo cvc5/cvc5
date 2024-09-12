@@ -143,7 +143,6 @@ class TheoryValidator:
 def mkexpr_main():
     type_checker_template_path = sys.argv[1]
     output_path = sys.argv[2]
-    output_path = "type_checker_test.cpp"
     kinds_files = sys.argv[3:]
     input_command = ' '.join(sys.argv)
     
