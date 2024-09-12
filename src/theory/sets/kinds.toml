@@ -16,7 +16,8 @@ class  = "::cvc5::internal::theory::sets::TheorySetsRewriter"
 header = "theory/sets/theory_sets_rewriter.h"
 
 # constants
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "SET_EMPTY"
 F       = "class"
 T       = "EmptySet"
@@ -25,74 +26,88 @@ header  = "expr/emptyset.h"
 comment = "the empty set constant; payload is an instance of the cvc5::internal::EmptySet class"
 
 # the type
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_TYPE"
 children = 1
 comment  = "set type, takes as parameter the type of the elements"
 
-[[cardinalities]]
+[[kinds]]
+type = "cardinality"
 name     = "SET_TYPE"
 computer = "::cvc5::internal::theory::sets::SetsProperties::computeCardinality(%TYPE%)"
 header   = "theory/sets/theory_sets_type_rules.h"
 
-[[well-founded]]
+[[kinds]]
+type = "well-founded"
 name                     = "SET_TYPE"
 wellfoundedness-computer = "::cvc5::internal::theory::sets::SetsProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::sets::SetsProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/sets/theory_sets_type_rules.h"
 
-[[enumerators]]
+[[kinds]]
+type = "enumerator"
 name   = "SET_TYPE"
 class  = "::cvc5::internal::theory::sets::SetEnumerator"
 header = "theory/sets/theory_sets_type_enumerator.h"
 
 # operators
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_UNION"
 children = 2
 comment  = "set union"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_INTER"
 children = 2
 comment  = "set intersection"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_MINUS"
 children = 2
 comment  = "set subtraction"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_SUBSET"
 children = 2
 comment  = "subset predicate; first parameter a subset of second"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_MEMBER"
 children = 2
 comment  = "set membership predicate; first parameter a member of second"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_SINGLETON"
 children = 1
 comment  = "constructs a set of a single element. First parameter is a term"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_INSERT"
 children = "2:"
 comment  = "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_CARD"
 children = 1
 comment  = "set cardinality operator"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_COMPLEMENT"
 children = 1
 comment  = "set complement (with respect to finite universe)"
 
-[[nullaryoperators]]
+[[kinds]]
+type = "nullaryoperator"
 name    = "SET_UNIVERSE" 
 comment = "(finite) universe set, all set variables must be interpreted as subsets of it."
 
@@ -109,7 +124,8 @@ comment = "(finite) universe set, all set variables must be interpreted as subse
 # that there are infinitely many y that satisfy the left hand side of the
 # equivalence above. The same limitation occurs more generally when combining
 # finite sets with quantified formulas.
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_COMPREHENSION"
 children = 3
 comment  = "set comprehension specified by a bound variable list, a predicate, and a term."
@@ -118,47 +134,54 @@ comment  = "set comprehension specified by a bound variable list, a predicate, a
 # If set A = {x}, then the term (choose A) is equivalent to the term x.
 # If the set is empty, then (choose A) is an arbitrary value.
 # If the set has cardinality > 1, then (choose A) will deterministically return an element in A.
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_CHOOSE"
 children = 1
 comment  = "return an element in the set given as a parameter"
 
 # The operator set.is_empty returns whether the given set is empty
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_IS_EMPTY"
 children = 1
 comment  = "return whether the given set is empty"
 
 # The operator is_singleton returns whether the given set is a singleton
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_IS_SINGLETON"
 children = 1
 comment  = "return whether the given set is a singleton"
 
 # The set.map operator applies the first argument, a function of type (-> T1 T2), to every element
 # of the second argument, a set of type (Set T1), and returns a set of type (Set T2).
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_MAP"
 children = 2
 comment  = "set map function"
 
 # The set.filter operator takes a predicate of type (-> T Bool) and a set of type (Set T)
 # and returns the same set excluding those elements that do not satisfy the predicate
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_FILTER"
 children = 2
 comment  = "set filter operator"
 
 # set.all operator is a predicate that holds iff all elements in a given set satisfy the the given predicate.
 # (set.all p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_ALL"
 children = 2
 comment  = "set all operator"
 
 # set.some operator is a predicate that holds iff at least one element in a given set satisfies the the given predicate.
 # (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_SOME"
 children = 2
 comment  = "set some operator"
@@ -169,13 +192,15 @@ comment  = "set some operator"
 #  f: a binary operation of type (-> T1 T2 T2)
 #  t: an initial value of type T2
 #  A: a bag of type (Set T1)
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "SET_FOLD"
 children = 3
 comment  = "set fold operator"
 
 # rel.group operator
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "RELATION_GROUP_OP"
 F       = "class"
 T       = "ProjectOp+"
@@ -183,14 +208,16 @@ hasher  = "::cvc5::internal::ProjectOpHashFunction"
 header  = "theory/datatypes/project_op.h"
 comment = "operator for RELATION_GROUP; payload is an instance of the cvc5::internal::ProjectOp class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "RELATION_GROUP"
 K2       = "RELATION_GROUP_OP"
 children = 1
 comment  = "relation group"
 
 # relation aggregate operator
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "RELATION_AGGREGATE_OP"
 F       = "class"
 T       = "ProjectOp+"
@@ -198,14 +225,16 @@ hasher  = "::cvc5::internal::ProjectOpHashFunction"
 header  = "theory/datatypes/project_op.h"
 comment = "operator for RELATION_AGGREGATE; payload is an instance of the cvc5::internal::ProjectOp class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "RELATION_AGGREGATE"
 K2       = "RELATION_AGGREGATE_OP"
 children = 3
 comment  = "relation aggregate"
 
 # rel.project operator extends datatypes tuple_project operator to a set of tuples
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "RELATION_PROJECT_OP"
 F       = "class"
 T       = "ProjectOp+"
@@ -213,180 +242,222 @@ hasher  = "::cvc5::internal::ProjectOpHashFunction"
 header  = "theory/datatypes/project_op.h"
 comment = "operator for RELATION_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "RELATION_PROJECT"
 K2       = "RELATION_PROJECT_OP"
 children = 1
 comment  = "relation projection"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_JOIN"
 children = 2
 comment  = "relation join"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_PRODUCT"
 children = 2
 comment  = "relation cartesian product"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_TRANSPOSE"
 children = 1
 comment  = "relation transpose"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_TCLOSURE"
 children = 1
 comment  = "relation transitive closure"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_JOIN_IMAGE"
 children = 2
 comment  = "relation join image"
 
-[[operators]]
+[[kinds]]
+type = "operator"
 name     = "RELATION_IDEN"
 children = 1
 comment  ="relation identity"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_UNION"
 type_checker_class = "::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_INTER"
 type_checker_class = "::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_MINUS"
 type_checker_class = "::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_SUBSET"
 type_checker_class = "::cvc5::internal::theory::sets::SubsetTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_MEMBER"
 type_checker_class = "::cvc5::internal::theory::sets::MemberTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_SINGLETON"
 type_checker_class = "::cvc5::internal::theory::sets::SingletonTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_EMPTY"
 type_checker_class = "::cvc5::internal::theory::sets::EmptySetTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_INSERT"
 type_checker_class = "::cvc5::internal::theory::sets::InsertTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_CARD"
 type_checker_class = "::cvc5::internal::theory::sets::CardTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_COMPLEMENT"
 type_checker_class = "::cvc5::internal::theory::sets::ComplementTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_UNIVERSE"
 type_checker_class = "::cvc5::internal::theory::sets::UniverseSetTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_COMPREHENSION"
 type_checker_class = "::cvc5::internal::theory::sets::ComprehensionTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_CHOOSE"
 type_checker_class = "::cvc5::internal::theory::sets::ChooseTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_IS_SINGLETON"
 type_checker_class = "::cvc5::internal::theory::sets::IsSetTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_IS_EMPTY"
 type_checker_class = "::cvc5::internal::theory::sets::IsSetTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_MAP"
 type_checker_class = "::cvc5::internal::theory::sets::SetMapTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_FILTER"
 type_checker_class = "::cvc5::internal::theory::sets::SetFilterTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_ALL"
 type_checker_class = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_SOME"
 type_checker_class = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "SET_FOLD"
 type_checker_class = "::cvc5::internal::theory::sets::SetFoldTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_JOIN"
 type_checker_class = "::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_PRODUCT"
 type_checker_class = "::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_TRANSPOSE"
 type_checker_class = "::cvc5::internal::theory::sets::RelTransposeTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_TCLOSURE"
 type_checker_class = "::cvc5::internal::theory::sets::RelTransClosureTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_JOIN_IMAGE"
 type_checker_class = "::cvc5::internal::theory::sets::JoinImageTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_IDEN"
 type_checker_class = "::cvc5::internal::theory::sets::RelIdenTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_GROUP_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_GROUP"
 type_checker_class = "::cvc5::internal::theory::sets::RelationGroupTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_AGGREGATE_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_AGGREGATE"
 type_checker_class = "::cvc5::internal::theory::sets::RelationAggregateTypeRule"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_PROJECT_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_PROJECT"
 type_checker_class = "::cvc5::internal::theory::sets::RelationProjectTypeRule"
 
-[[construles]]
+[[kinds]]
+type = "construle"
 name               = "SET_UNION"
 type_checker_class = "::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule"
 
-[[construles]]
+[[kinds]]
+type = "construle"
 name               = "SET_SINGLETON"
 type_checker_class = "::cvc5::internal::theory::sets::SingletonTypeRule"
 
 # rel.table_join operator
-[[constants]]
+[[kinds]]
+type = "constant"
 name    = "RELATION_TABLE_JOIN_OP"
 F       = "class"
 T       = "ProjectOp+"
@@ -394,16 +465,19 @@ hasher  = "::cvc5::internal::ProjectOpHashFunction"
 header  = "theory/datatypes/project_op.h"
 comment = "operator for RELATION_TABLE_JOIN; payload is an instance of the cvc5::internal::ProjectOp class"
 
-[[parameterized]]
+[[kinds]]
+type = "parameterized"
 K1       = "RELATION_TABLE_JOIN"
 K2       = "RELATION_TABLE_JOIN_OP"
 children = 2
 comment  ="relation table join"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_TABLE_JOIN_OP"
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
 
-[[typerules]]
+[[kinds]]
+type = "typerule"
 name               = "RELATION_TABLE_JOIN"
 type_checker_class = "::cvc5::internal::theory::sets::RelationTableJoinTypeRule"
