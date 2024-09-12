@@ -26,7 +26,7 @@ name   = "Theory Layer"
 
 [[option]]
   name       = "condenseFunctionValues"
-  category   = "expert"
+  category   = "common"
   long       = "condense-function-values"
   type       = "bool"
   default    = "true"
@@ -34,7 +34,7 @@ name   = "Theory Layer"
 
 [[option]]
   name       = "defaultFunctionValueMode"
-  category   = "expert"
+  category   = "common"
   long       = "default-function-value-mode=MODE"
   type       = "DefaultFunctionValueMode"
   default    = "FIRST"
