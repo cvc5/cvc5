@@ -1,3 +1,5 @@
+;; Logic not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-option :print-success false)
 (set-logic AUFLIAFS)
 (set-info :status unsat)
