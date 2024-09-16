@@ -18,14 +18,16 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <cstdint>
 
 #ifdef CVC5_API_USE_C_ENUMS
+#include <stdint.h>
+#include <stdbool.h>
 #undef ENUM
 #define ENUM(name) Cvc5##name
 #else
 #include <cvc5/cvc5_export.h>
 
+#include <cstdint>
 #include <iosfwd>
 #include <ostream>
 namespace cvc5 {

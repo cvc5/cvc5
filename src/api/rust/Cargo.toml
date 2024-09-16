@@ -9,10 +9,9 @@ edition = "2021"
 rust-version = "1.76"
 
 [dependencies]
-cxx = "1.0"
 
 [build-dependencies]
-cxx-build = "1.0"
+bindgen = { version = "0.69.4", features = ["experimental"] }
 
 [lib]
 doc = true
