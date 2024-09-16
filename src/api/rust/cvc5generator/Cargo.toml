@@ -1,0 +1,9 @@
+[package]
+name = "cvc5generator"
+version = "0.0.1"
+authors = [ "Leni Aniva <v@leni.sh>" ]
+publish = false
+edition = "2021"
+
+[dependencies]
+syn = "2.0.77"

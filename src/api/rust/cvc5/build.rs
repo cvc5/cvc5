@@ -1,5 +1,4 @@
-use std::env;
-use  std::path::PathBuf;
+use std::{fs, env, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let cvc5_include_dir = env::var("CVC5_INCLUDE_DIR").expect("Include directory must be present");
@@ -29,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	println!("cargo:rustc-link-search={cvc5_lib_dir}");
 
-	println!("Generating bindgen...");
+	eprintln!("Generating bindgen...");
 
 	let output_path = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR must be present"));
 	let bindings = bindgen::Builder::default()
@@ -39,6 +38,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
 		.generate()?;
 
-	bindings.write_to_file(output_path.join("cvc5.rs"))?;
+	let proto_path = output_path.join("cvc5-proto.rs");
+	bindings.write_to_file(&proto_path)?;
+
+	let content = fs::read_to_string(proto_path).expect("Proto file doesn't exist");
+	let content = cvc5generator::transform_c_bridge(content);
+	fs::write(output_path.join("cvc5.rs"), content).expect("Unable to write file");
+
 	Ok(())
 }

@@ -29,11 +29,12 @@ add_dependencies(build-units cvc5rust-test)
 
 macro(cvc5_add_rust_api_test name)
   message("This test is ${CMAKE_CURRENT_BINARY_DIR}/${name}")
-  add_test (NAME unit/api/rust/${name}
+  set(test_name unit/api/rust/${name})
+  add_test (NAME ${test_name}
     COMMAND
 	 	${CMAKE_CURRENT_BINARY_DIR}/${RUST_PROFILE}/${name}
   )
-  set_tests_properties(unit/api/rust/${name} PROPERTIES LABELS "unit rust")
+  set_tests_properties(${test_name} PROPERTIES LABELS "unit;rust")
 endmacro()
 
 cvc5_add_rust_api_test(placeholder)

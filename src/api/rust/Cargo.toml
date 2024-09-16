@@ -1,17 +1,7 @@
-[package]
-name = "cvc5-sys"
-description = "Rust interface for cvc5"
-version = "0.0.1"
-authors = [ "Leni Aniva <v@leni.sh>" ]
-keywords = ["smt-solver", "automated-reasoning"]
-publish = false
-edition = "2021"
-rust-version = "1.76"
+[workspace]
 
-[dependencies]
-
-[build-dependencies]
-bindgen = { version = "0.69.4", features = ["experimental"] }
-
-[lib]
-doc = true
+members = [
+	"cvc5generator",
+	"cvc5"
+]
+resolver = "2"

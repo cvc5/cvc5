@@ -82,6 +82,14 @@ name = "cvc5-sys"
 version = "0.0.1"
 dependencies = [
  "bindgen",
+ "cvc5generator",
+]
+
+[[package]]
+name = "cvc5generator"
+version = "0.0.1"
+dependencies = [
+ "syn",
 ]
 
 [[package]]
@@ -276,9 +284,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "syn"
-version = "2.0.66"
+version = "2.0.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
+checksum = "9f35bcdf61fd8e7be6caf75f429fdca8beb3ed76584befb503b1569faee373ed"
 dependencies = [
  "proc-macro2",
  "quote",
