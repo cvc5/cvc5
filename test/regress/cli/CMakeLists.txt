@@ -953,6 +953,9 @@ set(regress_0_tests
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
+  regress0/incomplete-fun-value.smt2
+  regress0/incomplete-fun-value-first.smt2
+  regress0/incomplete-fun-value-nullable.smt2
   regress0/int2bv2nat-rew-type.smt2
   regress0/incorrect1.smtv1.smt2
   regress0/ineq_basic.smtv1.smt2
@@ -1705,7 +1708,9 @@ set(regress_0_tests
   regress0/sets/proj-issue703.smt2
   regress0/sets/proj-issue720.smt2
   regress0/sets/proj-issue727.smt2
+  regress0/sets/proj-issue728.smt2
   regress0/sets/proj-issue730-sets-ipc-fail.smt2
+  regress0/sets/proj-issue731.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
@@ -1788,6 +1793,8 @@ set(regress_0_tests
   regress0/strings/instance13131.smt2
   regress0/strings/instance15449.smt2
   regress0/strings/is_digit_simple.smt2
+  regress0/strings/issue11164-double-purify.smt2
+  regress0/strings/issue11168.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2969,6 +2976,7 @@ set(regress_1_tests
   regress1/seq/issue8148-2-const-mv.smt2
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
+  regress1/seq/proj-issue733-mbqi-w.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
   regress1/sets/all3.smt2  

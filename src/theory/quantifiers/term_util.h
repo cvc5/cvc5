@@ -67,6 +67,15 @@ class TermUtil
   /** Get the index of BOUND_VARIABLE v in quantifier q */
   static size_t getVariableNum(Node q, Node v);
 
+  /**
+   * Get a quantified formula, if possible, for which n (or its original form)
+   * contains instantiation constants from. This method is used for determining
+   * when a term is ineligible for instantiation.
+   *
+   * @param n the node to check.
+   * @return (one of) the quantified formulas for which n contains instantiation
+   * constants from, or the null node otherwise.
+   */
   static Node getInstConstAttr( Node n );
   /**
    * Does n (or its original form) contain instantiation constants? This method

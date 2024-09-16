@@ -98,16 +98,15 @@ class Env
 
   /**
    * Check whether the SAT solver should produce proofs. Other than whether
-   * the proof node manager is set, SAT proofs are only generated when the
-   * unsat core mode is not ASSUMPTIONS.
+   * the proof node manager is set, SAT proofs are only generated if the proof
+   * mode is not PP_ONLY.
    */
   bool isSatProofProducing() const;
 
   /**
    * Check whether theories should produce proofs as well. Other than whether
-   * the proof node manager is set, theory engine proofs are conditioned on the
-   * relationship between proofs and unsat cores: the unsat cores are in
-   * FULL_PROOF mode, no proofs are generated on theory engine.
+   * the proof node manager is set, theory engine proofs are generated if the
+   * proof mode is FULL or FULL_STRICT.
    */
   bool isTheoryProofProducing() const;
 
