@@ -975,6 +975,8 @@ void CadicalSolver::init()
   {
     d_solver->set("walk", 0);
     d_solver->set("lucky", 0);
+    d_solver->set("ilb", 0);
+    d_solver->set("ilbassumptions", 0);
   }
 
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
