@@ -85,11 +85,11 @@ operator SET_FILTER        2  "set filter operator"
 
 # set.all operator is a predicate that holds iff all elements in a given set satisfy the the given predicate.
 # (set.all p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
-operator SET_ALL           2  "set all operator"
+operator SET_ALL           2:  "set all operator"
 
 # set.some operator is a predicate that holds iff at least one element in a given set satisfies the the given predicate.
 # (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
-operator SET_SOME           2  "set some operator"
+operator SET_SOME          2:  "set some operator"
 
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using

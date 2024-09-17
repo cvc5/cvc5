@@ -572,23 +572,17 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
                                          std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SET_ALL || n.getKind() == Kind::SET_SOME);
-  std::string op = n.getKind() == Kind::SET_ALL ? "set.all" : "set.some";
   TypeNode functionType = n[0].getTypeOrNull();
-  TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
-    if (!setType.isMaybeKind(Kind::SET_TYPE))
+    if (!functionType.isMaybeKind(Kind::FUNCTION_TYPE))
     {
       if (errOut)
       {
-        (*errOut) << op
-                  << " operator expects a set in the second "
-                     "argument, a non-set is found";
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a predicate as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
       }
-      return TypeNode::null();
-    }
-    if (!checkFunctionTypeFor(n, functionType, setType, errOut))
-    {
       return TypeNode::null();
     }
     if (functionType.isFunction())
@@ -598,10 +592,68 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
       {
         if (errOut)
         {
-          (*errOut) << "Operator " << op
+          (*errOut) << "Operator " << n.getKind()
                     << " expects a function returning Bool.";
         }
         return TypeNode::null();
+      }
+      std::vector<TypeNode> argTypes = functionType.getArgTypes();
+      if (argTypes.size() == 0)
+      {
+        if (errOut)
+        {
+          (*errOut)
+              << "Operator " << n.getKind()
+              << " expects a function that receives at least one argument. "
+              << "Found a function of type '" << functionType << "'.";
+        }
+        return TypeNode::null();
+      }
+      // the number of passed sets should match the number of arguments
+      size_t setsCount = n.getNumChildren() - 1;
+      if (argTypes.size() != setsCount)
+      {
+        if (errOut)
+        {
+          (*errOut) << "Operator " << n.getKind()
+                    << " expects the number of sets to match the number of "
+                    << "inputs in the predicate. "
+                    << "Found " << setsCount << " sets and a predicate with "
+                    << argTypes.size() << " inputs in term '" << n << "'";
+        }
+        return TypeNode::null();
+      }
+
+      // each predicate argument should match the element type of the
+      // corresponding set
+      for (size_t i = 0; i < argTypes.size(); i++)
+      {
+        TypeNode setType = n[i + 1].getType();
+        if (!setType.isMaybeKind(Kind::SET_TYPE))
+        {
+          if (errOut)
+          {
+            (*errOut) << " expect term '" << n[i + 1] << "' to have a set type'"
+                      << ", found type '" << setType << "'.";
+          }
+          return TypeNode::null();
+        }
+
+        if (setType.isSet())
+        {
+          TypeNode elementType = setType.getSetElementType();
+          if (!(elementType.isNull()
+                || argTypes[i].isComparableTo(elementType)))
+          {
+            if (errOut)
+            {
+              (*errOut) << "The type of input " << i << " '" << argTypes[i]
+                        << "' is not comparable to the element type of the "
+                        << "corresponding set which is " << elementType;
+            }
+            return TypeNode::null();
+          }
+        }
       }
     }
   }
