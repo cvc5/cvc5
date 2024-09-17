@@ -1513,7 +1513,9 @@ void TheoryEngine::lemma(TrustNode tlemma,
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
 
-  Assert(!expr::hasFreeVar(lemma))
+  // must rewrite when checking here since we may have shadowing in rare cases,
+  // e.g. lazy lambda lifting lemmas
+  Assert(!expr::hasFreeVar(rewrite(lemma)))
       << "Lemma " << lemma << " from " << from << " has a free variable";
 
   // when proofs are enabled, we ensure the trust node has a generator by
@@ -1523,8 +1525,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // ensure proof: set THEORY_LEMMA if no generator is provided
     if (tlemma.getGenerator() == nullptr)
     {
-      // internal lemmas should have generators
-      Assert(from != THEORY_LAST);
       // add theory lemma step to proof
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
       d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
@@ -1697,6 +1697,16 @@ void TheoryEngine::conflict(TrustNode tconflict,
     // pass the trust node that was sent from the theory
     lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
+}
+
+void TheoryEngine::setModelUnsound(theory::IncompleteId id)
+{
+  setModelUnsound(TheoryId::THEORY_NONE, id);
+}
+
+void TheoryEngine::setRefutationUnsound(theory::IncompleteId id)
+{
+  setRefutationUnsound(TheoryId::THEORY_NONE, id);
 }
 
 void TheoryEngine::setModelUnsound(theory::TheoryId theory,

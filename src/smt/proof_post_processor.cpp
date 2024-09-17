@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -685,6 +685,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     {
       getMethodId(args[2], ida);
     }
+    Trace("smt-proof-pp-debug")
+        << "Expand SUBS " << ids << " " << ida << std::endl;
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<TNode> vsList;
     std::vector<TNode> ssList;

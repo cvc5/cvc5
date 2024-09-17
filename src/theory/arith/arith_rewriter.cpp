@@ -1003,9 +1003,15 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
   {
     // pow2 is only supported for integers
     Assert(t[0].getType().isInteger());
-    Integer i = t[0].getConst<Rational>().getNumerator();
+    const Rational& r = t[0].getConst<Rational>();
+    if (r.sgn() < 0)
+    {
+      return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(0)));
+    }
+    Integer i = r.getNumerator();
     size_t const length = i.length();
-    return RewriteResponse(REWRITE_DONE, rewriter::mkConst(Integer(length)));
+    return RewriteResponse(REWRITE_DONE,
+                           rewriter::mkConst(Integer(length - 1)));
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

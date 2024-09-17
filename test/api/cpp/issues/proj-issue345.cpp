@@ -33,4 +33,3 @@ int main(void)
   Term query = tm.mkTerm(Kind::AND, {t154, t154, t154, t154});
   slv.checkSatAssuming(query.notTerm());
 }
-

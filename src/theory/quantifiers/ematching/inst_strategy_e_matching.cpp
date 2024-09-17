@@ -286,7 +286,8 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
                                    patTermsSingle[i],
                                    false,
                                    TriggerDatabase::TR_RETURN_NULL,
-                                   d_num_trigger_vars[q]);
+                                   d_num_trigger_vars[q],
+                                   false);
       addTrigger(tr, q);
     }
     if (!options().quantifiers.multiTriggerWhenSingle)
@@ -318,7 +319,8 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
                                patTermsMulti,
                                false,
                                TriggerDatabase::TR_GET_OLD,
-                               d_num_trigger_vars[q]);
+                               d_num_trigger_vars[q],
+                               false);
   addTrigger(tr, q);
   // we only add a single multi-trigger
 }

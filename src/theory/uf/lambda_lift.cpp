@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
+ *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -59,6 +59,55 @@ TrustNode LambdaLift::lift(Node node)
       assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
 }
 
+bool LambdaLift::needsLift(const Node& lam)
+{
+  Assert(lam.getKind() == Kind::LAMBDA);
+  std::map<Node, bool>::iterator it = d_needsLift.find(lam);
+  if (it != d_needsLift.end())
+  {
+    return it->second;
+  }
+  // Model construction considers types in order of their type size
+  // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
+  // comes later in the model construction, it may need to be lifted eagerly.
+  // As an example, say f : Int -> Int, g : Int x Int -> Int
+  // The following lambdas require eager lifting:
+  // - (lambda ((x Int)) (g x x))
+  // - (lambda ((x Int) (y Int)) (f (g x y)))
+  // The following lambads do not require eager lifting:
+  // - (lambda ((x Int)) (+ x 1)), since it has no free symbols.
+  // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
+  // Int -> Int which is processed before the type of the lambda, i.e.
+  // Int x Int -> Int.
+  // Note that we only eagerly lift lambdas that furthermore impact model
+  // construction, which is only the case if the lambda occurs as an argument
+  // to a APPLY_UF or is equated to another function symbol.
+  bool shouldLift = false;
+  std::unordered_set<Node> syms;
+  expr::getSymbols(lam[1], syms);
+  SortTypeSize sts;
+  size_t lsize = sts.getTypeSize(lam.getType());
+  Trace("uf-lazy-ll") << "Lift " << lam << "?" << std::endl;
+  for (const Node& v : syms)
+  {
+    TypeNode tn = v.getType();
+    if (!tn.isFirstClass())
+    {
+      // don't need to worry about constructor/selector/testers/etc.
+      continue;
+    }
+    size_t vsize = sts.getTypeSize(tn);
+    if (vsize >= lsize)
+    {
+      shouldLift = true;
+      Trace("uf-lazy-ll") << "...yes due to " << v << std::endl;
+      break;
+    }
+  }
+  d_needsLift[lam] = shouldLift;
+  return shouldLift;
+}
+
 bool LambdaLift::isLifted(const Node& node) const
 {
   return d_lifted.find(node)!=d_lifted.end();
@@ -76,40 +125,10 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   bool shouldLift = true;
   if (options().uf.ufHoLazyLambdaLift)
   {
-    Trace("uf-lazy-ll") << "Lift " << lam << "?" << std::endl;
+    // We never lift eagerly. Lambdas that may induce inconsistencies based
+    // on the symbols in their bodies are lifted lazily if/when they become
+    // equal to ordinary function symbols. This is handled in the ho extension.
     shouldLift = false;
-    // Model construction considers types in order of their type size
-    // (SortTypeSize::getTypeSize). If the lambda has a free variable, that
-    // comes later in the model construction, it must be lifted eagerly.
-    // As an example, say f : Int -> Int, g : Int x Int -> Int
-    // The following lambdas require eager lifting:
-    // - (lambda ((x Int)) (g x x))
-    // - (lambda ((x Int) (y Int)) (f (g x y)))
-    // The following lambads do not require eager lifting:
-    // - (lambda ((x Int)) (+ x 1)), since it has no free symbols.
-    // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
-    // Int -> Int which is processed before the type of the lambda, i.e.
-    // Int x Int -> Int.
-    std::unordered_set<Node> syms;
-    expr::getSymbols(lam[1], syms);
-    SortTypeSize sts;
-    size_t lsize = sts.getTypeSize(lam.getType());
-    for (const Node& v : syms)
-    {
-      TypeNode tn = v.getType();
-      if (!tn.isFirstClass())
-      {
-        // don't need to worry about constructor/selector/testers/etc.
-        continue;
-      }
-      size_t vsize = sts.getTypeSize(tn);
-      if (vsize>=lsize)
-      {
-        shouldLift = true;
-        Trace("uf-lazy-ll") << "...yes due to " << v << std::endl;
-        break;
-      }
-    }
   }
   if (shouldLift)
   {

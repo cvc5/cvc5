@@ -32,12 +32,20 @@ class AletheProofPostprocessCallback : protected EnvObj,
                                        public ProofNodeUpdaterCallback
 {
  public:
+  /** The callback for post-processing proof nodes into the Alethe format.
+   *
+   * @param env The environment
+   * @param anc The Alethe node converter
+   * @param resPivots Whether pivots should be used in resolution
+   */
   AletheProofPostprocessCallback(Env& env,
                                  AletheNodeConverter& anc,
                                  bool resPivots);
+
   ~AletheProofPostprocessCallback() {}
+
   /** Should proof pn be updated? Only if its top-level proof rule is not an
-   *  Alethe proof rule.
+   *  Alethe proof rule and d_reasonForConversionFailure is not set.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -55,7 +63,8 @@ class AletheProofPostprocessCallback : protected EnvObj,
   /** Should proof pn be updated at post-visit?
    *
    * Only if its top-level Alethe proof rule is RESOLUTION_OR, REORDERING, or
-   * CONTRACTION.
+   * CONTRACTION, which may require updates depending on how the children have
+   * changed. And as long as d_reasonForConversionFailure is not set.
    */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
                         const std::vector<Node>& fa) override;
@@ -70,45 +79,41 @@ class AletheProofPostprocessCallback : protected EnvObj,
                   const std::vector<Node>& children,
                   const std::vector<Node>& args,
                   CDProof* cdp) override;
-  /**
-   * This method is used to add some last steps to a proof when this is
-   * necessary. The final step should always be printed as (cl). However:
+
+  /** Ensure the final step of the proof concludes "(cl)".
    *
-   * 1. If the last step of a proof is reached (which is false) it is printed as
-   * (cl false).
-   * 2. If one of the assumptions is false it is printed as false.
-   *
-   * Thus, an additional resolution step with (cl (not true)) has to be added to
-   * transform (cl false) or false into (cl).
-   *
+   * Also sanitizes the arguments of the outer scopes of the proof node.
    */
-  bool finalStep(Node res,
-                 ProofRule id,
-                 std::vector<Node>& children,
-                 const std::vector<Node>& args,
-                 CDProof* cdp);
+  bool ensureFinalStep(Node res,
+                       ProofRule id,
+                       std::vector<Node>& children,
+                       const std::vector<Node>& args,
+                       CDProof* cdp);
+
+  /** Retrieve the saved error message, if any. */
+  const std::string& getError();
 
  private:
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
-  /** Whether to keep the pivots in the alguments of the resolution rule */
+  /** Error message saved during failed conversion. */
+  std::string d_reasonForConversionFailure;
+
+  /** Whether to keep the pivots in the arguments of the resolution rule. */
   bool d_resPivots;
-  /** The cl operator
-   * For every step the conclusion is a clause. But since the or operator
-   *requires at least two arguments it is extended by the cl operator. In case
-   *of more than one argument it corresponds to or otherwise it is the identity.
-   **/
+  /** The cl operator. */
   Node d_cl;
-  /**
-   * This method adds a new ALETHE_RULE step to the proof, with `rule` as the
+  /** Adds an Alethe step to the CDProof argument
+   *
+   * The added step to `cdp` uses ProofRule::ALETHE_RULE with `rule` as the
    * first argument, the original conclusion `res` as the second and
    * `conclusion`, the result to be printed (which may or may not differ from
    * `res`), as the third.
    *
-   * @param rule The id of the Alethe rule,
-   * @param res The expected result of the application,
+   * @param rule The id of the Alethe rule
+   * @param res The original conclusion
    * @param conclusion The conclusion to be printed for the step
-   * @param children The children of the application,
+   * @param children The children of the application
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
@@ -120,15 +125,12 @@ class AletheProofPostprocessCallback : protected EnvObj,
                      const std::vector<Node>& args,
                      CDProof& cdp);
   /**
-   * As above, but for proof nodes with original conclusions of the form `(or F1
-   * ... Fn)` whose conclusion-to-be-printed must be `(cl F1 ... Fn)`.
-   *
-   * This method internally calls addAletheStep. The kind of the given Node has
-   * to be OR.
+   * As above, but `res` must be a node of the form `(or F1 ... Fn)` and the
+   * conclusion to be printed will be the clause `(cl F1 ... Fn)`.
    *
    * @param rule The id of the Alethe rule,
-   * @param res The expected result of the application in form (or F1 ... Fn),
-   * @param children The children of the application,
+   * @param res The original conclusion
+   * @param children The children of the application
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
@@ -139,12 +141,13 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            const std::vector<Node>& args,
                            CDProof& cdp);
 
-  /** Test whether resolution premise is wrongly derived as a non-singleton
-   * clause. Fix if needed.
+  /** Test whether the given resolution premise is being used as a singleton
+   * clause but is justified as a non-singleton clause, and fix if needed.
    *
-   * If the premise is used as a singleton but its proof concludes a
-   * non-singleton clause, a new proof of its derivation as a singleton is added
-   * to cdp.
+   * This happens with `premise` is a node (or F1 ... Fn) whose proof in `cdp`
+   * justifies `(cl (or F1 ... Fn))`, but should justify `(cl F1 ... Fn)`. If
+   * that is the case, steps will be added to `cdp` to justify the needed
+   * clause.
    */
   bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
 
@@ -160,18 +163,28 @@ class AletheProofPostprocessCallback : protected EnvObj,
 class AletheProofPostprocess : protected EnvObj
 {
  public:
-  AletheProofPostprocess(Env& env, AletheNodeConverter& anc, bool resPivots);
+  AletheProofPostprocess(Env& env, AletheNodeConverter& anc);
   ~AletheProofPostprocess();
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
+  /** Convert the proof node into the Alethe proof format
+   *
+   * If the conversion is possible, true is returned. Otherwise, false. The
+   * conversion may fail if the proof contains unsupported elements in the
+   * Alethe proof calculus, such as uncategorized Skolems.
+   */
+  bool process(std::shared_ptr<ProofNode> pf);
+
+  /** Retrieve the saved error message, if any. */
+  const std::string& getError();
 
  private:
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
+
+  /** The reason for conversion failure, if any. */
+  std::string d_reasonForConversionFailure;
 };
 
 }  // namespace proof
-
 }  // namespace cvc5::internal
 
 #endif

@@ -305,6 +305,8 @@ bool AlfPrinter::canEvaluate(Node n) const
         case Kind::DIVISION_TOTAL:
         case Kind::INTS_DIVISION:
         case Kind::INTS_DIVISION_TOTAL:
+        case Kind::INTS_ISPOW2:
+        case Kind::INTS_LOG2:
         case Kind::TO_REAL:
         case Kind::TO_INTEGER:
         case Kind::IS_INTEGER:

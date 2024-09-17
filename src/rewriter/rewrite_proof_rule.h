@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -152,8 +152,19 @@ class RewriteProofRule
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
   bool isFixedPoint() const;
-  /** Is this rule in flat form? */
-  bool isFlatForm() const;
+  /**
+   * Get condition definitions given an application vs -> ss of this rule.
+   * This is used to handle variables that do not occur in the left hand side
+   * of rewrite rules and are defined in conditions of this rule.
+   * @param vs The matched variables of this rule.
+   * @param ss The terms to substitute in this rule for each vs.
+   * @param dvs The variables for which a definition can now be inferred.
+   * @param dss The terms that each dvs are defined as, for each dvs.
+   */
+  void getConditionalDefinitions(const std::vector<Node>& vs,
+                                 const std::vector<Node>& ss,
+                                 std::vector<Node>& dvs,
+                                 std::vector<Node>& dss) const;
 
  private:
   /** The id of the rule */
@@ -179,6 +190,8 @@ class RewriteProofRule
    * "holes" in a proof.
    */
   std::unordered_set<Node> d_noOccVars;
+  /** Maps variables to the term they are defined to be */
+  std::map<Node, Node> d_condDefinedVars;
   /** The context for list variables (see expr::getListVarContext). */
   std::map<Node, Node> d_listVarCtx;
   /** The match trie (for fixed point matching) */

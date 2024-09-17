@@ -1,5 +1,7 @@
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
+;; Unary OR is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-sort e 0)
 (declare-sort p 0)

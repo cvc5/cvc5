@@ -86,5 +86,5 @@ def test_is_sat_unknown(tm, solver):
     assert not res.isSat()
     assert res.isUnknown()
     ue = res.getUnknownExplanation()
-    assert ue == UnknownExplanation.UNKNOWN_REASON
-    assert str(ue) == "UnknownExplanation.UNKNOWN_REASON"
+    assert ue == UnknownExplanation.INCOMPLETE
+    assert str(ue) == "UnknownExplanation.INCOMPLETE"

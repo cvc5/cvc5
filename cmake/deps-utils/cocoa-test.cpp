@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Mathias Preiner
+ *   Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -10,21 +10,14 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Test for project issue #395
- *
+ * Checks whether CoCoA has been patched.
  */
+#include <iostream>
+#include <CoCoA/TmpGPoly.H>
 
-#include <cvc5/cvc5.h>
-
-#include <cassert>
-
-using namespace cvc5;
-
-int main(void)
+int main()
 {
-  TermManager tm;
-  Sort s1 = tm.getBooleanSort();
-  Sort s2 = tm.getIntegerSort();
-  Sort s5 = tm.mkFunctionSort({s2}, s1);
-  (void) s5.substitute({s1}, {s1});
+    std::cout << "CoCoA::handlersEnabled = ";
+    std::cout << CoCoA::handlersEnabled << std::endl;
+    return 0;
 }
