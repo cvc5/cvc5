@@ -606,8 +606,10 @@ set(regress_0_tests
   regress0/bv/overflow/nego2.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/uaddo3.smt2
   regress0/bv/overflow/saddo1.smt2
   regress0/bv/overflow/saddo2.smt2
+  regress0/bv/overflow/saddo3.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
@@ -616,6 +618,7 @@ set(regress_0_tests
   regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
   regress0/bv/overflow/ssubo2.smt2
+  regress0/bv/overflow/ssubo3.smt2
   regress0/bv/overflow/sdivo1.smt2
   regress0/bv/overflow/sdivo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
