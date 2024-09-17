@@ -109,7 +109,7 @@ class ResultTest
     assertFalse(res.isSat());
     assertTrue(res.isUnknown());
     UnknownExplanation ue = res.getUnknownExplanation();
-    assertEquals(ue, UnknownExplanation.UNKNOWN_REASON);
-    assertEquals(ue.toString(), "UNKNOWN_REASON");
+    assertEquals(ue, UnknownExplanation.INCOMPLETE);
+    assertEquals(ue.toString(), "INCOMPLETE");
   }
 }
