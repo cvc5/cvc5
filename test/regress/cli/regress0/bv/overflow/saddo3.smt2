@@ -1,8 +1,7 @@
-; EXPECT: unsat
 ; COMMAND-LINE: 
 ; COMMAND-LINE: --solve-bv-as-int=sum
+; EXPECT: unsat
 (set-logic QF_BV)
-(declare-const u (_ BitVec 6))
 (declare-const v (_ BitVec 6))
-(assert (and (bvugt v u) (not (bvusubo u v))))
+(assert (and (bvsgt v (_ bv28 6)) (not (bvsaddo v v))))
 (check-sat)
