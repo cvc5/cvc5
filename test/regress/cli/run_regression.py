@@ -294,6 +294,10 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
+                print_ok("OK")
+                return exit_code
+
             if exit_code != EXIT_OK:
                 return exit_code
             original_file = benchmark_info.benchmark_dir + '/' + benchmark_info.benchmark_basename
@@ -511,6 +515,7 @@ g_testers = {
     "abduct": AbductTester(),
     "dump": DumpTester(),
     "dsl-proof": DslProofTester(),
+    "alethe": AletheTester(),
     "cpc": CpcTester()
 }
 
