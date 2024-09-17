@@ -602,6 +602,8 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/nego1.smt2
+  regress0/bv/overflow/nego2.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
   regress0/bv/overflow/uaddo3.smt2
@@ -616,6 +618,7 @@ set(regress_0_tests
   regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
   regress0/bv/overflow/ssubo2.smt2
+  regress0/bv/overflow/ssubo3.smt2
   regress0/bv/overflow/sdivo1.smt2
   regress0/bv/overflow/sdivo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
