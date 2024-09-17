@@ -1298,6 +1298,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
   regress0/proj-issue645-abs-value-subs.smt2
+  regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
@@ -1320,9 +1321,15 @@ set(regress_0_tests
   regress0/proofs/issue9172-doublePropProof.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
+  regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
+  regress0/proofs/issue9515-alethe-skolems-crash.smt2
+  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
+  regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/issue9770-open-sat-proof.smt2
+  regress0/proofs/issue9927.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
@@ -2980,7 +2987,7 @@ set(regress_1_tests
   regress1/seq/proj-issue733-mbqi-w.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
-  regress1/sets/all3.smt2  
+  regress1/sets/all3.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -3756,13 +3763,6 @@ set(regress_4_tests
 
 set(regression_disabled_tests
   regress0/arith/miplib-opt1217--27.smtv1.smt2
-  # Alethe tests disabled while fixes to the Alethe backend not fully merged
-  regress0/proofs/alethe-res-need-or-step.smt2
-  regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
-  regress0/proofs/issue9531-alethe-resolution.smt2
-  regress0/proofs/nomerge-alethe-pf.smt2
-  regress0/proofs/issue9515-alethe-skolems-crash.smt2
-  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   # unknown on some builds
   regress0/arith/issue7984-quant-trans.smt2
   regress0/aufbv/dubreva005ue.smtv1.smt2
