@@ -755,7 +755,6 @@ def run_regression(
     """Determines the expected output for a benchmark, runs cvc5 on it using
     all the specified `testers` and then checks whether the output corresponds
     to the expected output. Optionally uses a wrapper `wrapper`."""
-    print("panda testers:", testers)
     if not os.access(cvc5_binary, os.X_OK):
         sys.exit('"{}" does not exist or is not executable'.format(cvc5_binary))
     if not os.path.isfile(benchmark_path):
