@@ -111,7 +111,9 @@ Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm, TNode node)
 }
 
 // this function is called by printers when using the option "--model-u-dt-enum"
-Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm, TNode node, Cardinality indexCard)
+Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm,
+                                             TNode node,
+                                             Cardinality indexCard)
 {
   TNode store = node[0];
   TNode index = node[1];
