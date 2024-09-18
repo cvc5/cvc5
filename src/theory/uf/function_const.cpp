@@ -433,7 +433,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       curr = nm->mkNode(Kind::STORE, curr, conds[ii], vals[ii]);
       // normalize it using the array rewriter utility, which must be done at
       // each iteration of this loop
-      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(nm, curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
