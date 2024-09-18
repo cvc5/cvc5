@@ -648,6 +648,24 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   return false;
 }
 
+Node TermUtil::ensureType(Node n, TypeNode tn)
+{
+  TypeNode ntn = n.getType();
+  if (ntn == tn)
+  {
+    return n;
+  }
+  if (tn.isInteger())
+  {
+    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
+  }
+  else if (tn.isReal())
+  {
+    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
+  }
+  return Node::null();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
