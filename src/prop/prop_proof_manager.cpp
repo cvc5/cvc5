@@ -28,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "util/resource_manager.h"
 #include "util/string.h"
 
 namespace cvc5::internal {
@@ -66,6 +67,7 @@ PropPfManager::PropPfManager(Env& env,
       d_lemmaClauses(userContext()),
       d_trackLemmaClauseIds(false),
       d_lemmaClauseIds(userContext()),
+      d_lemmaClauseTimestamp(userContext()),
       d_currLemmaId(theory::InferenceId::NONE),
       d_satPm(nullptr)
 {
@@ -146,12 +148,19 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
   return usedLemmas;
 }
 
-theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem,
+                                                     uint64_t& timestamp) const
 {
   context::CDHashMap<Node, theory::InferenceId>::const_iterator it =
       d_lemmaClauseIds.find(lem);
   if (it != d_lemmaClauseIds.end())
   {
+    context::CDHashMap<Node, uint64_t>::const_iterator itt =
+        d_lemmaClauseTimestamp.find(lem);
+    if (itt != d_lemmaClauseTimestamp.end())
+    {
+      timestamp = itt->second;
+    }
     return it->second;
   }
   return theory::InferenceId::NONE;
@@ -465,6 +474,9 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     if (d_trackLemmaClauseIds)
     {
       d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
+      uint64_t currTimestamp = d_env.getResourceManager()->getResource(
+          Resource::TheoryFullCheckStep);
+      d_lemmaClauseTimestamp[normClauseNode] = currTimestamp;
     }
   }
   if (d_satPm)
