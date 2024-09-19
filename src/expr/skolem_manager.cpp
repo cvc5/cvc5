@@ -300,7 +300,7 @@ Node SkolemManager::getOriginalForm(Node n)
       }
       continue;
     }
-    else if (cur.getNumChildren()==0)
+    else if (cur.getNumChildren() == 0)
     {
       cur.setAttribute(ofa, cur);
       visit.pop_back();
@@ -340,7 +340,7 @@ Node SkolemManager::getOriginalForm(Node n)
       ret = nm->mkNode(cur.getKind(), children);
     }
     cur.setAttribute(ofa, ret);
-    
+
   } while (!visit.empty());
   const Node& on = n.getAttribute(ofa);
   Trace("sk-manager-debug") << "..return " << on << std::endl;
