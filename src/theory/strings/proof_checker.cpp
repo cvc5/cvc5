@@ -443,7 +443,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       Assert(args.empty());
       std::vector<Node> newSkolems;
       SkolemCache skc(nullptr);
-      conc = RegExpOpr::reduceRegExpPos(nodeManager(), skChild, &skc, newSkolems);
+      conc =
+          RegExpOpr::reduceRegExpPos(nodeManager(), skChild, &skc, newSkolems);
     }
     else if (id == ProofRule::RE_UNFOLD_NEG)
     {
@@ -471,7 +472,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Trace("strings-pfcheck") << "...fail, non-fixed lengths" << std::endl;
         return Node::null();
       }
-      conc = RegExpOpr::reduceRegExpNegConcatFixed(nodeManager(), skChild, reLen, isRev);
+      conc = RegExpOpr::reduceRegExpNegConcatFixed(
+          nodeManager(), skChild, reLen, isRev);
     }
     return conc;
   }
