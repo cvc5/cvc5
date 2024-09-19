@@ -111,7 +111,7 @@ std::vector<Term> SymbolManager::getDeclaredTerms() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::map<Term, std::string> getNamedTerms() const
+std::map<Term, std::string> SymbolManager::getNamedTerms() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
