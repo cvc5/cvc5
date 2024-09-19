@@ -206,7 +206,7 @@ class TermDb : public QuantifiersUtil {
    * the option termDbMode.
    * Otherwise, it returns the lookup in the map d_has_map.
    */
-  bool hasTermCurrent(Node n, bool useMode = true);
+  bool hasTermCurrent(const Node& n, bool useMode = true) const;
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */

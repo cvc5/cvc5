@@ -41,9 +41,7 @@ uint64_t getMostFrequentValueCount(TNode store);
 void setMostFrequentValue(TNode store, TNode value);
 void setMostFrequentValueCount(TNode store, uint64_t count);
 
-static inline Node mkEqNode(Node a, Node b) {
-  return a.eqNode(b);
-}
+static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
@@ -51,13 +49,15 @@ class TheoryArraysRewriter : public TheoryRewriter
   TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
 
   /** Normalize a constant whose index type has cardinality indexCard */
-  static Node normalizeConstant(TNode node, Cardinality indexCard);
+  static Node normalizeConstant(NodeManager* nm,
+                                TNode node,
+                                Cardinality indexCard);
 
   /* Expands the eqrange predicate (eqrange a b i j) to the quantified formula
    * (forall ((x T))
    *  (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))).
    */
-  static Node expandEqRange(TNode node);
+  static Node expandEqRange(NodeManager* nm, TNode node);
 
   RewriteResponse postRewrite(TNode node) override;
 
@@ -81,7 +81,7 @@ class TheoryArraysRewriter : public TheoryRewriter
    * This method should only be called on STORE chains whose AST is built
    * from constant terms only.
    */
-  static Node normalizeConstant(TNode node);
+  static Node normalizeConstant(NodeManager* nm, TNode node);
 
  private:
   /**

@@ -602,10 +602,14 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/nego1.smt2
+  regress0/bv/overflow/nego2.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/uaddo3.smt2
   regress0/bv/overflow/saddo1.smt2
   regress0/bv/overflow/saddo2.smt2
+  regress0/bv/overflow/saddo3.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
@@ -614,6 +618,7 @@ set(regress_0_tests
   regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
   regress0/bv/overflow/ssubo2.smt2
+  regress0/bv/overflow/ssubo3.smt2
   regress0/bv/overflow/sdivo1.smt2
   regress0/bv/overflow/sdivo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
@@ -953,6 +958,9 @@ set(regress_0_tests
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
+  regress0/incomplete-fun-value.smt2
+  regress0/incomplete-fun-value-first.smt2
+  regress0/incomplete-fun-value-nullable.smt2
   regress0/int2bv2nat-rew-type.smt2
   regress0/incorrect1.smtv1.smt2
   regress0/ineq_basic.smtv1.smt2
@@ -966,6 +974,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
+  regress0/issue11198-real-as-int.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2

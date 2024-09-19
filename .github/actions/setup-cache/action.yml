@@ -60,7 +60,9 @@ runs:
     - name: Install contrib dependencies
       if: steps.contrib-cache.outputs.cache-hit != 'true'
       shell: ${{ inputs.shell }}
-      run: ./contrib/get-ethos-checker
+      run: |
+        ./contrib/get-carcara-checker
+        ./contrib/get-ethos-checker
 
     - name: Setup dependencies cache
       uses: actions/cache@v4
@@ -69,4 +71,3 @@ runs:
           build-shared/deps
           build-static/deps
         key: ${{ inputs.cache-key }}-${{ runner.os }}-deps-${{ hashFiles('cmake/**') }}-${{ hashFiles('.github/**') }}
-

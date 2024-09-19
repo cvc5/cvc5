@@ -156,7 +156,9 @@ Node IntBlaster::intBlast(Node n,
                           std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
+  Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
   n = rewrite(n);
+  Trace("int-blaster-debug") << "n after rewriting: " << n << std::endl;
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
@@ -539,6 +541,64 @@ Node IntBlaster::translateWithChildren(
           d_zero);
       break;
     }
+    case Kind::BITVECTOR_UADDO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node sum = d_nm->mkNode(
+          Kind::ADD, translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize));
+      break;
+    }
+    case Kind::BITVECTOR_SADDO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node sum = d_nm->mkNode(Kind::ADD, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, sum, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sum, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
+    case Kind::BITVECTOR_UMULO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node mul = d_nm->mkNode(
+          Kind::MULT, translated_children[0], translated_children[1]);
+      returnNode = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize));
+      break;
+    }
+    case Kind::BITVECTOR_SMULO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node mul = d_nm->mkNode(Kind::MULT, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, mul, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, mul, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
+    case Kind::BITVECTOR_USUBO:
+    {
+      returnNode = d_nm->mkNode(
+          Kind::LT, translated_children[0], translated_children[1]);
+      break;
+    }
+    case Kind::BITVECTOR_SSUBO:
+    {
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
+      Node signed0 = uts(translated_children[0], bvsize);
+      Node signed1 = uts(translated_children[1], bvsize);
+      Node sub = d_nm->mkNode(Kind::SUB, signed0, signed1);
+      Node disj1 = d_nm->mkNode(Kind::GEQ, sub, pow2(bvsize - 1));
+      Node disj2 = d_nm->mkNode(
+          Kind::LT, sub, d_nm->mkNode(Kind::NEG, pow2(bvsize - 1)));
+      returnNode = d_nm->mkNode(Kind::OR, disj1, disj2);
+      break;
+    }
     case Kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -610,11 +670,11 @@ Node IntBlaster::translateWithChildren(
 
 Node IntBlaster::uts(Node x, uint32_t bvsize)
 {
-  Node powNode = pow2(bvsize - 1);
-  Node modNode = d_nm->mkNode(Kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two = d_nm->mkConstInt(Rational(2));
-  Node twoTimesNode = d_nm->mkNode(Kind::MULT, two, modNode);
-  return d_nm->mkNode(Kind::SUB, twoTimesNode, x);
+  Node signedMin = pow2(bvsize - 1);
+  Node msbOne = d_nm->mkNode(Kind::LT, x, signedMin);
+  Node ite = d_nm->mkNode(Kind::ITE, msbOne, d_zero, pow2(bvsize));
+  Node result = d_nm->mkNode(Kind::SUB, x, ite);
+  return result;
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)

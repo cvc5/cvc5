@@ -281,6 +281,12 @@
 )
 
 ; disclaimer: This function is not a function in SMT-LIB.
+(declare-const bvnego
+  (-> (! Int :var m :implicit)
+      (BitVec m) Bool)
+)
+
+; disclaimer: This function is not a function in SMT-LIB.
 (declare-const bvsaddo
   (-> (! Int :var m :implicit)
       (BitVec m) (BitVec m) Bool)

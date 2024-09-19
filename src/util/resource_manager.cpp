@@ -89,6 +89,7 @@ const char* toString(Resource r)
     case Resource::SatConflictStep: return "SatConflictStep";
     case Resource::SygusCheckStep: return "SygusCheckStep";
     case Resource::TheoryCheckStep: return "TheoryCheckStep";
+    case Resource::TheoryFullCheckStep: return "TheoryFullCheckStep";
     case Resource::FindSynthStep: return "FindSynthStep";
     default: return "?Resource?";
   }
@@ -231,6 +232,11 @@ void ResourceManager::spendResource(Resource r)
   Assert(d_resourceWeights.size() > i);
   d_statistics->d_resourceSteps << r;
   spendResource(d_resourceWeights[i]);
+}
+
+uint64_t ResourceManager::getResource(Resource r) const
+{
+  return d_statistics->d_resourceSteps.getValue(r);
 }
 
 void ResourceManager::spendResource(theory::InferenceId iid)
