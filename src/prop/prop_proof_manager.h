@@ -301,6 +301,8 @@ class PropPfManager : protected EnvObj
   HistogramStat<theory::InferenceId> d_uclIds;
   /** Total number of unsat core lemmas */
   IntStat d_uclSize;
+  /** Total number of times we asked for unsat core lemmas */
+  IntStat d_numUcl;
 }; /* class PropPfManager */
 
 }  // namespace prop
