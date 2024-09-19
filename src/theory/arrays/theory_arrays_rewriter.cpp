@@ -333,7 +333,7 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
   TNode b = node[1];
   TNode i = node[2];
   TNode j = node[3];
-  Node k = SkolemCache::getEqRangeVar(node);
+  Node k = SkolemCache::getEqRangeVar(nm, node);
   Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, k);
   TypeNode type = k.getType();
 
