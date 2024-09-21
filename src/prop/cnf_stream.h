@@ -110,8 +110,9 @@ class CnfStream : protected EnvObj
   void convertAndAssert(TNode node, bool removable, bool negated);
 
   /**
-   * Returns true iff the literal is assigned to a node
-   * @param literal the literal
+   * Determine if a given literal is assigned to a node.
+   * @param literal The literal.
+   * @return True iff the literal is assigned to a node.
    */
   bool hasNode(const SatLiteral& literal) const;
 
