@@ -339,7 +339,7 @@ void SatProofManager::processRedundantLit(
     toProcess.push_back(MinisatSatSolver::toSatLiteral(reason[i]));
   }
   Node clauseNode = getClauseNode(reason);
-    // check if redundant literals in the reason. The first literal is the one we
+  // check if redundant literals in the reason. The first literal is the one we
   // will be eliminating, so we check the others
   for (unsigned i = 0, size = toProcess.size(); i < size; ++i)
   {
