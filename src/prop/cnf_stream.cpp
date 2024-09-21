@@ -25,6 +25,7 @@
 #include "proof/clause_id.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
+#include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
 #include "theory/theory.h"
@@ -196,11 +197,21 @@ bool CnfStream::hasNode(const SatLiteral& literal) const
 
 TNode CnfStream::getNode(const SatLiteral& literal)
 {
-  Assert(hasNode(literal));
-  Trace("cnf") << "getNode(" << literal << ")\n";
-  Trace("cnf") << "getNode(" << literal << ") => "
-               << d_literalToNodeMap[literal] << "\n";
-  return d_literalToNodeMap[literal];
+  Assert(literal != undefSatLiteral)
+    << "CnfStream: can't getNode() of undefined literal";
+  Assert(d_literalToNodeMap.contains(literal))
+      << "CnfStream: node for " << literal << " not in the CNF Cache\n";
+
+  auto it = d_literalToNodeMap.find(literal);
+  if (it != d_literalToNodeMap.end())
+  {
+    Trace("cnf") << "CnfStream::getNode(" << literal << ") => " << it->second
+                << "\n";
+    return it->second;
+  }
+
+  Trace("cnf") << "CnfStream::getNode(" << literal << ") failed!\n";
+  return Node::null();
 }
 
 void CnfStream::traceSatisfyingAssignment(std::string trace) const
@@ -275,14 +286,19 @@ SatLiteral CnfStream::convertAtom(TNode node)
 
 SatLiteral CnfStream::getLiteral(TNode node) {
   Assert(!node.isNull()) << "CnfStream: can't getLiteral() of null node";
-
   Assert(d_nodeToLiteralMap.contains(node))
-      << "Literal not in the CNF Cache: " << node << "\n";
+      << "CnfStream: literal for " << node << " not in the CNF Cache\n";
 
-  SatLiteral literal = d_nodeToLiteralMap[node];
-  Trace("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal
-               << "\n";
-  return literal;
+  auto it = d_nodeToLiteralMap.find(node);
+  if (it != d_nodeToLiteralMap.end())
+  {
+    Trace("cnf") << "CnfStream::getLiteral(" << node << ") => " << it->second
+                << "\n";
+    return it->second;
+  }
+
+  Trace("cnf") << "CnfStream::getLiteral(" << node << ") failed!\n";
+  return undefSatLiteral;
 }
 
 void CnfStream::handleXor(TNode xorNode)

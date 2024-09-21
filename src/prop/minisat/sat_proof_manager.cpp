@@ -21,6 +21,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_proof_manager.h"
+#include "prop/sat_solver_types.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -524,11 +525,10 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       {
         continue;
       }
-      if (d_cnfStream->hasLiteral(link.first))
+      if (SatLiteral lit = d_cnfStream->getLiteral(link.first);
+          lit != undefSatLiteral)
       {
-        Trace("sat-proof-debug2")
-            << "SatProofManager::finalizeProof:  "
-            << d_cnfStream->getLiteral(link.first);
+        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:  " << lit;
       }
       // a refl step added due to double elim negation, ignore
       else if (link.second->getRule() == ProofRule::REFL)
@@ -701,13 +701,13 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         continue;
       }
       // ignore non-literals
-      if (!d_cnfStream->hasLiteral(fa))
+      auto lit = d_cnfStream->getLiteral(fa);
+      if (lit == undefSatLiteral)
       {
         Trace("sat-proof") << "no lit assumption " << fa << "\n";
         premises.insert(fa);
         continue;
       }
-      auto lit = d_cnfStream->getLiteral(fa);
       Trace("sat-proof") << "lit assumption (" << lit << "), " << fa << "\n";
       // mark another iteration for the loop, as some resolution link may be
       // connected because of the new justifications

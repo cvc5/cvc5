@@ -452,8 +452,14 @@ Result PropEngine::checkSat()
   {
     ResourceManager* rm = resourceManager();
     UnknownExplanation why = UnknownExplanation::INTERRUPTED;
-    if (rm->outOfTime()) why = UnknownExplanation::TIMEOUT;
-    if (rm->outOfResources()) why = UnknownExplanation::RESOURCEOUT;
+    if (rm->outOfTime())
+    {
+      why = UnknownExplanation::TIMEOUT;
+    }
+    if (rm->outOfResources())
+    {
+      why = UnknownExplanation::RESOURCEOUT;
+    }
     outputIncompleteReason(why);
     return Result(Result::UNKNOWN, why);
   }
