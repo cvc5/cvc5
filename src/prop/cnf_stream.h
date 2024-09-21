@@ -203,7 +203,10 @@ class CnfStream : protected EnvObj
                   const std::vector<Node>& clauses,
                   const std::vector<Node>& auxUnits);
 
-  /** Used to debug a satisfying assignment */
+  /**
+   * Trace satisfying assignment to given trace tag.
+   * @param trace The trace tag.
+   */
   void traceSatisfyingAssignment(std::string trace) const;
 
  protected:
