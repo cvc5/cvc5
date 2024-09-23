@@ -9,5 +9,7 @@
 #[allow(rustdoc::invalid_rust_codeblocks)]
 #[allow(rustdoc::invalid_html_tags)]
 pub mod native {
-	include!(concat!(env!("OUT_DIR"), "/cvc5.rs"));
+	include!(concat!(env!("OUT_DIR"), "/cvc5-native.rs"));
 }
+
+include!(concat!(env!("OUT_DIR"), "/cvc5.rs"));

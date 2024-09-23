@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
 		.generate()?;
 
-	let proto_path = output_path.join("cvc5-proto.rs");
+	let proto_path = output_path.join("cvc5-native.rs");
 	bindings.write_to_file(&proto_path)?;
 
 	let content = fs::read_to_string(proto_path).expect("Proto file doesn't exist");
