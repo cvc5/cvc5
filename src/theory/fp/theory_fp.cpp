@@ -827,16 +827,7 @@ TrustNode TheoryFp::explain(TNode n)
 
   // build conjunct
   NodeManager* nm = nodeManager();
-  Node exp;
-  if (assumptions.size() == 0)
-  {
-    exp = nm->mkConst<bool>(true);
-  }
-  else
-  {
-    exp = nm->mkNode(Kind::AND, assumptions);
-  }
-
+  Node exp = nm->mkAnd(assumptions);
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
