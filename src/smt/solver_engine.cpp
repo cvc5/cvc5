@@ -726,17 +726,24 @@ std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
   std::shared_ptr<ProofNode> pePfn;
   if (d_env->isSatProofProducing())
   {
-    // connects to proof
+    // get the proof from the prop engine
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe != nullptr);
     pePfn = pe->getProof();
+    Assert (pePfn!=nullptr);
   }
   else
   {
+    const context::CDList<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
+    // if not SAT proof producing, we construct a trusted step here
     std::vector<std::shared_ptr<ProofNode>> ps;
     ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
     for (const Node& a : assertions)
     {
       ps.push_back(pnm->mkAssume(a));
     }
+    pePfn = pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
   }
   return pePfn;
 }
