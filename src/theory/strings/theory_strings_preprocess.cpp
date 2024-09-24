@@ -303,7 +303,7 @@ Node StringsPreprocess::reduce(Node t,
     // forall il.
     //   n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //     ~in_re(substr(s, i, l), r)
-    Node firstMatch = utils::mkForallInternal(bvl, body);
+    Node firstMatch = utils::mkForallInternal(nm, bvl, body);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
     Node validLen =
         nm->mkNode(Kind::AND,
@@ -321,9 +321,10 @@ Node StringsPreprocess::reduce(Node t,
     Node match = nm->mkNode(
         Kind::OR,
         retNegOne,
-        nm->mkNode(Kind::AND,
-                   nm->mkNode(Kind::GEQ, skk, n),
-                   utils::mkForallInternal(bvll, matchBody.negate()).negate()));
+        nm->mkNode(
+            Kind::AND,
+            nm->mkNode(Kind::GEQ, skk, n),
+            utils::mkForallInternal(nm, bvll, matchBody.negate()).negate()));
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -398,7 +399,7 @@ Node StringsPreprocess::reduce(Node t,
 
     lem =
         nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
-    lem = utils::mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(nm, xbv, lem);
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(Kind::GEQ, n, zero);
@@ -492,7 +493,7 @@ Node StringsPreprocess::reduce(Node t,
 
     lem =
         nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
-    lem = utils::mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(nm, xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(Kind::LT, stoit, zero);
@@ -675,7 +676,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node body =
         nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
-    Node q = utils::mkForallInternal(bvli, body);
+    Node q = utils::mkForallInternal(nm, bvli, body);
     lem.push_back(q);
 
     // assert:
@@ -741,7 +742,7 @@ Node StringsPreprocess::reduce(Node t,
                               y)
                        .negate());
     // forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)
-    Node shortestMatch = utils::mkForallInternal(bvll, body);
+    Node shortestMatch = utils::mkForallInternal(nm, bvll, body);
     // in_re(k2, y)
     Node match = nm->mkNode(Kind::STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
@@ -836,7 +837,7 @@ Node StringsPreprocess::reduce(Node t,
                        .negate());
     // forall l. 0 < l < Ul(i + 1) =>
     //   ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
-    flem.push_back(utils::mkForallInternal(bvll, shortestMatchBody));
+    flem.push_back(utils::mkForallInternal(nm, bvll, shortestMatchBody));
     Node pfxMatch =
         nm->mkNode(Kind::STRING_SUBSTR, x, ufi, nm->mkNode(Kind::SUB, ii, ufi));
     // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
@@ -848,7 +849,7 @@ Node StringsPreprocess::reduce(Node t,
                                nm->mkNode(Kind::APPLY_UF, us, ip1))));
     Node body =
         nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
-    Node forall = utils::mkForallInternal(bvli, body);
+    Node forall = utils::mkForallInternal(nm, bvli, body);
     lemmas.push_back(forall);
 
     // IF indexof(x, y', 0) = -1
@@ -919,7 +920,7 @@ Node StringsPreprocess::reduce(Node t,
                             nm->mkNode(Kind::LEQ, zero, i),
                             nm->mkNode(Kind::LT, i, lenr));
     Node body = nm->mkNode(Kind::OR, bound.negate(), ri.eqNode(res));
-    Node rangeA = utils::mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(nm, bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -956,7 +957,7 @@ Node StringsPreprocess::reduce(Node t,
                             nm->mkNode(Kind::LEQ, zero, i),
                             nm->mkNode(Kind::LT, i, lenr));
     Node body = nm->mkNode(Kind::OR, bound.negate(), ssr.eqNode(ssx));
-    Node rangeA = utils::mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(nm, bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
@@ -987,7 +988,7 @@ Node StringsPreprocess::reduce(Node t,
             Kind::EQUAL,
             NodeManager::currentNM()->mkNode(Kind::STRING_SUBSTR, x, b1, lens),
             s));
-    retNode = utils::mkForallInternal(b1v, body.negate()).negate();
+    retNode = utils::mkForallInternal(nm, b1v, body.negate()).negate();
   }
   else if (t.getKind() == Kind::STRING_LEQ)
   {
@@ -1018,7 +1019,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(Kind::ITE, ite_ch));
 
-    Node conjn = utils::mkForallInternal(nm->mkNode(Kind::BOUND_VAR_LIST, k),
+    Node conjn = utils::mkForallInternal(nm,
+                                         nm->mkNode(Kind::BOUND_VAR_LIST, k),
                                          nm->mkNode(Kind::AND, conj).negate())
                      .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
