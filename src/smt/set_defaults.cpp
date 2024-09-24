@@ -175,7 +175,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if the user requested proofs, proof mode is (at least) full
     if (opts.smt.proofMode < options::ProofMode::FULL)
     {
-      SET_AND_NOTIFY(
+      SET_AND_NOTIFY_IF_NOT_USER(
           smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     }
     // Default granularity is theory rewrite if we are intentionally using
