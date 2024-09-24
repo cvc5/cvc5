@@ -479,9 +479,9 @@ unsigned getLoopMinOccurrences(TNode node)
   return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
 }
 
-Node mkForallInternal(Node bvl, Node body)
+Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
 {
-  return quantifiers::BoundedIntegers::mkBoundedForall(bvl, body);
+  return quantifiers::BoundedIntegers::mkBoundedForall(nm, bvl, body);
 }
 
 /**

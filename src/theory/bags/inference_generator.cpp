@@ -470,13 +470,15 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node uf_i_equals_uf_j = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(Kind::EQUAL, uf_i, uf_j).negate();
   Node body_j = d_nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
-  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node forAll_j =
+      quantifiers::BoundedIntegers::mkBoundedForall(d_nm, jList, body_j);
   Node disjunct1 = d_nm->mkNode(Kind::AND, {f_iEqualE, addMultiplicity});
   Node disjunct2 = d_nm->mkNode(Kind::AND, {distinct, previousValue});
   Node orNode = disjunct1.orNode(disjunct2);
   Node andNode = d_nm->mkNode(Kind::AND, {forAll_j, geqOne, orNode});
   Node body_i = d_nm->mkNode(Kind::OR, interval_i.negate(), andNode);
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(d_nm, iList, body_i);
   Node sizeGTE_zero = d_nm->mkNode(Kind::GEQ, size, d_zero);
   Node conclusion = d_nm->mkNode(
       Kind::AND, {baseCase, totalSumEqualCountE, forAll_i, sizeGTE_zero});
