@@ -189,8 +189,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      options::ProofGranularityMode::THEORY_REWRITE,
                      "enabling proofs");
     }
-    // unsat cores are available due to proofs being enabled
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
+    // unsat cores are available due to proofs being enabled, as long as
+    // SAT proofs are available
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF &&
+        opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
       if (options().prop.satSolver == options::SatSolverMode::MINISAT)
