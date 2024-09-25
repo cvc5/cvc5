@@ -30,8 +30,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-inline Node makeIntegerVariable(){
-  NodeManager* nm = NodeManager::currentNM();
+inline Node makeIntegerVariable(NodeManager* nm)
+{
   SkolemManager* sm = nm->getSkolemManager();
   return sm->mkDummySkolem("intvar",
                            nm->integerType(),
@@ -87,7 +87,7 @@ size_t DioSolver::allocateProofVariable() {
   Assert(d_lastUsedProofVariable <= d_proofVariablePool.size());
   if(d_lastUsedProofVariable == d_proofVariablePool.size()){
     Assert(d_lastUsedProofVariable == d_proofVariablePool.size());
-    Node intVar = makeIntegerVariable();
+    Node intVar = makeIntegerVariable(nodeManager());
     d_proofVariablePool.push_back(Variable(intVar));
   }
   size_t res = d_lastUsedProofVariable;
@@ -108,8 +108,7 @@ Node DioSolver::nextPureSubstitution(){
   Polynomial p = sp.getPolynomial();
   Constant c = -sp.getConstant();
   Polynomial cancelV = p + Polynomial::mkPolynomial(v);
-  Node eq = NodeManager::currentNM()->mkNode(
-      Kind::EQUAL, v.getNode(), cancelV.getNode());
+  Node eq = nodeManager()->mkNode(Kind::EQUAL, v.getNode(), cancelV.getNode());
   return eq;
 }
 
@@ -146,7 +145,7 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
 
   size_t varIndex = allocateProofVariable();
   Variable proofVariable(d_proofVariablePool[varIndex]);
-  //Variable proofVariable(makeIntegerVariable());
+  // Variable proofVariable(makeIntegerVariable(nodeManager()));
 
   TrailIndex posInTrail = d_trail.size();
   Trace("dio::pushInputConstraint") << "pushInputConstraint @ " << posInTrail
@@ -678,7 +677,7 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   Assert(q.getPolynomial().getCoefficient(vl) == Constant::mkConstant(1));
 
   Assert(!r.isZero());
-  Node freshNode = makeIntegerVariable();
+  Node freshNode = makeIntegerVariable(nodeManager());
   Variable fresh(freshNode);
   SumPair fresh_one=SumPair::mkSumPair(fresh);
   SumPair fresh_a = fresh_one * a;
@@ -820,8 +819,7 @@ void DioSolver::addTrailElementAsLemma(TrailIndex i) {
 Node DioSolver::trailIndexToEquality(TrailIndex i) const {
   const SumPair& sp = d_trail[i].d_eq;
   Node n = sp.getNode();
-  Node zero =
-      NodeManager::currentNM()->mkConstRealOrInt(n.getType(), Rational(0));
+  Node zero = nodeManager()->mkConstRealOrInt(n.getType(), Rational(0));
   Node eq = n.eqNode(zero);
   return eq;
 }
