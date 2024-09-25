@@ -192,8 +192,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     // unsat cores are available due to proofs being enabled, as long as
     // SAT proofs are available
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF &&
-        opts.smt.proofMode != options::ProofMode::PP_ONLY)
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF
+        && opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
       if (options().prop.satSolver == options::SatSolverMode::MINISAT)

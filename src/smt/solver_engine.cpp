@@ -730,7 +730,7 @@ std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
     PropEngine* pe = d_smtSolver->getPropEngine();
     Assert(pe != nullptr);
     pePfn = pe->getProof();
-    Assert (pePfn!=nullptr);
+    Assert(pePfn != nullptr);
   }
   else
   {
@@ -1706,13 +1706,15 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
-  if (c == modes::ProofComponent::SAT ||
-    c == modes::ProofComponent::THEORY_LEMMAS
-          || c == modes::ProofComponent::PREPROCESS)
+  if (c == modes::ProofComponent::SAT
+      || c == modes::ProofComponent::THEORY_LEMMAS
+      || c == modes::ProofComponent::PREPROCESS)
   {
     if (!d_env->isSatProofProducing())
     {
-      throw ModalException("Cannot get a proof for this component when SAT solver is not proof producing.");
+      throw ModalException(
+          "Cannot get a proof for this component when SAT solver is not proof "
+          "producing.");
     }
   }
   // The component modes::ProofComponent::PREPROCESS returns
