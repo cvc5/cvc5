@@ -1227,7 +1227,7 @@ void CadicalSolver::initialize(context::Context* context,
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
   d_solver->connect_external_propagator(d_propagator.get());
-  if (d_env.getOptions().base.pluginNotifySatClauseInSolve)
+  if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
     d_solver->connect_learner(d_clause_learner.get());
