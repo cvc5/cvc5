@@ -489,8 +489,7 @@ enum ENUM(ProofRule)
    *   \inferrule{C_1 \mid C_2}{C_2}
    *
    * where
-   * the set representations of :math:`C_1` and :math:`C_2` are the same and the
-   * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
+   * the multiset representations of :math:`C_1` and :math:`C_2` are the same.
    * \endverbatim
    */
   EVALUE(REORDERING),

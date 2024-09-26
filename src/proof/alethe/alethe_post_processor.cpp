@@ -581,11 +581,6 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         cargs = args;
       }
-      // The arguments for the actual step will include the id of the rule,
-      // original conclusion and the one to print and so on.
-      std::vector<Node> newArgs{nm->mkConstInt(Rational(static_cast<uint32_t>(
-                                    AletheRule::RESOLUTION_OR))),
-                                res};
       Node conclusion;
       if (!isSingletonClause(res, children, cargs))
       {
@@ -601,19 +596,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         conclusion = nm->mkNode(Kind::SEXPR, d_cl, res);
       }
-      newArgs.push_back(conclusion);
       // checker expects opposite order. We always keep the pivots because we
       // need them to compute in updatePost whether we will add OR steps. If
       // d_resPivots is off we will remove the pivots after that.
+      std::vector<Node> newArgs;
       for (size_t i = 0, size = cargs.size(); i < size; i = i + 2)
       {
         newArgs.push_back(cargs[i + 1]);
         newArgs.push_back(cargs[i]);
       }
-      Trace("alethe-proof")
-          << "... add alethe step " << res << " / " << d_anc.convert(conclusion)
-          << " " << id << " " << children << " / " << newArgs << std::endl;
-      return cdp->addStep(res, ProofRule::ALETHE_RULE, children, newArgs);
+      return addAletheStep(
+          AletheRule::RESOLUTION_OR, res, conclusion, children, newArgs, *cdp);
     }
     // ======== Factoring
     // See proof_rule.h for documentation on the FACTORING rule. This comment
@@ -2663,6 +2656,13 @@ const std::string& AletheProofPostprocess::getError()
 
 bool AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
+  if (logicInfo().isHigherOrder())
+  {
+    std::stringstream ss;
+    ss << "\"Proof unsupported by Alethe: contains higher-order elements\"";
+    d_reasonForConversionFailure = ss.str();
+    return false;
+  }
   // first two nodes are scopes for definitions and other assumptions. We
   // process only the internal proof node. And we merge these two scopes
   Assert(pf->getRule() == ProofRule::SCOPE

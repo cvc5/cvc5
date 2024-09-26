@@ -23,7 +23,8 @@ public class Statistics
 {
   public static void main(String[] args)
   {
-    Solver solver = new Solver();
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
     {
       // Get the statistics from the `Solver` and iterate over them. The
       // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.

@@ -294,6 +294,10 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
+                print_ok("OK")
+                return exit_code
+
             if exit_code != EXIT_OK:
                 return exit_code
             original_file = benchmark_info.benchmark_dir + '/' + benchmark_info.benchmark_basename
@@ -511,6 +515,7 @@ g_testers = {
     "abduct": AbductTester(),
     "dump": DumpTester(),
     "dsl-proof": DslProofTester(),
+    "alethe": AletheTester(),
     "cpc": CpcTester()
 }
 
@@ -750,7 +755,6 @@ def run_regression(
     """Determines the expected output for a benchmark, runs cvc5 on it using
     all the specified `testers` and then checks whether the output corresponds
     to the expected output. Optionally uses a wrapper `wrapper`."""
-
     if not os.access(cvc5_binary, os.X_OK):
         sys.exit('"{}" does not exist or is not executable'.format(cvc5_binary))
     if not os.path.isfile(benchmark_path):

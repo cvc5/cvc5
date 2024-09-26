@@ -114,6 +114,11 @@ if(NOT CLN_FOUND_SYSTEM)
     endif()
   endif()
 
+  set(CLN_WITH_GMP)
+  if(NOT GMP_FOUND_SYSTEM)
+    set(CLN_WITH_GMP "--with-gmp=<INSTALL_DIR>")
+  endif()
+
   ExternalProject_Add(
     CLN-EP
     ${COMMON_EP_CONFIG}
@@ -122,7 +127,7 @@ if(NOT CLN_FOUND_SYSTEM)
     DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
-        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic
+        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic ${CLN_WITH_GMP}
         ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${CLN_BYPRODUCTS}
   )
@@ -163,4 +168,11 @@ else()
   # These libraries are required to compile a program that
   # uses the cvc5 static library.
   install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    foreach(CLN_DYLIB ${BUILD_BYPRODUCTS})
+      get_filename_component(CLN_DYLIB_NAME ${CLN_DYLIB} NAME)
+      update_rpath_macos(${CLN_DYLIB_NAME})
+    endforeach()
+  endif()
 endif()
