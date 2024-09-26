@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.naming.Context;
-
 public class QuickStart
 {
   public static void main(String args[]) throws CVC5ApiException
