@@ -83,7 +83,7 @@ void SmtSolver::finishInit()
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
   finishInitPreprocessor();
-  
+
   if (options().proof.proofLog)
   {
     smt::PfManager* pm = d_env.getProofManager();
