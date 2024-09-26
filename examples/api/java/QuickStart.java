@@ -56,7 +56,7 @@ public class QuickStart
       // In this example, we will define constraints over reals and integers.
       // Hence, we first obtain the corresponding sorts.
       //! [docs-java-quickstart-4 start]
-      Sort realSort = solver.getRealSort();
+      Sort realSort = tm.getRealSort();
       Sort intSort = solver.getIntegerSort();
       //! [docs-java-quickstart-4 end]
 
