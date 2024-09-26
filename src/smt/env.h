@@ -350,12 +350,6 @@ class Env
    */
   smt::PfManager* d_pfManager;
   /**
-   * A pointer to the proof logger, which is non-null if proofs are
-   * enabled. This is owned by the proof manager of the SolverEngine that owns
-   * this environment.
-   */
-  ProofLogger* d_proofLogger;
-  /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SolverEngine that owns
    * this environment.

@@ -514,6 +514,7 @@ void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
+  Trace("pf-log") << "Notify input formulas, plog=" << d_plog << std::endl;
   if (d_plog != nullptr)
   {
     Node conj = nodeManager()->mkAnd(assertions);

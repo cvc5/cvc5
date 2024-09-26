@@ -47,7 +47,6 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_pfManager(nullptr),
-      d_proofLogger(nullptr),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter(nm)),
       d_evalRew(nullptr),
@@ -85,7 +84,6 @@ void Env::finishInit(smt::PfManager* pm)
   {
     d_pfManager = pm;
     Assert(d_proofNodeManager == nullptr);
-    d_proofLogger = pm->getProofLogger();
     d_proofNodeManager = pm->getProofNodeManager();
     d_rewriter->finishInit(*this);
   }
@@ -111,7 +109,7 @@ context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 smt::PfManager* Env::getProofManager() { return d_pfManager; }
 
-ProofLogger* Env::getProofLogger() { return d_proofLogger; }
+ProofLogger* Env::getProofLogger() { return d_pfManager ? d_pfManager->getProofLogger() : nullptr; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 

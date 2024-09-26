@@ -62,7 +62,8 @@ class PropPfManager : protected EnvObj
                 CnfStream& cnfProof,
                 const context::CDList<Node>& assumptions);
   /**
-   * Notifies this module of the input assertions.
+   * Notifies this module of the input assertions, after they have been
+   * asserted via convertAndAssert.
    * @param assertion The preprocessed input assertions
    */
   void notifyInputFormulas(const std::vector<Node>& assertions);
