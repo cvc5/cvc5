@@ -28,6 +28,7 @@ namespace cvc5::internal {
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
+class ProofLogger;
 class SolverEngine;
 
 namespace rewriter {
@@ -161,6 +162,8 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
+  /** A proof logger, if proofLog is enabled */
+  std::unique_ptr<ProofLogger> d_plog;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
 }; /* class SolverEngine */

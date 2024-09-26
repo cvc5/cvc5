@@ -257,6 +257,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
             smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
+    if (opts.proofs.proofLog)
+    {
+      SET_AND_NOTIFY(smt, produceProofs, true, "proof logging");
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        SET_AND_NOTIFY_VAL_SYM(
+            smt, proofMode, options::ProofMode::PP_ONLY, "proof logging");
+      }
+    }
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {

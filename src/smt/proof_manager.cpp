@@ -20,6 +20,7 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
+#include "proof/proof_logger.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
@@ -402,6 +403,8 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
+
+ProofLogger* PfManager::getProofLogger() const { return d_plog.get(); }
 
 rewriter::RewriteDb* PfManager::getRewriteDatabase() const
 {

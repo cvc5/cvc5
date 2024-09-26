@@ -130,35 +130,6 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
-
-  // debug: dump preprocessing proof
-  if (options().proof.dumpProofEagerPre)
-  {
-    smt::PfManager* pm = d_env.getProofManager();
-    ProofNodeManager* pnm = pm->getProofNodeManager();
-    Assert(pm != nullptr);
-    const std::vector<Node>& asserts = ap.ref();
-    options::ProofFormatMode fm = options().proof.proofFormatMode;
-    std::shared_ptr<ProofNode> pf;
-    if (asserts.size() == 1)
-    {
-      pf = pnm->mkAssume(asserts[0]);
-    }
-    else
-    {
-      Node conclusion = nodeManager()->mkAnd(asserts);
-      CDProof cdp(d_env);
-      cdp.addStep(conclusion, ProofRule::AND_INTRO, asserts, {});
-      pf = cdp.getProofFor(conclusion);
-    }
-    std::shared_ptr<ProofNode> pfs = pm->connectProofToAssertions(
-        pf, *this, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
-    std::stringstream ss;
-    pm->printProof(ss, pfs, fm, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
-    std::cout << ";;;;;;;;;;;; preprocess proof start" << std::endl;
-    std::cout << ss.str();
-    std::cout << ";;;;;;;;;;;; preprocess proof end" << std::endl;
-  }
 }
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
@@ -178,7 +149,7 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
-
+  
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
   // specially. Note that we don't pass the preprocess learned literals

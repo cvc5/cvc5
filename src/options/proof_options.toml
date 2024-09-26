@@ -258,9 +258,9 @@ name   = "Proof"
   help       = "Whether to allow trust in the proof printer (when applicable)"
 
 [[option]]
-  name       = "dumpProofEagerPre"
+  name       = "proofLog"
   category   = "expert"
-  long       = "dump-proof-eager-pre"
+  long       = "proof-log"
   type       = "bool"
   default    = "false"
-  help       = "output proofs of preprocessing for all input formulas immediately after preprocessing"
+  help       = "Proof logging mode"
