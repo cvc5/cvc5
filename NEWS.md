@@ -1,5 +1,15 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.2.1 prerelease
+=====================
+
+## New Features
+
+- Added support for `SymbolManager::getNamedTerms()` to retrieve the set of
+  terms that have been given names by the SMT-LIB attribute `:named`.
+
+## Changes
+
 cvc5 1.2.0
 ==========
 
