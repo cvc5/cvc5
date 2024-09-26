@@ -41,7 +41,6 @@ class TestCApiBlackSymbolManager : public ::testing::Test
 
   void parse_and_set_logic(const char* logic)
   {
-    const char* error_msg;
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
     parse_command(ss.str().c_str());
