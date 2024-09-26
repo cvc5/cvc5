@@ -30,6 +30,7 @@
 #include "smt/env.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
+#include "proof/proof_logger.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -59,6 +60,7 @@ PropPfManager::PropPfManager(Env& env,
           env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_pfpp(new ProofPostprocess(env, &d_proof)),
       d_pfCnfStream(env, cnf, this),
+      d_plog(env.getProofLogger()),
       d_satSolver(satSolver),
       d_assertions(userContext()),
       d_cnfStream(cnf),
@@ -497,6 +499,19 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     d_satPm->registerSatAssumptions({normClauseNode});
   }
+  // if proof logging, make the call now
+  if (d_plog!=nullptr)
+  {
+    if (input)
+    {
+      std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(normClauseNode);
+      d_plog->logInputClause(pfn);
+    }
+    else
+    {
+      d_plog->logTheoryLemma(normClauseNode);
+    }
+  }  
   return normClauseNode;
 }
 

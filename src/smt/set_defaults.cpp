@@ -257,7 +257,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
             smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
-    if (opts.proofs.proofLog)
+    if (opts.proof.proofLog)
     {
       SET_AND_NOTIFY(smt, produceProofs, true, "proof logging");
       // ensure at least preprocessing proofs are enabled

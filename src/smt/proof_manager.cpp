@@ -27,6 +27,7 @@
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_logger.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_db.h"
@@ -76,6 +77,11 @@ PfManager::PfManager(Env& env)
       output(OutputTag::RARE_DB) << ss.str();
     }
   }
+  if (options().proof.proofLog)
+  {
+    d_plog.reset(new ProofLogger(env, d_rewriteDb.get()));
+  }
+  
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
       new ProofChecker(statisticsRegistry(),

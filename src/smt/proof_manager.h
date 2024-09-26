@@ -140,6 +140,8 @@ class PfManager : protected EnvObj
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
+  /** Get a pointer to the ProofLogger owned by this. */
+  ProofLogger* getProofLogger() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
   //--------------------------- end access to utilities

@@ -20,19 +20,29 @@
 
 #include "smt/env_obj.h"
 #include "proof/proof_node.h"
+#include "proof/alf/alf_node_converter.h"
+#include "proof/alf/alf_printer.h"
 
 namespace cvc5::internal {
 
+namespace rewriter {
+class RewriteDb;
+}
 /**
  */
 class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env);
+  ProofLogger(Env& env, rewriter::RewriteDb* rdb);
   ~ProofLogger();
   /** */
-  void logProof(std::shared_ptr<ProofNode>& pfn);
+  void logInputClause(std::shared_ptr<ProofNode>& pfn);
+  /** */
+  void logTheoryLemma(const Node& n);
+private:
+  proof::AlfNodeConverter d_atp;
+  proof::AlfPrinter d_alfp;
 };
 
 }  // namespace cvc5::internal

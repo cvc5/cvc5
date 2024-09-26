@@ -30,6 +30,9 @@
 #include "theory/inference_id.h"
 
 namespace cvc5::internal {
+
+class ProofLogger;
+
 namespace prop {
 
 class CDCLTSatSolver;
@@ -261,6 +264,8 @@ class PropPfManager : protected EnvObj
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /** Proof-producing CNF converter */
   ProofCnfStream d_pfCnfStream;
+  /** */
+  ProofLogger* d_plog;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
