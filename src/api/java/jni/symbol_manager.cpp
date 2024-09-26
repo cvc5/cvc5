@@ -113,12 +113,12 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getDeclaredTerms(
  * Method:    getNamedTerms
  * Signature: (J)Ljava/util/Map;
  */
-JNIEXPORT jobject JNICALL
-Java_io_github_cvc5_Solver_getNamedTerms(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_SymbolManager_getNamedTerms(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::map<Term, std::string> map = solver->getNamedTerms();
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::map<Term, std::string> map = symbolManager->getNamedTerms();
   // HashMap hashMap = new HashMap();
   jclass hashMapClass = env->FindClass("Ljava/util/HashMap;");
   jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");

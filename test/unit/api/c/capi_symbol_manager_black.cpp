@@ -48,6 +48,7 @@ class TestCApiBlackSymbolManager : public ::testing::Test
   }
   void parse_command(const char* cmds)
   {
+    const char* error_msg;
     std::string str(cmds);
     Cvc5InputParser* parser = cvc5_parser_new(d_solver, d_sm);
     cvc5_parser_set_str_input(

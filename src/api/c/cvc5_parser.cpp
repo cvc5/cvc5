@@ -222,9 +222,10 @@ void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
   rterms.clear();
   rnames.clear();
   auto res = sm->d_sm.getNamedTerms();
+  auto tm = sm->d_tm;
   for (auto& t : res)
   {
-    rterms.push_back(t.first);
+    rterms.push_back(tm->export_term(t.first));
     rnames.push_back(t.second.c_str());
   }
   *size = rterms.size();
