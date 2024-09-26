@@ -251,7 +251,7 @@ cdef class SymbolManager:
             :return: A map of the named terms to their name.
         """
         namedi = {}
-        for p in self.csolver.getNamedTerms():
+        for p in self.csm.getNamedTerms():
             k = p.first
             v = p.second
             termk = _term(self.tm, k)
