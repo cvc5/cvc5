@@ -268,89 +268,83 @@ Node SkolemManager::getOriginalForm(Node n)
   OriginalFormAttribute ofa;
   UnpurifiedFormAttribute ufa;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
   do
   {
     cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
+    if (cur.hasAttribute(ofa))
     {
-      if (cur.hasAttribute(ofa))
+      visit.pop_back();
+      continue;
+    }
+    else if (cur.hasAttribute(ufa))
+    {
+      // if it has an unpurified form, compute the original form of it
+      Node ucur = cur.getAttribute(ufa);
+      if (ucur.hasAttribute(ofa))
       {
-        visited[cur] = cur.getAttribute(ofa);
-      }
-      else if (cur.hasAttribute(ufa))
-      {
-        // if it has an unpurified form, compute the original form of it
-        Node ucur = cur.getAttribute(ufa);
-        if (ucur.hasAttribute(ofa))
-        {
-          // Already computed, set. This always happens after cur is visited
-          // again after computing the original form of its unpurified form.
-          Node ucuro = ucur.getAttribute(ofa);
-          cur.setAttribute(ofa, ucuro);
-          visited[cur] = ucuro;
-        }
-        else
-        {
-          // visit ucur then visit cur again
-          visit.push_back(cur);
-          visit.push_back(ucur);
-        }
+        // Already computed, set. This always happens after cur is visited
+        // again after computing the original form of its unpurified form.
+        Node ucuro = ucur.getAttribute(ofa);
+        cur.setAttribute(ofa, ucuro);
+        visit.pop_back();
       }
       else
       {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          visit.push_back(cur.getOperator());
-        }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        // visit ucur then visit cur again
+        visit.push_back(ucur);
       }
+      continue;
     }
-    else if (it->second.isNull())
+    else if (cur.getNumChildren() == 0)
     {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
+      cur.setAttribute(ofa, cur);
+      visit.pop_back();
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
       if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
-        it = visited.find(cur.getOperator());
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cur.getOperator() != it->second;
-        children.push_back(it->second);
+        visit.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      cur.setAttribute(ofa, ret);
-      visited[cur] = ret;
+      visit.insert(visit.end(), cur.begin(), cur.end());
+      continue;
     }
+    visit.pop_back();
+    Node ret = cur;
+    bool childChanged = false;
+    std::vector<Node> children;
+    if (cur.getMetaKind() == metakind::PARAMETERIZED)
+    {
+      const Node& oon = cur.getOperator().getAttribute(ofa);
+      Assert(!oon.isNull());
+      childChanged = childChanged || cur.getOperator() != oon;
+      children.push_back(oon);
+    }
+    for (const Node& cn : cur)
+    {
+      const Node& ocn = cn.getAttribute(ofa);
+      Assert(!ocn.isNull());
+      childChanged = childChanged || cn != ocn;
+      children.push_back(ocn);
+    }
+    if (childChanged)
+    {
+      ret = nm->mkNode(cur.getKind(), children);
+    }
+    cur.setAttribute(ofa, ret);
+
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  Trace("sk-manager-debug") << "..return " << visited[n] << std::endl;
-  return visited[n];
+  const Node& on = n.getAttribute(ofa);
+  Trace("sk-manager-debug") << "..return " << on << std::endl;
+  return on;
 }
 
 Node SkolemManager::getUnpurifiedForm(Node k)

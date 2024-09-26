@@ -160,9 +160,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
         options::ProofGranularityMode::DSL_REWRITE,
         "check-proof-steps");
   }
-  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
-  // enabled is implied
+  // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
+  // then proofs being fully enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
+      || opts.driver.dumpUnsatCoresLemmas
       || opts.smt.proofMode == options::ProofMode::FULL
       || opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
@@ -175,7 +176,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if the user requested proofs, proof mode is (at least) full
     if (opts.smt.proofMode < options::ProofMode::FULL)
     {
-      SET_AND_NOTIFY(
+      SET_AND_NOTIFY_IF_NOT_USER(
           smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     }
     // Default granularity is theory rewrite if we are intentionally using
@@ -189,8 +190,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      options::ProofGranularityMode::THEORY_REWRITE,
                      "enabling proofs");
     }
-    // unsat cores are available due to proofs being enabled
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
+    // unsat cores are available due to proofs being enabled, as long as
+    // SAT proofs are available
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF
+        && opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
       if (options().prop.satSolver == options::SatSolverMode::MINISAT)

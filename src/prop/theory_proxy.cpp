@@ -342,10 +342,17 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     return;
   }
   // convert to node
+  const auto& nodeCache = d_cnfStream->getNodeCache();
   std::vector<Node> clauseNodes;
   for (const SatLiteral& l : clause)
   {
-    clauseNodes.push_back(d_cnfStream->getNode(l));
+    auto it = nodeCache.find(l);
+    // This should only return null nodes with CaDiCaL when clauses contain
+    // activation literals, i.e., clauses learned at user level > 0.
+    if (it != nodeCache.end())
+    {
+      clauseNodes.push_back(it->second);
+    }
   }
   Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
   // get the sharable form of cln

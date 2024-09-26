@@ -2567,6 +2567,34 @@ TEST_F(TestApiBlackSolver, pluginListen)
   ASSERT_TRUE(pl.hasSeenSatClause());
 }
 
+TEST_F(TestApiBlackSolver, pluginListenCadical)
+{
+  cvc5::Solver solver(d_tm);
+  solver.setOption("sat-solver", "cadical");
+  solver.setOption("plugin-notify-sat-clause-in-solve", "true");
+  PluginListen pl(d_tm);
+  solver.addPlugin(pl);
+  Sort bv1 = d_tm.mkBitVectorSort(8);
+  Sort bv16 = d_tm.mkBitVectorSort(8);
+  Term x = d_tm.mkConst(d_bool, "x");
+  Term z16 = d_tm.mkBitVector(16, 0);
+  Term o16 = d_tm.mkBitVector(16, 1);
+  Term z1 = d_tm.mkBitVector(1, 0);
+  Term o1 = d_tm.mkBitVector(1, 1);
+
+  Term ite1 = d_tm.mkTerm(Kind::ITE, {x, z16, o16});
+  Term add = d_tm.mkTerm(Kind::BITVECTOR_ADD, {o16, ite1});
+  Term eq1 = d_tm.mkTerm(Kind::EQUAL, {z16, add});
+  Term ite2 = d_tm.mkTerm(Kind::ITE, {eq1, o1, z1});
+  Term eq2 =
+      d_tm.mkTerm(Kind::EQUAL, {z1, d_tm.mkTerm(Kind::BITVECTOR_NOT, {ite2})});
+  solver.assertFormula(eq2);
+  ASSERT_TRUE(solver.checkSat().isUnsat());
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
+}
+
 TEST_F(TestApiBlackSolver, verticalBars)
 {
   Term a = d_solver->declareFun("|a |", {}, d_real);
