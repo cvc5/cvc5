@@ -69,8 +69,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* CDCLTSatSolver interface --------------------------------------------- */
 
-  void initialize(prop::TheoryProxy* theoryProxy,
-                  PropPfManager* ppm) override;
+  void initialize(prop::TheoryProxy* theoryProxy, PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;

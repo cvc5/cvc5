@@ -106,8 +106,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(TheoryProxy* theoryProxy,
-                                  PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
 {
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
