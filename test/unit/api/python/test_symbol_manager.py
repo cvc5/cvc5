@@ -58,8 +58,9 @@ def test_get_declared_terms_and_sorts(tm, solver):
     assert len(sm.getDeclaredTerms()) == 0
 
 def test_get_named_terms(tm, solver):
-  parse_and_set_logic(solver, sm, "QF_LIA")
-  assert len(sm.getNamedTerms()) == 0
-  parse_command(solver, sm, "(assert (! false :named a0))")
-  assert len(sm.getNamedTerms()) == 1
+    sm = SymbolManager(tm)
+    parse_and_set_logic(solver, sm, "QF_LIA")
+    assert len(sm.getNamedTerms()) == 0
+    parse_command(solver, sm, "(assert (! false :named a0))")
+    assert len(sm.getNamedTerms()) == 1
 
