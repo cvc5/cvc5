@@ -46,10 +46,12 @@ Preprocessor::Preprocessor(Env& env,
 
 Preprocessor::~Preprocessor() {}
 
-void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe, PreprocessProofGenerator* pppg)
+void Preprocessor::finishInit(TheoryEngine* te,
+                              prop::PropEngine* pe,
+                              PreprocessProofGenerator* pppg)
 {
   // set up the preprocess proof generator, if necessary
-  if (d_pppg == nullptr && pppg!=nullptr)
+  if (d_pppg == nullptr && pppg != nullptr)
   {
     d_pppg = pppg;
     d_propagator.enableProofs(userContext(), d_pppg);

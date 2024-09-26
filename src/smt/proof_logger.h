@@ -25,7 +25,7 @@
 
 namespace cvc5::internal {
 
-namespace smt{
+namespace smt {
 class PfManager;
 }
 
@@ -45,7 +45,7 @@ class ProofLogger : protected EnvObj
   void logTheoryLemma(const Node& n);
 
  private:
-   smt::PfManager* d_pm;
+  smt::PfManager* d_pm;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
 };

@@ -20,7 +20,6 @@
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
-#include "smt/proof_logger.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
@@ -29,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "smt/proof_logger.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
 

@@ -238,7 +238,7 @@ void SmtSolver::finishInitPreprocessor()
   // determine if we are assigning a preprocess proof generator here
   smt::PfManager* pm = d_env.getProofManager();
   smt::PreprocessProofGenerator* pppg = nullptr;
-  if (pm!=nullptr)
+  if (pm != nullptr)
   {
     pppg = pm->getPreprocessProofGenerator();
   }

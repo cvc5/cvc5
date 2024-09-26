@@ -26,7 +26,6 @@
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
-#include "smt/proof_logger.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_db.h"
@@ -34,6 +33,7 @@
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
+#include "smt/proof_logger.h"
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
@@ -147,7 +147,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::TRUST);
   }
   d_false = nodeManager()->mkConst(false);
-  
+
   d_pppg = std::make_unique<PreprocessProofGenerator>(
       d_env, userContext(), "smt::PreprocessProofGenerator");
 }
@@ -421,7 +421,7 @@ PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 {
   return d_pppg.get();
 }
-  
+
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {
   // note that the assertion list is always available
