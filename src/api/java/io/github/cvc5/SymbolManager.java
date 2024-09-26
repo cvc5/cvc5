@@ -15,6 +15,8 @@
 
 package io.github.cvc5;
 
+import java.util.*;
+
 public class SymbolManager extends AbstractPointer
 {
   /**
