@@ -116,6 +116,17 @@ void SmtSolver::interrupt()
 
 Result SmtSolver::checkSatInternal()
 {
+  if (options().proof.proofLog)
+  {
+    smt::PfManager* pm = d_env.getProofManager();
+    if (pm!=nullptr)
+    {
+      pm->startProofLogging(d_asserts);
+      Result ret = d_propEngine->checkSat();
+      pm->endProofLogging();
+      return ret;
+    }
+  }
   // call the prop engine to check sat
   return d_propEngine->checkSat();
 }

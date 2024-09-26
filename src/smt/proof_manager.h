@@ -134,6 +134,10 @@ class PfManager : protected EnvObj
       std::shared_ptr<ProofNode> pfn,
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
+  /** */
+  void startProofLogging(Assertions& as);
+  /** */
+  void endProofLogging();
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

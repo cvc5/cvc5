@@ -19,9 +19,10 @@
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env, smt::PfManager* pm)
+ProofLogger::ProofLogger(Env& env, smt::PfManager* pm, smt::Assertions& as)
     : EnvObj(env),
       d_pm(pm),
+      d_as(as),
       d_atp(nodeManager()),
       d_alfp(env, d_atp, pm->getRewriteDatabase())
 {

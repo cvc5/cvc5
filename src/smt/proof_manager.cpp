@@ -77,10 +77,6 @@ PfManager::PfManager(Env& env)
       output(OutputTag::RARE_DB) << ss.str();
     }
   }
-  if (options().proof.proofLog)
-  {
-    d_plog.reset(new ProofLogger(env, this));
-  }
 
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
@@ -166,6 +162,16 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
   return r;
 }
 
+void PfManager::startProofLogging(Assertions& as)
+{
+  d_plog.reset(new ProofLogger(d_env, this, as));
+}
+
+void PfManager::endProofLogging()
+{
+  d_plog = nullptr;
+}
+  
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
 {
