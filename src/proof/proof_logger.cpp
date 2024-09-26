@@ -17,17 +17,15 @@
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env, rewriter::RewriteDb* rdb) : EnvObj(env), d_atp(nodeManager()), d_alfp(env, d_atp, rdb) {}
+ProofLogger::ProofLogger(Env& env, rewriter::RewriteDb* rdb)
+    : EnvObj(env), d_atp(nodeManager()), d_alfp(env, d_atp, rdb)
+{
+}
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logInputClause(std::shared_ptr<ProofNode>& pfn)
-{
-}
+void ProofLogger::logInputClause(std::shared_ptr<ProofNode>& pfn) {}
 
-void ProofLogger::logTheoryLemma(const Node& n)
-{
-  
-}
+void ProofLogger::logTheoryLemma(const Node& n) {}
 
 }  // namespace cvc5::internal

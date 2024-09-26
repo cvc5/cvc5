@@ -20,6 +20,7 @@
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
+#include "proof/proof_logger.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
@@ -30,7 +31,6 @@
 #include "smt/env.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
-#include "proof/proof_logger.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -500,7 +500,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     d_satPm->registerSatAssumptions({normClauseNode});
   }
   // if proof logging, make the call now
-  if (d_plog!=nullptr)
+  if (d_plog != nullptr)
   {
     if (input)
     {
@@ -511,7 +511,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     {
       d_plog->logTheoryLemma(normClauseNode);
     }
-  }  
+  }
   return normClauseNode;
 }
 

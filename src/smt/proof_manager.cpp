@@ -20,7 +20,6 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
-#include "proof/proof_logger.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/alf/alf_printer.h"
 #include "proof/dot/dot_printer.h"
@@ -81,7 +80,7 @@ PfManager::PfManager(Env& env)
   {
     d_plog.reset(new ProofLogger(env, d_rewriteDb.get()));
   }
-  
+
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
       new ProofChecker(statisticsRegistry(),

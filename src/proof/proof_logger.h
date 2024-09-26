@@ -18,10 +18,10 @@
 #ifndef CVC5__PROOF__PROOF_LOGGER_H
 #define CVC5__PROOF__PROOF_LOGGER_H
 
-#include "smt/env_obj.h"
-#include "proof/proof_node.h"
 #include "proof/alf/alf_node_converter.h"
 #include "proof/alf/alf_printer.h"
+#include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -40,7 +40,8 @@ class ProofLogger : protected EnvObj
   void logInputClause(std::shared_ptr<ProofNode>& pfn);
   /** */
   void logTheoryLemma(const Node& n);
-private:
+
+ private:
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
 };
