@@ -35,11 +35,13 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   bool convertToRealChildren = false;
-  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT || k == Kind::SUB)
+  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+      || k == Kind::SUB)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
+  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+           || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
   {
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
