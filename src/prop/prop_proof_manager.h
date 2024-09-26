@@ -62,6 +62,10 @@ class PropPfManager : protected EnvObj
                 CnfStream& cnfProof,
                 const context::CDList<Node>& assumptions);
   /**
+   * Called once at the beginning of each checkSat.
+   */
+  void presolve();
+  /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-

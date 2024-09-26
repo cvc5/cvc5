@@ -135,7 +135,7 @@ class PfManager : protected EnvObj
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   /** */
-  void startProofLogging(Assertions& as);
+  void startProofLogging(std::ostream& out, Assertions& as);
   /** */
   void endProofLogging();
   //--------------------------- access to utilities

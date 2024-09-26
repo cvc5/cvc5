@@ -60,7 +60,7 @@ PropPfManager::PropPfManager(Env& env,
           env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_pfpp(new ProofPostprocess(env, &d_proof)),
       d_pfCnfStream(env, cnf, this),
-      d_plog(env.getProofLogger()),
+      d_plog(nullptr),
       d_satSolver(satSolver),
       d_assertions(userContext()),
       d_cnfStream(cnf),
@@ -85,6 +85,12 @@ PropPfManager::PropPfManager(Env& env,
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
   d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
+}
+
+void PropPfManager::presolve()
+{
+  // get the proof logger now
+  d_plog = d_env.getProofLogger();
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }

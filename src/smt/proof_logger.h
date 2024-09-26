@@ -36,7 +36,7 @@ class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env, smt::PfManager* pm, smt::Assertions& as);
+  ProofLogger(Env& env, std::ostream& out, smt::PfManager* pm, smt::Assertions& as);
   ~ProofLogger();
   /** */
   void logClause(std::shared_ptr<ProofNode>& pfn);
@@ -46,7 +46,9 @@ class ProofLogger : protected EnvObj
   void logTheoryLemma(const Node& n);
 
  private:
+  std::ostream& d_out;
   smt::PfManager* d_pm;
+  ProofNodeManager* d_pnm;
   smt::Assertions& d_as;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;

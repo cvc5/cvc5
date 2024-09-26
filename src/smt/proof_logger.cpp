@@ -16,27 +16,43 @@
 #include "smt/proof_logger.h"
 
 #include "smt/proof_manager.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env, smt::PfManager* pm, smt::Assertions& as)
+ProofLogger::ProofLogger(Env& env, std::ostream& out, smt::PfManager* pm, smt::Assertions& as)
     : EnvObj(env),
+      d_out(out),
       d_pm(pm),
+      d_pnm(pm->getProofNodeManager()),
       d_as(as),
       d_atp(nodeManager()),
       d_alfp(env, d_atp, pm->getRewriteDatabase())
 {
+  // global options on out
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
 }
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn) {}
+void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn)
+{
+  d_alfp.print(d_out, pfn, ProofScopeMode::NONE, true);
+}
 
 void ProofLogger::logClauseFromPreprocessedInput(
     std::shared_ptr<ProofNode>& pfn)
 {
+  ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
+  std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
+  d_alfp.print(d_out, ppn, m, true);
 }
 
-void ProofLogger::logTheoryLemma(const Node& n) {}
+void ProofLogger::logTheoryLemma(const Node& n) 
+{
+  std::shared_ptr<ProofNode> ptl = d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
+  d_alfp.print(d_out, ptl, ProofScopeMode::NONE, true);
+}
 
 }  // namespace cvc5::internal

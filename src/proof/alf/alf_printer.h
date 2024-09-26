@@ -50,7 +50,8 @@ class AlfPrinter : protected EnvObj
    */
   void print(std::ostream& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
+             bool incremental=false);
 
   /**
    * Print proof rewrite rule name r to output stream out

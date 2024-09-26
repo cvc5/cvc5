@@ -544,7 +544,8 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out,
                        std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm)
+                       ProofScopeMode psm,
+                       bool incremental)
 {
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
