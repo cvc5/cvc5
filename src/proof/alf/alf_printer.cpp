@@ -689,7 +689,7 @@ void AlfPrinter::print(std::ostream& out,
 }
 
 void AlfPrinter::printIncremental(std::ostream& out,
-                       std::shared_ptr<ProofNode> pfn)
+                                  std::shared_ptr<ProofNode> pfn)
 {
 }
 

@@ -174,7 +174,7 @@ void PropEngine::assertInputFormulas(
   Assert(natomsPost >= natomsPre);
   d_stats.d_numInputAtoms += (natomsPost - natomsPre);
   // notify input formulas, after push above
-  if (d_ppm!=nullptr)
+  if (d_ppm != nullptr)
   {
     d_ppm->notifyInputFormulas(assertions);
   }

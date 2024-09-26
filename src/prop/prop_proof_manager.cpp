@@ -514,7 +514,7 @@ void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
-  if (d_plog!=nullptr)
+  if (d_plog != nullptr)
   {
     Node conj = nodeManager()->mkAnd(assertions);
     d_proof.addStep(conj, ProofRule::AND_INTRO, assertions, {});
@@ -522,7 +522,7 @@ void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
     d_plog->logClauseForCnfPreprocessInput(pfn);
   }
 }
-      
+
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
 void PropPfManager::getProofInternal(CDProof* cdp)
