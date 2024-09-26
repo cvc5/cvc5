@@ -15,12 +15,15 @@
 
 #include "smt/proof_logger.h"
 
-#include "smt/proof_manager.h"
 #include "proof/proof_node_manager.h"
+#include "smt/proof_manager.h"
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env, std::ostream& out, smt::PfManager* pm, smt::Assertions& as)
+ProofLogger::ProofLogger(Env& env,
+                         std::ostream& out,
+                         smt::PfManager* pm,
+                         smt::Assertions& as)
     : EnvObj(env),
       d_out(out),
       d_pm(pm),
@@ -49,9 +52,10 @@ void ProofLogger::logClauseFromPreprocessedInput(
   d_alfp.print(d_out, ppn, m, true);
 }
 
-void ProofLogger::logTheoryLemma(const Node& n) 
+void ProofLogger::logTheoryLemma(const Node& n)
 {
-  std::shared_ptr<ProofNode> ptl = d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
+  std::shared_ptr<ProofNode> ptl =
+      d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
   d_alfp.print(d_out, ptl, ProofScopeMode::NONE, true);
 }
 

@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace smt {
 class Assertions;
 class PfManager;
-}
+}  // namespace smt
 
 /**
  */
@@ -36,7 +36,10 @@ class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env, std::ostream& out, smt::PfManager* pm, smt::Assertions& as);
+  ProofLogger(Env& env,
+              std::ostream& out,
+              smt::PfManager* pm,
+              smt::Assertions& as);
   ~ProofLogger();
   /** */
   void logClause(std::shared_ptr<ProofNode>& pfn);

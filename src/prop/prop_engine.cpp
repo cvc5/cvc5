@@ -444,7 +444,7 @@ Result PropEngine::checkSat() {
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
   // presolve for the proof manager
-  if (d_ppm!=nullptr)
+  if (d_ppm != nullptr)
   {
     d_ppm->presolve();
   }

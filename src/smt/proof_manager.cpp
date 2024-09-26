@@ -167,11 +167,8 @@ void PfManager::startProofLogging(std::ostream& out, Assertions& as)
   d_plog.reset(new ProofLogger(d_env, out, this, as));
 }
 
-void PfManager::endProofLogging()
-{
-  d_plog = nullptr;
-}
-  
+void PfManager::endProofLogging() { d_plog = nullptr; }
+
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
 {
