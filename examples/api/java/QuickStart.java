@@ -63,9 +63,9 @@ public class QuickStart
       // and they are called "constants" in SMT jargon:
       //! [docs-java-quickstart-5 start]
       Term x = tm.mkConst(realSort, "x");
-      Term y = solver.mkConst(realSort, "y");
-      Term a = solver.mkConst(intSort, "a");
-      Term b = solver.mkConst(intSort, "b");
+      Term y = tm.mkConst(realSort, "y");
+      Term a = tm.mkConst(intSort, "a");
+      Term b = tm.mkConst(intSort, "b");
       //! [docs-java-quickstart-5 end]
 
       // Our constraints regarding x and y will be:
@@ -81,21 +81,21 @@ public class QuickStart
       // We will construct these constraints gradually,
       // by defining each of their components.
       // We start with the constant numerals 0 and 1:
-      Term zero = solver.mkReal(0);
-      Term one = solver.mkReal(1);
+      Term zero = tm.mkReal(0);
+      Term one = tm.mkReal(1);
 
       // Next, we construct the term x + y
-      Term xPlusY = solver.mkTerm(Kind.ADD, x, y);
+      Term xPlusY = tm.mkTerm(Kind.ADD, x, y);
 
       // Now we can define the constraints.
       // They use the operators +, <=, and <.
       // In the API, these are denoted by ADD, LEQ, and LT.
       // A list of available operators is available in:
       // src/api/cpp/cvc5_kind.h
-      Term constraint1 = solver.mkTerm(Kind.LT, zero, x);
-      Term constraint2 = solver.mkTerm(Kind.LT, zero, y);
-      Term constraint3 = solver.mkTerm(Kind.LT, xPlusY, one);
-      Term constraint4 = solver.mkTerm(Kind.LEQ, x, y);
+      Term constraint1 = tm.mkTerm(Kind.LT, zero, x);
+      Term constraint2 = tm.mkTerm(Kind.LT, zero, y);
+      Term constraint3 = tm.mkTerm(Kind.LT, xPlusY, one);
+      Term constraint4 = tm.mkTerm(Kind.LEQ, x, y);
 
       // Now we assert the constraints to the solver.
       solver.assertFormula(constraint1);
@@ -173,11 +173,11 @@ public class QuickStart
       // This time, we inline the construction of terms
       // to the assertion command.
       //! [docs-java-quickstart-14 start]
-      solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), a));
-      solver.assertFormula(solver.mkTerm(Kind.LT, solver.mkInteger(0), b));
+      solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), a));
+      solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), b));
       solver.assertFormula(
-          solver.mkTerm(Kind.LT, solver.mkTerm(Kind.ADD, a, b), solver.mkInteger(1)));
-      solver.assertFormula(solver.mkTerm(Kind.LEQ, a, b));
+          tm.mkTerm(Kind.LT, tm.mkTerm(Kind.ADD, a, b), tm.mkInteger(1)));
+      solver.assertFormula(tm.mkTerm(Kind.LEQ, a, b));
       //! [docs-java-quickstart-14 end]
 
       // We check whether the revised assertion is satisfiable.
