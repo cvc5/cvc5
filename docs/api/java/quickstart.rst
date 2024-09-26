@@ -1,7 +1,7 @@
 Quickstart Guide
 ================
 
-First, create a cvc5 `Solver <io/github/cvc5/api/TermManager.html>`_ instance:
+First, create a cvc5 `TermManager <../io/github/cvc5/api/TermManager.html>`_ instance:
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
    :language: java
@@ -9,7 +9,7 @@ First, create a cvc5 `Solver <io/github/cvc5/api/TermManager.html>`_ instance:
    :start-after: docs-java-quickstart-0 start
    :end-before: docs-java-quickstart-0 end
 
-Then, create a cvc5 `Solver <io/github/cvc5/api/Solver.html>`_
+Then, create a cvc5 `Solver <../io/github/cvc5/api/Solver.html>`_
 instance:
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
@@ -85,9 +85,9 @@ the constraints.
 The result we get from this satisfiability check is either ``sat``, ``unsat``
 or ``unknown``.
 It's status can be queried via
-`Result.isSat <io/github/cvc5/api/Result.html#isSat()>`_,
-`Result.isUnsat <io/github/cvc5/api/Result.html#isUnsat()>`_ and
-`Result.isSatUnknown <io/github/cvc5/api/Result.html#isSatUnknown()>`_.
+`Result.isSat <../io/github/cvc5/api/Result.html#isSat()>`_,
+`Result.isUnsat <../io/github/cvc5/api/Result.html#isUnsat()>`_ and
+`Result.isSatUnknown <../io/github/cvc5/api/Result.html#isSatUnknown()>`_.
 Alternatively, it can also be printed.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
