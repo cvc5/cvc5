@@ -64,7 +64,7 @@ public class QuickStart
       // Formally, their cpp type is Term,
       // and they are called "constants" in SMT jargon:
       //! [docs-java-quickstart-5 start]
-      Term x = solver.mkConst(realSort, "x");
+      Term x = tm.mkConst(realSort, "x");
       Term y = solver.mkConst(realSort, "y");
       Term a = solver.mkConst(intSort, "a");
       Term b = solver.mkConst(intSort, "b");
