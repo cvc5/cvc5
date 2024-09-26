@@ -16,7 +16,7 @@
 #include "main/command_executor.h"
 
 #ifndef __WIN32__
-#  include <sys/resource.h>
+#include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
 #include <cvc5/cvc5_parser.h>
@@ -40,12 +40,14 @@ namespace cvc5::main {
 // This is used for competitions while a solution (proof or model)
 // is being dumped (so that we don't give "sat" or "unsat" then get
 // interrupted partway through outputting a proof!).
-void setNoLimitCPU() {
+void setNoLimitCPU()
+{
   // Windows doesn't have these things, just ignore
 #ifndef __WIN32__
   struct rlimit rlc;
   int st = getrlimit(RLIMIT_CPU, &rlc);
-  if(st == 0) {
+  if (st == 0)
+  {
     rlc.rlim_cur = rlc.rlim_max;
     setrlimit(RLIMIT_CPU, &rlc);
   }
@@ -59,9 +61,7 @@ CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
       d_parseOnly(false)
 {
 }
-CommandExecutor::~CommandExecutor()
-{
-}
+CommandExecutor::~CommandExecutor() {}
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
@@ -157,7 +157,8 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
   }
 
   // dump the model/proof/unsat core if option is set
-  if (status) {
+  if (status)
+  {
     bool isResultUnsat = res.isUnsat();
     bool isResultSat = res.isSat();
     std::vector<std::unique_ptr<Cmd> > getterCommands;
@@ -198,14 +199,15 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }
-
-    if (!getterCommands.empty()) {
+    if (!getterCommands.empty())
+    {
       // set no time limit during dumping if applicable
       if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())
       {
         setNoLimitCPU();
       }
-      for (const auto& getterCommand : getterCommands) {
+      for (const auto& getterCommand : getterCommands)
+      {
         status = doCommandSingleton(getterCommand.get());
         if (!status)
         {
@@ -244,7 +246,8 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   return !cmd->fail();
 }
 
-void CommandExecutor::flushOutputStreams() {
+void CommandExecutor::flushOutputStreams()
+{
   printStatistics(d_solver->getDriverOptions().err());
 
   // make sure out and err streams are flushed too

@@ -41,6 +41,32 @@ namespace {
 }
 /* -------------------------------------------------------------------------- */
 
+Automata::Automata(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "automata")
+{
+  std::cout << "Automata constructor!" << std::endl;
+}
+
+PreprocessingPassResult Automata::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  std::cout << "Applying internal for automata preprocessing" << std::endl;
+  AlwaysAssert(!options().base.incrementalSolving);
+
+  /* collect all function applications and generate consistency lemmas
+   * accordingly */
+  std::vector<TNode> to_process;
+  for (const Node& a : assertionsToPreprocess->ref())
+  {
+    std::cout << a << std::endl;
+    to_process.push_back(a);
+  }
+
+  // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE LATER
+
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace cvc5::internal

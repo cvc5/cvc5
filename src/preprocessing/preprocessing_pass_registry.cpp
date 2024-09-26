@@ -26,6 +26,7 @@
 #include "base/output.h"
 #include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
+#include "preprocessing/passes/automata.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
@@ -53,11 +54,11 @@
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/strings_eager_pp.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
-#include "preprocessing/passes/static_rewrite.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
@@ -151,6 +152,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("miplib-trick", callCtor<MipLibTrick>);
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
   registerPassInfo("ackermann", callCtor<Ackermann>);
+  registerPassInfo("automata", callCtor<Automata>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);

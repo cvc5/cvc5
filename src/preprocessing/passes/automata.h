@@ -30,14 +30,20 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-class AutomataPreprocess : public PreprocessingPass
+class Automata : public PreprocessingPass
 {
  public:
-  AutomataPreprocess(PreprocessingPassContext* preprocContext);
+  Automata(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
+  // the DFA itself. Initially it will be done for a single formula, for
+  // example, x + 2y <= 1, so we have a adjacency list of the RHS values of hte
+  // inequality.
+  std::vector<std::vector<std::pair<int, int>>> dfa;
 };
 
 }  // namespace passes

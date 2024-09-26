@@ -29,11 +29,11 @@
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "smt/logic_exception.h"
 #include "options/base_options.h"
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
@@ -173,7 +173,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       else if (term.getKind() == Kind::STORE)
       {
         throw LogicException("Ackermannization is not supported for kind: "
-                              + kindToString(term.getKind()));
+                             + kindToString(term.getKind()));
       }
       else
       {
@@ -313,6 +313,7 @@ PreprocessingPassResult Ackermann::applyInternal(
   std::vector<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
+    std::cout << a << std::endl;
     to_process.push_back(a);
   }
   collectFunctionsAndLemmas(

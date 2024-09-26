@@ -60,9 +60,7 @@ ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
   d_true = nodeManager()->mkConst(true);
 }
 
-ProcessAssertions::~ProcessAssertions()
-{
-}
+ProcessAssertions::~ProcessAssertions() {}
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
@@ -162,6 +160,11 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   if (options().smt.ackermann)
   {
     applyPass("ackermann", ap);
+  }
+
+  if (options().smt.automata)
+  {
+    applyPass("automata", ap);
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
@@ -312,7 +315,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("ho-elim", ap);
   }
-  
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -327,7 +330,8 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("ff-disjunctive-bit", ap);
   }
-  if (options().ff.ffBitsum || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
+  if (options().ff.ffBitsum
+      || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
   {
     applyPass("ff-bitsum", ap);
   }

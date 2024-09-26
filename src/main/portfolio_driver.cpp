@@ -30,8 +30,8 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include "parser/commands.h"
 #include "parser/command_status.h"
+#include "parser/commands.h"
 
 using namespace cvc5::parser;
 
@@ -177,7 +177,7 @@ class Pipe
    * parent process after forking.
    */
   void closeIn() { close(d_pipe[1]); }
-  /**
+  /*
    * Copy the content of the pipe into the given output stream. This method
    * should be called within the parent process after the child process has
    * terminated.
@@ -448,7 +448,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   }
 
   PortfolioStrategy strategy = getStrategy(*ctx.d_logic);
-  Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
+  Assert(!strategy.d_strategies.empty())
+      << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
     strategy.d_strategies.front().applyOptions(solver);
