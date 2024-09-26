@@ -82,6 +82,32 @@
 (define $arith_eval_int_log_2 ((x Int))
   (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
 
+; program: $arith_eval_is_pow_2_rec
+; args:
+; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
+; return: true iff x is a power of two.
+; note: Helper method for $arith_eval_is_pow_2 below.
+(program $arith_eval_is_pow_2_rec ((x Int))
+  (Int) Bool
+  (
+  (($arith_eval_is_pow_2_rec 1) true)
+  (($arith_eval_is_pow_2_rec x) (eo::ite (eo::is_eq (eo::zmod x 2) 0) 
+                                  ($arith_eval_is_pow_2_rec (eo::zdiv x 2))
+                                  false))
+  )
+)
+
+; define: $arith_eval_is_pow_2
+; args:
+; - x Int: The term to compute whether it is a power of two.
+; return: >
+;   true iff x is a power of two. If x is not a numeral value, we return
+;   the term (int.ispow2 x).
+(define $arith_eval_is_pow_2 ((x Int))
+  (eo::ite (eo::is_z x) 
+    (eo::ite (eo::is_neg x) false ($arith_eval_is_pow_2_rec x))
+    (int.ispow2 x)))
+
 ;; =============== for ARITH_POLY_NORM
 
 ; Definitions of monomials and polynomials.
@@ -117,7 +143,7 @@
     (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::is_eq a1 a2)
                                                                   (eo::define ((ca (eo::add c1 c2)) (pa ($poly_add p1 p2)))
                                                                   ; check if cancels
-                                                                  (eo::ite (eo::is_eq ca 0.0) pa (eo::cons @poly (@mon a1 ca) pa)))
+                                                                  (eo::ite (eo::is_eq ca 0/1) pa (eo::cons @poly (@mon a1 ca) pa)))
                                                                 (eo::ite ($compare_var a1 a2)
                                                                   (eo::cons @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
                                                                   (eo::cons @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
@@ -198,10 +224,10 @@
                                   ; if it is a constant, which can be tested if to_q is idempotent after the first
                                   (eo::ite (eo::is_eq aq (eo::to_q aq))
                                     ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
-                                    (eo::ite (eo::is_eq aq 0.0)
+                                    (eo::ite (eo::is_eq aq 0/1)
                                       @poly.zero
                                       (@poly (@mon 1 aq)))
-                                  (@poly (@mon (* a) 1.0)))))    ; introduces list
+                                  (@poly (@mon (* a) 1/1)))))    ; introduces list
   )
 )
 

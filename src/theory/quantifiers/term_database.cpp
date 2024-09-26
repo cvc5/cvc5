@@ -464,19 +464,16 @@ bool TermDb::inRelevantDomain(TNode f, size_t i, TNode r)
   return false;
 }
 
-bool TermDb::isTermActive( Node n ) {
+bool TermDb::isTermActive(Node n)
+{
   return d_inactive_map.find( n )==d_inactive_map.end(); 
   //return !n.getAttribute(NoMatchAttribute());
 }
 
-void TermDb::setTermInactive( Node n ) {
-  d_inactive_map[n] = true;
-  //Trace("term-db-debug2") << "set no match attribute" << std::endl;
-  //NoMatchAttribute nma;
-  //n.setAttribute(nma,true);
-}
+void TermDb::setTermInactive(Node n) { d_inactive_map[n] = true; }
 
-bool TermDb::hasTermCurrent( Node n, bool useMode ) {
+bool TermDb::hasTermCurrent(const Node& n, bool useMode) const
+{
   if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
   }

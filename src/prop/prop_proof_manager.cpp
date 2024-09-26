@@ -28,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "util/resource_manager.h"
 #include "util/string.h"
 
 namespace cvc5::internal {
@@ -48,9 +49,9 @@ PropPfManager::PropPfManager(Env& env,
       // (= a b), whose proof depends on symmetry applied to (= b a). It does
       // not have a generator for (= b a). However if asked for a proof of the
       // fact (= b a) (after having expanded the proof of (= a b)), since it has
-      // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
-      // on the proof of (= a b). As a result the assumption (= b a) would be
-      // assigned a proof with assumption (= b a). This breakes the invariant of
+      // no generator for (= b a), a proof (= b a) can be generated via symmetry
+      // on the proof of (= a b). As a result, the assumption (= b a) would be
+      // assigned a proof with assumption (= b a). This breaks the invariant of
       // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
       // of both the assumption (= b a) we are asking the proof for and the
       // assumption (= b a) in the proof of (= a b) are the same.
@@ -66,13 +67,18 @@ PropPfManager::PropPfManager(Env& env,
       d_lemmaClauses(userContext()),
       d_trackLemmaClauseIds(false),
       d_lemmaClauseIds(userContext()),
+      d_lemmaClauseTimestamp(userContext()),
       d_currLemmaId(theory::InferenceId::NONE),
-      d_satPm(nullptr)
+      d_satPm(nullptr),
+      d_uclIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
+          "ppm::unsatCoreLemmaIds")),
+      d_uclSize(statisticsRegistry().registerInt("ppm::unsatCoreLemmaSize")),
+      d_numUcl(statisticsRegistry().registerInt("ppm::unsatCoreLemmaCalls"))
 {
-  // add trivial assumption. This is so that we can check the that the prop
-  // engine's proof is closed, as the SAT solver's refutation proof may use True
-  // as an assumption even when True is not given as an assumption. An example
-  // is when a propagated literal has an empty explanation (i.e., it is a valid
+  // Add trivial assumption. This is so that we can check that the prop engine's
+  // proof is closed, as the SAT solver's refutation proof may use True as an
+  // assumption even when True is not given as an assumption. An example is when
+  // a propagated literal has an empty explanation (i.e., it is a valid
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
@@ -143,15 +149,32 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
       usedLemmas.push_back(lemma);
     }
   }
+  if (d_trackLemmaClauseIds)
+  {
+    ++d_numUcl;
+    uint64_t timestamp;
+    for (const Node& lemma : usedLemmas)
+    {
+      d_uclIds << getInferenceIdFor(lemma, timestamp);
+      ++d_uclSize;
+    }
+  }
   return usedLemmas;
 }
 
-theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem) const
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem,
+                                                     uint64_t& timestamp) const
 {
   context::CDHashMap<Node, theory::InferenceId>::const_iterator it =
       d_lemmaClauseIds.find(lem);
   if (it != d_lemmaClauseIds.end())
   {
+    context::CDHashMap<Node, uint64_t>::const_iterator itt =
+        d_lemmaClauseTimestamp.find(lem);
+    if (itt != d_lemmaClauseTimestamp.end())
+    {
+      timestamp = itt->second;
+    }
     return it->second;
   }
   return theory::InferenceId::NONE;
@@ -465,6 +488,9 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     if (d_trackLemmaClauseIds)
     {
       d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
+      uint64_t currTimestamp = d_env.getResourceManager()->getResource(
+          Resource::TheoryFullCheckStep);
+      d_lemmaClauseTimestamp[normClauseNode] = currTimestamp;
     }
   }
   if (d_satPm)

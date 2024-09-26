@@ -1,5 +1,7 @@
 ; COMMAND-LINE: --incremental
 ; EXPECT: unsat
+;; define-const is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic QF_ABV)
 (set-info :status unsat)
 

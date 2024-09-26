@@ -174,21 +174,10 @@ void QuantifiersEngine::ppNotifyAssertions(
       QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (options().quantifiers.sygus)
+  // notify all modules
+  for (QuantifiersModule*& mdl : d_modules)
   {
-    SynthEngine* sye = d_qmodules->d_synth_e.get();
-    for (const Node& a : assertions)
-    {
-      sye->ppNotifyAssertion(a);
-    }
-  }
-  /* The SyGuS instantiation module needs a global view of all available
-   * assertions to collect global terms that get added to each grammar.
-   */
-  if (options().quantifiers.sygusInst)
-  {
-    SygusInst* si = d_qmodules->d_sygus_inst.get();
-    si->ppNotifyAssertions(assertions);
+    mdl->ppNotifyAssertions(assertions);
   }
 }
 
