@@ -117,8 +117,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
         new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
-  d_satSolver->initialize(
-      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), d_ppm.get());
+  d_satSolver->initialize(d_theoryProxy, d_ppm.get());
 }
 
 void PropEngine::finishInit()

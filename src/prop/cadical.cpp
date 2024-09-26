@@ -992,7 +992,7 @@ CadicalSolver::CadicalSolver(Env& env,
                              bool logProofs)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
-      d_context(nullptr),
+      d_context(context()),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
@@ -1218,14 +1218,11 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
-void CadicalSolver::initialize(context::Context* context,
-                               prop::TheoryProxy* theoryProxy,
-                               context::UserContext* userContext,
+void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
                                PropPfManager* ppm)
 {
-  d_context = context;
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
+  d_propagator.reset(new CadicalPropagator(theoryProxy, d_context, *d_solver));
   d_solver->connect_external_propagator(d_propagator.get());
   if (!d_env.getPlugins().empty())
   {
