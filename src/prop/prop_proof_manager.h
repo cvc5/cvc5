@@ -62,9 +62,10 @@ class PropPfManager : protected EnvObj
                 CnfStream& cnfProof,
                 const context::CDList<Node>& assumptions);
   /**
-   * Called once at the beginning of each checkSat.
+   * Notifies this module of the input assertions.
+   * @param assertion The preprocessed input assertions
    */
-  void presolve();
+  void notifyInputFormulas(const std::vector<Node>& assertions);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node

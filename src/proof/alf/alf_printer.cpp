@@ -544,8 +544,7 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 
 void AlfPrinter::print(std::ostream& out,
                        std::shared_ptr<ProofNode> pfn,
-                       ProofScopeMode psm,
-                       bool incremental)
+                       ProofScopeMode psm)
 {
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
@@ -687,6 +686,11 @@ void AlfPrinter::print(std::ostream& out,
     // [7] print proof body
     printProofInternal(aout, pnBody);
   }
+}
+
+void AlfPrinter::printIncremental(std::ostream& out,
+                       std::shared_ptr<ProofNode> pfn)
+{
 }
 
 void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)

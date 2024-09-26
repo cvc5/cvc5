@@ -121,9 +121,10 @@ Result SmtSolver::checkSatInternal()
     smt::PfManager* pm = d_env.getProofManager();
     if (pm != nullptr)
     {
-      // pm->startProofLogging(d_asserts);
+      // FIXME: proper output
+      pm->startProofLogging(std::cout, d_asserts);
       Result ret = d_propEngine->checkSat();
-      // pm->endProofLogging();
+      pm->endProofLogging();
       return ret;
     }
   }

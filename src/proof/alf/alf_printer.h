@@ -47,11 +47,13 @@ class AlfPrinter : protected EnvObj
    * Print the full proof of assertions => false by pfn.
    * @param out The output stream.
    * @param pfn The proof node.
+   * @param psm The scope mode
    */
   void print(std::ostream& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-             bool incremental = false);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+  void printIncremental(std::ostream& out,
+             std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out

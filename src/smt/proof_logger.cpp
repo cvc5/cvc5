@@ -41,22 +41,22 @@ ProofLogger::~ProofLogger() {}
 
 void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn)
 {
-  d_alfp.print(d_out, pfn, ProofScopeMode::NONE, true);
+  d_alfp.printIncremental(d_out, pfn);
 }
 
-void ProofLogger::logClauseFromPreprocessedInput(
+void ProofLogger::logClauseForCnfPreprocessInput(
     std::shared_ptr<ProofNode>& pfn)
 {
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
-  d_alfp.print(d_out, ppn, m, true);
+  d_alfp.print(d_out, ppn, m);
 }
 
 void ProofLogger::logTheoryLemma(const Node& n)
 {
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
-  d_alfp.print(d_out, ptl, ProofScopeMode::NONE, true);
+  d_alfp.printIncremental(d_out, ptl);
 }
 
 }  // namespace cvc5::internal

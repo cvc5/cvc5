@@ -173,6 +173,11 @@ void PropEngine::assertInputFormulas(
   int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
   Assert(natomsPost >= natomsPre);
   d_stats.d_numInputAtoms += (natomsPost - natomsPre);
+  // notify input formulas, after push above
+  if (d_ppm!=nullptr)
+  {
+    d_ppm->notifyInputFormulas(assertions);
+  }
 }
 
 void PropEngine::assertLemma(theory::InferenceId id,
@@ -443,11 +448,6 @@ Result PropEngine::checkSat() {
 
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
-  // presolve for the proof manager
-  if (d_ppm != nullptr)
-  {
-    d_ppm->presolve();
-  }
 
   // Reset the interrupted flag
   d_interrupted = false;

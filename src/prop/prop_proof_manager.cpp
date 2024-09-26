@@ -87,12 +87,6 @@ PropPfManager::PropPfManager(Env& env,
   d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
-void PropPfManager::presolve()
-{
-  // get the proof logger now
-  d_plog = d_env.getProofLogger();
-}
-
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
 
 void PropPfManager::convertAndAssert(theory::InferenceId id,
@@ -508,12 +502,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   // if proof logging, make the call now
   if (d_plog != nullptr)
   {
-    if (input)
-    {
-      std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(normClauseNode);
-      d_plog->logClauseFromPreprocessedInput(pfn);
-    }
-    else
+    if (!input)
     {
       d_plog->logTheoryLemma(normClauseNode);
     }
@@ -521,6 +510,19 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   return normClauseNode;
 }
 
+void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
+{
+  // get the proof logger now
+  d_plog = d_env.getProofLogger();
+  if (d_plog!=nullptr)
+  {
+    Node conj = nodeManager()->mkAnd(assertions);
+    d_proof.addStep(conj, ProofRule::AND_INTRO, assertions, {});
+    std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(conj);
+    d_plog->logClauseForCnfPreprocessInput(pfn);
+  }
+}
+      
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
 
 void PropPfManager::getProofInternal(CDProof* cdp)

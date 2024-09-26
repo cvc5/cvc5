@@ -43,8 +43,13 @@ class ProofLogger : protected EnvObj
   ~ProofLogger();
   /** */
   void logClause(std::shared_ptr<ProofNode>& pfn);
-  /** */
-  void logClauseFromPreprocessedInput(std::shared_ptr<ProofNode>& pfn);
+  /**
+   * pfn is a proof of a conjunction (and F1 ... Fn) where F1 ... Fn is the
+   * CNF of the input formulas.
+   * The free assumptions of pfn are the preprocessed input formulas.
+   * This method connects pfn to the original input formulas and prints it.
+   */
+  void logClauseForCnfPreprocessInput(std::shared_ptr<ProofNode>& pfn);
   /** */
   void logTheoryLemma(const Node& n);
 
