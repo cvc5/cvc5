@@ -147,10 +147,10 @@ public class QuickStart
       // it is easier to let the solver do the evaluation.
       //! [docs-java-quickstart-12 start]
       Pair<BigInteger, BigInteger> xMinusYComputed =
-          new Pair(xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
+          new Pair<>(xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
               xPair.second.multiply(yPair.second));
       BigInteger g = xMinusYComputed.first.gcd(xMinusYComputed.second);
-      xMinusYComputed = new Pair(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
+      xMinusYComputed = new Pair<>(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
       if (xMinusYComputed.equals(xMinusYPair))
       {
         System.out.println("computed correctly");
