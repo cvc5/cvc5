@@ -20,7 +20,7 @@
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
-#include "proof/proof_logger.h"
+#include "smt/proof_logger.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
@@ -505,7 +505,7 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     if (input)
     {
       std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(normClauseNode);
-      d_plog->logInputClause(pfn);
+      d_plog->logClauseFromPreprocessedInput(pfn);
     }
     else
     {

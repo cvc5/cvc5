@@ -13,19 +13,26 @@
  * Proof logger utility.
  */
 
-#include "proof/proof_logger.h"
+#include "smt/proof_logger.h"
+
+#include "smt/proof_manager.h"
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env, rewriter::RewriteDb* rdb)
-    : EnvObj(env), d_atp(nodeManager()), d_alfp(env, d_atp, rdb)
+ProofLogger::ProofLogger(Env& env, smt::PfManager* pm)
+    : EnvObj(env), d_pm(pm), d_atp(nodeManager()), d_alfp(env, d_atp, pm->getRewriteDatabase())
 {
 }
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logInputClause(std::shared_ptr<ProofNode>& pfn) {}
+void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn) {}
 
+void ProofLogger::logClauseFromPreprocessedInput(std::shared_ptr<ProofNode>& pfn)
+{
+  
+}
+  
 void ProofLogger::logTheoryLemma(const Node& n) {}
 
 }  // namespace cvc5::internal

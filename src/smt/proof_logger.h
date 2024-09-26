@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROOF__PROOF_LOGGER_H
-#define CVC5__PROOF__PROOF_LOGGER_H
+#ifndef CVC5__SMT__PROOF_LOGGER_H
+#define CVC5__SMT__PROOF_LOGGER_H
 
 #include "proof/alf/alf_node_converter.h"
 #include "proof/alf/alf_printer.h"
@@ -25,23 +25,27 @@
 
 namespace cvc5::internal {
 
-namespace rewriter {
-class RewriteDb;
+namespace smt{
+class PfManager;
 }
+
 /**
  */
 class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env, rewriter::RewriteDb* rdb);
+  ProofLogger(Env& env, smt::PfManager* pm);
   ~ProofLogger();
   /** */
-  void logInputClause(std::shared_ptr<ProofNode>& pfn);
+  void logClause(std::shared_ptr<ProofNode>& pfn);
+  /** */
+  void logClauseFromPreprocessedInput(std::shared_ptr<ProofNode>& pfn);
   /** */
   void logTheoryLemma(const Node& n);
 
  private:
+   smt::PfManager* d_pm;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
 };

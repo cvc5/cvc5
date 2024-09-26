@@ -82,7 +82,7 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::resetAssertions()
@@ -99,7 +99,7 @@ void SmtSolver::resetAssertions()
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
   // must reset the preprocessor as well
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::interrupt()
@@ -231,6 +231,18 @@ void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
+}
+
+void SmtSolver::finishInitPreprocessor()
+{
+  // determine if we are assigning a preprocess proof generator here
+  smt::PfManager* pm = d_env.getProofManager();
+  smt::PreprocessProofGenerator* pppg = nullptr;
+  if (pm!=nullptr)
+  {
+    pppg = pm->getPreprocessProofGenerator();
+  }
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get(), pppg);
 }
 
 }  // namespace smt

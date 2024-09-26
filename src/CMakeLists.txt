@@ -203,8 +203,6 @@ libcvc5_add_sources(
   proof/proof_generator.h
   proof/proof_letify.cpp
   proof/proof_letify.h
-  proof/proof_logger.cpp
-  proof/proof_logger.h
   proof/proof_node.cpp
   proof/proof_node.h
   proof/proof_node_algorithm.cpp
@@ -343,6 +341,8 @@ libcvc5_add_sources(
   smt/proof_manager.h
   smt/proof_final_callback.cpp
   smt/proof_final_callback.h
+  smt/proof_logger.cpp
+  smt/proof_logger.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/proof_post_processor_dsl.cpp
