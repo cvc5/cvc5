@@ -128,7 +128,7 @@ public class QuickStart
       // It is also possible to get values for compound terms,
       // even if those did not appear in the original formula.
       //! [docs-java-quickstart-10 start]
-      Term xMinusY = solver.mkTerm(Kind.SUB, x, y);
+      Term xMinusY = tm.mkTerm(Kind.SUB, x, y);
       Term xMinusYVal = solver.getValue(xMinusY);
       //! [docs-java-quickstart-10 end]
 
