@@ -57,7 +57,7 @@ public class QuickStart
       // Hence, we first obtain the corresponding sorts.
       //! [docs-java-quickstart-4 start]
       Sort realSort = tm.getRealSort();
-      Sort intSort = solver.getIntegerSort();
+      Sort intSort = tm.getIntegerSort();
       //! [docs-java-quickstart-4 end]
 
       // x and y will be real variables, while a and b will be integer variables.
