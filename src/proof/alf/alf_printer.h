@@ -57,7 +57,8 @@ class AlfPrinter : protected EnvObj
              ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
    */
-  void printIncremental(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
+  void printIncremental(AlfPrintChannelOut& out,
+                        std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -71,6 +72,7 @@ class AlfPrinter : protected EnvObj
    * class.
    */
   LetBinding* getLetBinding();
+
  private:
   void printInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn);
   /** Return true if it is possible to trust the topmost application in pfn */

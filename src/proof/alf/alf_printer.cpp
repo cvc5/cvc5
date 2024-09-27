@@ -536,7 +536,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
 }
 
 LetBinding* AlfPrinter::getLetBinding() { return d_lbindUse; }
-  
+
 void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 {
   std::vector<Node> letList;
@@ -567,11 +567,11 @@ void AlfPrinter::print(std::ostream& out,
 }
 
 void AlfPrinter::print(AlfPrintChannelOut& aout,
-            std::shared_ptr<ProofNode> pfn,
-            ProofScopeMode psm)
+                       std::shared_ptr<ProofNode> pfn,
+                       ProofScopeMode psm)
 {
   std::ostream& out = aout.getOStream();
-  Assert (d_pletMap.empty());
+  Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
 
   const ProofNode* ascope = nullptr;
@@ -709,7 +709,7 @@ void AlfPrinter::printIncremental(AlfPrintChannelOut& aout,
   // print the new let bindings
   std::ostream& out = aout.getOStream();
   printLetList(out, d_lbind);
-  // 
+  //
   printProofInternal(&aout, pnBody);
 }
 
