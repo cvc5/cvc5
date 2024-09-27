@@ -15,9 +15,9 @@
 
 #include "smt/proof_logger.h"
 
+#include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/proof_manager.h"
-#include "proof/proof.h"
 
 namespace cvc5::internal {
 
@@ -96,7 +96,8 @@ void ProofLogger::logSatRefutation()
   std::vector<std::shared_ptr<ProofNode>> premises;
   Assert(d_ppProof->getRule() == ProofRule::SCOPE);
   Assert(d_ppProof->getChildren()[0]->getRule() == ProofRule::SCOPE);
-  std::shared_ptr<ProofNode> ppBody = d_ppProof->getChildren()[0]->getChildren()[0];
+  std::shared_ptr<ProofNode> ppBody =
+      d_ppProof->getChildren()[0]->getChildren()[0];
   premises.emplace_back(ppBody);
   premises.insert(premises.end(), d_lemmaPfs.begin(), d_lemmaPfs.end());
   Node f = nodeManager()->mkConst(false);

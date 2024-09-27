@@ -698,12 +698,12 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
     // [7] print proof body
-    printProofInternal(ao, pnBody, i==1);
+    printProofInternal(ao, pnBody, i == 1);
   }
 }
 
 void AlfPrinter::printNext(AlfPrintChannelOut& aout,
-                                  std::shared_ptr<ProofNode> pfn)
+                           std::shared_ptr<ProofNode> pfn)
 {
   const ProofNode* pnBody = pfn.get();
   // print with letification
@@ -713,11 +713,13 @@ void AlfPrinter::printNext(AlfPrintChannelOut& aout,
   // Print new terms from the let binding. note that this should print only
   // the terms we have yet to see so far.
   printLetList(out, d_lbind);
-  // print the proof 
+  // print the proof
   printProofInternal(&aout, pnBody, true);
 }
 
-void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn, bool addToCache)
+void AlfPrinter::printProofInternal(AlfPrintChannel* out,
+                                    const ProofNode* pn,
+                                    bool addToCache)
 {
   // the stack
   std::vector<const ProofNode*> visit;
@@ -732,7 +734,7 @@ void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn, b
   do
   {
     cur = visit.back();
-    if (d_alreadyPrinted.find(cur)!=d_alreadyPrinted.end())
+    if (d_alreadyPrinted.find(cur) != d_alreadyPrinted.end())
     {
       visit.pop_back();
       continue;

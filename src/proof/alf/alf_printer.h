@@ -73,8 +73,7 @@ class AlfPrinter : protected EnvObj
    * @param out The output stream.
    * @param pfn The proof node.
    */
-  void printNext(AlfPrintChannelOut& out,
-                        std::shared_ptr<ProofNode> pfn);
+  void printNext(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -127,7 +126,9 @@ class AlfPrinter : protected EnvObj
    * Helper for print. Prints the proof node using the print channel out. This
    * may either write the proof to an output stream or preprocess it.
    */
-  void printProofInternal(AlfPrintChannel* out, const ProofNode* pn, bool addToCache);
+  void printProofInternal(AlfPrintChannel* out,
+                          const ProofNode* pn,
+                          bool addToCache);
   /**
    * Called at preorder traversal of proof node pn. Prints (if necessary) to
    * out.
