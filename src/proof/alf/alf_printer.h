@@ -40,7 +40,8 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb);
+  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb,
+             uint32_t letThresh = 2);
   ~AlfPrinter() {}
 
   /**
@@ -56,6 +57,7 @@ class AlfPrinter : protected EnvObj
              std::shared_ptr<ProofNode> pfn,
              ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
+   * Print the proof
    */
   void printIncremental(AlfPrintChannelOut& out,
                         std::shared_ptr<ProofNode> pfn);

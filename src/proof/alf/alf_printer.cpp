@@ -38,7 +38,8 @@ namespace proof {
 
 AlfPrinter::AlfPrinter(Env& env,
                        BaseAlfNodeConverter& atp,
-                       rewriter::RewriteDb* rdb)
+                       rewriter::RewriteDb* rdb,
+             uint32_t letThresh)
     : EnvObj(env),
       d_tproc(atp),
       d_passumeMap(&d_passumeCtx),
@@ -50,7 +51,7 @@ AlfPrinter::AlfPrinter(Env& env,
       // binders will always have their variables in scope and hence can be
       // printed in define commands. We additionally traverse skolems with this
       // utility.
-      d_lbind(d_termLetPrefix, 1, true, true),
+      d_lbind(d_termLetPrefix, letThresh, true, true),
       d_lbindUse(options().proof.proofDagGlobal ? &d_lbind : nullptr),
       d_aletify(d_lbindUse)
 {

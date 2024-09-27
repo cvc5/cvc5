@@ -71,8 +71,7 @@ class ProofLogger : protected EnvObj
    * @param inputs The input clauses notified above.
    * @param lemmas The list of theory lemmas notified above.
    */
-  virtual void logSatRefutation(const std::vector<Node>& inputs,
-                                const std::vector<Node>& lemmas);
+  virtual void logSatRefutation();
 
   /**
    * Called when the SAT solver generates a proof of false. The free assumptions

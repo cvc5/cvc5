@@ -31,7 +31,9 @@ ProofLogger::ProofLogger(Env& env,
       d_as(as),
       d_ppp(ppp),
       d_atp(nodeManager()),
-      d_alfp(env, d_atp, pm->getRewriteDatabase()),
+      // we use thresh 1 since terms may come incrementally and would benefit
+      // from previous eager letification
+      d_alfp(env, d_atp, pm->getRewriteDatabase(), 1),
       d_aout(out, d_alfp.getLetBinding(), "@t", false)
 {
   Trace("pf-log-debug") << "Make proof logger" << std::endl;
@@ -62,7 +64,7 @@ void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
   Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
                   << std::endl;
   d_lemmaPfs.emplace_back(pfn);
-  d_alfp.print(d_aout, pfn, ProofScopeMode::NONE);
+  d_alfp.printIncremental(d_aout, pfn);
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
@@ -72,12 +74,11 @@ void ProofLogger::logTheoryLemma(const Node& n)
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
   d_lemmaPfs.emplace_back(ptl);
-  d_alfp.print(d_aout, ptl, ProofScopeMode::NONE);
+  d_alfp.printIncremental(d_aout, ptl);
   Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 
-void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
-                                   const std::vector<Node>& lemmas)
+void ProofLogger::logSatRefutation()
 {
   Trace("pf-log") << "; log SAT refutation start" << std::endl;
   // TODO: connect and print the single step?
@@ -88,7 +89,7 @@ void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
   // TODO: connect?
-  d_alfp.print(d_aout, pfn, ProofScopeMode::NONE);
+  d_alfp.printIncremental(d_aout, pfn);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
 }
 

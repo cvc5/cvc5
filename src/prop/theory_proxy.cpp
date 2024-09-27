@@ -292,7 +292,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (d_env.isSatProofProducing())
+  if (options().smt.produceProofs)
   {
     Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
     // notify the prop engine of the explanation, which is only relevant if

@@ -110,8 +110,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
-  bool satProofs = d_env.isSatProofProducing();
-  if (satProofs)
+  // if proof producing at all
+  if (options().smt.produceProofs)
   {
     d_ppm.reset(
         new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));

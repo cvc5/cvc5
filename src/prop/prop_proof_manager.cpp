@@ -504,7 +504,17 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     if (!input)
     {
-      d_plog->logTheoryLemma(normClauseNode);
+      if (d_env.isTheoryProofProducing())
+      {
+        // if theory proof producing, we get the proof to log
+        std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(normClauseNode);
+        d_plog->logTheoryLemmaProof(pfn);
+      }
+      else
+      {
+        // otherwise we just notify the clause
+        d_plog->logTheoryLemma(normClauseNode);
+      }
     }
   }
   return normClauseNode;
@@ -514,11 +524,11 @@ void PropPfManager::presolve()
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
+  Trace("pf-log-debug") << "PropPfManager::presolve, plog=" << (d_plog!=nullptr) << std::endl;
   if (d_plog != nullptr)
   {
     // TODO: in incremental mode, only get the new assertions
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
-    ;
     d_plog->logCnfPreprocessInputProofs(icp);
   }
 }
@@ -529,9 +539,15 @@ void PropPfManager::postsolve(SatValue result)
   {
     if (result == SAT_VALUE_FALSE)
     {
-      std::vector<Node> inputs = getInputClauses();
-      std::vector<Node> lemmas = getLemmaClauses();
-      d_plog->logSatRefutation(inputs, lemmas);
+      if (d_env.isSatProofProducing())
+      {
+        std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
+        d_plog->logSatRefutationProof(satPf);
+      }
+      else
+      {
+        d_plog->logSatRefutation();
+      }
     }
   }
 }
