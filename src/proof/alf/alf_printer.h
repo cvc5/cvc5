@@ -166,7 +166,6 @@ class AlfPrinter : protected EnvObj
    * associated with trusted steps.
    */
   std::unordered_set<ProofRule> d_warnedRules;
-
 };
 
 }  // namespace proof

@@ -517,7 +517,8 @@ void PropPfManager::presolve()
   if (d_plog != nullptr)
   {
     // TODO: in incremental mode, only get the new assertions
-    std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();;
+    std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
+    ;
     d_plog->logCnfPreprocessInputProofs(icp);
   }
 }

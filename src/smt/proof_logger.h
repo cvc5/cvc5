@@ -51,7 +51,8 @@ class ProofLogger : protected EnvObj
    * The free assumptions of pfn are the preprocessed input formulas.
    * This method connects pfn to the original input formulas and prints it.
    */
-  void logCnfPreprocessInputProofs(std::vector<std::shared_ptr<ProofNode>>& pfns);
+  void logCnfPreprocessInputProofs(
+      std::vector<std::shared_ptr<ProofNode>>& pfns);
   /** */
   void logTheoryLemma(const Node& n);
   /** */

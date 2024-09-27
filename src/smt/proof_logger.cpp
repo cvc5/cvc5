@@ -46,10 +46,12 @@ ProofLogger::~ProofLogger() {}
 
 void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
 
-void ProofLogger::logCnfPreprocessInputProofs(std::vector<std::shared_ptr<ProofNode>>& pfns)
+void ProofLogger::logCnfPreprocessInputProofs(
+    std::vector<std::shared_ptr<ProofNode>>& pfns)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
-  std::shared_ptr<ProofNode> pfn = d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
+  std::shared_ptr<ProofNode> pfn =
+      d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_alfp.print(d_out, ppn, m);

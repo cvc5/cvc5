@@ -591,8 +591,8 @@ void AlfPrinter::print(std::ostream& out,
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
 
   d_pletMap.clear();
-  
-  // allocate a print channel 
+
+  // allocate a print channel
   AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix);
 
   bool wasAlloc;
