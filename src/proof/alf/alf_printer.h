@@ -40,7 +40,9 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb,
+  AlfPrinter(Env& env,
+             BaseAlfNodeConverter& atp,
+             rewriter::RewriteDb* rdb,
              uint32_t letThresh = 2);
   ~AlfPrinter() {}
 

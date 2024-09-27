@@ -524,7 +524,8 @@ void PropPfManager::presolve()
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
-  Trace("pf-log-debug") << "PropPfManager::presolve, plog=" << (d_plog!=nullptr) << std::endl;
+  Trace("pf-log-debug") << "PropPfManager::presolve, plog="
+                        << (d_plog != nullptr) << std::endl;
   if (d_plog != nullptr)
   {
     // TODO: in incremental mode, only get the new assertions

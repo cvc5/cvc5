@@ -39,7 +39,7 @@ namespace proof {
 AlfPrinter::AlfPrinter(Env& env,
                        BaseAlfNodeConverter& atp,
                        rewriter::RewriteDb* rdb,
-             uint32_t letThresh)
+                       uint32_t letThresh)
     : EnvObj(env),
       d_tproc(atp),
       d_passumeMap(&d_passumeCtx),
