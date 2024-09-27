@@ -21,7 +21,7 @@ int main(void)
   TermManager tm;
   Solver solver(tm);
   solver.setOption("incremental", "false");
-  solver.setOption("sets-ext", "true");
+  solver.setOption("sets-exp", "true");
   solver.setOption("check-interpolants", "true");
   solver.setOption("produce-interpolants", "true");
   Sort s0 = tm.getRoundingModeSort();

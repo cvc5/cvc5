@@ -20,11 +20,14 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
 #include "options/booleans_options.h"
 #include "options/bv_options.h"
 #include "options/datatypes_options.h"
 #include "options/decision_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
@@ -35,6 +38,7 @@
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -116,6 +120,21 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // safe options
+  if (options().base.safeOptions)
+  {
+    // all "experimental" theories that are enabled by default should be
+    // disabled here
+    SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(bags, bagsExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(ff, ffExp, false, "safe options");
+    // these are disabled by default but are listed here in case they are
+    // enabled by default later
+    SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
