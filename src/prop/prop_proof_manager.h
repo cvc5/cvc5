@@ -61,13 +61,10 @@ class PropPfManager : protected EnvObj
                 CDCLTSatSolver* satSolver,
                 CnfStream& cnfProof,
                 const context::CDList<Node>& assumptions);
-  /**
-   * Notifies this module of the input assertions, after they have been
-   * asserted via convertAndAssert.
-   * @param assertion The preprocessed input assertions
-   */
-  void notifyInputFormulas(const std::vector<Node>& assertions);
-  /** Postsolve, which calls postsolve for the modules managed by this class */
+
+  /** Presolve, which initializes proof logging */
+  void presolve();
+  /** Postsolve, which finalizes proof logging */
   void postsolve(SatValue result);
   /**
    * Ensure that the given node will have a designated SAT literal that is

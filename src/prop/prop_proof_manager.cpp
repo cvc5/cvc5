@@ -510,12 +510,13 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   return normClauseNode;
 }
 
-void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
+void PropPfManager::presolve()
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
   if (d_plog != nullptr)
   {
+    // TODO: in incremental mode, only get the new assertions
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
     ProofNodeManager * pnm = d_env.getProofNodeManager();
     std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::AND_INTRO, icp, {});
