@@ -41,8 +41,8 @@ class ProofLogger : protected EnvObj
               std::ostream& out,
               smt::PfManager* pm,
               smt::Assertions& as,
-              
-  smt::ProofPostprocess* ppp);
+
+              smt::ProofPostprocess* ppp);
   ~ProofLogger();
   /**
    * pfn is a proof of a conjunction (and F1 ... Fn) where F1 ... Fn is the
@@ -60,6 +60,7 @@ class ProofLogger : protected EnvObj
                         const std::vector<Node>& lemmas);
   /** */
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
+
  private:
   std::ostream& d_out;
   smt::PfManager* d_pm;

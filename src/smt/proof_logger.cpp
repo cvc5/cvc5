@@ -24,8 +24,8 @@ ProofLogger::ProofLogger(Env& env,
                          std::ostream& out,
                          smt::PfManager* pm,
                          smt::Assertions& as,
-              
-  smt::ProofPostprocess* ppp)
+
+                         smt::ProofPostprocess* ppp)
     : EnvObj(env),
       d_out(out),
       d_pm(pm),
@@ -72,9 +72,6 @@ void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
   Trace("pf-log") << "; log SAT refutation" << std::endl;
 }
 
-void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
-{
-  
-}
+void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {}
 
 }  // namespace cvc5::internal
