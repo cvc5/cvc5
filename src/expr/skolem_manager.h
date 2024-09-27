@@ -180,7 +180,7 @@ class SkolemManager
   /**
    * Same as above, with multiple cache values.
    * @param id The identifier of the skolem function
-   * @param cacheVals A cache value.
+   * @param cacheVals A vector of cache values.
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemId id,
