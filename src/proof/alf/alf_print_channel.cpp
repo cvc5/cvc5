@@ -21,6 +21,7 @@
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "rewriter/rewrite_db.h"
+#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -156,6 +157,14 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
     if (rewriter::getRewriteRule(args[0], di))
     {
       d_out << " " << di;
+    }
+  }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId tid;
+    if (getTrustId(args[0], tid))
+    {
+      d_out << " " << tid;
     }
   }
   d_out << std::endl;

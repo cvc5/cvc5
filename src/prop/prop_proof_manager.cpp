@@ -542,11 +542,13 @@ void PropPfManager::postsolve(SatValue result)
     {
       if (d_env.isSatProofProducing())
       {
-        std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
+        // if SAT proof producing, log the proof
+        std::shared_ptr<ProofNode> satPf = getProof(true);
         d_plog->logSatRefutationProof(satPf);
       }
       else
       {
+        // otherwise just mark the refutation
         d_plog->logSatRefutation();
       }
     }
