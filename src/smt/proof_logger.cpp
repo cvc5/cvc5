@@ -32,7 +32,7 @@ ProofLogger::ProofLogger(Env& env,
       d_atp(nodeManager()),
       d_alfp(env, d_atp, pm->getRewriteDatabase())
 {
-  Trace("pf-log") << "Make proof logger" << std::endl;
+  Trace("pf-log-debug") << "Make proof logger" << std::endl;
   // global options on out
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
@@ -48,15 +48,16 @@ void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn)
 void ProofLogger::logClauseForCnfPreprocessInput(
     std::shared_ptr<ProofNode>& pfn)
 {
-  Trace("pf-log") << "Log cnf preprocess input proof" << std::endl;
+  Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_alfp.print(d_out, ppn, m);
+  Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
 void ProofLogger::logTheoryLemma(const Node& n)
 {
-  Trace("pf-log") << "Log theory lemma " << n << std::endl;
+  Trace("pf-log") << "; log theory lemma " << n << std::endl;
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
   d_alfp.printIncremental(d_out, ptl);

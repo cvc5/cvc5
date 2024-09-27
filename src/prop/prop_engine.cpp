@@ -243,7 +243,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   // if we are producing proofs for the SAT solver but not for theory engine,
   // then we need to prevent the lemma of being added as an assumption (since
   // the generator will be null). We use the default proof generator for lemmas.
-  if (isProofEnabled() && !d_env.isTheoryProofProducing()
+  if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
     Node actualNode = negated ? node.notNode() : node;

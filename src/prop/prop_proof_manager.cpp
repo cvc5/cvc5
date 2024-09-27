@@ -517,9 +517,9 @@ void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
   Trace("pf-log") << "Notify input formulas, plog=" << d_plog << std::endl;
   if (d_plog != nullptr)
   {
-    Node conj = nodeManager()->mkAnd(assertions);
-    d_proof.addStep(conj, ProofRule::AND_INTRO, assertions, {});
-    std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(conj);
+    std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
+    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::AND_INTRO, icp, {});
     d_plog->logClauseForCnfPreprocessInput(pfn);
   }
 }
