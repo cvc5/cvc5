@@ -117,7 +117,7 @@ class CVC5_EXPORT SymbolManager
    * Get a mapping from terms to names that have been given to them via the
    * :named attribute.
    *
-   * @return A map of the named terms to their name.
+   * @return A map of the named terms to their names.
    */
   std::map<Term, std::string> getNamedTerms() const;
 
