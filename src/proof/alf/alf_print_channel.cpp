@@ -20,8 +20,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
-#include "rewriter/rewrite_db.h"
 #include "proof/trust_id.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5::internal {
 namespace proof {
