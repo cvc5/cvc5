@@ -266,7 +266,8 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
    * @param newSkolems The vector to add new variables to
    * @return The conclusion of the inference.
    */
-  static Node getConclusion(Node x,
+  static Node getConclusion(NodeManager* nm,
+                            Node x,
                             Node y,
                             ProofRule rule,
                             bool isRev,
@@ -306,7 +307,8 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
    * @param newSkolems The vector to add new variables to
    * @return The conclusion of the inference.
    */
-  static Node getDecomposeConclusion(Node x,
+  static Node getDecomposeConclusion(NodeManager* nm,
+                                     Node x,
                                      Node l,
                                      bool isRev,
                                      SkolemCache* skc,

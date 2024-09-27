@@ -176,6 +176,13 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
     Assert(node.getKind() == Kind::EQUAL);
     fieldTy = node[0].getType();
   }
+  else if (!options().ff.ffExp)
+  {
+    std::stringstream ss;
+    ss << "Finite fields not available in this configuration, try "
+          "--ff-exp.";
+    throw LogicException(ss.str());
+  }
   if (d_subTheories.count(fieldTy) == 0)
   {
     d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
