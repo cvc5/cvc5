@@ -17,6 +17,7 @@
 
 #include "proof/proof_node_manager.h"
 #include "smt/proof_manager.h"
+#include "proof/proof.h"
 
 namespace cvc5::internal {
 
@@ -45,7 +46,18 @@ ProofLogger::ProofLogger(Env& env,
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
+void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs)
+{
+  Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
+  CDProof cdp(d_env);
+  Node conc = nodeManager()->mkAnd(inputs);
+  cdp.addTrustedStep(conc, TrustId::PREPROCESSED_INPUT, inputs, {});
+  std::shared_ptr<ProofNode> pfn = cdp.getProofFor(conc);
+  ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
+  d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
+  d_alfp.print(d_aout, d_ppProof, m);
+  Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
+}
 
 void ProofLogger::logCnfPreprocessInputProofs(
     std::vector<std::shared_ptr<ProofNode>>& pfns)
@@ -64,7 +76,7 @@ void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
   Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
                   << std::endl;
   d_lemmaPfs.emplace_back(pfn);
-  d_alfp.printIncremental(d_aout, pfn);
+  d_alfp.printNext(d_aout, pfn);
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
@@ -74,14 +86,23 @@ void ProofLogger::logTheoryLemma(const Node& n)
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
   d_lemmaPfs.emplace_back(ptl);
-  d_alfp.printIncremental(d_aout, ptl);
+  d_alfp.printNext(d_aout, ptl);
   Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 
 void ProofLogger::logSatRefutation()
 {
   Trace("pf-log") << "; log SAT refutation start" << std::endl;
-  // TODO: connect and print the single step?
+  std::vector<std::shared_ptr<ProofNode>> premises;
+  Assert(d_ppProof->getRule() == ProofRule::SCOPE);
+  Assert(d_ppProof->getChildren()[0]->getRule() == ProofRule::SCOPE);
+  std::shared_ptr<ProofNode> ppBody = d_ppProof->getChildren()[0]->getChildren()[0];
+  premises.emplace_back(ppBody);
+  premises.insert(premises.end(), d_lemmaPfs.begin(), d_lemmaPfs.end());
+  Node f = nodeManager()->mkConst(false);
+  std::shared_ptr<ProofNode> psr =
+      d_pnm->mkTrustedNode(TrustId::SAT_REFUTATION, premises, {}, f);
+  d_alfp.printNext(d_aout, psr);
   Trace("pf-log") << "; log SAT refutation end" << std::endl;
 }
 
@@ -89,7 +110,7 @@ void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
   // TODO: connect?
-  d_alfp.printIncremental(d_aout, pfn);
+  d_alfp.printNext(d_aout, pfn);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
 }
 
