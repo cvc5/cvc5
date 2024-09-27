@@ -23,12 +23,15 @@ namespace cvc5::internal {
 ProofLogger::ProofLogger(Env& env,
                          std::ostream& out,
                          smt::PfManager* pm,
-                         smt::Assertions& as)
+                         smt::Assertions& as,
+              
+  smt::ProofPostprocess* ppp)
     : EnvObj(env),
       d_out(out),
       d_pm(pm),
       d_pnm(pm->getProofNodeManager()),
       d_as(as),
+      d_ppp(ppp),
       d_atp(nodeManager()),
       d_alfp(env, d_atp, pm->getRewriteDatabase())
 {
@@ -40,11 +43,6 @@ ProofLogger::ProofLogger(Env& env,
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logClause(std::shared_ptr<ProofNode>& pfn)
-{
-  d_alfp.printIncremental(d_out, pfn);
-}
-
 void ProofLogger::logClauseForCnfPreprocessInput(
     std::shared_ptr<ProofNode>& pfn)
 {
@@ -53,6 +51,11 @@ void ProofLogger::logClauseForCnfPreprocessInput(
   std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_alfp.print(d_out, ppn, m);
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
+}
+
+void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
+{
+  d_alfp.printIncremental(d_out, pfn);
 }
 
 void ProofLogger::logTheoryLemma(const Node& n)
@@ -67,6 +70,11 @@ void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
                                    const std::vector<Node>& lemmas)
 {
   Trace("pf-log") << "; log SAT refutation" << std::endl;
+}
+
+void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
+{
+  
 }
 
 }  // namespace cvc5::internal

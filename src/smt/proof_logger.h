@@ -28,6 +28,7 @@ namespace cvc5::internal {
 namespace smt {
 class Assertions;
 class PfManager;
+class ProofPostprocess;
 }  // namespace smt
 
 /**
@@ -39,10 +40,10 @@ class ProofLogger : protected EnvObj
   ProofLogger(Env& env,
               std::ostream& out,
               smt::PfManager* pm,
-              smt::Assertions& as);
+              smt::Assertions& as,
+              
+  smt::ProofPostprocess* ppp);
   ~ProofLogger();
-  /** */
-  void logClause(std::shared_ptr<ProofNode>& pfn);
   /**
    * pfn is a proof of a conjunction (and F1 ... Fn) where F1 ... Fn is the
    * CNF of the input formulas.
@@ -53,14 +54,18 @@ class ProofLogger : protected EnvObj
   /** */
   void logTheoryLemma(const Node& n);
   /** */
+  void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn);
+  /** */
   void logSatRefutation(const std::vector<Node>& inputs,
                         const std::vector<Node>& lemmas);
-
+  /** */
+  void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
  private:
   std::ostream& d_out;
   smt::PfManager* d_pm;
   ProofNodeManager* d_pnm;
   smt::Assertions& d_as;
+  smt::ProofPostprocess* d_ppp;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
 };

@@ -164,7 +164,7 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 
 void PfManager::startProofLogging(std::ostream& out, Assertions& as)
 {
-  d_plog.reset(new ProofLogger(d_env, out, this, as));
+  d_plog.reset(new ProofLogger(d_env, out, this, as, d_pfpp.get()));
 }
 
 void PfManager::endProofLogging() { d_plog = nullptr; }
