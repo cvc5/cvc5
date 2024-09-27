@@ -64,10 +64,9 @@ void ProofLogger::logTheoryLemma(const Node& n)
 }
 
 void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
-                      const std::vector<Node>& lemmas)
+                                   const std::vector<Node>& lemmas)
 {
   Trace("pf-log") << "; log SAT refutation" << std::endl;
-  
 }
 
 }  // namespace cvc5::internal
