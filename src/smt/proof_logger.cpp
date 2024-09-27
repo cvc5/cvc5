@@ -43,7 +43,12 @@ ProofLogger::ProofLogger(Env& env,
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logClauseForCnfPreprocessInput(
+void ProofLogger::logCnfPreprocessInput(const std::vector<Node>& inputs)
+{
+  
+}
+  
+void ProofLogger::logCnfPreprocessInputProof(
     std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;

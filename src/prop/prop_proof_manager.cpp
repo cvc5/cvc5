@@ -520,7 +520,7 @@ void PropPfManager::presolve()
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
     ProofNodeManager* pnm = d_env.getProofNodeManager();
     std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::AND_INTRO, icp, {});
-    d_plog->logClauseForCnfPreprocessInput(pfn);
+    d_plog->logCnfPreprocessInputProof(pfn);
   }
 }
 
