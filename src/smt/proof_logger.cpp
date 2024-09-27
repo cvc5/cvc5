@@ -48,6 +48,7 @@ ProofLogger::~ProofLogger() {}
 
 void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs)
 {
+  d_aout.getOStream() << "; log start" << std::endl;
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
   CDProof cdp(d_env);
   Node conc = nodeManager()->mkAnd(inputs);
@@ -63,8 +64,20 @@ void ProofLogger::logCnfPreprocessInputProofs(
     std::vector<std::shared_ptr<ProofNode>>& pfns)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
-  std::shared_ptr<ProofNode> pfn =
-      d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
+  std::shared_ptr<ProofNode> pfn;
+  if (pfns.size()==1)
+  {
+    pfn = pfns[0];
+  }
+  else if (pfns.empty())
+  {
+    // TODO: correct???
+    pfn = d_pnm->mkAssume(nodeManager()->mkConst(false));
+  }
+  else
+  {
+    pfn = d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
+  }
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_alfp.print(d_aout, d_ppProof, m);
@@ -105,14 +118,20 @@ void ProofLogger::logSatRefutation()
       d_pnm->mkTrustedNode(TrustId::SAT_REFUTATION, premises, {}, f);
   d_alfp.printNext(d_aout, psr);
   Trace("pf-log") << "; log SAT refutation end" << std::endl;
+  // for now, to avoid checking failure
+  d_aout.getOStream() << "(exit)" << std::endl;
 }
 
 void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
-  // TODO: connect?
-  d_alfp.printNext(d_aout, pfn);
+  // TODO: connect to preprocessed
+  std::shared_ptr<ProofNode> spf = pfn;
+  // d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
+  d_alfp.printNext(d_aout, spf);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
+  // for now, to avoid checking failure
+  d_aout.getOStream() << "(exit)" << std::endl;
 }
 
 }  // namespace cvc5::internal

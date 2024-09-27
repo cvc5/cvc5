@@ -603,7 +603,8 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
-
+  Trace("ajr-temp") << "; definitions: " << definitions << std::endl;
+  Trace("ajr-temp") << "; assertions: " << assertions << std::endl;
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
@@ -656,8 +657,10 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         // [2] print the types
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
         smt::PrintBenchmark pb(&alfp, &d_tproc);
+        std::stringstream outTypes;
         std::stringstream outFuns;
-        pb.printDeclarationsFrom(out, outFuns, definitions, assertions);
+        pb.printDeclarationsFrom(outTypes, outFuns, definitions, assertions);
+        out << outTypes.str();
         // [3] print the universal variables
         out << outVars.str();
         // [4] print the declared functions
