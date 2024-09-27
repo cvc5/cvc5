@@ -238,14 +238,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // levels
     if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
     {
-      if (!opts.proof.proofAletheExperimental)
-      {
-        std::stringstream ss;
-        ss << "proof-format=alethe is experimental in this version. If "
-              "you know what you are doing, you can try --"
-           << options::proof::longName::proofAletheExperimental;
-        throw OptionException(ss.str());
-      }
       if (opts.proof.proofGranularityMode
           < options::ProofGranularityMode::THEORY_REWRITE)
       {
