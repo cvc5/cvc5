@@ -60,7 +60,8 @@ void ProofLogger::logCnfPreprocessInputProofs(
 
 void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
 {
-  Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult() << std::endl;
+  Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
+                  << std::endl;
   d_lemmaPfs.emplace_back(pfn);
   d_alfp.print(d_out, pfn, ProofScopeMode::NONE);
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
@@ -84,12 +85,12 @@ void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
   Trace("pf-log") << "; log SAT refutation end" << std::endl;
 }
 
-void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {
+void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
+{
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
   // TODO: connect?
   d_alfp.print(d_out, pfn, ProofScopeMode::NONE);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
-  
 }
 
 }  // namespace cvc5::internal

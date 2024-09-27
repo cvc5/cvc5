@@ -32,8 +32,11 @@ AlfPrintChannel::~AlfPrintChannel() {}
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
                                        const std::string& tprefix,
-                     bool trackWarn)
-    : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix), d_trackWarn(trackWarn)
+                                       bool trackWarn)
+    : d_out(out),
+      d_lbind(lbind),
+      d_termLetPrefix(tprefix),
+      d_trackWarn(trackWarn)
 {
 }
 

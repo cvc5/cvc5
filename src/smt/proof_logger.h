@@ -61,20 +61,20 @@ class ProofLogger : protected EnvObj
    * (the CNF conversion of) a theory lemma.
    */
   virtual void logTheoryLemma(const Node& n);
-  /** 
+  /**
    * @param n Called when the clause n is added to the SAT solver, where pfn
    * is a closed proof of (the CNF conversion of) a theory lemma.
    */
   void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn);
-  /** 
+  /**
    * Called when the SAT solver derives false.
    * @param inputs The input clauses notified above.
    * @param lemmas The list of theory lemmas notified above.
    */
   virtual void logSatRefutation(const std::vector<Node>& inputs,
-                        const std::vector<Node>& lemmas);
+                                const std::vector<Node>& lemmas);
 
-  /** 
+  /**
    * Called when the SAT solver generates a proof of false. The free assumptions
    * of this proof is the union of the CNF conversion of input and theory lemmas
    * as notified above.
