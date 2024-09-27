@@ -715,6 +715,39 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   return m;
 }
 
+std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
+{
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    std::stringstream ss;
+    ss << "Cannot get proof unless immediately preceded by UNSAT response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  std::shared_ptr<ProofNode> pePfn;
+  if (d_env->isSatProofProducing())
+  {
+    // get the proof from the prop engine
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe != nullptr);
+    pePfn = pe->getProof();
+    Assert(pePfn != nullptr);
+  }
+  else
+  {
+    const context::CDList<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
+    // if not SAT proof producing, we construct a trusted step here
+    std::vector<std::shared_ptr<ProofNode>> ps;
+    ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
+    for (const Node& a : assertions)
+    {
+      ps.push_back(pnm->mkAssume(a));
+    }
+    pePfn = pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+  }
+  return pePfn;
+}
+
 QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
     const char* c) const
 {
@@ -1487,15 +1520,17 @@ std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
 void SolverEngine::checkProof()
 {
   Assert(d_env->getOptions().smt.produceProofs);
-  // internal check the proof
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
+  if (d_env->isSatProofProducing())
   {
-    pe->checkProof(d_smtSolver->getAssertions().getAssertionList());
+    // internal check the proof
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe != nullptr);
+    if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
+    {
+      pe->checkProof(d_smtSolver->getAssertions().getAssertionList());
+    }
   }
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pePfn = pe->getProof();
+  std::shared_ptr<ProofNode> pePfn = getAvailableSatProof();
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
@@ -1667,9 +1702,20 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
 {
   Trace("smt") << "SMT getProof()\n";
   const Options& opts = d_env->getOptions();
-  if (!opts.smt.produceProofs || !d_env->isTheoryProofProducing())
+  if (!opts.smt.produceProofs)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
+  }
+  if (c == modes::ProofComponent::SAT
+      || c == modes::ProofComponent::THEORY_LEMMAS
+      || c == modes::ProofComponent::PREPROCESS)
+  {
+    if (!d_env->isSatProofProducing())
+    {
+      throw ModalException(
+          "Cannot get a proof for this component when SAT solver is not proof "
+          "producing.");
+    }
   }
   // The component modes::ProofComponent::PREPROCESS returns
   // the proof of all preprocessed assertions. It does not require being in an
@@ -1714,7 +1760,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
   }
   else if (c == modes::ProofComponent::FULL)
   {
-    ps.push_back(pe->getProof(true));
+    ps.push_back(getAvailableSatProof());
     connectToPreprocess = true;
     connectMkOuterScope = true;
   }

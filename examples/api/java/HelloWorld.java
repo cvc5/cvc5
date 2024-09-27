@@ -19,9 +19,10 @@ public class HelloWorld
 {
   public static void main(String[] args)
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
     {
-      Term helloworld = slv.mkConst(slv.getBooleanSort(), "Hello World!");
+      Term helloworld = tm.mkConst(tm.getBooleanSort(), "Hello World!");
 
       System.out.println(helloworld + " is " + slv.checkSatAssuming(helloworld));
     }

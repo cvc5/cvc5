@@ -434,6 +434,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
+      spendResource(Resource::TheoryFullCheckStep);
       d_factsAsserted = true;
       d_tc->resetRound();
     }

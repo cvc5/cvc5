@@ -133,21 +133,9 @@ bool Instantiate::addInstantiationInternal(
   // ensure the terms are non-null and well-typed
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
-    TypeNode tn = q[0][i].getType();
     if (terms[i].isNull())
     {
-      terms[i] = d_treg.getTermForType(tn);
-    }
-    // Ensure the type is correct, this for instance ensures that real terms
-    // are cast to integers for { x -> t } where x has type Int and t has
-    // type Real.
-    terms[i] = ensureType(terms[i], tn);
-    if (terms[i].isNull())
-    {
-      Trace("inst-add-debug")
-          << " --> Failed to make term vector, due to term/type restrictions."
-          << std::endl;
-      return false;
+      terms[i] = d_treg.getTermForType(q[0][i].getType());
     }
   }
 #ifdef CVC5_ASSERTIONS
@@ -155,6 +143,7 @@ bool Instantiate::addInstantiationInternal(
   {
     TypeNode tn = q[0][i].getType();
     Assert(!terms[i].isNull());
+    Assert (terms[i].getType()==tn);
     bool bad_inst = false;
     if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
@@ -750,25 +739,6 @@ void Instantiate::debugPrintModel()
                               << (*it).first << std::endl;
     }
   }
-}
-
-Node Instantiate::ensureType(Node n, TypeNode tn)
-{
-  Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
-  TypeNode ntn = n.getType();
-  if (ntn == tn)
-  {
-    return n;
-  }
-  if (tn.isInteger())
-  {
-    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
-  }
-  else if (tn.isReal())
-  {
-    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
-  }
-  return Node::null();
 }
 
 InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)

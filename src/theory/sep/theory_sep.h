@@ -327,7 +327,7 @@ class TheorySep : public Theory {
     std::vector< Node > d_heap_locs;
     std::vector< Node > d_heap_locs_model;
     //get value
-    Node getValue( TypeNode tn );
+    Node getValue(NodeManager* nm, TypeNode tn);
   };
   //heap info ( label -> HeapInfo )
   std::map< Node, HeapInfo > d_label_model;

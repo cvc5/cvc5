@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sets-ext
+; COMMAND-LINE: --sets-exp
 ; SCRUBBER: grep -o "which doesn't include THEORY_QUANTIFIERS"
 ; EXPECT: which doesn't include THEORY_QUANTIFIERS
 ; EXIT: 1

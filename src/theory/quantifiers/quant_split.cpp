@@ -49,6 +49,11 @@ void QuantDSplit::checkOwnership(Node q)
   {
     return;
   }
+  // do not split if there is a trigger
+  if (qa.d_hasPattern)
+  {
+    return;
+  }
   bool takeOwnership = false;
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();

@@ -1,7 +1,7 @@
 (set-logic QF_ALL)
 (set-info :status unsat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-fun A () (Set (_ BitVec 2)))
 (declare-fun B () (Set (_ BitVec 2)))
 (declare-fun C () (Set (_ BitVec 2)))

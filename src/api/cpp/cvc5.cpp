@@ -5830,6 +5830,11 @@ Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
   //////// all checks before this line
   // iterate over indices and convert the Terms to Nodes
   std::vector<internal::Node> nodeIndices = Term::termVectorToNodes(indices);
+  // automatically sort if a commutative skolem
+  if (internal::SkolemManager::isCommutativeSkolemId(id))
+  {
+    std::sort(nodeIndices.begin(), nodeIndices.end());
+  }
   internal::Node res =
       d_nm->getSkolemManager()->mkSkolemFunction(id, nodeIndices);
   return Term(this, res);

@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # quantified formulas
     solver.setOption("finite-model-find", "true")
     # we need sets extension to support set.universe operator
-    solver.setOption("sets-ext", "true")
+    solver.setOption("sets-exp", "true")
 
     integer = tm.getIntegerSort()
     set_ = tm.mkSetSort(integer)
