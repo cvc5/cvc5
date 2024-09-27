@@ -8,6 +8,8 @@ echo "[install-rare-rewrites] Generate cvc5 API include files..."
 make gen-rewrites
 cp include/cvc5/cvc5_proof_rule.h $DIR/include/cvc5/cvc5_proof_rule.h
 
+echo "[install-rare-rewrites] Generate CPC Eunoia signature..."
+
 REWRITE_SIG=$DIR/proofs/eo/cpc/rules/Rewrites.eo
 
 cat << EOF > $REWRITE_SIG
@@ -22,7 +24,6 @@ cat << EOF > $REWRITE_SIG
 
 EOF
 
-echo "[install-rare-rewrites] Generate CPC Eunoia signature..." 
 echo "(check-sat)" | $cvc5 -o rare-db --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite | sed '$ d' >> $REWRITE_SIG
 
 # use eo::define instead of let
