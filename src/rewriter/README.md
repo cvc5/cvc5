@@ -242,3 +242,7 @@ repository at `./contrib/install-rare-rewrites`.
 
 In particular, this script updates the `ProofRewriteRule` identifiers in
 cvc5's API, as well as the CPC proof signature.
+
+Furthermore, if RARE rules are added for a new theory, the script
+`./contrib/install-rare-rewrites` must be updated to include references to
+the CPC formalization of the new theory.
