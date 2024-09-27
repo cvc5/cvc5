@@ -1000,7 +1000,7 @@ Node RegExpOpr::reduceRegExpNeg(NodeManager* nm, Node mem)
 
     conc = nm->mkNode(Kind::OR, {g11n, g12n, s1r1, s2r2});
     // must mark as an internal quantifier
-    conc = utils::mkForallInternal(b1v, conc);
+    conc = utils::mkForallInternal(nm, b1v, conc);
     conc = nm->mkNode(Kind::AND, sne, conc);
   }
   else
@@ -1073,7 +1073,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(NodeManager* nm,
   {
     conc = nm->mkNode(Kind::OR, {guard1n, guard2n, s1r1, s2r2});
     // must mark as an internal quantifier
-    conc = utils::mkForallInternal(b1v, conc);
+    conc = utils::mkForallInternal(nm, b1v, conc);
   }
   else
   {
