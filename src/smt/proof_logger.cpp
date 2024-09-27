@@ -53,30 +53,43 @@ void ProofLogger::logCnfPreprocessInputProofs(
   std::shared_ptr<ProofNode> pfn =
       d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
-  std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
-  d_alfp.print(d_out, ppn, m);
+  d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
+  d_alfp.print(d_out, d_ppProof, m);
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
 void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
 {
-  d_alfp.printIncremental(d_out, pfn);
+  Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult() << std::endl;
+  d_lemmaPfs.emplace_back(pfn);
+  d_alfp.print(d_out, pfn, ProofScopeMode::NONE);
+  Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
 void ProofLogger::logTheoryLemma(const Node& n)
 {
-  Trace("pf-log") << "; log theory lemma " << n << std::endl;
+  Trace("pf-log") << "; log theory lemma start " << n << std::endl;
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
-  d_alfp.printIncremental(d_out, ptl);
+  d_lemmaPfs.emplace_back(ptl);
+  d_alfp.print(d_out, ptl, ProofScopeMode::NONE);
+  Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 
 void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
                                    const std::vector<Node>& lemmas)
 {
-  Trace("pf-log") << "; log SAT refutation" << std::endl;
+  Trace("pf-log") << "; log SAT refutation start" << std::endl;
+  // TODO: connect and print the single step?
+  Trace("pf-log") << "; log SAT refutation end" << std::endl;
 }
 
-void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {}
+void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {
+  Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
+  // TODO: connect?
+  d_alfp.print(d_out, pfn, ProofScopeMode::NONE);
+  Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
+  
+}
 
 }  // namespace cvc5::internal

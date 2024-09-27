@@ -31,8 +31,9 @@ AlfPrintChannel::~AlfPrintChannel() {}
 
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
-                                       const std::string& tprefix)
-    : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
+                                       const std::string& tprefix,
+                     bool trackWarn)
+    : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix), d_trackWarn(trackWarn)
 {
 }
 
@@ -129,10 +130,13 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
                                         TNode nc)
 {
   Assert(!nc.isNull());
-  if (d_warnedRules.find(r) == d_warnedRules.end())
+  if (d_trackWarn)
   {
-    d_out << "; WARNING: add trust step for " << r << std::endl;
-    d_warnedRules.insert(r);
+    if (d_warnedRules.find(r) == d_warnedRules.end())
+    {
+      d_out << "; WARNING: add trust step for " << r << std::endl;
+      d_warnedRules.insert(r);
+    }
   }
   d_out << "; trust " << r;
   if (r == ProofRule::DSL_REWRITE)
@@ -249,7 +253,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
       Kind ck = cur.getKind();
       if (ck == Kind::BOUND_VARIABLE)
       {
-        d_vars.insert(cur);
+        d_vars.emplace_back(cur);
         continue;
       }
       else if (ck == Kind::SKOLEM)
@@ -269,7 +273,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
   } while (!visit.empty());
 }
 
-const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const
+const std::vector<Node>& AlfPrintChannelPre::getVariables() const
 {
   return d_vars;
 }

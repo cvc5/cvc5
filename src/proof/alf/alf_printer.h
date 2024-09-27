@@ -161,11 +161,6 @@ class AlfPrinter : protected EnvObj
   LetBinding* d_lbindUse;
   /** The letification channel. */
   AlfPrintChannelPre d_aletify;
-  /**
-   * The set of ProofRule that we have output a warning about, i.e. the rules
-   * associated with trusted steps.
-   */
-  std::unordered_set<ProofRule> d_warnedRules;
 };
 
 }  // namespace proof

@@ -50,10 +50,9 @@ AlfPrinter::AlfPrinter(Env& env,
       // binders will always have their variables in scope and hence can be
       // printed in define commands. We additionally traverse skolems with this
       // utility.
-      d_lbind(d_termLetPrefix, 2, true, true),
+      d_lbind(d_termLetPrefix, 1, true, true),
       d_lbindUse(options().proof.proofDagGlobal ? &d_lbind : nullptr),
       d_aletify(d_lbindUse)
-
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
@@ -593,7 +592,7 @@ void AlfPrinter::print(std::ostream& out,
   d_pletMap.clear();
 
   // allocate a print channel
-  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix);
+  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
 
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
@@ -610,7 +609,7 @@ void AlfPrinter::print(std::ostream& out,
     if (i == 1)
     {
       std::stringstream outVars;
-      const std::unordered_set<Node>& vars = d_aletify.getVariables();
+      const std::vector<Node>& vars = d_aletify.getVariables();
       for (const Node& v : vars)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)

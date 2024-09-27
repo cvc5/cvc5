@@ -75,7 +75,8 @@ class AlfPrintChannelOut : public AlfPrintChannel
  public:
   AlfPrintChannelOut(std::ostream& out,
                      const LetBinding* lbind,
-                     const std::string& tprefix);
+                     const std::string& tprefix,
+                     bool trackWarn);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -124,6 +125,8 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * associated with trusted steps.
    */
   std::unordered_set<ProofRule> d_warnedRules;
+  /** Are we tracking warned rules? */
+  bool d_trackWarn;
 };
 
 /**
@@ -152,7 +155,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       TNode conc) override;
 
   /** Get variables we encountered in printing */
-  const std::unordered_set<Node>& getVariables() const;
+  const std::vector<Node>& getVariables() const;
 
  private:
   /** The let binding */
@@ -160,7 +163,7 @@ class AlfPrintChannelPre : public AlfPrintChannel
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
   /** The set of variables we have encountered */
-  std::unordered_set<Node> d_vars;
+  std::vector<Node> d_vars;
   /** The visited cache for computing variables */
   std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */

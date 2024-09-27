@@ -44,23 +44,42 @@ class ProofLogger : protected EnvObj
 
               smt::ProofPostprocess* ppp);
   ~ProofLogger();
-  void logCnfPreprocessInputs(const std::vector<Node>& inputs);
   /**
-   * pfn is a proof of a conjunction (and F1 ... Fn) where F1 ... Fn is the
-   * CNF of the input formulas.
-   * The free assumptions of pfn are the preprocessed input formulas.
-   * This method connects pfn to the original input formulas and prints it.
+   * @param input The list of input clauses after preprocessing and conversion
+   * to CNF.
+   */
+  virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs);
+  /**
+   * @param pfns proofs of the preprocessed inputs. The free assumptions of
+   * proofs in pfns are the preprocessed input formulas. If preprocess proofs
+   * are avialable, this method connects pfn to the original input formulas.
    */
   void logCnfPreprocessInputProofs(
       std::vector<std::shared_ptr<ProofNode>>& pfns);
-  /** */
-  void logTheoryLemma(const Node& n);
-  /** */
+  /**
+   * @param n Called when the clause n is added to the SAT solver, where n is
+   * (the CNF conversion of) a theory lemma.
+   */
+  virtual void logTheoryLemma(const Node& n);
+  /** 
+   * @param n Called when the clause n is added to the SAT solver, where pfn
+   * is a closed proof of (the CNF conversion of) a theory lemma.
+   */
   void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn);
-  /** */
-  void logSatRefutation(const std::vector<Node>& inputs,
+  /** 
+   * Called when the SAT solver derives false.
+   * @param inputs The input clauses notified above.
+   * @param lemmas The list of theory lemmas notified above.
+   */
+  virtual void logSatRefutation(const std::vector<Node>& inputs,
                         const std::vector<Node>& lemmas);
-  /** */
+
+  /** 
+   * Called when the SAT solver generates a proof of false. The free assumptions
+   * of this proof is the union of the CNF conversion of input and theory lemmas
+   * as notified above.
+   * @param pfn The refutation proof.
+   */
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
 
  private:
@@ -71,6 +90,10 @@ class ProofLogger : protected EnvObj
   smt::ProofPostprocess* d_ppp;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
+  /** */
+  std::shared_ptr<ProofNode> d_ppProof;
+  /** */
+  std::vector<std::shared_ptr<ProofNode>> d_lemmaPfs;
 };
 
 }  // namespace cvc5::internal
