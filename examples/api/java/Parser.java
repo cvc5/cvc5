@@ -19,7 +19,8 @@ public class Parser
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
 
     // set that we should print success after each successful command
     slv.setOption("print-success", "true");
