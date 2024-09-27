@@ -1524,8 +1524,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Alpha Equivalence
     //
-    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
-    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // Given the formula F is (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma is {y1 -> z1, ..., yn -> zn}, the step is represented
     // as
     //
     //  ------------------ refl
@@ -1533,18 +1533,66 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
     //  (= F F*sigma)
     //
-    // In case the sigma is the identity this step is merely converted to
+    // unless sigma is the identity, in which case this step is converted to
     //
     //  ------------------ refl
     //  (cl (= F F))
+    //
+    // When F is (forall ((y1 A1) ... (yk Ak)) G) and sigma is the substitution
+    // {y1 -> z1, ..., yk -> zk, ..., yn -> zn}, the generated step is
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> z1, ..., yk -> zk}))
+    // --------------------------------- bind, z1 ... zk (= y1 z1) ... (= yk zk)
+    //  (= F F*{y1 -> z1, ..., yk -> zk})
+    //
+    // i.e., we drop the suffix of the substitution beyond the variables of the
+    // outermost quantifier. This is valid in Alethe because the validity of
+    // "refl", under a rule that introduces a context, such as "bind", is itself
+    // tested modulo alpha-equivalence. An alternative would be to use the rest
+    // of the substitution to do new "bind" steps for the innermost quantifiers.
+    //
+    // Finally, if the substitution being used is such that it contains more
+    // than one variable with the same name but with different types (which
+    // makes them different for cvc5 but not in the substitution induced by
+    // Alethe's context), we break down the renaming into more than one
+    // step. For example if F is (forall ((y1 A1) (y2 A2)) G) and sigma is the
+    // substitution {y1 -> z1, y2 -> y1}, where the "y1" in the right hand side
+    // has another type "T" other than "A2", then the resulting steps are
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> z1})
+    // --------------------------------- bind, z1 (= y1 z1)
+    //  (= F F*{y1 -> z1})
+    //
+    //  --------------------------------------------------- refl
+    //  (cl (= G*{y1 -> z1} (G*{y1 -> z1}){y2 -> (y1 : T)})
+    // ------------------------------------------ bind, (y1 : T) (= y2 (y1 : T))
+    //  (= F*{y1 -> z1} (F*{y1 -> z1}){y2 -> (y1 : T)})
+    //
+    // (= F F*{y1 -> z1})   (= F*{y1 -> z1} (F*{y1 -> z1}){y2 -> (y1 : T)})
+    // ------------------------------------------------------------------- trans
+    //  (= F (F*{y1 -> z1}){y2 -> (y1 : T)})
     case ProofRule::ALPHA_EQUIV:
     {
       std::vector<Node> varEqs;
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
-      for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
+      std::vector<std::string> lhsNames;
+      std::vector<Node> varsWithRepeated;
+      std::vector<Node> binds;
+      size_t renamingEndingPos = res[0][0].getNumChildren();
+      for (size_t i = 0, size = renamingEndingPos; i < size; ++i)
       {
         Node v0 = res[0][0][i], v1 = res[1][0][i];
+        if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName()) != lhsNames.end())
+        {
+          Assert(i > 0);
+          renamingEndingPos = i - 1;
+          varsWithRepeated.insert(varsWithRepeated.end(), res[0][0].begin() + i, res[0][0].end());
+          allSame = false;
+          break;
+        }
         allSame = allSame && v0 == v1;
         varEqs.push_back(v0.eqNode(v1));
       }
@@ -1557,19 +1605,27 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
-      // Reflexivity over the quantified bodies
-      Node vp = nm->mkNode(
-          Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
-      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
-      // collect variables first
-      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
-      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
-      return addAletheStep(AletheRule::ANCHOR_BIND,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {vp},
-                           new_args,
-                           *cdp);
+      do
+      {
+        // Reflexivity over the quantified bodies
+        Node vp = nm->mkNode(
+            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
+        addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+        // collect variables first
+        new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
+        new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
+        addAletheStep(AletheRule::ANCHOR_BIND,
+                      res,
+                      nm->mkNode(Kind::SEXPR, d_cl, res),
+                      {vp},
+                      new_args,
+                      *cdp);
+      } while (!varsWithRepeated.empty());
+      if (binds.size() == 1)
+      {
+        return true;
+      }
+      /* TODO do transitivity with all equalities added to bind */
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities

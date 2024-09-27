@@ -1304,6 +1304,7 @@ set(regress_0_tests
   regress0/proj-issue307-get-value-re.smt2
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
+  regress0/proofs/alpha-equiv-reusing-variable.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
