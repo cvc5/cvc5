@@ -44,7 +44,16 @@ AlfPrinter::AlfPrinter(Env& env,
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
       d_ltproc(nodeManager(), atp),
-      d_rdb(rdb)
+      d_rdb(rdb),
+      // Use a let binding if proofDagGlobal is true. We can traverse binders
+      // due to the way we print global declare-var, since terms beneath
+      // binders will always have their variables in scope and hence can be
+      // printed in define commands. We additionally traverse skolems with this
+      // utility.
+      d_lbind(d_termLetPrefix, 2, true, true),
+      d_lbindUse(options().proof.proofDagGlobal ? &d_lbind : nullptr),
+      d_aletify(d_lbindUse)
+
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
@@ -581,17 +590,10 @@ void AlfPrinter::print(std::ostream& out,
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
 
-  // Use a let binding if proofDagGlobal is true.
-  // We can traverse binders due to the way we print global declare-var, since
-  // terms beneath binders will always have their variables in scope and hence
-  // can be printed in define commands.
-  // We additionally traverse skolems with this utility.
-  LetBinding lbind(d_termLetPrefix, 2, true, true);
-  LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
-  AlfPrintChannelPre aletify(lbindUse);
-  AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
-
   d_pletMap.clear();
+  
+  // allocate a print channel 
+  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix);
 
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
@@ -599,7 +601,7 @@ void AlfPrinter::print(std::ostream& out,
     AlfPrintChannel* aout;
     if (i == 0)
     {
-      aout = &aletify;
+      aout = &d_aletify;
     }
     else
     {
@@ -608,7 +610,7 @@ void AlfPrinter::print(std::ostream& out,
     if (i == 1)
     {
       std::stringstream outVars;
-      const std::unordered_set<Node>& vars = aletify.getVariables();
+      const std::unordered_set<Node>& vars = d_aletify.getVariables();
       for (const Node& v : vars)
       {
         if (v.getKind() == Kind::BOUND_VARIABLE)
@@ -653,7 +655,7 @@ void AlfPrinter::print(std::ostream& out,
         out << outFuns.str();
       }
       // [5] print proof-level term bindings
-      printLetList(out, lbind);
+      printLetList(out, d_lbind);
     }
     // [6] print (unique) assumptions
     std::unordered_set<Node> processed;

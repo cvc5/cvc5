@@ -155,6 +155,18 @@ class AlfPrinter : protected EnvObj
   std::unordered_set<ProofRewriteRule> d_dprs;
   /** */
   std::vector<Node> d_emptyVec;
+  /** The let binding */
+  LetBinding d_lbind;
+  /** The let binding we are using (possibly null) */
+  LetBinding* d_lbindUse;
+  /** The letification channel. */
+  AlfPrintChannelPre d_aletify;
+  /**
+   * The set of ProofRule that we have output a warning about, i.e. the rules
+   * associated with trusted steps.
+   */
+  std::unordered_set<ProofRule> d_warnedRules;
+
 };
 
 }  // namespace proof

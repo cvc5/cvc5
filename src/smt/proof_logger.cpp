@@ -39,15 +39,17 @@ ProofLogger::ProofLogger(Env& env,
   // global options on out
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
 }
 
 ProofLogger::~ProofLogger() {}
 
-void ProofLogger::logCnfPreprocessInput(const std::vector<Node>& inputs) {}
+void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
 
-void ProofLogger::logCnfPreprocessInputProof(std::shared_ptr<ProofNode>& pfn)
+void ProofLogger::logCnfPreprocessInputProofs(std::vector<std::shared_ptr<ProofNode>>& pfns)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
+  std::shared_ptr<ProofNode> pfn = d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   std::shared_ptr<ProofNode> ppn = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_alfp.print(d_out, ppn, m);
