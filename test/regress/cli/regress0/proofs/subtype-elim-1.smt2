@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 (set-option :simplification none)
-(set-logic LRA)
+(set-logic UFLRA)
 (declare-fun f (Real) Real)
 (declare-const y Real)
 (declare-const x Real)
