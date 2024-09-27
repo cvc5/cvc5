@@ -52,7 +52,12 @@ class AlfPrinter : protected EnvObj
   void print(std::ostream& out,
              std::shared_ptr<ProofNode> pfn,
              ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
-  void printIncremental(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(AlfPrintChannelOut& out,
+             std::shared_ptr<ProofNode> pfn,
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+  /**
+   */
+  void printIncremental(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -61,8 +66,13 @@ class AlfPrinter : protected EnvObj
    * rules that corresponds to a RARE rewrite.
    */
   void printDslRule(std::ostream& out, ProofRewriteRule r);
-
+  /**
+   * Get the let binding that is computed by calls to printing terms in this
+   * class.
+   */
+  LetBinding* getLetBinding();
  private:
+  void printInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn);
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */

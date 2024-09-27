@@ -101,7 +101,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * Print type node to stream in the expected format of ALF.
    */
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
-
+  std::ostream& getOStream() { return d_out; }
  private:
   /**
    * Helper for print steps. We set reqPremises to true if we require printing

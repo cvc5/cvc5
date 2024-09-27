@@ -83,13 +83,13 @@ class ProofLogger : protected EnvObj
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
 
  private:
-  std::ostream& d_out;
   smt::PfManager* d_pm;
   ProofNodeManager* d_pnm;
   smt::Assertions& d_as;
   smt::ProofPostprocess* d_ppp;
   proof::AlfNodeConverter d_atp;
   proof::AlfPrinter d_alfp;
+  proof::AlfPrintChannelOut d_aout;
   /** */
   std::shared_ptr<ProofNode> d_ppProof;
   /** */

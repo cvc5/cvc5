@@ -535,6 +535,8 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   out << ")" << std::endl;
 }
 
+LetBinding* AlfPrinter::getLetBinding() { return d_lbindUse; }
+  
 void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
 {
   std::vector<Node> letList;
@@ -559,6 +561,17 @@ void AlfPrinter::print(std::ostream& out,
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
   options::ioutils::applyPrintSkolemDefinitions(out, true);
+  // allocate a print channel
+  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
+  print(aprint, pfn, psm);
+}
+
+void AlfPrinter::print(AlfPrintChannelOut& aout,
+            std::shared_ptr<ProofNode> pfn,
+            ProofScopeMode psm)
+{
+  std::ostream& out = aout.getOStream();
+  Assert (d_pletMap.empty());
   d_pfIdCounter = 0;
 
   const ProofNode* ascope = nullptr;
@@ -589,22 +602,17 @@ void AlfPrinter::print(std::ostream& out,
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
 
-  d_pletMap.clear();
-
-  // allocate a print channel
-  AlfPrintChannelOut aprint(out, d_lbindUse, d_termLetPrefix, true);
-
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
-    AlfPrintChannel* aout;
+    AlfPrintChannel* ao;
     if (i == 0)
     {
-      aout = &d_aletify;
+      ao = &d_aletify;
     }
     else
     {
-      aout = &aprint;
+      ao = &aout;
     }
     if (i == 1)
     {
@@ -667,7 +675,7 @@ void AlfPrinter::print(std::ostream& out,
       processed.insert(n);
       size_t id = allocateAssumeId(n, wasAlloc);
       Node nc = d_tproc.convert(n);
-      aout->printAssume(nc, id, false);
+      ao->printAssume(nc, id, false);
     }
     for (const Node& n : definitions)
     {
@@ -685,16 +693,24 @@ void AlfPrinter::print(std::ostream& out,
       size_t id = allocateAssumeId(n, wasAlloc);
       Node f = d_tproc.convert(n[0]);
       Node lam = d_tproc.convert(n[1]);
-      aout->printStep("refl", f.eqNode(lam), id, {}, {lam});
+      ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
     // [7] print proof body
-    printProofInternal(aout, pnBody);
+    printProofInternal(ao, pnBody);
   }
 }
 
-void AlfPrinter::printIncremental(std::ostream& out,
+void AlfPrinter::printIncremental(AlfPrintChannelOut& aout,
                                   std::shared_ptr<ProofNode> pfn)
 {
+  const ProofNode* pnBody = pfn.get();
+  // print with letification
+  printProofInternal(&d_aletify, pnBody);
+  // print the new let bindings
+  std::ostream& out = aout.getOStream();
+  printLetList(out, d_lbind);
+  // 
+  printProofInternal(&aout, pnBody);
 }
 
 void AlfPrinter::printProofInternal(AlfPrintChannel* out, const ProofNode* pn)
