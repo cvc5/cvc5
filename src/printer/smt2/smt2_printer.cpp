@@ -187,10 +187,11 @@ void Smt2Printer::toStream(std::ostream& out,
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
-                           const LetBinding* lbind) const
+                           const LetBinding* lbind,
+                           bool lbindTop) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
-  toStream(out, n, lbind, toDepth);
+  toStream(out, n, lbind, toDepth, lbindTop);
 }
 
 void Smt2Printer::toStream(std::ostream& out, TNode n) const
@@ -609,7 +610,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          toStreamSkolem(out, cacheVal, id, /*isApplied=*/false);
+          toStreamSkolem(
+              out, cacheVal, id, /*isApplied=*/false, toDepth, lbind);
           printed = true;
         }
       }
@@ -668,7 +670,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           {
             out << '(';
           }
-          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true);
+          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true, toDepth, lbind);
           return false;
         }
       }
@@ -2149,11 +2151,13 @@ void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
 void Smt2Printer::toStreamSkolem(std::ostream& out,
                                  Node cacheVal,
                                  SkolemId id,
-                                 bool isApplied) const
+                                 bool isApplied,
+                                 int toDepth,
+                                 const LetBinding* lbind) const
 {
-  auto delim = isApplied ? " " : ")";
-
-  if (!isApplied && !cacheVal.isNull())
+  // true if this is a standalone skolem that requires printing with arguments
+  bool unappliedApp = (!isApplied && !cacheVal.isNull());
+  if (unappliedApp)
   {
     out << "(";
   }
@@ -2162,17 +2166,23 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
   {
     for (const Node& cv : cacheVal)
     {
-      out << " " << cv;
+      out << " ";
+      toStream(out, cv, lbind, toDepth);
     }
-    out << delim;
   }
   else if (!cacheVal.isNull())
   {
-    out << " " << cacheVal << delim;
+    out << " ";
+    toStream(out, cacheVal, lbind, toDepth);
   }
-  else
+  if (unappliedApp)
   {
-    out << delim;
+    out << ")";
+  }
+  else if (isApplied)
+  {
+    // separates further arguments
+    out << " ";
   }
 }
 

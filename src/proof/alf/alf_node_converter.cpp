@@ -330,24 +330,36 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   {
     if (isHandledSkolemId(sfi))
     {
-      // convert every skolem function to its name applied to arguments
-      std::stringstream ss;
-      ss << "@" << sfi;
-      std::vector<Node> args;
-      if (cacheVal.getKind() == Kind::SEXPR)
+      if (!cacheVal.isNull())
       {
-        for (const Node& cv : cacheVal)
+        std::vector<Node> vals;
+        if (cacheVal.getKind() == Kind::SEXPR)
         {
-          args.push_back(convert(cv));
+          vals.insert(vals.end(), cacheVal.begin(), cacheVal.end());
+        }
+        else
+        {
+          vals.push_back(cacheVal);
+        }
+        bool hasChanged = false;
+        for (Node& v : vals)
+        {
+          Node orig = v;
+          v = convert(v);
+          hasChanged = hasChanged || v != orig;
+        }
+        // if an index term changed, we have to construct a new skolem
+        if (hasChanged)
+        {
+          // construct an internal app instead
+          std::stringstream ss;
+          ss << "@" << sfi;
+          return mkInternalApp(ss.str(), vals, k.getType());
         }
       }
-      else if (!cacheVal.isNull())
-      {
-        args.push_back(convert(cacheVal));
-      }
-      // must convert all arguments
-      Node app = mkInternalApp(ss.str(), args, k.getType());
-      return app;
+      // otherwise we return itself, this will be printed in its full
+      // definition since applyPrintSkolemDefinitions is set to true
+      return k;
     }
   }
   return Node::null();

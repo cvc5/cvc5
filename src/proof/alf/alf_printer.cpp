@@ -535,10 +535,11 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    Node def = lbind.convert(n, false);
-    Node f = lbind.convert(n, true);
     // use define command which does not invoke type checking
-    out << "(define " << f << " () " << def << ")" << std::endl;
+    out << "(define " << d_termLetPrefix << lbind.getId(n);
+    out << " () ";
+    Printer::getPrinter(out)->toStream(out, n, &lbind, false);
+    out << ")" << std::endl;
   }
 }
 
@@ -549,6 +550,7 @@ void AlfPrinter::print(std::ostream& out,
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
   d_pfIdCounter = 0;
 
   const ProofNode* ascope = nullptr;
@@ -583,7 +585,8 @@ void AlfPrinter::print(std::ostream& out,
   // We can traverse binders due to the way we print global declare-var, since
   // terms beneath binders will always have their variables in scope and hence
   // can be printed in define commands.
-  LetBinding lbind(d_termLetPrefix, 2, true);
+  // We additionally traverse skolems with this utility.
+  LetBinding lbind(d_termLetPrefix, 2, true, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
