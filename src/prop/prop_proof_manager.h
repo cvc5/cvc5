@@ -67,6 +67,8 @@ class PropPfManager : protected EnvObj
    * @param assertion The preprocessed input assertions
    */
   void notifyInputFormulas(const std::vector<Node>& assertions);
+  /** Postsolve, which calls postsolve for the modules managed by this class */
+  void postsolve(SatValue result);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node

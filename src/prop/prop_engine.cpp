@@ -505,6 +505,12 @@ Result PropEngine::checkSat() {
                            d_theoryProxy->getRefutationUnsoundId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
+  
+  if (d_ppm!=nullptr)
+  {
+    d_ppm->postsolve(result);
+  }
+  
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
 

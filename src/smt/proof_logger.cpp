@@ -63,4 +63,11 @@ void ProofLogger::logTheoryLemma(const Node& n)
   d_alfp.printIncremental(d_out, ptl);
 }
 
+void ProofLogger::logSatRefutation(const std::vector<Node>& inputs,
+                      const std::vector<Node>& lemmas)
+{
+  Trace("pf-log") << "; log SAT refutation" << std::endl;
+  
+}
+
 }  // namespace cvc5::internal

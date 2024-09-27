@@ -52,6 +52,9 @@ class ProofLogger : protected EnvObj
   void logClauseForCnfPreprocessInput(std::shared_ptr<ProofNode>& pfn);
   /** */
   void logTheoryLemma(const Node& n);
+  /** */
+  void logSatRefutation(const std::vector<Node>& inputs,
+                        const std::vector<Node>& lemmas);
 
  private:
   std::ostream& d_out;

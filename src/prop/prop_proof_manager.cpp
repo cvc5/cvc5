@@ -514,13 +514,25 @@ void PropPfManager::notifyInputFormulas(const std::vector<Node>& assertions)
 {
   // get the proof logger now
   d_plog = d_env.getProofLogger();
-  Trace("pf-log") << "Notify input formulas, plog=" << d_plog << std::endl;
   if (d_plog != nullptr)
   {
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
     ProofNodeManager * pnm = d_env.getProofNodeManager();
     std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::AND_INTRO, icp, {});
     d_plog->logClauseForCnfPreprocessInput(pfn);
+  }
+}
+
+void PropPfManager::postsolve(SatValue result)
+{
+  if (d_plog != nullptr)
+  {
+    if (result == SAT_VALUE_FALSE)
+    {
+      std::vector<Node> inputs = getInputClauses();
+      std::vector<Node> lemmas = getLemmaClauses();
+      d_plog->logSatRefutation(inputs, lemmas);
+    }
   }
 }
 
