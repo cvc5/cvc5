@@ -65,22 +65,20 @@ void ProofLogger::logCnfPreprocessInputProofs(
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
   std::shared_ptr<ProofNode> pfn;
-  if (pfns.size()==1)
+  if (!pfns.empty())
   {
-    pfn = pfns[0];
+    if (pfns.size()==1)
+    {
+      pfn = pfns[0];
+    }
+    else
+    {
+      pfn = d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
+    }
+    ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
+    d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
+    d_alfp.print(d_aout, d_ppProof, m);
   }
-  else if (pfns.empty())
-  {
-    // TODO: correct???
-    pfn = d_pnm->mkAssume(nodeManager()->mkConst(false));
-  }
-  else
-  {
-    pfn = d_pnm->mkNode(ProofRule::AND_INTRO, pfns, {});
-  }
-  ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
-  d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
-  d_alfp.print(d_aout, d_ppProof, m);
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 

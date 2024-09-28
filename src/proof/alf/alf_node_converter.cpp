@@ -84,7 +84,7 @@ Node AlfNodeConverter::postConvert(Node n)
     return n;
   }
   TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -95,11 +95,14 @@ Node AlfNodeConverter::postConvert(Node n)
       // to avoid type errors when constructing terms for postConvert
       return n;
     }
-    // might be a skolem function
-    Node ns = maybeMkSkolemFun(n);
-    if (!ns.isNull())
+    if (k == Kind::SKOLEM)
     {
-      return ns;
+      // might be a skolem function
+      Node ns = maybeMkSkolemFun(n);
+      if (!ns.isNull())
+      {
+        return ns;
+      }
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no

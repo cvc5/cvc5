@@ -530,6 +530,11 @@ void PropPfManager::presolve()
   {
     // TODO: in incremental mode, only get the new assertions
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
+    for (const Node& a : d_assumptions)
+    {
+      icp.emplace_back(d_proof.getProofFor(a));
+    }
+  Trace("pf-log-debug") << "PropPfManager::presolve, we have " << d_inputClauses.size() << " inputs and " << d_assumptions.size() << " assumptions" << std::endl;
     d_plog->logCnfPreprocessInputProofs(icp);
   }
 }

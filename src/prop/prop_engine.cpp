@@ -446,6 +446,14 @@ Result PropEngine::checkSat() {
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
 
+  // add the assumptions
+  std::vector<SatLiteral> assumptions;
+  for (const Node& node : d_assumptions)
+  {
+    assumptions.push_back(d_cnfStream->getLiteral(node));
+  }
+
+  // now presolve with prop proof manager
   if (d_ppm != nullptr)
   {
     d_ppm->presolve();
@@ -456,17 +464,12 @@ Result PropEngine::checkSat() {
 
   // Check the problem
   SatValue result;
-  if (d_assumptions.size() == 0)
+  if (assumptions.empty())
   {
     result = d_satSolver->solve();
   }
   else
   {
-    std::vector<SatLiteral> assumptions;
-    for (const Node& node : d_assumptions)
-    {
-      assumptions.push_back(d_cnfStream->getLiteral(node));
-    }
     result = d_satSolver->solve(assumptions);
   }
 
