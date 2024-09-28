@@ -67,7 +67,7 @@ void ProofLogger::logCnfPreprocessInputProofs(
   std::shared_ptr<ProofNode> pfn;
   if (!pfns.empty())
   {
-    if (pfns.size()==1)
+    if (pfns.size() == 1)
     {
       pfn = pfns[0];
     }

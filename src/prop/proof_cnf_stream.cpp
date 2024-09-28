@@ -39,13 +39,14 @@ void ProofCnfStream::convertAndAssert(TNode node,
                                       bool input,
                                       ProofGenerator* pg)
 {
-  // this method is re-entrant due to lemmas sent during preregistration of new lemmas, thus we must remember and revert d_input below.
+  // this method is re-entrant due to lemmas sent during preregistration of new
+  // lemmas, thus we must remember and revert d_input below.
   bool backupInput = d_input;
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false")
-               << ", input = " << (input ? "true" : "false")
-               << "), level " << userContext()->getLevel() << "\n";
+               << ", input = " << (input ? "true" : "false") << "), level "
+               << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
   d_input = input;
   if (pg)
