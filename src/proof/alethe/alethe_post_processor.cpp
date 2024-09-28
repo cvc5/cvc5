@@ -102,7 +102,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                         << children << " / " << args << std::endl;
 
   NodeManager* nm = nodeManager();
-  std::vector<Node> new_args = std::vector<Node>();
+  std::vector<Node> new_args;
 
   switch (id)
   {
@@ -1575,27 +1575,24 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (= F (F*{y1 -> z1}){y2 -> (y1 : T)})
     case ProofRule::ALPHA_EQUIV:
     {
-      std::vector<Node> varEqs;
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
       std::vector<std::string> lhsNames;
-      std::vector<Node> varsWithRepeated;
-      std::vector<Node> binds;
       size_t renamingEndingPos = res[0][0].getNumChildren();
       for (size_t i = 0, size = renamingEndingPos; i < size; ++i)
       {
         Node v0 = res[0][0][i], v1 = res[1][0][i];
-        if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName()) != lhsNames.end())
+        if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
+            != lhsNames.end())
         {
-          Assert(i > 0);
-          renamingEndingPos = i - 1;
-          varsWithRepeated.insert(varsWithRepeated.end(), res[0][0].begin() + i, res[0][0].end());
+          renamingEndingPos = i;
           allSame = false;
           break;
         }
+        lhsNames.push_back(v0.getName());
         allSame = allSame && v0 == v1;
-        varEqs.push_back(v0.eqNode(v1));
       }
+      // when no renaming, no-op
       if (allSame)
       {
         return addAletheStep(AletheRule::REFL,
@@ -1605,27 +1602,90 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
+      Trace("alethe-proof")
+          << "\trenaming end: " << renamingEndingPos << ", quant prefix size "
+          << res[0][0].getNumChildren() << "\n";
+      Node lhsQ = res[0];
+      size_t prefixStart = 0;
+      // accumulator of conclusions of added "bind" steps
+      std::vector<Node> binds;
+      bool success = true;
       do
       {
+        Node rhsQ;
+        if (prefixStart == 0 && renamingEndingPos == res[0][0].getNumChildren())
+        {
+          rhsQ = res[1];
+        }
+        else
+        {
+          Assert(renamingEndingPos <= lhsQ[0].getNumChildren());
+          std::vector<Node> subLhs{res[0][0].begin() + prefixStart,
+                                   res[0][0].begin() + renamingEndingPos};
+          std::vector<Node> subRhs{res[1][0].begin() + prefixStart,
+                                   res[1][0].begin() + renamingEndingPos};
+          rhsQ = lhsQ.substitute(
+              subLhs.begin(), subLhs.end(), subRhs.begin(), subRhs.end());
+        }
         // Reflexivity over the quantified bodies
-        Node vp = nm->mkNode(
-            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
-        addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
-        // collect variables first
-        new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
-        new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
-        addAletheStep(AletheRule::ANCHOR_BIND,
-                      res,
-                      nm->mkNode(Kind::SEXPR, d_cl, res),
-                      {vp},
-                      new_args,
-                      *cdp);
-      } while (!varsWithRepeated.empty());
-      if (binds.size() == 1)
+        Node reflConc = nm->mkNode(
+            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, lhsQ[1], rhsQ[1]));
+        addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
+        // Collect RHS variables first for arguments, then add the entries for
+        // the substitution. In a "bind" rule we must always list all the
+        // variables
+        std::vector<Node> bindArgs{rhsQ[0].begin(), rhsQ[0].end()};
+        for (size_t i = 0; i < rhsQ[0].getNumChildren(); ++i)
+        {
+          bindArgs.push_back(lhsQ[0][i].eqNode(rhsQ[0][i]));
+        }
+        binds.push_back(lhsQ.eqNode(rhsQ));
+        success &= addAletheStep(AletheRule::ANCHOR_BIND,
+                                 binds.back(),
+                                 nm->mkNode(Kind::SEXPR, d_cl, binds.back()),
+                                 {reflConc},
+                                 bindArgs,
+                                 *cdp);
+        // get next valid segment. Note that this will be a no-op when the first
+        // check in the beginning of the translation did not find an invalid
+        // renaming, so the whole quantifier has already been processed above.
+        lhsQ = rhsQ;
+        lhsNames.clear();
+        bool hasInvalidRenaming = false;
+        prefixStart = renamingEndingPos;
+        Trace("alethe-proof") << "\tcheck from " << renamingEndingPos << " to "
+                              << res[0][0].getNumChildren() << "\n";
+        for (size_t i = renamingEndingPos, size = res[0][0].getNumChildren();
+             i < size;
+             ++i)
+        {
+          Node v0 = res[0][0][i], v1 = res[1][0][i];
+          if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
+              != lhsNames.end())
+          {
+            Assert(i > 0);
+            hasInvalidRenaming = true;
+            renamingEndingPos = i;
+            break;
+          }
+          lhsNames.push_back(v0.getName());
+        }
+        renamingEndingPos =
+            hasInvalidRenaming ? renamingEndingPos : res[0][0].getNumChildren();
+      } while (prefixStart < renamingEndingPos);
+      // if we added more than one "bind" step, we connect them via transitivity
+      if (binds.size() > 1)
       {
-        return true;
+        return success
+               && addAletheStep(AletheRule::TRANS,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                binds,
+                                {},
+                                *cdp);
       }
-      /* TODO do transitivity with all equalities added to bind */
+      Assert(cdp->hasStep(res));
+      return success;
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
