@@ -1816,6 +1816,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.write_smt().debugCheckModels = false;
   opts.write_smt().checkModels = false;
   opts.write_proof().checkProofSteps = false;
+  opts.write_proof().proofLog = false;
 }
 
 }  // namespace smt

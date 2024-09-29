@@ -390,6 +390,21 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << ss.str();
       break;
     }
+    case Kind::CARDINALITY_CONSTRAINT_OP:
+    {
+      const CardinalityConstraint& cc =
+          n.getConst<CardinalityConstraint>();
+      TypeNode tn = cc.getType();
+      out << "(_ fmf.card " << tn << " " << cc.getUpperBound() << ")";
+    }
+      break;
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT_OP:
+    {
+      const CombinedCardinalityConstraint& cc =
+          n.getConst<CombinedCardinalityConstraint>();
+      out << "(_ fmf.combined_card " << cc.getUpperBound() << ")";
+    }
+      break;
     case Kind::DIVISIBLE_OP:
       out << "(_ divisible " << n.getConst<Divisible>().k << ")";
       break;
