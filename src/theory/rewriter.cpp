@@ -32,7 +32,8 @@ namespace theory {
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
 // efficiency.
-static TheoryId theoryOf(TNode node) {
+static TheoryId theoryOf(TNode node)
+{
   if (node.getKind() == Kind::EQUAL)
   {
     // Equality is owned by the theory that owns the domain
@@ -47,7 +48,8 @@ static TheoryId theoryOf(TNode node) {
  * and post-rewritten.  Each element of the stack is a
  * RewriteStackElement.
  */
-struct RewriteStackElement {
+struct RewriteStackElement
+{
   /**
    * Construct a fresh stack element.
    */
@@ -82,8 +84,8 @@ struct RewriteStackElement {
   NodeBuilder d_builder;
 };
 
-
-Node Rewriter::rewrite(TNode node) {
+Node Rewriter::rewrite(TNode node)
+{
   if (node.getNumChildren() == 0)
   {
     // Nodes with zero children should never change via rewriting. We return
@@ -99,8 +101,7 @@ Node Rewriter::extendedRewrite(TNode node, bool aggr)
   return er.extendedRewrite(node);
 }
 
-TrustNode Rewriter::rewriteWithProof(TNode node,
-                                     bool isExtEq)
+TrustNode Rewriter::rewriteWithProof(TNode node, bool isExtEq)
 {
   // must set the proof checker before calling this
   Assert(d_tpg != nullptr);
@@ -190,7 +191,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
 #endif
 
-  Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
+  Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"
+                    << std::endl;
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
@@ -204,7 +206,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
   // Rewrite until the stack is empty
-  for (;;){
+  for (;;)
+  {
     if (d_resourceManager != nullptr)
     {
       d_resourceManager->spendResource(Resource::RewriteStep);
@@ -228,7 +231,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
               && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
       {
         // Rewrite until fix-point is reached
-        for(;;) {
+        for (;;)
+        {
           // Perform the pre-rewrite
           Kind originalKind = rewriteStackTop.d_node.getKind();
           RewriteResponse response = preRewrite(
@@ -272,7 +276,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                            rewriteStackTop.d_node);
       }
       // Otherwise we're have already been pre-rewritten (in pre-rewrite cache)
-      else {
+      else
+      {
         // Continue with the cached version
         rewriteStackTop.d_node = cached;
         rewriteStackTop.d_theoryId = theoryOf(cached);
@@ -280,7 +285,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     }
 
     rewriteStackTop.d_original = rewriteStackTop.d_node;
-    // Now it's time to rewrite the children, check if this has already been done
+    // Now it's time to rewrite the children, check if this has already been
+    // done
     cached = getPostRewriteCache(rewriteStackTop.getTheoryId(),
                                  rewriteStackTop.d_node);
     // If not, go through the children
@@ -291,13 +297,15 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       unsigned child = rewriteStackTop.d_nextChild++;
 
       // To build the rewritten expression we set up the builder
-      if(child == 0) {
+      if (child == 0)
+      {
         if (rewriteStackTop.d_node.getNumChildren() > 0)
         {
           // The children will add themselves to the builder once they're done
           rewriteStackTop.d_builder << rewriteStackTop.d_node.getKind();
           kind::MetaKind metaKind = rewriteStackTop.d_node.getMetaKind();
-          if (metaKind == kind::metakind::PARAMETERIZED) {
+          if (metaKind == kind::metakind::PARAMETERIZED)
+          {
             rewriteStackTop.d_builder << rewriteStackTop.d_node.getOperator();
           }
         }
@@ -308,8 +316,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       {
         // The child node
         Node childNode = rewriteStackTop.d_node[child];
-        // Push the rewrite request to the stack (NOTE: rewriteStackTop might be a bad reference now)
-        rewriteStack.push_back(RewriteStackElement(childNode, theoryOf(childNode)));
+        // Push the rewrite request to the stack (NOTE: rewriteStackTop might be
+        // a bad reference now)
+        rewriteStack.push_back(
+            RewriteStackElement(childNode, theoryOf(childNode)));
         // Go on with the rewriting
         continue;
       }
@@ -323,7 +333,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       }
 
       // Done with all pre-rewriting, so let's do the post rewrite
-      for(;;) {
+      for (;;)
+      {
         // Do the post-rewrite
         Kind originalKind = rewriteStackTop.d_node.getKind();
         RewriteResponse response = postRewrite(
@@ -340,9 +351,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         if (newTheoryId != rewriteStackTop.getTheoryId()
             || response.d_status == REWRITE_AGAIN_FULL)
         {
-          // In the post rewrite if we've changed theories, we must do a full rewrite
+          // In the post rewrite if we've changed theories, we must do a full
+          // rewrite
           Assert(response.d_node != rewriteStackTop.d_node);
-          //TODO: this is not thread-safe - should make this assertion dependent on sequential build
+          // TODO: this is not thread-safe - should make this assertion
+          // dependent on sequential build
 #ifdef CVC5_ASSERTIONS
           Assert(d_rewriteStack->find(response.d_node) == d_rewriteStack->end())
               << "Non-terminating rewriting detected for: " << response.d_node;
@@ -425,7 +438,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
     }
 
     // If this is the last node, just return
-    if (rewriteStack.size() == 1) {
+    if (rewriteStack.size() == 1)
+    {
       Assert(!isEquality || rewriteStackTop.d_node.getKind() == Kind::EQUAL
              || rewriteStackTop.d_node.isConst());
       Assert(rewriteStackTop.d_node.getType().isComparableTo(node.getType()))

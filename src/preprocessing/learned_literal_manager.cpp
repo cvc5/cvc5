@@ -37,7 +37,7 @@ std::vector<Node> LearnedLiteralManager::getLearnedLiterals() const
 {
   theory::TrustSubstitutionMap& tls = d_env.getTopLevelSubstitutions();
   std::vector<Node> currLearnedLits;
-  for (const auto& lit: d_learnedLits)
+  for (const auto& lit : d_learnedLits)
   {
     // update based on substitutions
     Node tlsNode = tls.get().apply(lit);

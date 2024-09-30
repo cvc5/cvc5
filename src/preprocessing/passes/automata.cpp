@@ -41,10 +41,38 @@ namespace {
 }
 /* -------------------------------------------------------------------------- */
 
+void printDfa(const std::map<int, std::map<int, std::pair<int, int>>>& dfa)
+{
+  for (const auto& [state, transitions] : dfa)
+  {
+    std::cout << state << std::endl;
+    for (const auto& [next_state, acc] : transitions)
+    {
+      std::cout << next_state << "," << acc << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
+void buildDfa(std::map<int, std::map<int, std::pair<int, int>>>& dfa)
+{
+  std::pair<int, int> words[] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+  int a1 = 1, a2 = 2, c = 1;
+  dfa[c] = {};
+  int k;
+  for (auto& [x, y] : words)
+  {
+    k = c - a1 * x - a2 * y;
+    if (k % 2 == 0)
+    {
+      dfa.insert({k / 2, {}});
+    }
+  }
+}
+
 Automata::Automata(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "automata")
 {
-  std::cout << "Automata constructor!" << std::endl;
 }
 
 PreprocessingPassResult Automata::applyInternal(
@@ -58,8 +86,22 @@ PreprocessingPassResult Automata::applyInternal(
   std::vector<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
-    std::cout << a << std::endl;
     to_process.push_back(a);
+  }
+  for (const TNode& a : to_process)
+  {
+    // std::cout << a << std::endl;
+    // std::cout << a.getKind() << std::endl;
+    switch (a.getKind())
+    {
+      // custom input just for testing
+      case kind::Kind_t::EQUAL:
+        dfa[1] = {};
+        printDfa(dfa);
+
+        break;
+      default: break;
+    }
   }
 
   // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE LATER

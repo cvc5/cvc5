@@ -43,7 +43,7 @@ class Automata : public PreprocessingPass
   // the DFA itself. Initially it will be done for a single formula, for
   // example, x + 2y <= 1, so we have a adjacency list of the RHS values of hte
   // inequality.
-  std::vector<std::vector<std::pair<int, int>>> dfa;
+  std::map<int, std::map<int, std::pair<int, int>>> dfa;
 };
 
 }  // namespace passes
