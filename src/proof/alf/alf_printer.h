@@ -188,7 +188,7 @@ class AlfPrinter : protected EnvObj
   rewriter::RewriteDb* d_rdb;
   /** The DSL rules we have seen */
   std::unordered_set<ProofRewriteRule> d_dprs;
-  /** */
+  /** The empty vector */
   std::vector<Node> d_emptyVec;
   /** The let binding */
   LetBinding d_lbind;
