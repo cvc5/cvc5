@@ -21,7 +21,7 @@ int main(void)
   TermManager tm;
   Solver solver(tm);
   solver.setOption("incremental", "false");
-  solver.setOption("sets-ext", "true");
+  solver.setOption("sets-exp", "true");
   solver.setOption("produce-interpolants", "true");
   DatatypeDecl d0 = tm.mkDatatypeDecl("_dt0");
   DatatypeConstructorDecl dtcd1 = tm.mkDatatypeConstructorDecl("_cons8");

@@ -3,12 +3,13 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
+; DISABLE-TESTER: alethe
 (set-logic UFLIA)
-(declare-fun f (Int) Int) 
-(declare-fun g (Int) Int) 
+(declare-fun f (Int) Int)
+(declare-fun g (Int) Int)
 (declare-fun h (Int) Int)
-(declare-fun a () Int) 
-(declare-fun b () Int) 
+(declare-fun a () Int)
+(declare-fun b () Int)
 (declare-fun c () Int)
 (assert (forall ((x Int)) (> (f x) 5)))
 (assert (forall ((x Int)) (> (h x) 0)))

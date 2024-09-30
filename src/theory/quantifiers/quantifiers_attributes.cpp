@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "smt/print_benchmark.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -270,6 +271,10 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           if (q[2][i].getNumChildren() > 1)
           {
             std::string name = q[2][i][1].getName();
+            // mark that this symbol should not be printed with the print
+            // benchmark utility
+            Node sym = q[2][i][1];
+            smt::PrintBenchmark::markNoPrint(sym);
             Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid

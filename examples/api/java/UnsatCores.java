@@ -20,19 +20,20 @@ public class UnsatCores
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    Solver solver = new Solver();
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
     {
       // Enable the production of unsat cores
       solver.setOption("produce-unsat-cores", "true");
 
-      Sort boolSort = solver.getBooleanSort();
-      Term a = solver.mkConst(boolSort, "A");
-      Term b = solver.mkConst(boolSort, "B");
+      Sort boolSort = tm.getBooleanSort();
+      Term a = tm.mkConst(boolSort, "A");
+      Term b = tm.mkConst(boolSort, "B");
 
       // A ^ B
-      solver.assertFormula(solver.mkTerm(Kind.AND, a, b));
+      solver.assertFormula(tm.mkTerm(Kind.AND, a, b));
       // ~(A v B)
-      solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.OR, a, b)));
+      solver.assertFormula(tm.mkTerm(Kind.NOT, tm.mkTerm(Kind.OR, a, b)));
 
       Result res = solver.checkSat(); // result is unsat
 

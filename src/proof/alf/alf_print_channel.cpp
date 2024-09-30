@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "rewriter/rewrite_db.h"
 
@@ -160,7 +161,7 @@ void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
   if (d_lbind)
   {
     // use the toStream with custom letification method
-    Printer::getPrinter(out)->toStream(out, n, d_lbind);
+    Printer::getPrinter(out)->toStream(out, n, d_lbind, true);
   }
   else
   {
@@ -229,7 +230,43 @@ void AlfPrintChannelPre::processInternal(const Node& n)
     d_lbind->process(n);
   }
   d_keep.insert(n);  // probably not necessary
-  expr::getVariables(n, d_vars, d_varsVisited);
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  // traverse and collect all free variables in this term, which includes
+  // traversing skolem indices.
+  std::vector<TNode> visit;
+  TNode cur;
+  SkolemId sfi;
+  Node cacheVal;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_varsVisited.find(cur) == d_varsVisited.end())
+    {
+      d_varsVisited.insert(cur);
+      Kind ck = cur.getKind();
+      if (ck == Kind::BOUND_VARIABLE)
+      {
+        d_vars.insert(cur);
+        continue;
+      }
+      else if (ck == Kind::SKOLEM)
+      {
+        if (sm->isSkolemFunction(cur, sfi, cacheVal) && !cacheVal.isNull())
+        {
+          visit.push_back(cacheVal);
+        }
+        continue;
+      }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
 }
 
 const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const

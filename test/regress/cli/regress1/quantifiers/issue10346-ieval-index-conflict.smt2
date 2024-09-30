@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; Unary AND is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALIA)
 (declare-fun j () Int)
 (declare-fun a () (Array Int Int))

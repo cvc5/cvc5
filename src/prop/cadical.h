@@ -30,6 +30,7 @@ namespace cvc5::internal {
 namespace prop {
 
 class CadicalPropagator;
+class ClauseLearner;
 
 class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 {
@@ -134,6 +135,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   prop::TheoryProxy* d_proxy = nullptr;
   /** The CaDiCaL propagator (for CDCL(T) mode). */
   std::unique_ptr<CadicalPropagator> d_propagator;
+  /** Clause learner instance for notifications about learned clauses. */
+  std::unique_ptr<ClauseLearner> d_clause_learner;
 
   /**
    * Stores the current set of assumptions provided via solve() and is used to

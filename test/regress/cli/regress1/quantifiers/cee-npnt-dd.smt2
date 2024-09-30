@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --ee-mode=distributed
 ; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat
+;; Unary AND is not supported in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :fmf-bound true)

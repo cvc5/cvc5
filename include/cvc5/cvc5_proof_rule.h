@@ -489,8 +489,7 @@ enum ENUM(ProofRule)
    *   \inferrule{C_1 \mid C_2}{C_2}
    *
    * where
-   * the set representations of :math:`C_1` and :math:`C_2` are the same and the
-   * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
+   * the multiset representations of :math:`C_1` and :math:`C_2` are the same.
    * \endverbatim
    */
   EVALUE(REORDERING),
@@ -3396,8 +3395,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
-  /** Auto-generated from RARE rule str-nth-elim-code */
-  EVALUE(STR_NTH_ELIM_CODE),
   /** Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */

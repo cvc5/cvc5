@@ -1,5 +1,26 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.2.1 prerelease
+=====================
+
+## New Features
+
+- Added support for `SymbolManager::getNamedTerms()` to retrieve the set of
+  terms that have been given names by the SMT-LIB attribute `:named`.
+
+## Changes
+- The option `--safe-options` now disables experimental theories and their
+  extensions in cvc5. This includes the theory of bags, the theory of finite
+  fields, the theory of separation logic, higher-order extensions to the theory
+  of equality, as well as extensions of the theory of arithmetic for
+  transcendental functions, integer-and, and power functions. These theories
+  are still enabled by default and further more can be used in combination
+  with safe options by the options e.g. `--arith-exp` **prior** to setting
+  `--safe-options`.
+
+- Renamed the flag `--sets-ext` to `--sets-exp`, which enables non-standard
+  extensions of the sets theory.
+
 cvc5 1.2.0
 ==========
 

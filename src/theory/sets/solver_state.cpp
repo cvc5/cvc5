@@ -124,7 +124,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     else if (nk == Kind::SET_UNIVERSE)
     {
-      Assert(options().sets.setsExt);
+      Assert(options().sets.setsExp);
       d_eqc_univset[tnn] = r;
     }
     else

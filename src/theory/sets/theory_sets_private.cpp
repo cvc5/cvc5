@@ -650,7 +650,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options().sets.setsExt)
+    if (options().sets.setsExp)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
