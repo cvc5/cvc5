@@ -36,7 +36,7 @@ add_custom_command(
         cargo build ${RUST_CARGO_FLAGS} --package cvc5-sys --manifest-path=${RUST_MANIFEST}
     DEPENDS
         ${RUST_FILES}
-    COMMENT "Generate Rust API"
+    COMMENT "Generate Rust API to ${RUST_API_OUTPUT}"
 )
 add_custom_command(
     OUTPUT

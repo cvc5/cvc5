@@ -26,6 +26,28 @@ fn extract_doc(attr: &Attribute) -> String
 	doc.value()
 }
 
+fn collect_enums(file: &File) -> Vec<Item> {
+	let type_names: Vec<_> = file.items.iter().filter_map(|item| {
+		let Item::ItemType(t) = item else {
+			return None;
+		};
+		Some(t.ident.clone()),
+	}).filter(|ident| {
+		file.items.iter().any(|item| {
+			let Item::ItemConst(c) = item else {
+				return false;
+			};
+			c.type == Type::TypePath { qself: None, path: ident.clone().into() }
+		})
+	}).collect();
+	type_names.into_iter().map(|ident| {
+		Item::ItemEnum(ItemEnum {
+			ident,
+			..Default::default()
+		})
+	}).collect()
+}
+
 fn generate_safe_bindings(file: &File) -> File
 {
 	for item in file.items.iter() {
@@ -42,7 +64,7 @@ fn generate_safe_bindings(file: &File) -> File
 		println!("cargo:warning={}", &doc[..50]);
 		println!("cargo:warning={:?}", fndata.sig.ident);
 	}
-	let items = vec![];
+	let items = collect_enums(file);
 	File {
 		shebang: None,
 		attrs: vec![],
