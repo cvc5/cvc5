@@ -173,9 +173,8 @@ class AlfPrinter : protected EnvObj
    */
   context::Context d_passumeCtx;
   /**
-   * Whether we have to process children.
-   * This map is dependent on the proof assumption context, e.g. subproofs of
-   * SCOPE are reprocessed if they happen to occur in different proof scopes.
+   * The set of proof nodes we have already printed with this class, as
+   * used by printProofInternal.
    */
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** Mapping assumed formulas to identifiers */
