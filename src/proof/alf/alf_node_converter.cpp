@@ -127,6 +127,8 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
+    // A variable x of type T can unambiguously referred to as (eo::var "x" T).
+    // We convert to this representation here, which will often be letified.
     TypeNode tn = n.getType();
     std::vector<Node> args;
     Node nn = nm->mkConst(String(sname));
@@ -161,15 +163,13 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     TypeNode tn = n.getType();
     Node vl = n[0];
-    // notice that intentionally we drop annotations here.
+    // Notice that intentionally we drop annotations here.
+    // Additionally, it is important that we convert the closure to a
+    // non-closure operator here, since we will be traversing over it
+    // during letification.
     std::vector<Node> args;
-    // We take the *original* bound variable list, since variable names are
-    // preserved in the translation; using the updated variable `@v.N.x`
-    // would lead to using a variable named "@v.N.x" instead of "x", where
-    // `@v.N.x` is a macro for the variable "x".
-    args.push_back(n[0]);
     args.insert(args.end(),
-                n.begin() + 1,
+                n.begin(),
                 n.begin() + getNumChildrenToProcessForClosure(k));
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
