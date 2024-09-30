@@ -2993,6 +2993,8 @@ set(regress_1_tests
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
   regress1/seq/proj-issue733-mbqi-w.smt2
+  regress1/sets/all_sat.smt2
+  regress1/sets/all_unsat.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
   regress1/sets/all3.smt2
