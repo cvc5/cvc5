@@ -975,6 +975,7 @@ void CadicalSolver::init()
   {
     d_solver->set("walk", 0);
     d_solver->set("lucky", 0);
+    // ilb currently does not play well with user propagators
     d_solver->set("ilb", 0);
     d_solver->set("ilbassumptions", 0);
   }
