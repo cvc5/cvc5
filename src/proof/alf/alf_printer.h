@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/node_algorithm.h"
 #include "proof/alf/alf_list_node_converter.h"
 #include "proof/alf/alf_node_converter.h"
@@ -31,6 +32,7 @@
 #include "proof/proof_node.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "smt/env_obj.h"
+#include "smt/proof_manager.h"
 
 namespace cvc5::internal {
 
@@ -39,15 +41,39 @@ namespace proof {
 class AlfPrinter : protected EnvObj
 {
  public:
-  AlfPrinter(Env& env, BaseAlfNodeConverter& atp, rewriter::RewriteDb* rdb);
+  AlfPrinter(Env& env,
+             BaseAlfNodeConverter& atp,
+             rewriter::RewriteDb* rdb,
+             uint32_t letThresh = 2);
   ~AlfPrinter() {}
 
   /**
-   * Print the full proof of assertions => false by pfn.
+   * Print the full proof pfn.
+   * @param out The output stream.
+   * @param pfn The proof node.
+   * @param psm The scope mode, which determines whether there are outermost
+   * scope to process in pfn. If this is the case, we print assume steps.
+   */
+  void print(std::ostream& out,
+             std::shared_ptr<ProofNode> pfn,
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+  /**
+   * Same as above, but with an alf print output channel.
+   * @param out The output stream.
+   * @param pfn The proof node.
+   * @param psm The scope mode.
+   */
+  void print(AlfPrintChannelOut& out,
+             std::shared_ptr<ProofNode> pfn,
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
+  /**
+   * Print the proof, assuming that previous proofs have been printed on this
+   * printer that have (partially) given the definition of subterms and
+   * subproofs in pfn.
    * @param out The output stream.
    * @param pfn The proof node.
    */
-  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void printNext(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -56,8 +82,14 @@ class AlfPrinter : protected EnvObj
    * rules that corresponds to a RARE rewrite.
    */
   void printDslRule(std::ostream& out, ProofRewriteRule r);
+  /**
+   * Get the let binding that is computed by calls to printing terms in this
+   * class.
+   */
+  LetBinding* getLetBinding();
 
  private:
+  void printInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn);
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */
@@ -94,7 +126,9 @@ class AlfPrinter : protected EnvObj
    * Helper for print. Prints the proof node using the print channel out. This
    * may either write the proof to an output stream or preprocess it.
    */
-  void printProofInternal(AlfPrintChannel* out, const ProofNode* pn);
+  void printProofInternal(AlfPrintChannel* out,
+                          const ProofNode* pn,
+                          bool addToCache);
   /**
    * Called at preorder traversal of proof node pn. Prints (if necessary) to
    * out.
@@ -134,6 +168,12 @@ class AlfPrinter : protected EnvObj
    * SCOPE proofs.
    */
   context::Context d_passumeCtx;
+  /**
+   * Whether we have to process children.
+   * This map is dependent on the proof assumption context, e.g. subproofs of
+   * SCOPE are reprocessed if they happen to occur in different proof scopes.
+   */
+  context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
@@ -148,6 +188,14 @@ class AlfPrinter : protected EnvObj
   rewriter::RewriteDb* d_rdb;
   /** The DSL rules we have seen */
   std::unordered_set<ProofRewriteRule> d_dprs;
+  /** The empty vector */
+  std::vector<Node> d_emptyVec;
+  /** The let binding */
+  LetBinding d_lbind;
+  /** The let binding we are using (possibly null) */
+  LetBinding* d_lbindUse;
+  /** The letification channel. */
+  AlfPrintChannelPre d_aletify;
 };
 
 }  // namespace proof
