@@ -2033,12 +2033,6 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
         return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
       }
     }
-    if (s.getType().isString())
-    {
-      NodeManager* nm = nodeManager();
-      Node ret = nm->mkConstInt(Rational(-1));
-      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL_OOB);
-    }
   }
 
   std::vector<Node> prefix, suffix;

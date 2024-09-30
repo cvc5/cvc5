@@ -1141,35 +1141,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     lems.push_back(SkolemLemma(tnk, k));
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
-  if (options().strings.stringsCodeElim)
-  {
-    if (ak == Kind::STRING_TO_CODE)
-    {
-      // If we are eliminating code, convert it to nth.
-      // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
-      NodeManager* nm = nodeManager();
-      Node t = atom[0];
-      Node cond =
-          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, t), d_one);
-      Node ret = nm->mkNode(
-          Kind::ITE, cond, nm->mkNode(Kind::SEQ_NTH, t, d_zero), d_neg_one);
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-    }
-  }
-  else if (ak == Kind::SEQ_NTH && atom[0].getType().isString())
-  {
-    // If we are not eliminating code, we are eliminating nth (over strings);
-    // convert it to code.
-    // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
-    NodeManager* nm = nodeManager();
-    Node ret = nm->mkNode(Kind::STRING_TO_CODE,
-                          nm->mkNode(Kind::STRING_SUBSTR,
-                                     atom[0],
-                                     atom[1],
-                                     nm->mkConstInt(Rational(1))));
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-  }
-  else if (ak == Kind::REGEXP_RANGE)
+  if (ak == Kind::REGEXP_RANGE)
   {
     for (const Node& nc : atom)
     {
