@@ -271,7 +271,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
-    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    ss << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)

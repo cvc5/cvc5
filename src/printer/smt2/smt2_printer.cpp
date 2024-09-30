@@ -1383,13 +1383,13 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
     case Kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
-    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
-    case Kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
-    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
-    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
-    case Kind::ROUNDINGMODE_BITBLAST: return "RMBITBLAST";
+    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "@fp.NAN";
+    case Kind::FLOATINGPOINT_COMPONENT_INF: return "@fp.INF";
+    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "@fp.ZERO";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "@fp.SIGN";
+    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "@fp.EXPONENT";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "@fp.SIGNIFICAND";
+    case Kind::ROUNDINGMODE_BITBLAST: return "@fp.RMBITBLAST";
 
     // string theory
     case Kind::STRING_CONCAT: return "str.++";
