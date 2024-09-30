@@ -1123,10 +1123,17 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
-  // We use (SEQ_NTH, x, i) instead of
-  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)) here. The former may be
-  // converted to the latter during preprocessing based on our options.
+  // If x is a string, we use (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)).
+  // It is possible to have an extension where (STRING_NTH x i) is generated
+  // here for a new STRING_NTH kind, if there was a native way of handling nth
+  // for strings, but this is not explored here.
   NodeManager* nm = NodeManager::currentNM();
+  if (x.getType().isString())
+  {
+    Node one = nm->mkConstInt(Rational(1));
+    return nm->mkNode(Kind::STRING_TO_CODE,
+                      nm->mkNode(Kind::STRING_SUBSTR, {x, i, one}));
+  }
   return nm->mkNode(Kind::SEQ_NTH, x, i);
 }
 
