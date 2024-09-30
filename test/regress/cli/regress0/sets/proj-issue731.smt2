@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 (set-logic ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (set-option :debug-check-models true)
 (declare-sort _u0 0)
 (declare-const _x3 _u0)

@@ -37,9 +37,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-std::vector<Node> andComponents(TNode an)
+std::vector<Node> andComponents(NodeManager* nm, TNode an)
 {
-  auto nm = NodeManager::currentNM();
   if (an == nm->mkConst(true))
   {
     return {};
@@ -278,7 +277,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TNode isZero = d_watchedEqualities[s];
       TypeNode type = isZero[0].getType();
       const auto isZeroPf = d_pnm->mkAssume(isZero);
-      const auto nm = NodeManager::currentNM();
+      const auto nm = nodeManager();
       std::vector<std::shared_ptr<ProofNode>> pfs{isZeroPf, pf};
       // Trick for getting correct, opposing signs.
       std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
@@ -370,7 +369,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       // we have a proof of (=> C L1) and need a proof of
       // (not (and C L2)), where L1 and L2 are contradictory literals,
       // stored in proven[1] and neg respectively below.
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       std::vector<Node> conj(finalPf.begin(), finalPf.end());
       CDProof cdp(d_env);
       Node falsen = nm->mkConst(false);
@@ -494,7 +493,7 @@ TrustNode ArithCongruenceManager::explain(TNode external)
     Trace("arith-ee") << "tweaking proof to prove " << external << " not "
                       << trn.getProven()[1] << std::endl;
     std::vector<std::shared_ptr<ProofNode>> assumptionPfs;
-    std::vector<Node> assumptions = andComponents(trn.getNode());
+    std::vector<Node> assumptions = andComponents(nodeManager(), trn.getNode());
     assumptionPfs.push_back(trn.toProofNode());
     for (const auto& a : assumptions)
     {
@@ -615,7 +614,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   ArithVar x = c->getVariable();
   Node xAsNode = d_avariables.asNode(x);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node asRational = nm->mkConstRealOrInt(
       xAsNode.getType(), c->getValue().getNoninfinitesimalPart());
 
@@ -649,7 +648,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   Node reason = mkAndFromBuilder(nb);
 
   Node xAsNode = d_avariables.asNode(x);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node asRational = nm->mkConstRealOrInt(
       xAsNode.getType(), lb->getValue().getNoninfinitesimalPart());
 

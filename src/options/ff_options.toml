@@ -32,6 +32,7 @@ name   = "Finite Field Theory"
   type       = "bool"
   default    = "false"
   help       = "parse bitsums"
+
 [[option]]
   name       = "ffSolver"
   category   = "expert"
@@ -47,3 +48,10 @@ name   = "Finite Field Theory"
   name = "split"
   help = "use multiple groebner bases for partitions of the system"
 
+[[option]]
+  name       = "ffExp"
+  category   = "expert"
+  long       = "ff-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the finite field solver"

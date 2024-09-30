@@ -1,6 +1,6 @@
 (set-logic QF_ALL)
 (set-info :status unsat)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-datatype Unit ((mkUnit)))
 
 (declare-fun S () (Set (Array Int Unit)))
