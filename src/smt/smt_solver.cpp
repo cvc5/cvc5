@@ -83,16 +83,6 @@ void SmtSolver::finishInit()
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
   finishInitPreprocessor();
-
-  if (options().proof.proofLog)
-  {
-    smt::PfManager* pm = d_env.getProofManager();
-    if (pm != nullptr)
-    {
-      // FIXME: proper output
-      pm->startProofLogging(std::cout, d_asserts);
-    }
-  }
 }
 
 void SmtSolver::resetAssertions()

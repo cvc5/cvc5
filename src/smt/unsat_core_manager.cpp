@@ -309,8 +309,8 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
+  std::shared_ptr<ProofNode> pfn = d_pfm.connectProofToAssertions(
+      pepf, d_slv.getAssertions(), ProofScopeMode::UNIFIED);
   getUnsatCoreInternal(pfn, core, isInternal);
   return core;
 }
