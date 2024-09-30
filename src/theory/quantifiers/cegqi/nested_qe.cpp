@@ -21,6 +21,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -140,7 +141,11 @@ Node NestedQe::doQe(Env& env, Node q)
   NodeManager* nm = NodeManager::currentNM();
   q = nm->mkNode(Kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SolverEngine> smt_qe;
-  initializeSubsolver(smt_qe, env);
+  Options subOptions;
+  subOptions.copyValues(env.getOptions());
+  smt::SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(env, subOptions);
+  initializeSubsolver(smt_qe, ssi);
   Node qqe = smt_qe->getQuantifierElimination(q, true);
   if (expr::hasBoundVar(qqe))
   {
