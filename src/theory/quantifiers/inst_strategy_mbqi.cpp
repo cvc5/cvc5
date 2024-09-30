@@ -27,6 +27,7 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
+#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -53,6 +54,8 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   {
     d_msenum.reset(new MbqiFastSygus(env, *this));
   }
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -220,7 +223,8 @@ void InstStrategyMbqi::process(Node q)
   Node query = nm->mkAnd(constraints);
 
   std::unique_ptr<SolverEngine> mbqiChecker;
-  initializeSubsolver(mbqiChecker, d_env);
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
+  initializeSubsolver(mbqiChecker, ssi);
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;

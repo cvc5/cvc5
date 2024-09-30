@@ -152,6 +152,8 @@ class MbqiFastSygus : protected EnvObj
   std::map<Node, MQuantInfo> d_qinfo;
   /** Reference to the parent instantiation strategy */
   InstStrategyMbqi& d_parent;
+  /** The options for subsolver calls */
+  Options d_subOptions;
 };
 
 }  // namespace quantifiers
