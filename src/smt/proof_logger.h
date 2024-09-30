@@ -32,6 +32,20 @@ class ProofPostprocess;
 }  // namespace smt
 
 /**
+ * The purpose of this class is output proofs for all reasoning the solver
+ * does on-the-fly. It is enabled when proof logging is enabled.
+ * 
+ * This class receives notifications for three things:
+ * (1) When preprocessing has completed, determining the set of input clauses.
+ * (2) When theory lemmas are learned
+ * (3) When a SAT refutation is derived.
+ * 
+ * Dependending on the proof mode, the notifications for the above three things
+ * may be in the form of ProofNode (if proofs are enabled for that component),
+ * or Node (if proofs are disabled for that component).
+ * 
+ * As with dumped proofs, the granularity of the proofs is subject to the
+ * option proof-granularity.
  */
 class ProofLogger : protected EnvObj
 {
@@ -45,11 +59,13 @@ class ProofLogger : protected EnvObj
               smt::ProofPostprocess* ppp);
   ~ProofLogger();
   /**
+   * Called when preprocessing is complete.
    * @param input The list of input clauses after preprocessing and conversion
    * to CNF.
    */
   virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs);
   /**
+   * Called when preprocessing is complete.
    * @param pfns proofs of the preprocessed inputs. The free assumptions of
    * proofs in pfns are the preprocessed input formulas. If preprocess proofs
    * are avialable, this method connects pfn to the original input formulas.
@@ -82,16 +98,25 @@ class ProofLogger : protected EnvObj
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
 
  private:
+  /** Pointer to the proof manager, for connecting proofs to inputsw */
   smt::PfManager* d_pm;
+  /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
+  /** Reference to the assertions of SMT solver */
   smt::Assertions& d_as;
+  /** Pointer to the proof post-processor */
   smt::ProofPostprocess* d_ppp;
+  /** The node converter, used for printing */
   proof::AlfNodeConverter d_atp;
+  /** The proof printer */
   proof::AlfPrinter d_alfp;
+  /** The output channel we are using */
   proof::AlfPrintChannelOut d_aout;
-  /** */
+  /** The preprocessing proof we were notified of, which we may have created */
   std::shared_ptr<ProofNode> d_ppProof;
-  /** */
+  /**
+   * The list of theory lemma proofs we were notified of, which we may have created. 
+   */
   std::vector<std::shared_ptr<ProofNode>> d_lemmaPfs;
 };
 

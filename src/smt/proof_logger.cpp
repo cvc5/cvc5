@@ -64,6 +64,7 @@ void ProofLogger::logCnfPreprocessInputProofs(
     std::vector<std::shared_ptr<ProofNode>>& pfns)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
+  // if the assertions are empty, we do nothing. We will answer sat.
   std::shared_ptr<ProofNode> pfn;
   if (!pfns.empty())
   {
