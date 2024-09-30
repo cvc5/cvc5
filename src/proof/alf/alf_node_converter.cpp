@@ -83,9 +83,9 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy node, return it
     return n;
   }
-  TypeNode tn = n.getType();
   if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT)
   {
+    TypeNode tn = n.getType();
     // constructors/selectors are represented by skolems, which are defined
     // symbols
     if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
@@ -114,8 +114,6 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::BOUND_VARIABLE)
   {
-    // note: we always distinguish variables, to ensure they do not have
-    // names that are overloaded with user names
     std::string sname;
     if (n.hasName())
     {
@@ -129,11 +127,13 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
-    size_t index = d_varIndex[sname];
-    d_varIndex[sname]++;
-    std::stringstream ssn;
-    ssn << "@v." << index << "." << sname;
-    return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
+    TypeNode tn = n.getType();
+    std::vector<Node> args;
+    Node nn = nm->mkConst(String(sname));
+    args.push_back(nn);
+    Node tnn = typeAsNode(tn);
+    args.push_back(tnn);
+    return mkInternalApp("eo::var", args, tn);
   }
   else if (k == Kind::VARIABLE)
   {
@@ -145,6 +145,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // must ensure we print higher-order function applications with "_"
     if (!n.getOperator().isVar())
     {
+    TypeNode tn = n.getType();
       std::vector<Node> args;
       args.push_back(n.getOperator());
       args.insert(args.end(), n.begin(), n.end());
@@ -153,10 +154,12 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::HO_APPLY)
   {
+    TypeNode tn = n.getType();
     return mkInternalApp("_", {n[0], n[1]}, tn);
   }
   else if (n.isClosure())
   {
+    TypeNode tn = n.getType();
     Node vl = n[0];
     // notice that intentionally we drop annotations here.
     std::vector<Node> args;
@@ -173,6 +176,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::STORE_ALL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     Node val = convert(storeAll.getValue());
@@ -181,11 +185,13 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
            || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
   }
   else if (k == Kind::SET_INSERT)
   {
+    TypeNode tn = n.getType();
     std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
     Node list = mkList(iargs);
     return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
@@ -194,6 +200,7 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     if (n.getConst<Sequence>().empty())
     {
+      TypeNode tn = n.getType();
       Node t = typeAsNode(tn);
       return mkInternalApp("seq.empty", {t}, tn);
     }
@@ -203,6 +210,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::CONST_FINITE_FIELD)
   {
+    TypeNode tn = n.getType();
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
     Node v = convert(nm->mkConstInt(ffv.getValue()));
     Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
@@ -230,6 +238,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     if (opc.getNumChildren() > 0)
     {
+      TypeNode tn = n.getType();
       newArgs.insert(newArgs.end(), opc.begin(), opc.end());
       newArgs.insert(newArgs.end(), n.begin(), n.end());
       opc = opc.getOperator();
@@ -243,6 +252,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::INDEXED_ROOT_PREDICATE)
   {
+    TypeNode tn = n.getType();
     const IndexedRootPredicate& irp =
         n.getOperator().getConst<IndexedRootPredicate>();
     std::vector<Node> newArgs;
@@ -257,6 +267,7 @@ Node AlfNodeConverter::postConvert(Node n)
            || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
            || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)
   {
+    TypeNode tn = n.getType();
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
@@ -265,6 +276,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
+    TypeNode tn = n.getType();
     // use generic list
     std::vector<Node> args;
     args.insert(args.end(), n.begin(), n.end());
@@ -275,6 +287,7 @@ Node AlfNodeConverter::postConvert(Node n)
     Kind okind = n.getOperator().getConst<GenericOp>().getKind();
     if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
     {
+      TypeNode tn = n.getType();
       // This does not take a rounding mode, we change the smt2 syntax
       // to distinguish this case, similar to the case in getOperatorOfTerm
       // where it is processed as an indexed operator.
@@ -284,6 +297,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
+    TypeNode tn = n.getType();
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());

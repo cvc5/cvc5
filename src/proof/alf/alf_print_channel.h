@@ -155,18 +155,11 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       const std::vector<Node>& args,
                       TNode conc) override;
 
-  /** Get variables we encountered in printing */
-  const std::vector<Node>& getVariables() const;
-
  private:
   /** The let binding */
   LetBinding* d_lbind;
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
-  /** The set of variables we have encountered */
-  std::vector<Node> d_vars;
-  /** The visited cache for computing variables */
-  std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */
   void processInternal(const Node& n);
 };

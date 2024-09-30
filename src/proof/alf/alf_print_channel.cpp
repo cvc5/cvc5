@@ -246,48 +246,6 @@ void AlfPrintChannelPre::processInternal(const Node& n)
     d_lbind->process(n);
   }
   d_keep.insert(n);  // probably not necessary
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  // traverse and collect all free variables in this term, which includes
-  // traversing skolem indices.
-  std::vector<TNode> visit;
-  TNode cur;
-  SkolemId sfi;
-  Node cacheVal;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (d_varsVisited.find(cur) == d_varsVisited.end())
-    {
-      d_varsVisited.insert(cur);
-      Kind ck = cur.getKind();
-      if (ck == Kind::BOUND_VARIABLE)
-      {
-        d_vars.emplace_back(cur);
-        continue;
-      }
-      else if (ck == Kind::SKOLEM)
-      {
-        if (sm->isSkolemFunction(cur, sfi, cacheVal) && !cacheVal.isNull())
-        {
-          visit.push_back(cacheVal);
-        }
-        continue;
-      }
-      if (cur.hasOperator())
-      {
-        visit.push_back(cur.getOperator());
-      }
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-  } while (!visit.empty());
-}
-
-const std::vector<Node>& AlfPrintChannelPre::getVariables() const
-{
-  return d_vars;
 }
 
 }  // namespace proof

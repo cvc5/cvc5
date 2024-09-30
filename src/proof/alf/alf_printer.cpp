@@ -619,25 +619,6 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
     }
     if (i == 1)
     {
-      std::stringstream outVars;
-      const std::vector<Node>& vars = d_aletify.getVariables();
-      for (const Node& v : vars)
-      {
-        if (v.getKind() == Kind::BOUND_VARIABLE)
-        {
-          std::string origName = v.getName();
-          // Strip off "@v.N." from the variable. It may also be an original
-          // variable appearing in a quantifier, in which case we skip.
-          if (origName.substr(0, 3) != "@v.")
-          {
-            continue;
-          }
-          origName = origName.substr(4);
-          origName = origName.substr(origName.find(".") + 1);
-          outVars << "(define " << v << " () (eo::var \"" << origName << "\" "
-                  << v.getType() << "))" << std::endl;
-        }
-      }
       // [1] print DSL rules
       // Note that RARE rules used in this proof are printed in the preamble of
       // the proof here, on demand.
@@ -645,14 +626,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       {
         printDslRule(out, r);
       }
-      if (options().proof.proofPrintReference)
-      {
-        // [2] print only the universal variables
-        out << outVars.str();
-        // we do not print the reference command here, since we don't know
-        // where the proof is stored.
-      }
-      else
+      if (!options().proof.proofPrintReference)
       {
         // [2] print the types
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
@@ -661,8 +635,6 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         std::stringstream outFuns;
         pb.printDeclarationsFrom(outTypes, outFuns, definitions, assertions);
         out << outTypes.str();
-        // [3] print the universal variables
-        out << outVars.str();
         // [4] print the declared functions
         out << outFuns.str();
       }
