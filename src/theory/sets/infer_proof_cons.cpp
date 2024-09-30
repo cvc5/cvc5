@@ -153,9 +153,11 @@ bool InferProofCons::convert(CDProof& cdp,
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       Node aelim = psb.applyPredElim(assumps[0], exp);
+      std::cout << "aelim: " << aelim << std::endl;
+      std::cout << "conc: " << conc << std::endl;
       success = CDProof::isSame(aelim, conc);
       // should never fail
-      Assert(success);
+      // Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:

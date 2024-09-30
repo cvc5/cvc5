@@ -336,6 +336,60 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   // get the body
   if (in.getKind() == Kind::EXISTS)
   {
+    if(d_opts.quantifiers.useSetQuantifiers)
+    {
+      std::cout << "in: " << in << std::endl;
+      Node boundVariables = in[0];
+      Node body = in[1];      
+      std::cout << "body: " << body << std::endl;
+      std::vector<Node> sets;
+      std::map<Node, Node> map;
+      if(body.getKind() == Kind::AND)
+      {
+        size_t reducedVariables = 0;
+        for(Node c : body)
+        {
+          if(c.getType().isTuple())
+          {
+            if(c.getKind() == Kind::SET_MEMBER)
+            {
+              Node element = c[0];
+              Node set = c[1];             
+              if(element.getType().isTuple() && element.getNumChildren() > 0)
+              {
+                for (Node e : element)
+                {
+                  
+                }                
+              }
+              size_t index = boundVariables.getNumChildren();
+                for(size_t i = 0; i < boundVariables.getNumChildren(); i++)
+                {
+                  if(boundVariables[i] == element)
+                  {
+                    reducedVariables++;
+                    map[element] = element;
+                  }
+                }
+
+              sets.push_back(set);
+            }
+          }          
+        }
+        for(Node c : boundVariables)
+        {
+          std::cout << "c: " << c << std::endl;
+        }
+        for(Node c : boundVariables)
+        {
+          std::cout << "c: " << c << std::endl;
+        }
+
+      }      
+
+      
+      std::cout << "ret: " << ret << std::endl;
+    }
     std::vector<Node> children;
     children.push_back(in[0]);
     children.push_back(in[1].negate());

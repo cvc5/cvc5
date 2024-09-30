@@ -1822,3 +1822,13 @@ name   = "Quantifiers"
 [[option.mode.INTERLEAVE]]
   name = "interleave"
   help = "add instantiation and evaluation unfolding lemmas in the same step."
+
+
+
+[[option]]
+  name       = "useSetQuantifiers"
+  category   = "expert"
+  long       = "use-set-quantifiers"
+  type       = "bool"
+  default    = "false"
+  help       = "replace forall and exists operators with specific patterns with set.all and set.some operators"

@@ -150,6 +150,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   }
   else if (nk == Kind::SET_FILTER)
   {
+    Trace("set_filter") << "set_filter: " << n << std::endl;
+    NodeManager * nm = NodeManager::currentNM();
+    SkolemManager *sm = nm->getSkolemManager();    
+    Node filter = sm->getOriginalForm(n);
     d_filterTerms.push_back(n);
   }
   else if (nk == Kind::SET_MAP)

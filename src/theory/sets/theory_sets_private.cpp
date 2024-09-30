@@ -712,12 +712,21 @@ void TheorySetsPrivate::checkUpwardsClosure()
 void TheorySetsPrivate::checkFilterUp()
 {
   NodeManager* nm = nodeManager();
+  SkolemManager *sm = nm->getSkolemManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
 
+  Trace("filters") << "Filters: " << filterTerms << std::endl;
+  std::vector<Node> originalTerms;
+  for(auto & n : filterTerms)
+  {
+    originalTerms.push_back(sm->getOriginalForm(n));
+  }
+  Trace("filters") << "originals: " << filterTerms << std::endl;
   for (const Node& term : filterTerms)
   {
     Node p = term[0];
     Node A = term[1];
+    p = sm->getOriginalForm(p);
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -728,6 +737,12 @@ void TheorySetsPrivate::checkFilterUp()
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
+      Trace("p_x") << "p         : " << p << std::endl;
+      Trace("p_x") << "p original: " << sm->getOriginalForm(p) << std::endl;
+      Trace("p_x") << "x         : " << x << std::endl;
+      Trace("p_x") << "p_x       : " << p_x << std::endl;
+      p_x = rewrite(p_x);
+      Trace("p_x") << "rewrite(p_x): " << p_x << std::endl;
       Node skolem = d_treg.getProxy(term);
       Node memberFilter = nm->mkNode(Kind::SET_MEMBER, x, skolem);
       Node not_p_x = p_x.notNode();
@@ -746,11 +761,13 @@ void TheorySetsPrivate::checkFilterUp()
 void TheorySetsPrivate::checkFilterDown()
 {
   NodeManager* nm = nodeManager();
+  SkolemManager *sm = nm->getSkolemManager();
   const std::vector<Node>& filterTerms = d_state.getFilterTerms();
   for (const Node& term : filterTerms)
   {
-    Node p = term[0];
+    Node p = term[0];    
     Node A = term[1];
+    p = sm->getUnpurifiedForm(p);
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -761,7 +778,10 @@ void TheorySetsPrivate::checkFilterDown()
       d_state.addEqualityToExp(B, term, exp);
       Node x = pair.first;
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
-      Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
+      Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);      
+      Trace("p_x") << "p_x         : " << p_x << std::endl;
+      p_x = rewrite(p_x);
+      Trace("p_x") << "rewrite(p_x): " << p_x << std::endl;
       Node fact = memberA.andNode(p_x);
       d_im.assertInference(fact, InferenceId::SETS_FILTER_DOWN, exp);
       if (d_state.isInConflict())
