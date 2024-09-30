@@ -301,6 +301,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
   }
+  if (opts.proof.proofLog)
+  {
+    // incompatible with sygus-inst
+    if (opts.quantifiers.sygusInst)
+    {
+      throw OptionException(std::string("Cannot log proofs with sygus-inst"));
+    }
+  }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
