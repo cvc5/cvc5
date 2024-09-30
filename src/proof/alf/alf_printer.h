@@ -31,6 +31,7 @@
 #include "proof/proof_node.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "smt/env_obj.h"
+#include "smt/proof_manager.h"
 
 namespace cvc5::internal {
 
@@ -46,8 +47,11 @@ class AlfPrinter : protected EnvObj
    * Print the full proof of assertions => false by pfn.
    * @param out The output stream.
    * @param pfn The proof node.
+   * @param psm The scope mode, which determines whether there are outermost
+   * scope to process in pfn. If this is the case, we print assume steps.
    */
-  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn,
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 
   /**
    * Print proof rewrite rule name r to output stream out
@@ -148,6 +152,8 @@ class AlfPrinter : protected EnvObj
   rewriter::RewriteDb* d_rdb;
   /** The DSL rules we have seen */
   std::unordered_set<ProofRewriteRule> d_dprs;
+  /** The empty vector */
+  std::vector<Node> d_emptyVec;
 };
 
 }  // namespace proof

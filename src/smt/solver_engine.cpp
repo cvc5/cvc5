@@ -180,7 +180,6 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
@@ -190,7 +189,6 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
-    pnm = d_pfManager->getProofNodeManager();
   }
   if (d_env->isOutputOn(OutputTag::RARE_DB))
   {
@@ -203,7 +201,7 @@ void SolverEngine::finishInit()
     }
   }
   // enable proof support in the environment/rewriter
-  d_env->finishInit(pnm);
+  d_env->finishInit(d_pfManager.get());
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit();
@@ -1451,7 +1449,11 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode, assertionNames);
+  d_pfManager->printProof(out,
+                          fp,
+                          mode,
+                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
+                          assertionNames);
   out << std::endl;
 }
 
@@ -1535,7 +1537,7 @@ void SolverEngine::checkProof()
   {
     // connect proof to assertions, which will fail if the proof is malformed
     d_pfManager->connectProofToAssertions(
-        pePfn, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
+        pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
   }
 }
 
@@ -1782,7 +1784,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
     {
       Assert(p != nullptr);
       p = d_pfManager->connectProofToAssertions(
-          p, *d_smtSolver.get(), scopeMode);
+          p, d_smtSolver->getAssertions(), scopeMode);
     }
   }
   return ps;
@@ -2043,7 +2045,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   // do not include lemmas
   te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
-  d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
+  d_pfManager->translateDifficultyMap(dmap, d_smtSolver->getAssertions());
 }
 
 void SolverEngine::push()
