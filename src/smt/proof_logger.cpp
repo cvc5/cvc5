@@ -21,12 +21,12 @@
 
 namespace cvc5::internal {
 
-ProofLogger::ProofLogger(Env& env,
+ProofLoggerCpc::ProofLoggerCpc(Env& env,
                          std::ostream& out,
                          smt::PfManager* pm,
                          smt::Assertions& as,
                          smt::ProofPostprocess* ppp)
-    : EnvObj(env),
+    : ProofLogger(env),
       d_pm(pm),
       d_pnm(pm->getProofNodeManager()),
       d_as(as),
@@ -44,9 +44,9 @@ ProofLogger::ProofLogger(Env& env,
   options::ioutils::applyPrintSkolemDefinitions(out, true);
 }
 
-ProofLogger::~ProofLogger() {}
+ProofLoggerCpc::~ProofLoggerCpc() {}
 
-void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs)
+void ProofLoggerCpc::logCnfPreprocessInputs(const std::vector<Node>& inputs)
 {
   d_aout.getOStream() << "; log start" << std::endl;
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
@@ -60,7 +60,7 @@ void ProofLogger::logCnfPreprocessInputs(const std::vector<Node>& inputs)
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
-void ProofLogger::logCnfPreprocessInputProofs(
+void ProofLoggerCpc::logCnfPreprocessInputProofs(
     std::vector<std::shared_ptr<ProofNode>>& pfns)
 {
   Trace("pf-log") << "; log: cnf preprocess input proof start" << std::endl;
@@ -83,7 +83,7 @@ void ProofLogger::logCnfPreprocessInputProofs(
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
-void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
+void ProofLoggerCpc::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
                   << std::endl;
@@ -92,7 +92,7 @@ void ProofLogger::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
-void ProofLogger::logTheoryLemma(const Node& n)
+void ProofLoggerCpc::logTheoryLemma(const Node& n)
 {
   Trace("pf-log") << "; log theory lemma start " << n << std::endl;
   std::shared_ptr<ProofNode> ptl =
@@ -102,7 +102,7 @@ void ProofLogger::logTheoryLemma(const Node& n)
   Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 
-void ProofLogger::logSatRefutation()
+void ProofLoggerCpc::logSatRefutation()
 {
   Trace("pf-log") << "; log SAT refutation start" << std::endl;
   std::vector<std::shared_ptr<ProofNode>> premises;
@@ -121,7 +121,7 @@ void ProofLogger::logSatRefutation()
   d_aout.getOStream() << "(exit)" << std::endl;
 }
 
-void ProofLogger::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
+void ProofLoggerCpc::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
   // TODO: connect to preprocessed

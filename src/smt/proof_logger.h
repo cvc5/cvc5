@@ -29,7 +29,7 @@ namespace smt {
 class Assertions;
 class PfManager;
 class ProofPostprocess;
-}  // namespace smt
+}
 
 /**
  * The purpose of this class is output proofs for all reasoning the solver
@@ -51,43 +51,38 @@ class ProofLogger : protected EnvObj
 {
  public:
   /** */
-  ProofLogger(Env& env,
-              std::ostream& out,
-              smt::PfManager* pm,
-              smt::Assertions& as,
-
-              smt::ProofPostprocess* ppp);
-  ~ProofLogger();
+  ProofLogger(Env& env) : EnvObj(env){}
+  ~ProofLogger(){}
   /**
    * Called when preprocessing is complete.
    * @param input The list of input clauses after preprocessing and conversion
    * to CNF.
    */
-  virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs);
+  virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
   /**
    * Called when preprocessing is complete.
    * @param pfns proofs of the preprocessed inputs. The free assumptions of
    * proofs in pfns are the preprocessed input formulas. If preprocess proofs
    * are avialable, this method connects pfn to the original input formulas.
    */
-  void logCnfPreprocessInputProofs(
-      std::vector<std::shared_ptr<ProofNode>>& pfns);
+  virtual void logCnfPreprocessInputProofs(
+      std::vector<std::shared_ptr<ProofNode>>& pfns) {}
   /**
    * @param n Called when the clause n is added to the SAT solver, where n is
    * (the CNF conversion of) a theory lemma.
    */
-  virtual void logTheoryLemma(const Node& n);
+  virtual void logTheoryLemma(const Node& n) {}
   /**
    * @param n Called when the clause n is added to the SAT solver, where pfn
    * is a closed proof of (the CNF conversion of) a theory lemma.
    */
-  void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn);
+  virtual void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn) {}
   /**
-   * Called when the SAT solver derives false.
-   * @param inputs The input clauses notified above.
-   * @param lemmas The list of theory lemmas notified above.
+   * Called when the SAT solver derives false. The SAT refutation should be
+   * derivable by propositional reasoning via the notified preprocessed input
+   * and theory lemmas as given above.
    */
-  virtual void logSatRefutation();
+  virtual void logSatRefutation() {}
 
   /**
    * Called when the SAT solver generates a proof of false. The free assumptions
@@ -95,8 +90,36 @@ class ProofLogger : protected EnvObj
    * as notified above.
    * @param pfn The refutation proof.
    */
-  void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn);
+  virtual void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {}
+};
 
+/**
+ * The default implementation of a proof logger, which prints proofs in the
+ * CPC format.
+ */
+class ProofLoggerCpc : public ProofLogger
+{
+ public:
+  /** */
+  ProofLoggerCpc(Env& env,
+              std::ostream& out,
+              smt::PfManager* pm,
+              smt::Assertions& as,
+              smt::ProofPostprocess* ppp);
+  ~ProofLoggerCpc();
+  /** Log preprocessing input */
+  void logCnfPreprocessInputs(const std::vector<Node>& inputs) override;
+  /** Log preprocessing input proof */
+  void logCnfPreprocessInputProofs(
+      std::vector<std::shared_ptr<ProofNode>>& pfns) override;
+  /** Log theory lemma */
+  void logTheoryLemma(const Node& n) override;
+  /** Log theory lemma proof */
+  void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn) override;
+  /** Log SAT refutation */
+  void logSatRefutation() override;
+  /** Log SAT refutation proof */
+  void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) override;
  private:
   /** Pointer to the proof manager, for connecting proofs to inputsw */
   smt::PfManager* d_pm;
