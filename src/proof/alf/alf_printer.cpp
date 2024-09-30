@@ -604,8 +604,6 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
-  Trace("ajr-temp") << "; definitions: " << definitions << std::endl;
-  Trace("ajr-temp") << "; assertions: " << assertions << std::endl;
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
@@ -629,20 +627,20 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       }
       if (!options().proof.proofPrintReference)
       {
-        // [2] print the types
+        // [2] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
         smt::PrintBenchmark pb(&alfp, &d_tproc);
-        std::stringstream outTypes;
-        std::stringstream outFuns;
-        pb.printDeclarationsFrom(outTypes, outFuns, definitions, assertions);
-        out << outTypes.str();
-        // [4] print the declared functions
-        out << outFuns.str();
+        std::stringstream outDecl;
+        std::stringstream outDef;
+        pb.printDeclarationsFrom(outTypes, outDef, definitions, assertions);
+        out << outDecl.str();
+        // [3] print the definitions
+        out << outDef.str();
       }
-      // [5] print proof-level term bindings
+      // [4] print proof-level term bindings
       printLetList(out, d_lbind);
     }
-    // [6] print (unique) assumptions
+    // [5] print (unique) assumptions, including definitions
     std::unordered_set<Node> processed;
     for (const Node& n : assertions)
     {
@@ -673,7 +671,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       Node lam = d_tproc.convert(n[1]);
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
-    // [7] print proof body
+    // [6] print proof body
     printProofInternal(ao, pnBody, i == 1);
   }
 }
