@@ -34,13 +34,6 @@ namespace rewriter {
 class RewriteDb;
 }
 
-namespace smt {
-
-class Assertions;
-class SmtSolver;
-class PreprocessProofGenerator;
-class ProofPostprocess;
-
 /** Modes for global Proof scopes introducing definitions and assertions. */
 enum class ProofScopeMode
 {
@@ -51,6 +44,12 @@ enum class ProofScopeMode
   /** Proof closed by 2 nested scopes introducing definitions and assertions. */
   DEFINITIONS_AND_ASSERTIONS,
 };
+
+namespace smt {
+
+class Assertions;
+class PreprocessProofGenerator;
+class ProofPostprocess;
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
@@ -96,6 +95,7 @@ class PfManager : protected EnvObj
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
                   options::ProofFormatMode mode,
+                  ProofScopeMode scopeMode = ProofScopeMode::UNIFIED,
                   const std::map<Node, std::string>& assertionNames =
                       std::map<Node, std::string>());
 
@@ -115,7 +115,7 @@ class PfManager : protected EnvObj
    * @param smt The SMT solver that owns the assertions and the preprocess
    * proof generator.
    */
-  void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
+  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
 
   /**
    * Connect proof to assertions
@@ -131,7 +131,7 @@ class PfManager : protected EnvObj
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
       std::shared_ptr<ProofNode> pfn,
-      SmtSolver& smt,
+      Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
@@ -140,6 +140,8 @@ class PfManager : protected EnvObj
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
+  /** Get the preprocess proof generator */
+  PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
@@ -162,6 +164,8 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofNodeManager> d_pnm;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
+  /** The preprocess proof generator. */
+  std::unique_ptr<PreprocessProofGenerator> d_pppg;
 }; /* class SolverEngine */
 
 }  // namespace smt
