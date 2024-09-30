@@ -632,7 +632,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         smt::PrintBenchmark pb(&alfp, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
-        pb.printDeclarationsFrom(outTypes, outDef, definitions, assertions);
+        pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
         out << outDecl.str();
         // [3] print the definitions
         out << outDef.str();
