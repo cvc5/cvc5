@@ -122,6 +122,13 @@ void TheorySep::preRegisterTerm(TNode n)
   if (k == Kind::SEP_PTO || k == Kind::SEP_EMP || k == Kind::SEP_STAR
       || k == Kind::SEP_WAND)
   {
+    if (!options().sep.sepExp)
+    {
+      std::stringstream ss;
+      ss << "Separation logic not available in this configuration, try "
+            "--sep-exp.";
+      throw LogicException(ss.str());
+    }
     ensureHeapTypesFor(n);
   }
 }

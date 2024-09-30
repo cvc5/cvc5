@@ -33,7 +33,7 @@ public class Relations
       // quantified formulas
       solver.setOption("finite-model-find", "true");
       // we need sets extension to support set.universe operator
-      solver.setOption("sets-ext", "true");
+      solver.setOption("sets-exp", "true");
 
       // (declare-sort Person 0)
       Sort personSort = tm.mkUninterpretedSort("Person");

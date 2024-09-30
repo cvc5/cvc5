@@ -5,7 +5,7 @@
 ; quantified formulas
 (set-option :finite-model-find true)
 ; we need sets extension to support set.universe operator
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 
 (declare-sort Person 0)
 

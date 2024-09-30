@@ -26,14 +26,6 @@ name   = "Proof"
   help       = "Output Cooperating Proof Calculus proof"
 
 [[option]]
-  name       = "proofAletheExperimental"
-  category   = "expert"
-  long       = "proof-alethe-experimental"
-  type       = "bool"
-  default    = "false"
-  help       = "Enable the use of Alethe proofs (experimental)"
-
-[[option]]
   name       = "proofPrintConclusion"
   category   = "expert"
   long       = "proof-print-conclusion"

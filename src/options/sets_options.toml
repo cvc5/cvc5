@@ -10,9 +10,9 @@ name   = "Sets Theory"
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
-  name       = "setsExt"
-  category   = "regular"
-  long       = "sets-ext"
+  name       = "setsExp"
+  category   = "expert"
+  long       = "sets-exp"
   type       = "bool"
   default    = "false"
   help       = "enable extended symbols such as complement and universe in theory of sets"

@@ -1,7 +1,7 @@
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-datatype Rec ((mkRec (r1 (_ BitVec 2)) (r2 (_ BitVec 2)))))
 (declare-fun A () (Set Rec))
 (declare-fun B () (Set Rec))
