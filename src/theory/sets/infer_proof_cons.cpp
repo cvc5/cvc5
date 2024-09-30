@@ -155,7 +155,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Node aelim = psb.applyPredElim(assumps[0], exp);
       success = CDProof::isSame(aelim, conc);
       // should never fail
-      // Assert(success);
+      Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
