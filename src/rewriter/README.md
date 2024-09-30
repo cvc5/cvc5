@@ -227,3 +227,22 @@ a bit-vector is implicit albeit it can be recovered using `bvsize`. For example:
 
 In this case, the bit-vectors in the list `xs`, `ys`, `zs` do not have to have
 the same bit-width.
+
+## Updating RARE rules in the cvc5 repository
+
+RARE rules are contained in the cvc5 repository via files named
+`src/theory/*/rewrites*`. These can be modified by cvc5 developers when new
+rewrites are deemed necessary. It is recommended that the entire cvc5 team is
+notified when a change, addition or deletion is made to these files.
+
+Moreover, whenever these files change, the author of this change is required
+to update files that depend on these files that are not automatically triggered
+by our build system. We provide a script for this purpose, also in the cvc5
+repository at `./contrib/install-rare-rewrites`.
+
+In particular, this script updates the `ProofRewriteRule` identifiers in
+cvc5's API, as well as the CPC proof signature.
+
+Furthermore, if RARE rules are added for a new theory, the script
+`./contrib/install-rare-rewrites` must be updated to include references to
+the CPC formalization of the new theory.
