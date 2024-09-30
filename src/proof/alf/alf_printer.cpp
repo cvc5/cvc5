@@ -42,6 +42,7 @@ AlfPrinter::AlfPrinter(Env& env,
                        uint32_t letThresh)
     : EnvObj(env),
       d_tproc(atp),
+      d_pfIdCounter(0),
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
