@@ -208,6 +208,14 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())
   {
+    if (Configuration::isAssertionBuild())
+    {
+      // all variables should be unique since we are processing rewritten quantified formulas
+      std::unordered_set<Node> vset(vars.begin(), vars.end());
+      Assert (vset.size()==vars.size());
+      std::unordered_set<Node> sset(subs.begin(), subs.end());
+      Assert (sset.size()==subs.size());
+    }
     CDProof cdp(d_env);
     std::vector<Node> transEq;
     // if there is variable shadowing, we do an intermediate step with fresh
