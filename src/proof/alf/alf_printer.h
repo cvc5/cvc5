@@ -89,7 +89,6 @@ class AlfPrinter : protected EnvObj
   LetBinding* getLetBinding();
 
  private:
-  void printInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn);
   /** Return true if it is possible to trust the topmost application in pfn */
   bool isHandled(const ProofNode* pfn) const;
   /** Return true if id is handled as a theory rewrite for term n */
@@ -125,6 +124,11 @@ class AlfPrinter : protected EnvObj
   /**
    * Helper for print. Prints the proof node using the print channel out. This
    * may either write the proof to an output stream or preprocess it.
+   *
+   * @param out The output channel to print to.
+   * @param pn The proof node to print.
+   * @param addToCache If true, we add (subproofs) of pn to the cache and do
+   * not print them with this method if they are encounted again.
    */
   void printProofInternal(AlfPrintChannel* out,
                           const ProofNode* pn,
@@ -169,9 +173,8 @@ class AlfPrinter : protected EnvObj
    */
   context::Context d_passumeCtx;
   /**
-   * Whether we have to process children.
-   * This map is dependent on the proof assumption context, e.g. subproofs of
-   * SCOPE are reprocessed if they happen to occur in different proof scopes.
+   * The set of proof nodes we have already printed with this class, as
+   * used by printProofInternal.
    */
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** Mapping assumed formulas to identifiers */
