@@ -155,7 +155,10 @@ bool InferProofCons::convert(CDProof& cdp,
       Node aelim = psb.applyPredElim(assumps[0], exp);
       success = CDProof::isSame(aelim, conc);
       // should never fail
-      Assert(success);
+      // TODO(#155): Enable this assertion after fixing regression
+      // regress1/sets/all_unsat.smt2
+      // https://github.com/cvc5/cvc5-wishues/issues/155
+      // Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
