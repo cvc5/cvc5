@@ -458,6 +458,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
   std::stringstream ssExplicit;
   std::map<std::string, size_t> nameCount;
+  std::vector<Node> uviList;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -476,6 +477,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     nameCount[result]++;
     sss << result << nameCount[result];
     Node uvi = d_tproc.mkInternalSymbol(sss.str(), uv.getType());
+    uviList.emplace_back(uvi);
     su.add(varList[i], uvi);
     ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
@@ -520,13 +522,13 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     out << ")" << std::endl;
   }
   out << "  :args (";
-  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
+  for (size_t i = 0, nvars = uviList.size(); i < nvars; i++)
   {
     if (i > 0)
     {
       out << " ";
     }
-    out << uvarList[i];
+    out << uviList[i];
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
