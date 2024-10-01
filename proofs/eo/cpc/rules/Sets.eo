@@ -31,18 +31,6 @@
   :conclusion (= (set.is_empty t) b)
 )
 
-; rule: sets-ext
-; implements: ProofRewriteRule::SETS_EXT
-; premises:
-; - mem: A membership of element x into a set filter term.
-; conclusion: >
-;   The membership holds for the set for which we are filtering, and the
-;   predicate is true for x.
-(declare-rule sets-ext ((T Type) (P (-> T Bool)) (x T) (S (Set T)))
-  :premises ((set.member x (set.filter P S)))
-  :conclusion (and (set.member x S) (P x))
-)
-
 ; rule: sets_singleton_inj
 ; implements: ProofRule::SETS_SINGLETON_INJ
 ; premises:
