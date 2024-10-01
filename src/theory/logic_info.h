@@ -293,7 +293,7 @@ public:
     return *this <= other || *this >= other;
   }
 
-private:
+ private:
   void checkDuplicateTheory(theory::TheoryId theory, const char* id);
 
 }; /* class LogicInfo */

@@ -374,7 +374,8 @@ void throwTwoArithmeticTheoriesError(const char* th1, const char* th2)
   throw cvc5::internal::Exception(err.str().c_str());
 }
 
-void checkMultipleArithmeticTheories(const char* prevTheory, const char* currentTheory)
+void checkMultipleArithmeticTheories(const char* prevTheory,
+                                     const char* currentTheory)
 {
   if (*prevTheory != '\0')
   {
