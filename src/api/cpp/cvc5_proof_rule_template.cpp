@@ -131,6 +131,8 @@ const char* toString(ProofRule rule)
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
+    case ProofRule::SETS_FILTER_DOWN: return "SETS_FILTER_DOWN";
+    case ProofRule::SETS_FILTER_UP: return "SETS_FILTER_UP";
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";

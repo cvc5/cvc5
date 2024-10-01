@@ -152,13 +152,12 @@ bool InferProofCons::convert(CDProof& cdp,
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
-      Node aelim = psb.applyPredElim(assumps[0], exp);
-      success = CDProof::isSame(aelim, conc);
+      success = psb.applyPredTransform(assumps[0], conc, exp);
       // should never fail
       // TODO(#155): Enable this assertion after fixing regression
       // regress1/sets/all_unsat.smt2
       // https://github.com/cvc5/cvc5-wishues/issues/155
-      // Assert(success);
+      Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
@@ -325,6 +324,33 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1);
       Node res =
           psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
+      success = CDProof::isSame(res, conc);
+      Assert(success);
+    }
+    break;
+    case InferenceId::SETS_FILTER_UP:
+    case InferenceId::SETS_FILTER_DOWN:
+    {
+      Node mem = assumps[0];
+      if (assumps.size()==2)
+      {
+        Assert (assumps[0].getKind()==Kind::SET_MEMBER);
+        Assert (assumps[1].getKind()==Kind::EQUAL);
+        Node refl = psb.tryStep(ProofRule::REFL, {}, {assumps[0][0]});
+        Node eq = psb.tryStep(ProofRule::CONG, {refl, assumps[1]}, {});
+        mem = psb.tryStep(ProofRule::EQ_RESOLVE, {mem, eq}, {});
+        Assert (!mem.isNull());
+      }
+      ProofRule pr = (id==InferenceId::SETS_FILTER_UP) ? ProofRule::SETS_FILTER_UP : ProofRule::SETS_FILTER_DOWN;
+      std::vector<Node> pfArgs;
+      if (id == InferenceId::SETS_FILTER_UP)
+      {
+        Assert (conc.getKind()==Kind::SET_MEMBER && conc[1].getKind()==Kind::SET_FILTER);
+        Node pred = conc[1][0];
+        pfArgs.push_back(pred);
+      }
+      Node res = psb.tryStep(pr, {mem}, pfArgs);
+      Trace("sets-ipc") << "Filter rule " << id << " returns " << res << ", expects " << conc << std::endl;
       success = CDProof::isSame(res, conc);
       Assert(success);
     }
