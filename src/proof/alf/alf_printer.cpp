@@ -457,6 +457,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   out << "(declare-rule " << r << " (";
   AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
   std::stringstream ssExplicit;
+  std::map<std::string, size_t> nameCount;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -466,9 +467,17 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     const Node& uv = uvarList[i];
     std::stringstream sss;
     sss << uv;
+    // use a consistent variable name, which e.g. ensures that minor changes
+    // to the RARE rules do not induce major changes in the CPC definition.
+    std::string str = sss.str();
+    size_t index = str.find_last_not_of("0123456789");
+    std::string result = str.substr(0, index+1);
+    sss.str("");
+    nameCount[result]++;
+    sss << result << nameCount[result];
     Node uvi = d_tproc.mkInternalSymbol(sss.str(), uv.getType());
     su.add(varList[i], uvi);
-    ssExplicit << "(" << uv << " ";
+    ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
     Node uvtp = adtc.process(uvt);
     ssExplicit << uvtp;
