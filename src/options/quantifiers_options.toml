@@ -1325,7 +1325,7 @@ name   = "Quantifiers"
   long       = "sygus-verify-timeout=N"
   type       = "uint64_t"
   default    = "0"
-  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms (0 == no limit)"
 
 [[option]]
   name       = "fullSygusVerify"

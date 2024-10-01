@@ -341,6 +341,8 @@ class SynthConjecture : protected EnvObj
    * rewrite rules.
    */
   std::map<Node, std::unique_ptr<ExpressionMinerManager>> d_exprm;
+  /** Have we given a warning for a candidate that failed verification? */
+  bool d_verifyWarned;
 };
 
 }  // namespace quantifiers
