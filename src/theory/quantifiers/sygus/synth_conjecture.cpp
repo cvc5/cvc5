@@ -612,11 +612,12 @@ bool SynthConjecture::doCheck()
     {
       d_verifyWarned = true;
       std::stringstream ss;
-      ss << "The SyGuS solver failed to verify a canidate solution.";
-      if (options().quantifiers.fullSygusVerify)
+      ss << "Warning: The SyGuS solver failed to verify a canidate solution, likely due to the base logic being undecidable.";
+      if (!options().quantifiers.fullSygusVerify)
       {
-        ss << " The option --full-sygus-verify can be used to put more effort into verifying individual candidate solutions."
+        ss << " The option --full-sygus-verify can be used to put more effort into verifying individual candidate solutions.";
       }
+      ss << " Use -q to silence this warning.";
       Warning() << ss.str() << std::endl;
     }
     // In the rare case that the subcall is unknown, we simply exclude the
