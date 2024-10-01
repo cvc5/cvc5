@@ -612,10 +612,12 @@ bool SynthConjecture::doCheck()
     {
       d_verifyWarned = true;
       std::stringstream ss;
-      ss << "Warning: The SyGuS solver failed to verify a canidate solution, likely due to the base logic being undecidable.";
+      ss << "Warning: The SyGuS solver failed to verify a canidate solution, "
+            "likely due to the base logic being undecidable.";
       if (!options().quantifiers.fullSygusVerify)
       {
-        ss << " The option --full-sygus-verify can be used to put more effort into verifying individual candidate solutions.";
+        ss << " The option --full-sygus-verify can be used to put more effort "
+              "into verifying individual candidate solutions.";
       }
       ss << " Use -q to silence this warning.";
       Warning() << ss.str() << std::endl;

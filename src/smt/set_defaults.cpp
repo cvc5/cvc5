@@ -1640,7 +1640,8 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   // full verify mode enables options to ensure full effort on candidates
   if (opts.quantifiers.fullSygusVerify)
   {
-    SET_AND_NOTIFY(quantifiers, sygusVerifyInstMaxRounds, -1, "full sygus verify");
+    SET_AND_NOTIFY(
+        quantifiers, sygusVerifyInstMaxRounds, -1, "full sygus verify");
     SET_AND_NOTIFY(quantifiers, fullSaturateQuant, true, "full sygus verify");
   }
   // must use Ferrante/Rackoff for real arithmetic
