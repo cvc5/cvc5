@@ -152,11 +152,13 @@ bool InferProofCons::convert(CDProof& cdp,
       // this holds by applying the equality as a substitution to the first
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
-      success = psb.applyPredTransform(assumps[0], conc, exp);
+      Node aelim = psb.applyPredElim(assumps[0], exp);
+      success = true;
+      if (!CDProof::isSame(aelim, conc))
+      {
+        success = psb.applyPredTransform(aelim, conc, {});
+      }
       // should never fail
-      // TODO(#155): Enable this assertion after fixing regression
-      // regress1/sets/all_unsat.smt2
-      // https://github.com/cvc5/cvc5-wishues/issues/155
       Assert(success);
     }
     break;
@@ -367,8 +369,8 @@ bool InferProofCons::convert(CDProof& cdp,
       if (id == InferenceId::SETS_FILTER_UP)
       {
         Assert(conc.getKind() == Kind::EQUAL
-               && conc[1].getKind() == Kind::SET_MEMBER
-               && conc[1][1].getKind() == Kind::SET_FILTER);
+               && conc[0].getKind() == Kind::SET_MEMBER
+               && conc[0][1].getKind() == Kind::SET_FILTER);
         Node pred = conc[0][1][0];
         pfArgs.push_back(pred);
       }
