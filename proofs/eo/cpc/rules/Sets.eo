@@ -67,7 +67,7 @@
 )
 
 ; rule: sets_filter_up
-; implements: ProofRewriteRule::SETS_FILTER_DOWN
+; implements: ProofRewriteRule::SETS_FILTER_UP
 ; args:
 ; - P (-> T Bool): The predicate to filter on.
 ; premises:
