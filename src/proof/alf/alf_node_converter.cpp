@@ -678,6 +678,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::SETS_DEQ_DIFF:
     case SkolemId::STRINGS_NUM_OCCUR:
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_OCCUR_INDEX:

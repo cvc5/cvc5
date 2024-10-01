@@ -336,7 +336,7 @@ bool InferProofCons::convert(CDProof& cdp,
       {
         // Transform based on the second equality A = B:
         //
-        //                  ------ REFL  
+        //                  ------ REFL
         //                   x = x               A = B
         //                  ----------------------------------- CONG
         // (set.member x A) (set.member x A) = (set.member x B)
@@ -348,14 +348,15 @@ bool InferProofCons::convert(CDProof& cdp,
         std::vector<Node> cargs;
         ProofRule cr = expr::getCongRule(assumps[0], cargs);
         Node aeq = assumps[1];
-        if (aeq[1]==assumps[0][1])
+        if (aeq[1] == assumps[0][1])
         {
           // flip?
           aeq = aeq[1].eqNode(aeq[0]);
           psb.tryStep(ProofRule::SYMM, {assumps[1]}, {});
         }
         Node eq = psb.tryStep(cr, {refl, aeq}, cargs);
-        Trace("sets-ipc") << "...via CONG is " << eq << ", now try with " << mem << std::endl;
+        Trace("sets-ipc") << "...via CONG is " << eq << ", now try with " << mem
+                          << std::endl;
         mem = psb.tryStep(ProofRule::EQ_RESOLVE, {mem, eq}, {});
         Assert(!mem.isNull());
       }
