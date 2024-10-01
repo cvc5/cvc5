@@ -293,6 +293,9 @@ public:
     return *this <= other || *this >= other;
   }
 
+private:
+  void checkDuplicateTheory(theory::TheoryId theory, const char* id);
+
 }; /* class LogicInfo */
 
 std::ostream& operator<<(std::ostream& out, const LogicInfo& logic);
