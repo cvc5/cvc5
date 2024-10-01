@@ -298,9 +298,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
   }
 }
 
-Node PseudoBooleanProcessor::mkGeqOne(Node v)
+Node PseudoBooleanProcessor::mkGeqOne(NodeManager* nm, Node v)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(
       Kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
@@ -349,8 +348,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_pos.front();
     Node y = d_neg.front();
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nodeManager(), x);
+    Node yGeq1 = mkGeqOne(nodeManager(), y);
     Node imp = yGeq1.impNode(xGeq1);
     addSub(geq, imp);
   }
@@ -362,8 +361,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_neg[0];
     Node y = d_neg[1];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nodeManager(), x);
+    Node yGeq1 = mkGeqOne(nodeManager(), y);
     Node cases = (xGeq1.notNode()).orNode(yGeq1.notNode());
     addSub(geq, cases);
   }
@@ -375,10 +374,10 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node y = d_pos[1];
     Node z = d_neg[0];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
-    Node zGeq1 = mkGeqOne(z);
-    NodeManager* nm = NodeManager::currentNM();
+    Node xGeq1 = mkGeqOne(nodeManager(), x);
+    Node yGeq1 = mkGeqOne(nodeManager(), y);
+    Node zGeq1 = mkGeqOne(nodeManager(), z);
+    NodeManager* nm = nodeManager();
     Node dis = nm->mkNode(Kind::OR, zGeq1.notNode(), xGeq1, yGeq1);
     addSub(geq, dis);
   }
