@@ -733,8 +733,8 @@ void TheorySetsPrivate::checkFilterUp()
       // (set.member x A)
       // ---------------------------------------
       // (set.member x (set.filter P A)) = (P x)
-      Node conclusion= memberFilter.eqNode(p_x);
-      d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      Node conclusion = memberFilter.eqNode(p_x);
+      d_im.assertInference(conclusion, InferenceId::SETS_FILTER_UP, exp);
       if (d_state.isInConflict())
       {
         return;
