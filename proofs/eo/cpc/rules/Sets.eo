@@ -45,7 +45,9 @@
 ; implements: ProofRule::SETS_EXT
 ; premises:
 ; - deq: A disequality between sets.
-; conclusion: The sets are disequal for a witness lement, as given by the skolem (@set_deq_diff a b).
+; conclusion: >
+;   The sets are disequal for a witness element, as given by the skolem
+;   (@set_deq_diff a b).
 (declare-rule sets_ext ((T Type) (a (Set T)) (b (Set T)))
   :premises ((not (= a b)))
   :conclusion (not (= (set.member (@sets_deq_diff a b) a) (set.member (@sets_deq_diff a b) b)))

@@ -1392,7 +1392,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{\mathit{set.member}(x,\mathit{set.filter}(P, a))\mid -}
-   *   {P(x) \wedge \mathit{set.member}(x,a)}
+   *   {\mathit{set.member}(x,a) \wedge P(x)}
    * \endverbatim
    */
   EVALUE(SETS_FILTER_DOWN),
