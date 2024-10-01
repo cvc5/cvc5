@@ -603,8 +603,6 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
-  Trace("ajr-temp") << "; definitions: " << definitions << std::endl;
-  Trace("ajr-temp") << "; assertions: " << assertions << std::endl;
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
@@ -619,29 +617,22 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
     }
     if (i == 1)
     {
-      // [1] print DSL rules
-      // Note that RARE rules used in this proof are printed in the preamble of
-      // the proof here, on demand.
-      for (ProofRewriteRule r : d_dprs)
-      {
-        printDslRule(out, r);
-      }
       if (!options().proof.proofPrintReference)
       {
-        // [2] print the types
+        // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
         smt::PrintBenchmark pb(&alfp, &d_tproc);
-        std::stringstream outTypes;
-        std::stringstream outFuns;
-        pb.printDeclarationsFrom(outTypes, outFuns, definitions, assertions);
-        out << outTypes.str();
-        // [4] print the declared functions
-        out << outFuns.str();
+        std::stringstream outDecl;
+        std::stringstream outDef;
+        pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
+        out << outDecl.str();
+        // [2] print the definitions
+        out << outDef.str();
       }
-      // [5] print proof-level term bindings
+      // [3] print proof-level term bindings
       printLetList(out, d_lbind);
     }
-    // [6] print (unique) assumptions
+    // [4] print (unique) assumptions
     std::unordered_set<Node> processed;
     for (const Node& n : assertions)
     {
@@ -672,7 +663,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       Node lam = d_tproc.convert(n[1]);
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
-    // [7] print proof body
+    // [5] print proof body
     printProofInternal(ao, pnBody, i == 1);
   }
 }
@@ -897,21 +888,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   bool handled = isHandled(pn);
   if (handled)
   {
-    if (r == ProofRule::DSL_REWRITE)
-    {
-      const std::vector<Node> aargs = pn->getArguments();
-      // if its a DSL rule, remember it
-      Node idn = aargs[0];
-      ProofRewriteRule di;
-      if (rewriter::getRewriteRule(idn, di))
-      {
-        d_dprs.insert(di);
-      }
-      else
-      {
-        Unhandled();
-      }
-    }
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);
