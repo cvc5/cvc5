@@ -37,7 +37,8 @@ using namespace cvc5::internal::theory;
 
 namespace {
 
-Node preSkolemEmp(TypeNode locType,
+Node preSkolemEmp(NodeManager* nm,
+                  TypeNode locType,
                   TypeNode dataType,
                   Node n,
                   bool pol,
@@ -46,7 +47,6 @@ Node preSkolemEmp(TypeNode locType,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
-    NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
@@ -81,7 +81,7 @@ Node preSkolemEmp(TypeNode locType,
         Node nc = n[i];
         if (newHasPol)
         {
-          nc = preSkolemEmp(locType, dataType, n[i], newPol, visited);
+          nc = preSkolemEmp(nm, locType, dataType, n[i], newPol, visited);
           childChanged = childChanged || nc != n[i];
         }
         children.push_back(nc);
@@ -122,7 +122,8 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
   {
     Node prev = (*assertionsToPreprocess)[i];
     bool pol = true;
-    Node next = preSkolemEmp(locType, dataType, prev, pol, visited);
+    Node next =
+        preSkolemEmp(nodeManager(), locType, dataType, prev, pol, visited);
     if (next != prev)
     {
       assertionsToPreprocess->replace(i, rewrite(next));
