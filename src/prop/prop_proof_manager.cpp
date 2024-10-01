@@ -573,14 +573,7 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   Node dfile = nm->mkConst(String(dinputFile.str()));
   args.push_back(dfile);
   ProofRule r = ProofRule::UNKNOWN;
-  if (pmode == options::PropProofMode::SKETCH)
-  {
-    // if sketch, get the rule and arguments from the SAT solver.
-    std::pair<ProofRule, std::vector<Node>> sk = d_satSolver->getProofSketch();
-    r = sk.first;
-    args.insert(args.end(), sk.second.begin(), sk.second.end());
-  }
-  else if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
+  if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
   {
     // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
     // arguments.

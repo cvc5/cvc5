@@ -237,9 +237,6 @@ name   = "Proof"
 [[option.mode.SAT_EXTERNAL_PROVE]]
   name = "sat-external-prove"
   help = "A proof containing a step that will be proven externally."
-[[option.mode.SKETCH]]
-  name = "sketch"
-  help = "A sketch given by the SAT solver."
 
 [[option]]
   name       = "proofAllowTrust"

@@ -1295,20 +1295,11 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
+  // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
+  // consisting of a single step, referencing the files for the DIMACS + proof.
   // do not throw an exception, since we test whether the proof is available
   // by comparing it to nullptr.
   return nullptr;
-}
-
-std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
-{
-  Assert(d_logProofs);
-  d_solver->flush_proof_trace();
-  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
-  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
-  // The DRAT file is an argument to the file proof.
-  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
-                                                 args);
 }
 
 /* -------------------------------------------------------------------------- */
