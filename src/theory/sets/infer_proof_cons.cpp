@@ -332,25 +332,30 @@ bool InferProofCons::convert(CDProof& cdp,
     case InferenceId::SETS_FILTER_DOWN:
     {
       Node mem = assumps[0];
-      if (assumps.size()==2)
+      if (assumps.size() == 2)
       {
-        Assert (assumps[0].getKind()==Kind::SET_MEMBER);
-        Assert (assumps[1].getKind()==Kind::EQUAL);
+        Assert(assumps[0].getKind() == Kind::SET_MEMBER);
+        Assert(assumps[1].getKind() == Kind::EQUAL);
         Node refl = psb.tryStep(ProofRule::REFL, {}, {assumps[0][0]});
         Node eq = psb.tryStep(ProofRule::CONG, {refl, assumps[1]}, {});
         mem = psb.tryStep(ProofRule::EQ_RESOLVE, {mem, eq}, {});
-        Assert (!mem.isNull());
+        Assert(!mem.isNull());
       }
-      ProofRule pr = (id==InferenceId::SETS_FILTER_UP) ? ProofRule::SETS_FILTER_UP : ProofRule::SETS_FILTER_DOWN;
+      ProofRule pr = (id == InferenceId::SETS_FILTER_UP)
+                         ? ProofRule::SETS_FILTER_UP
+                         : ProofRule::SETS_FILTER_DOWN;
       std::vector<Node> pfArgs;
       if (id == InferenceId::SETS_FILTER_UP)
       {
-        Assert (conc.getKind()==Kind::EQUAL && conc[1].getKind()==Kind::SET_MEMBER && conc[1][1].getKind()==Kind::SET_FILTER);
+        Assert(conc.getKind() == Kind::EQUAL
+               && conc[1].getKind() == Kind::SET_MEMBER
+               && conc[1][1].getKind() == Kind::SET_FILTER);
         Node pred = conc[0][1][0];
         pfArgs.push_back(pred);
       }
       Node res = psb.tryStep(pr, {mem}, pfArgs);
-      Trace("sets-ipc") << "Filter rule " << id << " returns " << res << ", expects " << conc << std::endl;
+      Trace("sets-ipc") << "Filter rule " << id << " returns " << res
+                        << ", expects " << conc << std::endl;
       success = CDProof::isSame(res, conc);
       Assert(success);
     }

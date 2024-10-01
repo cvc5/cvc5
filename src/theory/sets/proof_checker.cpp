@@ -87,7 +87,8 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.size() == 1);
     Node mem = children[0];
-    if (mem.getKind() != Kind::SET_MEMBER || mem[1].getKind()!=Kind::SET_FILTER)
+    if (mem.getKind() != Kind::SET_MEMBER
+        || mem[1].getKind() != Kind::SET_FILTER)
     {
       return Node::null();
     }
