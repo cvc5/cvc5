@@ -345,8 +345,8 @@ bool InferProofCons::convert(CDProof& cdp,
       std::vector<Node> pfArgs;
       if (id == InferenceId::SETS_FILTER_UP)
       {
-        Assert (conc.getKind()==Kind::SET_MEMBER && conc[1].getKind()==Kind::SET_FILTER);
-        Node pred = conc[1][0];
+        Assert (conc.getKind()==Kind::EQUAL && conc[1].getKind()==Kind::SET_MEMBER && conc[1][1].getKind()==Kind::SET_FILTER);
+        Node pred = conc[0][1][0];
         pfArgs.push_back(pred);
       }
       Node res = psb.tryStep(pr, {mem}, pfArgs);

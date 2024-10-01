@@ -80,9 +80,8 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
     }
     Node pred = nm->mkNode(Kind::APPLY_UF, args[0], mem[0]);
     Node filter = nm->mkNode(Kind::SET_FILTER, args[0], mem[1]);
-    Node case1 = nm->mkNode(Kind::AND, pred, nm->mkNode(Kind::SET_MEMBER, mem[0], filter));
-    Node case2 = nm->mkNode(Kind::AND, pred.notNode(), nm->mkNode(Kind::SET_MEMBER, mem[0], filter).notNode());
-    return nm->mkNode(Kind::OR, case1, case2);
+    Node nmem = nm->mkNode(Kind::SET_MEMBER, mem[0], filter);
+    return nmem.eqNode(pred);
   }
   else if (id == ProofRule::SETS_FILTER_DOWN)
   {
