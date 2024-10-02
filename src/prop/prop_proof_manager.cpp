@@ -186,8 +186,9 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses()
   // if it has a proof
   std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
   // Note that we currently assume that the proof is the standard way of
-  // communicating the unsat core of theory lemmas, e.g. the unsat core of
-  // theory lemmas
+  // communicating the unsat core of theory lemmas. If no proofs are
+  // available, then a trust step (e.g. SAT_REFUTATION) with free assumptions
+  // F1 ... Fn can be used to indicate that F1 ... Fn is the unsat core
   if (satPf == nullptr)
   {
     std::stringstream ss;
