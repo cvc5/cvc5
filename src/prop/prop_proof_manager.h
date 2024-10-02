@@ -198,25 +198,6 @@ class PropPfManager : protected EnvObj
    */
   std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
   /**
-   * Get minimized assumptions. Returns a vector of nodes which is a
-   * subset of the assumptions (d_assumptions) that appear in the unsat
-   * core. This should be called only when the unsat core is available (after
-   * an unsatisfiable check-sat).
-   */
-  std::vector<Node> getMinimizedAssumptions();
-  /**
-   * Calculate a subset of cset that is propositionally unsatisfiable.
-   * If sucessful, return true and store this in uc.
-   *
-   * @param cset The set of formulas to compute an unsat core for
-   * @param uc The set of formulas returned as the unsat core
-   * @param outDimacs If provided, we write a DIMACS representation of uc to
-   * this stream
-   */
-  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
-                        std::vector<Node>& uc,
-                        std::ostream* outDimacs = nullptr);
-  /**
    * Add a proof of false to cdp whose free assumptions are a subset of the
    * clauses (after CNF conversion), which is a union of:
    * (1) assumptions (d_assumptions),

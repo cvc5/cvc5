@@ -988,15 +988,13 @@ class ClauseLearner : public CaDiCaL::Learner
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name,
-                             bool logProofs)
+                             const std::string& name)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
-      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -1020,7 +1018,12 @@ void CadicalSolver::init()
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
 
-  if (d_logProofs)
+  bool logProofs = false;
+  // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
+  // here based on d_env.isSatProofProducing and options().proof.propProofMode.
+  // The latter should be extended to include modes DRAT and LRAT based on
+  // what is available here.
+  if (logProofs)
   {
     d_pfFile = options().driver.filename + ".drat_proof.txt";
     if (!options().proof.dratBinaryFormat)

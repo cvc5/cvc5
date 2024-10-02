@@ -90,10 +90,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   }
   else
   {
-    // log DRAT proofs if the mode is SKETCH.
-    bool logProofs = env.isSatProofProducing();
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
+        d_env, statisticsRegistry(), env.getResourceManager(), "");
   }
 
   // CNF stream and theory proxy required pointers to each other, make the
