@@ -25,14 +25,15 @@
 namespace cvc5::internal {
 namespace proof {
 
-AlfPrintChannel::AlfPrintChannel() {}
+AlfPrintChannel::AlfPrintChannel(NodeManager* nm) : d_nm(nm) {}
 
 AlfPrintChannel::~AlfPrintChannel() {}
 
-AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
+AlfPrintChannelOut::AlfPrintChannelOut(NodeManager* nm,
+                                       std::ostream& out,
                                        const LetBinding* lbind,
                                        const std::string& tprefix)
-    : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
+    : AlfPrintChannel(nm), d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
 {
 }
 
@@ -175,7 +176,10 @@ void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
   tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
+AlfPrintChannelPre::AlfPrintChannelPre(NodeManager* nm, LetBinding* lbind)
+    : AlfPrintChannel(nm), d_lbind(lbind)
+{
+}
 
 void AlfPrintChannelPre::printNode(TNode n)
 {
@@ -230,8 +234,7 @@ void AlfPrintChannelPre::processInternal(const Node& n)
     d_lbind->process(n);
   }
   d_keep.insert(n);  // probably not necessary
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   // traverse and collect all free variables in this term, which includes
   // traversing skolem indices.
   std::vector<TNode> visit;

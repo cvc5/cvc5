@@ -563,8 +563,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // We additionally traverse skolems with this utility.
   LetBinding lbind(d_termLetPrefix, 2, true, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
-  AlfPrintChannelPre aletify(lbindUse);
-  AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
+  AlfPrintChannelPre aletify(nodeManager(), lbindUse);
+  AlfPrintChannelOut aprint(nodeManager(), out, lbindUse, d_termLetPrefix);
 
   d_pletMap.clear();
 

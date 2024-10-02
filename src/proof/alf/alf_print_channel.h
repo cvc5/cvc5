@@ -37,7 +37,7 @@ namespace proof {
 class AlfPrintChannel
 {
  public:
-  AlfPrintChannel();
+  AlfPrintChannel(NodeManager* nm);
   virtual ~AlfPrintChannel();
   /** Print node n */
   virtual void printNode(TNode n) = 0;
@@ -67,13 +67,18 @@ class AlfPrintChannel
                               const std::vector<size_t>& premises,
                               const std::vector<Node>& args,
                               TNode conc) = 0;
+
+ protected:
+  /** the associated node manager */
+  NodeManager* d_nm;
 };
 
 /** Prints the proof to output stream d_out */
 class AlfPrintChannelOut : public AlfPrintChannel
 {
  public:
-  AlfPrintChannelOut(std::ostream& out,
+  AlfPrintChannelOut(NodeManager* nm,
+                     std::ostream& out,
                      const LetBinding* lbind,
                      const std::string& tprefix);
   void printNode(TNode n) override;
@@ -134,7 +139,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
 class AlfPrintChannelPre : public AlfPrintChannel
 {
  public:
-  AlfPrintChannelPre(LetBinding* lbind);
+  AlfPrintChannelPre(NodeManager* nm, LetBinding* lbind);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
