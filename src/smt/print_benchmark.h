@@ -98,7 +98,7 @@ class PrintBenchmark
    * include what was printed
    */
   void printDeclaredFuns(std::ostream& out,
-                         const std::unordered_set<Node>& funs,
+                         const std::vector<Node>& funs,
                          std::unordered_set<Node>& processed);
   /**
    * Get the connected types. This traverses subfield types of datatypes and
