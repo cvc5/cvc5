@@ -396,11 +396,18 @@ Node InstStrategyMbqi::convertToQuery(
       }
       else if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
       {
-        // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur);
-        freshVarType[cur.getType()].insert(k);
-        cmap[cur] = k;
-        continue;
+        // if its a constant, we can continue, we will assume it is distinct
+        // from all others of its type
+        if (cur.isConst())
+        {
+          // return the fresh variable for this term
+          Node k = sm->mkPurifySkolem(cur);
+          freshVarType[cur.getType()].insert(k);
+          cmap[cur] = k;
+          continue;
+        }
+        // if this is a bad kind, fail immediately
+        return Node::null();
       }
       else if (cur.getNumChildren() == 0)
       {
