@@ -6873,21 +6873,12 @@ void Solver::ensureWellFormedTerm(const Term& t) const
   // only check if option is set
   if (d_slv->getOptions().expr.wellFormedChecking)
   {
-    bool wasShadow = false;
-    if (internal::expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    if (internal::expr::hasFreeVar(*t.d_node))
     {
       std::stringstream se;
       se << "cannot process term " << *t.d_node << " with ";
-      if (wasShadow)
-      {
-        se << "shadowed variables " << std::endl;
-      }
-      else
-      {
-        std::unordered_set<internal::Node> fvs;
-        internal::expr::getFreeVariables(*t.d_node, fvs);
-        se << "free variables: " << fvs << std::endl;
-      }
+      internal::expr::getFreeVariables(*t.d_node, fvs);
+      se << "free variables: " << fvs << std::endl;
       throw CVC5ApiException(se.str().c_str());
     }
   }
