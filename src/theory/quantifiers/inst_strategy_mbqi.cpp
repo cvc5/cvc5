@@ -177,17 +177,13 @@ void InstStrategyMbqi::process(Node q)
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
-    if (!tn.isSort())
-    {
-      continue;
-    }
-    itk = freshVarType.find(tn);
-    if (itk == freshVarType.end())
+    if (!tn.isUninterpretedSort())
     {
       // not an uninterpreted sort, continue
       continue;
     }
-    if (itk->second.empty())
+    itk = freshVarType.find(tn);
+    if (itk == freshVarType.end() || itk->second.empty())
     {
       Trace("mbqi") << "warning: failed to get vars for type " << tn
                     << std::endl;
