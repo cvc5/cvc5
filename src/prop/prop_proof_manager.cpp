@@ -28,6 +28,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
 
@@ -179,43 +180,6 @@ theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem,
   }
   return theory::InferenceId::NONE;
 }
-
-std::vector<Node> PropPfManager::getMinimizedAssumptions()
-{
-  std::vector<Node> minAssumptions;
-  std::vector<SatLiteral> unsatAssumptions;
-  d_satSolver->getUnsatAssumptions(unsatAssumptions);
-  for (const Node& nc : d_assumptions)
-  {
-    if (nc.isConst())
-    {
-      if (nc.getConst<bool>())
-      {
-        // never include true
-        continue;
-      }
-      minAssumptions.clear();
-      minAssumptions.push_back(nc);
-      return minAssumptions;
-    }
-    else if (d_pfCnfStream.hasLiteral(nc))
-    {
-      SatLiteral il = d_pfCnfStream.getLiteral(nc);
-      if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
-          == unsatAssumptions.end())
-      {
-        continue;
-      }
-    }
-    else
-    {
-      Assert(false) << "Missing literal for assumption " << nc;
-    }
-    minAssumptions.push_back(nc);
-  }
-  return minAssumptions;
-}
-
 std::vector<Node> PropPfManager::getUnsatCoreClauses()
 {
   std::vector<Node> uc;
@@ -274,19 +238,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   // get the proof based on the proof mode
   options::PropProofMode pmode = options().proof.propProofMode;
   std::shared_ptr<ProofNode> conflictProof;
-  if (pmode == options::PropProofMode::PROOF)
-  {
-    // take proof from SAT solver as is
-    conflictProof = d_satSolver->getProof();
-  }
-  else
-  {
-    // set up a proof and get the internal proof
-    CDProof cdp(d_env);
-    getProofInternal(&cdp);
-    Node falsen = NodeManager::currentNM()->mkConst(false);
-    conflictProof = cdp.getProofFor(falsen);
-  }
+  // take proof from SAT solver as is
+  conflictProof = d_satSolver->getProof();
 
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
@@ -386,118 +339,6 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 }
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
-
-void PropPfManager::getProofInternal(CDProof* cdp)
-{
-  // This method is called when the SAT solver did not generate a fully self
-  // contained ProofNode proving false. This method adds a step to cdp
-  // based on a set of computed assumptions, possibly relying on the internal
-  // proof.
-  NodeManager* nm = NodeManager::currentNM();
-  Node falsen = nm->mkConst(false);
-  std::vector<Node> clauses;
-  // deduplicate assumptions
-  Trace("cnf-input") << "#assumptions=" << d_assumptions.size() << std::endl;
-  std::vector<Node> minAssumptions = getMinimizedAssumptions();
-  if (minAssumptions.size() == 1 && minAssumptions[0] == falsen)
-  {
-    // if false exists, no proof is necessary
-    return;
-  }
-  std::unordered_set<Node> cset(minAssumptions.begin(), minAssumptions.end());
-  Trace("cnf-input") << "#assumptions (min)=" << cset.size() << std::endl;
-  std::vector<Node> inputs = getInputClauses();
-  Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
-  std::vector<Node> lemmas = getLemmaClauses();
-  Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
-  cset.insert(inputs.begin(), inputs.end());
-  cset.insert(lemmas.begin(), lemmas.end());
-
-  // Otherwise, we will dump a DIMACS. The proof further depends on the
-  // mode, which we handle below.
-  std::stringstream dinputFile;
-  dinputFile << options().driver.filename << ".drat_input.cnf";
-  // the stream which stores the DIMACS of the computed clauses
-  std::fstream dout(dinputFile.str(), std::ios::out);
-  options::PropProofMode pmode = options().proof.propProofMode;
-  // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
-  bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
-                  && options().proof.satProofMinDimacs);
-  // go back and minimize assumptions if minimal is true
-  bool computedClauses = false;
-  if (minimal)
-  {
-    // get the unsat core clauses
-    std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
-    if (satPf != nullptr)
-    {
-      clauses = getUnsatCoreClauses(&dout);
-      computedClauses = true;
-    }
-    else if (reproveUnsatCore(cset, clauses, &dout))
-    {
-      computedClauses = true;
-    }
-    else
-    {
-      // failed to reprove
-    }
-  }
-  // if we did not minimize, just include all
-  if (!computedClauses)
-  {
-    // if no minimization is necessary, just include all
-    clauses.insert(clauses.end(), cset.begin(), cset.end());
-    std::vector<Node> auxUnits = computeAuxiliaryUnits(clauses);
-    d_pfCnfStream.dumpDimacs(dout, clauses, auxUnits);
-    // include the auxiliary units if any
-    clauses.insert(clauses.end(), auxUnits.begin(), auxUnits.end());
-  }
-  // construct the proof
-  std::vector<Node> args;
-  Node dfile = nm->mkConst(String(dinputFile.str()));
-  args.push_back(dfile);
-  ProofRule r = ProofRule::UNKNOWN;
-  if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
-  {
-    // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
-    // arguments.
-    r = ProofRule::SAT_EXTERNAL_PROVE;
-  }
-  else
-  {
-    Assert(false) << "Unknown proof mode " << pmode;
-  }
-  // use the rule, clauses and arguments we computed above
-  cdp->addStep(falsen, r, clauses, args);
-}
-
-std::vector<Node> PropPfManager::computeAuxiliaryUnits(
-    const std::vector<Node>& clauses)
-{
-  std::vector<Node> auxUnits;
-  for (const Node& c : clauses)
-  {
-    if (c.getKind() != Kind::OR)
-    {
-      continue;
-    }
-    // Determine if any OR child occurs as a top level clause. If so, it may
-    // be relevant to include this as a unit clause.
-    for (const Node& l : c)
-    {
-      const Node& atom = l.getKind() == Kind::NOT ? l[0] : l;
-      if (atom.getKind() == Kind::OR
-          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
-          && std::find(auxUnits.begin(), auxUnits.end(), atom)
-                 == auxUnits.end())
-      {
-        auxUnits.push_back(atom);
-      }
-    }
-  }
-  return auxUnits;
-}
 
 std::vector<Node> PropPfManager::getInputClauses()
 {
