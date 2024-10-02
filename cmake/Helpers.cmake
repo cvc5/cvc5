@@ -278,3 +278,12 @@ macro(copy_file_from_src filename)
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
   )
 endmacro()
+
+macro(update_rpath_macos dylibname)
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
+    -DRPATH=@loader_path
+    -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
+    -DDYLIB_PATH=\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${dylibname}
+    -DDEPS_BASE=${DEPS_BASE}
+    -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
+endmacro()

@@ -1,5 +1,5 @@
 ; EXPECT: feasible
-; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol -q
 
 (set-logic ALL)
 

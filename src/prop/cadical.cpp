@@ -20,6 +20,7 @@
 #include <deque>
 
 #include "base/check.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "prop/theory_proxy.h"
@@ -949,6 +950,42 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   bool d_in_search = false;
 };
 
+class ClauseLearner : public CaDiCaL::Learner
+{
+ public:
+  ClauseLearner(TheoryProxy& proxy, int32_t clause_size)
+      : d_proxy(proxy), d_max_clause_size(clause_size)
+  {
+  }
+  ~ClauseLearner() override {}
+
+  bool learning(int size) override
+  {
+    return d_max_clause_size == 0 || size <= d_max_clause_size;
+  }
+
+  void learn(int lit) override
+  {
+    if (lit)
+    {
+      SatLiteral slit = toSatLiteral(lit);
+      d_clause.push_back(slit);
+    }
+    else
+    {
+      d_proxy.notifySatClause(d_clause);
+      d_clause.clear();
+    }
+  }
+
+ private:
+  TheoryProxy& d_proxy;
+  /** Intermediate literals buffer. */
+  std::vector<SatLiteral> d_clause;
+  /** Maximum size of clauses to get notified about. */
+  int32_t d_max_clause_size;
+};
+
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
                              const std::string& name,
@@ -975,6 +1012,9 @@ void CadicalSolver::init()
   {
     d_solver->set("walk", 0);
     d_solver->set("lucky", 0);
+    // ilb currently does not play well with user propagators
+    d_solver->set("ilb", 0);
+    d_solver->set("ilbassumptions", 0);
   }
 
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
@@ -1190,6 +1230,11 @@ void CadicalSolver::initialize(context::Context* context,
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
   d_solver->connect_external_propagator(d_propagator.get());
+  if (!d_env.getPlugins().empty())
+  {
+    d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
+    d_solver->connect_learner(d_clause_learner.get());
+  }
 
   init();
 }
@@ -1262,7 +1307,7 @@ std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {
   Assert(d_logProofs);
   d_solver->flush_proof_trace();
-  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
+  std::vector<Node> args = {nodeManager()->mkConst(String(d_pfFile))};
   // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
   // The DRAT file is an argument to the file proof.
   return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,

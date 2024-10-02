@@ -147,6 +147,8 @@ class QuantifiersModule : protected EnvObj
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
+  /** notify preprocessed assertion */
+  virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
   /**
    * Identify this module (for debugging, dynamic configuration, etc..).
    * This name is printed in -o inst-strategy.

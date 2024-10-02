@@ -77,7 +77,7 @@ class SynthEngine : public QuantifiersModule
    * to help when trying to reconstruct a solution that fits a given input
    * syntax.
    */
-  void ppNotifyAssertion(Node n);
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
 
  private:
   /** The synthesis conjectures that this class is managing. */

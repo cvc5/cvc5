@@ -162,16 +162,6 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
   d_smt.assertToInternal(ap);
   // get result
   Result result = d_smt.checkSatInternal();
-
-  // handle options-specific modifications to result
-  if (ap.isRefutationUnsound() && result.getStatus() == Result::UNSAT)
-  {
-    result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-  }
-  else if (ap.isModelUnsound() && result.getStatus() == Result::SAT)
-  {
-    result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-  }
   // handle preprocessing-specific modifications to result
   if (ap.isNegated())
   {

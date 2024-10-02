@@ -89,6 +89,7 @@ enum class Resource
   SatConflictStep,
   SygusCheckStep,
   TheoryCheckStep,
+  TheoryFullCheckStep,
   FindSynthStep,
   Unknown
 };
@@ -152,6 +153,10 @@ class ResourceManager
    * there are no remaining resources.
    */
   void spendResource(Resource r);
+  /**
+   * Gets the number of resources spent for r so far.
+   */
+  uint64_t getResource(Resource r) const;
   /**
    * Spends a given resource. Calls the listener to interrupt the solver if
    * there are no remaining resources.

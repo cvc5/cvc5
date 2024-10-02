@@ -206,6 +206,34 @@ const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm, size_t* size)
   return *size > 0 ? res.data() : nullptr;
 }
 
+
+void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                             size_t* size,
+                             Cvc5Term* terms[],
+                             const char** names[])
+{
+  static thread_local std::vector<Cvc5Term> rterms;
+  static thread_local std::vector<const char*> rnames;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(sm);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  CVC5_CAPI_CHECK_NOT_NULL(names);
+  rterms.clear();
+  rnames.clear();
+  auto res = sm->d_sm.getNamedTerms();
+  auto tm = sm->d_tm;
+  for (auto& t : res)
+  {
+    rterms.push_back(tm->export_term(t.first));
+    rnames.push_back(t.second.c_str());
+  }
+  *size = rterms.size();
+  *terms = rterms.data();
+  *names = rnames.data();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 
 const char* cvc5_cmd_invoke(Cvc5Command cmd, Cvc5* cvc5, Cvc5SymbolManager* sm)

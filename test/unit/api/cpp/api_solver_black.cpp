@@ -1250,6 +1250,37 @@ TEST_F(TestApiBlackSolver, getProofAndProofToString)
   ASSERT_FALSE(printedProof.empty());
 }
 
+TEST_F(TestApiBlackSolver, proofToStringAssertionNames)
+{
+  d_solver->setOption("produce-proofs", "true");
+
+  std::vector<Proof> proofs;
+
+  Term x = d_tm.mkConst(d_uninterpreted, "x");
+  Term y = d_tm.mkConst(d_uninterpreted, "y");
+
+  Term x_eq_y = d_tm.mkTerm(Kind::EQUAL, {x, y});
+  Term not_x_eq_y = d_tm.mkTerm(Kind::NOT, {x_eq_y});
+
+  std::map<cvc5::Term, std::string> assertionNames;
+  assertionNames.emplace(x_eq_y, "as1");
+  assertionNames.emplace(not_x_eq_y, "as2");
+
+  d_solver->assertFormula(x_eq_y);
+  d_solver->assertFormula(not_x_eq_y);
+
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+
+  std::string printedProof;
+  ASSERT_NO_THROW(proofs = d_solver->getProof());
+  ASSERT_FALSE(proofs.empty());
+  ASSERT_NO_THROW(printedProof = d_solver->proofToString(
+                      proofs[0], modes::ProofFormat::ALETHE, assertionNames));
+  ASSERT_FALSE(printedProof.empty());
+  ASSERT_LT(printedProof.find("as1"), std::string::npos);
+  ASSERT_LT(printedProof.find("as2"), std::string::npos);
+}
+
 TEST_F(TestApiBlackSolver, getDifficulty)
 {
   d_solver->setOption("produce-difficulty", "true");
@@ -2531,6 +2562,34 @@ TEST_F(TestApiBlackSolver, pluginListen)
   Term lc = d_tm.mkTerm(Kind::GT, {lx, ly});
   d_solver->assertFormula(lc);
   ASSERT_TRUE(d_solver->checkSat().isSat());
+  // above input formulas should induce a theory lemma and SAT clause learning
+  ASSERT_TRUE(pl.hasSeenTheoryLemma());
+  ASSERT_TRUE(pl.hasSeenSatClause());
+}
+
+TEST_F(TestApiBlackSolver, pluginListenCadical)
+{
+  cvc5::Solver solver(d_tm);
+  solver.setOption("sat-solver", "cadical");
+  solver.setOption("plugin-notify-sat-clause-in-solve", "true");
+  PluginListen pl(d_tm);
+  solver.addPlugin(pl);
+  Sort bv1 = d_tm.mkBitVectorSort(8);
+  Sort bv16 = d_tm.mkBitVectorSort(8);
+  Term x = d_tm.mkConst(d_bool, "x");
+  Term z16 = d_tm.mkBitVector(16, 0);
+  Term o16 = d_tm.mkBitVector(16, 1);
+  Term z1 = d_tm.mkBitVector(1, 0);
+  Term o1 = d_tm.mkBitVector(1, 1);
+
+  Term ite1 = d_tm.mkTerm(Kind::ITE, {x, z16, o16});
+  Term add = d_tm.mkTerm(Kind::BITVECTOR_ADD, {o16, ite1});
+  Term eq1 = d_tm.mkTerm(Kind::EQUAL, {z16, add});
+  Term ite2 = d_tm.mkTerm(Kind::ITE, {eq1, o1, z1});
+  Term eq2 =
+      d_tm.mkTerm(Kind::EQUAL, {z1, d_tm.mkTerm(Kind::BITVECTOR_NOT, {ite2})});
+  solver.assertFormula(eq2);
+  ASSERT_TRUE(solver.checkSat().isUnsat());
   // above input formulas should induce a theory lemma and SAT clause learning
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
   ASSERT_TRUE(pl.hasSeenSatClause());

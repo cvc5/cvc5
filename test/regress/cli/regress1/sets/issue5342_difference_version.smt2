@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sets-ext
+; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun S () (Set Int))

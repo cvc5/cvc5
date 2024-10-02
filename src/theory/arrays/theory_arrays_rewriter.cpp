@@ -45,17 +45,21 @@ using ArrayConstantMostFrequentValueCountAttr =
 using ArrayConstantMostFrequentValueAttr =
     expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
 
-Node getMostFrequentValue(TNode store) {
+Node getMostFrequentValue(TNode store)
+{
   return store.getAttribute(ArrayConstantMostFrequentValueAttr());
 }
-uint64_t getMostFrequentValueCount(TNode store) {
+uint64_t getMostFrequentValueCount(TNode store)
+{
   return store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
 }
 
-void setMostFrequentValue(TNode store, TNode value) {
+void setMostFrequentValue(TNode store, TNode value)
+{
   return store.setAttribute(ArrayConstantMostFrequentValueAttr(), value);
 }
-void setMostFrequentValueCount(TNode store, uint64_t count) {
+void setMostFrequentValueCount(TNode store, uint64_t count)
+{
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
@@ -76,16 +80,16 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       if (n.getKind() == Kind::EQ_RANGE)
       {
-        return expandEqRange(n);
+        return expandEqRange(d_nm, n);
       }
-    break;
+      break;
     }
     default: break;
   }
   return Node::null();
 }
 
-Node TheoryArraysRewriter::normalizeConstant(TNode node)
+Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm, TNode node)
 {
   if (node.isConst())
   {
@@ -96,18 +100,20 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   CardinalityClass tcc = tn.getCardinalityClass();
   if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
   {
-    ret = normalizeConstant(node, tn.getCardinality());
+    ret = normalizeConstant(nm, node, tn.getCardinality());
   }
   else
   {
-    ret = normalizeConstant(node, Cardinality::INTEGERS);
+    ret = normalizeConstant(nm, node, Cardinality::INTEGERS);
   }
   Assert(ret.isConst()) << "Non-constant after normalization: " << ret;
   return ret;
 }
 
 // this function is called by printers when using the option "--model-u-dt-enum"
-Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
+Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm,
+                                             TNode node,
+                                             Cardinality indexCard)
 {
   TNode store = node[0];
   TNode index = node[1];
@@ -160,7 +166,6 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   Assert(store.getKind() == Kind::STORE_ALL);
   ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
   Node defaultValue = storeAll.getValue();
-  NodeManager* nm = NodeManager::currentNM();
 
   // Check if we are writing to default value - if so the store
   // to index can be ignored
@@ -324,16 +329,15 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   return n;
 }
 
-Node TheoryArraysRewriter::expandEqRange(TNode node)
+Node TheoryArraysRewriter::expandEqRange(NodeManager* nm, TNode node)
 {
   Assert(node.getKind() == Kind::EQ_RANGE);
 
-  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
   TNode i = node[2];
   TNode j = node[3];
-  Node k = SkolemCache::getEqRangeVar(node);
+  Node k = SkolemCache::getEqRangeVar(nm, node);
   Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, k);
   TypeNode type = k.getType();
 
@@ -442,7 +446,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       if (store.isConst() && index.isConst() && value.isConst())
       {
         // normalize constant
-        Node n = normalizeConstant(node);
+        Node n = normalizeConstant(d_nm, node);
         Assert(n.isConst());
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning " << n << std::endl;
@@ -708,7 +712,7 @@ TrustNode TheoryArraysRewriter::expandDefinition(Node node)
 
   if (kind == Kind::EQ_RANGE)
   {
-    Node expandedEqRange = expandEqRange(node);
+    Node expandedEqRange = expandEqRange(d_nm, node);
     if (d_epg)
     {
       return d_epg->mkTrustNodeRewrite(

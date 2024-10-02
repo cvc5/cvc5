@@ -127,6 +127,14 @@ void TheoryArith::preRegisterTerm(TNode n)
   // informative error message
   if (isTransKind || k == Kind::IAND || k == Kind::POW2)
   {
+    if (!options().arith.arithExp)
+    {
+      std::stringstream ss;
+      ss << "Support for arithmetic extensions (required for " << k
+         << ") not available in this configuration, try "
+            "--arith-exp.";
+      throw LogicException(ss.str());
+    }
     if (d_nonlinearExtension == nullptr)
     {
       std::stringstream ss;

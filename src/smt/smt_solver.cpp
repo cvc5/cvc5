@@ -133,6 +133,15 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
+  // carry information about soundness to the theory engine we are sending to
+  if (ap.isRefutationUnsound())
+  {
+    d_theoryEngine->setRefutationUnsound(theory::IncompleteId::PREPROCESSING);
+  }
+  if (ap.isModelUnsound())
+  {
+    d_theoryEngine->setModelUnsound(theory::IncompleteId::PREPROCESSING);
+  }
   // get the assertions
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();

@@ -302,9 +302,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       t0 = nm->mkNode(Kind::STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
-    SkolemCache skc(nullptr);
+    SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(t0, s0, id, isRev, &skc, newSkolems);
+    Node conc = CoreSolver::getConclusion(
+        nodeManager(), t0, s0, id, isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == ProofRule::STRING_DECOMPOSE)
@@ -321,10 +322,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    SkolemCache skc(nullptr);
+    SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getDecomposeConclusion(
-        atom[0][0], atom[1], isRev, &skc, newSkolems);
+        nodeManager(), atom[0][0], atom[1], isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == ProofRule::STRING_REDUCTION
@@ -342,7 +343,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.size() == 1);
       // we do not use optimizations
-      SkolemCache skc(nullptr);
+      SkolemCache skc(nm, nullptr);
       std::vector<Node> conj;
       ret = StringsPreprocess::reduce(t, conj, &skc, d_alphaCard);
       conj.push_back(t.eqNode(ret));
@@ -351,7 +352,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     else if (id == ProofRule::STRING_EAGER_REDUCTION)
     {
       Assert(args.size() == 1);
-      SkolemCache skc(nullptr);
+      SkolemCache skc(nm, nullptr);
       ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == ProofRule::STRING_LENGTH_POS)
@@ -442,13 +443,14 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.empty());
       std::vector<Node> newSkolems;
-      SkolemCache skc(nullptr);
-      conc = RegExpOpr::reduceRegExpPos(skChild, &skc, newSkolems);
+      SkolemCache skc(nodeManager(), nullptr);
+      conc =
+          RegExpOpr::reduceRegExpPos(nodeManager(), skChild, &skc, newSkolems);
     }
     else if (id == ProofRule::RE_UNFOLD_NEG)
     {
       Assert(args.empty());
-      conc = RegExpOpr::reduceRegExpNeg(skChild);
+      conc = RegExpOpr::reduceRegExpNeg(nodeManager(), skChild);
     }
     else if (id == ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED)
     {
@@ -471,7 +473,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Trace("strings-pfcheck") << "...fail, non-fixed lengths" << std::endl;
         return Node::null();
       }
-      conc = RegExpOpr::reduceRegExpNegConcatFixed(skChild, reLen, isRev);
+      conc = RegExpOpr::reduceRegExpNegConcatFixed(
+          nodeManager(), skChild, reLen, isRev);
     }
     return conc;
   }
