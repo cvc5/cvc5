@@ -135,6 +135,10 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
+    case ProofRule::SETS_SINGLETON_INJ:
+    case ProofRule::SETS_EXT:
+    case ProofRule::SETS_FILTER_UP:
+    case ProofRule::SETS_FILTER_DOWN:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
