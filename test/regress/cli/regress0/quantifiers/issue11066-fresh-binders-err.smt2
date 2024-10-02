@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: dump
+; DISABLE-TESTER: alethe
 ; REQUIRES: no-competition
 ; EXPECT-ERROR: Must construct fresh variable for x since this symbol occurs in a let term that is present in the current context. Set fresh-binders to true to avoid this warning.
 ; EXPECT: unsat
