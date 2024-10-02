@@ -346,14 +346,6 @@ Node InstStrategyMbqi::convertToQuery(
       {
         cmap[cur] = cur;
       }
-      else if (ck == Kind::UNINTERPRETED_SORT_VALUE)
-      {
-        // return the fresh variable for this term
-        Node k = sm->mkPurifySkolem(cur);
-        freshVarType[cur.getType()].insert(k);
-        cmap[cur] = k;
-        continue;
-      }
       else if (ck == Kind::CONST_SEQUENCE || ck == Kind::FUNCTION_ARRAY_CONST
                || cur.isVar())
       {
@@ -404,8 +396,11 @@ Node InstStrategyMbqi::convertToQuery(
       }
       else if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
       {
-        // if this is a bad kind, fail immediately
-        return Node::null();
+        // return the fresh variable for this term
+        Node k = sm->mkPurifySkolem(cur);
+        freshVarType[cur.getType()].insert(k);
+        cmap[cur] = k;
+        continue;
       }
       else if (cur.getNumChildren() == 0)
       {
