@@ -265,7 +265,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     return conflictProof;
   }
   // Must clone if we are using the original proof, since we don't want to
-  // modify the original SAT proof.
+  // modify the original SAT proof. Note that other propProofMode settings
+  // may also require cloning here.
   if (pmode == options::PropProofMode::PROOF)
   {
     conflictProof = conflictProof->clone();
