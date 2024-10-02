@@ -227,7 +227,7 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       continue;
     }
     Term v = itv->second;
-    // If wasDecl, then:
+    // If we are here, then:
     // (1) we are not using fresh declarations
     // (2) there are let binders present,
     // (3) the current variable was shadowed.
@@ -263,7 +263,8 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       // 1. proof reference checking will not be accurate in settings where
       // variables are parsed as canonical.
       // 2. the parser will not be deterministic for the same input even when
-      // fresh-binders is false.
+      // fresh-binders is false, since we are constructing a fresh variable
+      // below.
       Warning() << "Must construct fresh variable for " << i.first
                 << " since this symbol occurs in a let term that is present in "
                    "the current context. Set fresh-binders to true to avoid "
