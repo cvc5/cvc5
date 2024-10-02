@@ -177,6 +177,10 @@ void InstStrategyMbqi::process(Node q)
   for (const Node& k : skolems.d_subs)
   {
     TypeNode tn = k.getType();
+    if (!tn.isSort())
+    {
+      continue;
+    }
     itk = freshVarType.find(tn);
     if (itk == freshVarType.end())
     {
