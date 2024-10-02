@@ -191,7 +191,8 @@ std::vector<Node> PropPfManager::getUnsatCoreClauses()
   if (satPf == nullptr)
   {
     std::stringstream ss;
-    ss << "ERROR: cannot get unsat core clauses when SAT solver is not proof producing.";
+    ss << "ERROR: cannot get unsat core clauses when SAT solver is not proof "
+          "producing.";
     throw LogicException(ss.str());
   }
   // then, get the proof *without* connecting the CNF
