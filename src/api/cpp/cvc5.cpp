@@ -6873,18 +6873,13 @@ void Solver::ensureWellFormedTerm(const Term& t) const
   // only check if option is set
   if (d_slv->getOptions().expr.wellFormedChecking)
   {
-    // We check if we have free variables; we do not check for shadowed
-    // variables as this is handled by our rewriter internally.
-    // To call expr::hasFreeVar, we must rewrite (simplify) to avoid shadowed
-    // variables.
-    internal::Node snode = d_slv->simplify(*t.d_node, false);
-    if (internal::expr::hasFreeVar(snode))
+    // Call isWellFormedTerm of the underlying solver, which checks if the
+    // given node has free variables. We do not check for variable shadowing,
+    // since this can be handled by our rewriter.
+    if (!d_slv->isWellFormedTerm(*t.d_node))
     {
       std::stringstream se;
-      se << "cannot process term " << *t.d_node << " with ";
-      std::unordered_set<internal::Node> fvs;
-      internal::expr::getFreeVariables(snode, fvs);
-      se << "free variables: " << fvs << std::endl;
+      se << "cannot process term " << *t.d_node << " with free variables" << std::endl;
       throw CVC5ApiException(se.str().c_str());
     }
   }
