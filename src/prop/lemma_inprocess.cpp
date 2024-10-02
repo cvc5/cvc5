@@ -52,7 +52,7 @@ TrustNode LemmaInprocess::inprocessLemma(TrustNode& trn)
 Node LemmaInprocess::processInternal(const Node& lem)
 {
   std::vector<Node> eqLitLemmas;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
