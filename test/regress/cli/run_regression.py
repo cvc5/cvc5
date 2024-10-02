@@ -181,7 +181,10 @@ class ProofTester(Tester):
         return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=theory-rewrite", "--proof-check=lazy"]
+                ["--sat-solver=minisat",
+                 "--check-proofs",
+                 "--proof-granularity=theory-rewrite",
+                 "--proof-check=lazy"]
             )
         )
 
@@ -277,8 +280,7 @@ class AletheTester(Tester):
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
-                "--proof-format=alethe",
-                "--proof-alethe-experimental"
+                "--proof-format=alethe"
             ]
             # remove duplicates
             cvc5_args = list(dict.fromkeys(cvc5_args))
@@ -714,7 +716,7 @@ def run_benchmark(benchmark_info):
     check_result =  check_scrubber(scrubber_error, benchmark_info.scrubber)
     if check_result != None:
       return check_result
-    
+
     scrubber_error = ""
     if benchmark_info.error_scrubber:
         error, scrubber_error, _ = run_process(

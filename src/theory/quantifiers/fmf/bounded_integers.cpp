@@ -48,7 +48,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
 {
   if (options().quantifiers.fmfBoundLazy)
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* sm = nodeManager()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }
   else
@@ -61,7 +61,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
 }
 Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node cn = nm->mkConstInt(Rational(n == 0 ? 0 : n - 1));
   return nm->mkNode(n == 0 ? Kind::LT : Kind::LEQ, d_proxy_range, cn);
 }
@@ -82,7 +82,7 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
     return Node::null();
   }
   d_ranges_proxied[curr] = true;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node currLit = getLiteral(curr);
   Node lem = nm->mkNode(
       Kind::EQUAL,
@@ -249,7 +249,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       std::map< Node, Node > msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
         ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
@@ -376,7 +376,7 @@ void BoundedIntegers::checkOwnership(Node f)
     }
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
@@ -705,7 +705,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   {
     return sr;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode srt = sr.getType();
   TypeNode tne = srt.getSetElementType();
   Node nsr = nm->mkConst(EmptySet(srt));
@@ -792,7 +792,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       //must add the lemma
       Node nn = d_nground_range[q][v];
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-      Node lem = NodeManager::currentNM()->mkNode(Kind::LEQ, nn, d_range[q][v]);
+      Node lem = nodeManager()->mkNode(Kind::LEQ, nn, d_range[q][v]);
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
       d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
@@ -848,7 +848,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         //failed, abort the iterator
         return false;
       }else{
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
         Node range = rewrite(nm->mkNode(Kind::SUB, u, l));
         if (!range.isConst())
@@ -980,9 +980,8 @@ struct QInternalVarAttributeId
 };
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
-Node BoundedIntegers::mkBoundedForall(Node bvl, Node body)
+Node BoundedIntegers::mkBoundedForall(NodeManager* nm, Node bvl, Node body)
 {
-  NodeManager* nm = NodeManager::currentNM();
   QInternalVarAttribute qiva;
   Node qvar;
   if (bvl.hasAttribute(qiva))

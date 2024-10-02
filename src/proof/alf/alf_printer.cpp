@@ -535,10 +535,11 @@ void AlfPrinter::printLetList(std::ostream& out, LetBinding& lbind)
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node n = letList[i];
-    Node def = lbind.convert(n, false);
-    Node f = lbind.convert(n, true);
     // use define command which does not invoke type checking
-    out << "(define " << f << " () " << def << ")" << std::endl;
+    out << "(define " << d_termLetPrefix << lbind.getId(n);
+    out << " () ";
+    Printer::getPrinter(out)->toStream(out, n, &lbind, false);
+    out << ")" << std::endl;
   }
 }
 
@@ -547,6 +548,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // ensures options are set once and for all
   options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
   options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
   d_pfIdCounter = 0;
 
   // Get the definitions and assertions and print the declarations from them
@@ -558,7 +560,8 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // We can traverse binders due to the way we print global declare-var, since
   // terms beneath binders will always have their variables in scope and hence
   // can be printed in define commands.
-  LetBinding lbind(d_termLetPrefix, 2, true);
+  // We additionally traverse skolems with this utility.
+  LetBinding lbind(d_termLetPrefix, 2, true, true);
   LetBinding* lbindUse = options().proof.proofDagGlobal ? &lbind : nullptr;
   AlfPrintChannelPre aletify(lbindUse);
   AlfPrintChannelOut aprint(out, lbindUse, d_termLetPrefix);
@@ -598,13 +601,7 @@ void AlfPrinter::print(std::ostream& out, std::shared_ptr<ProofNode> pfn)
                   << v.getType() << "))" << std::endl;
         }
       }
-      // [1] print DSL rules
-      // Note that RARE rules used in this proof are printed in the preamble of
-      // the proof here, on demand.
-      for (ProofRewriteRule r : d_dprs)
-      {
-        printDslRule(out, r);
-      }
+      // do not need to print DSL rules
       if (options().proof.proofPrintReference)
       {
         // [2] print only the universal variables
@@ -857,21 +854,6 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   bool handled = isHandled(pn);
   if (handled)
   {
-    if (r == ProofRule::DSL_REWRITE)
-    {
-      const std::vector<Node> aargs = pn->getArguments();
-      // if its a DSL rule, remember it
-      Node idn = aargs[0];
-      ProofRewriteRule di;
-      if (rewriter::getRewriteRule(idn, di))
-      {
-        d_dprs.insert(di);
-      }
-      else
-      {
-        Unhandled();
-      }
-    }
     getArgsFromProofRule(pn, args);
   }
   size_t id = allocateProofId(pn, wasAlloc);

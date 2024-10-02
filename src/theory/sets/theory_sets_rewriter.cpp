@@ -863,7 +863,7 @@ RewriteResponse TheorySetsRewriter::postRewriteAll(TNode n)
       // (set.all p A) is rewritten as (set.filter p A) = A
       Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
       Node all = filter.eqNode(n[1]);
-      return RewriteResponse(REWRITE_DONE, all);
+      return RewriteResponse(REWRITE_AGAIN_FULL, all);
     }
   }
 }
@@ -901,7 +901,7 @@ RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
       Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
       Node empty = nm->mkConst(EmptySet(n[1].getType()));
       Node some = filter.eqNode(empty).notNode();
-      return RewriteResponse(REWRITE_DONE, some);
+      return RewriteResponse(REWRITE_AGAIN_FULL, some);
     }
   }
 }

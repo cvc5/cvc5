@@ -228,7 +228,7 @@ unsigned getLoopMinOccurrences(TNode node);
  * FORALL returned by this method. This ensures that E-matching is not applied
  * to the quantified formula.
  */
-Node mkForallInternal(Node bvl, Node body);
+Node mkForallInternal(NodeManager* nm, Node bvl, Node body);
 
 /**
  * Make abstract value for string-like term n whose length is given by len.

@@ -650,7 +650,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options().sets.setsExt)
+    if (options().sets.setsExp)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
@@ -722,7 +722,7 @@ void TheorySetsPrivate::checkFilterUp()
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       std::vector<Node> exp;
       exp.push_back(pair.second);
       Node B = pair.second[1];
@@ -759,7 +759,7 @@ void TheorySetsPrivate::checkFilterDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node x = pair.first;
+      Node x = pair.second[0];
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node fact = memberA.andNode(p_x);
@@ -787,7 +787,7 @@ void TheorySetsPrivate::checkMapUp()
         d_state.getMapSkolemElements(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       if (skolemElements->contains(x))
       {
         // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
@@ -840,7 +840,7 @@ void TheorySetsPrivate::checkMapDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node y = pair.first;
+      Node y = pair.second[0];
 
       // general case
       // (=>

@@ -30,7 +30,7 @@ int main()
   // quantified formulas
   cvc5_set_option(slv, "finite-model-find", "true");
   // we need sets extension to support set.universe operator
-  cvc5_set_option(slv, "sets-ext", "true");
+  cvc5_set_option(slv, "sets-exp", "true");
 
   // (declare-sort Person 0)
   Cvc5Sort person_sort = cvc5_mk_uninterpreted_sort(tm, "Person");

@@ -21,7 +21,7 @@ int main(void)
   TermManager tm;
   Solver solver(tm);
   solver.setOption("incremental", "false");
-  solver.setOption("sets-ext", "true");
+  solver.setOption("sets-exp", "true");
   solver.setOption("check-abducts", "true");
   solver.setOption("produce-abducts", "true");
   Sort s0 = tm.mkUninterpretedSort("_u0");

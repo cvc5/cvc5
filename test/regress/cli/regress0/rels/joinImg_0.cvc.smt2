@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-logic ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 
 (declare-fun x () (Relation Int Int))
 (declare-fun y () (Relation Int Int))

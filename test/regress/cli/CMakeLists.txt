@@ -1365,6 +1365,8 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
+  regress0/proofs/subtype-elim-1.smt2
+  regress0/proofs/subtype-elim-2.smt2
   regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
@@ -2991,6 +2993,8 @@ set(regress_1_tests
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
   regress1/seq/proj-issue733-mbqi-w.smt2
+  regress1/sets/all_sat.smt2
+  regress1/sets/all_unsat.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
   regress1/sets/all3.smt2
