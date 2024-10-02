@@ -6879,7 +6879,8 @@ void Solver::ensureWellFormedTerm(const Term& t) const
     if (!d_slv->isWellFormedTerm(*t.d_node))
     {
       std::stringstream se;
-      se << "cannot process term " << *t.d_node << " with free variables" << std::endl;
+      se << "cannot process term " << *t.d_node << " with free variables"
+         << std::endl;
       throw CVC5ApiException(se.str().c_str());
     }
   }

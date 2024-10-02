@@ -1401,7 +1401,7 @@ bool SolverEngine::isWellFormedTerm(const Node& n) const
   // Well formed if it does not have free variables.
   return !expr::hasFreeVar(nr);
 }
-  
+
 void SolverEngine::ensureWellFormedTerm(const Node& n,
                                         const std::string& src) const
 {
