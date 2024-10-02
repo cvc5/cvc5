@@ -265,9 +265,10 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       // 2. the parser will not be deterministic for the same input even when
       // fresh-binders is false.
       Warning() << "Must construct fresh variable for " << i.first
-          << " since this symbol occurs in a let term that is present in "
-            "the current context. Set fresh-binders to true to avoid "
-            "this warning." << std::endl;
+                << " since this symbol occurs in a let term that is present in "
+                   "the current context. Set fresh-binders to true to avoid "
+                   "this warning."
+                << std::endl;
     }
     v = bindBoundVar(i.first, i.second, reqFresh);
     vars.push_back(v);
