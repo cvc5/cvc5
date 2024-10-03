@@ -4,4 +4,3 @@
 (declare-const y Int)
 (assert (= (+ x (* 2 y)) 1))
 (check-sat)
-(get-model)

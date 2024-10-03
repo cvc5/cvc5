@@ -17,6 +17,7 @@
 #include "preprocessing/passes/automata.h"
 
 #include <cmath>
+#include <cstdint>
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
@@ -88,20 +89,32 @@ PreprocessingPassResult Automata::applyInternal(
   {
     to_process.push_back(a);
   }
+  // I am assuming all assertions are of the form X. A rel c. This should be
+  // preprocessed
   for (const TNode& a : to_process)
   {
-    // std::cout << a << std::endl;
-    // std::cout << a.getKind() << std::endl;
-    switch (a.getKind())
-    {
-      // custom input just for testing
-      case kind::Kind_t::EQUAL:
-        dfa[1] = {};
-        printDfa(dfa);
+    std::cout << "assertion:" << std::endl;
+    std::cout << a << std::endl;
+    TNode lhs = *a.begin();
+    TNode rhs = *a.rbegin();
 
-        break;
-      default: break;
-    }
+    std::cout << "children" << std::endl;
+
+    std::cout << *lhs.rbegin() << std::endl;
+
+    int64_t c = stoi(rhs.toString());
+    std::cout << c << std::endl;
+
+    // switch (a.getKind())
+    // {
+    //   // custom input just for testing
+    //   case kind::Kind_t::EQUAL:
+    //     dfa[1] = {};
+    //     printDfa(dfa);
+    //
+    //     break;
+    //   default: break;
+    // }
   }
 
   // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE LATER
