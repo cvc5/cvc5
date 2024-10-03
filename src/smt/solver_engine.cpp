@@ -1396,10 +1396,8 @@ const Options& SolverEngine::options() const { return d_env->getOptions(); }
 
 bool SolverEngine::isWellFormedTerm(const Node& n) const
 {
-  // FIXME
-  // Must rewrite before checking for free variables
-  //Node nr = d_env->getRewriter()->rewrite(n);
-  // Well formed if it does not have free variables.
+  // Well formed if it does not have free variables. Note that n may have
+  // variable shadowing.
   return !expr::hasFreeVar(n);
 }
 
@@ -1408,10 +1406,9 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
 {
   if (Configuration::isAssertionBuild())
   {
-    // Must rewrite before checking for free variables
-    Node nr = d_env->getRewriter()->rewrite(n);
     // Don't check for shadowing here, since shadowing may occur from API
-    // users, including the smt2 parser.
+    // users, including the smt2 parser. We don't need to rewrite since
+    // getFreeVariables is robust to variable shadowing.
     std::unordered_set<internal::Node> fvs;
     expr::getFreeVariables(nr, fvs);
     if (!fvs.empty())
