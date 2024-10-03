@@ -221,7 +221,7 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
         d_varCache.find(i);
     if (itv == d_varCache.end() || !isDeclared(i.first))
     {
-      // haven't made this variable yet, or its not declared
+      // haven't created this variable yet, or its not declared
       Term v = bindBoundVar(i.first, i.second, fresh);
       vars.push_back(v);
       continue;
