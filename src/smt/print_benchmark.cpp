@@ -51,13 +51,16 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getTypes(a, unorderedTypes, typeVisited);
   }
-  // We want to print declarations in a deterministic order, independent of
-  // the implementation of data structures. Hence, we insert into a vector
-  // and reorder. Note that collecting the types in an std::unordered_map,
-  // then inserting them into a vector and sorting the vector is faster than
-  // immediately using an std::set instead.
   std::vector<TypeNode> types{unorderedTypes.begin(), unorderedTypes.end()};
-  std::sort(types.begin(), types.end());
+  if (d_sorted)
+  {
+    // We want to print declarations in a deterministic order, independent of
+    // the implementation of data structures. Hence, we insert into a vector
+    // and reorder. Note that collecting the types in an std::unordered_map,
+    // then inserting them into a vector and sorting the vector is faster than
+    // immediately using an std::set instead.
+    std::sort(types.begin(), types.end());
+  }
   // print the declared types first
   std::unordered_set<TypeNode> alreadyPrintedDeclSorts;
   for (const TypeNode& st : types)
@@ -135,19 +138,25 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
                             defMap,
                             alreadyPrintedDef,
                             visited);
-    // We want to print declarations in a deterministic order, independent of
-    // the implementation of data structures. Hence, we insert into a vector
-    // and reorder. Note that collecting `syms` in an std::unordered_map,
-    // then inserting them into a vector and sorting the vector is faster than
-    // immediately using an std::set instead.
     std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-    std::sort(syms.begin(), syms.end());
+    if (d_sorted)
+    {
+      // We want to print declarations in a deterministic order, independent of
+      // the implementation of data structures. Hence, we insert into a vector
+      // and reorder. Note that collecting `syms` in an std::unordered_map,
+      // then inserting them into a vector and sorting the vector is faster than
+      // immediately using an std::set instead.
+      std::sort(syms.begin(), syms.end());
+    }
     // print the declarations that are encountered for the first time in this
     // block
     printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
-    // Sort ordinary and recursive definitions for deterministic order.
-    std::sort(recDefs.begin(), recDefs.end());
-    std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
+    if (d_sorted)
+    {
+      // Sort ordinary and recursive definitions for deterministic order.
+      std::sort(recDefs.begin(), recDefs.end());
+      std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
+    }
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
     {
@@ -190,15 +199,19 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getSymbols(a, unorderedSyms, visited);
   }
-  // We want to print declarations in a deterministic order, independent of
-  // the implementation of data structures. Hence, we insert into a vector
-  // and reorder. Note that collecting `syms` in an std::unordered_map,
-  // then inserting them into a vector and sorting the vector is faster than
-  // immediately using an std::set instead.
   std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-  std::sort(syms.begin(), syms.end());
+  if (d_sorted)
+  {
+    // We want to print declarations in a deterministic order, independent of
+    // the implementation of data structures. Hence, we insert into a vector
+    // and reorder. Note that collecting `syms` in an std::unordered_map,
+    // then inserting them into a vector and sorting the vector is faster than
+    // immediately using an std::set instead.
+    std::sort(syms.begin(), syms.end());
+  }
   printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
 }
+
 void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& defs,
                                      const std::vector<Node>& assertions)
