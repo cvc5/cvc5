@@ -1410,11 +1410,11 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
     // users, including the smt2 parser. We don't need to rewrite since
     // getFreeVariables is robust to variable shadowing.
     std::unordered_set<internal::Node> fvs;
-    expr::getFreeVariables(nr, fvs);
+    expr::getFreeVariables(n, fvs);
     if (!fvs.empty())
     {
       std::stringstream se;
-      se << "Cannot process term " << nr << " with ";
+      se << "Cannot process term " << n << " with ";
       se << "free variables: " << fvs << std::endl;
       throw ModalException(se.str().c_str());
     }
