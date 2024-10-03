@@ -623,7 +623,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
     if (i == 1)
     {
       // do not need to print DSL rules
-      if (options().proof.proofPrintReference)
+      if (!options().proof.proofPrintReference)
       {
         // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
