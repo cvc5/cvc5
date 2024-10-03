@@ -38,6 +38,8 @@ InstStrategySubConflict::InstStrategySubConflict(
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(options());
+  // disable checking first
+  smt::SetDefaults::disableChecking(d_subOptions);
   // requires full proofs
   d_subOptions.write_smt().produceProofs = true;
   // don't do simplification, which can preprocess quantifiers to those not
