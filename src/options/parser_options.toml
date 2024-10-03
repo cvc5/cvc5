@@ -12,7 +12,7 @@ name   = "Parser"
 
 [[option]]
   name       = "parsingMode"
-  category   = "regular"
+  category   = "expert"
   long       = "parsing-mode=MODE"
   type       = "ParsingMode"
   default    = "DEFAULT"

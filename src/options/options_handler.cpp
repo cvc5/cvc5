@@ -407,6 +407,10 @@ void OptionsHandler::strictParsing(const std::string& flag, bool value)
   {
     d_options->write_parser().parsingMode = options::ParsingMode::STRICT;
   }
+  else if (d_options->parser.parsingMode == options::ParsingMode::STRICT)
+  {
+    d_options->write_parser().parsingMode = options::ParsingMode::DEFAULT;
+  }
 }
 
 }  // namespace options
