@@ -111,8 +111,6 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::BOUND_VARIABLE)
   {
-    // note: we always distinguish variables, to ensure they do not have
-    // names that are overloaded with user names
     std::string sname;
     if (n.hasName())
     {
@@ -126,11 +124,14 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
-    size_t index = d_varIndex[sname];
-    d_varIndex[sname]++;
-    std::stringstream ssn;
-    ssn << "@v." << index << "." << sname;
-    return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
+    // A variable x of type T can unambiguously referred to as (eo::var "x" T).
+    // We convert to this representation here, which will often be letified.
+    std::vector<Node> args;
+    Node nn = nm->mkConst(String(sname));
+    args.push_back(nn);
+    Node tnn = typeAsNode(tn);
+    args.push_back(tnn);
+    return mkInternalApp("eo::var", args, tn);
   }
   else if (k == Kind::VARIABLE)
   {
@@ -155,15 +156,13 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (n.isClosure())
   {
     Node vl = n[0];
-    // notice that intentionally we drop annotations here.
+    // Notice that intentionally we drop annotations here.
+    // Additionally, it is important that we convert the closure to a
+    // non-closure operator here, since we will be traversing over it
+    // during letification.
     std::vector<Node> args;
-    // We take the *original* bound variable list, since variable names are
-    // preserved in the translation; using the updated variable `@v.N.x`
-    // would lead to using a variable named "@v.N.x" instead of "x", where
-    // `@v.N.x` is a macro for the variable "x".
-    args.push_back(n[0]);
     args.insert(args.end(),
-                n.begin() + 1,
+                n.begin(),
                 n.begin() + getNumChildrenToProcessForClosure(k));
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
