@@ -1396,10 +1396,11 @@ const Options& SolverEngine::options() const { return d_env->getOptions(); }
 
 bool SolverEngine::isWellFormedTerm(const Node& n) const
 {
+  // FIXME
   // Must rewrite before checking for free variables
-  Node nr = d_env->getRewriter()->rewrite(n);
+  //Node nr = d_env->getRewriter()->rewrite(n);
   // Well formed if it does not have free variables.
-  return !expr::hasFreeVar(nr);
+  return !expr::hasFreeVar(n);
 }
 
 void SolverEngine::ensureWellFormedTerm(const Node& n,
