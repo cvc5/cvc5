@@ -339,6 +339,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
   // \sum pos >= \sum neg + off
 
+  NodeManager* nm = nodeManager();
+
   // for now special case everything we want
   // target easy clauses
   if (d_pos.size() == 1 && d_neg.size() == 1 && off.isZero())
@@ -348,8 +350,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_pos.front();
     Node y = d_neg.front();
 
-    Node xGeq1 = mkGeqOne(nodeManager(), x);
-    Node yGeq1 = mkGeqOne(nodeManager(), y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node imp = yGeq1.impNode(xGeq1);
     addSub(geq, imp);
   }
@@ -361,8 +363,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_neg[0];
     Node y = d_neg[1];
 
-    Node xGeq1 = mkGeqOne(nodeManager(), x);
-    Node yGeq1 = mkGeqOne(nodeManager(), y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node cases = (xGeq1.notNode()).orNode(yGeq1.notNode());
     addSub(geq, cases);
   }
@@ -374,10 +376,9 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node y = d_pos[1];
     Node z = d_neg[0];
 
-    Node xGeq1 = mkGeqOne(nodeManager(), x);
-    Node yGeq1 = mkGeqOne(nodeManager(), y);
-    Node zGeq1 = mkGeqOne(nodeManager(), z);
-    NodeManager* nm = nodeManager();
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
+    Node zGeq1 = mkGeqOne(nm, z);
     Node dis = nm->mkNode(Kind::OR, zGeq1.notNode(), xGeq1, yGeq1);
     addSub(geq, dis);
   }
