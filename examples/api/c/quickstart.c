@@ -184,9 +184,9 @@ int main()
   uint64_t x_minus_y_den;
   cvc5_term_get_real64_value(x_minus_y_val, &x_minus_y_num, &x_minus_y_den);
 
-  printf("value for x: %ld/%lu\n", x_num, x_den);
-  printf("value for y: %ld/%lu\n", y_num, y_den);
-  printf("value for x - y: %ld/%lu\n", x_minus_y_num, x_minus_y_den);
+  printf("value for x: %lld/%llu\n", x_num, x_den);
+  printf("value for y: %lld/%llu\n", y_num, y_den);
+  printf("value for x - y: %lld/%llu\n", x_minus_y_num, x_minus_y_den);
   //! [docs-c-quickstart-12 end]
 
   // Another way to independently compute the value of x - y would be
