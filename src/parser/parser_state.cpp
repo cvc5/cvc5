@@ -242,9 +242,8 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
       for (std::pair<std::string, Term>& lb : lbs)
       {
         // To test containment, we use Term::substitute.
-        // If the substitution does anything at all, then
-        // we will throw an error. Thus, this does not
-        // incur a performance penalty versus checking containment.
+        // If the substitution does anything at all, then we will throw a
+        // warning. We expect this warning to be very rare.
         Term slbt = lb.second.substitute({v}, {vr});
         if (slbt != lb.second)
         {
