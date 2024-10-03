@@ -217,7 +217,7 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    std::map<std::pair<std::string, Sort>, Term>::iterator itv =
+    std::map<std::pair<std::string, Sort>, Term>::const_iterator itv =
         d_varCache.find(i);
     if (itv == d_varCache.end() || !isDeclared(i.first))
     {
