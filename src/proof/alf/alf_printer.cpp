@@ -643,7 +643,8 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       {
         // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
-        smt::PrintBenchmark pb(&alfp, &d_tproc);
+        // we do not print declarations in a sorted manner to reduce overhead
+        smt::PrintBenchmark pb(&alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
