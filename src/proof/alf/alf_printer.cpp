@@ -473,7 +473,8 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     // Below, we have a variable when the user has named x (which itself may
     // contain digits), and the cvc5 RARE parser has renamed to xN where N is
     // <numeral>+. We rename this to xM where M is the number of times we have
-    // seen a variable with prefix M.
+    // seen a variable with prefix M. For example, the variable `x1s2` may be
+    // renamed to `x1s2123`, which will be renamed to `x1s1` here.
     std::string str = sss.str();
     size_t index = str.find_last_not_of("0123456789");
     std::string result = str.substr(0, index+1);
