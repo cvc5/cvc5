@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <string>
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
@@ -89,36 +90,63 @@ PreprocessingPassResult Automata::applyInternal(
   {
     to_process.push_back(a);
   }
-  // I am assuming all assertions are of the form X. A rel c. This should be
-  // preprocessed
+  to_process.pop_back();  // rmeoving redundant TRUE constant
+
+  // after preprocessing, we always have exp = c + SUMexp
   for (const TNode& a : to_process)
   {
+    TNode aux = a;
     std::cout << "assertion:" << std::endl;
-    std::cout << a << std::endl;
-    TNode lhs = *a.begin();
-    TNode rhs = *a.rbegin();
+    std::cout << aux << std::endl;
+    std::cout << "---------" << std::endl;
 
-    std::cout << "children" << std::endl;
+    int64_t c;
+    std::vector<std::string> vars;
+    std::vector<int> A;  // I will rename this
 
-    std::cout << *lhs.rbegin() << std::endl;
+    // first we get rid of the = exp
 
-    int64_t c = stoi(rhs.toString());
-    std::cout << c << std::endl;
+    TNode lhs = *aux.begin();
+    if (lhs.getKind() == kind::Kind_t::EQUAL)
+    {
+      int64_t coef = stoi((*lhs.begin()).toString());
+      A.push_back(coef);
+    }
+    else
+    {
+      // for sure it's a single var
+      A.push_back(1);
+    }
 
-    // switch (a.getKind())
-    // {
-    //   // custom input just for testing
-    //   case kind::Kind_t::EQUAL:
-    //     dfa[1] = {};
-    //     printDfa(dfa);
-    //
-    //     break;
-    //   default: break;
-    // }
+    // now process right side of relation
+    aux = *aux.rbegin();
+    for (const TNode& assertion : aux)
+    {
+      std::cout << "Assertion:" << std::endl;
+      std::cout << assertion << std::endl;
+      if (assertion.getKind() == kind::Kind_t::MULT)
+      {
+        std::cout << "Its mult!\n";
+        lhs = *assertion.begin();
+        std::cout << lhs.toString() << std::endl;
+        // how to convert (- 2) to -2 int?
+        int64_t coef = stoi(lhs.toString());
+        A.push_back(-1 * coef);
+      }
+      else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+      {
+        A.push_back(-1);
+      }
+      else
+      {
+        // for sure it's the constant
+        c = stoi(assertion.toString());
+      }
+    }
+
+    // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE
+    // LATER
   }
-
-  // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE LATER
-
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
