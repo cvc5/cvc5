@@ -112,7 +112,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
               Trace("ff::bitsum") << "found " << scaled << std::endl;
               bs->second.push_back(scaled);
             }
-            translation = mkAdd(nodeManager(), std::move(bs->second));
+            translation = mkAdd(nm, std::move(bs->second));
           }
         }
       }
