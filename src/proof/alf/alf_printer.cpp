@@ -468,8 +468,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     const Node& uv = uvarList[i];
     std::stringstream sss;
     sss << uv;
-    // use a consistent variable name, which e.g. ensures that minor changes
+    // Use a consistent variable name, which e.g. ensures that minor changes
     // to the RARE rules do not induce major changes in the CPC definition.
+    // Below, we have a variable when the user has named x (which itself may
+    // contain digits), and the cvc5 RARE parser has renamed to xN where N is
+    // <numeral>+. We rename this to xM where M is the number of times we have
+    // seen a variable with prefix M.
     std::string str = sss.str();
     size_t index = str.find_last_not_of("0123456789");
     std::string result = str.substr(0, index+1);
