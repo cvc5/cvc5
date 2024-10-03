@@ -256,7 +256,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
-    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    ss << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
@@ -677,6 +677,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::SETS_DEQ_DIFF:
     case SkolemId::STRINGS_NUM_OCCUR:
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_OCCUR_INDEX:

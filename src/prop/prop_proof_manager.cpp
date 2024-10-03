@@ -263,7 +263,7 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
   std::vector<SatLiteral> csma;
   std::map<SatLiteral, Node> litToNode;
   std::map<SatLiteral, Node> litToNodeAbs;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode bt = nm->booleanType();
   TypeNode ft = nm->mkFunctionType({bt}, bt);
   SkolemManager* skm = nm->getSkolemManager();
@@ -399,7 +399,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     // set up a proof and get the internal proof
     CDProof cdp(d_env);
     getProofInternal(&cdp);
-    Node falsen = NodeManager::currentNM()->mkConst(false);
+    Node falsen = nodeManager()->mkConst(false);
     conflictProof = cdp.getProofFor(falsen);
   }
 
@@ -508,7 +508,7 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   // contained ProofNode proving false. This method adds a step to cdp
   // based on a set of computed assumptions, possibly relying on the internal
   // proof.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node falsen = nm->mkConst(false);
   std::vector<Node> clauses;
   // deduplicate assumptions

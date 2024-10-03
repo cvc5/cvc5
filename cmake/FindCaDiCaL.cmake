@@ -85,8 +85,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.7.4")
-  set(CaDiCaL_CHECKSUM "866c8a1332ff1ad5dc7ad403bdef3164420f3f947816b5c9509aad1d18ada7a1")
+  set(CaDiCaL_VERSION "rel-2.0.0")
+  set(CaDiCaL_CHECKSUM "9afe5f6439442d854e56fc1fac3244ce241dbb490735939def8fd03584f89331")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -121,6 +121,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     set(USE_EMAR  "-e s,ar rc,emar rc,")
   endif()
 
+  set(CaDiCaL_SOURCE_DIR <SOURCE_DIR>)
   ExternalProject_Add(
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
@@ -133,7 +134,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
             <SOURCE_DIR>/build/makefile
     COMMAND
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
-      "s,@CXXFLAGS@,${CaDiCaL_CXXFLAGS}," -e "s,@MAKEFLAGS@,," ${USE_EMAR}
+      "s,@CXXFLAGS@,${CaDiCaL_CXXFLAGS}," -e
+      "s,@ROOT@,${CaDiCaL_SOURCE_DIR}," -e "s,@CONTRIB@,no," ${USE_EMAR}
       <SOURCE_DIR>/build/makefile
     BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a

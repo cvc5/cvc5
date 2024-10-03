@@ -302,7 +302,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       t0 = nm->mkNode(Kind::STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
-    SkolemCache skc(nullptr);
+    SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getConclusion(
         nodeManager(), t0, s0, id, isRev, &skc, newSkolems);
@@ -322,7 +322,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    SkolemCache skc(nullptr);
+    SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getDecomposeConclusion(
         nodeManager(), atom[0][0], atom[1], isRev, &skc, newSkolems);
@@ -343,7 +343,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.size() == 1);
       // we do not use optimizations
-      SkolemCache skc(nullptr);
+      SkolemCache skc(nm, nullptr);
       std::vector<Node> conj;
       ret = StringsPreprocess::reduce(t, conj, &skc, d_alphaCard);
       conj.push_back(t.eqNode(ret));
@@ -352,7 +352,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     else if (id == ProofRule::STRING_EAGER_REDUCTION)
     {
       Assert(args.size() == 1);
-      SkolemCache skc(nullptr);
+      SkolemCache skc(nm, nullptr);
       ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == ProofRule::STRING_LENGTH_POS)
@@ -443,7 +443,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.empty());
       std::vector<Node> newSkolems;
-      SkolemCache skc(nullptr);
+      SkolemCache skc(nodeManager(), nullptr);
       conc =
           RegExpOpr::reduceRegExpPos(nodeManager(), skChild, &skc, newSkolems);
     }

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status --sygus-enum=smart --no-sygus-repair-const
+; COMMAND-LINE: --sygus-out=status --sygus-enum=smart --no-sygus-repair-const -q
 ; EXPECT: fail
 (set-logic ALL)
 (define-fun clamp-int((x Int)) Int (ite (< 5 x) 5 (ite (< x 0) 0 x)))

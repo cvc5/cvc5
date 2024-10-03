@@ -354,7 +354,7 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
       clauseNodes.push_back(it->second);
     }
   }
-  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  Node cln = nodeManager()->mkOr(clauseNodes);
   // get the sharable form of cln
   Node clns = d_env.getSharableFormula(cln);
   if (!clns.isNull())

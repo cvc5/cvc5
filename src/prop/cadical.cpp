@@ -1012,6 +1012,9 @@ void CadicalSolver::init()
   {
     d_solver->set("walk", 0);
     d_solver->set("lucky", 0);
+    // ilb currently does not play well with user propagators
+    d_solver->set("ilb", 0);
+    d_solver->set("ilbassumptions", 0);
   }
 
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
@@ -1304,7 +1307,7 @@ std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {
   Assert(d_logProofs);
   d_solver->flush_proof_trace();
-  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
+  std::vector<Node> args = {nodeManager()->mkConst(String(d_pfFile))};
   // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
   // The DRAT file is an argument to the file proof.
   return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,

@@ -1693,6 +1693,7 @@ set(regress_0_tests
   regress0/sets/eqtest.smt2
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
+  regress0/sets/filter-up-unsat.smt2
   regress0/sets/filter-qe-simple.smt2
   regress0/sets/filter-qe-simple-bv.smt2
   regress0/sets/insert.smt2
@@ -2993,6 +2994,8 @@ set(regress_1_tests
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
   regress1/seq/proj-issue733-mbqi-w.smt2
+  regress1/sets/all_sat.smt2
+  regress1/sets/all_unsat.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
   regress1/sets/all3.smt2
@@ -3025,6 +3028,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/filter_soundness_issue.smt2
   regress1/sets/filter-no-lift-red_2.smt2
   regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
