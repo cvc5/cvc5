@@ -35,7 +35,8 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
 #ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
-  if(current != NULL){
+  if (current != NULL)
+  {
     // Since this node is malformed, we cannot use toString().
     // Instead, we print the kind and the children.
     ss << "node kind: " << node.getKind() << ". children: ";
@@ -55,7 +56,9 @@ TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
 void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
 {
-  os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
+  os << "Error during type checking: " << d_msg << std::endl
+     << *d_node << endl
+     << "The ill-typed expression: " << *d_node;
 }
 
 NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const
@@ -73,37 +76,56 @@ UnknownTypeException::UnknownTypeException(TNode n)
 }
 
 /** Is this node constant? (and has that been computed yet?) */
-struct IsConstTag { };
-struct IsConstComputedTag { };
+struct IsConstTag
+{
+};
+struct IsConstComputedTag
+{
+};
 typedef expr::Attribute<IsConstTag, bool> IsConstAttr;
 typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
 
 template <bool ref_count>
-bool NodeTemplate<ref_count>::isConst() const {
+bool NodeTemplate<ref_count>::isConst() const
+{
   assertTNodeNotExpired();
   Trace("isConst") << "Node::isConst() for: " << *this << std::endl;
-  if(isNull()) {
+  if (isNull())
+  {
     return false;
   }
-  switch(getMetaKind()) {
-  case kind::metakind::CONSTANT:
-    Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT" << std::endl;
-    return true;
-  case kind::metakind::VARIABLE:
-    Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE" << std::endl;
-    return false;
-  default:
-    if(getAttribute(IsConstComputedAttr())) {
-      bool bval = getAttribute(IsConstAttr());
-      Trace("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
-      return bval;
-    } else {
-      bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-      Trace("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
-      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
-      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
-      return bval;
-    }
+  switch (getMetaKind())
+  {
+    case kind::metakind::CONSTANT:
+      Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT"
+                       << std::endl;
+      return true;
+    case kind::metakind::VARIABLE:
+      Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE"
+                       << std::endl;
+      return false;
+    default:
+      if (getAttribute(IsConstComputedAttr()))
+      {
+        bool bval = getAttribute(IsConstAttr());
+        Trace("isConst") << "Node::isConst() returning cached value "
+                         << (bval ? "true" : "false") << " for: " << *this
+                         << std::endl;
+        return bval;
+      }
+      else
+      {
+        bool bval =
+            expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
+        Trace("isConst") << "Node::isConst() computed value "
+                         << (bval ? "true" : "false") << " for: " << *this
+                         << std::endl;
+        const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(IsConstAttr(),
+                                                                 bval);
+        const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(
+            IsConstComputedAttr(), true);
+        return bval;
+      }
   }
 }
 
@@ -132,12 +154,14 @@ template std::string NodeTemplate<false>::getName() const;
 
 namespace std {
 
-size_t hash<cvc5::internal::Node>::operator()(const cvc5::internal::Node& node) const
+size_t hash<cvc5::internal::Node>::operator()(
+    const cvc5::internal::Node& node) const
 {
   return node.getId();
 }
 
-size_t hash<cvc5::internal::TNode>::operator()(const cvc5::internal::TNode& node) const
+size_t hash<cvc5::internal::TNode>::operator()(
+    const cvc5::internal::TNode& node) const
 {
   return node.getId();
 }

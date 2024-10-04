@@ -313,7 +313,6 @@ PreprocessingPassResult Ackermann::applyInternal(
   std::vector<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
-    std::cout << a << std::endl;
     to_process.push_back(a);
   }
   collectFunctionsAndLemmas(

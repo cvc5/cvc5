@@ -28,6 +28,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
+#include "util/integer.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
@@ -129,9 +130,12 @@ PreprocessingPassResult Automata::applyInternal(
         std::cout << "Its mult!\n";
         lhs = *assertion.begin();
         std::cout << lhs.toString() << std::endl;
-        // how to convert (- 2) to -2 int?
-        int64_t coef = stoi(lhs.toString());
-        A.push_back(-1 * coef);
+
+        // int64_t coef = lhs.getConst<Integer>();
+        std::cout << lhs.getKind() << std::endl;
+        auto coef = lhs.getConst<Integer>();
+        std::cout << coef << std::endl;
+        // A.push_back(-1 * coef);
       }
       else if (assertion.getKind() == kind::Kind_t::VARIABLE)
       {
