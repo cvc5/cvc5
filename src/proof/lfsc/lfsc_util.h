@@ -96,7 +96,7 @@ LfscRule getLfscRule(Node n);
 /** Get LFSC rule from a node, return true if success and store in lr */
 bool getLfscRule(Node n, LfscRule& lr);
 /** Make node for LFSC rule */
-Node mkLfscRuleNode(LfscRule r);
+Node mkLfscRuleNode(NodeManager* nm, LfscRule r);
 
 /** Helper class used for letifying LFSC proofs. */
 class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback

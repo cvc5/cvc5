@@ -1033,6 +1033,14 @@ class CVC5_EXPORT SolverEngine
   const Options& options() const;
 
   /**
+   * Return true if the given term is a valid closed term, which can be used as
+   * an argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @return true if n is a well formed term.
+   */
+  bool isWellFormedTerm(const Node& n) const;
+  /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
