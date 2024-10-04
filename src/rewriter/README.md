@@ -59,8 +59,8 @@ In RARE, it is possible to define rewrites over indexed operators. For example:
 Note that we use the syntax e.g. `(extract n m x)` to denote the result of
 extracting the bits `n` to `m` (inclusive) of `x`, whereas in SMT-LIB version
 2.6, this must be written `((_ extract n m) x)`.
-We require that terms that appear in index positions, e.g. the first or second
-argument position of an extract must either be variables or values.
+We require that terms that appear in index positions, e.g. the first and second
+argument positions of an extract must either be variables or values.
 
 ### Definition List
 
@@ -82,7 +82,7 @@ matched. For example:
 (define-cond-rule bv-sign-extend-eliminate
 	((x ?BitVec) (n Int) (sn Int))
 	(def (s (bvsize x)))
-  (= sn (- s 1))
+	(= sn (- s 1))
 	(sign_extend n x)
 	(concat (repeat n (extract sn sn x)) x))
 ```
