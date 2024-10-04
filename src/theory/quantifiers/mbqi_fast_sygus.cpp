@@ -24,6 +24,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -182,6 +183,8 @@ bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
 MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
@@ -212,6 +215,7 @@ bool MbqiFastSygus::constructInstantiation(
           << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndices();
   std::vector<size_t> nindices = qi.getNoInstIndices();
@@ -285,7 +289,6 @@ bool MbqiFastSygus::constructInstantiation(
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
       Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
-      SubsolverSetupInfo ssi(d_env);
       Result r = checkWithSubsolver(queryCheck, ssi);
       if (r == Result::SAT)
       {

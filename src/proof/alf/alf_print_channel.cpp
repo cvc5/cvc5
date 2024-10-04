@@ -20,20 +20,24 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "printer/printer.h"
+#include "proof/trust_id.h"
 #include "rewriter/rewrite_db.h"
 
 namespace cvc5::internal {
 namespace proof {
 
-AlfPrintChannel::AlfPrintChannel(NodeManager* nm) : d_nm(nm) {}
+AlfPrintChannel::AlfPrintChannel() {}
 
 AlfPrintChannel::~AlfPrintChannel() {}
 
-AlfPrintChannelOut::AlfPrintChannelOut(NodeManager* nm,
-                                       std::ostream& out,
+AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
                                        const LetBinding* lbind,
-                                       const std::string& tprefix)
-    : AlfPrintChannel(nm), d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
+                                       const std::string& tprefix,
+                                       bool trackWarn)
+    : d_out(out),
+      d_lbind(lbind),
+      d_termLetPrefix(tprefix),
+      d_trackWarn(trackWarn)
 {
 }
 
@@ -130,10 +134,13 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
                                         TNode nc)
 {
   Assert(!nc.isNull());
-  if (d_warnedRules.find(r) == d_warnedRules.end())
+  if (d_trackWarn)
   {
-    d_out << "; WARNING: add trust step for " << r << std::endl;
-    d_warnedRules.insert(r);
+    if (d_warnedRules.find(r) == d_warnedRules.end())
+    {
+      d_out << "; WARNING: add trust step for " << r << std::endl;
+      d_warnedRules.insert(r);
+    }
   }
   d_out << "; trust " << r;
   if (r == ProofRule::DSL_REWRITE)
@@ -150,6 +157,14 @@ void AlfPrintChannelOut::printTrustStep(ProofRule r,
     if (rewriter::getRewriteRule(args[0], di))
     {
       d_out << " " << di;
+    }
+  }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId tid;
+    if (getTrustId(args[0], tid))
+    {
+      d_out << " " << tid;
     }
   }
   d_out << std::endl;
@@ -176,10 +191,7 @@ void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
   tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(NodeManager* nm, LetBinding* lbind)
-    : AlfPrintChannel(nm), d_lbind(lbind)
-{
-}
+AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
 void AlfPrintChannelPre::printNode(TNode n)
 {
@@ -234,47 +246,6 @@ void AlfPrintChannelPre::processInternal(const Node& n)
     d_lbind->process(n);
   }
   d_keep.insert(n);  // probably not necessary
-  SkolemManager* sm = d_nm->getSkolemManager();
-  // traverse and collect all free variables in this term, which includes
-  // traversing skolem indices.
-  std::vector<TNode> visit;
-  TNode cur;
-  SkolemId sfi;
-  Node cacheVal;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (d_varsVisited.find(cur) == d_varsVisited.end())
-    {
-      d_varsVisited.insert(cur);
-      Kind ck = cur.getKind();
-      if (ck == Kind::BOUND_VARIABLE)
-      {
-        d_vars.insert(cur);
-        continue;
-      }
-      else if (ck == Kind::SKOLEM)
-      {
-        if (sm->isSkolemFunction(cur, sfi, cacheVal) && !cacheVal.isNull())
-        {
-          visit.push_back(cacheVal);
-        }
-        continue;
-      }
-      if (cur.hasOperator())
-      {
-        visit.push_back(cur.getOperator());
-      }
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-  } while (!visit.empty());
-}
-
-const std::unordered_set<Node>& AlfPrintChannelPre::getVariables() const
-{
-  return d_vars;
 }
 
 }  // namespace proof

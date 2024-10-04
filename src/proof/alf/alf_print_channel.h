@@ -37,7 +37,7 @@ namespace proof {
 class AlfPrintChannel
 {
  public:
-  AlfPrintChannel(NodeManager* nm);
+  AlfPrintChannel();
   virtual ~AlfPrintChannel();
   /** Print node n */
   virtual void printNode(TNode n) = 0;
@@ -67,20 +67,16 @@ class AlfPrintChannel
                               const std::vector<size_t>& premises,
                               const std::vector<Node>& args,
                               TNode conc) = 0;
-
- protected:
-  /** the associated node manager */
-  NodeManager* d_nm;
 };
 
 /** Prints the proof to output stream d_out */
 class AlfPrintChannelOut : public AlfPrintChannel
 {
  public:
-  AlfPrintChannelOut(NodeManager* nm,
-                     std::ostream& out,
+  AlfPrintChannelOut(std::ostream& out,
                      const LetBinding* lbind,
-                     const std::string& tprefix);
+                     const std::string& tprefix,
+                     bool trackWarn);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -105,6 +101,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * Print type node to stream in the expected format of ALF.
    */
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
+  std::ostream& getOStream() { return d_out; }
 
  private:
   /**
@@ -129,6 +126,8 @@ class AlfPrintChannelOut : public AlfPrintChannel
    * associated with trusted steps.
    */
   std::unordered_set<ProofRule> d_warnedRules;
+  /** Are we tracking warned rules? */
+  bool d_trackWarn;
 };
 
 /**
@@ -139,7 +138,7 @@ class AlfPrintChannelOut : public AlfPrintChannel
 class AlfPrintChannelPre : public AlfPrintChannel
 {
  public:
-  AlfPrintChannelPre(NodeManager* nm, LetBinding* lbind);
+  AlfPrintChannelPre(LetBinding* lbind);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -156,18 +155,11 @@ class AlfPrintChannelPre : public AlfPrintChannel
                       const std::vector<Node>& args,
                       TNode conc) override;
 
-  /** Get variables we encountered in printing */
-  const std::unordered_set<Node>& getVariables() const;
-
  private:
   /** The let binding */
   LetBinding* d_lbind;
   /** For computing free variables */
   std::unordered_set<Node> d_keep;
-  /** The set of variables we have encountered */
-  std::unordered_set<Node> d_vars;
-  /** The visited cache for computing variables */
-  std::unordered_set<TNode> d_varsVisited;
   /** Process that we will print node n in the final proof */
   void processInternal(const Node& n);
 };
