@@ -41,14 +41,16 @@ class PrintBenchmark
  public:
   /**
    * Constructor.
+   * @param nm     Pointer to the node manager.
    * @param p      The associated printer.
    * @param sorted True if declarations should be sorted wrt node id.
    * @param c      The associated node converter.
    */
-  PrintBenchmark(const Printer* p,
+  PrintBenchmark(NodeManager * nm,
+                 const Printer* p,
                  bool sorted = true,
                  NodeConverter* c = nullptr)
-      : d_printer(p), d_sorted(sorted), d_converter(c)
+      : d_nm(nm), d_printer(p), d_sorted(sorted), d_converter(c)
   {
   }
   /**
@@ -153,6 +155,8 @@ class PrintBenchmark
    * @return true if the definition was successfully inferred
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
+  /** Pointer to the node manager */
+  NodeManager * d_nm;
   /**
    * Pointer to the printer we are using, which is responsible for printing
    * individual commands.

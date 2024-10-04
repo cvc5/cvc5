@@ -262,7 +262,7 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     // (exported) skolems, as they are printed as parsable terms.
     if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
     {
-      if (sm->SkolemId(n)!= SkolemId::INTERNAL)
+      if (sm->getId(f)!= SkolemId::INTERNAL)
       {
         continue;
       }

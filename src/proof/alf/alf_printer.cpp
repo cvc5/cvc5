@@ -384,7 +384,6 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
     visit.pop_back();
     if (visited.find(cur) == visited.end())
     {
-      visited.insert(cur);
       switch (cur.getKind())
       {
         case Kind::REGEXP_ALL:
@@ -644,7 +643,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
         // we do not print declarations in a sorted manner to reduce overhead
-        smt::PrintBenchmark pb(&alfp, false, &d_tproc);
+        smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
