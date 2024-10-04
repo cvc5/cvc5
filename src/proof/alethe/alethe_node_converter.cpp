@@ -41,7 +41,6 @@ Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
 
 Node AletheNodeConverter::postConvert(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   Trace("alethe-conv") << "AletheNodeConverter: convert " << n << ", kind " << k
                        << "\n";
@@ -52,9 +51,9 @@ Node AletheNodeConverter::postConvert(Node n)
       std::stringstream ss;
       ss << "(_ @bitOf " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
          << ")";
-      TypeNode fType = nm->mkFunctionType(n[0].getType(), n.getType());
+      TypeNode fType = d_nm->mkFunctionType(n[0].getType(), n.getType());
       Node op = mkInternalSymbol(ss.str(), fType, true);
-      Node converted = nm->mkNode(Kind::APPLY_UF, op, n[0]);
+      Node converted = d_nm->mkNode(Kind::APPLY_UF, op, n[0]);
       return converted;
     }
     case Kind::BITVECTOR_FROM_BOOLS:
@@ -66,10 +65,10 @@ Node AletheNodeConverter::postConvert(Node n)
         childrenTypes.push_back(c.getType());
         children.push_back(c);
       }
-      TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
+      TypeNode fType = d_nm->mkFunctionType(childrenTypes, n.getType());
       Node op = mkInternalSymbol("@bbT", fType, true);
       children.insert(children.begin(), op);
-      Node converted = nm->mkNode(Kind::APPLY_UF, children);
+      Node converted = d_nm->mkNode(Kind::APPLY_UF, children);
       return converted;
     }
     case Kind::BITVECTOR_EAGER_ATOM:
@@ -78,21 +77,21 @@ Node AletheNodeConverter::postConvert(Node n)
     }
     case Kind::DIVISION_TOTAL:
     {
-      return nm->mkNode(Kind::DIVISION, n[0], n[1]);
+      return d_nm->mkNode(Kind::DIVISION, n[0], n[1]);
     }
     case Kind::INTS_DIVISION_TOTAL:
     {
-      return nm->mkNode(Kind::INTS_DIVISION, n[0], n[1]);
+      return d_nm->mkNode(Kind::INTS_DIVISION, n[0], n[1]);
     }
     case Kind::INTS_MODULUS_TOTAL:
     {
-      return nm->mkNode(Kind::INTS_MODULUS, n[0], n[1]);
+      return d_nm->mkNode(Kind::INTS_MODULUS, n[0], n[1]);
     }
     case Kind::SKOLEM:
     {
       Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
                            << "\n";
-      SkolemManager* sm = nm->getSkolemManager();
+      SkolemManager* sm = d_nm->getSkolemManager();
       SkolemId sfi = SkolemId::NONE;
       Node cacheVal;
       sm->isSkolemFunction(n, sfi, cacheVal);
@@ -138,12 +137,12 @@ Node AletheNodeConverter::postConvert(Node n)
         Node body =
             (index == quant[0].getNumChildren() - 1
                  ? quant[1]
-                 : nm->mkNode(
-                     Kind::FORALL,
-                     nm->mkNode(Kind::BOUND_VAR_LIST,
-                                std::vector<Node>{quant[0].begin() + index + 1,
-                                                  quant[0].end()}),
-                     quant[1]))
+                 : d_nm->mkNode(Kind::FORALL,
+                                d_nm->mkNode(Kind::BOUND_VAR_LIST,
+                                             std::vector<Node>{
+                                                 quant[0].begin() + index + 1,
+                                                 quant[0].end()}),
+                                quant[1]))
                 .notNode();
         // we need to replace in the body all the free variables (i.e., from 0
         // to index) by their respective choice terms. To do this, we get
@@ -154,7 +153,7 @@ Node AletheNodeConverter::postConvert(Node n)
           std::vector<Node> subs;
           for (size_t i = 0; i < index; ++i)
           {
-            std::vector<Node> cacheVals{quant, nm->mkConstInt(Rational(i))};
+            std::vector<Node> cacheVals{quant, d_nm->mkConstInt(Rational(i))};
             Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                            cacheVals);
             Assert(!sk.isNull());
@@ -165,8 +164,8 @@ Node AletheNodeConverter::postConvert(Node n)
                                  subs.begin(),
                                  subs.end());
         }
-        Node witness = nm->mkNode(
-            Kind::WITNESS, nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
+        Node witness = d_nm->mkNode(
+            Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
         Trace("alethe-conv") << ".. witness: " << witness << "\n";
         witness = convert(witness);
         if (d_defineSkolems)
@@ -179,7 +178,7 @@ Node AletheNodeConverter::postConvert(Node n)
             for (size_t i = index + 1; i > 0; --i)
             {
               std::vector<Node> cacheVals{quant,
-                                          nm->mkConstInt(Rational(i - 1))};
+                                          d_nm->mkConstInt(Rational(i - 1))};
               Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                              cacheVals);
               Assert(!sk.isNull());
@@ -203,7 +202,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::FORALL:
     {
       // remove patterns, if any
-      return n.getNumChildren() == 3 ? nm->mkNode(Kind::FORALL, n[0], n[1]) : n;
+      return n.getNumChildren() == 3 ? d_nm->mkNode(Kind::FORALL, n[0], n[1])
+                                     : n;
     }
     // we must make it to be printed with "choice", so we create an operator
     // with that name and the correct type and do a function application
@@ -214,9 +214,9 @@ Node AletheNodeConverter::postConvert(Node n)
       {
         childrenTypes.push_back(c.getType());
       }
-      TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
+      TypeNode fType = d_nm->mkFunctionType(childrenTypes, n.getType());
       Node choiceOp = mkInternalSymbol("choice", fType);
-      Node converted = nm->mkNode(Kind::APPLY_UF, choiceOp, n[0], n[1]);
+      Node converted = d_nm->mkNode(Kind::APPLY_UF, choiceOp, n[0], n[1]);
       Trace("alethe-conv") << ".. converted to choice: " << converted << "\n";
       return converted;
     }
@@ -427,8 +427,8 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
   {
     return it->second;
   }
-  NodeManager* nm = NodeManager::currentNM();
-  Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
+  Node sym =
+      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
   d_symbolsMap[key] = sym;
   return sym;
 }

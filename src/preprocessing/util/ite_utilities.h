@@ -327,7 +327,7 @@ class ITESimplifier : protected EnvObj
 class ITECareSimplifier
 {
  public:
-  ITECareSimplifier();
+  ITECareSimplifier(NodeManager* nm);
   ~ITECareSimplifier();
 
   Node simplifyWithCare(TNode e);
