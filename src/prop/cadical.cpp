@@ -663,6 +663,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
         << " -> " << d_active_vars_control.size() << std::endl;
   }
 
+  /**
+   * Set the activation literal for the current user assertion level.
+   *
+   * @param alit The activation literal for the current user assertion level.
+   */
   void set_activation_lit(SatVariable& alit)
   {
     d_activation_literals.push_back(alit);
