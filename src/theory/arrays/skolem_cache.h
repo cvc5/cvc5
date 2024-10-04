@@ -41,14 +41,14 @@ class SkolemCache
    * This skolem is unique for deq, calling this method will always return the
    * same skolem over the lifetime of deq.
    */
-  static Node getExtIndexSkolem(Node deq);
+  static Node getExtIndexSkolem(NodeManager* nm, Node deq);
 
   /**
    * Get the bound variable for given EQ_RANGE operator. This bound variable
    * is unique for `eqr`. Calling this method will always return the same bound
    * variable over the lifetime of `eqr`.
    */
-  static Node getEqRangeVar(TNode eqr);
+  static Node getEqRangeVar(NodeManager* nm, TNode eqr);
 };
 
 }  // namespace arrays

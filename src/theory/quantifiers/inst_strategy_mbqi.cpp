@@ -27,6 +27,7 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
+#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -46,11 +47,15 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   d_nonClosedKinds.insert(Kind::STORE_ALL);
   d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
   d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
+  // may appear in certain models e.g. strings of excessive length
+  d_nonClosedKinds.insert(Kind::WITNESS);
 
   if (options().quantifiers.mbqiFastSygus)
   {
     d_msenum.reset(new MbqiFastSygus(env, *this));
   }
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -218,7 +223,8 @@ void InstStrategyMbqi::process(Node q)
   Node query = nm->mkAnd(constraints);
 
   std::unique_ptr<SolverEngine> mbqiChecker;
-  initializeSubsolver(mbqiChecker, d_env);
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
+  initializeSubsolver(mbqiChecker, ssi);
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
@@ -400,13 +406,13 @@ Node InstStrategyMbqi::convertToQuery(
           }
         }
       }
-      else if (cur.getNumChildren() == 0)
+      else if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
       {
         // if this is a bad kind, fail immediately
-        if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
-        {
-          return Node::null();
-        }
+        return Node::null();
+      }
+      else if (cur.getNumChildren() == 0)
+      {
         cmap[cur] = cur;
       }
       else

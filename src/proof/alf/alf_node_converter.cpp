@@ -111,8 +111,6 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::BOUND_VARIABLE)
   {
-    // note: we always distinguish variables, to ensure they do not have
-    // names that are overloaded with user names
     std::string sname;
     if (n.hasName())
     {
@@ -126,11 +124,14 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
-    size_t index = d_varIndex[sname];
-    d_varIndex[sname]++;
-    std::stringstream ssn;
-    ssn << "@v." << index << "." << sname;
-    return NodeManager::currentNM()->mkBoundVar(ssn.str(), tn);
+    // A variable x of type T can unambiguously referred to as (eo::var "x" T).
+    // We convert to this representation here, which will often be letified.
+    std::vector<Node> args;
+    Node nn = nm->mkConst(String(sname));
+    args.push_back(nn);
+    Node tnn = typeAsNode(tn);
+    args.push_back(tnn);
+    return mkInternalApp("eo::var", args, tn);
   }
   else if (k == Kind::VARIABLE)
   {
@@ -155,15 +156,13 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (n.isClosure())
   {
     Node vl = n[0];
-    // notice that intentionally we drop annotations here.
+    // Notice that intentionally we drop annotations here.
+    // Additionally, it is important that we convert the closure to a
+    // non-closure operator here, since we will be traversing over it
+    // during letification.
     std::vector<Node> args;
-    // We take the *original* bound variable list, since variable names are
-    // preserved in the translation; using the updated variable `@v.N.x`
-    // would lead to using a variable named "@v.N.x" instead of "x", where
-    // `@v.N.x` is a macro for the variable "x".
-    args.push_back(n[0]);
     args.insert(args.end(),
-                n.begin() + 1,
+                n.begin(),
                 n.begin() + getNumChildrenToProcessForClosure(k));
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
@@ -257,7 +256,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
-    ss << "@fp." << printer::smt2::Smt2Printer::smtKindString(k);
+    ss << printer::smt2::Smt2Printer::smtKindString(k);
     return mkInternalApp(ss.str(), {tnn}, tn);
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
@@ -330,24 +329,36 @@ Node AlfNodeConverter::maybeMkSkolemFun(Node k)
   {
     if (isHandledSkolemId(sfi))
     {
-      // convert every skolem function to its name applied to arguments
-      std::stringstream ss;
-      ss << "@" << sfi;
-      std::vector<Node> args;
-      if (cacheVal.getKind() == Kind::SEXPR)
+      if (!cacheVal.isNull())
       {
-        for (const Node& cv : cacheVal)
+        std::vector<Node> vals;
+        if (cacheVal.getKind() == Kind::SEXPR)
         {
-          args.push_back(convert(cv));
+          vals.insert(vals.end(), cacheVal.begin(), cacheVal.end());
+        }
+        else
+        {
+          vals.push_back(cacheVal);
+        }
+        bool hasChanged = false;
+        for (Node& v : vals)
+        {
+          Node orig = v;
+          v = convert(v);
+          hasChanged = hasChanged || v != orig;
+        }
+        // if an index term changed, we have to construct a new skolem
+        if (hasChanged)
+        {
+          // construct an internal app instead
+          std::stringstream ss;
+          ss << "@" << sfi;
+          return mkInternalApp(ss.str(), vals, k.getType());
         }
       }
-      else if (!cacheVal.isNull())
-      {
-        args.push_back(convert(cacheVal));
-      }
-      // must convert all arguments
-      Node app = mkInternalApp(ss.str(), args, k.getType());
-      return app;
+      // otherwise we return itself, this will be printed in its full
+      // definition since applyPrintSkolemDefinitions is set to true
+      return k;
     }
   }
   return Node::null();
@@ -666,6 +677,7 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::TRANSCENDENTAL_PURIFY:
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
+    case SkolemId::SETS_DEQ_DIFF:
     case SkolemId::STRINGS_NUM_OCCUR:
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_OCCUR_INDEX:

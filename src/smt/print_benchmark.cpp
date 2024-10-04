@@ -15,6 +15,7 @@
 
 #include "smt/print_benchmark.h"
 
+#include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
@@ -24,6 +25,16 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace smt {
+
+/**
+ * Attribute true for symbols that should be excluded from the output of this
+ * utility.
+ */
+struct BenchmarkNoPrintAttributeId
+{
+};
+using BenchmarkNoPrintAttribute =
+    expr::Attribute<BenchmarkNoPrintAttributeId, bool>;
 
 void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
                                            std::ostream& outDef,
@@ -188,11 +199,17 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        const std::unordered_set<Node>& funs,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
+  BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
     Assert(f.isVar());
     // do not print selectors, constructors
     if (!f.getType().isFirstClass())
+    {
+      continue;
+    }
+    // don't print symbols that have been marked
+    if (f.getAttribute(bnpa))
     {
       continue;
     }
@@ -327,6 +344,12 @@ void PrintBenchmark::printBenchmark(std::ostream& out,
   printAssertions(out, defs, assertions);
   d_printer->toStreamCmdCheckSat(out);
   out << std::endl;
+}
+
+void PrintBenchmark::markNoPrint(Node& sym)
+{
+  BenchmarkNoPrintAttribute bnpa;
+  sym.setAttribute(bnpa, true);
 }
 
 }  // namespace smt

@@ -126,12 +126,19 @@ name   = "SMT Layer"
   help_mode  = "proof modes."
 [[option.mode.OFF]]
   name = "off"
+  help = "Do not produce proofs."
 [[option.mode.PP_ONLY]]
   name = "pp-only"
+  help = "Only produce proofs for preprocessing."
 [[option.mode.SAT]]
   name = "sat-proof"
+  help = "Produce proofs for preprocessing and for the SAT solver."
 [[option.mode.FULL]]
   name = "full-proof"
+  help = "Produce full proofs of preprocessing, SAT and theory lemmas."
+[[option.mode.FULL_STRICT]]
+  name = "full-proof-strict"
+  help = "Produce full proofs of preprocessing, SAT and theory lemmas. Additionally disable techniques that will lead to incomplete proofs."
 
 [[option]]
   name       = "checkProofs"

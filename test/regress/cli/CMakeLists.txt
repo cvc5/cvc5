@@ -603,10 +603,14 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/nego1.smt2
+  regress0/bv/overflow/nego2.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/uaddo3.smt2
   regress0/bv/overflow/saddo1.smt2
   regress0/bv/overflow/saddo2.smt2
+  regress0/bv/overflow/saddo3.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
@@ -615,6 +619,7 @@ set(regress_0_tests
   regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
   regress0/bv/overflow/ssubo2.smt2
+  regress0/bv/overflow/ssubo3.smt2
   regress0/bv/overflow/sdivo1.smt2
   regress0/bv/overflow/sdivo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
@@ -954,6 +959,9 @@ set(regress_0_tests
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung13sdk_output1.smt2
+  regress0/incomplete-fun-value.smt2
+  regress0/incomplete-fun-value-first.smt2
+  regress0/incomplete-fun-value-nullable.smt2
   regress0/int2bv2nat-rew-type.smt2
   regress0/incorrect1.smtv1.smt2
   regress0/ineq_basic.smtv1.smt2
@@ -967,6 +975,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
+  regress0/issue11198-real-as-int.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
@@ -1295,6 +1304,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
   regress0/proj-issue645-abs-value-subs.smt2
+  regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
@@ -1318,10 +1328,17 @@ set(regress_0_tests
   regress0/proofs/issue9172-doublePropProof.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
+  regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
+  regress0/proofs/issue9515-alethe-skolems-crash.smt2
+  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
+  regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
   regress0/proofs/issue9770-open-sat-proof.smt2
+  regress0/proofs/issue9927.smt2
   regress0/proofs/lfsc-test-1.smt2
+  regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/no-proof-uc.smt2
+  regress0/proofs/pp-only-proof.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
@@ -1350,6 +1367,8 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
+  regress0/proofs/subtype-elim-1.smt2
+  regress0/proofs/subtype-elim-2.smt2
   regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
@@ -1676,6 +1695,7 @@ set(regress_0_tests
   regress0/sets/eqtest.smt2
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
+  regress0/sets/filter-up-unsat.smt2
   regress0/sets/filter-qe-simple.smt2
   regress0/sets/filter-qe-simple-bv.smt2
   regress0/sets/insert.smt2
@@ -1707,7 +1727,9 @@ set(regress_0_tests
   regress0/sets/proj-issue703.smt2
   regress0/sets/proj-issue720.smt2
   regress0/sets/proj-issue727.smt2
+  regress0/sets/proj-issue728.smt2
   regress0/sets/proj-issue730-sets-ipc-fail.smt2
+  regress0/sets/proj-issue731.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/setel-eq.smt2
@@ -1790,6 +1812,8 @@ set(regress_0_tests
   regress0/strings/instance13131.smt2
   regress0/strings/instance15449.smt2
   regress0/strings/is_digit_simple.smt2
+  regress0/strings/issue11164-double-purify.smt2
+  regress0/strings/issue11168.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2971,9 +2995,12 @@ set(regress_1_tests
   regress1/seq/issue8148-2-const-mv.smt2
   regress1/seq/issue8148-const-mv.smt2
   regress1/seq/issue8936-nth-eager-red.smt2
+  regress1/seq/proj-issue733-mbqi-w.smt2
+  regress1/sets/all_sat.smt2
+  regress1/sets/all_unsat.smt2
   regress1/sets/all1.smt2
   regress1/sets/all2.smt2
-  regress1/sets/all3.smt2  
+  regress1/sets/all3.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -3003,6 +3030,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/filter_soundness_issue.smt2
   regress1/sets/filter-no-lift-red_2.smt2
   regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
@@ -3749,13 +3777,6 @@ set(regress_4_tests
 
 set(regression_disabled_tests
   regress0/arith/miplib-opt1217--27.smtv1.smt2
-  # Alethe tests disabled while fixes to the Alethe backend not fully merged
-  regress0/proofs/alethe-res-need-or-step.smt2
-  regress0/proofs/issue9393-optResReconstruction-alethebug.smt2
-  regress0/proofs/issue9531-alethe-resolution.smt2
-  regress0/proofs/nomerge-alethe-pf.smt2
-  regress0/proofs/issue9515-alethe-skolems-crash.smt2
-  regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   # unknown on some builds
   regress0/arith/issue7984-quant-trans.smt2
   regress0/aufbv/dubreva005ue.smtv1.smt2

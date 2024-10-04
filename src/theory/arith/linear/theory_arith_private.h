@@ -164,7 +164,8 @@ private:
   //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
 
 private:
- static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
+ static bool decomposeTerm(
+     NodeManager* nm, Node t, Rational& m, Node& p, Rational& c);
  bool decomposeLiteral(Node lit,
                        Kind& k,
                        int& dir,

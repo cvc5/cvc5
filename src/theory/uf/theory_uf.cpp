@@ -104,6 +104,13 @@ void TheoryUF::finishInit() {
   d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
+    if (!options().uf.hoExp)
+    {
+      std::stringstream ss;
+      ss << "Higher-order logic not available in this configuration, try "
+            "--ho-exp.";
+      throw LogicException(ss.str());
+    }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }

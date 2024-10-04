@@ -434,6 +434,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
+      spendResource(Resource::TheoryFullCheckStep);
       d_factsAsserted = true;
       d_tc->resetRound();
     }
@@ -1697,6 +1698,16 @@ void TheoryEngine::conflict(TrustNode tconflict,
     // pass the trust node that was sent from the theory
     lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
+}
+
+void TheoryEngine::setModelUnsound(theory::IncompleteId id)
+{
+  setModelUnsound(TheoryId::THEORY_NONE, id);
+}
+
+void TheoryEngine::setRefutationUnsound(theory::IncompleteId id)
+{
+  setRefutationUnsound(TheoryId::THEORY_NONE, id);
 }
 
 void TheoryEngine::setModelUnsound(theory::TheoryId theory,

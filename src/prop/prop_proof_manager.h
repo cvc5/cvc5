@@ -124,7 +124,8 @@ class PropPfManager : protected EnvObj
    * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
    * learned via theory propagation.
    */
-  theory::InferenceId getInferenceIdFor(const Node& lem) const;
+  theory::InferenceId getInferenceIdFor(const Node& lem,
+                                        uint64_t& timestamp) const;
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
@@ -282,12 +283,26 @@ class PropPfManager : protected EnvObj
   bool d_trackLemmaClauseIds;
   /** Mapping lemma clauses to inference identifiers */
   context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
+  /**
+   * Mapping lemma clauses to a timestamp. Currently, the timestamp corresponds
+   * to the number of calls to full check we have seen thus far.
+   */
+  context::CDHashMap<Node, uint64_t> d_lemmaClauseTimestamp;
   /** The current identifier */
   theory::InferenceId d_currLemmaId;
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
   /** Temporary, pointer to SAT proof manager */
   SatProofManager* d_satPm;
+  /**
+   * Counts number of inference ids in requested unsat core lemmas. Note this is
+   * tracked only if -o unsat-core-lemmas is on.
+   */
+  HistogramStat<theory::InferenceId> d_uclIds;
+  /** Total number of unsat core lemmas */
+  IntStat d_uclSize;
+  /** Total number of times we asked for unsat core lemmas */
+  IntStat d_numUcl;
 }; /* class PropPfManager */
 
 }  // namespace prop

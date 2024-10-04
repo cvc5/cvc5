@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
-typedef RewriteResponse (*RewriteFunction) (TNode, bool);
+typedef RewriteResponse (*RewriteFunction)(NodeManager* nm, TNode, bool);
 
 class TheoryFpRewriter : public TheoryRewriter
 {

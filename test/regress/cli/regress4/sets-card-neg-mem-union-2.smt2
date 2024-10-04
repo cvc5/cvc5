@@ -1,7 +1,7 @@
 (set-logic QF_ALL)
 (set-info :status unsat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-fun A () (Set Int))
 (declare-fun B () (Set Int))
 (declare-fun C () (Set Int))

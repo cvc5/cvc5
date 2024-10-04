@@ -972,6 +972,12 @@ class CVC5_EXPORT SolverEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
+   * Get the available proof, which is that of the prop engine if SAT
+   * proof producing, or else a dummy proof SAT_REFUTATION whose assumptions
+   * are the preprocessed input formulas.
+   */
+  std::shared_ptr<ProofNode> getAvailableSatProof();
+  /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
    * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
@@ -1026,6 +1032,14 @@ class CVC5_EXPORT SolverEngine
    */
   const Options& options() const;
 
+  /**
+   * Return true if the given term is a valid closed term, which can be used as
+   * an argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @return true if n is a well formed term.
+   */
+  bool isWellFormedTerm(const Node& n) const;
   /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.

@@ -113,6 +113,14 @@ class CVC5_EXPORT SymbolManager
    */
   std::vector<Term> getDeclaredTerms() const;
 
+  /**
+   * Get a mapping from terms to names that have been given to them via the
+   * :named attribute.
+   *
+   * @return A map of the named terms to their names.
+   */
+  std::map<Term, std::string> getNamedTerms() const;
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();

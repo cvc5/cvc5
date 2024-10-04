@@ -43,7 +43,7 @@ jobs:
             macos-target: 10.13
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
- 
+
           - name: macos:production-arm64
             os: macos-14
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
@@ -114,7 +114,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --tester cpc --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
+            run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
           # GPL versions
           - name: ubuntu:production-gpl
@@ -203,7 +203,7 @@ jobs:
         regressions-args: ${{ matrix.build.run_regression_args }}
         regressions-exclude: ${{ matrix.build.exclude_regress }}
         shell: ${{ matrix.build.shell }}
-  
+
     - name: Run tests
       if: matrix.build.run_regression_args
       uses: ./.github/actions/run-tests
