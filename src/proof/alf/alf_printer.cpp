@@ -384,6 +384,7 @@ bool AlfPrinter::canEvaluateRegExp(Node r) const
     visit.pop_back();
     if (visited.find(cur) == visited.end())
     {
+      visited.insert(cur);
       switch (cur.getKind())
       {
         case Kind::REGEXP_ALL:
