@@ -34,13 +34,6 @@ namespace rewriter {
 class RewriteDb;
 }
 
-namespace smt {
-
-class Assertions;
-class SmtSolver;
-class PreprocessProofGenerator;
-class ProofPostprocess;
-
 /** Modes for global Proof scopes introducing definitions and assertions. */
 enum class ProofScopeMode
 {
@@ -51,6 +44,13 @@ enum class ProofScopeMode
   /** Proof closed by 2 nested scopes introducing definitions and assertions. */
   DEFINITIONS_AND_ASSERTIONS,
 };
+
+namespace smt {
+
+class Assertions;
+class SmtSolver;
+class PreprocessProofGenerator;
+class ProofPostprocess;
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
