@@ -41,7 +41,7 @@ class PrintBenchmark
  public:
   /**
    * Constructor.
-   * @param nm     Pointer to the node manager.
+   * @param nm     The associated node manager.
    * @param p      The associated printer.
    * @param sorted True if declarations should be sorted wrt node id.
    * @param c      The associated node converter.
