@@ -19,6 +19,8 @@ Solving Linear Integer Arithmetic
  * Calls Theory::preprocess(...) on every assertion of the formula.
  */
 
+#include <bitset>
+
 #include "cvc5_private.h"
 
 #ifndef CVC5__PREPROCESSING__PASSES__AUTOMATA_H
@@ -29,6 +31,14 @@ Solving Linear Integer Arithmetic
 namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
+
+struct AutomataEdge
+{
+  int endpoint;
+  // assuming nr of coefficents at most 64
+  int transition;
+  bool acc;
+};
 
 class Automata : public PreprocessingPass
 {
@@ -43,7 +53,7 @@ class Automata : public PreprocessingPass
   // the DFA itself. Initially it will be done for a single formula, for
   // example, x + 2y <= 1, so we have a adjacency list of the RHS values of hte
   // inequality.
-  std::map<int, std::map<int, std::pair<int, int>>> dfa;
+  std::map<int, std::vector<AutomataEdge>> dfa;
 };
 
 }  // namespace passes
