@@ -110,6 +110,7 @@ void buildDfa(const int& initial_state,
         std::vector<int> transitions;
         if (is_transition_acc)
         {
+          std::cout << "Eagerly found solution!" << std::endl;
           while (c != initial_state)
           {
             transitions.push_back(from.at(c).second);
@@ -119,24 +120,25 @@ void buildDfa(const int& initial_state,
 
           // convert LSB to integers
           std::vector<int> ans = std::vector<int>(number_of_coefficients);
-          int n = static_cast<int>(transitions.size()) - 1;
+          int n = static_cast<int>(transitions.size());
 
           // using last transition, I didn't add it to the vec
           for (int i = 0; i < number_of_coefficients; i++)
           {
             if ((1 << i) & transition)
             {
-              ans.at(i) = 1 << n;
+              ans.at(i) = -1 * (1 << n);
             }
           }
 
-          for (const auto& t : transitions)
+          for (int j = 0; j < static_cast<int>(transitions.size()); j++)
           {
+            const auto& t = transitions.at(j);
             for (int i = 0; i < number_of_coefficients; i++)
             {
               if ((1 << i) & t)
               {
-                ans.at(i) += 1 << i;
+                ans.at(i) += 1 << j;
               }
             }
           }
