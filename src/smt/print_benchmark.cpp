@@ -216,7 +216,7 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     }
     // if print skolem definitions is true, we shouldn't print declarations for
     // skolems
-    if (printSkolemDefs && f.getKind()==Kind::SKOLEM)
+    if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
     {
       continue;
     }
