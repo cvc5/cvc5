@@ -199,6 +199,7 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        const std::unordered_set<Node>& funs,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
+  bool printSkolemDefs = options::ioutils::getPrintSkolemDefinitions(out);
   BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
@@ -210,6 +211,12 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     }
     // don't print symbols that have been marked
     if (f.getAttribute(bnpa))
+    {
+      continue;
+    }
+    // if print skolem definitions is true, we shouldn't print declarations for
+    // skolems
+    if (printSkolemDefs && f.getKind()==Kind::SKOLEM)
     {
       continue;
     }
@@ -286,6 +293,14 @@ void PrintBenchmark::getConnectedDefinitions(
     return;
   }
   processedDefs.insert(n);
+  // get the symbols in the body
+  std::unordered_set<Node> symsBody;
+  expr::getSymbols(it->second.second, symsBody, visited);
+  for (const Node& s : symsBody)
+  {
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
+  }
   if (!it->second.first)
   {
     // an ordinary define-fun symbol
@@ -295,14 +310,6 @@ void PrintBenchmark::getConnectedDefinitions(
   {
     // a recursively defined symbol
     recDefs.push_back(n);
-  }
-  // get the symbols in the body
-  std::unordered_set<Node> symsBody;
-  expr::getSymbols(it->second.second, symsBody, visited);
-  for (const Node& s : symsBody)
-  {
-    getConnectedDefinitions(
-        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
 }
 
