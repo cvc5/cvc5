@@ -1213,6 +1213,7 @@ set(regress_0_tests
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
+  regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
@@ -1693,6 +1694,7 @@ set(regress_0_tests
   regress0/sets/eqtest.smt2
   regress0/sets/error1.smt2
   regress0/sets/error2.smt2
+  regress0/sets/filter-up-unsat.smt2
   regress0/sets/filter-qe-simple.smt2
   regress0/sets/filter-qe-simple-bv.smt2
   regress0/sets/insert.smt2
@@ -3027,6 +3029,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/filter_soundness_issue.smt2
   regress1/sets/filter-no-lift-red_2.smt2
   regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2

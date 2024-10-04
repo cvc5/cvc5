@@ -37,14 +37,14 @@ namespace parser {
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymManager* sm,
-                         bool strictMode)
+                         ParsingMode parsingMode)
     : d_solver(solver),
       d_tm(d_solver->getTermManager()),
       d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode),
+      d_parsingMode(parsingMode),
       d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
 }
