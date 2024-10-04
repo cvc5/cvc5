@@ -154,9 +154,11 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
     printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
     if (d_sorted)
     {
-      // Sort ordinary and recursive definitions for deterministic order.
+      // Sort recursive definitions for deterministic order.
       std::sort(recDefs.begin(), recDefs.end());
-      std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
+      // In general, we cannot sort the ordinary definitions since they were
+      // added to the vector in an order which ensures the functions they
+      // depend on are defined first.
     }
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
@@ -348,6 +350,7 @@ void PrintBenchmark::getConnectedDefinitions(
     getConnectedDefinitions(
         s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
+  // add the symbol after we add the definitions
   if (!it->second.first)
   {
     // an ordinary define-fun symbol
