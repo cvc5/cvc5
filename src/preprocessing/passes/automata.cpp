@@ -28,7 +28,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
-#include "util/integer.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::theory;
@@ -101,16 +101,17 @@ PreprocessingPassResult Automata::applyInternal(
     std::cout << aux << std::endl;
     std::cout << "---------" << std::endl;
 
-    int64_t c;
+    int64_t c = 0;
     std::vector<std::string> vars;
     std::vector<int> A;  // I will rename this
 
     // first we get rid of the = exp
 
     TNode lhs = *aux.begin();
-    if (lhs.getKind() == kind::Kind_t::EQUAL)
+    if (lhs.getKind() == kind::Kind_t::MULT)
     {
-      int64_t coef = stoi((*lhs.begin()).toString());
+      lhs = *lhs.begin();
+      int64_t coef = stoi(lhs.getConst<Rational>().toString());
       A.push_back(coef);
     }
     else
@@ -120,22 +121,14 @@ PreprocessingPassResult Automata::applyInternal(
     }
 
     // now process right side of relation
-    aux = *aux.rbegin();
-    for (const TNode& assertion : aux)
+    TNode rhs = *aux.rbegin();
+    for (const TNode& assertion : rhs)
     {
-      std::cout << "Assertion:" << std::endl;
-      std::cout << assertion << std::endl;
       if (assertion.getKind() == kind::Kind_t::MULT)
       {
-        std::cout << "Its mult!\n";
         lhs = *assertion.begin();
-        std::cout << lhs.toString() << std::endl;
-
-        // int64_t coef = lhs.getConst<Integer>();
-        std::cout << lhs.getKind() << std::endl;
-        auto coef = lhs.getConst<Integer>();
-        std::cout << coef << std::endl;
-        // A.push_back(-1 * coef);
+        int64_t coef = stoi(lhs.getConst<Rational>().toString());
+        A.push_back(-1 * coef);
       }
       else if (assertion.getKind() == kind::Kind_t::VARIABLE)
       {
@@ -143,10 +136,15 @@ PreprocessingPassResult Automata::applyInternal(
       }
       else
       {
-        // for sure it's the constant
-        c = stoi(assertion.toString());
+        // for sure it's the constant C
+        c = stoi(assertion.getConst<Rational>().toString());
       }
     }
+    std::cout << "A = ";
+    for (const auto& coef : A) std::cout << coef << " ";
+    std::cout << std::endl;
+    std::cout << "c = ";
+    std::cout << c << std::endl;
 
     // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE
     // LATER
