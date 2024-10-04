@@ -42,6 +42,7 @@ AlfPrinter::AlfPrinter(Env& env,
                        uint32_t letThresh)
     : EnvObj(env),
       d_tproc(atp),
+      d_pfIdCounter(0),
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
@@ -145,6 +146,10 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
+    case ProofRule::SETS_SINGLETON_INJ:
+    case ProofRule::SETS_EXT:
+    case ProofRule::SETS_FILTER_UP:
+    case ProofRule::SETS_FILTER_DOWN:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -467,6 +472,8 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   out << "(declare-rule " << r << " (";
   AlfDependentTypeConverter adtc(nodeManager(), d_tproc);
   std::stringstream ssExplicit;
+  std::map<std::string, size_t> nameCount;
+  std::vector<Node> uviList;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -476,9 +483,23 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     const Node& uv = uvarList[i];
     std::stringstream sss;
     sss << uv;
+    // Use a consistent variable name, which e.g. ensures that minor changes
+    // to the RARE rules do not induce major changes in the CPC definition.
+    // Below, we have a variable when the user has named x (which itself may
+    // contain digits), and the cvc5 RARE parser has renamed to xN where N is
+    // <numeral>+. We rename this to xM where M is the number of times we have
+    // seen a variable with prefix M. For example, the variable `x1s2` may be
+    // renamed to `x1s2123`, which will be renamed to `x1s1` here.
+    std::string str = sss.str();
+    size_t index = str.find_last_not_of("0123456789");
+    std::string result = str.substr(0, index+1);
+    sss.str("");
+    nameCount[result]++;
+    sss << result << nameCount[result];
     Node uvi = d_tproc.mkInternalSymbol(sss.str(), uv.getType());
+    uviList.emplace_back(uvi);
     su.add(varList[i], uvi);
-    ssExplicit << "(" << uv << " ";
+    ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
     Node uvtp = adtc.process(uvt);
     ssExplicit << uvtp;
@@ -521,13 +542,13 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     out << ")" << std::endl;
   }
   out << "  :args (";
-  for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
+  for (size_t i = 0, nvars = uviList.size(); i < nvars; i++)
   {
     if (i > 0)
     {
       out << " ";
     }
-    out << uvarList[i];
+    out << uviList[i];
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
@@ -617,6 +638,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
     }
     if (i == 1)
     {
+      // do not need to print DSL rules
       if (!options().proof.proofPrintReference)
       {
         // [1] print the declarations
@@ -632,7 +654,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       // [3] print proof-level term bindings
       printLetList(out, d_lbind);
     }
-    // [4] print (unique) assumptions
+    // [4] print (unique) assumptions, including definitions
     std::unordered_set<Node> processed;
     for (const Node& n : assertions)
     {
