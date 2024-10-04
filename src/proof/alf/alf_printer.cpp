@@ -492,7 +492,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     // renamed to `x1s2123`, which will be renamed to `x1s1` here.
     std::string str = sss.str();
     size_t index = str.find_last_not_of("0123456789");
-    std::string result = str.substr(0, index+1);
+    std::string result = str.substr(0, index + 1);
     sss.str("");
     nameCount[result]++;
     sss << result << nameCount[result];

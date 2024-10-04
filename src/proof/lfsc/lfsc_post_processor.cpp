@@ -59,7 +59,7 @@ bool LfscProofPostprocessCallback::update(Node res,
   Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id
                    << std::endl;
   Trace("lfsc-pp-debug") << "...proves " << res << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Assert(id != ProofRule::LFSC_RULE);
 
   switch (id)
@@ -114,7 +114,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         size_t ii = (nargs - 1) - i;
         // Use a dummy conclusion for what LAMBDA proves, since there is no
         // FOL representation for its type.
-        Node fconc = mkDummyPredicate();
+        Node fconc = mkDummyPredicate(nm);
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
         // aliasing.
@@ -478,7 +478,7 @@ void LfscProofPostprocessCallback::updateCong(Node res,
   }
   Node curL = currEq[0];
   Node curR = currEq[1];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (; i < nchildren; i++)
   {
     // CONG rules for each child
@@ -507,7 +507,7 @@ void LfscProofPostprocessCallback::addLfscRule(
     const std::vector<Node>& args)
 {
   std::vector<Node> largs;
-  largs.push_back(mkLfscRuleNode(lr));
+  largs.push_back(mkLfscRuleNode(nodeManager(), lr));
   largs.push_back(conc);
   largs.insert(largs.end(), args.begin(), args.end());
   cdp->addStep(conc, ProofRule::LFSC_RULE, children, largs);
@@ -517,7 +517,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
                                            const std::vector<Node>& children)
 {
   Assert(!children.empty());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   size_t nchildren = children.size();
   size_t i = 0;
   // do we have a null terminator? If so, we start with it.
@@ -535,9 +535,8 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
   return ret;
 }
 
-Node LfscProofPostprocessCallback::mkDummyPredicate()
+Node LfscProofPostprocessCallback::mkDummyPredicate(NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkBoundVar(nm->booleanType());
 }
 
