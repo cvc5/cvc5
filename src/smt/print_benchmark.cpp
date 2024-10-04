@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "printer/printer.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -200,6 +201,7 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
   bool printSkolemDefs = options::ioutils::getPrintSkolemDefinitions(out);
+  SkolemManager* sm = d_nm->getSkolemManager();
   BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
@@ -215,10 +217,13 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
       continue;
     }
     // if print skolem definitions is true, we shouldn't print declarations for
-    // skolems
+    // (exported) skolems, as they are printed as parsable terms.
     if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
     {
-      continue;
+      if (sm->SkolemId(n)!= SkolemId::INTERNAL)
+      {
+        continue;
+      }
     }
     if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
