@@ -39,8 +39,16 @@ namespace smt {
 class PrintBenchmark
 {
  public:
-  PrintBenchmark(const Printer* p, NodeConverter* c = nullptr)
-      : d_printer(p), d_converter(c)
+  /**
+   * Constructor.
+   * @param p      The associated printer.
+   * @param sorted True if declarations should be sorted wrt node id.
+   * @param c      The associated node converter.
+   */
+  PrintBenchmark(const Printer* p,
+                 bool sorted = true,
+                 NodeConverter* c = nullptr)
+      : d_printer(p), d_sorted(sorted), d_converter(c)
   {
   }
   /**
@@ -98,7 +106,7 @@ class PrintBenchmark
    * include what was printed
    */
   void printDeclaredFuns(std::ostream& out,
-                         const std::unordered_set<Node>& funs,
+                         const std::vector<Node>& funs,
                          std::unordered_set<Node>& processed);
   /**
    * Get the connected types. This traverses subfield types of datatypes and
@@ -150,6 +158,8 @@ class PrintBenchmark
    * individual commands.
    */
   const Printer* d_printer;
+  /* True if declarations should be sorted wrt node id. */
+  bool d_sorted;
   /** (Optional) node converter */
   NodeConverter* d_converter;
 };

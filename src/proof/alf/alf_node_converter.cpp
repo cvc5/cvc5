@@ -72,7 +72,6 @@ Node AlfNodeConverter::preConvert(Node n)
 
 Node AlfNodeConverter::postConvert(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   // we eliminate MATCH at preConvert above
   Assert(k != Kind::MATCH);
@@ -105,7 +104,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // This case will only apply for terms originating from places with no
     // proof support. Note it is not added as a declared variable, instead it
     // is used as (var N T) throughout.
-    Node index = nm->mkConstInt(Rational(getOrAssignIndexForConst(n)));
+    Node index = d_nm->mkConstInt(Rational(getOrAssignIndexForConst(n)));
     Node tc = typeAsNode(tn);
     return mkInternalApp("const", {index, tc}, tn);
   }
@@ -127,7 +126,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // A variable x of type T can unambiguously referred to as (eo::var "x" T).
     // We convert to this representation here, which will often be letified.
     std::vector<Node> args;
-    Node nn = nm->mkConst(String(sname));
+    Node nn = d_nm->mkConst(String(sname));
     args.push_back(nn);
     Node tnn = typeAsNode(tn);
     args.push_back(tnn);
@@ -200,8 +199,8 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_FINITE_FIELD)
   {
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
-    Node v = convert(nm->mkConstInt(ffv.getValue()));
-    Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
+    Node v = convert(d_nm->mkConstInt(ffv.getValue()));
+    Node fs = convert(d_nm->mkConstInt(ffv.getFieldSize()));
     return mkInternalApp("ff.value", {fs, v}, tn);
   }
   else if (k == Kind::FUNCTION_ARRAY_CONST)
@@ -235,14 +234,14 @@ Node AlfNodeConverter::postConvert(Node n)
     }
     newArgs.push_back(opc);
     newArgs.insert(newArgs.end(), n.begin(), n.end());
-    return nm->mkNode(Kind::APPLY_UF, newArgs);
+    return d_nm->mkNode(Kind::APPLY_UF, newArgs);
   }
   else if (k == Kind::INDEXED_ROOT_PREDICATE)
   {
     const IndexedRootPredicate& irp =
         n.getOperator().getConst<IndexedRootPredicate>();
     std::vector<Node> newArgs;
-    newArgs.push_back(nm->mkConstInt(irp.d_index));
+    newArgs.push_back(d_nm->mkConstInt(irp.d_index));
     newArgs.insert(newArgs.end(), n.begin(), n.end());
     return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
@@ -320,8 +319,7 @@ bool AlfNodeConverter::shouldTraverse(Node n)
 
 Node AlfNodeConverter::maybeMkSkolemFun(Node k)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   SkolemId sfi = SkolemId::NONE;
   Node cacheVal;
   TypeNode tn = k.getType();
@@ -392,7 +390,7 @@ size_t AlfNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 Node AlfNodeConverter::mkList(const std::vector<Node>& args)
 {
   Assert(!args.empty());
-  TypeNode tn = NodeManager::currentNM()->booleanType();
+  TypeNode tn = d_nm->booleanType();
   // singleton lists are handled due to (@list x) ---> (@list x eo::nil)
   return mkInternalApp("@list", args, tn);
 }
@@ -402,8 +400,8 @@ Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
                                         bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  NodeManager* nm = NodeManager::currentNM();
-  Node sym = useRawSym ? nm->mkRawSymbol(name, tn) : nm->mkBoundVar(name, tn);
+  Node sym =
+      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
@@ -421,13 +419,12 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
       Assert(!a.isNull());
       argTypes.push_back(a.getType());
     }
-    NodeManager* nm = NodeManager::currentNM();
-    TypeNode atype = nm->mkFunctionType(argTypes, ret);
+    TypeNode atype = d_nm->mkFunctionType(argTypes, ret);
     Node op = mkInternalSymbol(name, atype, useRawSym);
     std::vector<Node> aargs;
     aargs.push_back(op);
     aargs.insert(aargs.end(), args.begin(), args.end());
-    return nm->mkNode(Kind::APPLY_UF, aargs);
+    return d_nm->mkNode(Kind::APPLY_UF, aargs);
   }
   return mkInternalSymbol(name, ret, useRawSym);
 }
@@ -435,7 +432,6 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
 Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 {
   Assert(n.hasOperator());
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   std::stringstream opName;
   Trace("alf-term-process-debug2")
@@ -493,7 +489,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         if (dt.isTuple())
         {
           opName << "tuple.update";
-          indices.push_back(nm->mkConstInt(cindex));
+          indices.push_back(d_nm->mkConstInt(cindex));
         }
         else
         {
@@ -544,7 +540,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
       const DType& dt = DType::datatypeOf(op);
       if (dt.isTuple())
       {
-        indices.push_back(nm->mkConstInt(index));
+        indices.push_back(d_nm->mkConstInt(index));
         opName << "tuple.select";
       }
       else
@@ -572,14 +568,14 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
           || k == Kind::BITVECTOR_XOR)
       {
         TypeNode tna = n[0].getType();
-        indices.push_back(nm->mkConstInt(tna.getBitVectorSize()));
+        indices.push_back(d_nm->mkConstInt(tna.getBitVectorSize()));
         isParameterized = true;
       }
       else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
                || k == Kind::FINITE_FIELD_MULT)
       {
         TypeNode tna = n[0].getType();
-        indices.push_back(nm->mkConstInt(tna.getFfSize()));
+        indices.push_back(d_nm->mkConstInt(tna.getFfSize()));
         isParameterized = true;
       }
       else if (k == Kind::STRING_CONCAT)

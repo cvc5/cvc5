@@ -492,7 +492,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     // renamed to `x1s2123`, which will be renamed to `x1s1` here.
     std::string str = sss.str();
     size_t index = str.find_last_not_of("0123456789");
-    std::string result = str.substr(0, index+1);
+    std::string result = str.substr(0, index + 1);
     sss.str("");
     nameCount[result]++;
     sss << result << nameCount[result];
@@ -643,7 +643,8 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       {
         // [1] print the declarations
         printer::smt2::Smt2Printer alfp(printer::smt2::Variant::alf_variant);
-        smt::PrintBenchmark pb(&alfp, &d_tproc);
+        // we do not print declarations in a sorted manner to reduce overhead
+        smt::PrintBenchmark pb(&alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
