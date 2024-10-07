@@ -32,8 +32,8 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
-#include "util/rational.h"
 #include "theory/sets/normal_form.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -47,7 +47,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if (options().quantifiers.fmfBoundLazy || r.getKind()==Kind::SET_CARD)
+  if (options().quantifiers.fmfBoundLazy || r.getKind() == Kind::SET_CARD)
   {
     SkolemManager* sm = nodeManager()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
@@ -86,28 +86,26 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   NodeManager* nm = nodeManager();
   Node currLit = getLiteral(curr);
   Node lit;
-  if (d_range.getKind()==Kind::SET_CARD)
+  if (d_range.getKind() == Kind::SET_CARD)
   {
-    if (curr==0)
+    if (curr == 0)
     {
       lit = nodeManager()->mkConst(false);
     }
     else
     {
-      Node cset = sets::NormalForm::getCharacteristicSet(nodeManager(), d_range[0], curr-1);
+      Node cset = sets::NormalForm::getCharacteristicSet(
+          nodeManager(), d_range[0], curr - 1);
       lit = d_range[0].eqNode(cset);
     }
   }
   else
   {
     lit = nm->mkNode(curr == 0 ? Kind::LT : Kind::LEQ,
-                d_range,
-                nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1)));
+                     d_range,
+                     nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1)));
   }
-  Node lem = nm->mkNode(
-      Kind::EQUAL,
-      currLit,
-                        lit);
+  Node lem = nm->mkNode(Kind::EQUAL, currLit, lit);
   return lem;
 }
 
