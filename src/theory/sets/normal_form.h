@@ -162,6 +162,21 @@ class NormalForm {
     }
   }
   
+  /**
+   * Get the characeristic set for n of cardinality card.
+   * 
+   * This is defined in terms of a union of singleton of choose:
+   * 
+   * S0: (as set.empty T)
+   * S1: (set.singleton (set.choose n))
+   * ...
+   * Sk: (set.union (set.singleton (set.choose (set.minus n S{k-1}))) S{k-1})
+   * 
+   * @param nm Pointer to the node manager
+   * @param n The base set
+   * @param card The cardinality we are considering.
+   * @return The set as described above.
+   */
   static Node getCharacteristicSet(NodeManager * nm, const Node& n, size_t card)
   {
     if (card==0)
