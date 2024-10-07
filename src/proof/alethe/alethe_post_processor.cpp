@@ -102,7 +102,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                         << children << " / " << args << std::endl;
 
   NodeManager* nm = nodeManager();
-  std::vector<Node> new_args = std::vector<Node>();
+  std::vector<Node> new_args;
 
   switch (id)
   {
@@ -1524,8 +1524,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Alpha Equivalence
     //
-    // Given the formula F = (forall ((y1 A1) ... (yn An)) G) and the
-    // substitution sigma = {y1 -> z1, ..., yn -> zn}, the step is represented
+    // Given the formula F is (forall ((y1 A1) ... (yn An)) G) and the
+    // substitution sigma is {y1 -> z1, ..., yn -> zn}, the step is represented
     // as
     //
     //  ------------------ refl
@@ -1533,21 +1533,66 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
     //  (= F F*sigma)
     //
-    // In case the sigma is the identity this step is merely converted to
+    // unless sigma is the identity, in which case this step is converted to
     //
     //  ------------------ refl
     //  (cl (= F F))
+    //
+    // When F is (forall ((y1 A1) ... (yk Ak)) G) and sigma is the substitution
+    // {y1 -> z1, ..., yk -> zk, ..., yn -> zn}, the generated step is
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> z1, ..., yk -> zk}))
+    // --------------------------------- bind, z1 ... zk (= y1 z1) ... (= yk zk)
+    //  (= F F*{y1 -> z1, ..., yk -> zk})
+    //
+    // i.e., we drop the suffix of the substitution beyond the variables of the
+    // outermost quantifier. This is valid in Alethe because the validity of
+    // "refl", under a rule that introduces a context, such as "bind", is itself
+    // tested modulo alpha-equivalence. An alternative would be to use the rest
+    // of the substitution to do new "bind" steps for the innermost quantifiers.
+    //
+    // Finally, if the substitution being used is such that it contains more
+    // than one variable with the same name but with different types (which
+    // makes them different for cvc5 but not in the substitution induced by
+    // Alethe's context), we break down the renaming into more than one
+    // step. For example if F is (forall ((y1 A1) (y2 A2)) G) and sigma is the
+    // substitution {y1 -> z1, y2 -> y1}, where the "y1" in the right hand side
+    // has another type "T" other than "A2", then the resulting steps are
+    //
+    //  --------------------------------------- refl
+    //  (cl (= G G*{y1 -> z1})
+    // --------------------------------- bind, z1 (= y1 z1)
+    //  (= F F*{y1 -> z1})
+    //
+    //  --------------------------------------------------- refl
+    //  (cl (= G*{y1 -> z1} (G*{y1 -> z1}){y2 -> (y1 : T)})
+    // ------------------------------------------ bind, (y1 : T) (= y2 (y1 : T))
+    //  (= F*{y1 -> z1} (F*{y1 -> z1}){y2 -> (y1 : T)})
+    //
+    // (= F F*{y1 -> z1})   (= F*{y1 -> z1} (F*{y1 -> z1}){y2 -> (y1 : T)})
+    // ------------------------------------------------------------------- trans
+    //  (= F (F*{y1 -> z1}){y2 -> (y1 : T)})
     case ProofRule::ALPHA_EQUIV:
     {
-      std::vector<Node> varEqs;
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
-      for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
+      std::vector<std::string> lhsNames;
+      size_t renamingEndingPos = res[0][0].getNumChildren();
+      for (size_t i = 0, size = renamingEndingPos; i < size; ++i)
       {
         Node v0 = res[0][0][i], v1 = res[1][0][i];
+        if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
+            != lhsNames.end())
+        {
+          renamingEndingPos = i;
+          allSame = false;
+          break;
+        }
+        lhsNames.push_back(v0.getName());
         allSame = allSame && v0 == v1;
-        varEqs.push_back(v0.eqNode(v1));
       }
+      // when no renaming, no-op
       if (allSame)
       {
         return addAletheStep(AletheRule::REFL,
@@ -1557,19 +1602,90 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
-      // Reflexivity over the quantified bodies
-      Node vp = nm->mkNode(
-          Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[0][1], res[1][1]));
-      addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
-      // collect variables first
-      new_args.insert(new_args.end(), res[1][0].begin(), res[1][0].end());
-      new_args.insert(new_args.end(), varEqs.begin(), varEqs.end());
-      return addAletheStep(AletheRule::ANCHOR_BIND,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {vp},
-                           new_args,
-                           *cdp);
+      Trace("alethe-proof")
+          << "\trenaming end: " << renamingEndingPos << ", quant prefix size "
+          << res[0][0].getNumChildren() << "\n";
+      Node lhsQ = res[0];
+      size_t prefixStart = 0;
+      // accumulator of conclusions of added "bind" steps
+      std::vector<Node> binds;
+      bool success = true;
+      do
+      {
+        Node rhsQ;
+        if (prefixStart == 0 && renamingEndingPos == res[0][0].getNumChildren())
+        {
+          rhsQ = res[1];
+        }
+        else
+        {
+          Assert(renamingEndingPos <= lhsQ[0].getNumChildren());
+          std::vector<Node> subLhs{res[0][0].begin() + prefixStart,
+                                   res[0][0].begin() + renamingEndingPos};
+          std::vector<Node> subRhs{res[1][0].begin() + prefixStart,
+                                   res[1][0].begin() + renamingEndingPos};
+          rhsQ = lhsQ.substitute(
+              subLhs.begin(), subLhs.end(), subRhs.begin(), subRhs.end());
+        }
+        // Reflexivity over the quantified bodies
+        Node reflConc = nm->mkNode(
+            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, lhsQ[1], rhsQ[1]));
+        addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
+        // Collect RHS variables first for arguments, then add the entries for
+        // the substitution. In a "bind" rule we must always list all the
+        // variables
+        std::vector<Node> bindArgs{rhsQ[0].begin(), rhsQ[0].end()};
+        for (size_t i = 0; i < rhsQ[0].getNumChildren(); ++i)
+        {
+          bindArgs.push_back(lhsQ[0][i].eqNode(rhsQ[0][i]));
+        }
+        binds.push_back(lhsQ.eqNode(rhsQ));
+        success &= addAletheStep(AletheRule::ANCHOR_BIND,
+                                 binds.back(),
+                                 nm->mkNode(Kind::SEXPR, d_cl, binds.back()),
+                                 {reflConc},
+                                 bindArgs,
+                                 *cdp);
+        // get next valid segment. Note that this will be a no-op when the first
+        // check in the beginning of the translation did not find an invalid
+        // renaming, so the whole quantifier has already been processed above.
+        lhsQ = rhsQ;
+        lhsNames.clear();
+        bool hasInvalidRenaming = false;
+        prefixStart = renamingEndingPos;
+        Trace("alethe-proof") << "\tcheck from " << renamingEndingPos << " to "
+                              << res[0][0].getNumChildren() << "\n";
+        for (size_t i = renamingEndingPos, size = res[0][0].getNumChildren();
+             i < size;
+             ++i)
+        {
+          Node v0 = res[0][0][i], v1 = res[1][0][i];
+          if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
+              != lhsNames.end())
+          {
+            Assert(i > 0);
+            hasInvalidRenaming = true;
+            renamingEndingPos = i;
+            break;
+          }
+          lhsNames.push_back(v0.getName());
+        }
+        renamingEndingPos =
+            hasInvalidRenaming ? renamingEndingPos : res[0][0].getNumChildren();
+      } while (prefixStart < renamingEndingPos);
+      // if we added more than one "bind" step, we connect them via transitivity
+      if (binds.size() > 1)
+      {
+        return success
+               && addAletheStep(AletheRule::TRANS,
+                                res,
+                                nm->mkNode(Kind::SEXPR, d_cl, res),
+                                binds,
+                                {},
+                                *cdp);
+      }
+      Assert(cdp->hasStep(res));
+      return success;
     }
     //================================================= Arithmetic rules
     // ======== Adding Scaled Inequalities
