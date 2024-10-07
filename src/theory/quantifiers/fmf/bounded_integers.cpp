@@ -717,7 +717,6 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   {
     return sr;
   }
-  NodeManager* nm = nodeManager();
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
   while (sr.getKind() == Kind::SET_UNION)
