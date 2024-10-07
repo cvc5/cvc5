@@ -161,6 +161,32 @@ class NormalForm {
       return NodeManager::currentNM()->mkNode( k, els[index], mkBop( k, els, tn, index+1 ) );
     }
   }
+  
+  static Node getCharacteristicSet(NodeManager * nm, const Node& n, size_t card)
+  {
+    if (card==0)
+    {
+      return nm->mkConst(EmptySet(n.getType()));
+    }
+    Node nsr;
+    for (size_t i = 0; i < card; i++)
+    {
+      Node stgt = nsr.isNull()
+                      ? n
+                      : nm->mkNode(Kind::SET_MINUS, n, nsr);
+      Node choice_i = nm->mkNode(Kind::SET_CHOOSE, stgt);
+      Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
+      if (nsr.isNull())
+      {
+        nsr = sChoiceI;
+      }
+      else
+      {
+        nsr = nm->mkNode(Kind::SET_UNION, nsr, sChoiceI);
+      }
+    }
+    return nsr;
+  }
 
 };
 }
