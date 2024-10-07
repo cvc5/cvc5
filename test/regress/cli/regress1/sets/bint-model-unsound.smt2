@@ -11,4 +11,3 @@
 (assert (set.member (tuple 0) r))
 (assert (set.subset r (set.union (set.singleton (tuple a)) (set.union (set.singleton (tuple b)) (set.singleton (tuple c))))))
 (check-sat)
-(get-model)
