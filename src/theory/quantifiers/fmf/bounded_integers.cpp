@@ -47,6 +47,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
+  // we require a proxy if the term is set.card
   if (options().quantifiers.fmfBoundLazy || r.getKind() == Kind::SET_CARD)
   {
     SkolemManager* sm = nodeManager()->getSkolemManager();
@@ -88,6 +89,9 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   Node lit;
   if (d_range.getKind() == Kind::SET_CARD)
   {
+    // Instead of introducing (set.card s) < n, we introduce the literal
+    // s = characteristicSet(s, n-1) for n>0 and false for n=0. We do this
+    // to avoid introducing set.card.
     if (curr == 0)
     {
       lit = nodeManager()->mkConst(false);
@@ -434,9 +438,8 @@ void BoundedIntegers::checkOwnership(Node f)
           d_setm_range[f][v] = bound_lit_map[2][v][1];
           d_setm_range_lit[f][v] = bound_lit_map[2][v];
           Node cardTerm = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
-          // Purify the cardinality term, since we don't want to introduce
-          // cardinality terms. We do minimization on this variable for
-          // consistency, although it will have no impact on the sets models.
+          // Note that we avoid reasoning about cardinality by eagerly
+          // eliminating set.card for literals as they are introduced.
           d_range[f][v] = cardTerm;
           Trace("bound-int") << "Variable " << v
                              << " is bound because of set membership literal "
@@ -727,7 +730,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Trace("bound-int-rsi") << "...cardinality is " << srCard << std::endl;
   // get the characteristic set
   Node nsr = sets::NormalForm::getCharacteristicSet(nodeManager(), sro, srCard);
-  // turns the concrete model value of sro into a canonical representation
+  // turns the concrete set value of sro into a canonical representation
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
