@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "printer/printer.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -153,9 +154,11 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
     printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
     if (d_sorted)
     {
-      // Sort ordinary and recursive definitions for deterministic order.
+      // Sort recursive definitions for deterministic order.
       std::sort(recDefs.begin(), recDefs.end());
-      std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
+      // In general, we cannot sort the ordinary definitions since they were
+      // added to the vector in an order which ensures the functions they
+      // depend on are defined first.
     }
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
@@ -241,6 +244,8 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        const std::vector<Node>& funs,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
+  bool printSkolemDefs = options::ioutils::getPrintSkolemDefinitions(out);
+  SkolemManager* sm = d_nm->getSkolemManager();
   BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
@@ -254,6 +259,15 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     if (f.getAttribute(bnpa))
     {
       continue;
+    }
+    // if print skolem definitions is true, we shouldn't print declarations for
+    // (exported) skolems, as they are printed as parsable terms.
+    if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
+    {
+      if (sm->getId(f)!= SkolemId::INTERNAL)
+      {
+        continue;
+      }
     }
     if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
@@ -328,6 +342,15 @@ void PrintBenchmark::getConnectedDefinitions(
     return;
   }
   processedDefs.insert(n);
+  // get the symbols in the body
+  std::unordered_set<Node> symsBody;
+  expr::getSymbols(it->second.second, symsBody, visited);
+  for (const Node& s : symsBody)
+  {
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
+  }
+  // add the symbol after we add the definitions
   if (!it->second.first)
   {
     // an ordinary define-fun symbol
@@ -337,14 +360,6 @@ void PrintBenchmark::getConnectedDefinitions(
   {
     // a recursively defined symbol
     recDefs.push_back(n);
-  }
-  // get the symbols in the body
-  std::unordered_set<Node> symsBody;
-  expr::getSymbols(it->second.second, symsBody, visited);
-  for (const Node& s : symsBody)
-  {
-    getConnectedDefinitions(
-        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
 }
 

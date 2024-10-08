@@ -654,16 +654,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatVariable& alit)
+  void user_push()
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
     d_active_vars_control.push_back(d_active_vars.size());
     Trace("cadical::propagator")
         << " -> " << d_active_vars_control.size() << std::endl;
+  }
+
+  /**
+   * Set the activation literal for the current user assertion level.
+   *
+   * @param alit The activation literal for the current user assertion level.
+   */
+  void set_activation_lit(SatVariable& alit)
+  {
     d_activation_literals.push_back(alit);
     Trace("cadical::propagator")
-        << "enable activation lit: " << alit << std::endl;
+      << "enable activation lit: " << alit << std::endl;
   }
 
   /**
@@ -786,7 +795,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   }
 
   /** Return the current user (assertion) level. */
-  size_t current_user_level() { return d_activation_literals.size(); }
+  size_t current_user_level() const { return d_active_vars_control.size(); }
 
   /** Return the current list of activation literals. */
   const std::vector<SatLiteral>& activation_literals()
@@ -1004,8 +1013,7 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
   // walk and lucky phase do not use the external propagator, disable for now
   if (d_propagator)
@@ -1015,9 +1023,11 @@ void CadicalSolver::init()
     // ilb currently does not play well with user propagators
     d_solver->set("ilb", 0);
     d_solver->set("ilbassumptions", 0);
+    d_solver->connect_external_propagator(d_propagator.get());
   }
 
-  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
+  d_true = newVar();
+  d_false = newVar();
   d_solver->add(toCadicalVar(d_true));
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
@@ -1229,7 +1239,6 @@ void CadicalSolver::initialize(context::Context* context,
   d_context = context;
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
-  d_solver->connect_external_propagator(d_propagator.get());
   if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
@@ -1242,9 +1251,13 @@ void CadicalSolver::initialize(context::Context* context,
 void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
-  // New activation literal for pushed user level.
+  // Push new user level
+  d_propagator->user_push();
+  // Set new activation literal for pushed user level
+  // Note: This happens after the push to ensure that the activation literal's
+  // introduction level is the current user level.
   SatVariable alit = newVar(false);
-  d_propagator->user_push(alit);
+  d_propagator->set_activation_lit(alit);
 }
 
 void CadicalSolver::pop()
