@@ -721,6 +721,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   unsigned srCard = 0;
   while (sr.getKind() == Kind::SET_UNION)
   {
+    Assert (sr[0].getKind()==Kind::SET_SINGLETON);
     srCard++;
     sr = sr[1];
   }

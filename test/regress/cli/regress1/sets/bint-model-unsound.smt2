@@ -3,7 +3,6 @@
 (set-option :finite-model-find true)
 (set-option :fmf-bound true)
 (declare-const r (Set (Tuple Int)))
-(declare-const M (Set (Tuple Int Bool)))
 (declare-const a Int)
 (declare-const b Int)
 (declare-const c Int)
