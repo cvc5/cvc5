@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <optional>
 #include <queue>
 #include <string>
 
@@ -61,7 +62,8 @@ void printDfa(const std::map<int, std::vector<AutomataEdge>>& dfa)
 void buildDfa(const int& initial_state,
               const std::vector<int> coefficients,
               std::map<int, std::vector<AutomataEdge>>& dfa,
-              const kind::Kind_t& assertion_kind)
+              const kind::Kind_t& assertion_kind,
+              int mod_value)
 {
   int number_of_coefficients = static_cast<int>(coefficients.size());
   for (const auto& e : coefficients)
@@ -130,6 +132,26 @@ void buildDfa(const int& initial_state,
           states_to_process.push(new_state);
           break;
         };
+        case kind::Kind_t::INTS_MODULUS_TOTAL:
+        {
+          if (mod_value % 2 == 0)
+          {
+            if (k % 2 == 0)
+            {
+              bool is_transition_acc = transition_acc_sentinel % mod_value == 0;
+              int new_state = (mod_value + ((k / 2) % mod_value)) % mod_value;
+              struct AutomataEdge edge = {
+                  new_state, transition, is_transition_acc};
+              dfa.at(c).push_back(edge);
+              states_to_process.push(new_state);
+            }
+          }
+          else
+          {
+          }
+
+          break;
+        }
         default:
         {
           std::cout << "Not LIA" << std::endl;
@@ -164,26 +186,41 @@ PreprocessingPassResult Automata::applyInternal(
   for (const TNode& a : to_process)
   {
     TNode aux = a;
-    std::cout << "assertion:" << std::endl;
-    std::cout << aux << std::endl;
-    aux = *aux.begin();
-    std::cout << *aux.rbegin() << std::endl;
-    std::cout << "---------" << std::endl;
-
-    int64_t c = 0;
+    int c = 0;
+    int mod_value = 0;
     std::vector<std::string> vars;
     std::vector<int> coefficients;
-    kind::Kind_t assertion_kind;
+    kind::Kind_t assertion_kind = kind::Kind_t::EQUAL;
+
+    switch (aux.getKind())
+    {
+      case kind::Kind_t::EQUAL:
+      {
+        if ((*aux.begin()).getKind() == kind::Kind_t::INTS_MODULUS_TOTAL)
+        {
+          assertion_kind = kind::Kind_t::INTS_MODULUS_TOTAL;
+        }
+        else
+        {
+          assertion_kind = kind::Kind_t::EQUAL;
+        }
+        break;
+      }
+      case kind::Kind_t::NOT:
+      {
+        assertion_kind = kind::Kind_t::LEQ;
+        break;
+      }
+      default: break;
+    }
 
     // preprocessing to get coefficients of every formula. Each kind has a
     // different format in cvc5 after preprocessing
-
-    switch (aux.getKind())
+    switch (assertion_kind)
     {
       // case a1x1 + ... anxn = c
       case kind::Kind_t::EQUAL:
       {
-        assertion_kind = kind::Kind_t::EQUAL;
         TNode lhs = *aux.begin();
         if (lhs.getKind() == kind::Kind_t::MULT)
         {
@@ -222,12 +259,9 @@ PreprocessingPassResult Automata::applyInternal(
         // case a1x1 + ... + anxn <= c (cvc5 converts into a not (>=))
       case kind::Kind_t::NOT:
       {
-        assertion_kind = kind::Kind_t::LEQ;
         aux = *aux.begin();
         TNode lhs = *aux.begin();
         TNode rhs = *(aux.end() - 1);
-        std::cout << lhs << std::endl;
-        std::cout << rhs << std::endl;
         c = stoi(rhs.getConst<Rational>().toString());
         c--;
         for (const TNode& assertion : lhs)
@@ -251,12 +285,36 @@ PreprocessingPassResult Automata::applyInternal(
       }
       case kind::Kind_t::INTS_MODULUS_TOTAL:
       {
+        TNode lhs = *aux.begin();   // the mod part
+        TNode rhs = *aux.rbegin();  // c
+        c = stoi(rhs.getConst<Rational>().toString());
+
+        rhs = *lhs.rbegin();
+        lhs = *lhs.begin();
+        mod_value = stoi(rhs.getConst<Rational>().toString());
+        for (const TNode& assertion : lhs)
+        {
+          if (assertion.getKind() == kind::Kind_t::MULT)
+          {
+            lhs = *assertion.begin();
+            int64_t coef = stoi(lhs.getConst<Rational>().toString());
+            coefficients.push_back(coef);
+          }
+          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+          {
+            coefficients.push_back(1);
+          }
+          else
+          {
+            std::cout << "We shouldn't get here" << std::endl;
+          }
+        }
         break;
       }
       default: break;
     }
 
-    buildDfa(c, coefficients, dfa, assertion_kind);
+    buildDfa(c, coefficients, dfa, assertion_kind, mod_value);
     printDfa(dfa);
 
     coefficients.clear();
