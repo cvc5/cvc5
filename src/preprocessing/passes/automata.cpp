@@ -60,7 +60,8 @@ void printDfa(const std::map<int, std::vector<AutomataEdge>>& dfa)
 
 void buildDfa(const int& initial_state,
               const std::vector<int> coefficients,
-              std::map<int, std::vector<AutomataEdge>>& dfa)
+              std::map<int, std::vector<AutomataEdge>>& dfa,
+              const kind::Kind_t& assertion_kind)
 {
   int number_of_coefficients = static_cast<int>(coefficients.size());
   for (const auto& e : coefficients)
@@ -68,13 +69,13 @@ void buildDfa(const int& initial_state,
     std::cout << e << " ";
   }
   std::cout << std::endl;
+
   std::queue<int> states_to_process;
   states_to_process.push(initial_state);
   std::set<int> processed_states;
-  std::map<int, std::pair<int, int>> from;
 
-  // I am assuming number of coefficients at most 64, this is obviously not the
-  // general case
+  // I am assuming number of coefficients at most 64, this is obviously not
+  // the general case
   while (!states_to_process.empty())
   {
     int c = states_to_process.front();
@@ -102,56 +103,37 @@ void buildDfa(const int& initial_state,
           transition_acc_sentinel += coefficients.at(i);
         }
       }
-      if (k % 2 == 0)
+      switch (assertion_kind)
       {
-        bool is_transition_acc = transition_acc_sentinel == 0;
-
-        // eagerly stop dfa build cause already found a solution
-        std::vector<int> transitions;
-        if (is_transition_acc)
+        case kind::Kind_t::EQUAL:
         {
-          std::cout << "Eagerly found solution!" << std::endl;
-          while (c != initial_state)
+          if (k % 2 == 0)
           {
-            transitions.push_back(from.at(c).second);
-            c = from.at(c).first;
-          }
-          std::reverse(transitions.begin(), transitions.end());
-
-          // convert LSB to integers
-          std::vector<int> ans = std::vector<int>(number_of_coefficients);
-          int n = static_cast<int>(transitions.size());
-
-          // using last transition, I didn't add it to the vec
-          for (int i = 0; i < number_of_coefficients; i++)
-          {
-            if ((1 << i) & transition)
-            {
-              ans.at(i) = -1 * (1 << n);
-            }
+            bool is_transition_acc = transition_acc_sentinel == 0;
+            struct AutomataEdge edge = {k / 2, transition, is_transition_acc};
+            dfa.at(c).push_back(edge);
+            states_to_process.push(k / 2);
           }
 
-          for (int j = 0; j < static_cast<int>(transitions.size()); j++)
-          {
-            const auto& t = transitions.at(j);
-            for (int i = 0; i < number_of_coefficients; i++)
-            {
-              if ((1 << i) & t)
-              {
-                ans.at(i) += 1 << j;
-              }
-            }
-          }
-          for (const auto& e : ans) std::cout << e << " ";
-          std::cout << std::endl;
-          return;
+          break;
         }
-        struct AutomataEdge edge = {k / 2, transition, is_transition_acc};
-        dfa.at(c).push_back(edge);
-        states_to_process.push(k / 2);
-        if (from.find(k / 2) == from.end())
+        case kind::Kind_t::LEQ:
         {
-          from.insert({k / 2, {c, transition}});
+          bool is_transition_acc = transition_acc_sentinel >= 0;
+          int new_state = k % 2 == 0 ? k / 2 : (k < 0 ? k / 2 - 1 : k / 2);
+          std::cout << "--------" << std::endl;
+          std::cout << k << std::endl;
+          std::cout << new_state << std::endl;
+          std::cout << "--------" << std::endl;
+          struct AutomataEdge edge = {new_state, transition, is_transition_acc};
+          dfa.at(c).push_back(edge);
+          states_to_process.push(new_state);
+          break;
+        };
+        default:
+        {
+          std::cout << "Not LIA" << std::endl;
+          break;
         }
       }
     }
@@ -184,57 +166,100 @@ PreprocessingPassResult Automata::applyInternal(
     TNode aux = a;
     std::cout << "assertion:" << std::endl;
     std::cout << aux << std::endl;
+    aux = *aux.begin();
+    std::cout << *aux.rbegin() << std::endl;
     std::cout << "---------" << std::endl;
 
     int64_t c = 0;
     std::vector<std::string> vars;
-    std::vector<int> A;  // I will rename this
+    std::vector<int> coefficients;
+    kind::Kind_t assertion_kind;
 
-    // first we get rid of the = exp
+    // preprocessing to get coefficients of every formula. Each kind has a
+    // different format in cvc5 after preprocessing
 
-    TNode lhs = *aux.begin();
-    if (lhs.getKind() == kind::Kind_t::MULT)
+    switch (aux.getKind())
     {
-      lhs = *lhs.begin();
-      int64_t coef = stoi(lhs.getConst<Rational>().toString());
-      A.push_back(coef);
-    }
-    else
-    {
-      // for sure it's a single var
-      A.push_back(1);
+      // case a1x1 + ... anxn = c
+      case kind::Kind_t::EQUAL:
+      {
+        assertion_kind = kind::Kind_t::EQUAL;
+        TNode lhs = *aux.begin();
+        if (lhs.getKind() == kind::Kind_t::MULT)
+        {
+          lhs = *lhs.begin();
+          int64_t coef = stoi(lhs.getConst<Rational>().toString());
+          coefficients.push_back(coef);
+        }
+        else
+        {
+          // for sure it's a single var
+          coefficients.push_back(1);
+        }
+
+        // now process right side of relation
+        TNode rhs = *aux.rbegin();
+        for (const TNode& assertion : rhs)
+        {
+          if (assertion.getKind() == kind::Kind_t::MULT)
+          {
+            lhs = *assertion.begin();
+            int64_t coef = stoi(lhs.getConst<Rational>().toString());
+            coefficients.push_back(-1 * coef);
+          }
+          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+          {
+            coefficients.push_back(-1);
+          }
+          else
+          {
+            // for sure it's the constant C
+            c = stoi(assertion.getConst<Rational>().toString());
+          }
+        }
+        break;
+      }
+        // case a1x1 + ... + anxn <= c (cvc5 converts into a not (>=))
+      case kind::Kind_t::NOT:
+      {
+        assertion_kind = kind::Kind_t::LEQ;
+        aux = *aux.begin();
+        TNode lhs = *aux.begin();
+        TNode rhs = *(aux.end() - 1);
+        std::cout << lhs << std::endl;
+        std::cout << rhs << std::endl;
+        c = stoi(rhs.getConst<Rational>().toString());
+        c--;
+        for (const TNode& assertion : lhs)
+        {
+          if (assertion.getKind() == kind::Kind_t::MULT)
+          {
+            lhs = *assertion.begin();
+            int64_t coef = stoi(lhs.getConst<Rational>().toString());
+            coefficients.push_back(coef);
+          }
+          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+          {
+            coefficients.push_back(1);
+          }
+          else
+          {
+            std::cout << "We shouldn't get here" << std::endl;
+          }
+        }
+        break;
+      }
+      case kind::Kind_t::INTS_MODULUS_TOTAL:
+      {
+        break;
+      }
+      default: break;
     }
 
-    // now process right side of relation
-    TNode rhs = *aux.rbegin();
-    for (const TNode& assertion : rhs)
-    {
-      if (assertion.getKind() == kind::Kind_t::MULT)
-      {
-        lhs = *assertion.begin();
-        int64_t coef = stoi(lhs.getConst<Rational>().toString());
-        A.push_back(-1 * coef);
-      }
-      else if (assertion.getKind() == kind::Kind_t::VARIABLE)
-      {
-        A.push_back(-1);
-      }
-      else
-      {
-        // for sure it's the constant C
-        c = stoi(assertion.getConst<Rational>().toString());
-      }
-    }
-    // std::cout << "A = ";
-    // for (const auto& coef : A) std::cout << coef << " ";
-    // std::cout << std::endl;
-    // std::cout << "c = ";
-    // std::cout << c << std::endl;
+    buildDfa(c, coefficients, dfa, assertion_kind);
+    printDfa(dfa);
 
-    buildDfa(c, A, dfa);
-    // printDfa(dfa);
-
-    A.clear();
+    coefficients.clear();
 
     // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE
     // LATER
