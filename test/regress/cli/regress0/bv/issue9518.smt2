@@ -1,5 +1,3 @@
-;; FP is not supported in Alethe
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :bv-solver bitblast-internal)
