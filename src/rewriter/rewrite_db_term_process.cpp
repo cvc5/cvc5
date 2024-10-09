@@ -23,6 +23,8 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "theory/uf/theory_uf_rewriter.h"
+#include "theory/uf/function_const.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -79,6 +81,12 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::EVALUATE);
     return ret;
   }
+  else if (k == Kind::FUNCTION_ARRAY_CONST)
+  {
+    Node ret = theory::uf::FunctionConst::toLambda(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
+  }
   else if (k == Kind::FORALL)
   {
     // ignore annotation
@@ -89,6 +97,12 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
       return ret;
     }
+  }
+  else if (k == Kind::APPLY_UF)
+  {
+    Node ret = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
   }
   // convert indexed operators to symbolic
   if (GenericOp::isNumeralIndexedOperatorKind(k))
@@ -148,10 +162,12 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 }
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
-    : EnvObj(env), d_tpg(env, nullptr), d_proof(env)
+    : EnvObj(env),
+      // must rewrite within operators
+      d_tpg(env, nullptr, TConvPolicy::FIXPOINT, TConvCachePolicy::NEVER, "ProofRewriteDb", nullptr, true), d_proof(env)
 {
 }
-
+  
 std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
 {
   RewriteDbNodeConverter rdnc(nodeManager(), &d_tpg, &d_proof);
