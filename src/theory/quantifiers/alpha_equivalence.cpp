@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "expr/node_algorithm.h"
 #include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
@@ -207,20 +208,40 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())
   {
-    std::vector<Node> pfArgs;
-    pfArgs.push_back(ret);
-    NodeManager* nm = nodeManager();
-    pfArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
-    pfArgs.push_back(nm->mkNode(Kind::SEXPR, subs));
+    if (Configuration::isAssertionBuild())
+    {
+      // all variables should be unique since we are processing rewritten
+      // quantified formulas
+      std::unordered_set<Node> vset(vars.begin(), vars.end());
+      Assert(vset.size() == vars.size());
+      std::unordered_set<Node> sset(subs.begin(), subs.end());
+      Assert(sset.size() == subs.size());
+    }
     CDProof cdp(d_env);
-    Node sret =
-        ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     std::vector<Node> transEq;
-    Node eq = ret.eqNode(sret);
-    transEq.push_back(eq);
+    // if there is variable shadowing, we do an intermediate step with fresh
+    // variables
+    if (expr::hasSubterm(ret, subs))
+    {
+      std::vector<Node> isubs;
+      NodeManager* nm = nodeManager();
+      for (const Node& v : subs)
+      {
+        isubs.emplace_back(nm->mkBoundVar(v.getType()));
+      }
+      // ---------- ALPHA_EQUIV
+      // ret = iret
+      Node ieq = addAlphaEquivStep(cdp, ret, vars, isubs);
+      transEq.emplace_back(ieq);
+      ret = ieq[1];
+      vars = isubs;
+    }
     // ---------- ALPHA_EQUIV
     // ret = sret
-    cdp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, pfArgs);
+    Node eq = addAlphaEquivStep(cdp, ret, vars, subs);
+    Assert(eq.getKind() == Kind::EQUAL);
+    Node sret = eq[1];
+    transEq.emplace_back(eq);
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
     if (sret == q)
@@ -261,6 +282,24 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     }
   }
   return TrustNode::mkTrustLemma(lem, pg);
+}
+
+Node AlphaEquivalence::addAlphaEquivStep(CDProof& cdp,
+                                         const Node& f,
+                                         const std::vector<Node>& vars,
+                                         const std::vector<Node>& subs)
+{
+  std::vector<Node> pfArgs;
+  pfArgs.push_back(f);
+  NodeManager* nm = nodeManager();
+  pfArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
+  pfArgs.push_back(nm->mkNode(Kind::SEXPR, subs));
+  Node sf = f.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+  std::vector<Node> transEq;
+  Node eq = f.eqNode(sf);
+  cdp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, pfArgs);
+  // if not syntactically equal, maybe it can be transform
+  return eq;
 }
 
 bool AlphaEquivalence::isProofEnabled() const { return d_pfAlpha != nullptr; }
