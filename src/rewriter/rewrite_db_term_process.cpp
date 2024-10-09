@@ -21,10 +21,10 @@
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/function_const.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -164,10 +164,17 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
       // must rewrite within operators
-      d_tpg(env, nullptr, TConvPolicy::FIXPOINT, TConvCachePolicy::NEVER, "ProofRewriteDb", nullptr, true), d_proof(env)
+      d_tpg(env,
+            nullptr,
+            TConvPolicy::FIXPOINT,
+            TConvCachePolicy::NEVER,
+            "ProofRewriteDb",
+            nullptr,
+            true),
+      d_proof(env)
 {
 }
-  
+
 std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
 {
   RewriteDbNodeConverter rdnc(nodeManager(), &d_tpg, &d_proof);
