@@ -432,7 +432,6 @@ Node AletheNodeConverter::postConvert(Node n)
           {
             switch (tn.getConst<TypeConstant>())
             {
-              case TypeConstant::BUILTIN_OPERATOR_TYPE:
               case TypeConstant::SEXPR_TYPE:
               case TypeConstant::BOOLEAN_TYPE:
               case TypeConstant::REAL_TYPE:
