@@ -471,7 +471,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
                                                const AssertionPipeline& ap)
 {
-  PrintBenchmark pb(Printer::getPrinter(os));
+  PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that users may define ordinary and recursive functions. The latter
   // get added to the list of assertions as quantified formulas. Since we are
