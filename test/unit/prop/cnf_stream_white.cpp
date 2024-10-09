@@ -51,13 +51,15 @@ class FakeSatSolver : public SatSolver
 
   SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(SatClause& c, bool lemma) override
+  ClauseId addClause(const SatClause& c, bool lemma) override
   {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  ClauseId addXorClause(const SatClause& clause,
+                        bool rhs,
+                        bool removable) override
   {
     d_addClauseCalled = true;
     return ClauseIdUndef;

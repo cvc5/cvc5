@@ -43,14 +43,16 @@ public:
   virtual ~SatSolver() { }
 
   /** Assert a clause in the solver. */
-  virtual ClauseId addClause(SatClause& clause,
+  virtual ClauseId addClause(const SatClause& clause,
                              bool removable) = 0;
 
   /** Return true if the solver supports native xor resoning */
   virtual bool nativeXor() { return false; }
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
-  virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
+  virtual ClauseId addXorClause(const SatClause& clause,
+                                bool rhs,
+                                bool removable) = 0;
 
   /**
    * Create a new boolean variable in the solver.

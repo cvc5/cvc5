@@ -108,6 +108,14 @@ class CnfStream : protected EnvObj
    * @param negated whether we are asserting the node negated
    */
   void convertAndAssert(TNode node, bool removable, bool negated);
+
+  /**
+   * Determine if a given literal is assigned to a node.
+   * @param literal The literal.
+   * @return True iff the literal is assigned to a node.
+   */
+  bool hasNode(const SatLiteral& literal) const;
+
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -153,12 +161,6 @@ class CnfStream : protected EnvObj
    */
   bool isNotifyFormula(TNode node) const;
 
-  /** Retrieves map from nodes to literals. */
-  const CnfStream::NodeToLiteralMap& getTranslationCache() const;
-
-  /** Retrieves map from literals to nodes. */
-  const CnfStream::LiteralToNodeMap& getNodeCache() const;
-
   /**
    * Dump dimacs of the given clauses to the given output stream.
    * We use the identifiers for literals computed by this class. All literals
@@ -200,6 +202,12 @@ class CnfStream : protected EnvObj
   void dumpDimacs(std::ostream& out,
                   const std::vector<Node>& clauses,
                   const std::vector<Node>& auxUnits);
+
+  /**
+   * Trace satisfying assignment to given trace tag.
+   * @param trace The trace tag.
+   */
+  void traceSatisfyingAssignment(std::string trace) const;
 
  protected:
   /** Helper function */
@@ -258,34 +266,7 @@ class CnfStream : protected EnvObj
    * @param clause the clause to assert
    * @return whether the clause was asserted in the SAT solver.
    */
-  bool assertClause(TNode node, SatClause& clause);
-
-  /**
-   * Asserts the unit clause to the sat solver.
-   * @param node the node giving rise to this clause
-   * @param a the unit literal of the clause
-   * @return whether the clause was asserted in the SAT solver.
-   */
-  bool assertClause(TNode node, SatLiteral a);
-
-  /**
-   * Asserts the binary clause to the sat solver.
-   * @param node the node giving rise to this clause
-   * @param a the first literal in the clause
-   * @param b the second literal in the clause
-   * @return whether the clause was asserted in the SAT solver.
-   */
-  bool assertClause(TNode node, SatLiteral a, SatLiteral b);
-
-  /**
-   * Asserts the ternary clause to the sat solver.
-   * @param node the node giving rise to this clause
-   * @param a the first literal in the clause
-   * @param b the second literal in the clause
-   * @param c the thirs literal in the clause
-   * @return whether the clause was asserted in the SAT solver.
-   */
-  bool assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c);
+  bool assertClause(TNode node, const SatClause& clause);
 
   /**
    * Acquires a new variable from the SAT solver to represent the node
