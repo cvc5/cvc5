@@ -997,15 +997,13 @@ class ClauseLearner : public CaDiCaL::Learner
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name,
-                             bool logProofs)
+                             const std::string& name)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
-      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -1033,7 +1031,12 @@ void CadicalSolver::init()
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
 
-  if (d_logProofs)
+  bool logProofs = false;
+  // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
+  // here based on d_env.isSatProofProducing and options().proof.propProofMode.
+  // The latter should be extended to include modes DRAT and LRAT based on
+  // what is available here.
+  if (logProofs)
   {
     d_pfFile = options().driver.filename + ".drat_proof.txt";
     if (!options().proof.dratBinaryFormat)
@@ -1311,20 +1314,11 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
+  // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
+  // consisting of a single step, referencing the files for the DIMACS + proof.
   // do not throw an exception, since we test whether the proof is available
   // by comparing it to nullptr.
   return nullptr;
-}
-
-std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
-{
-  Assert(d_logProofs);
-  d_solver->flush_proof_trace();
-  std::vector<Node> args = {nodeManager()->mkConst(String(d_pfFile))};
-  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
-  // The DRAT file is an argument to the file proof.
-  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
-                                                 args);
 }
 
 /* -------------------------------------------------------------------------- */
