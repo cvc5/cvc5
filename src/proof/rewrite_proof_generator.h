@@ -28,16 +28,17 @@ class ProofNode;
 class ProofNodeManager;
 
 /**
- * This class is used as a (lazy) proof generator for rewrite steps. Its
- * getProofFor method is assumed to always prove equalities by rewrites
- * of the given type.
+ * This class is used as a (lazy) proof generator for macro rewrite steps
+ * (e.g. proof rule MACRO_SR_EQ_INTRO). Its getProofFor method is assumed to
+ * always prove equalities by rewrites for the given method id.
  */
 class RewriteProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
   /**
    * @param env Reference to the environment
-   * @param id The method id
+   * @param id The method id, which determines the method of rewriting this
+   * proof generator proves equalites for.
    */
   RewriteProofGenerator(Env& env, MethodId id = MethodId::RW_REWRITE);
   virtual ~RewriteProofGenerator();
