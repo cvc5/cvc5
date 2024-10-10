@@ -70,8 +70,8 @@ enum class MethodId : uint32_t
   SBA_SIMUL,
   // multiple substitutions are applied to fix point
   SBA_FIXPOINT
-  // For example, for x -> u, y -> f(z), z -> g(x), applying this substitution to
-  // y gives:
+  // For example, for x -> u, y -> f(z), z -> g(x), applying this substitution
+  // to y gives:
   // - f(g(x)) for SBA_SEQUENTIAL
   // - f(z) for SBA_SIMUL
   // - f(g(u)) for SBA_FIXPOINT
