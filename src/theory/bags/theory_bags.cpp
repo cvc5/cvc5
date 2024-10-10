@@ -25,6 +25,7 @@
 #include "theory/theory_model.h"
 #include "theory_bags.h"
 #include "util/rational.h"
+#include "options/bags_options.h"
 
 using namespace cvc5::internal::kind;
 
@@ -426,6 +427,12 @@ Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
+  if (!options().bags.bagsExp)
+  {
+    std::stringstream ss;
+    ss << "Bags not available in this configuration, try --bags-exp.";
+    throw LogicException(ss.str());
+  }
   Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
