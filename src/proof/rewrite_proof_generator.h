@@ -18,9 +18,9 @@
 #ifndef CVC5__PROOF__REWRITE_PROOF_GENERATOR_H
 #define CVC5__PROOF__REWRITE_PROOF_GENERATOR_H
 
-#include "smt/env_obj.h"
-#include "proof/proof_generator.h"
 #include "proof/method_id.h"
+#include "proof/proof_generator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -51,7 +51,8 @@ class RewriteProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
-private:
+
+ private:
   /** The method id */
   MethodId d_id;
   /** Proof args */

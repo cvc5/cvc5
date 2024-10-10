@@ -15,30 +15,33 @@
 
 #include "proof/rewrite_proof_generator.h"
 
-#include "smt/env.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
-RewriteProofGenerator::RewriteProofGenerator(Env& env, MethodId id) : EnvObj(env), ProofGenerator(), d_id(id){
+RewriteProofGenerator::RewriteProofGenerator(Env& env, MethodId id)
+    : EnvObj(env), ProofGenerator(), d_id(id)
+{
   // initialize the proof args
-  addMethodIds(d_pargs, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, d_id);  
+  addMethodIds(d_pargs, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, d_id);
 }
 RewriteProofGenerator::~RewriteProofGenerator() {}
 
 std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
 {
-  if (fact.getKind()!=Kind::EQUAL)
+  if (fact.getKind() != Kind::EQUAL)
   {
-    Assert (false) << "Expected an equality in RewriteProofGenerator, got " << fact;
+    Assert(false) << "Expected an equality in RewriteProofGenerator, got "
+                  << fact;
     return nullptr;
   }
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   const Node& t = fact[0];
   Node tp = d_env.rewriteViaMethod(t, d_id);
-  if (tp!=fact[1])
+  if (tp != fact[1])
   {
-    Assert (false) << "Could not prove " << fact << " via RewriteProofGenerator";
+    Assert(false) << "Could not prove " << fact << " via RewriteProofGenerator";
     return nullptr;
   }
   std::vector<Node> pargs;

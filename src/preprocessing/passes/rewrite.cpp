@@ -45,8 +45,7 @@ PreprocessingPassResult Rewrite::applyInternal(
     {
       continue;
     }
-    assertionsToPreprocess->replace(
-        i, ar, d_proof.get());
+    assertionsToPreprocess->replace(i, ar, d_proof.get());
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

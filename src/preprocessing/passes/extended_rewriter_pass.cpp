@@ -27,8 +27,9 @@ namespace passes {
 
 ExtRewPre::ExtRewPre(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ext-rew-pre"),
-      d_proof(options().smt.produceProofs ? new RewriteProofGenerator(d_env, MethodId::RW_EXT_REWRITE)
-                                          : nullptr)
+      d_proof(options().smt.produceProofs
+                  ? new RewriteProofGenerator(d_env, MethodId::RW_EXT_REWRITE)
+                  : nullptr)
 {
 }
 
