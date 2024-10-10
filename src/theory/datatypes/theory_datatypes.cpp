@@ -330,7 +330,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       if (dt.isCodatatype())
       {
         std::stringstream ss;
-        ss << "Codatatypes not available in this configuration, try --co-dt-exp.";
+        ss << "Codatatypes not available in this configuration, try "
+              "--co-dt-exp.";
         throw LogicException(ss.str());
       }
     }

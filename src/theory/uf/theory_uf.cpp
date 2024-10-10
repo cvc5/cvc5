@@ -90,13 +90,14 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
-  d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);  
+  d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
   if (logicInfo().hasCardinalityConstraints())
   {
     if (!options().uf.cardExp)
     {
       std::stringstream ss;
-      ss << "Logic with cardinality constraints not available in this configuration, try --uf-card-exp.";
+      ss << "Logic with cardinality constraints not available in this "
+            "configuration, try --uf-card-exp.";
       throw LogicException(ss.str());
     }
   }
