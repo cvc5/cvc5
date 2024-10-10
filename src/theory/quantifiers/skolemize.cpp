@@ -324,10 +324,10 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
   Trace("quantifiers-sk-debug") << "mkSkolem body for " << f
                                 << " returns : " << ret << std::endl;
   // if it has an instantiation level, set the skolemized body to that level
-  if (f.hasAttribute(InstLevelAttribute()))
+  uint64_t level;
+  if (QuantAttributes::getInstantiationLevel(f, level))
   {
-    QuantAttributes::setInstantiationLevelAttr(
-        ret, f.getAttribute(InstLevelAttribute()));
+    QuantAttributes::setInstantiationLevelAttr(ret, level);
   }
 
   Trace("quantifiers-sk") << "Skolemize : " << sk << " for " << std::endl;
