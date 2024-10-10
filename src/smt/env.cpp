@@ -218,6 +218,10 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   {
     return d_rewriter->extendedRewrite(n);
   }
+  if (idr == MethodId::RW_EXT_REWRITE_AGG)
+  {
+    return d_rewriter->extendedRewrite(n, true);
+  }
   if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
     return d_rewriter->rewriteEqualityExt(n);

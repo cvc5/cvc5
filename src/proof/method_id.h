@@ -41,6 +41,8 @@ enum class MethodId : uint32_t
   RW_REWRITE,
   // d_ext_rew.extendedRewrite(n);
   RW_EXT_REWRITE,
+  // d_ext_rew.extendedRewrite(n, true);
+  RW_EXT_REWRITE_AGG,
   // Rewriter::rewriteExtEquality(n)
   RW_REWRITE_EQ_EXT,
   // Evaluator::evaluate(n)

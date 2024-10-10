@@ -36,6 +36,8 @@ class ExtRewPre : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  /** The method id, determining the kind of rewrite */
+  MethodId d_id;
   /** The proof generator if proofs are enabled */
   std::unique_ptr<RewriteProofGenerator> d_proof;
 };
