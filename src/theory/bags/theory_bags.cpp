@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "options/bags_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/bags_utils.h"
@@ -25,7 +26,6 @@
 #include "theory/theory_model.h"
 #include "theory_bags.h"
 #include "util/rational.h"
-#include "options/bags_options.h"
 
 using namespace cvc5::internal::kind;
 
