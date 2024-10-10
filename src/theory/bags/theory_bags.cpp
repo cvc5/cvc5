@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "options/bags_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/bags_utils.h"
@@ -426,6 +427,12 @@ Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
+  if (!options().bags.bagsExp)
+  {
+    std::stringstream ss;
+    ss << "Bags not available in this configuration, try --bags-exp.";
+    throw LogicException(ss.str());
+  }
   Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
