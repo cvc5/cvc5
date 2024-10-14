@@ -132,6 +132,8 @@ class InstStrategyMbqi : public QuantifiersModule
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
   std::unique_ptr<MbqiFastSygus> d_msenum;
+  /** The options for subsolver calls */
+  Options d_subOptions;
 };
 
 }  // namespace quantifiers

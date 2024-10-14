@@ -111,6 +111,9 @@ class OptionsHandler
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& flag, bool value);
 
+  /***************************** parser options *******************************/
+  void strictParsing(const std::string& flag, bool value);
+
  private:
   /** Pointer to the containing Options object.*/
   Options* d_options;

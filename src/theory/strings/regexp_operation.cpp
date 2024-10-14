@@ -988,7 +988,7 @@ Node RegExpOpr::reduceRegExpNeg(NodeManager* nm, Node mem)
     Node emp = Word::mkEmptyWord(s.getType());
     Node lens = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sne = s.eqNode(emp).negate();
-    Node b1 = SkolemCache::mkIndexVar(mem);
+    Node b1 = SkolemCache::mkIndexVar(nm, mem);
     Node b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
     Node g11n = nm->mkNode(Kind::LEQ, b1, zero);
     Node g12n = nm->mkNode(Kind::LT, lens, b1);
@@ -1035,7 +1035,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(NodeManager* nm,
   Node guard1n, guard2n;
   if (reLen.isNull())
   {
-    b1 = SkolemCache::mkIndexVar(mem);
+    b1 = SkolemCache::mkIndexVar(nm, mem);
     b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
     guard1n = nm->mkNode(Kind::LT, b1, zero);
     guard2n = nm->mkNode(Kind::LT, nm->mkNode(Kind::STRING_LENGTH, s), b1);

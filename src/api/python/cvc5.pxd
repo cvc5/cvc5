@@ -718,6 +718,7 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
         string getLogic() except +
         vector[Sort] getDeclaredSorts() except +
         vector[Term] getDeclaredTerms() except +
+        map[Term, string] getNamedTerms() except +
 
     cdef cppclass Command:
         Command() except +

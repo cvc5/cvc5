@@ -243,6 +243,22 @@ cdef class SymbolManager:
         """
         return [_term(self.tm, c) for c in self.csm.getDeclaredTerms()]
 
+    def getNamedTerms(self):
+        """
+            Get a mapping from terms to names that have been given to them via
+            the :named attribute.
+
+            :return: A map of the named terms to their names.
+        """
+        namedi = {}
+        for p in self.csm.getNamedTerms():
+            k = p.first
+            v = p.second
+            termk = _term(self.tm, k)
+            termv = v.decode()
+            namedi[termk] = termv
+        return namedi
+
 # ----------------------------------------------------------------------------
 # Command
 # ----------------------------------------------------------------------------

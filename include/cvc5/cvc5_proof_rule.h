@@ -1375,6 +1375,29 @@ enum ENUM(ProofRule)
   EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter up**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,a)\mid P}
+   *   {\mathit{set.member}(x, \mathit{set.filter}(P, a)) = P(x)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_UP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter down**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,\mathit{set.filter}(P, a))\mid -}
+   *   {\mathit{set.member}(x,a) \wedge P(x)}
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_DOWN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
    *
    * .. math::
@@ -3395,8 +3418,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
-  /** Auto-generated from RARE rule str-nth-elim-code */
-  EVALUE(STR_NTH_ELIM_CODE),
   /** Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */

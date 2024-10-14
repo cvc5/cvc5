@@ -146,7 +146,7 @@ Node ITEUtilities::simplifyWithCare(TNode e)
 {
   if (d_careSimp == NULL)
   {
-    d_careSimp = new ITECareSimplifier();
+    d_careSimp = new ITECareSimplifier(nodeManager());
   }
   return d_careSimp->simplifyWithCare(e);
 }
@@ -296,8 +296,8 @@ ITECompressor::ITECompressor(Env& env, ContainsTermITEVisitor* contains)
 {
   Assert(d_contains != NULL);
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITECompressor::~ITECompressor() { reset(); }
@@ -345,7 +345,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
@@ -654,8 +654,8 @@ ITESimplifier::ITESimplifier(Env& env, ContainsTermITEVisitor* contains)
       d_statistics(env.getStatisticsRegistry())
 {
   Assert(d_containsVisitor != NULL);
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITESimplifier::~ITESimplifier()
@@ -977,7 +977,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
               search.nonConstants.size());
           Trace("ite::simpite") << "used " << search.nonConstants.size()
                                 << " nonconstants" << endl;
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = nodeManager();
           Node simpVar = getSimpVar(notIte.getType());
           TNode newLeft = leftIsIte ? simpVar : notIte;
           TNode newRight = leftIsIte ? notIte : simpVar;
@@ -1010,7 +1010,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
     Node lT = lite[1];
     Node lE = lite[2];
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node negRite = atom[1][1];
     Node rC = negRite[0];
     Node rT = nm->mkNode(Kind::MULT, negOne, negRite[1]);
@@ -1045,7 +1045,7 @@ Node ITESimplifier::transformAtom(TNode atom)
     if (atom.getKind() == Kind::EQUAL && atom[0].isConst() && atom[1].isConst())
     {
       // constant equality
-      return NodeManager::currentNM()->mkConst<bool>(atom[0] == atom[1]);
+      return nodeManager()->mkConst<bool>(atom[0] == atom[1]);
     }
     return Node::null();
   }
@@ -1360,7 +1360,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Node var = sm->mkDummySkolem(
       "iteSimp", t, "is a variable resulting from ITE simplification");
   d_simpVars[t] = var;
@@ -1614,10 +1614,10 @@ Node ITESimplifier::simpITE(TNode assertion)
   return d_simpITECache[assertion];
 }
 
-ITECareSimplifier::ITECareSimplifier() : d_careSetsOutstanding(0), d_usedSets()
+ITECareSimplifier::ITECareSimplifier(NodeManager* nm) : d_careSetsOutstanding(0), d_usedSets()
 {
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nm->mkConst<bool>(true);
+  d_false = nm->mkConst<bool>(false);
 }
 
 ITECareSimplifier::~ITECareSimplifier()

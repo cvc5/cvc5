@@ -267,7 +267,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
     {
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       std::stringstream ss;
-      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
       output(OutputTag::TIMEOUT_CORE_BENCHMARK)
           << ";; timeout core" << std::endl;

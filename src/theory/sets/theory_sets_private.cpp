@@ -731,7 +731,7 @@ void TheorySetsPrivate::checkFilterUp()
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       std::vector<Node> exp;
       exp.push_back(pair.second);
       Node B = pair.second[1];
@@ -745,11 +745,11 @@ void TheorySetsPrivate::checkFilterUp()
       Trace("p_x") << "rewrite(p_x): " << p_x << std::endl;
       Node skolem = d_treg.getProxy(term);
       Node memberFilter = nm->mkNode(Kind::SET_MEMBER, x, skolem);
-      Node not_p_x = p_x.notNode();
-      Node not_memberFilter = memberFilter.notNode();
-      Node orNode =
-          p_x.andNode(memberFilter).orNode(not_p_x.andNode(not_memberFilter));
-      d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      // (set.member x A)
+      // ---------------------------------------
+      // (set.member x (set.filter P A)) = (P x)
+      Node conclusion = memberFilter.eqNode(p_x);
+      d_im.assertInference(conclusion, InferenceId::SETS_FILTER_UP, exp);
       if (d_state.isInConflict())
       {
         return;
@@ -776,7 +776,7 @@ void TheorySetsPrivate::checkFilterDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node x = pair.first;
+      Node x = pair.second[0];
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);      
       Trace("p_x") << "p_x         : " << p_x << std::endl;
@@ -807,7 +807,7 @@ void TheorySetsPrivate::checkMapUp()
         d_state.getMapSkolemElements(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       if (skolemElements->contains(x))
       {
         // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
@@ -860,7 +860,7 @@ void TheorySetsPrivate::checkMapDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node y = pair.first;
+      Node y = pair.second[0];
 
       // general case
       // (=>

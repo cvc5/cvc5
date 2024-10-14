@@ -33,6 +33,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+/**
+ * Mapping from terms to their "instantiation level", for details see
+ * QuantAttributes::getInstantiationLevel.
+ */
+struct InstLevelAttributeId
+{
+};
+using InstLevelAttribute = expr::Attribute<InstLevelAttributeId, uint64_t>;
+
 /** Attribute true for quantifiers we are doing quantifier elimination on */
 struct QuantElimAttributeId
 {
@@ -445,34 +454,11 @@ Node QuantAttributes::mkAttrInternal(AttrType at)
   return nattr;
 }
 
-void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
-{
-  Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level
-                             << std::endl;
-  // if not from the vector of terms we instantiatied
-  if (qn.getKind() != Kind::BOUND_VARIABLE && n != qn)
-  {
-    // if this is a new term, without an instantiation level
-    if (!n.hasAttribute(InstLevelAttribute()))
-    {
-      InstLevelAttribute ila;
-      n.setAttribute(ila, level);
-      Trace("inst-level-debug") << "Set instantiation level " << n << " to "
-                                << level << std::endl;
-      Assert(n.getNumChildren() == qn.getNumChildren());
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        setInstantiationLevelAttr(n[i], qn[i], level);
-      }
-    }
-  }
-}
-
 void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
 {
-  if (!n.hasAttribute(InstLevelAttribute()))
+  InstLevelAttribute ila;
+  if (!n.hasAttribute(ila))
   {
-    InstLevelAttribute ila;
     n.setAttribute(ila, level);
     Trace("inst-level-debug") << "Set instantiation level " << n << " to "
                               << level << std::endl;
@@ -481,6 +467,17 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
       setInstantiationLevelAttr(n[i], level);
     }
   }
+}
+
+bool QuantAttributes::getInstantiationLevel(const Node& n, uint64_t& level)
+{
+  InstLevelAttribute ila;
+  if (n.hasAttribute(ila))
+  {
+    level = n.getAttribute(ila);
+    return true;
+  }
+  return false;
 }
 
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
