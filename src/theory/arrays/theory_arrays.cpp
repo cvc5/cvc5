@@ -1199,7 +1199,7 @@ void TheoryArrays::presolve()
 
 Node TheoryArrays::getSkolem(TNode ref)
 {
-  Node skolem = SkolemCache::getExtIndexSkolem(ref);
+  Node skolem = SkolemCache::getExtIndexSkolem(nodeManager(), ref);
 
   Trace("pf::array") << "Pregistering a Skolem" << std::endl;
   preRegisterTermInternal(skolem);

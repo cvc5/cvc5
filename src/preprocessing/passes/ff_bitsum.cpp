@@ -35,12 +35,11 @@ FfBitsum::FfBitsum(PreprocessingPassContext* preprocContext)
 {
 }
 
-Node mkAdd(const std::vector<Node>& children)
+Node mkAdd(NodeManager* nm, const std::vector<Node>& children)
 {
   Assert(children.size() > 0);
   return children.size() == 1 ? children[0]
-                              : NodeManager::currentNM()->mkNode(
-                                  Kind::FINITE_FIELD_ADD, children);
+                              : nm->mkNode(Kind::FINITE_FIELD_ADD, children);
 }
 
 PreprocessingPassResult FfBitsum::applyInternal(
@@ -67,7 +66,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
   }
 
   // collect bitsums
-  auto nm = NodeManager::currentNM();
+  auto nm = nodeManager();
   std::unordered_map<Node, Node> cache{};
   for (uint64_t i = 0, n = assertionsToPreprocess->size(); i < n; ++i)
   {
@@ -113,7 +112,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
               Trace("ff::bitsum") << "found " << scaled << std::endl;
               bs->second.push_back(scaled);
             }
-            translation = mkAdd(std::move(bs->second));
+            translation = mkAdd(nm, std::move(bs->second));
           }
         }
       }

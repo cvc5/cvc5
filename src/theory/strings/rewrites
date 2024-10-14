@@ -305,10 +305,6 @@
   (re.inter xs (str.to_re s) ys) 
   re.none)
 
-(define-rule str-nth-elim-code ((s String) (n Int))
-  (seq.nth s n)
-  (str.to_code (str.substr s n 1)))
-
 (define-cond-rule str-substr-len-include ((s1 ?Seq) (s2 ?Seq :list) (n Int))
   (= n (str.len s1))
   (str.substr (str.++ s1 s2) 0 n)

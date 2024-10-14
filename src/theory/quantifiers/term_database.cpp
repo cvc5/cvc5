@@ -279,10 +279,11 @@ void TermDb::computeArgReps( TNode n ) {
   if (d_arg_reps.find(n) == d_arg_reps.end())
   {
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
+    std::vector<TNode>& tars = d_arg_reps[n];
     for (const TNode& nc : n)
     {
       TNode r = ee->hasTerm(nc) ? ee->getRepresentative(nc) : nc;
-      d_arg_reps[n].push_back( r );
+      tars.emplace_back(r);
     }
   }
 }
@@ -495,17 +496,23 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
   if (options().quantifiers.instMaxLevel != -1)
   {
-    if( n.hasAttribute(InstLevelAttribute()) ){
+    uint64_t level;
+    if (QuantAttributes::getInstantiationLevel(n, level))
+    {
       int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
       unsigned ml = fml >= 0 ? fml : options().quantifiers.instMaxLevel;
 
-      if( n.getAttribute(InstLevelAttribute())>ml ){
-        Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
+      if (level > ml)
+      {
+        Trace("inst-add-debug")
+            << "Term " << n << " has instantiation level " << level;
         Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
         return false;
       }
-    }else{
+    }
+    else
+    {
       Trace("inst-add-debug")
           << "Term " << n << " does not have an instantiation level."
           << std::endl;
