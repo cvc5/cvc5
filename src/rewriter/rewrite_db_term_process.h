@@ -37,6 +37,8 @@ namespace rewriter {
  * (2) Constant bitvectors are lifted to CONST_BITVECTOR_SYMBOLIC.
  * (3) Indexed operators are lifted to APPLY_INDEXED_SYMBOLIC.
  * (4) Quantifier patterns are dropped.
+ * (5) APPLY_UF is converted to HO_APPLY chains.
+ * (6) Function constants are converted to lambdas.
  *
  * This node converter converts from the default representation of cvc5 terms
  * to the representation of terms required by the DSL proof reconstruction
