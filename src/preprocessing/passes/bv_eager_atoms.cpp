@@ -47,7 +47,9 @@ class BVEagerAtomProofGenerator : protected EnvObj, public ProofGenerator
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
-    Assert(fact.getKind() == Kind::EQUAL && fact[1].getKind()==Kind::BITVECTOR_EAGER_ATOM && fact[1][0]==fact[0]);
+    Assert(fact.getKind() == Kind::EQUAL
+           && fact[1].getKind() == Kind::BITVECTOR_EAGER_ATOM
+           && fact[1][0] == fact[0]);
     CDProof cdp(d_env);
     Node eq = fact[1].eqNode(fact[0]);
     cdp.addStep(eq, ProofRule::BV_EAGER_ATOM, {}, {fact[1]});
