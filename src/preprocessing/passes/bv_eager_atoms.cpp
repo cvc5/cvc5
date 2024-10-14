@@ -43,18 +43,14 @@ class BVEagerAtomProofGenerator : protected EnvObj, public ProofGenerator
    *     ---------------------------- BV_EAGER_ATOM
    *     (BITVECTOR_EAGER_ATOM F) = F
    *     ---------------------------- SYMM
-   * F   F = (BITVECTOR_EAGER_ATOM F)
-   * ------------------------------ EQ_RESOLVE
-   * (BITVECTOR_EAGER_ATOM F)
+   *     F = (BITVECTOR_EAGER_ATOM F)
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
-    Assert(fact.getKind() == Kind::BITVECTOR_EAGER_ATOM);
+    Assert(fact.getKind() == Kind::EQUAL && fact[1].getKind()==Kind::BITVECTOR_EAGER_ATOM && fact[1][0]==fact[0]);
     CDProof cdp(d_env);
-    Node eq = fact.eqNode(fact[0]);
-    Node eqSym = fact[0].eqNode(fact);
-    cdp.addStep(eq, ProofRule::BV_EAGER_ATOM, {}, {fact});
-    cdp.addStep(fact, ProofRule::EQ_RESOLVE, {fact[0], eqSym}, {});
+    Node eq = fact[1].eqNode(fact[0]);
+    cdp.addStep(eq, ProofRule::BV_EAGER_ATOM, {}, {fact[1]});
     return cdp.getProofFor(fact);
   }
   /** identify */

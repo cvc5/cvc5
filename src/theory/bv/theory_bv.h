@@ -22,6 +22,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
+#include "theory/bv/proof_checker.h"
 
 namespace cvc5::internal {
 
@@ -135,6 +136,8 @@ class TheoryBV : public Theory
     IntStat d_solveSubstitutions;
   } d_stats;
 
+  /** Proof rule checker */
+  BVProofRuleChecker d_checker;
 }; /* class TheoryBV */
 
 }  // namespace bv
