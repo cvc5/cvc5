@@ -95,7 +95,7 @@ Node OperatorElim::getEliminateAxiom(NodeManager* nm, const Node& n)
   return Node::null();
 }
 
-static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
+Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
                                       std::vector<std::pair<Node, Node>>& lems,
                                       bool partialOnly)
 {
@@ -178,7 +178,6 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
       }
       else
       {
-        checkNonLinearLogic(node);
         lem = nm->mkNode(
             Kind::AND,
             nm->mkNode(
@@ -236,7 +235,6 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
         // int, which impacts certain issues with subtyping.
         return node;
       }
-      checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(rw);
       Node lem = nm->mkNode(Kind::IMPLIES,
@@ -253,8 +251,7 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
       Node ret = nm->mkNode(Kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, SkolemId::DIV_BY_ZERO);
+        Node divByZeroNum = getArithSkolemApp(nm, num, SkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, mkZero(den.getType()));
         ret = nm->mkNode(Kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -270,9 +267,8 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
       Node ret = nm->mkNode(Kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        checkNonLinearLogic(node);
         Node intDivByZeroNum =
-            getArithSkolemApp(num, SkolemId::INT_DIV_BY_ZERO);
+            getArithSkolemApp(nm, num, SkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -288,8 +284,7 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
       Node ret = nm->mkNode(Kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, SkolemId::MOD_BY_ZERO);
+        Node modZeroNum = getArithSkolemApp(nm, num, SkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(Kind::EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(Kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -321,7 +316,6 @@ static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
         // not eliminating total operators
         return node;
       }
-      checkNonLinearLogic(node);
       // We eliminate these functions using an uninterpreted function via
       // the skolem id TRANSCENDENTAL_PURIFY.
       // Make (lambda ((x Real)) (f x)) for this function, using the bound
@@ -458,10 +452,9 @@ Node OperatorElim::getArithSkolem(SkolemId id)
   return it->second;
 }
 
-Node OperatorElim::getArithSkolemApp(Node n, SkolemId id)
+Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
 {
   Node skolem = getArithSkolem(id);
-  NodeManager* nm = nodeManager();
   if (usePartialFunction(id))
   {
     Assert(skolem.getType().isFunction()

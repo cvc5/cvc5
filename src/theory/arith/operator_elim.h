@@ -96,7 +96,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(NodeManager* nm, Node n,
+  static Node eliminateOperators(NodeManager* nm, Node n,
                           std::vector<std::pair<Node, Node>>& lems,
                           bool partialOnly);
   /** get arithmetic skolem
@@ -123,7 +123,7 @@ class OperatorElim : public EagerProofGenerator
    * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp(Node n, SkolemId asi);
+  static Node getArithSkolemApp(NodeManager* nm, Node n, SkolemId asi);
 
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
