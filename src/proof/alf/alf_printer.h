@@ -72,8 +72,6 @@ class AlfPrinter : protected EnvObj
    * subproofs in pfn.
    * @param out The output stream.
    * @param pfn The proof node.
-   * @param psm The scope mode, which determines whether there are outermost
-   * scope to process in pfn. If this is the case, we print assume steps.
    */
   void printNext(AlfPrintChannelOut& out, std::shared_ptr<ProofNode> pfn);
 
@@ -191,8 +189,6 @@ class AlfPrinter : protected EnvObj
   AlfListNodeConverter d_ltproc;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
-  /** The empty vector */
-  std::vector<Node> d_emptyVec;
   /** The empty vector */
   std::vector<Node> d_emptyVec;
   /** The let binding */
