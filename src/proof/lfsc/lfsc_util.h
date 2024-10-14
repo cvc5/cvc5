@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Jörg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -96,7 +96,7 @@ LfscRule getLfscRule(Node n);
 /** Get LFSC rule from a node, return true if success and store in lr */
 bool getLfscRule(Node n, LfscRule& lr);
 /** Make node for LFSC rule */
-Node mkLfscRuleNode(LfscRule r);
+Node mkLfscRuleNode(NodeManager* nm, LfscRule r);
 
 /** Helper class used for letifying LFSC proofs. */
 class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback

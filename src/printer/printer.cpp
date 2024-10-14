@@ -55,12 +55,13 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
 void Printer::toStream(std::ostream& out,
                        TNode n,
-                       const LetBinding* lbind) const
+                       const LetBinding* lbind,
+                       bool lbindTop) const
 {
   // no special implementation, just convert and print with default prefix
   if (lbind != nullptr)
   {
-    Node nc = lbind->convert(n);
+    Node nc = lbind->convert(n, lbindTop);
     toStream(out, nc);
   }
   else

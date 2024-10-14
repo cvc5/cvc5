@@ -187,10 +187,11 @@ void Smt2Printer::toStream(std::ostream& out,
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
-                           const LetBinding* lbind) const
+                           const LetBinding* lbind,
+                           bool lbindTop) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
-  toStream(out, n, lbind, toDepth);
+  toStream(out, n, lbind, toDepth, lbindTop);
 }
 
 void Smt2Printer::toStream(std::ostream& out, TNode n) const
@@ -389,6 +390,21 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << ss.str();
       break;
     }
+    case Kind::CARDINALITY_CONSTRAINT_OP:
+    {
+      const CardinalityConstraint& cc =
+          n.getConst<CardinalityConstraint>();
+      TypeNode tn = cc.getType();
+      out << "(_ fmf.card " << tn << " " << cc.getUpperBound() << ")";
+    }
+      break;
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT_OP:
+    {
+      const CombinedCardinalityConstraint& cc =
+          n.getConst<CombinedCardinalityConstraint>();
+      out << "(_ fmf.combined_card " << cc.getUpperBound() << ")";
+    }
+      break;
     case Kind::DIVISIBLE_OP:
       out << "(_ divisible " << n.getConst<Divisible>().k << ")";
       break;
@@ -609,7 +625,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          toStreamSkolem(out, cacheVal, id, /*isApplied=*/false);
+          toStreamSkolem(
+              out, cacheVal, id, /*isApplied=*/false, toDepth, lbind);
           printed = true;
         }
       }
@@ -668,7 +685,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           {
             out << '(';
           }
-          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true);
+          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true, toDepth, lbind);
           return false;
         }
       }
@@ -1366,13 +1383,13 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
     case Kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
-    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
-    case Kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
-    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
-    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
-    case Kind::ROUNDINGMODE_BITBLAST: return "RMBITBLAST";
+    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "@fp.NAN";
+    case Kind::FLOATINGPOINT_COMPONENT_INF: return "@fp.INF";
+    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "@fp.ZERO";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "@fp.SIGN";
+    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "@fp.EXPONENT";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "@fp.SIGNIFICAND";
+    case Kind::ROUNDINGMODE_BITBLAST: return "@fp.RMBITBLAST";
 
     // string theory
     case Kind::STRING_CONCAT: return "str.++";
@@ -1549,6 +1566,25 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
     return;
   }
   auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::Datatype)
+  {
+    out << "(declare-datatype " << tn << " (";
+    for (size_t i=0, nelements=elements.size(); i<nelements; i++)
+    {
+      Node trn = elements[i];
+      if (i>0)
+      {
+        out << " ";
+      }
+      Assert (trn.getKind() == Kind::UNINTERPRETED_SORT_VALUE);
+      // prints as raw symbol
+      const UninterpretedSortValue& av =
+          trn.getConst<UninterpretedSortValue>();
+      out << "(" << av << ")";
+    }
+    out << "))" << std::endl;
+    return;
+  }
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
@@ -2130,11 +2166,13 @@ void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
 void Smt2Printer::toStreamSkolem(std::ostream& out,
                                  Node cacheVal,
                                  SkolemId id,
-                                 bool isApplied) const
+                                 bool isApplied,
+                                 int toDepth,
+                                 const LetBinding* lbind) const
 {
-  auto delim = isApplied ? " " : ")";
-
-  if (!isApplied && !cacheVal.isNull())
+  // true if this is a standalone skolem that requires printing with arguments
+  bool unappliedApp = (!isApplied && !cacheVal.isNull());
+  if (unappliedApp)
   {
     out << "(";
   }
@@ -2143,17 +2181,23 @@ void Smt2Printer::toStreamSkolem(std::ostream& out,
   {
     for (const Node& cv : cacheVal)
     {
-      out << " " << cv;
+      out << " ";
+      toStream(out, cv, lbind, toDepth);
     }
-    out << delim;
   }
   else if (!cacheVal.isNull())
   {
-    out << " " << cacheVal << delim;
+    out << " ";
+    toStream(out, cacheVal, lbind, toDepth);
   }
-  else
+  if (unappliedApp)
   {
-    out << delim;
+    out << ")";
+  }
+  else if (isApplied)
+  {
+    // separates further arguments
+    out << " ";
   }
 }
 

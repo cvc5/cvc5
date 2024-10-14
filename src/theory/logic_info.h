@@ -293,6 +293,18 @@ public:
     return *this <= other || *this >= other;
   }
 
+ private:
+  /**
+   * Checks if the given theory has already been registered.
+   * If the theory is found to be a duplicate, throws an Exception
+   * indicating that the theory with the provided ID is already registered.
+   *
+   * @param theory The identifier of the theory to be checked.
+   * @param id The ID string associated with the theory for error reporting.
+   * @throws cvc5::internal::Exception if the theory is already registered.
+   */
+  void checkDuplicateTheory(theory::TheoryId theory, const char* id);
+
 }; /* class LogicInfo */
 
 std::ostream& operator<<(std::ostream& out, const LogicInfo& logic);

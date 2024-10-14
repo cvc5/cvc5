@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -100,7 +100,7 @@ Node ArraysProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node k = SkolemCache::getExtIndexSkolem(adeq);
+    Node k = SkolemCache::getExtIndexSkolem(nm, adeq);
     Node a = adeq[0][0];
     Node b = adeq[0][1];
     Node as = nm->mkNode(Kind::SELECT, a, k);

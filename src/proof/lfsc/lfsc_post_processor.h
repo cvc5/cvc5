@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Jörg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -89,7 +89,7 @@ class LfscProofPostprocessCallback : protected EnvObj,
                   CDProof* cdp,
                   Node startOp);
   /** Make fresh dummy predicate */
-  static Node mkDummyPredicate();
+  static Node mkDummyPredicate(NodeManager* nm);
 };
 
 /**

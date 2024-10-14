@@ -294,8 +294,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   Node theoryExplanation = tte.getNode();
   if (d_env.isSatProofProducing())
   {
-    Assert(options().smt.proofMode != options::ProofMode::FULL
-           || tte.getGenerator());
+    Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
     // notify the prop engine of the explanation, which is only relevant if
     // we are proof producing for the purposes of storing the CNF of the
     // explanation.
@@ -343,12 +342,19 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     return;
   }
   // convert to node
+  const auto& nodeCache = d_cnfStream->getNodeCache();
   std::vector<Node> clauseNodes;
   for (const SatLiteral& l : clause)
   {
-    clauseNodes.push_back(d_cnfStream->getNode(l));
+    auto it = nodeCache.find(l);
+    // This should only return null nodes with CaDiCaL when clauses contain
+    // activation literals, i.e., clauses learned at user level > 0.
+    if (it != nodeCache.end())
+    {
+      clauseNodes.push_back(it->second);
+    }
   }
-  Node cln = NodeManager::currentNM()->mkOr(clauseNodes);
+  Node cln = nodeManager()->mkOr(clauseNodes);
   // get the sharable form of cln
   Node clns = d_env.getSharableFormula(cln);
   if (!clns.isNull())

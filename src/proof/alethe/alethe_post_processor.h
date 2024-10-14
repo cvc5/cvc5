@@ -79,23 +79,16 @@ class AletheProofPostprocessCallback : protected EnvObj,
                   const std::vector<Node>& children,
                   const std::vector<Node>& args,
                   CDProof* cdp) override;
-  /**
-   * This method is used to add some last steps to a proof when this is
-   * necessary. The final step should always be printed as (cl). However:
+
+  /** Ensure the final step of the proof concludes "(cl)".
    *
-   * 1. If the last step of a proof is reached (which is false) it is printed as
-   * (cl false).
-   * 2. If one of the assumptions is false it is printed as false.
-   *
-   * Thus, an additional resolution step with (cl (not true)) has to be added to
-   * transform (cl false) or false into (cl).
-   *
+   * Also sanitizes the arguments of the outer scopes of the proof node.
    */
-  bool finalStep(Node res,
-                 ProofRule id,
-                 std::vector<Node>& children,
-                 const std::vector<Node>& args,
-                 CDProof* cdp);
+  bool ensureFinalStep(Node res,
+                       ProofRule id,
+                       std::vector<Node>& children,
+                       const std::vector<Node>& args,
+                       CDProof* cdp);
 
   /** Retrieve the saved error message, if any. */
   const std::string& getError();

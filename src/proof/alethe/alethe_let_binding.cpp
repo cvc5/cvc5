@@ -25,13 +25,14 @@ AletheLetBinding::AletheLetBinding(uint32_t thresh) : LetBinding("let", thresh)
 {
 }
 
-Node AletheLetBinding::convert(Node n, const std::string& prefix)
+Node AletheLetBinding::convert(NodeManager* nm,
+                               Node n,
+                               const std::string& prefix)
 {
   if (d_letMap.empty())
   {
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
   // terms with a child that is being declared
   std::unordered_set<TNode> hasDeclaredChild;
   // For a term being declared, its position relative to the list of children

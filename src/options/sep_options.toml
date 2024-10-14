@@ -16,3 +16,11 @@ name   = "Separation Logic Theory"
   type       = "bool"
   default    = "false"
   help       = "eliminate emp constraint at preprocess time"
+
+[[option]]
+  name       = "sepExp"
+  category   = "expert"
+  long       = "sep-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the separation logic solver"

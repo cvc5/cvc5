@@ -218,18 +218,21 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
 PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  // this pass is refutation unsound, "unsat" will be "unknown"
-  assertionsToPreprocess->markRefutationUnsound();
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node a = (*assertionsToPreprocess)[i];
     Node ac = realToIntInternal(a, d_cache, var_eq);
-    Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
-    assertionsToPreprocess->replace(i, rewrite(ac));
-    if (assertionsToPreprocess->isInConflict())
+    if (ac != a)
     {
-      return PreprocessingPassResult::CONFLICT;
+      // this pass is refutation unsound, "unsat" will be "unknown"
+      assertionsToPreprocess->markRefutationUnsound();
+      Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
+      assertionsToPreprocess->replace(i, rewrite(ac));
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

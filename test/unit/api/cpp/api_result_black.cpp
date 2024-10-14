@@ -97,11 +97,11 @@ TEST_F(TestApiBlackResult, isUnknown)
   ASSERT_FALSE(res.isUnsat());
   ASSERT_TRUE(res.isUnknown());
   cvc5::UnknownExplanation ue = res.getUnknownExplanation();
-  ASSERT_EQ(ue, cvc5::UnknownExplanation::UNKNOWN_REASON);
+  ASSERT_EQ(ue, cvc5::UnknownExplanation::INCOMPLETE);
   {
     std::stringstream ss;
     ss << ue;
-    ASSERT_EQ(ss.str(), "UNKNOWN_REASON");
+    ASSERT_EQ(ss.str(), "INCOMPLETE");
   }
 }
 

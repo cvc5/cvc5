@@ -181,4 +181,17 @@ else()
       FILES_MATCHING PATTERN libgmp*
     )
   endif()
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    install(CODE "
+      file(GLOB GMP_DYLIBS \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libgmp*.dylib\")
+      foreach(GMP_DYLIB \${GMP_DYLIBS})
+        execute_process(COMMAND \${CMAKE_COMMAND}
+          -DRPATH=@loader_path
+          -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
+          -DDYLIB_PATH=\${GMP_DYLIB}
+          -DDEPS_BASE=${DEPS_BASE}
+          -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)
+      endforeach()
+    ")
+  endif()
 endif()

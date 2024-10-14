@@ -1130,10 +1130,10 @@
   (($str_re_includes r1 r1)                               true)
   (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1))
   (($str_re_includes (str.to_re s1) r1)                   false)
-  (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (let ((z1 (eo::to_z s1)))
-                                                          (let ((z2 (eo::to_z s2)))
-                                                          (let ((z3 (eo::to_z s3)))
-                                                          (let ((z4 (eo::to_z s4)))
+  (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (eo::define ((z1 (eo::to_z s1)))
+                                                          (eo::define ((z2 (eo::to_z s2)))
+                                                          (eo::define ((z3 (eo::to_z s3)))
+                                                          (eo::define ((z4 (eo::to_z s4)))
                                                           (eo::requires (eo::is_neg z1) false
                                                           (eo::requires (eo::is_neg z2) false
                                                           (eo::requires (eo::is_neg z3) false

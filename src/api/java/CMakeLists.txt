@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Hans-Jörg Schurr
+#   Mudathir Mohamed, Andres Noetzli, Hans-Joerg Schurr
 #
 # This file is part of the cvc5 project.
 #
@@ -102,7 +102,14 @@ add_custom_command(
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
 # find java
-find_package(Java COMPONENTS Development REQUIRED)
+find_package(Java 1.8 COMPONENTS Development REQUIRED)
+if(Java_VERSION_MAJOR GREATER_EQUAL 9)
+  # Compile option --release is available from JDK 9 onwards.
+  # It ensures the compiled classes are compatible with
+  # the minimum required version. It expects a single number
+  # and does not support 1.X syntax used in JDK < 9.
+  set(CMAKE_JAVA_COMPILE_FLAGS "--release" "8")
+endif()
 include(UseJava)
 
 # specify java source files
@@ -184,12 +191,32 @@ add_custom_command(
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
+if(NOT DEFINED JAVA_HOME AND NOT WIN32)
+  # If there are multiple versions of Java on the system,
+  # CMake might find a version of JNI that differs from
+  # the version of the Java executable. To address this,
+  # we retrieve the java.home from the JVM settings and
+  # set the JAVA_HOME variable.
+  # This approach works properly on Unix systems but
+  # not on Windows.
+  execute_process(
+    COMMAND ${Java_JAVA_EXECUTABLE} -XshowSettings:runtime -version
+    OUTPUT_VARIABLE java_settings
+    ERROR_VARIABLE java_settings
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  # Extract the line containing "java.home"
+  string(REGEX MATCH "java.home = [^\r\n]+" java_home_line "${java_settings}")
+  # Extract the path from the line
+  string(REPLACE "java.home = " "" JAVA_HOME "${java_home_line}")
+  message(STATUS "JAVA_HOME: ${JAVA_HOME}")
+endif()
+
 # find jni package
 find_package(JNI REQUIRED)
-message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
+message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JNI_INCLUDE_DIRS     : ${JNI_INCLUDE_DIRS}")
 message(STATUS "JNI_LIBRARIES        : ${JNI_LIBRARIES} ")
-message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JAVA_AWT_LIBRARY     : ${JAVA_AWT_LIBRARY}")
 message(STATUS "JAVA_JVM_LIBRARY     : ${JAVA_JVM_LIBRARY}")
 message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")

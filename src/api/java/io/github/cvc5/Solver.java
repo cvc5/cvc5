@@ -2766,6 +2766,27 @@ public class Solver extends AbstractPointer
   private native String proofToString(long pointer, long proofs, int format);
 
   /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @param format The proof format used to print the proof. Must be
+   * `PROOF_FORMAT_NONE` if the proof is from a component other than
+   * `PROOF_COMPONENT_FULL`.
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.  This is used by the Alethe proof format.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof, ProofFormat format, Map assertionNames)
+  {
+    return proofToString(pointer, proof.getPointer(), format.getValue(), assertionNames);
+  }
+
+  private native String proofToString(long pointer, long proofs, int format, Map assertionNames);
+
+  /**
    * Get the value of the given term in the current model.
    *
    * SMT-LIB:

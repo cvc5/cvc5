@@ -2035,7 +2035,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   {
     return (d_opts.quantifiers.varElimQuant
             || d_opts.quantifiers.dtVarExpandQuant)
-           && is_std;
+           && is_std && !is_strict_trigger;
   }
   else
   {

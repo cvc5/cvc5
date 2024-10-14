@@ -20,7 +20,8 @@ public class ParserSymbolManager
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
 
     SymbolManager sm = new SymbolManager(slv);
 
