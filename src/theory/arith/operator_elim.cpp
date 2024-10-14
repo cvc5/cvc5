@@ -90,15 +90,6 @@ Node OperatorElim::eliminateOperators(Node node,
   Kind k = node.getKind();
   switch (k)
   {
-    case Kind::TANGENT:
-    case Kind::COSECANT:
-    case Kind::SECANT:
-    case Kind::COTANGENT:
-    {
-      // these are eliminated by rewriting
-      return rewrite(node);
-      break;
-    }
     case Kind::TO_INTEGER:
     case Kind::IS_INTEGER:
     {
@@ -133,9 +124,6 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
-      Node den = rewrite(node[1]);
-      Node num = rewrite(node[0]);
-      Node rw = nm->mkNode(k, num, den);
       // we use the purification skolem for div
       Node pterm = nm->mkNode(Kind::INTS_DIVISION_TOTAL, node[0], node[1]);
       Node v = sm->mkPurifySkolem(pterm);
@@ -145,11 +133,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (den.isConst())
       {
         const Rational& rat = den.getConst<Rational>();
-        if (num.isConst() || rat == 0)
-        {
-          // just rewrite
-          return rewrite(node);
-        }
+        Assert (!num.isConst() && rat.sgn() != 0)
         if (rat > 0)
         {
           lem = nm->mkNode(
@@ -228,8 +212,8 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
-      Node num = rewrite(node[0]);
-      Node den = rewrite(node[1]);
+      Node num = node[0];
+      Node den = node[1];
       if (den.isConst())
       {
         // No need to eliminate here, can eliminate via rewriting later.
@@ -249,8 +233,8 @@ Node OperatorElim::eliminateOperators(Node node,
     }
     case Kind::DIVISION:
     {
-      Node num = rewrite(node[0]);
-      Node den = rewrite(node[1]);
+      Node num = node[0];
+      Node den = node[1];
       Node ret = nm->mkNode(Kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -266,8 +250,8 @@ Node OperatorElim::eliminateOperators(Node node,
     case Kind::INTS_DIVISION:
     {
       // partial function: integer div
-      Node num = rewrite(node[0]);
-      Node den = rewrite(node[1]);
+      Node num = node[0];
+      Node den = node[1];
       Node ret = nm->mkNode(Kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -284,8 +268,8 @@ Node OperatorElim::eliminateOperators(Node node,
     case Kind::INTS_MODULUS:
     {
       // partial function: mod
-      Node num = rewrite(node[0]);
-      Node den = rewrite(node[1]);
+      Node num = node[0];
+      Node den = node[1];
       Node ret = nm->mkNode(Kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -434,7 +418,11 @@ Node OperatorElim::eliminateOperators(Node node,
       Assert(!w.isNull());
       return w;
     }
-
+    // these are handled by rewriting
+    case Kind::TANGENT:
+    case Kind::COSECANT:
+    case Kind::SECANT:
+    case Kind::COTANGENT:
     default: break;
   }
   return node;
@@ -499,7 +487,7 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    Node tid = mkTrustId(TrustId::THEORY_PREPROCESS_LEMMA);
+    Node tid = mkTrustId(TrustId::ARITH_OP_ELIM);
     tlem = mkTrustNode(lem, ProofRule::TRUST, {}, {tid, lem});
   }
   else
