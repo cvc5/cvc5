@@ -348,6 +348,8 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       // store the bound variables that can be converted to set quantified
       // variables
       std::set<Node> setBoundVariables;
+      std::vector<Node> members, trues;
+      Node trueNode = nm->mkConst(true);
       // map from set quantifiers to their ranges
       std::map<Node, Node> variableSetMap;
       if(body.getKind() == Kind::AND)
@@ -370,6 +372,12 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           {
             setBoundVariables.insert(element);
             variableSetMap[element] = set;
+            members.push_back(c);
+            trues.push_back(trueNode);
+            body = body.substitute(members.begin(),
+                                 members.end(),
+                                 trues.begin(),
+                                 trues.end());
             continue;
           }
           // check if the element is a tuple of bound variables
@@ -399,6 +407,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           {
             continue;
           }
+          
+          members.push_back(c);
+          trues.push_back(trueNode);
 
           std::vector<TypeNode> types;
           for (Node e : tupleBoundVariables)
@@ -417,10 +428,16 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
             Node select = TupleUtils::nthElementOfTuple(t, i);
             selects.push_back(select);
           }
+
+          body = body.substitute(members.begin(),
+                                 members.end(),
+                                 trues.begin(),
+                                 trues.end());
+
           body = body.substitute(tupleBoundVariables.begin(),
                                  tupleBoundVariables.end(),
                                  selects.begin(),
-                                 selects.end());
+                                 selects.end());          
           // generate a tuple bound variable and replace
           // tuple bound variables with tuple selection terms
           // Example
