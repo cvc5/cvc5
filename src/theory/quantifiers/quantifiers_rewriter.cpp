@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include <algorithm>
+
 #include "expr/ascription_type.h"
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
@@ -26,6 +28,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -41,6 +44,7 @@
 using namespace std;
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;
+using namespace cvc5::internal::theory::datatypes;
 
 namespace cvc5::internal {
 namespace theory {
@@ -333,6 +337,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   RewriteStatus status = REWRITE_DONE;
   Node ret = in;
   RewriteStep rew_op = COMPUTE_LAST;
+  NodeManager* nm = nodeManager();
   // get the body
   if (in.getKind() == Kind::EXISTS)
   {
@@ -340,55 +345,121 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     {
       std::cout << "in: " << in << std::endl;
       Node boundVariables = in[0];
-      Node body = in[1];      
-      std::cout << "body: " << body << std::endl;
-      std::vector<Node> sets;
-      std::map<Node, Node> map;
+      Node body = in[1];
+      std::cout << "body before: " << body << std::endl;
+      // std::vector<Node> boundVariables;
+      // store the bound variables that can be converted to set quantified
+      // variables
+      std::set<Node> setBoundVariables;
+      // map from set quantifiers to their ranges
+      std::map<Node, Node> variableSetMap;
       if(body.getKind() == Kind::AND)
       {
-        size_t reducedVariables = 0;
+        // recognize this pattern
+        // (exists ((e_1 T_1) ... (e_n T_n)))
+        //   (and ... (set.member e_k1 S_k1) ... (set.member e_kn S_kn) ... )
+        // where {k1,...,kn} = {1,... ,n}
         for(Node c : body)
         {
-          if(c.getType().isTuple())
+          if (c.getKind() != Kind::SET_MEMBER)
           {
-            if(c.getKind() == Kind::SET_MEMBER)
+            continue;
+          }
+
+          Node element = c[0];
+          Node set = c[1];
+          // check if the element is a bound variable
+          if (expr::hasSubterm(boundVariables, element))
+          {
+            setBoundVariables.insert(element);
+            variableSetMap[element] = set;
+            continue;
+          }
+          // check if the element is a tuple of bound variables
+          if (!element.getType().isTuple())
+          {
+            continue;
+          }
+
+          std::vector<Node> tupleBoundVariables;
+
+          for (Node tupleElement : element)
+          {
+            if (expr::hasSubterm(boundVariables, tupleElement))
             {
-              Node element = c[0];
-              Node set = c[1];             
-              if(element.getType().isTuple() && element.getNumChildren() > 0)
-              {
-                for (Node e : element)
-                {
-                  
-                }                
-              }
-              size_t index = boundVariables.getNumChildren();
-                for(size_t i = 0; i < boundVariables.getNumChildren(); i++)
-                {
-                  if(boundVariables[i] == element)
-                  {
-                    reducedVariables++;
-                    map[element] = element;
-                  }
-                }
-
-              sets.push_back(set);
+              if (std::find(tupleBoundVariables.begin(),
+                            tupleBoundVariables.end(),
+                            tupleElement)
+                  == tupleBoundVariables.end())
+                tupleBoundVariables.push_back(tupleElement);
             }
-          }          
-        }
-        for(Node c : boundVariables)
-        {
-          std::cout << "c: " << c << std::endl;
-        }
-        for(Node c : boundVariables)
-        {
-          std::cout << "c: " << c << std::endl;
+            else
+            {
+              break;
+            }
+          }
+          if (tupleBoundVariables.size() != element.getNumChildren())
+          {
+            continue;
+          }
+
+          std::vector<TypeNode> types;
+          for (Node e : tupleBoundVariables)
+          {
+            types.push_back(e.getType());
+          }
+          TypeNode tupleType = nm->mkTupleType(types);
+          Node t = nm->mkBoundVar("t", tupleType);
+          std::vector<Node> selects;
+          for (size_t i = 0; i < tupleBoundVariables.size(); i++)
+          {
+            Node b = tupleBoundVariables[i];
+            setBoundVariables.insert(b);
+            // substitute b with ((_ tuple.select index) t)
+            // b = t_i
+            Node select = TupleUtils::nthElementOfTuple(t, i);
+            selects.push_back(select);
+          }
+          body = body.substitute(tupleBoundVariables.begin(),
+                                 tupleBoundVariables.end(),
+                                 selects.begin(),
+                                 selects.end());
+          // generate a tuple bound variable and replace
+          // tuple bound variables with tuple selection terms
+          // Example
+          // (exists ((x T1) (y T2)) (and (set.member (tuple x y) S) p(x,y))
+          // with
+          // (set.some (lambda ((t (Tuple T1 T2))))
+          //   p((_ tuple.select 0) t, (_tuple.select 1) t)) S)
+          //
+          variableSetMap[t] = set;
+          std::cout << "body after: " << body << std::endl;
+          std::cout << "variableSetMap: " << variableSetMap << std::endl;
+          break;
         }
 
-      }      
+        // Use set quantifiers only if all bound variables range over sets
+        if (setBoundVariables.size() == boundVariables.getNumChildren())
+        {
+          auto it = variableSetMap.rbegin();
+          Node lambda =
+              nm->mkNode(Kind::LAMBDA,
+                         {nm->mkNode(Kind::BOUND_VAR_LIST, it->first), body});
+          Node some = nm->mkNode(Kind::SET_SOME, lambda, it->second);
+          it++;
 
-      
-      std::cout << "ret: " << ret << std::endl;
+          while (it != variableSetMap.rend())
+          {
+            lambda =
+                nm->mkNode(Kind::LAMBDA,
+                           {nm->mkNode(Kind::BOUND_VAR_LIST, it->first), some});
+            some = nm->mkNode(Kind::SET_SOME, lambda, it->second);
+            it++;
+          }
+          std::cout << "ret: " << some << std::endl;
+          return RewriteResponse(REWRITE_AGAIN_FULL, some);
+        }
+      }
     }
     std::vector<Node> children;
     children.push_back(in[0]);
