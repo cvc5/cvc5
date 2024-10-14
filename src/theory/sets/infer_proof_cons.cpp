@@ -159,7 +159,7 @@ bool InferProofCons::convert(CDProof& cdp,
         success = psb.applyPredTransform(aelim, conc, {});
       }
       // should never fail
-      // Assert(success);
+      Assert(success);
     }
     break;
     case InferenceId::SETS_UP_CLOSURE:
