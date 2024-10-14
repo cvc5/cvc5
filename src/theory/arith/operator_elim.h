@@ -59,6 +59,8 @@ class OperatorElim : public EagerProofGenerator
    */
   static Node getAxiomFor(Node n);
 
+  /** */
+  static Node getEliminateAxiom(NodeManager* nm, const Node& n);
  private:
   /**
    * Function symbols used to implement:
@@ -94,9 +96,8 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n,
-                          std::vector<SkolemLemma>& lems,
-                          TConvProofGenerator* tg,
+  Node eliminateOperators(NodeManager* nm, Node n,
+                          std::vector<std::pair<Node, Node>>& lems,
                           bool partialOnly);
   /** get arithmetic skolem
    *

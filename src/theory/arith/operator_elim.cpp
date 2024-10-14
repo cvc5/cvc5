@@ -20,7 +20,6 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "options/arith_options.h"
-#include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
@@ -71,8 +70,13 @@ TrustNode OperatorElim::eliminate(Node n,
                                   std::vector<SkolemLemma>& lems,
                                   bool partialOnly)
 {
-  TConvProofGenerator* tg = nullptr;
-  Node nn = eliminateOperators(n, lems, tg, partialOnly);
+  NodeManager* nm = nodeManager();
+  std::vector<std::pair<Node, Node>> klems;
+  Node nn = eliminateOperators(nm, n, klems, partialOnly);
+  for (std::pair<Node, Node>& p : klems)
+  {
+    lems.emplace_back(mkSkolemLemma(p.first, p.second));
+  }
   if (nn != n)
   {
     return TrustNode::mkTrustRewrite(n, nn, nullptr);
@@ -80,12 +84,21 @@ TrustNode OperatorElim::eliminate(Node n,
   return TrustNode::null();
 }
 
-Node OperatorElim::eliminateOperators(Node node,
-                                      std::vector<SkolemLemma>& lems,
-                                      TConvProofGenerator* tg,
+Node OperatorElim::getEliminateAxiom(NodeManager* nm, const Node& n)
+{
+  std::vector<std::pair<Node, Node>> klems;
+  Node nn = eliminateOperators(nm, n, klems, false);
+  if (klems.size()==1)
+  {
+    return klems[0].second;
+  }
+  return Node::null();
+}
+
+static Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
+                                      std::vector<std::pair<Node, Node>>& lems,
                                       bool partialOnly)
 {
-  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Kind k = node.getKind();
   switch (k)
@@ -107,7 +120,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node zero = nm->mkConstReal(Rational(0));
       Node diff = nm->mkNode(Kind::SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
-      lems.push_back(mkSkolemLemma(lem, v));
+      lems.emplace_back(lem, v);
       if (k == Kind::IS_INTEGER)
       {
         return mkEquality(node[0], v);
@@ -125,6 +138,8 @@ Node OperatorElim::eliminateOperators(Node node,
         return node;
       }
       // we use the purification skolem for div
+      Node den = node[1];
+      Node num = node[0];
       Node pterm = nm->mkNode(Kind::INTS_DIVISION_TOTAL, node[0], node[1]);
       Node v = sm->mkPurifySkolem(pterm);
       // make the corresponding lemma
@@ -133,7 +148,7 @@ Node OperatorElim::eliminateOperators(Node node,
       if (den.isConst())
       {
         const Rational& rat = den.getConst<Rational>();
-        Assert (!num.isConst() && rat.sgn() != 0)
+        Assert (!num.isConst() && rat.sgn() != 0);
         if (rat > 0)
         {
           lem = nm->mkNode(
@@ -197,7 +212,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                        nm->mkConstInt(Rational(-1))))))));
       }
       // add the skolem lemma to lems
-      lems.push_back(mkSkolemLemma(lem, v));
+      lems.emplace_back(lem, v);
       if (k == Kind::INTS_MODULUS_TOTAL)
       {
         Node nn = nm->mkNode(Kind::SUB, num, nm->mkNode(Kind::MULT, den, v));
@@ -227,7 +242,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node lem = nm->mkNode(Kind::IMPLIES,
                             den.eqNode(mkZero(den.getType())).negate(),
                             mkEquality(nm->mkNode(Kind::MULT, den, v), num));
-      lems.push_back(mkSkolemLemma(lem, v));
+      lems.emplace_back(lem, v);
       return v;
       break;
     }
@@ -400,7 +415,7 @@ Node OperatorElim::eliminateOperators(Node node,
       }
       Assert(!lem.isNull());
       // the skolem lemma is for the function
-      lems.push_back(mkSkolemLemma(lem, fun));
+      lems.emplace_back(lem, fun);
       return var;
     }
     case Kind::REAL_ALGEBRAIC_NUMBER:
@@ -419,10 +434,6 @@ Node OperatorElim::eliminateOperators(Node node,
       return w;
     }
     // these are handled by rewriting
-    case Kind::TANGENT:
-    case Kind::COSECANT:
-    case Kind::SECANT:
-    case Kind::COTANGENT:
     default: break;
   }
   return node;
@@ -487,7 +498,7 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    Node tid = mkTrustId(TrustId::ARITH_OP_ELIM);
+    Node tid = mkTrustId(TrustId::THEORY_PREPROCESS);
     tlem = mkTrustNode(lem, ProofRule::TRUST, {}, {tid, lem});
   }
   else
