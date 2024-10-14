@@ -41,9 +41,9 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "smt/env_obj.h"
 #include "theory/theory_inference_manager.h"
-#include "proof/proof.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -270,6 +270,7 @@ class ExtTheory : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
+
  private:
   /** returns the set of variable subterms of n */
   static std::vector<Node> collectVars(Node n);

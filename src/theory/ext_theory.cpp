@@ -20,12 +20,12 @@
 #include "theory/ext_theory.h"
 
 #include "base/check.h"
+#include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
 #include "theory/output_channel.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
-#include "proof/proof_node_manager.h"
-#include "proof/proof_checker.h"
 
 using namespace std;
 
@@ -445,9 +445,9 @@ std::shared_ptr<ProofNode> ExtTheory::getProofFor(Node fact)
   CDProof proof(d_env);
   std::vector<Node> antec;
   Node conc = fact;
-  if (conc.getKind()==Kind::IMPLIES)
+  if (conc.getKind() == Kind::IMPLIES)
   {
-    if (conc[0].getKind()==Kind::AND)
+    if (conc[0].getKind() == Kind::AND)
     {
       antec.insert(antec.end(), conc[0].begin(), conc[0].end());
     }
@@ -458,8 +458,8 @@ std::shared_ptr<ProofNode> ExtTheory::getProofFor(Node fact)
     conc = conc[1];
   }
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-  Node res = pc->checkDebug(
-      ProofRule::MACRO_SR_PRED_INTRO, antec, {conc}, conc);
+  Node res =
+      pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, antec, {conc}, conc);
   if (res.isNull())
   {
     Assert(false) << "ExtTheory failed to prove " << fact;
@@ -472,7 +472,7 @@ std::shared_ptr<ProofNode> ExtTheory::getProofFor(Node fact)
   }
   // t1 = s1 ... tn = sn
   // -------------------- MACRO_SR_PRED_INTRO {t}
-  // t = s 
+  // t = s
   // ----------------------------------- SCOPE {t1 = s1 ... tn = sn}
   // (t1 = s1 ^ ... ^ tn = sn) => (t = s).
   return proof.getProofFor(fact);
