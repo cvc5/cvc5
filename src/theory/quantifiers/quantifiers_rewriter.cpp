@@ -447,7 +447,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           //   p((_ tuple.select 0) t, (_tuple.select 1) t)) S)
           //
           variableSetMap[t] = set;
-          Trace("quantifiers-rewrite-debug")
+          Trace("use-set-quantifiers")
               << "variableSetMap: " << variableSetMap << std::endl;
           break;
         }
@@ -470,9 +470,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
             some = nm->mkNode(Kind::SET_SOME, lambda, it->second);
             it++;
           }
-          Trace("quantifiers-rewrite-debug")
+          Trace("use-set-quantifiers")
               << "original formula : " << in << std::endl;
-          Trace("quantifiers-rewrite-debug")
+          Trace("use-set-quantifiers")
               << "rewritten formula: " << some << std::endl;
           return RewriteResponse(REWRITE_AGAIN_FULL, some);
         }
