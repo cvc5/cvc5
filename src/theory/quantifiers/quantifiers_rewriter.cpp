@@ -343,11 +343,8 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   {
     if(d_opts.quantifiers.useSetQuantifiers)
     {
-      std::cout << "in: " << in << std::endl;
       Node boundVariables = in[0];
       Node body = in[1];
-      std::cout << "body before: " << body << std::endl;
-      // std::vector<Node> boundVariables;
       // store the bound variables that can be converted to set quantified
       // variables
       std::set<Node> setBoundVariables;
@@ -433,8 +430,8 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
           //   p((_ tuple.select 0) t, (_tuple.select 1) t)) S)
           //
           variableSetMap[t] = set;
-          std::cout << "body after: " << body << std::endl;
-          std::cout << "variableSetMap: " << variableSetMap << std::endl;
+          Trace("quantifiers-rewrite-debug")
+              << "variableSetMap: " << variableSetMap << std::endl;
           break;
         }
 
@@ -456,7 +453,10 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
             some = nm->mkNode(Kind::SET_SOME, lambda, it->second);
             it++;
           }
-          std::cout << "ret: " << some << std::endl;
+          Trace("quantifiers-rewrite-debug")
+              << "original formula : " << in << std::endl;
+          Trace("quantifiers-rewrite-debug")
+              << "rewritten formula: " << some << std::endl;
           return RewriteResponse(REWRITE_AGAIN_FULL, some);
         }
       }
