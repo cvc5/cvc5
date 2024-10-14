@@ -1059,7 +1059,12 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     if (opts.proof.propProofMode == options::PropProofMode::PROOF)
     {
-      reason << "(resolution) proofs not supported in cadical";
+      reason << "(resolution) proofs in CaDiCaL";
+      return true;
+    }
+    if (opts.smt.proofMode!=options::ProofMode::PP_ONLY)
+    {
+      reason << "CaDiCaL";
       return true;
     }
   }
