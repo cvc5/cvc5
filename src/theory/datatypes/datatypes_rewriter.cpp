@@ -145,7 +145,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::DT_UPDATER_ELIM:
     {
-      if (n.getKind() ==Kind::APPLY_UPDATER)
+      if (n.getKind() == Kind::APPLY_UPDATER)
       {
         return expandUpdater(n);
       }
@@ -1012,7 +1012,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
 
 Node DatatypesRewriter::expandUpdater(const Node& n)
 {
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   TypeNode tn = n.getType();
   Node ret;
   Assert(tn.isDatatype());

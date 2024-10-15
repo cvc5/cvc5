@@ -216,7 +216,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::LAMBDA_ELIM:
     {
-      if (n.getKind()==Kind::LAMBDA)
+      if (n.getKind() == Kind::LAMBDA)
       {
         Node felim = canEliminateLambda(n);
         if (!felim.isNull())
@@ -382,7 +382,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 
 Node TheoryUfRewriter::canEliminateLambda(const Node& node)
 {
-  Assert (node.getKind()==Kind::LAMBDA);
+  Assert(node.getKind() == Kind::LAMBDA);
   if (node[1].getKind() == Kind::APPLY_UF)
   {
     size_t nvar = node[0].getNumChildren();

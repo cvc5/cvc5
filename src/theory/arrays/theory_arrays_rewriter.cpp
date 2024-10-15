@@ -80,13 +80,13 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     {
-      if( n.getKind()==Kind::SELECT && n[0].getKind()==Kind::STORE_ALL)
+      if (n.getKind() == Kind::SELECT && n[0].getKind() == Kind::STORE_ALL)
       {
         ArrayStoreAll storeAll = n[0].getConst<ArrayStoreAll>();
         return storeAll.getValue();
       }
     }
-      break;
+    break;
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
     {
       if (n.getKind() == Kind::EQ_RANGE)
@@ -94,7 +94,7 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return expandEqRange(d_nm, n);
       }
     }
-      break;
+    break;
     default: break;
   }
   return Node::null();

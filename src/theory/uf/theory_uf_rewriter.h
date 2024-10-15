@@ -79,7 +79,7 @@ class TheoryUfRewriter : public TheoryRewriter
   static bool canUseAsApplyUfOperator(TNode n);
 
  private:
-  /** 
+  /**
    * Can we eliminate the lambda n? This is true if n is of the form
    * (LAMBDA x (APPLY_UF f x)), which is equivalent to f.
    * @param n The lambda in question.
