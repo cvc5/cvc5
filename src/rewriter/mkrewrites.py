@@ -327,10 +327,11 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
     )
     with open(output_file, 'w') as f:
         f.write(
+            format_cpp(
                 template.format(rewrite_name=db.function_name,
                                 decls='\n'.join(decls_code),
                                 defns='\n'.join(defns_code),
-                                rules='\n'.join(rules_code)))
+                                rules='\n'.join(rules_code))))
     return db
 
 def gen_rewrite_db(args):
@@ -364,12 +365,12 @@ def gen_rewrite_db(args):
 
     def doc(rule: str):
         rule = rule.lower().replace('_', '-')
-        return f'/** Auto-generated from RARE rule {rule} */'
+        return f'  /** Auto-generated from RARE rule {rule} */'
 
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
-        f.write(format_cpp(cvc5_proof_rule_h.format(
-            rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
+        f.write(cvc5_proof_rule_h.format(
+            rules='\n  '.join([f'{doc(id)}\n  EVALUE({id}),' for id in ids])))
 
     cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
     os.makedirs(bin_api_dir, exist_ok=True)
