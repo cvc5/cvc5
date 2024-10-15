@@ -65,6 +65,9 @@ class TermRegistry : protected EnvObj
   uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
+  /**
+   */
+  TrustNode eagerReduceTrusted(const Node& t);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
