@@ -79,8 +79,6 @@ void CheckModels::checkModel(TheoryModel* m,
     Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
                << std::endl;
-    // Rewrite, since expand definitions expects to be in rewritten form
-    n = rewrite(n);
 
     // Expand definitions, which is required for being accurate for operators
     // that expand involving skolems during preprocessing. Not doing this will
