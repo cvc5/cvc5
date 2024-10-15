@@ -164,7 +164,7 @@
 )
 (declare-rule arith-div-total-zero ((x1 Real))
   :args (x1)
-  :conclusion (= (/ x1 0.0) 0.0)
+  :conclusion (= (/_total x1 0.0) 0.0)
 )
 (declare-rule array-read-over-write ((@T0 Type) (@T1 Type) (@T2 Type) (@T3 Type) (t1 (Array @T0 @T1)) (i1 @T2) (e1 @T3))
   :args (t1 i1 e1)

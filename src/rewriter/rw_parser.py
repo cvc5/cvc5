@@ -24,6 +24,7 @@ symbol_to_op = {e.symbol: e for e in Op if e.symbol is not None}
 class SymbolTable:
     def __init__(self):
         self.consts = {
+            'real.pi': App(Op.REAL_PI, []),
             're.none': App(Op.REGEXP_NONE, []),
             're.all': App(Op.REGEXP_ALL, []),
             're.allchar': App(Op.REGEXP_ALLCHAR, []),

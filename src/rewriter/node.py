@@ -129,6 +129,14 @@ class Op(Enum):
     POW2 = ('int.pow2', 'POW2')
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
+    
+    SINE = ('sin', 'SINE')
+    COSINE = ('cos', 'COSINE')
+    TANGENT = ('tan', 'TANGENT')
+    SECANT = ('sec', 'SECANT')
+    COSECANT = ('csc', 'COSECANT')
+    COTANGENT = ('cot', 'COTANGENT')
+    REAL_PI = (None, 'PI')  # Handled as constant
 
     INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
     INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites

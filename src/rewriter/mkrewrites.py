@@ -365,7 +365,7 @@ def gen_rewrite_db(args):
 
     def doc(rule: str):
         rule = rule.lower().replace('_', '-')
-        return f'  /** Auto-generated from RARE rule {rule} */'
+        return f'/** Auto-generated from RARE rule {rule} */'
 
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
