@@ -2321,6 +2321,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Constant array select**
+   *
+   * .. math::
+   *   (select A x) = c
+   *
+   * where :math:`A` is a constant array store element :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARRAY_SELECT_CONST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arith -- Division by constant elimination**
    *
    * .. math::
@@ -2396,6 +2408,16 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Lambda elimination**
+   *
+   * .. math::
+   *   (\lambda x_1 \ldots x_n.\> f(x_1 \ldots x_n)) = f
+   *
+   * \endverbatim
+   */
+  EVALUE(LAMBDA_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
@@ -2540,6 +2562,18 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - updater elimination**
+   *
+   * .. math::
+   *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots s_n(t)), t)
+   *
+   * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_UPDATER_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
