@@ -21,9 +21,11 @@
 #include <ostream>
 #include <sstream>
 
+#include "util/string.h"
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
+#include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/alf/alf_dependent_type_converter.h"
@@ -215,7 +217,12 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_CONTAINS || k == Kind::STRING_TO_CODE
+      if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
+      {
+        // must use standard alphabet size
+        return options().strings.stringsAlphaCard==String::num_codes();
+      }
+      return k == Kind::STRING_CONTAINS
              || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
     }
     break;
