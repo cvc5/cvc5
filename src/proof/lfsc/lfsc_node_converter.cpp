@@ -331,13 +331,14 @@ Node LfscNodeConverter::postConvert(Node n)
            || k == Kind::SUB || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
            || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
            || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-           || k == Kind::NEG || k == Kind::POW ||k == Kind::FLOATINGPOINT_COMPONENT_NAN
-    || k == Kind::FLOATINGPOINT_COMPONENT_INF
-    || k ==  Kind::FLOATINGPOINT_COMPONENT_ZERO
-    || k ==  Kind::FLOATINGPOINT_COMPONENT_SIGN
-    || k ==  Kind::FLOATINGPOINT_COMPONENT_EXPONENT
-    || k ==  Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
-    || k ==  Kind::ROUNDINGMODE_BITBLAST
+           || k == Kind::NEG || k == Kind::POW
+           || k == Kind::FLOATINGPOINT_COMPONENT_NAN
+           || k == Kind::FLOATINGPOINT_COMPONENT_INF
+           || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGN
+           || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
+           || k == Kind::ROUNDINGMODE_BITBLAST
            || GenericOp::isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
@@ -1094,13 +1095,13 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "f_";
   }
-  if(k == Kind::FLOATINGPOINT_COMPONENT_NAN
-  || k == Kind::FLOATINGPOINT_COMPONENT_INF
-  || k ==  Kind::FLOATINGPOINT_COMPONENT_ZERO
-  || k ==  Kind::FLOATINGPOINT_COMPONENT_SIGN
-  || k ==  Kind::FLOATINGPOINT_COMPONENT_EXPONENT
-  || k ==  Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
-  || k ==  Kind::ROUNDINGMODE_BITBLAST)
+  if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
+      || k == Kind::FLOATINGPOINT_COMPONENT_INF
+      || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
+      || k == Kind::FLOATINGPOINT_COMPONENT_SIGN
+      || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
+      || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
+      || k == Kind::ROUNDINGMODE_BITBLAST)
   {
     // remove @fp.
     std::string str = printer::smt2::Smt2Printer::smtKindString(k);
