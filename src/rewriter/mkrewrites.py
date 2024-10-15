@@ -73,7 +73,7 @@ def gen_mk_const(expr):
     elif isinstance(expr, CInt):
         return f'Rational({expr.val})'
     elif isinstance(expr, CRational):
-        return f'internal::Rational::fromDecimal("{expr.val}")'
+        return f'internal::Rational("{expr.val}")'
     elif isinstance(expr, App):
         args = [gen_mk_const(child) for child in expr.children]
         if expr.op == Op.NEG:

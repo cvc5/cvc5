@@ -88,8 +88,8 @@ class Parser:
     # Action when parsing a decimal or numeral
     def number_parse_action(s, l, t):
         num_str = t[0]
-        if '.' in num_str:
-            return CRational(float(num_str))
+        if '/' in num_str:
+            return CRational(num_str)
         else:
             return CInt(int(num_str))
 
@@ -104,9 +104,9 @@ class Parser:
         bconst = pp.Keyword('true').setParseAction(
             lambda s, l, t: CBool(True)) | pp.Keyword('false').setParseAction(
                 lambda s, l, t: CBool(False))
-        # handles both decimals and numerals
+        # handles both rationals and numerals
         aconst = pp.Combine(
-              pp.Word(pp.nums) + pp.Optional('.' + pp.Word(pp.nums))
+              pp.Word(pp.nums) + pp.Optional('/' + pp.Word(pp.nums))
           ).setParseAction(self.number_parse_action)
         strconst = pp.QuotedString(
             quoteChar='"').setParseAction(lambda s, l, t: CString(t[0]))
