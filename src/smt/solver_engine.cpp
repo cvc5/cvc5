@@ -2148,6 +2148,10 @@ void SolverEngine::setOption(const std::string& key,
 {
   if (fromUser && options().base.safeOptions)
   {
+    if (key == "trace")
+    {
+      throw OptionException("cannot use trace messages with safe-options");
+    }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
     if (oinfo.category == options::OptionInfo::Category::EXPERT)
