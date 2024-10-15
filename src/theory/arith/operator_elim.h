@@ -17,13 +17,13 @@
 
 #include <map>
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
-#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 
@@ -66,6 +66,7 @@ class OperatorElim : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this, for proof generator interface */
   std::string identify() const override;
+
  private:
   /**
    * Function symbols used to implement:
@@ -106,9 +107,10 @@ class OperatorElim : protected EnvObj, public ProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  static Node eliminateOperators(NodeManager* nm, Node n,
-                          std::vector<std::pair<Node, Node>>& lems,
-                          bool partialOnly,
+  static Node eliminateOperators(NodeManager* nm,
+                                 Node n,
+                                 std::vector<std::pair<Node, Node>>& lems,
+                                 bool partialOnly,
                                  bool& wasNonLinear);
   /**
    * Get the skolem lemma for lem, based on whether we are proof producing.

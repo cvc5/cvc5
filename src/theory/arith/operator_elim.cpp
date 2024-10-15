@@ -20,14 +20,14 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "options/arith_options.h"
+#include "proof/proof_node_manager.h"
+#include "proof/trust_id.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "proof/trust_id.h"
-#include "proof/proof_node_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -58,7 +58,7 @@ TrustNode OperatorElim::eliminate(Node n,
                                   std::vector<SkolemLemma>& lems,
                                   bool partialOnly)
 {
-  Assert (rewrite(n)==n);
+  Assert(rewrite(n) == n);
   NodeManager* nm = nodeManager();
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
@@ -69,10 +69,10 @@ TrustNode OperatorElim::eliminate(Node n,
     if (wasNonLinear)
     {
       Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
-                          << std::endl;
+                           << std::endl;
       std::stringstream serr;
       serr << "A non-linear fact was asserted to arithmetic in a linear logic."
-          << std::endl;
+           << std::endl;
       serr << "The fact in question: " << n << std::endl;
       throw LogicException(serr.str());
     }
@@ -93,14 +93,15 @@ Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
-  if (klems.size()==1)
+  if (klems.size() == 1)
   {
     return klems[0].first;
   }
   return Node::null();
 }
 
-Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
+Node OperatorElim::eliminateOperators(NodeManager* nm,
+                                      Node node,
                                       std::vector<std::pair<Node, Node>>& lems,
                                       bool partialOnly,
                                       bool& wasNonLinear)
@@ -154,7 +155,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
       if (den.isConst())
       {
         const Rational& rat = den.getConst<Rational>();
-        Assert (!num.isConst() && rat.sgn() != 0);
+        Assert(!num.isConst() && rat.sgn() != 0);
         if (rat > 0)
         {
           lem = nm->mkNode(
@@ -450,7 +451,7 @@ Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
   SkolemManager* sm = nm->getSkolemManager();
   Node skolem = sm->mkSkolemFunction(id);
   Assert(skolem.getType().isFunction()
-          && skolem.getType().getNumChildren() == 2);
+         && skolem.getType().getNumChildren() == 2);
   TypeNode argType = skolem.getType()[0];
   if (!argType.isInteger() && n.getType().isInteger())
   {
@@ -460,7 +461,9 @@ Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
   return skolem;
 }
 
-SkolemLemma OperatorElim::mkSkolemLemma(const Node& lem, const Node& k, const Node& n)
+SkolemLemma OperatorElim::mkSkolemLemma(const Node& lem,
+                                        const Node& k,
+                                        const Node& n)
 {
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
@@ -478,13 +481,14 @@ SkolemLemma OperatorElim::mkSkolemLemma(const Node& lem, const Node& k, const No
 std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
 {
   context::CDHashMap<Node, Node>::iterator it = d_lemmaMap.find(f);
-  if (it==d_lemmaMap.end())
+  if (it == d_lemmaMap.end())
   {
     Assert(false) << "arith::OperatorElim could not prove " << f;
     return nullptr;
   }
   ProofNodeManager* pnm = d_env.getProofNodeManager();
-  std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {it->second}, f);
+  std::shared_ptr<ProofNode> pfn =
+      pnm->mkNode(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {it->second}, f);
   return pfn;
 }
 
