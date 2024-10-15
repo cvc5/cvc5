@@ -98,13 +98,8 @@ class OperatorElim : public EagerProofGenerator
    */
   static Node eliminateOperators(NodeManager* nm, Node n,
                           std::vector<std::pair<Node, Node>>& lems,
-                          bool partialOnly);
-  /** get arithmetic skolem
-   *
-   * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist.
-   */
-  Node getArithSkolem(SkolemId asi);
+                          bool partialOnly,
+                                 bool& wasNonLinear);
   /**
    * Get the skolem lemma for lem, based on whether we are proof producing.
    * A skolem lemma is a wrapper around lem that also tracks its associated
@@ -124,15 +119,6 @@ class OperatorElim : public EagerProofGenerator
    * the Skolem constant for the identifier asi.
    */
   static Node getArithSkolemApp(NodeManager* nm, Node n, SkolemId asi);
-
-  /**
-   * Called when a non-linear term n is given to this class. Throw an exception
-   * if the logic is linear.
-   */
-  void checkNonLinearLogic(Node term);
-
-  /** Whether we should use a partial function for the given id */
-  bool usePartialFunction(SkolemId id) const;
 };
 
 }  // namespace arith
