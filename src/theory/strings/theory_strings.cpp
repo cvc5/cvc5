@@ -1124,7 +1124,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   if (ak == Kind::STRING_FROM_CODE)
   {
     // for the sake of proofs, we use the eager reduction utility
-    Node k = nm->getSkolemManager()->mkPurifySkolem(atom);
+    Node k = nodeManager()->getSkolemManager()->mkPurifySkolem(atom);
     TrustNode lemma = d_termReg.eagerReduceTrusted(atom);
     lems.push_back(SkolemLemma(lemma, k));
     // We rewrite the term to its purify variable, which can be justified

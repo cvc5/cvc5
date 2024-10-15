@@ -155,18 +155,16 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
   else if (tk == Kind::STRING_FROM_CODE)
   {
     // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    NodeManager* nm = nodeManager();
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
-    Node t = atom[0];
-    Node card = nm->mkConstInt(Rational(d_termReg.getAlphabetCardinality()));
+    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "kFromCode");
+    Node tc = t[0];
+    Node card = nm->mkConstInt(Rational(alphaCard));
     Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, d_zero, t),
-                           nm->mkNode(Kind::LT, t, card));
-    Node emp = Word::mkEmptyWord(atom.getType());
+                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                           nm->mkNode(Kind::LT, tc, card));
+    Node emp = Word::mkEmptyWord(t.getType());
     lemma = nm->mkNode(Kind::ITE,
                            cond,
-                           t.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
+                           tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
                            k.eqNode(emp));
   }
   return lemma;
@@ -339,14 +337,17 @@ TrustNode TermRegistry::eagerReduceTrusted(const Node& n)
 {
   TrustNode regTermLem;
   Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
-  if (d_epg != nullptr)
+  if (!eagerRedLemma.isNull())
   {
-    regTermLem = d_epg->mkTrustNode(
-        eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
-  }
-  else
-  {
-    regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+    if (d_epg != nullptr)
+    {
+      regTermLem = d_epg->mkTrustNode(
+          eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
+    }
+    else
+    {
+      regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+    }
   }
   return regTermLem;
 }
