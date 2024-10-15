@@ -327,11 +327,10 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
     )
     with open(output_file, 'w') as f:
         f.write(
-            format_cpp(
                 template.format(rewrite_name=db.function_name,
                                 decls='\n'.join(decls_code),
                                 defns='\n'.join(defns_code),
-                                rules='\n'.join(rules_code))))
+                                rules='\n'.join(rules_code)))
     return db
 
 def gen_rewrite_db(args):

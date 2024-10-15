@@ -84,13 +84,13 @@ class Parser:
             op = Op.NEG
         return App(op, t[1:])
     
-    # Assuming CInt and CRational are the appropriate constructors
+    # Action when parsing a decimal or numeral
     def number_parse_action(s, l, t):
         num_str = t[0]
         if '.' in num_str:
-            return CRational(float(num_str))  # Treat as rational (decimal)
+            return CRational(float(num_str))
         else:
-            return CInt(int(num_str))  # Treat as integer
+            return CInt(int(num_str))
 
     def expr(self, allow_comprehension=True):
         expr = pp.Forward()
@@ -103,10 +103,7 @@ class Parser:
         bconst = pp.Keyword('true').setParseAction(
             lambda s, l, t: CBool(True)) | pp.Keyword('false').setParseAction(
                 lambda s, l, t: CBool(False))
-        #rconst = pp.Combine(
-        #    pp.Word(pp.nums) + pp.Optional('.' + pp.Word(pp.nums))).setParseAction(lambda s, l, t: CRational(float(t[0])))
-        #iconst = pp.Word(
-        #    pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
+        # handles both decimals and numerals
         aconst = pp.Combine(
               pp.Word(pp.nums) + pp.Optional('.' + pp.Word(pp.nums))
           ).setParseAction(self.number_parse_action)
