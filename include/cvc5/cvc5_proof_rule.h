@@ -2742,12 +2742,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
-  /** Auto-generated from RARE rule arith-neg-neg-one */
-  EVALUE(ARITH_NEG_NEG_ONE),
-  /** Auto-generated from RARE rule arith-elim-uminus */
-  EVALUE(ARITH_ELIM_UMINUS),
-  /** Auto-generated from RARE rule arith-elim-minus */
-  EVALUE(ARITH_ELIM_MINUS),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -2784,10 +2778,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MULT_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-dist */
   EVALUE(ARITH_MULT_DIST),
-  /** Auto-generated from RARE rule arith-plus-cancel1 */
-  EVALUE(ARITH_PLUS_CANCEL1),
-  /** Auto-generated from RARE rule arith-plus-cancel2 */
-  EVALUE(ARITH_PLUS_CANCEL2),
   /** Auto-generated from RARE rule arith-abs-elim */
   EVALUE(ARITH_ABS_ELIM),
   /** Auto-generated from RARE rule arith-to-real-elim */

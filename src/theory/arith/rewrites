@@ -20,11 +20,7 @@
 (define-rule arith-int-mod-total-one ((t Int)) (mod_total t 1) 0)
 (define-rule arith-int-mod-total-zero ((t Int)) (mod_total t 0) t)
 
-(define-rule arith-neg-neg-one ((t ?)) (* (- 1) (* (- 1) t)) t)
-
 ; Eliminations
-(define-rule arith-elim-uminus ((t ?)) (- t) (* (- 1) t))
-(define-rule arith-elim-minus ((t ?) (s ?)) (- t s) (+ t (* (- 1) s)))
 (define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
 (define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
 (define-rule arith-elim-int-gt ((t Int) (s Int)) (> t s) (>= t (+ s 1)))
@@ -61,9 +57,6 @@
 (define-rule* arith-mult-dist ((x ?) (y ?) (z ?) (w ? :list))
   (* x (+ y z w))
   (+ (* x y) (* x (+ z w))))
-
-(define-rule* arith-plus-cancel1 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t x s (* (- 1) x) r) (+ t s r))
-(define-rule* arith-plus-cancel2 ((t ? :list) (x ?) (s ? :list) (r ? :list)) (+ t (* (- 1) x) s x r) (+ t s r))
 
 (define-rule arith-abs-elim ((x ?)) (abs x) (ite (< x 0) (- x) x))
 

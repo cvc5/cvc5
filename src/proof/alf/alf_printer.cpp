@@ -459,6 +459,8 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
 
 void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
 {
+  options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
   const rewriter::RewriteProofRule& rpr = d_rdb->getRule(r);
   const std::vector<Node>& varList = rpr.getVarList();
   const std::vector<Node>& uvarList = rpr.getUserVarList();
