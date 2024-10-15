@@ -2321,18 +2321,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Constant array select**
-   *
-   * .. math::
-   *   (select A x) = c
-   *
-   * where :math:`A` is a constant array store element :math:`c`.
-   *
-   * \endverbatim
-   */
-  EVALUE(ARRAY_SELECT_CONST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arith -- Division by constant elimination**
    *
    * .. math::
@@ -2418,6 +2406,18 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(LAMBDA_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Constant array select**
+   *
+   * .. math::
+   *   (select A x) = c
+   *
+   * where :math:`A` is a constant array store element :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
