@@ -393,7 +393,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      return OperatorElim::getAxiomFor(args[0]);
+      return OperatorElim::getAxiomFor(nm, args[0]);
     }
     case ProofRule::ARITH_POLY_NORM:
     {

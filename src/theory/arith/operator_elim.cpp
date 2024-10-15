@@ -27,6 +27,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "proof/trust_id.h"
+#include "proof/proof_node_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -51,36 +52,34 @@ struct TrPurifyAttributeId
 };
 using TrPurifyAttribute = expr::Attribute<TrPurifyAttributeId, Node>;
 
-OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
+OperatorElim::OperatorElim(Env& env) : EnvObj(env), d_lemmaMap(userContext()) {}
 
 TrustNode OperatorElim::eliminate(Node n,
                                   std::vector<SkolemLemma>& lems,
                                   bool partialOnly)
 {
+  Assert (rewrite(n)==n);
   NodeManager* nm = nodeManager();
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, partialOnly, wasNonLinear);
-  if (nn!=n)
+  if (d_env.getLogicInfo().isLinear())
   {
-    if (d_env.getLogicInfo().isLinear())
+    // logic exception if non-linear
+    if (wasNonLinear)
     {
-      // logic exception if non-linear
-      if (wasNonLinear)
-      {
-        Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
-                            << std::endl;
-        std::stringstream serr;
-        serr << "A non-linear fact was asserted to arithmetic in a linear logic."
-            << std::endl;
-        serr << "The fact in question: " << n << std::endl;
-        throw LogicException(serr.str());
-      }
+      Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
+                          << std::endl;
+      std::stringstream serr;
+      serr << "A non-linear fact was asserted to arithmetic in a linear logic."
+          << std::endl;
+      serr << "The fact in question: " << n << std::endl;
+      throw LogicException(serr.str());
     }
   }
   for (std::pair<Node, Node>& p : klems)
   {
-    lems.emplace_back(mkSkolemLemma(p.first, p.second));
+    lems.emplace_back(mkSkolemLemma(p.first, p.second, n));
   }
   if (nn != n)
   {
@@ -89,14 +88,14 @@ TrustNode OperatorElim::eliminate(Node n,
   return TrustNode::null();
 }
 
-Node OperatorElim::getEliminateAxiom(NodeManager* nm, const Node& n)
+Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
 {
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
   if (klems.size()==1)
   {
-    return klems[0].second;
+    return klems[0].first;
   }
   return Node::null();
 }
@@ -446,8 +445,6 @@ Node OperatorElim::eliminateOperators(NodeManager* nm, Node node,
   return node;
 }
 
-Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
-
 Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
 {
   SkolemManager* sm = nm->getSkolemManager();
@@ -463,13 +460,13 @@ Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
   return skolem;
 }
 
-SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
+SkolemLemma OperatorElim::mkSkolemLemma(const Node& lem, const Node& k, const Node& n)
 {
   TrustNode tlem;
   if (d_env.isTheoryProofProducing())
   {
-    Node tid = mkTrustId(TrustId::THEORY_PREPROCESS);
-    tlem = mkTrustNode(lem, ProofRule::TRUST, {}, {tid, lem});
+    tlem = TrustNode::mkTrustLemma(lem, this);
+    d_lemmaMap[lem] = n;
   }
   else
   {
@@ -477,6 +474,21 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   }
   return SkolemLemma(tlem, k);
 }
+
+std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
+{
+  context::CDHashMap<Node, Node>::iterator it = d_lemmaMap.find(f);
+  if (it==d_lemmaMap.end())
+  {
+    Assert(false) << "arith::OperatorElim could not prove " << f;
+    return nullptr;
+  }
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  std::shared_ptr<ProofNode> pfn = pnm->mkNode(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {it->second}, f);
+  return pfn;
+}
+
+std::string OperatorElim::identify() const { return "arith::OperatorElim"; }
 
 }  // namespace arith
 }  // namespace theory

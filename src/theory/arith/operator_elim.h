@@ -19,10 +19,11 @@
 
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
-#include "proof/eager_proof_generator.h"
+#include "proof/proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
+#include "context/cdhashmap.h"
 
 namespace cvc5::internal {
 
@@ -31,7 +32,7 @@ class TConvProofGenerator;
 namespace theory {
 namespace arith {
 
-class OperatorElim : public EagerProofGenerator
+class OperatorElim : protected EnvObj, public ProofGenerator
 {
  public:
   OperatorElim(Env& env);
@@ -57,10 +58,14 @@ class OperatorElim : public EagerProofGenerator
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
    */
-  static Node getAxiomFor(Node n);
-
-  /** */
-  static Node getEliminateAxiom(NodeManager* nm, const Node& n);
+  static Node getAxiomFor(NodeManager* nm, const Node& n);
+  /**
+   * Get proof for formula f, which should have been generated as a lemma
+   * via eliminate above.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify this, for proof generator interface */
+  std::string identify() const override;
  private:
   /**
    * Function symbols used to implement:
@@ -79,6 +84,11 @@ class OperatorElim : public EagerProofGenerator
    * these skolem functions actually live in SkolemManager.
    */
   std::map<SkolemId, Node> d_arithSkolem;
+  /**
+   * Map from the lemmas we sent to the term that they were introduced for.
+   * This is tracked only for proofs.
+   */
+  context::CDHashMap<Node, Node> d_lemmaMap;
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
@@ -107,9 +117,10 @@ class OperatorElim : public EagerProofGenerator
    *
    * @param lem The lemma that axiomatizes the behavior of k
    * @param k The skolem
+   * @param n The term we introduced the skolem for
    * @return the skolem lemma corresponding to lem, annotated with k.
    */
-  SkolemLemma mkSkolemLemma(Node lem, Node k);
+  SkolemLemma mkSkolemLemma(const Node& lem, const Node& k, const Node& n);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
