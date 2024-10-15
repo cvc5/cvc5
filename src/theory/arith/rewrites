@@ -81,4 +81,4 @@
 (define-rule arith-tangent-elim ((x Real)) (tan x) (/ (sin x) (cos x)))
 (define-rule arith-secent-elim ((x Real)) (sec x) (/ 1.0 (sin x)))
 (define-rule arith-cosecent-elim ((x Real)) (csc x) (/ 1.0 (cos x)))
-(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ 1.0 (cos x)))
+(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
