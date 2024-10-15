@@ -13,10 +13,10 @@
  * Proof rule enumeration.
  */
 
-#if (!defined(CVC5_API_USE_C_ENUMS)                 \
-     && !defined(CVC5__API__CVC5_CPP_PROOF_RULE_H)) \
-    || (defined(CVC5_API_USE_C_ENUMS)               \
-        && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
+#if (!defined(CVC5_API_USE_C_ENUMS) &&                                         \
+     !defined(CVC5__API__CVC5_CPP_PROOF_RULE_H)) ||                            \
+    (defined(CVC5_API_USE_C_ENUMS) &&                                          \
+     !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
 #include <stdint.h>
 
@@ -2291,8 +2291,7 @@ enum ENUM(ProofRule)
  * proof rule.
  * \endverbatim
  */
-enum ENUM(ProofRewriteRule)
-{
+enum ENUM(ProofRewriteRule) {
   EVALUE(NONE),
   // Custom theory rewrites.
   /**
@@ -2342,11 +2341,14 @@ enum ENUM(ProofRewriteRule)
    *   (>= s t) = c
    *
    * where :math:`c` is a Boolean constant.
-   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
-   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
-   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
-   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`,
-   * as well as other rewrites for normalizing arithmetic predicates.
+   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE
+   * <cvc5::ProofRule::EVALUATE>`, :cpp:enumerator:`ARITH_POLY_NORM
+   * <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL
+   * <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX
+   * <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`, as well as other
+   * rewrites for normalizing arithmetic predicates.
    *
    * \endverbatim
    */
@@ -2581,7 +2583,8 @@ enum ENUM(ProofRewriteRule)
    * **Bitvectors - Extract continuous substrings of bitvectors**
    *
    * .. math::
-   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
+   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ...
+   * bvand(a[i_n:j_n],\ c_n))
    *
    * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
    * constant c \endverbatim
@@ -2613,7 +2616,8 @@ enum ENUM(ProofRewriteRule)
    * or alternatively:
    *
    * .. math::
-   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
+   *   \mathit{re.union}(R) =
+   * \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `re.comp(r_2)` and the list :math:`R_0`, where `r_1` is a superset of
@@ -2653,7 +2657,10 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression concatenation star character**
    *
    * .. math::
-   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =\\ \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n),
+   * \mathit{re}.\text{*}(R)) =\\ \mathit{str.in\_re}(s_1,
+   * \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n,
+   * \mathit{re}.\text{*}(R))
    *
    * where all strings in :math:`R` have length one.
    *
@@ -2665,12 +2672,15 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
    *
    * or alternatively:
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) = (\mathit{str.len}(s) \ge n)
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) =
+   * (\mathit{str.len}(s) \ge n)
    *
    * \endverbatim
    */
@@ -2680,7 +2690,9 @@ enum ENUM(ProofRewriteRule)
    * **Strings - string in regular expression sigma star**
    *
    * .. math::
-   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
+   *   \mathit{str.in\_re}(s,
+   * \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots,
+   * \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
    *
    * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
    * :math:`\mathit{re}.\text{++}`.
@@ -2796,6 +2808,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-div-total-zero */
+  EVALUE(ARITH_DIV_TOTAL_ZERO),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3548,7 +3562,7 @@ typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-CVC5_EXPORT const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
+CVC5_EXPORT const char *cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
@@ -3562,8 +3576,8 @@ CVC5_EXPORT size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
  * @param rule The proof rewrite rule.
  * @return The string representation.
  */
-CVC5_EXPORT const char* cvc5_proof_rewrite_rule_to_string(
-    Cvc5ProofRewriteRule rule);
+CVC5_EXPORT const char *
+cvc5_proof_rewrite_rule_to_string(Cvc5ProofRewriteRule rule);
 
 /**
  * Hash function for Cvc5ProofRewriteRule.
@@ -3583,7 +3597,7 @@ CVC5_EXPORT size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
  * @param rule The proof rule
  * @return The name of the proof rule
  */
-CVC5_EXPORT const char* toString(ProofRule rule);
+CVC5_EXPORT const char *toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
@@ -3592,7 +3606,7 @@ CVC5_EXPORT const char* toString(ProofRule rule);
  * @param rule The proof rule to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
+CVC5_EXPORT std::ostream &operator<<(std::ostream &out, ProofRule rule);
 
 /**
  * Converts a proof rewrite rule to a string. Note: This function is also
@@ -3603,7 +3617,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
  * @param rule The proof rewrite rule
  * @return The name of the proof rewrite rule
  */
-CVC5_EXPORT const char* toString(ProofRewriteRule rule);
+CVC5_EXPORT const char *toString(ProofRewriteRule rule);
 
 /**
  * Writes a proof rewrite rule name to a stream.
@@ -3612,18 +3626,16 @@ CVC5_EXPORT const char* toString(ProofRewriteRule rule);
  * @param rule The proof rewrite rule to write to the stream
  * @return The stream
  */
-CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
+CVC5_EXPORT std::ostream &operator<<(std::ostream &out, ProofRewriteRule rule);
 
-}  // namespace cvc5
+} // namespace cvc5
 
 namespace std {
 
 /**
  * Hash function for ProofRules.
  */
-template <>
-struct CVC5_EXPORT hash<cvc5::ProofRule>
-{
+template <> struct CVC5_EXPORT hash<cvc5::ProofRule> {
   /**
    * Hashes a ProofRule to a size_t.
    * @param rule The proof rule.
@@ -3643,9 +3655,7 @@ CVC5_EXPORT std::string to_string(cvc5::ProofRule rule);
 /**
  * Hash function for ProofRewriteRules.
  */
-template <>
-struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
-{
+template <> struct CVC5_EXPORT hash<cvc5::ProofRewriteRule> {
   /**
    * Hashes a ProofRewriteRule to a size_t.
    * @param rule The proof rewrite rule.
@@ -3662,7 +3672,7 @@ struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
  */
 CVC5_EXPORT std::string to_string(cvc5::ProofRewriteRule rule);
 
-}  // namespace std
+} // namespace std
 
 #endif
 #endif

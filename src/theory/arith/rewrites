@@ -70,3 +70,5 @@
 (define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
 (define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
+
+(define-rule arith-div-total-zero ((x Real)) (/ x 0.0) 0.0)

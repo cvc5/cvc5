@@ -83,6 +83,14 @@ class Parser:
         if op == Op.SUB and len(t) == 2:
             op = Op.NEG
         return App(op, t[1:])
+    
+    # Assuming CInt and CRational are the appropriate constructors
+    def number_parse_action(s, l, t):
+        num_str = t[0]
+        if '.' in num_str:
+            return CRational(float(num_str))  # Treat as rational (decimal)
+        else:
+            return CInt(int(num_str))  # Treat as integer
 
     def expr(self, allow_comprehension=True):
         expr = pp.Forward()
@@ -95,8 +103,13 @@ class Parser:
         bconst = pp.Keyword('true').setParseAction(
             lambda s, l, t: CBool(True)) | pp.Keyword('false').setParseAction(
                 lambda s, l, t: CBool(False))
-        iconst = pp.Word(
-            pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
+        #rconst = pp.Combine(
+        #    pp.Word(pp.nums) + pp.Optional('.' + pp.Word(pp.nums))).setParseAction(lambda s, l, t: CRational(float(t[0])))
+        #iconst = pp.Word(
+        #    pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
+        aconst = pp.Combine(
+              pp.Word(pp.nums) + pp.Optional('.' + pp.Word(pp.nums))
+          ).setParseAction(self.number_parse_action)
         strconst = pp.QuotedString(
             quoteChar='"').setParseAction(lambda s, l, t: CString(t[0]))
 
@@ -108,7 +121,7 @@ class Parser:
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
                pp.Suppress(')')).setParseAction(self.app_action)
 
-        options = bconst | iconst | strconst | indexed_app | app | var
+        options = bconst | aconst | strconst | indexed_app | app | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +

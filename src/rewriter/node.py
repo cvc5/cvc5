@@ -337,6 +337,19 @@ class CInt(Node):
     def __repr__(self):
         return str(self.val)
 
+class CRational(Node):
+    def __init__(self, val):
+        super().__init__([])
+        self.val = val
+
+    def __eq__(self, other):
+        return isinstance(other, CRational) and self.val == other.val
+
+    def __hash__(self):
+        return hash(self.val)
+
+    def __repr__(self):
+        return str(self.val)
 
 class CString(Node):
     def __init__(self, val):
