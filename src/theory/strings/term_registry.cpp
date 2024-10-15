@@ -163,9 +163,9 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
                            nm->mkNode(Kind::LT, tc, card));
     Node emp = Word::mkEmptyWord(t.getType());
     lemma = nm->mkNode(Kind::ITE,
-                           cond,
-                           tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                           k.eqNode(emp));
+                       cond,
+                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
+                       k.eqNode(emp));
   }
   return lemma;
 }
