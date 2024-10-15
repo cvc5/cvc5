@@ -78,7 +78,7 @@ TrustNode OperatorElim::eliminate(Node n,
     }
   }
   // should only be a single lemma, if there is one
-  Assert (klems.size()<=1);
+  Assert(klems.size() <= 1);
   for (std::pair<Node, Node>& p : klems)
   {
     lems.emplace_back(mkSkolemLemma(p.first, p.second, n));
