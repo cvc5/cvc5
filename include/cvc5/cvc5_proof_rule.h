@@ -2413,7 +2413,7 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   (select A x) = c
    *
-   * where :math:`A` is a constant array store element :math:`c`.
+   * where :math:`A` is a constant array storing element :math:`c`.
    *
    * \endverbatim
    */
