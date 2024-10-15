@@ -2720,7 +2720,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_IS_EMPTY_EVAL),
   // RARE rules
   // ${rules}$
-/** Auto-generated from RARE rule arith-plus-zero */
+  /** Auto-generated from RARE rule arith-plus-zero */
   EVALUE(ARITH_PLUS_ZERO),
   /** Auto-generated from RARE rule arith-mul-one */
   EVALUE(ARITH_MUL_ONE),
