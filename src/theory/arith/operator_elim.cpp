@@ -63,10 +63,10 @@ TrustNode OperatorElim::eliminate(Node n,
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, partialOnly, wasNonLinear);
-  if (d_env.getLogicInfo().isLinear())
+  // logic exception if non-linear
+  if (wasNonLinear)
   {
-    // logic exception if non-linear
-    if (wasNonLinear)
+    if (d_env.getLogicInfo().isLinear())
     {
       Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
                            << std::endl;
