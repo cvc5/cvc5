@@ -77,6 +77,8 @@ TrustNode OperatorElim::eliminate(Node n,
       throw LogicException(serr.str());
     }
   }
+  // should only be a single lemma, if there is one
+  Assert (klems.size()<=1);
   for (std::pair<Node, Node>& p : klems)
   {
     lems.emplace_back(mkSkolemLemma(p.first, p.second, n));
@@ -86,18 +88,6 @@ TrustNode OperatorElim::eliminate(Node n,
     return TrustNode::mkTrustRewrite(n, nn, nullptr);
   }
   return TrustNode::null();
-}
-
-Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
-{
-  std::vector<std::pair<Node, Node>> klems;
-  bool wasNonLinear = false;
-  Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
-  if (klems.size() == 1)
-  {
-    return klems[0].first;
-  }
-  return Node::null();
 }
 
 Node OperatorElim::eliminateOperators(NodeManager* nm,
@@ -444,6 +434,18 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
     default: break;
   }
   return node;
+}
+
+Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
+{
+  std::vector<std::pair<Node, Node>> klems;
+  bool wasNonLinear = false;
+  Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
+  if (klems.size() == 1)
+  {
+    return klems[0].first;
+  }
+  return Node::null();
 }
 
 Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
