@@ -87,7 +87,7 @@ class PseudoBooleanProcessor : public PreprocessingPass
   void addSub(Node from, Node to);
   void learnGeqSub(Node geq);
 
-  static Node mkGeqOne(Node v);
+  static Node mkGeqOne(NodeManager* nm, Node v);
 
   // x ->  <geqZero, leqOne>
   typedef context::CDHashMap<Node, std::pair<Node, Node>> CDNode2PairMap;

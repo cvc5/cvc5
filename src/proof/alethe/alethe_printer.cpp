@@ -154,7 +154,7 @@ void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
   options::ioutils::applyDagThresh(ss, 0);
   // Guarantee we print reals as expected
   options::ioutils::applyPrintArithLitToken(ss, true);
-  ss << d_lbind.convert(n, "@p_");
+  ss << d_lbind.convert(nodeManager(), n, "@p_");
   out << ss.str();
 }
 

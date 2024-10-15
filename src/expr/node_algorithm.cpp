@@ -348,11 +348,12 @@ bool checkVariablesInternal(TNode n,
       else if (cur.isClosure())
       {
         // add to scope
+        std::vector<TNode> boundvars;
         for (const TNode& cn : cur[0])
         {
-          if (checkShadow)
+          if (scope.find(cn) != scope.end())
           {
-            if (scope.find(cn) != scope.end())
+            if (checkShadow)
             {
               wasShadow = true;
               return true;
@@ -360,11 +361,10 @@ bool checkVariablesInternal(TNode n,
           }
           else
           {
-            // should not shadow
-            Assert(scope.find(cn) == scope.end())
-                << "Shadowed variable " << cn << " in " << cur << "\n";
+            // add to scope if it is not shadowing
+            boundvars.push_back(cn);
+            scope.insert(cn);
           }
-          scope.insert(cn);
         }
         // must make recursive call to use separate cache
         if (checkVariablesInternal(
@@ -374,7 +374,7 @@ bool checkVariablesInternal(TNode n,
           return true;
         }
         // cleanup
-        for (const TNode& cn : cur[0])
+        for (const TNode& cn : boundvars)
         {
           scope.erase(cn);
         }

@@ -72,6 +72,7 @@
 (include "./rules/Quantifiers.eo")
 (include "./theories/Datatypes.eo")
 (include "./theories/SepLogic.eo")
+(include "./rules/Rewrites.eo")
 
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
@@ -80,6 +81,8 @@
 
 ; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.combined_card (-> Int Bool))
 (declare-type @ho-elim-sort (Type))
 (declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 

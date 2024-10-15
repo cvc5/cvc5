@@ -988,7 +988,7 @@ Node RegExpOpr::reduceRegExpNeg(NodeManager* nm, Node mem)
     Node emp = Word::mkEmptyWord(s.getType());
     Node lens = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sne = s.eqNode(emp).negate();
-    Node b1 = SkolemCache::mkIndexVar(mem);
+    Node b1 = SkolemCache::mkIndexVar(nm, mem);
     Node b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
     Node g11n = nm->mkNode(Kind::LEQ, b1, zero);
     Node g12n = nm->mkNode(Kind::LT, lens, b1);
@@ -1000,7 +1000,7 @@ Node RegExpOpr::reduceRegExpNeg(NodeManager* nm, Node mem)
 
     conc = nm->mkNode(Kind::OR, {g11n, g12n, s1r1, s2r2});
     // must mark as an internal quantifier
-    conc = utils::mkForallInternal(b1v, conc);
+    conc = utils::mkForallInternal(nm, b1v, conc);
     conc = nm->mkNode(Kind::AND, sne, conc);
   }
   else
@@ -1035,7 +1035,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(NodeManager* nm,
   Node guard1n, guard2n;
   if (reLen.isNull())
   {
-    b1 = SkolemCache::mkIndexVar(mem);
+    b1 = SkolemCache::mkIndexVar(nm, mem);
     b1v = nm->mkNode(Kind::BOUND_VAR_LIST, b1);
     guard1n = nm->mkNode(Kind::LT, b1, zero);
     guard2n = nm->mkNode(Kind::LT, nm->mkNode(Kind::STRING_LENGTH, s), b1);
@@ -1073,7 +1073,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(NodeManager* nm,
   {
     conc = nm->mkNode(Kind::OR, {guard1n, guard2n, s1r1, s2r2});
     // must mark as an internal quantifier
-    conc = utils::mkForallInternal(b1v, conc);
+    conc = utils::mkForallInternal(nm, b1v, conc);
   }
   else
   {

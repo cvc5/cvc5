@@ -1059,17 +1059,19 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     if (opts.proof.propProofMode == options::PropProofMode::PROOF)
     {
-      reason << "(resolution) proofs not supported in cadical";
+      reason << "(resolution) proofs in CaDiCaL";
+      return true;
+    }
+    if (opts.smt.proofMode!=options::ProofMode::PP_ONLY)
+    {
+      reason << "CaDiCaL";
       return true;
     }
   }
   else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
-    if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
-    {
-      reason << "(DRAT) proof sketch not supported in minisat";
-      return true;
-    }
+    // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
+    // not supported by Minisat.
   }
   if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
   {
@@ -1637,6 +1639,13 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 void SetDefaults::setDefaultsSygus(Options& opts) const
 {
   SET_AND_NOTIFY(quantifiers, sygus, true, "enabling sygus");
+  // full verify mode enables options to ensure full effort on candidates
+  if (opts.quantifiers.fullSygusVerify)
+  {
+    SET_AND_NOTIFY(
+        quantifiers, sygusVerifyInstMaxRounds, -1, "full sygus verify");
+    SET_AND_NOTIFY(quantifiers, fullSaturateQuant, true, "full sygus verify");
+  }
   // must use Ferrante/Rackoff for real arithmetic
   SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "sygus");
   // must disable cegqi-bv since it may introduce witness terms, which
