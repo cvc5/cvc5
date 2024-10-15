@@ -365,10 +365,16 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
+    # Note that we manually indent by two spaces, since we do not clang-format
+    # the include file automatically.
     def doc(rule: str):
         rule = rule.lower().replace('_', '-')
         return f'  /** Auto-generated from RARE rule {rule} */'
 
+    # Note that we do not automatically clang-format the API include file,
+    # since this breaks the documentation for latex formulas which require
+    # being more than 80 lines currently.
+    # The indendentation on EVALUE lines is manually set to two spaces below.
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
         f.write(cvc5_proof_rule_h.format(

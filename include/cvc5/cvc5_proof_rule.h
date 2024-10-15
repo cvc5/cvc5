@@ -2812,6 +2812,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_COSECENT_ELIM),
   /** Auto-generated from RARE rule arith-cotangent-elim */
   EVALUE(ARITH_COTANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-pi-not-int */
+  EVALUE(ARITH_PI_NOT_INT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
