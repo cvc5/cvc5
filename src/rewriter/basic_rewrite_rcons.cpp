@@ -554,14 +554,14 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
         newBodyDisj.emplace_back(d[1]);
         for (const Node& v : d[0])
         {
-          if (std::find(newVars.begin(), newVars.end(), v)==newVars.end())
+          if (std::find(newVars.begin(), newVars.end(), v) == newVars.end())
           {
             newVars.emplace_back(v);
           }
           else
           {
             // variable was repeated
-            Assert (false);
+            Assert(false);
             return false;
           }
         }
@@ -574,9 +574,9 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   std::vector<Node> transEq;
   // To prove (forall X F) = (forall X1 F1) or ... or (forall Xn Fn),
   // we first remove variables and reorder to ensure that X = X1 ... Xn.
-  if (newVars.size()<q[0].getNumChildren())
+  if (newVars.size() < q[0].getNumChildren())
   {
-    theory::Rewriter * rr = d_env.getRewriter();
+    theory::Rewriter* rr = d_env.getRewriter();
     Node uq = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, q);
     if (uq.isNull())
     {
@@ -592,7 +592,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     q = uq;
   }
   Node newVarList = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
-  if (newVarList!=q[0])
+  if (newVarList != q[0])
   {
     Node rq = nm->mkNode(Kind::FORALL, newVarList, q[1]);
     Node eqqr = q.eqNode(rq);

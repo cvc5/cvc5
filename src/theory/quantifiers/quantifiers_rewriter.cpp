@@ -221,11 +221,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::unordered_set<Node> fvs;
         expr::getFreeVariables(d, fvs);
         size_t prevVarIndex = varIndex;
-        while (varIndex<nvars && fvs.find(n[0][varIndex])!=fvs.end())
+        while (varIndex < nvars && fvs.find(n[0][varIndex]) != fvs.end())
         {
           varIndex++;
         }
-        std::vector<Node> dvs(n[0].begin()+prevVarIndex, n[0].begin()+varIndex);
+        std::vector<Node> dvs(n[0].begin() + prevVarIndex,
+                              n[0].begin() + varIndex);
         if (dvs.empty())
         {
           disj.emplace_back(d);
@@ -237,7 +238,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       // must consume all variables
-      if (varIndex!=nvars)
+      if (varIndex != nvars)
       {
         return Node::null();
       }
@@ -247,7 +248,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       expr::getFreeVariables(ret, fvs);
       for (const Node& v : n[0])
       {
-        if (fvs.find(v)!=fvs.end())
+        if (fvs.find(v) != fvs.end())
         {
           return Node::null();
         }

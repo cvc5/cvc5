@@ -129,13 +129,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(children.empty());
     Assert(args.size() == 1);
     Node eq = args[0];
-    if (eq.getKind()!=Kind::EQUAL || eq[0].getKind()!=Kind::FORALL || eq[1].getKind()!=Kind::FORALL || eq[0][1]!=eq[1][1])
+    if (eq.getKind() != Kind::EQUAL || eq[0].getKind() != Kind::FORALL
+        || eq[1].getKind() != Kind::FORALL || eq[0][1] != eq[1][1])
     {
       return Node::null();
     }
     std::unordered_set<Node> varSet1(eq[0][0].begin(), eq[0][0].end());
     std::unordered_set<Node> varSet2(eq[1][0].begin(), eq[1][0].end());
-    if (varSet1!=varSet2)
+    if (varSet1 != varSet2)
     {
       return Node::null();
     }
