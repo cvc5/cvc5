@@ -91,6 +91,10 @@ operator SET_ALL           2  "set all operator"
 # (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
 operator SET_SOME           2  "set some operator"
 
+operator SET_FORALL 3: "set universally quantified formula; first parameter is an BOUND_VAR_LIST, last is quantifier body, and second (or more) are sets"
+
+operator SET_EXISTS 3: "set existentially quantified formula; first parameter is an BOUND_VAR_LIST, last is quantifier body, and second (or more) are sets"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
@@ -155,6 +159,8 @@ typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
 typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllSomeTypeRule
+typerule SET_FORALL         ::cvc5::internal::theory::sets::SetQuantifierTypeRule
+typerule SET_EXISTS         ::cvc5::internal::theory::sets::SetQuantifierTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

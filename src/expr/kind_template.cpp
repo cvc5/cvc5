@@ -72,6 +72,8 @@ bool isClosureKind(cvc5::internal::Kind k)
     case Kind::LAMBDA:
     case Kind::EXISTS:
     case Kind::FORALL:
+    case Kind::SET_EXISTS:
+    case Kind::SET_FORALL:
     case Kind::WITNESS:
     case Kind::SET_COMPREHENSION:
     case Kind::MATCH_BIND_CASE: return true;

@@ -236,6 +236,21 @@ struct SetAllSomeTypeRule
 }; /* struct SetAllSomeTypeRule */
 
 /**
+ * Type rule for (set.forall ((x1 T1) ... (xnTn)) A1 ... An p) and
+ * (set.exists ((x1 T1) ... (xnTn)) A1 ... An p) to make sure p is
+ * a predicate and Ai is a set of type (Set T_i)
+ */
+struct SetQuantifierTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct SetQuantifierTypeRule */
+
+/**
  * Type rule for (set.fold f t A) to make sure f is a binary operation of type
  * (-> T1 T2 T2), t of type T2, and A is a set of type (Set T1)
  */

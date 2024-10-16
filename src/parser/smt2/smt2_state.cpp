@@ -918,6 +918,8 @@ void Smt2State::setLogic(std::string name)
     addIndexedOperator(Kind::RELATION_PROJECT, "rel.project");
     // set.comprehension is a closure kind
     addClosureKind(Kind::SET_COMPREHENSION, "set.comprehension");
+    addClosureKind(Kind::SET_FORALL, "set.forall");
+    addClosureKind(Kind::SET_EXISTS, "set.exists");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))

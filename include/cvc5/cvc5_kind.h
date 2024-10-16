@@ -3596,6 +3596,8 @@ enum ENUM(Kind)
    * \endrst
    */
    EVALUE(SET_ALL),
+   EVALUE(SET_FORALL),
+   EVALUE(SET_EXISTS),
    /**
    * Set some.
    *

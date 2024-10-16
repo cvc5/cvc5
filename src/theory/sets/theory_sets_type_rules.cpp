@@ -608,6 +608,73 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SetQuantifierTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+TypeNode SetQuantifierTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check,
+                                            std::ostream* errOut)
+{
+  Trace("typecheck-sq") << "type check for n: " << n << std::endl;
+  Assert((n.getKind() == Kind::SET_FORALL || n.getKind() == Kind::SET_EXISTS)
+         && n.getNumChildren() > 0);
+  if (check)
+  {
+    // bound variable lists, etc. cannot be abstracted
+    if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+    {
+      if (errOut)
+      {
+        (*errOut) << "first argument of quantifier is not bound var list";
+      }
+      return TypeNode::null();
+    }
+    Assert(n.getNumChildren() >= 3);  // should be specified in kinds file
+    TypeNode bodyType = n[n.getNumChildren() - 1].getTypeOrNull();
+    if (!bodyType.isBoolean() && !bodyType.isFullyAbstract())
+    {
+      if (errOut)
+      {
+        (*errOut) << "body of quantifier is not boolean";
+      }
+      return TypeNode::null();
+    }
+    // check bound variables and their sets
+    Node boundVariables = n[0];
+    if (boundVariables.getNumChildren() != n.getNumChildren() - 2)
+    {
+      if (errOut)
+      {
+        (*errOut) << "# bound variables != # set terms ";
+      }
+      return TypeNode::null();
+    }
+    for (size_t i = 0; i < boundVariables.getNumChildren(); i++)
+    {
+      TypeNode setType = n[i + 1].getType();
+      if (!setType.isSet())
+      {
+        if (errOut)
+        {
+          (*errOut) << " expected " << n[i + 1]
+                    << " to be a set. It has type: " << setType;
+        }
+        if (boundVariables[i].getType() != setType.getSetElementType())
+          if (errOut)
+          {
+            (*errOut) << " bound variable " << boundVariables[i] << " has type "
+                      << boundVariables[i].getType()
+                      << " which does not match its set " << setType;
+          }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
+
 TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
