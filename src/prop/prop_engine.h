@@ -362,8 +362,6 @@ class PropEngine : protected EnvObj
   modes::LearnedLitType getLiteralType(const Node& lit) const;
 
  private:
-  /** Dump out the satisfying assignment (after SAT result) */
-  void printSatisfyingAssignment();
   /** Print reason for answering unknown on output when applicable */
   void outputIncompleteReason(
       UnknownExplanation uexp,

@@ -46,15 +46,18 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
   static Minisat::lbool  toMinisatlbool(SatValue val);
   //(Commented because not in use) static bool            tobool(SatValue val);
 
-  static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
-  static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
+  static void  toMinisatClause(const SatClause& clause,
+                               Minisat::vec<Minisat::Lit>& minisat_clause);
+  static void  toSatClause    (const Minisat::Clause& clause,
+                               SatClause& sat_clause);
   void initialize(context::Context* context,
                   TheoryProxy* theoryProxy,
                   context::UserContext* userContext,
                   PropPfManager* ppm) override;
 
-  ClauseId addClause(SatClause& clause, bool removable) override;
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  ClauseId addClause(const SatClause& clause, bool removable) override;
+  ClauseId addXorClause(const SatClause& clause, bool rhs,
+                        bool removable) override
   {
     Unreachable() << "Minisat does not support native XOR reasoning";
   }
