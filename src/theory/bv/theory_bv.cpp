@@ -43,7 +43,8 @@ TheoryBV::TheoryBV(Env& env,
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats(statisticsRegistry(), "theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::"),
+      d_checker(nodeManager())
 {
   switch (options().bv.bvSolver)
   {
@@ -63,15 +64,7 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryBV::getProofChecker()
-{
-  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
-  {
-    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
-        ->getProofChecker();
-  }
-  return nullptr;
-}
+ProofRuleChecker* TheoryBV::getProofChecker() { return &d_checker; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
