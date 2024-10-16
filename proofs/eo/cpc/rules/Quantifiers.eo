@@ -81,6 +81,8 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRule::QUANT_VAR_REORDERING
+
 ; rule: quant_var_reordering
 ; implements: ProofRule::QUANT_VAR_REORDERING
 ; premises:
@@ -96,62 +98,26 @@
 )
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
 
-; program: $is_quant_miniscope_fv_var
+; program: $is_quant_miniscope_fv
 ; args:
-; - x T: The variable.
-; - G Bool: The formula in question, which is expected to be a disjunction.
-; - b Bool: True if and only if we have seen x in a disjunct so far.
-; return: >
-;   True if and only if v is bound by at most one disjunct in G if b is false
-;   or bound by none if b is true, and v does not occur freely in the other
-;   disjuncts of G.
-(program $is_quant_miniscope_fv_var ((T Type) (x T) (xs @List :list) (g Bool) (gs Bool :list) (b Bool))
-  (T Bool Bool) Bool
-  (
-  (($is_quant_miniscope_fv_var x (or g gs) b)   (eo::ite ($is_quant_bound x g)
-                                                  (eo::ite b
-                                                    false ; already bound by another disjunct
-                                                    ($is_quant_miniscope_fv_var x gs true))
-                                                  (eo::ite ($contains_subterm g x)
-                                                    false ; occurs free in this disjunct
-                                                    ($is_quant_miniscope_fv_var x gs b))))
-  (($is_quant_miniscope_fv_var x false b)       true)
-  )
-)
-
-; program: $is_quant_miniscope_fv_var_list
-; args:
-; - L @List: The list of variables.
-; - G Bool: The formula in question, which is expected to be a disjunction.
-; return: >
-;   True if and only if each variable in L is bound by at most one disjunct in
-;   G and does not occur freely in the others.
-(program $is_quant_miniscope_fv_var_list ((T Type) (x T) (xs @List :list) (G Bool))
-  (@List Bool) Bool
-  (
-  (($is_quant_miniscope_fv_var_list (@list x xs) G) (eo::ite ($is_quant_miniscope_fv_var x G false)
-                                                      ($is_quant_miniscope_fv_var_list xs G)
-                                                      false))
-  (($is_quant_miniscope_fv_var_list @list.nil G) true)
-  )
-)
-
-; program: $is_quant_miniscope_fv_body
-; args:
-; - F Bool: The first formula in question.
+; - x @List: The list of variables of the first formula we have yet to process
+; - F Bool: The body of the first formula in question.
 ; - G Bool: The second formula in question.
 ; return: >
-;    True if and only if each disjunct if F is equal to the corresponding
-;    disjunct in G, modulo possible quantification in G.
-(program $is_quant_miniscope_fv_body ((f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
-  (Bool Bool) Bool
+;    True if (forall x F) is equivalent to G based on miniscope reasoning with
+;    free variables.
+(program $is_quant_miniscope_fv ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
+  (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_fv_body (or f fs) (or f gs))  ($is_quant_miniscope_fv_body fs gs))
-  (($is_quant_miniscope_fv_body (or f fs) (or g gs))  (eo::ite ($is_quant_body f g)
-                                                        ($is_quant_miniscope_fv_body fs gs)
-                                                        false))
-  (($is_quant_miniscope_fv_body false false)          true)
-  (($is_quant_miniscope_fv_body f g)                  false)
+  (($is_quant_miniscope_fv x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_fv x fs gs)))
+  (($is_quant_miniscope_fv x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_fv x fs gs)))
+  (($is_quant_miniscope_fv (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
+                                                                      (eo::requires ($contains_subterm gs x) false
+                                                                        ($is_quant_miniscope_fv xs (or f fs) (or (forall ys f) gs))))
+  (($is_quant_miniscope_fv @list.nil false false)                     true)
+  (($is_quant_miniscope_fv x f g)                                     false)
   )
 )
 
@@ -160,13 +126,11 @@
 ; args:
 ; - eq Bool: The equality whose left hand side a quantified formula.
 ; requires: >
-;   The right hand side of the equality is the result of miniscoping the left
-;   hand side. This check is divided into two parts, checking that the variables
-;   are bound by exactly one disjunct, and that the disjuncts of F and G align
-;   modulo quantification.
+;   The right hand side of the equality can be shown equivalent to the right
+;   hand side based on reasoning about the disjuncts of F that contain x.
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-fv ((x @List) (F Bool) (G Bool))
   :args ((= (forall x F) G))
-  :requires ((($is_quant_miniscope_fv_var_list x G) true) (($is_quant_miniscope_fv_body F G) true))
+  :requires ((($is_quant_miniscope_fv x F G) true))
   :conclusion (= (forall x F) G)
 )

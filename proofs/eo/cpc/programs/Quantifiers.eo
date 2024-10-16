@@ -94,29 +94,3 @@
   (($beta_reduce (f a) ss)         ($beta_reduce f (@list a ss)))
   )
 )
-
-; program: $is_quant_bound
-; args:
-; - x T: The variable in question.
-; - F Bool: The formula in question.
-; return: true if and only if F is a universal quantifier binding x.
-(program $is_quant_bound ((T Type) (x T) (xs @List) (F Bool))
-  (T Bool) Bool
-  (
-  (($is_quant_bound x (forall xs F))  (eo::not (eo::is_eq (eo::list_find @list xs x) -1)))
-  (($is_quant_bound x F)              false)
-  )
-)
-
-; program: $is_quant_body
-; args:
-; - F Bool: The first formula in question.
-; - G Bool: The second formula in question.
-; return: true if and only if F is the body of universal quantifier G.
-(program $is_quant_body ((T Type) (x T) (xs @List) (F Bool) (G Bool))
-  (Bool Bool) Bool
-  (
-  (($is_quant_body F (forall xs F))  true)
-  (($is_quant_body F G)              false)
-  )
-)
