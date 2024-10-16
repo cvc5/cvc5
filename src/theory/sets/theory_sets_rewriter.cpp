@@ -380,6 +380,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case Kind::SET_FILTER: return postRewriteFilter(node);
   case Kind::SET_ALL: return postRewriteAll(node);
   case Kind::SET_SOME: return postRewriteSome(node);
+  case Kind::SET_FORALL: return postRewriteForall(node);
+  case Kind::SET_EXISTS: return postRewriteExists(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
 
   case Kind::RELATION_TRANSPOSE:
@@ -902,6 +904,74 @@ RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
       Node empty = nm->mkConst(EmptySet(n[1].getType()));
       Node some = filter.eqNode(empty).notNode();
       return RewriteResponse(REWRITE_AGAIN_FULL, some);
+    }
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteForall(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_FORALL);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.forall ((x T)) (as set.empty (Set T) p) = false)
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.forall ((x T)) (set.singleton x) p) = (p x)
+      Node ret = n[2].substitute(n[0][0], n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.forall ((x T)) (set.union A B) p) =
+      //   (and (set.forall ((x T)) A p) (set.forall ((x T)) B p))
+      Node a = nm->mkNode(Kind::SET_FORALL, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(Kind::SET_FORALL, n[0], n[1][1], n[2]);
+      Node ret = a.andNode(b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default:
+    {
+      return RewriteResponse(REWRITE_DONE, n);
+    }
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteExists(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_EXISTS);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.exists ((x T)) (as set.empty (Set T) p) = false)
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.exists ((x T)) (set.singleton x) p) = (p x)
+      Node ret = n[2].substitute(n[0][0], n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.exists ((x T)) (set.union A B) p) =
+      //   (or (set.exists ((x T)) A p) (set.exists ((x T)) B p))
+      Node a = nm->mkNode(Kind::SET_EXISTS, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(Kind::SET_EXISTS, n[0], n[1][1], n[2]);
+      Node ret = a.orNode(b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default:
+    {
+      return RewriteResponse(REWRITE_DONE, n);
     }
   }
 }

@@ -130,6 +130,8 @@ class TheorySetsRewriter : public TheoryRewriter
    *  where p: T -> Bool
    */
   RewriteResponse postRewriteAll(TNode n);
+  RewriteResponse postRewriteForall(TNode n);
+  RewriteResponse postRewriteExists(TNode n);
   /**
    *  rewrites for n include:
    *  - (set.some p (as set.empty (Set T)) is rewritten as false
