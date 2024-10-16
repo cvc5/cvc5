@@ -46,27 +46,30 @@ class ProofLogger : protected EnvObj
   ProofLogger(Env& env) : EnvObj(env){}
   ~ProofLogger(){}
   /**
-   * Called when preprocessing is complete.
-   * @param input The list of input clauses after preprocessing and conversion
-   * to CNF.
+   * Called when preprocessing is complete with the list of input clauses,
+   * after preprocessing and conversion to CNF.
+   * @param input The list of input clauses.
    */
   virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
   /**
-   * Called when preprocessing is complete.
-   * @param pfns proofs of the preprocessed inputs. The free assumptions of
-   * proofs in pfns are the preprocessed input formulas. If preprocess proofs
-   * are avialable, this method connects pfn to the original input formulas.
+   * Called when preprocessing is complete with the proofs of the preprocessed
+   * inputs. The free assumptions of proofs in pfns are the preprocessed input
+   * formulas. If preprocess proofs are avialable, this method connects pfn to
+   * the original input formulas.
+   * @param pfns proofs of the preprocessed inputs.
    */
   virtual void logCnfPreprocessInputProofs(
       std::vector<std::shared_ptr<ProofNode>>& pfns) {}
   /**
-   * @param n Called when the clause n is added to the SAT solver, where n is
+   * Called when the clause n is added to the SAT solver, where n is
    * (the CNF conversion of) a theory lemma.
+   * @param n The theory lemma.
    */
   virtual void logTheoryLemma(const Node& n) {}
   /**
-   * @param n Called when the clause n is added to the SAT solver, where pfn
+   * Called when the clause n is added to the SAT solver, where pfn
    * is a closed proof of (the CNF conversion of) a theory lemma.
+   * @param pfn The closed proof of a theory lemma.
    */
   virtual void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn) {}
   /**
