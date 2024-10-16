@@ -51,6 +51,8 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_UPDATER_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -138,6 +140,14 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           return nn;
         }
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_UPDATER_ELIM:
+    {
+      if (n.getKind() == Kind::APPLY_UPDATER)
+      {
+        return expandUpdater(n);
       }
     }
     break;
@@ -972,8 +982,6 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
 {
-  NodeManager* nm = nodeManager();
-  TypeNode tn = n.getType();
   Node ret;
   switch (n.getKind())
   {
@@ -984,44 +992,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
     break;
     case Kind::APPLY_UPDATER:
     {
-      Assert(tn.isDatatype());
-      const DType& dt = tn.getDType();
-      Node op = n.getOperator();
-      size_t updateIndex = utils::indexOf(op);
-      size_t cindex = utils::cindexOf(op);
-      const DTypeConstructor& dc = dt[cindex];
-      NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
-      if (tn.isParametricDatatype())
-      {
-        b << dc.getInstantiatedConstructor(n[0].getType());
-      }
-      else
-      {
-        b << dc.getConstructor();
-      }
-      Trace("dt-expand") << "Expand updater " << n << std::endl;
-      Trace("dt-expand") << "expr is " << n << std::endl;
-      Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
-      Trace("dt-expand") << "t is " << tn << std::endl;
-      bool shareSel = d_opts.datatypes.dtSharedSelectors;
-      for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
-      {
-        if (i == updateIndex)
-        {
-          b << n[1];
-        }
-        else
-        {
-          b << utils::applySelector(dc, i, shareSel, n[0]);
-        }
-      }
-      ret = b;
-      if (dt.getNumConstructors() > 1)
-      {
-        // must be the right constructor to update
-        Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
-        ret = nm->mkNode(Kind::ITE, tester, ret, n[0]);
-      }
+      ret = expandUpdater(n);
       Trace("dt-expand") << "return " << ret << std::endl;
       break;
     }
@@ -1039,6 +1010,50 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   return TrustNode::null();
 }
 
+Node DatatypesRewriter::expandUpdater(const Node& n)
+{
+  NodeManager* nm = nodeManager();
+  TypeNode tn = n.getType();
+  Node ret;
+  Assert(tn.isDatatype());
+  const DType& dt = tn.getDType();
+  Node op = n.getOperator();
+  size_t updateIndex = utils::indexOf(op);
+  size_t cindex = utils::cindexOf(op);
+  const DTypeConstructor& dc = dt[cindex];
+  NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
+  if (tn.isParametricDatatype())
+  {
+    b << dc.getInstantiatedConstructor(n[0].getType());
+  }
+  else
+  {
+    b << dc.getConstructor();
+  }
+  Trace("dt-expand") << "Expand updater " << n << std::endl;
+  Trace("dt-expand") << "expr is " << n << std::endl;
+  Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
+  Trace("dt-expand") << "t is " << tn << std::endl;
+  for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
+  {
+    if (i == updateIndex)
+    {
+      b << n[1];
+    }
+    else
+    {
+      b << utils::applySelector(dc, i, false, n[0]);
+    }
+  }
+  ret = b;
+  if (dt.getNumConstructors() > 1)
+  {
+    // must be the right constructor to update
+    Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
+    ret = nm->mkNode(Kind::ITE, tester, ret, n[0]);
+  }
+  return ret;
+}
 Node DatatypesRewriter::expandNullableLift(Node n)
 {
   NodeManager* nm = nodeManager();

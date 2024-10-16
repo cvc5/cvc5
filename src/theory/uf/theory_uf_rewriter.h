@@ -80,6 +80,13 @@ class TheoryUfRewriter : public TheoryRewriter
 
  private:
   /**
+   * Can we eliminate the lambda n? This is true if n is of the form
+   * (LAMBDA x (APPLY_UF f x)), which is equivalent to f.
+   * @param n The lambda in question.
+   * @return the result of eliminating n, if possible, or null otherwise.
+   */
+  static Node canEliminateLambda(const Node& n);
+  /**
    * Pointer to the rewriter, required for rewriting lambdas that appear
    * inside of operators that are not in rewritten form. NOTE this is a cyclic
    * dependency, and should be removed.
