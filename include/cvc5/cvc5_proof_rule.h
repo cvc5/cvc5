@@ -2474,9 +2474,8 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
    * 
-   * where each variable in :math:`X` occurs in at most one of
-   * :math:`X_1 \ldots X_n`, and the right hand side does not have any free
-   * variable in :math:`X`.
+   * where each variable in :math:`X` = :math:`X_1 \ldots X_n`, and the right
+   * hand side does not have any free variable in :math:`X`.
    *
    * \endverbatim
    */
