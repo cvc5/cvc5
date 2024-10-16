@@ -21,7 +21,6 @@
 #include <ostream>
 #include <sstream>
 
-#include "util/string.h"
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
@@ -33,6 +32,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 
@@ -220,10 +220,10 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
       {
         // must use standard alphabet size
-        return options().strings.stringsAlphaCard==String::num_codes();
+        return options().strings.stringsAlphaCard == String::num_codes();
       }
-      return k == Kind::STRING_CONTAINS
-             || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
+      return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+             || k == Kind::STRING_IN_REGEXP;
     }
     break;
     //
