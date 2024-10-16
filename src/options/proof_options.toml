@@ -89,7 +89,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofGranularityMode"
-  category   = "regular"
+  category   = "common"
   long       = "proof-granularity=MODE"
   type       = "ProofGranularityMode"
   default    = "MACRO"

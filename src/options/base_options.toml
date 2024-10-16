@@ -92,7 +92,7 @@ name   = "Base"
 [[option]]
   name       = "statisticsAll"
   long       = "stats-all"
-  category   = "expert"
+  category   = "common"
   type       = "bool"
   default    = "false"
   predicates = ["setStatsDetail"]
@@ -101,7 +101,7 @@ name   = "Base"
 [[option]]
   name       = "statisticsInternal"
   long       = "stats-internal"
-  category   = "expert"
+  category   = "common"
   type       = "bool"
   default    = "false"
   predicates = ["setStatsDetail"]

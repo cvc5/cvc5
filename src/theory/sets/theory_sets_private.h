@@ -387,10 +387,17 @@ class TheorySetsPrivate : protected EnvObj
   /** ensure that the set type is over first class type, throw logic exception
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
+  /**
+   * Ensure relations are enabled, which may throw a logic exception if
+   * relsExp is false.
+   */
+  void ensureRelationsEnabled();
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
   std::unique_ptr<CardinalityExtension> d_cardSolver;
+  /** Have we ever see relations? */
+  bool d_hasEnabledRels;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint

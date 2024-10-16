@@ -16,3 +16,11 @@ name   = "Sets Theory"
   type       = "bool"
   default    = "false"
   help       = "enable extended symbols such as complement and universe in theory of sets"
+
+[[option]]
+  name       = "relsExp"
+  category   = "expert"
+  long       = "rels-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enable the relations extension of the theory of sets"
