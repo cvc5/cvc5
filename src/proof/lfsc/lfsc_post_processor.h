@@ -89,7 +89,7 @@ class LfscProofPostprocessCallback : protected EnvObj,
                   CDProof* cdp,
                   Node startOp);
   /** Make fresh dummy predicate */
-  static Node mkDummyPredicate();
+  static Node mkDummyPredicate(NodeManager* nm);
 };
 
 /**

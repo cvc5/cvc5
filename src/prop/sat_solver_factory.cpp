@@ -50,10 +50,9 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
 CDCLTSatSolver* SatSolverFactory::createCadical(Env& env,
                                                 StatisticsRegistry& registry,
                                                 ResourceManager* resmgr,
-                                                const std::string& name,
-                                                bool logProofs)
+                                                const std::string& name)
 {
-  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs);
+  CadicalSolver* res = new CadicalSolver(env, registry, name);
   res->init();
   res->setResourceLimit(resmgr);
   return res;
@@ -63,10 +62,9 @@ CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
     Env& env,
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
-    const std::string& name,
-    bool logProofs)
+    const std::string& name)
 {
-  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs);
+  CadicalSolver* res = new CadicalSolver(env, registry, name);
   res->setResourceLimit(resmgr);
   return res;
 }

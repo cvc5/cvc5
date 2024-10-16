@@ -47,7 +47,7 @@ class SkolemCache
    * return the constants they are entailed to be equal to. This argument is
    * optional.
    */
-  SkolemCache(Rewriter* rr);
+  SkolemCache(NodeManager* nm, Rewriter* rr);
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
@@ -151,7 +151,7 @@ class SkolemCache
    * reduction of t. For example, the index variable for the term str.to_int(s)
    * is used to quantify over the positions in string term s.
    */
-  static Node mkIndexVar(Node t);
+  static Node mkIndexVar(NodeManager* nm, Node t);
 
   /** Make length variable
    *
@@ -161,7 +161,7 @@ class SkolemCache
    * term str.indexof(s, r, n) is used to quantify over the lengths of strings
    * that could be matched by r.
    */
-  static Node mkLengthVar(Node t);
+  static Node mkLengthVar(NodeManager* nm, Node t);
   /**
    * Make skolem function, possibly normalizing based on the rewriter of this
    * class. This method should be used whenever it is not possible to define
@@ -171,7 +171,10 @@ class SkolemCache
    * Skolem we construct (in d_allSkolems), which is used for finite model
    * finding.
    */
-  Node mkSkolemFun(SkolemId id, Node a = Node::null(), Node b = Node::null());
+  Node mkSkolemFun(NodeManager* nm,
+                   SkolemId id,
+                   Node a = Node::null(),
+                   Node b = Node::null());
 
  private:
   /**
@@ -190,6 +193,8 @@ class SkolemCache
    */
   std::tuple<StringSkolemId, Node, Node> normalizeStringSkolem(
       StringSkolemId id, Node a, Node b);
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** the optional rewriter */
   Rewriter* d_rr;
   /** string type */

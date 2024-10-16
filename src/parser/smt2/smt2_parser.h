@@ -39,7 +39,7 @@ class Smt2Parser : public Parser
  public:
   Smt2Parser(Solver* solver,
              SymManager* sm,
-             bool isStrict = false,
+             ParsingMode parsingMode = ParsingMode::DEFAULT,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
   /** Set the logic */

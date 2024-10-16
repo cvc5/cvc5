@@ -505,6 +505,10 @@ void TermDbSygus::registerEnumerator(Node e,
     Assert(d_qim != nullptr);
     d_qim->setRefutationUnsound(
         IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
+    Warning()
+        << "Warning: The SyGuS solver is incomplete when symbolic constants "
+           "are used in grammars and --sygus-repair-const is disabled."
+        << std::endl;
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;

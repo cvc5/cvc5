@@ -36,6 +36,7 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
+#include "options/parser_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "util/didyoumean.h"
@@ -398,6 +399,18 @@ void OptionsHandler::showTraceTags(const std::string& flag, bool value)
     throw OptionException("trace tags not available in non-tracing build");
   }
   printTags(Configuration::getTraceTags());
+}
+
+void OptionsHandler::strictParsing(const std::string& flag, bool value)
+{
+  if (value)
+  {
+    d_options->write_parser().parsingMode = options::ParsingMode::STRICT;
+  }
+  else if (d_options->parser.parsingMode == options::ParsingMode::STRICT)
+  {
+    d_options->write_parser().parsingMode = options::ParsingMode::DEFAULT;
+  }
 }
 
 }  // namespace options

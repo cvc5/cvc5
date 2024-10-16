@@ -126,10 +126,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // all "experimental" theories that are enabled by default should be
     // disabled here
     SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(uf, cardExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(bags, bagsExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(ff, ffExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(
+        datatypes, codatatypesExp, false, "safe options");
     // these are disabled by default but are listed here in case they are
     // enabled by default later
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
@@ -1059,17 +1062,19 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     if (opts.proof.propProofMode == options::PropProofMode::PROOF)
     {
-      reason << "(resolution) proofs not supported in cadical";
+      reason << "(resolution) proofs in CaDiCaL";
+      return true;
+    }
+    if (opts.smt.proofMode!=options::ProofMode::PP_ONLY)
+    {
+      reason << "CaDiCaL";
       return true;
     }
   }
   else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
-    if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
-    {
-      reason << "(DRAT) proof sketch not supported in minisat";
-      return true;
-    }
+    // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
+    // not supported by Minisat.
   }
   if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
   {
@@ -1637,6 +1642,13 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 void SetDefaults::setDefaultsSygus(Options& opts) const
 {
   SET_AND_NOTIFY(quantifiers, sygus, true, "enabling sygus");
+  // full verify mode enables options to ensure full effort on candidates
+  if (opts.quantifiers.fullSygusVerify)
+  {
+    SET_AND_NOTIFY(
+        quantifiers, sygusVerifyInstMaxRounds, -1, "full sygus verify");
+    SET_AND_NOTIFY(quantifiers, fullSaturateQuant, true, "full sygus verify");
+  }
   // must use Ferrante/Rackoff for real arithmetic
   SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "sygus");
   // must disable cegqi-bv since it may introduce witness terms, which

@@ -23,11 +23,11 @@ namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
                        SymManager* sm,
-                       bool isStrict,
+                       ParsingMode parsingMode,
                        bool isSygus)
     : Parser(solver, sm),
-      d_slex(isStrict, isSygus),
-      d_state(this, solver, sm, isStrict, isSygus),
+      d_slex(parsingMode == ParsingMode::STRICT, isSygus),
+      d_state(this, solver, sm, parsingMode, isSygus),
       d_termParser(d_slex, d_state),
       d_cmdParser(d_slex, d_state, d_termParser)
 {

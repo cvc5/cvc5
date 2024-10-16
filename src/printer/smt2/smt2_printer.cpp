@@ -91,7 +91,7 @@ static void toStreamRational(std::ostream& out,
       }
       if (isReal)
       {
-        out << ".0";
+        out << "/1";
       }
     }
     else
@@ -390,6 +390,21 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << ss.str();
       break;
     }
+    case Kind::CARDINALITY_CONSTRAINT_OP:
+    {
+      const CardinalityConstraint& cc =
+          n.getConst<CardinalityConstraint>();
+      TypeNode tn = cc.getType();
+      out << "(_ fmf.card " << tn << " " << cc.getUpperBound() << ")";
+    }
+      break;
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT_OP:
+    {
+      const CombinedCardinalityConstraint& cc =
+          n.getConst<CombinedCardinalityConstraint>();
+      out << "(_ fmf.combined_card " << cc.getUpperBound() << ")";
+    }
+      break;
     case Kind::DIVISIBLE_OP:
       out << "(_ divisible " << n.getConst<Divisible>().k << ")";
       break;
@@ -1368,13 +1383,13 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
     case Kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
-    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
-    case Kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
-    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
-    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
-    case Kind::ROUNDINGMODE_BITBLAST: return "RMBITBLAST";
+    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "@fp.NAN";
+    case Kind::FLOATINGPOINT_COMPONENT_INF: return "@fp.INF";
+    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "@fp.ZERO";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "@fp.SIGN";
+    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "@fp.EXPONENT";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "@fp.SIGNIFICAND";
+    case Kind::ROUNDINGMODE_BITBLAST: return "@fp.RMBITBLAST";
 
     // string theory
     case Kind::STRING_CONCAT: return "str.++";

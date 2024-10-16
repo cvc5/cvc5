@@ -92,9 +92,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   /** Get proof, unimplemented by this solver. */
   std::shared_ptr<ProofNode> getProof() override;
 
-  /** Get proof sketch. */
-  std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
-
  private:
   /**
    * Constructor.
@@ -103,12 +100,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * @param env       The associated environment.
    * @param registry  The associated statistics registry.
    * @param name      The name of the SAT solver.
-   * @param logProofs Whether to log proofs
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
-                const std::string& name = "",
-                bool logProofs = false);
+                const std::string& name = "");
 
   /**
    * Initialize SAT solver instance.
@@ -145,8 +140,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
-  /** Whether we are logging proofs */
-  bool d_logProofs;
   /** The proof file */
   std::string d_pfFile;
   /**

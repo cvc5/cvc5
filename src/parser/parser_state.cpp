@@ -37,14 +37,14 @@ namespace parser {
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymManager* sm,
-                         bool strictMode)
+                         ParsingMode parsingMode)
     : d_solver(solver),
       d_tm(d_solver->getTermManager()),
       d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode),
+      d_parsingMode(parsingMode),
       d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
 }
@@ -217,40 +217,61 @@ std::vector<Term> ParserState::bindBoundVarsCtx(
   std::vector<Term> vars;
   for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
-    bool wasDecl = isDeclared(i.first);
-    Term v = bindBoundVar(i.first, i.second, fresh);
-    vars.push_back(v);
-    // If wasDecl, then:
+    std::map<std::pair<std::string, Sort>, Term>::const_iterator itv =
+        d_varCache.find(i);
+    if (itv == d_varCache.end() || !isDeclared(i.first))
+    {
+      // haven't created this variable yet, or its not declared
+      Term v = bindBoundVar(i.first, i.second, fresh);
+      vars.push_back(v);
+      continue;
+    }
+    Term v = itv->second;
+    // If we are here, then:
     // (1) we are not using fresh declarations
     // (2) there are let binders present,
     // (3) the current variable was shadowed.
     // We must check whether the variable is present in the let bindings.
-    if (wasDecl)
+    bool reqFresh = false;
+    // a dummy variable used for checking containment below
+    Term vr = d_tm.mkVar(v.getSort(), "dummy");
+    // check if it is contained in a let binder, if so, we require making a
+    // fresh variable, despite fresh-binders being false.
+    for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
     {
-      // a dummy variable used for checking containment below
-      Term vr = d_tm.mkVar(v.getSort(), "dummy");
-      // check if it is contained in a let binder, if so, we fail
-      for (std::vector<std::pair<std::string, Term>>& lbs : letBinders)
+      for (std::pair<std::string, Term>& lb : lbs)
       {
-        for (std::pair<std::string, Term>& lb : lbs)
+        // To test containment, we use Term::substitute.
+        // If the substitution does anything at all, then we will throw a
+        // warning. We expect this warning to be very rare.
+        Term slbt = lb.second.substitute({v}, {vr});
+        if (slbt != lb.second)
         {
-          // To test containment, we use Term::substitute.
-          // If the substitution does anything at all, then
-          // we will throw an error. Thus, this does not
-          // incur a performance penalty versus checking containment.
-          Term slbt = lb.second.substitute({v}, {vr});
-          if (slbt != lb.second)
-          {
-            std::stringstream ss;
-            ss << "Cannot use variable shadowing for " << i.first
-               << " since this symbol occurs in a let term that is present in "
-                  "the current context. Set fresh-binders to true to avoid "
-                  "this error";
-            parseError(ss.str());
-          }
+          reqFresh = true;
+          break;
         }
       }
+      if (reqFresh)
+      {
+        break;
+      }
     }
+    if (reqFresh)
+    {
+      // Note that if this warning is thrown:
+      // 1. proof reference checking will not be accurate in settings where
+      // variables are parsed as canonical.
+      // 2. the parser will not be deterministic for the same input even when
+      // fresh-binders is false, since we are constructing a fresh variable
+      // below.
+      Warning() << "Constructing a fresh variable for " << i.first
+                << " since this symbol occurs in a let term that is present in "
+                   "the current context. Set fresh-binders to true or use -q to avoid "
+                   "this warning."
+                << std::endl;
+    }
+    v = bindBoundVar(i.first, i.second, reqFresh);
+    vars.push_back(v);
   }
   return vars;
 }
