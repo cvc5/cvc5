@@ -561,13 +561,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(CDProof* cdp, 
   Node eqq = q.eqNode(newQuant);
   cdp->addStep(eqq, cr, {eqb}, cargs);
   transEq.emplace_back(eqq);
-  // Second, we check if the variables need to be reordered, in which
-  // case we use two alpha equivalence steps.
-  Node newBvl = nm->mkNode(Kind::BOUND_VAR_LIST, newVarList);
-  if (newBvl!=q[0])
-  {
-    
-  }
   Node eqq2 = newQuant.eqNode(eq[1]);
   // Then prove
   //   (forall X F1 or ... or Fn) = (forall X1 F1) or ... or (forall Xn Fn)
