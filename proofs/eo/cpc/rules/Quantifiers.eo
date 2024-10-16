@@ -81,6 +81,19 @@
   :conclusion (= a b)
 )
 
+; rule: quant_var_reordering
+; implements: ProofRule::QUANT_VAR_REORDERING
+; premises:
+; - C1: The clause to reorder.
+; args:
+; - C2 Bool: The desired reordered form of C1.
+; requires: Showing that C1 can be reordered to obtain C2.
+; conclusion: The desired clause C2.
+(declare-rule quant_var_reordering ((x @List) (y @List) (F Bool))
+    :args ((= (forall x F) (forall y F)))
+    :requires ((($nary_is_eq_set @list @list.nil x y) true))
+    :conclusion (= (forall x F) (forall y F))
+)
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
 
 ; program: $is_quant_miniscope_fv_var

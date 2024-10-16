@@ -533,6 +533,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   std::unordered_set<Node> obvs(q[0].begin(), q[0].end());
   std::vector<Node> newBodyDisj;
   Assert(eq[1].getKind() == Kind::OR);
+  std::vector<Node> newVars;
   for (const Node& d : eq[1])
   {
     if (d.getKind() == Kind::FORALL)
@@ -551,6 +552,19 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
       if (hasVar)
       {
         newBodyDisj.emplace_back(d[1]);
+        for (const Node& v : d[0])
+        {
+          if (std::find(newVars.begin(), newVars.end(), v)==newVars.end())
+          {
+            newVars.emplace_back(v);
+          }
+          else
+          {
+            // variable was repeated
+            Assert (false);
+            return false;
+          }
+        }
         continue;
       }
     }
@@ -558,9 +572,40 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     newBodyDisj.emplace_back(d);
   }
   std::vector<Node> transEq;
+  // To prove (forall X F) = (forall X1 F1) or ... or (forall Xn Fn),
+  // we first remove variables and reorder to ensure that X = X1 ... Xn.
+  if (newVars.size()<q[0].getNumChildren())
+  {
+    theory::Rewriter * rr = d_env.getRewriter();
+    Node uq = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, q);
+    if (uq.isNull())
+    {
+      return false;
+    }
+    Node eqqu = q.eqNode(uq);
+    if (!cdp->addTheoryRewriteStep(eqqu, ProofRewriteRule::QUANT_UNUSED_VARS))
+    {
+      Assert(false);
+      return false;
+    }
+    transEq.emplace_back(eqqu);
+    q = uq;
+  }
+  Node newVarList = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
+  if (newVarList!=q[0])
+  {
+    Node rq = nm->mkNode(Kind::FORALL, newVarList, q[1]);
+    Node eqqr = q.eqNode(rq);
+    if (!cdp->addStep(eqqr, ProofRule::QUANT_VAR_REORDERING, {}, {eqqr}))
+    {
+      Assert(false);
+      return false;
+    }
+    transEq.emplace_back(eqqr);
+    q = rq;
+  }
   Node newBody = nm->mkOr(newBodyDisj);
   Node eqb = origBody.eqNode(newBody);
-  // To prove (forall X F) = (forall X1 F1) or ... or (forall Xn Fn):
   // We first prove
   //   (forall X F) = (forall X F1 or ... or Fn)
   if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))

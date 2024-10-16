@@ -209,8 +209,10 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      size_t nvars = n[0].getNumChildren();
       std::vector<Node> disj;
       std::unordered_set<Node> varsUsed;
+      size_t varIndex = 0;
       for (const Node& d : n[1])
       {
         // Note that we may apply to a nested quantified formula, in which
@@ -218,20 +220,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         // formula.
         std::unordered_set<Node> fvs;
         expr::getFreeVariables(d, fvs);
-        // take the variables in order they appear in the original
-        std::vector<Node> dvs;
-        for (const Node& v : n[0])
+        size_t prevVarIndex = varIndex;
+        while (varIndex<nvars && fvs.find(n[0][varIndex])!=fvs.end())
         {
-          if (fvs.find(v) != fvs.end())
-          {
-            if (!varsUsed.insert(v).second)
-            {
-              // variable already appeared in another disjunct
-              return Node::null();
-            }
-            dvs.emplace_back(v);
-          }
+          varIndex++;
         }
+        std::vector<Node> dvs(n[0].begin()+prevVarIndex, n[0].begin()+varIndex);
         if (dvs.empty())
         {
           disj.emplace_back(d);
@@ -242,7 +236,23 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           disj.emplace_back(d_nm->mkNode(Kind::FORALL, bvl, d));
         }
       }
-      return d_nm->mkOr(disj);
+      // must consume all variables
+      if (varIndex!=nvars)
+      {
+        return Node::null();
+      }
+      Node ret = d_nm->mkOr(disj);
+      // go back and ensure all variables are bound
+      std::unordered_set<Node> fvs;
+      expr::getFreeVariables(ret, fvs);
+      for (const Node& v : n[0])
+      {
+        if (fvs.find(v)!=fvs.end())
+        {
+          return Node::null();
+        }
+      }
+      return ret;
     }
     break;
     default: break;

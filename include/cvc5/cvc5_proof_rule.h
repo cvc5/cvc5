@@ -1352,6 +1352,21 @@ enum ENUM(ProofRule)
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Variable reordering **
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F = G}
+   *   {F = G}
+   * 
+   * where :math:`F` is `\forall X.\> H` and :math:`G` is :math:`\forall X.\> H`
+   * and :math:`Y` is a reordering of :math:`X`.
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_REORDERING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Singleton injectivity**
    *
    * .. math::

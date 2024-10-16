@@ -170,6 +170,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
     case ProofRule::ALPHA_EQUIV:
+    case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:

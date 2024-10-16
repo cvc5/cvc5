@@ -128,6 +128,7 @@ const char* toString(ProofRule rule)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case ProofRule::QUANT_VAR_REORDERING: return "QUANT_VAR_REORDERING";
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
