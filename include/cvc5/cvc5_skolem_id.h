@@ -602,6 +602,7 @@ enum ENUM(SkolemId)
    * - Sort: ``(-> (Set E) E)``
    */
   EVALUE(SETS_CHOOSE),
+  EVALUE(SETS_EXISTS),
   /**
    * The set diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (set.member k A) (set.member k B))))``.

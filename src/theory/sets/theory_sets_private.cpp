@@ -791,7 +791,6 @@ void TheorySetsPrivate::checkQuantifiers()
     TNode p = term[2];
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(A));
-    std::cout << "positiveMembers: " << positiveMembers << std::endl;
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       std::vector<Node> exp;
@@ -809,6 +808,31 @@ void TheorySetsPrivate::checkQuantifiers()
       {
         return;
       }
+    }
+  }
+
+  const std::vector<Node>& existsTerms = d_state.getExistsTerms();
+  for (const Node& term : existsTerms)
+  {
+    TNode variable = term[0][0];
+    TNode A = term[1];
+    TNode p = term[2];
+    SkolemManager* sm = nm->getSkolemManager();
+    Node k = sm->mkSkolemFunction(SkolemId::SETS_EXISTS, {term});
+
+    std::vector<Node> exp;
+    exp.push_back(term.notNode());
+
+    Node memberA = nm->mkNode(Kind::SET_MEMBER, k, A);
+    Node p_k = p.substitute(variable, k);
+    Node conclusion = memberA.andNode(p_k.notNode());
+    conclusion = rewrite(conclusion);
+    d_im.assertInference(conclusion, InferenceId::SETS_EXISTS, exp);
+    std::cout << "exp: " << exp << std::endl;
+    std::cout << "conclusion: " << conclusion << std::endl;
+    if (d_state.isInConflict())
+    {
+      return;
     }
   }
 }

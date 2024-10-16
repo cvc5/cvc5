@@ -464,6 +464,12 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
+    case SkolemId::SETS_EXISTS:
+    {
+      Assert(cacheVals.size() > 0);
+      TypeNode ret = cacheVals[0][0][0].getType();
+      return ret;
+    }
     // skolems that return the set to set element type
     case SkolemId::BAGS_CHOOSE:
     case SkolemId::SETS_CHOOSE:
@@ -621,6 +627,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::SETS_FOLD_CARD:
     case SkolemId::SETS_FOLD_ELEMENTS:
     case SkolemId::SETS_FOLD_UNION:
+    case SkolemId::SETS_EXISTS:
     case SkolemId::FP_MIN_ZERO:
     case SkolemId::FP_MAX_ZERO:
     case SkolemId::FP_TO_REAL: return 1;
