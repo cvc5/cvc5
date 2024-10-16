@@ -46,14 +46,15 @@ Preprocessor::Preprocessor(Env& env,
 
 Preprocessor::~Preprocessor() {}
 
-void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
+void Preprocessor::finishInit(TheoryEngine* te,
+                              prop::PropEngine* pe,
+                              PreprocessProofGenerator* pppg)
 {
   // set up the preprocess proof generator, if necessary
-  if (options().smt.produceProofs && d_pppg == nullptr)
+  if (d_pppg == nullptr && pppg != nullptr)
   {
-    d_pppg = std::make_unique<PreprocessProofGenerator>(
-        d_env, userContext(), "smt::PreprocessProofGenerator");
-    d_propagator.enableProofs(userContext(), d_pppg.get());
+    d_pppg = pppg;
+    d_propagator.enableProofs(userContext(), d_pppg);
   }
 
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
@@ -129,7 +130,7 @@ void Preprocessor::applySubstitutions(std::vector<Node>& ns)
 
 PreprocessProofGenerator* Preprocessor::getPreprocessProofGenerator()
 {
-  return d_pppg.get();
+  return d_pppg;
 }
 
 }  // namespace smt
