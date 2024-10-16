@@ -2454,7 +2454,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping**
+   * **Quantifiers -- Miniscoping free variables**
    *
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n =
