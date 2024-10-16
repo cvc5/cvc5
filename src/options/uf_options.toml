@@ -90,3 +90,19 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "false"
   help       = "model-based inferences for bit-vector to arithmetic conversions"
+
+[[option]]
+  name       = "hoExp"
+  category   = "expert"
+  long       = "ho-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the higher-order logic solver"
+
+[[option]]
+  name       = "cardExp"
+  category   = "expert"
+  long       = "uf-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "allows logics with UF+cardinality"

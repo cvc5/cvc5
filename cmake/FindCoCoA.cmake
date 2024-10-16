@@ -31,6 +31,24 @@ if(CoCoA_INCLUDE_DIR AND CoCoA_LIBRARIES)
   string(REGEX MATCH "[0-9]+\\.[0-9]+" CoCoA_VERSION "${CoCoA_VERSION}")
 
   check_system_version("CoCoA")
+
+  # This test checks whether CoCoA has been patched
+  try_compile(CoCoA_USABLE "${DEPS_BASE}/try_compile/CoCoA-EP"
+    "${CMAKE_CURRENT_LIST_DIR}/deps-utils/cocoa-test.cpp"
+    CMAKE_FLAGS
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+      "-DINCLUDE_DIRECTORIES=${CoCoA_INCLUDE_DIR}"
+    LINK_LIBRARIES ${CoCoA_LIBRARIES} ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
+  )
+  if(NOT CoCoA_USABLE)
+    message(STATUS "The system version of CoCoA has not been patched.")
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "A patched version of CoCoA will be built for you.")
+    else()
+      message(STATUS "Use --auto-download to let us download and build a patched version of CoCoA for you.")
+    endif()
+    set(CoCoA_FOUND_SYSTEM FALSE)
+  endif()
 endif()
 
 if(NOT CoCoA_FOUND_SYSTEM)

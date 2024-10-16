@@ -50,11 +50,10 @@ struct LengthVarAttributeId
 };
 typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
 
-SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
+SkolemCache::SkolemCache(NodeManager* nm, Rewriter* rr) : d_nm(nm), d_rr(rr)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  d_strType = nm->stringType();
-  d_zero = nm->mkConstInt(Rational(0));
+  d_strType = d_nm->stringType();
+  d_zero = d_nm->mkConstInt(Rational(0));
 }
 
 Node SkolemCache::mkSkolemCached(Node a,
@@ -102,8 +101,7 @@ Node SkolemCache::mkTypedSkolemCached(
     return it->second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   Node sk;
   switch (id)
   {
@@ -154,7 +152,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 Node SkolemCache::mkSkolem(const char* c)
 {
   // TODO: eliminate this
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   Node n = sm->mkDummySkolem(c, d_strType, "string skolem");
   d_allSkolems.insert(n);
   return n;
@@ -168,9 +166,6 @@ bool SkolemCache::isSkolem(Node n) const
 std::tuple<SkolemCache::StringSkolemId, Node, Node>
 SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
 {
-
-  NodeManager* nm = NodeManager::currentNM();
-
   // eliminate in terms of prefix/suffix_rem
   if (id == SK_FIRST_CTN_POST)
   {
@@ -178,49 +173,49 @@ SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
     //   SK_SUFFIX_REM(x, (+ (str.len SK_FIRST_CTN_PRE(x, y)) (str.len y)))
     id = SK_SUFFIX_REM;
     Node pre = mkSkolemCached(a, b, SK_FIRST_CTN_PRE, "pre");
-    b = nm->mkNode(Kind::ADD,
-                   nm->mkNode(Kind::STRING_LENGTH, pre),
-                   nm->mkNode(Kind::STRING_LENGTH, b));
+    b = d_nm->mkNode(Kind::ADD,
+                     d_nm->mkNode(Kind::STRING_LENGTH, pre),
+                     d_nm->mkNode(Kind::STRING_LENGTH, b));
   }
   else if (id == SK_ID_V_SPT || id == SK_ID_C_SPT)
   {
     // SK_ID_*_SPT(x, y) ---> SK_SUFFIX_REM(x, (str.len y))
     id = SK_SUFFIX_REM;
-    b = nm->mkNode(Kind::STRING_LENGTH, b);
+    b = d_nm->mkNode(Kind::STRING_LENGTH, b);
   }
   else if (id == SK_ID_V_SPT_REV || id == SK_ID_C_SPT_REV)
   {
     // SK_ID_*_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) (str.len y)))
     id = SK_PREFIX;
-    b = nm->mkNode(Kind::SUB,
-                   nm->mkNode(Kind::STRING_LENGTH, a),
-                   nm->mkNode(Kind::STRING_LENGTH, b));
+    b = d_nm->mkNode(Kind::SUB,
+                     d_nm->mkNode(Kind::STRING_LENGTH, a),
+                     d_nm->mkNode(Kind::STRING_LENGTH, b));
   }
   else if (id == SK_ID_VC_SPT)
   {
     // SK_ID_VC_SPT(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConstInt(Rational(1));
+    b = d_nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_VC_SPT_REV)
   {
     // SK_ID_VC_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) 1))
     id = SK_PREFIX;
-    b = nm->mkNode(Kind::SUB,
-                   nm->mkNode(Kind::STRING_LENGTH, a),
-                   nm->mkConstInt(Rational(1)));
+    b = d_nm->mkNode(Kind::SUB,
+                     d_nm->mkNode(Kind::STRING_LENGTH, a),
+                     d_nm->mkConstInt(Rational(1)));
   }
   else if (id == SK_ID_DC_SPT)
   {
     // SK_ID_DC_SPT(x, y) ---> SK_PREFIX(x, 1)
     id = SK_PREFIX;
-    b = nm->mkConstInt(Rational(1));
+    b = d_nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_DC_SPT_REM)
   {
     // SK_ID_DC_SPT_REM(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConstInt(Rational(1));
+    b = d_nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_DEQ_X)
   {
@@ -228,34 +223,34 @@ SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
     id = SK_PREFIX;
     Node aOld = a;
     a = b;
-    b = nm->mkNode(Kind::STRING_LENGTH, aOld);
+    b = d_nm->mkNode(Kind::STRING_LENGTH, aOld);
   }
   else if (id == SK_ID_DEQ_Y)
   {
     // SK_ID_DEQ_Y(x, y) ---> SK_PREFIX(x, (str.len y))
     id = SK_PREFIX;
-    b = nm->mkNode(Kind::STRING_LENGTH, b);
+    b = d_nm->mkNode(Kind::STRING_LENGTH, b);
   }
   else if (id == SK_FIRST_CTN_PRE)
   {
     // SK_FIRST_CTN_PRE(x,y) ---> SK_PREFIX(x, indexof(x,y,0))
     id = SK_PREFIX;
-    b = nm->mkNode(Kind::STRING_INDEXOF, a, b, d_zero);
+    b = d_nm->mkNode(Kind::STRING_INDEXOF, a, b, d_zero);
   }
 
   if (id == SK_ID_V_UNIFIED_SPT || id == SK_ID_V_UNIFIED_SPT_REV)
   {
     bool isRev = (id == SK_ID_V_UNIFIED_SPT_REV);
-    Node la = nm->mkNode(Kind::STRING_LENGTH, a);
-    Node lb = nm->mkNode(Kind::STRING_LENGTH, b);
-    Node ta = isRev ? utils::mkPrefix(a, nm->mkNode(Kind::SUB, la, lb))
+    Node la = d_nm->mkNode(Kind::STRING_LENGTH, a);
+    Node lb = d_nm->mkNode(Kind::STRING_LENGTH, b);
+    Node ta = isRev ? utils::mkPrefix(a, d_nm->mkNode(Kind::SUB, la, lb))
                     : utils::mkSuffix(a, lb);
-    Node tb = isRev ? utils::mkPrefix(b, nm->mkNode(Kind::SUB, lb, la))
+    Node tb = isRev ? utils::mkPrefix(b, d_nm->mkNode(Kind::SUB, lb, la))
                     : utils::mkSuffix(b, la);
     id = SK_PURIFY;
     // SK_ID_V_UNIFIED_SPT(x,y) --->
     //   ite(len(x) >= len(y), substr(x,0,str.len(y)), substr(y,0,str.len(x))
-    a = nm->mkNode(Kind::ITE, nm->mkNode(Kind::GEQ, la, lb), ta, tb);
+    a = d_nm->mkNode(Kind::ITE, d_nm->mkNode(Kind::GEQ, la, lb), ta, tb);
     b = Node::null();
   }
 
@@ -285,27 +280,25 @@ SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
   return std::make_tuple(id, a, b);
 }
 
-Node SkolemCache::mkIndexVar(Node t)
+Node SkolemCache::mkIndexVar(NodeManager* nm, Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   // Note that proof rules may depend on the name of this variable.
   return bvm->mkBoundVar<IndexVarAttribute>(t, "@var.str_index", intType);
 }
 
-Node SkolemCache::mkLengthVar(Node t)
+Node SkolemCache::mkLengthVar(NodeManager* nm, Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<LengthVarAttribute>(t, "@var.str_length", intType);
 }
 
-Node SkolemCache::mkSkolemFun(SkolemId id, Node a, Node b)
+Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)
 {
   std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node k = sm->mkSkolemFunction(id, cacheVals);
   d_allSkolems.insert(k);
   return k;

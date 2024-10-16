@@ -58,7 +58,7 @@
 ;   is one.
 (declare-rule arith_trans_exp_zero ((x Real))
   :args (x)
-  :conclusion (= (= x 0.0) (= (exp x) 1.0))
+  :conclusion (= (= x 0/1) (= (exp x) 1/1))
 )
 
 ; rule: arith_trans_sine_bounds

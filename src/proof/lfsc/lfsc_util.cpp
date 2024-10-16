@@ -69,10 +69,9 @@ LfscRule getLfscRule(Node n)
   return lr;
 }
 
-Node mkLfscRuleNode(LfscRule r)
+Node mkLfscRuleNode(NodeManager* nm, LfscRule r)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(r)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(r)));
 }
 
 bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)

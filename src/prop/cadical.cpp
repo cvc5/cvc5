@@ -20,6 +20,7 @@
 #include <deque>
 
 #include "base/check.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "prop/theory_proxy.h"
@@ -653,16 +654,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatVariable& alit)
+  void user_push()
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
     d_active_vars_control.push_back(d_active_vars.size());
     Trace("cadical::propagator")
         << " -> " << d_active_vars_control.size() << std::endl;
+  }
+
+  /**
+   * Set the activation literal for the current user assertion level.
+   *
+   * @param alit The activation literal for the current user assertion level.
+   */
+  void set_activation_lit(SatVariable& alit)
+  {
     d_activation_literals.push_back(alit);
     Trace("cadical::propagator")
-        << "enable activation lit: " << alit << std::endl;
+      << "enable activation lit: " << alit << std::endl;
   }
 
   /**
@@ -785,7 +795,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   }
 
   /** Return the current user (assertion) level. */
-  size_t current_user_level() { return d_activation_literals.size(); }
+  size_t current_user_level() const { return d_active_vars_control.size(); }
 
   /** Return the current list of activation literals. */
   const std::vector<SatLiteral>& activation_literals()
@@ -949,17 +959,51 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   bool d_in_search = false;
 };
 
+class ClauseLearner : public CaDiCaL::Learner
+{
+ public:
+  ClauseLearner(TheoryProxy& proxy, int32_t clause_size)
+      : d_proxy(proxy), d_max_clause_size(clause_size)
+  {
+  }
+  ~ClauseLearner() override {}
+
+  bool learning(int size) override
+  {
+    return d_max_clause_size == 0 || size <= d_max_clause_size;
+  }
+
+  void learn(int lit) override
+  {
+    if (lit)
+    {
+      SatLiteral slit = toSatLiteral(lit);
+      d_clause.push_back(slit);
+    }
+    else
+    {
+      d_proxy.notifySatClause(d_clause);
+      d_clause.clear();
+    }
+  }
+
+ private:
+  TheoryProxy& d_proxy;
+  /** Intermediate literals buffer. */
+  std::vector<SatLiteral> d_clause;
+  /** Maximum size of clauses to get notified about. */
+  int32_t d_max_clause_size;
+};
+
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name,
-                             bool logProofs)
+                             const std::string& name)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
-      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -967,23 +1011,32 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
   // walk and lucky phase do not use the external propagator, disable for now
   if (d_propagator)
   {
     d_solver->set("walk", 0);
     d_solver->set("lucky", 0);
+    // ilb currently does not play well with user propagators
+    d_solver->set("ilb", 0);
+    d_solver->set("ilbassumptions", 0);
+    d_solver->connect_external_propagator(d_propagator.get());
   }
 
-  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
+  d_true = newVar();
+  d_false = newVar();
   d_solver->add(toCadicalVar(d_true));
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
 
-  if (d_logProofs)
+  bool logProofs = false;
+  // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
+  // here based on d_env.isSatProofProducing and options().proof.propProofMode.
+  // The latter should be extended to include modes DRAT and LRAT based on
+  // what is available here.
+  if (logProofs)
   {
     d_pfFile = options().driver.filename + ".drat_proof.txt";
     if (!options().proof.dratBinaryFormat)
@@ -1189,7 +1242,11 @@ void CadicalSolver::initialize(context::Context* context,
   d_context = context;
   d_proxy = theoryProxy;
   d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
-  d_solver->connect_external_propagator(d_propagator.get());
+  if (!d_env.getPlugins().empty())
+  {
+    d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
+    d_solver->connect_learner(d_clause_learner.get());
+  }
 
   init();
 }
@@ -1197,9 +1254,13 @@ void CadicalSolver::initialize(context::Context* context,
 void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
-  // New activation literal for pushed user level.
+  // Push new user level
+  d_propagator->user_push();
+  // Set new activation literal for pushed user level
+  // Note: This happens after the push to ensure that the activation literal's
+  // introduction level is the current user level.
   SatVariable alit = newVar(false);
-  d_propagator->user_push(alit);
+  d_propagator->set_activation_lit(alit);
 }
 
 void CadicalSolver::pop()
@@ -1253,20 +1314,11 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
+  // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
+  // consisting of a single step, referencing the files for the DIMACS + proof.
   // do not throw an exception, since we test whether the proof is available
   // by comparing it to nullptr.
   return nullptr;
-}
-
-std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
-{
-  Assert(d_logProofs);
-  d_solver->flush_proof_trace();
-  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
-  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
-  // The DRAT file is an argument to the file proof.
-  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
-                                                 args);
 }
 
 /* -------------------------------------------------------------------------- */

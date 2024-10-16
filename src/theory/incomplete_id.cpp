@@ -57,6 +57,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::UNPROCESSED_THEORY_CONFLICT:
       return "UNPROCESSED_THEORY_CONFLICT";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
+    case IncompleteId::PREPROCESSING: return "PREPROCESSING";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
     default:
       Assert(false) << "No print for incomplete id " << static_cast<size_t>(i);

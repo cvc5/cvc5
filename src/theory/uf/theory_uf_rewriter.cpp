@@ -188,12 +188,15 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::BETA_REDUCE:
     {
-      if (n.getKind() != Kind::APPLY_UF
-          || n.getOperator().getKind() != Kind::LAMBDA)
+      if (n.getKind() != Kind::APPLY_UF)
       {
         return Node::null();
       }
-      Node lambda = n.getOperator();
+      Node lambda = uf::FunctionConst::toLambda(n.getOperator());
+      if (lambda.isNull())
+      {
+        return Node::null();
+      }
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
       std::vector<TNode> subs(n.begin(), n.end());
       if (vars.size() != subs.size())

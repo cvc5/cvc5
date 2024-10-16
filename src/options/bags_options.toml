@@ -1,0 +1,10 @@
+id     = "BAGS"
+name   = "Bags Theory"
+
+[[option]]
+  name       = "bagsExp"
+  category   = "expert"
+  long       = "bags-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the bags solver"

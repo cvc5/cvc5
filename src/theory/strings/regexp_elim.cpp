@@ -376,7 +376,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         children2.push_back(res);
         Node body = nm->mkNode(Kind::AND, children2);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, non_greedy_find_vars);
-        res = utils::mkForallInternal(bvl, body.negate()).negate();
+        res = utils::mkForallInternal(nm, bvl, body.negate()).negate();
       }
       // must also give a minimum length requirement
       res = nm->mkNode(Kind::AND, res, nm->mkNode(Kind::GEQ, lenx, lenSum));
@@ -522,7 +522,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       if (k.getKind() == Kind::BOUND_VARIABLE)
       {
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, k);
-        body = utils::mkForallInternal(bvl, body.negate()).negate();
+        body = utils::mkForallInternal(nm, bvl, body.negate()).negate();
       }
       // e.g. x in re.++( R1, "AB", R2 ) --->
       //  exists k.
@@ -612,7 +612,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
                     : nm->mkNode(Kind::OR, char_constraints);
     Node body = nm->mkNode(Kind::OR, bound.negate(), conc);
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, index);
-    Node res = utils::mkForallInternal(bvl, body);
+    Node res = utils::mkForallInternal(nm, bvl, body);
     // e.g.
     //   x in (re.* (re.union "A" "B" )) --->
     //   forall k. 0<=k<len(x) => (substr(x,k,1) in "A" OR substr(x,k,1) in "B")
@@ -644,7 +644,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
                         .eqNode(s);
         Node body = nm->mkNode(Kind::OR, bound.negate(), conc);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, index);
-        Node res = utils::mkForallInternal(bvl, body);
+        Node res = utils::mkForallInternal(nm, bvl, body);
         res = nm->mkNode(
             Kind::AND,
             nm->mkNode(Kind::INTS_MODULUS_TOTAL, lenx, lens).eqNode(zero),

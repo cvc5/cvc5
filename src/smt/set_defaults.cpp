@@ -20,11 +20,14 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
 #include "options/booleans_options.h"
 #include "options/bv_options.h"
 #include "options/datatypes_options.h"
 #include "options/decision_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
@@ -35,6 +38,7 @@
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -116,6 +120,24 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // safe options
+  if (options().base.safeOptions)
+  {
+    // all "experimental" theories that are enabled by default should be
+    // disabled here
+    SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(uf, cardExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(bags, bagsExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(ff, ffExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(
+        datatypes, codatatypesExp, false, "safe options");
+    // these are disabled by default but are listed here in case they are
+    // enabled by default later
+    SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -160,10 +182,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
         options::ProofGranularityMode::DSL_REWRITE,
         "check-proof-steps");
   }
-  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
-  // enabled is implied
+  // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
+  // then proofs being fully enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
-      || opts.smt.proofMode == options::ProofMode::FULL)
+      || opts.driver.dumpUnsatCoresLemmas
+      || opts.smt.proofMode == options::ProofMode::FULL
+      || opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
     SET_AND_NOTIFY(smt, produceProofs, true, "option requiring proofs");
   }
@@ -171,8 +195,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    // if the user requested proofs, proof mode is full
-    SET_AND_NOTIFY(smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    // if the user requested proofs, proof mode is (at least) full
+    if (opts.smt.proofMode < options::ProofMode::FULL)
+    {
+      SET_AND_NOTIFY_IF_NOT_USER(
+          smt, proofMode, options::ProofMode::FULL, "enabling proofs");
+    }
     // Default granularity is theory rewrite if we are intentionally using
     // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
     if (!opts.proof.proofGranularityModeWasSetByUser
@@ -184,8 +212,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
                      options::ProofGranularityMode::THEORY_REWRITE,
                      "enabling proofs");
     }
-    // unsat cores are available due to proofs being enabled
-    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
+    // unsat cores are available due to proofs being enabled, as long as
+    // SAT proofs are available
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF
+        && opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
       if (options().prop.satSolver == options::SatSolverMode::MINISAT)
@@ -211,14 +241,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // levels
     if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
     {
-      if (!opts.proof.proofAletheExperimental)
-      {
-        std::stringstream ss;
-        ss << "proof-format=alethe is experimental in this version. If "
-              "you know what you are doing, you can try --"
-           << options::proof::longName::proofAletheExperimental;
-        throw OptionException(ss.str());
-      }
       if (opts.proof.proofGranularityMode
           < options::ProofGranularityMode::THEORY_REWRITE)
       {
@@ -638,11 +660,17 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
+    // Only applies to non-incremental QF_UF.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving
-                       && !safeUnsatCores(opts);
-    SET_AND_NOTIFY_VAL_SYM(
-        uf, ufSymmetryBreaker, qf_uf_noinc, "logic and options");
+                       && !opts.base.incrementalSolving;
+    // We disable this technique when using unsat core production, since it
+    // uses a non-standard implementation that sends (unsound) lemmas during
+    // presolve.
+    // We also disable it by default if safe unsat cores are enabled, or if
+    // the proof mode is FULL_STRICT.
+    bool val = qf_uf_noinc && !safeUnsatCores(opts)
+               && opts.smt.proofMode != options::ProofMode::FULL_STRICT;
+    SET_AND_NOTIFY_VAL_SYM(uf, ufSymmetryBreaker, val, "logic and options");
   }
 
   // If in arrays, set the UF handler to arrays
@@ -996,6 +1024,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     reason << "global-negate";
     return true;
   }
+  bool isFullPf = (opts.smt.proofMode == options::ProofMode::FULL
+                   || opts.smt.proofMode == options::ProofMode::FULL_STRICT);
   if (isSygus(opts))
   {
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
@@ -1003,7 +1033,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // proofs for sygus (sub)solvers is irrelevant, since they are not given
     // check-sat queries. Note however that we allow proofs in non-full modes
     // (e.g. unsat cores).
-    if (opts.smt.proofMode == options::ProofMode::FULL)
+    if (isFullPf)
     {
       reason << "sygus";
       return true;
@@ -1016,7 +1046,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
-  if (opts.smt.proofMode == options::ProofMode::FULL)
+  if (isFullPf)
   {
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         bv, bvSolver, options::BVSolver::BITBLAST_INTERNAL, "proofs");
@@ -1032,17 +1062,19 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   {
     if (opts.proof.propProofMode == options::PropProofMode::PROOF)
     {
-      reason << "(resolution) proofs not supported in cadical";
+      reason << "(resolution) proofs in CaDiCaL";
+      return true;
+    }
+    if (opts.smt.proofMode!=options::ProofMode::PP_ONLY)
+    {
+      reason << "CaDiCaL";
       return true;
     }
   }
   else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
-    if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
-    {
-      reason << "(DRAT) proof sketch not supported in minisat";
-      return true;
-    }
+    // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
+    // not supported by Minisat.
   }
   if (options().theory.lemmaInprocess != options::LemmaInprocessMode::NONE)
   {
@@ -1610,6 +1642,13 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 void SetDefaults::setDefaultsSygus(Options& opts) const
 {
   SET_AND_NOTIFY(quantifiers, sygus, true, "enabling sygus");
+  // full verify mode enables options to ensure full effort on candidates
+  if (opts.quantifiers.fullSygusVerify)
+  {
+    SET_AND_NOTIFY(
+        quantifiers, sygusVerifyInstMaxRounds, -1, "full sygus verify");
+    SET_AND_NOTIFY(quantifiers, fullSaturateQuant, true, "full sygus verify");
+  }
   // must use Ferrante/Rackoff for real arithmetic
   SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "sygus");
   // must disable cegqi-bv since it may introduce witness terms, which

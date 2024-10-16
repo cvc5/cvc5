@@ -91,6 +91,16 @@ void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
+  if (logicInfo().hasCardinalityConstraints())
+  {
+    if (!options().uf.cardExp)
+    {
+      std::stringstream ss;
+      ss << "Logic with cardinality constraints not available in this "
+            "configuration, try --uf-card-exp.";
+      throw LogicException(ss.str());
+    }
+  }
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // the ufssMode option.
@@ -104,6 +114,13 @@ void TheoryUF::finishInit() {
   d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
+    if (!options().uf.hoExp)
+    {
+      std::stringstream ss;
+      ss << "Higher-order logic not available in this configuration, try "
+            "--ho-exp.";
+      throw LogicException(ss.str());
+    }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }

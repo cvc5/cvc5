@@ -46,7 +46,7 @@ class AletheLetBinding : public LetBinding
    * @param prefix The prefix of variables to convert
    * @return the converted node.
    */
-  Node convert(Node n, const std::string& prefix);
+  Node convert(NodeManager* nm, Node n, const std::string& prefix);
 
  private:
   /** The set of terms that have already been "decleared", i.e., already had

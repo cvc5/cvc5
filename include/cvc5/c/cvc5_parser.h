@@ -134,6 +134,23 @@ CVC5_EXPORT const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm,
 CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
                                                        size_t* size);
 
+
+/**
+ * Get the named terms that have been given to them via the :named attribute.
+ *
+ * @param sm    The symbol manager instance.
+ * @param size  The resulting size of `terms` and `names`.
+ * @param terms The resulting term that are mapped to the resulting `names`.
+ * @param names The resulting names.
+ *
+ * @note The resulting `terms` and `names` array pointers are only valid
+ *       until the next call to this function.
+ */
+CVC5_EXPORT void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                                         size_t* size,
+                                         Cvc5Term* terms[],
+                                         const char** names[]);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */

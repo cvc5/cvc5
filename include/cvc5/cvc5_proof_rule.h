@@ -489,8 +489,7 @@ enum ENUM(ProofRule)
    *   \inferrule{C_1 \mid C_2}{C_2}
    *
    * where
-   * the set representations of :math:`C_1` and :math:`C_2` are the same and the
-   * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
+   * the multiset representations of :math:`C_1` and :math:`C_2` are the same.
    * \endverbatim
    */
   EVALUE(REORDERING),
@@ -1374,6 +1373,29 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(SETS_EXT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter up**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,a)\mid P}
+   *   {\mathit{set.member}(x, \mathit{set.filter}(P, a)) = P(x)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_UP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter down**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,\mathit{set.filter}(P, a))\mid -}
+   *   {\mathit{set.member}(x,a) \wedge P(x)}
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_DOWN),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
@@ -2706,6 +2728,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MUL_ZERO),
   /** Auto-generated from RARE rule arith-div-total */
   EVALUE(ARITH_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-div-total-zero */
+  EVALUE(ARITH_DIV_TOTAL_ZERO),
   /** Auto-generated from RARE rule arith-int-div-total */
   EVALUE(ARITH_INT_DIV_TOTAL),
   /** Auto-generated from RARE rule arith-int-div-total-one */
@@ -2718,12 +2742,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
-  /** Auto-generated from RARE rule arith-neg-neg-one */
-  EVALUE(ARITH_NEG_NEG_ONE),
-  /** Auto-generated from RARE rule arith-elim-uminus */
-  EVALUE(ARITH_ELIM_UMINUS),
-  /** Auto-generated from RARE rule arith-elim-minus */
-  EVALUE(ARITH_ELIM_MINUS),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -2760,10 +2778,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MULT_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-dist */
   EVALUE(ARITH_MULT_DIST),
-  /** Auto-generated from RARE rule arith-plus-cancel1 */
-  EVALUE(ARITH_PLUS_CANCEL1),
-  /** Auto-generated from RARE rule arith-plus-cancel2 */
-  EVALUE(ARITH_PLUS_CANCEL2),
   /** Auto-generated from RARE rule arith-abs-elim */
   EVALUE(ARITH_ABS_ELIM),
   /** Auto-generated from RARE rule arith-to-real-elim */
@@ -2774,6 +2788,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-sine-zero */
+  EVALUE(ARITH_SINE_ZERO),
+  /** Auto-generated from RARE rule arith-sine-pi2 */
+  EVALUE(ARITH_SINE_PI2),
+  /** Auto-generated from RARE rule arith-cosine-elim */
+  EVALUE(ARITH_COSINE_ELIM),
+  /** Auto-generated from RARE rule arith-tangent-elim */
+  EVALUE(ARITH_TANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-secent-elim */
+  EVALUE(ARITH_SECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cosecent-elim */
+  EVALUE(ARITH_COSECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cotangent-elim */
+  EVALUE(ARITH_COTANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-pi-not-int */
+  EVALUE(ARITH_PI_NOT_INT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3396,8 +3426,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
-  /** Auto-generated from RARE rule str-nth-elim-code */
-  EVALUE(STR_NTH_ELIM_CODE),
   /** Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */
@@ -3480,8 +3508,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG_REV),
   /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-rev */
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev
-   */
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev */
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG_REV),
   /** Auto-generated from RARE rule str-in-re-strip-char-rev */
   EVALUE(STR_IN_RE_STRIP_CHAR_REV),

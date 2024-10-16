@@ -71,7 +71,7 @@ void QueryGenerator::dumpQuery(Node qy,
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
-  smt::PrintBenchmark pb(Printer::getPrinter(fs));
+  smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(fs));
   pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, {kqy});
   fs.close();
 }

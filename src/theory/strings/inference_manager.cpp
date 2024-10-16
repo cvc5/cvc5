@@ -254,6 +254,13 @@ void InferenceManager::addToExplanation(Node a,
 {
   if (a != b)
   {
+    // prefer having constants on the RHS, which helps proof reconstruction
+    if (a.isConst() && !b.isConst())
+    {
+      Node tmp = a;
+      a = b;
+      b = tmp;
+    }
     Trace("strings-explain")
         << "Add to explanation : " << a << " == " << b << std::endl;
     Assert(d_state.areEqual(a, b));
