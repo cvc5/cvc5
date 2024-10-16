@@ -85,7 +85,7 @@ TrustNode OperatorElim::eliminate(Node n,
   }
   if (nn != n)
   {
-    return TrustNode::mkTrustRewrite(n, nn, nullptr);
+    return TrustNode::mkTrustRewrite(n, nn, this);
   }
   return TrustNode::null();
 }
@@ -441,11 +441,22 @@ Node OperatorElim::getAxiomFor(NodeManager* nm, const Node& n)
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, false, wasNonLinear);
-  if (klems.size() == 1)
+  if (nn==n)
   {
-    return klems[0].first;
+    return Node::null();
   }
-  return Node::null();
+  Node eqLem = n.eqNode(nn);
+  std::vector<Node> lemmas;
+  for (const std::pair<Node, Node>& kl : klems)
+  {
+    lemmas.emplace_back(kl.first);
+  }
+  if (!lemmas.empty())
+  {
+    Node axiom = nm->mkAnd(lemmas);
+    return nm->mkNode(Kind::AND, eqLem, axiom);
+  }
+  return eqLem;
 }
 
 Node OperatorElim::getArithSkolemApp(NodeManager* nm, Node n, SkolemId id)
@@ -483,15 +494,36 @@ SkolemLemma OperatorElim::mkSkolemLemma(const Node& lem,
 std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
 {
   context::CDHashMap<Node, Node>::iterator it = d_lemmaMap.find(f);
+  Node tgt;
   if (it == d_lemmaMap.end())
   {
-    Assert(false) << "arith::OperatorElim could not prove " << f;
-    return nullptr;
+    if (f.getKind()!=Kind::EQUAL)
+    {
+      Assert(false) << "arith::OperatorElim could not prove " << f;
+      return nullptr;
+    }
+    tgt = f[0];
   }
-  ProofNodeManager* pnm = d_env.getProofNodeManager();
-  std::shared_ptr<ProofNode> pfn =
-      pnm->mkNode(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {it->second}, f);
-  return pfn;
+  else
+  {
+    tgt = it->second;
+  }
+  CDProof cdp(d_env);
+  Node res = getAxiomFor(nodeManager(), tgt);
+  cdp.addStep(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {tgt}, res);
+  if (res.getKind()==Kind::AND)
+  {
+    bool success = false;
+    for (size_t i=0; i<2; i++)
+    {
+      if (res[i]==f)
+      {
+        Node ni = nm->mkConstInt(i);
+        cdp.addStep(ProofRule::AND_ELIM, {res}, {ni}, f);
+      }
+    }
+  }
+  return cdp.getProofFor(f);
 }
 
 std::string OperatorElim::identify() const { return "arith::OperatorElim"; }
