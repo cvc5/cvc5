@@ -565,7 +565,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   //   (forall X F) = (forall X F1 or ... or Fn)
   if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))
   {
-    AlwaysAssert(false);
+    Assert(false);
     return false;
   }
   Node newQuant = nm->mkNode(Kind::FORALL, q[0], newBody);
@@ -580,7 +580,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   // via ProofRewriteRule::QUANT_MINISCOPE_FV.
   if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_FV))
   {
-    AlwaysAssert(false);
+    Assert(false);
     return false;
   }
   transEq.emplace_back(eqq2);
