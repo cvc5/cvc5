@@ -24,9 +24,9 @@
 namespace cvc5::internal {
 
 /**
- * The purpose of this class is output proofs for all reasoning the solver
+ * The purpose of this class is to output proofs for all reasoning the solver
  * does on-the-fly. It is enabled when proof logging is enabled.
- * 
+ *
  * This class receives notifications for three things:
  * (1) When preprocessing has completed, determining the set of input clauses.
  * (2) When theory lemmas are learned
@@ -37,7 +37,7 @@ namespace cvc5::internal {
  * or Node (if proofs are disabled for that component).
  * 
  * As with dumped proofs, the granularity of the proofs is subject to the
- * option proof-granularity.
+ * option `proof-granularity`.
  */
 class ProofLogger : protected EnvObj
 {
@@ -61,13 +61,13 @@ class ProofLogger : protected EnvObj
   virtual void logCnfPreprocessInputProofs(
       std::vector<std::shared_ptr<ProofNode>>& pfns) {}
   /**
-   * Called when the clause n is added to the SAT solver, where n is
+   * Called when clause `n` is added to the SAT solver, where `n` is
    * (the CNF conversion of) a theory lemma.
    * @param n The theory lemma.
    */
   virtual void logTheoryLemma(const Node& n) {}
   /**
-   * Called when the clause n is added to the SAT solver, where pfn
+   * Called when clause `pfn` is added to the SAT solver, where `pfn`
    * is a closed proof of (the CNF conversion of) a theory lemma.
    * @param pfn The closed proof of a theory lemma.
    */
