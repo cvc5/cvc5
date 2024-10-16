@@ -802,8 +802,6 @@ void TheorySetsPrivate::checkQuantifiers()
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node p_x = p.substitute(variable, x);
       d_im.assertInference(p_x, InferenceId::SETS_FORALL, exp);
-      std::cout << "exp: " << exp << std::endl;
-      std::cout << "p_x: " << p_x << std::endl;
       if (d_state.isInConflict())
       {
         return;
@@ -828,8 +826,6 @@ void TheorySetsPrivate::checkQuantifiers()
     Node conclusion = memberA.andNode(p_k.notNode());
     conclusion = rewrite(conclusion);
     d_im.assertInference(conclusion, InferenceId::SETS_EXISTS, exp);
-    std::cout << "exp: " << exp << std::endl;
-    std::cout << "conclusion: " << conclusion << std::endl;
     if (d_state.isInConflict())
     {
       return;
