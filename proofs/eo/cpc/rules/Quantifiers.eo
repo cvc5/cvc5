@@ -124,6 +124,12 @@
 )
 
 ; program: $is_quant_miniscope_fv_body
+; args:
+; - F Bool: The first formula in question.
+; - G Bool: The second formula in question.
+; return: >
+;    True if and only if each disjunct if F is equal to the corresponding
+;    disjunct in G, modulo possible quantification in G.
 (program $is_quant_miniscope_fv_body ((f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   (Bool Bool) Bool
   (
