@@ -528,21 +528,32 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(CDProof* cdp, 
   Node q = eq[0];
   Assert (q.getKind()==Kind::FORALL);
   Node origBody = q[1];
+  std::unordered_set<Node> obvs(q[0].begin(), q[0].end());
   std::vector<Node> newBodyDisj;
   Assert (eq[1].getKind()==Kind::OR);
-  std::vector<Node> newVarList;
   for (const Node& d : eq[1])
   {
     if (d.getKind()==Kind::FORALL)
     {
-      newVarList.insert(newVarList.end(), d[0].begin(), d[0].end());
-      newBodyDisj.emplace_back(d[1]);
+      // corner case: if a nested quantified formula, it may have no relation
+      // to the original, in which case we treat it as a standalone literal
+      bool hasVar = false;
+      for (const Node& v : d[0])
+      {
+        if (obvs.find(v)!=obvs.end())
+        {
+          hasVar = true;
+          break;
+        }
+      }
+      if (hasVar)
+      {
+        newBodyDisj.emplace_back(d[1]);
+        continue;
+      }
     }
-    else
-    {
-      // handle the case where there are no variables
-      newBodyDisj.emplace_back(d);
-    }
+    // handle the case where there are no variables from the original
+    newBodyDisj.emplace_back(d);
   }
   std::vector<Node> transEq;
   Node newBody = nm->mkOr(newBodyDisj);
