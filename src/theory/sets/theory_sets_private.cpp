@@ -391,6 +391,14 @@ void TheorySetsPrivate::fullEffortCheck()
       continue;
     }
 
+    // check filter down rules
+    checkQuantifiers();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -764,6 +772,39 @@ void TheorySetsPrivate::checkFilterDown()
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node fact = memberA.andNode(p_x);
       d_im.assertInference(fact, InferenceId::SETS_FILTER_DOWN, exp);
+      if (d_state.isInConflict())
+      {
+        return;
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::checkQuantifiers()
+{
+  NodeManager* nm = nodeManager();
+  const std::vector<Node>& terms = d_state.getForallTerms();
+  for (const Node& term : terms)
+  {
+    TNode variable = term[0][0];
+    TNode A = term[1];
+    TNode p = term[2];
+    const std::map<Node, Node>& positiveMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
+    std::cout << "positiveMembers: " << positiveMembers << std::endl;
+    for (const std::pair<const Node, Node>& pair : positiveMembers)
+    {
+      std::vector<Node> exp;
+      Node B = pair.second[1];
+      exp.push_back(term);
+      exp.push_back(pair.second);
+      d_state.addEqualityToExp(B, A, exp);
+      Node x = pair.second[0];
+      Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
+      Node p_x = p.substitute(variable, x);
+      d_im.assertInference(p_x, InferenceId::SETS_FORALL, exp);
+      std::cout << "exp: " << exp << std::endl;
+      std::cout << "p_x: " << p_x << std::endl;
       if (d_state.isInConflict())
       {
         return;

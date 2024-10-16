@@ -58,6 +58,8 @@ void SolverState::reset()
   d_op_list.clear();
   d_allCompSets.clear();
   d_filterTerms.clear();
+  d_forallTerms.clear();
+  d_existsTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -147,6 +149,22 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
+  }
+  else if (nk == Kind::SET_FORALL)
+  {
+    if (polarityIndex == 0)
+    {
+      d_forallTerms.push_back(n);
+    }
+    else if (polarityIndex == 1)
+    {
+      d_existsTerms.push_back(n);
+    }
+
+    else
+    {
+      Assert(false);
+    }
   }
   else if (nk == Kind::SET_FILTER)
   {
@@ -493,6 +511,16 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 }
 
 const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+
+const std::vector<Node>& SolverState::getForallTerms() const
+{
+  return d_forallTerms;
+}
+
+const std::vector<Node>& SolverState::getExistsTerms() const
+{
+  return d_existsTerms;
+}
 
 const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
 
