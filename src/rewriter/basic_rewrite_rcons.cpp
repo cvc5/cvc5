@@ -606,7 +606,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   }
   Node newBody = nm->mkOr(newBodyDisj);
   Node eqb = origBody.eqNode(newBody);
-  // We first prove
+  // We now prove
   //   (forall X F) = (forall X F1 or ... or Fn)
   if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))
   {
