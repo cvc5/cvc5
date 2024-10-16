@@ -15,6 +15,7 @@
 
 #include "proof/alethe/alethe_node_converter.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_rule_checker.h"
@@ -229,8 +230,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::BUILTIN:
     case Kind::EQUAL:
     case Kind::DISTINCT:
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
     case Kind::SEXPR:
     case Kind::TYPE_CONSTANT:
     case Kind::RAW_SYMBOL:
@@ -403,6 +402,76 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::INST_PATTERN_LIST:
     {
       return n;
+    }
+    case Kind::BOUND_VARIABLE:
+    case Kind::VARIABLE:
+    {
+      // see if variable has a supported type. We need this check because in
+      // some problems involving unsupported theories there are no operators,
+      // just variables of unsupported type
+      TypeNode tn = n.getType();
+      Kind tnk = tn.getKind();
+      switch (tnk)
+      {
+        case Kind::SORT_TYPE:
+        case Kind::INSTANTIATED_SORT_TYPE:
+        case Kind::FUNCTION_TYPE:
+        case Kind::BITVECTOR_TYPE:
+        case Kind::ARRAY_TYPE:
+        case Kind::CONSTRUCTOR_TYPE:
+        case Kind::SELECTOR_TYPE:
+        case Kind::TESTER_TYPE:
+        case Kind::ASCRIPTION_TYPE:
+        {
+          return n;
+        }
+        default:
+        {
+          // The supported constant types
+          if (tnk == Kind::TYPE_CONSTANT)
+          {
+            switch (tn.getConst<TypeConstant>())
+            {
+              case TypeConstant::SEXPR_TYPE:
+              case TypeConstant::BOOLEAN_TYPE:
+              case TypeConstant::REAL_TYPE:
+              case TypeConstant::INTEGER_TYPE:
+              case TypeConstant::STRING_TYPE:
+              case TypeConstant::REGEXP_TYPE:
+              {
+                return n;
+              }
+              default:  // fallthrough to the error handling below
+                break;
+            }
+          }
+          // Only regular datatypes (parametric or not) are supported
+          else if (tn.isDatatype() && !tn.getDType().isCodatatype()
+                   && (tnk == Kind::DATATYPE_TYPE
+                       || tnk == Kind::PARAMETRIC_DATATYPE))
+          {
+            return n;
+          }
+          Trace("alethe-conv") << "AletheNodeConverter: ...unsupported type\n";
+          std::stringstream ss;
+          ss << "\"Proof unsupported by Alethe: contains ";
+          if (tnk == Kind::TYPE_CONSTANT)
+          {
+            ss << tn.getConst<TypeConstant>();
+          }
+          else if (tn.isDatatype())
+          {
+            ss << "non-standard datatype";
+          }
+          else
+          {
+            ss << tnk;
+          }
+          ss << "\"";
+          d_error = ss.str();
+          return Node::null();
+        }
+      }
     }
     default:
     {
