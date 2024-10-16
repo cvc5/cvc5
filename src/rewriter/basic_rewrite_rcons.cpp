@@ -521,26 +521,28 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(CDProof* cdp, const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
+    CDProof* cdp, const Node& eq)
 {
   NodeManager* nm = nodeManager();
-  Trace("brc-macro") << "Expand macro quant partition connected for " << eq << std::endl;
+  Trace("brc-macro") << "Expand macro quant partition connected for " << eq
+                     << std::endl;
   Node q = eq[0];
-  Assert (q.getKind()==Kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   Node origBody = q[1];
   std::unordered_set<Node> obvs(q[0].begin(), q[0].end());
   std::vector<Node> newBodyDisj;
-  Assert (eq[1].getKind()==Kind::OR);
+  Assert(eq[1].getKind() == Kind::OR);
   for (const Node& d : eq[1])
   {
-    if (d.getKind()==Kind::FORALL)
+    if (d.getKind() == Kind::FORALL)
     {
       // corner case: if a nested quantified formula, it may have no relation
       // to the original, in which case we treat it as a standalone literal
       bool hasVar = false;
       for (const Node& v : d[0])
       {
-        if (obvs.find(v)!=obvs.end())
+        if (obvs.find(v) != obvs.end())
         {
           hasVar = true;
           break;

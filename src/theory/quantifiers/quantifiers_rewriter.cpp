@@ -196,7 +196,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         // only do this rule if it is a proper split; otherwise it will be
         // subsumed by QUANT_UNUSED_VARS.
-        if (nret.getKind()==Kind::OR)
+        if (nret.getKind() == Kind::OR)
         {
           return nret;
         }
@@ -222,7 +222,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::vector<Node> dvs;
         for (const Node& v : n[0])
         {
-          if (fvs.find(v)!=fvs.end())
+          if (fvs.find(v) != fvs.end())
           {
             if (!varsUsed.insert(v).second)
             {
@@ -1736,10 +1736,10 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
       std::vector<Node>& evars = eqc_to_var[eqc];
       // for the sake of proofs, we provide the variables in the order
       // they appear in the original quantified formula
-      std::vector< Node > ovars;
+      std::vector<Node> ovars;
       for (const Node& v : args)
       {
-        if (std::find(evars.begin(), evars.end(), v)!=evars.end())
+        if (std::find(evars.begin(), evars.end(), v) != evars.end())
         {
           ovars.emplace_back(v);
         }
@@ -1875,7 +1875,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
-      Node ret = computeSplit( args, body, qa );
+      Node ret = computeSplit(args, body, qa);
       if (!ret.isNull())
       {
         return ret;
