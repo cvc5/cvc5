@@ -234,8 +234,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::QUANT_REORDER_VARS: return "quant-reorder-vars";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::DT_INST: return "dt-inst";

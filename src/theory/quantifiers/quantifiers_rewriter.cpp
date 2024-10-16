@@ -198,6 +198,45 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::OR)
+      {
+        return Node::null();
+      }
+      size_t nvars = n[0].getNumChildren();
+      size_t varIndex = 0;
+      std::vector<Node> disj;
+      for (const Node& d : n[1])
+      {
+        std::unordered_set<Node> fvs;
+        expr::getFreeVariables(d, fvs);
+        size_t prevVarIndex = varIndex;
+        // take the consecutive variables that are free variables of this
+        // disjunct
+        while (varIndex<nvars && fvs.find(n[0][varIndex])!=fvs.end())
+        {
+          varIndex++;
+        }
+        // fail if not all variables were found
+        if (fvs.size()!=(varIndex-prevVarIndex))
+        {
+          return Node::null();
+        }
+        std::vector<Node> dvs(n[0].begin()+prevVarIndex, n[0].begin()+varIndex);
+        if (dvs.empty())
+        {
+          disj.emplace_back(d);
+        }
+        else
+        {
+          Node bvl = d_nm->mkNode(Kind::BOUND_VAR_LIST, dvs);
+          disj.emplace_back(d_nm->mkNode(Kind::FORALL, bvl, d));
+        }
+      }
+      return d_nm->mkOr(disj);
+    }
+    break;
     default: break;
   }
   return Node::null();
@@ -1693,8 +1732,7 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
       lits.push_back(fa);
     }
     Assert(!lits.empty());
-    Node nf =
-        lits.size() == 1 ? lits[0] : nodeManager()->mkNode(Kind::OR, lits);
+    Node nf = nodeManager()->mkOr(lits);
     Trace("clause-split-debug") << "Made node : " << nf << std::endl;
     return nf;
   }

@@ -192,6 +192,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+      if (ensureProofMacroQuantPartitionConnectedFv(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -432,7 +438,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
                                                              const Node& eq)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand substring strip for " << eq << std::endl;
   Assert(eq.getKind() == Kind::EQUAL);
   Node lhs = eq[0];
@@ -512,6 +518,67 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(CDProof* cdp, const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand macro quant partition connected for " << eq << std::endl;
+  Node q = eq[0];
+  Assert (q.getKind()==Kind::FORALL);
+  Node origBody = q[1];
+  std::vector<Node> newBodyDisj;
+  Assert (eq[1].getKind()==Kind::OR);
+  std::vector<Node> newVarList;
+  for (const Node& d : eq[1])
+  {
+    if (d.getKind()==Kind::FORALL)
+    {
+      newVarList.insert(newVarList.end(), d[0].begin(), d[0].end());
+      newBodyDisj.emplace_back(d[1]);
+    }
+    else
+    {
+      // handle the case where there are no variables
+      newBodyDisj.emplace_back(d);
+    }
+  }
+  std::vector<Node> transEq;
+  Node newBody = nm->mkOr(newBodyDisj);
+  Node eqb = origBody.eqNode(newBody);
+  // To prove (forall X F) = (forall X1 F1) or ... or (forall Xn Fn):
+  // We first prove
+  //   (forall X F) = (forall X F1 or ... or Fn)
+  if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))
+  {
+    AlwaysAssert(false);
+    return false;
+  }
+  Node newQuant = nm->mkNode(Kind::FORALL, q[0], newBody);
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(q, cargs);
+  Node eqq = q.eqNode(newQuant);
+  cdp->addStep(eqq, cr, {eqb}, cargs);
+  transEq.emplace_back(eqq);
+  // Second, we check if the variables need to be reordered, in which
+  // case we use two alpha equivalence steps.
+  Node newBvl = nm->mkNode(Kind::BOUND_VAR_LIST, newVarList);
+  if (newBvl!=q[0])
+  {
+    
+  }
+  Node eqq2 = newQuant.eqNode(eq[1]);
+  // Then prove
+  //   (forall X F1 or ... or Fn) = (forall X1 F1) or ... or (forall Xn Fn)
+  // via ProofRewriteRule::QUANT_MINISCOPE_FV.
+  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_FV))
+  {
+    AlwaysAssert(false);
+    return false;
+  }
+  transEq.emplace_back(eqq2);
+  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
 

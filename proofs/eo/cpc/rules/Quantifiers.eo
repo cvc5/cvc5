@@ -80,3 +80,28 @@
   :requires ((($beta_reduce a @list.nil) b))
   :conclusion (= a b)
 )
+
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
+
+; program: $beta_reduce
+; args:
+; - u U: >
+;   The term to beta reduce. This should be an application of a lambda
+;   whose arguments have been partially accumulated into ss.
+; - ss @List: The accumulated list of arguments to pass to the lambda.
+; return: the result of beta reduction.
+
+
+; rule: quant-miniscope-fv
+; implements: ProofRewriteRule::QUANT_MINISCOPE_FV
+; args:
+; - eq Bool: The equality whose left hand side a quantified formula.
+; requires: >
+;   The right hand side of the equality is the result of miniscoping the left
+;   hand side.
+; conclusion: The given equality.
+(declare-rule quant-miniscope-fv ((x @list) (F Bool) (G Bool))
+  :args ((= (forall x F) G))
+  ;:requires ((($quant_miniscope_fv x F) G))
+  :conclusion (= (forall x F) G)
+)
