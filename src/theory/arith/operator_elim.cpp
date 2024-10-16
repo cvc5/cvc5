@@ -28,6 +28,7 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 
@@ -510,18 +511,30 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   }
   CDProof cdp(d_env);
   Node res = getAxiomFor(nodeManager(), tgt);
-  cdp.addStep(ProofRule::ARITH_OP_ELIM_AXIOM, {}, {tgt}, res);
+  cdp.addStep(res, ProofRule::ARITH_OP_ELIM_AXIOM, {}, {tgt});
+  bool success = false;
   if (res.getKind()==Kind::AND)
   {
-    bool success = false;
+    Assert (res.getNumChildren()==2);
     for (size_t i=0; i<2; i++)
     {
       if (res[i]==f)
       {
-        Node ni = nm->mkConstInt(i);
-        cdp.addStep(ProofRule::AND_ELIM, {res}, {ni}, f);
+        Node ni = nodeManager()->mkConstInt(i);
+        cdp.addStep(f, ProofRule::AND_ELIM, {res}, {ni});
+        success = true;
+        break;
       }
     }
+  }
+  else
+  {
+    success = (res==f);
+  }
+  Assert(success) << "arith::OperatorElim could not prove " << f;
+  if (!success)
+  {
+    return nullptr;
   }
   return cdp.getProofFor(f);
 }
