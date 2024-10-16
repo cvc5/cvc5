@@ -83,14 +83,44 @@
 
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
 
-; program: $beta_reduce
-; args:
-; - u U: >
-;   The term to beta reduce. This should be an application of a lambda
-;   whose arguments have been partially accumulated into ss.
-; - ss @List: The accumulated list of arguments to pass to the lambda.
-; return: the result of beta reduction.
+; program: $is_quant_miniscope_fv_var
+(program $is_quant_miniscope_fv_var ((T Type) (x T) (xs @List :list) (g Bool) (gs Bool :list) (b Bool))
+  (T Bool Bool) Bool
+  (
+  (($is_quant_miniscope_fv_var x (or g gs) b)   (eo::ite ($is_quant_bound x g)
+                                                  (eo::ite b
+                                                    false ; already bound by another disjunct
+                                                    ($is_quant_miniscope_fv_var x gs true))
+                                                  (eo::ite ($contains_subterm g x)
+                                                    false ; occurs free in this disjunct
+                                                    ($is_quant_miniscope_fv_var x gs b))))
+  (($is_quant_miniscope_fv_var x false b)       true)
+  )
+)
 
+; program: $is_quant_miniscope_fv_var_list
+(program $is_quant_miniscope_fv_var_list ((T Type) (x T) (xs @List :list) (G Bool))
+  (@List Bool) Bool
+  (
+  (($is_quant_miniscope_fv_var_list (@list x xs) G) (eo::ite ($is_quant_miniscope_fv_var x G false)
+                                                      ($is_quant_miniscope_fv_var_list xs G)
+                                                      false))
+  (($is_quant_miniscope_fv_var_list @list.nil G) true)
+  )
+)
+
+; program: $is_quant_miniscope_fv_body
+(program $is_quant_miniscope_fv_body ((f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
+  (Bool Bool) Bool
+  (
+  (($is_quant_miniscope_fv_body (or f fs) (or f gs))  ($is_quant_miniscope_fv_body fs gs))
+  (($is_quant_miniscope_fv_body (or f fs) (or g gs))  (eo::ite ($is_quant_body f g)
+                                                        ($is_quant_miniscope_fv_body fs gs)
+                                                        false))
+  (($is_quant_miniscope_fv_body false false)          true)
+  (($is_quant_miniscope_fv_body f g)                  false)
+  )
+)
 
 ; rule: quant-miniscope-fv
 ; implements: ProofRewriteRule::QUANT_MINISCOPE_FV
@@ -100,8 +130,8 @@
 ;   The right hand side of the equality is the result of miniscoping the left
 ;   hand side.
 ; conclusion: The given equality.
-(declare-rule quant-miniscope-fv ((x @list) (F Bool) (G Bool))
+(declare-rule quant-miniscope-fv ((x @List) (F Bool) (G Bool))
   :args ((= (forall x F) G))
-  ;:requires ((($quant_miniscope_fv x F) G))
+  :requires ((($is_quant_miniscope_fv_var_list x G) true) (($is_quant_miniscope_fv_body F G) true))
   :conclusion (= (forall x F) G)
 )
