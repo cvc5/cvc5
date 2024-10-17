@@ -230,8 +230,7 @@ class TheoryRewriter
    * The proof rewrite rules implemented by this rewriter, for each context.
    * This caches the calls to registerProofRewriteRule.
    */
-  std::map<TheoryRewriteCtx, std::unordered_set<ProofRewriteRule>>
-      d_pfTheoryRewrites;
+  std::map<TheoryRewriteCtx, std::vector<ProofRewriteRule>> d_pfTheoryRewrites;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
 };

@@ -99,7 +99,7 @@ ProofRewriteRule TheoryRewriter::findRule(const Node& a,
                                           const Node& b,
                                           TheoryRewriteCtx ctx)
 {
-  std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  std::vector<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
   for (ProofRewriteRule r : rules)
   {
     if (rewriteViaRule(r, a) == b)
@@ -113,12 +113,12 @@ ProofRewriteRule TheoryRewriter::findRule(const Node& a,
 void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
                                               TheoryRewriteCtx ctx)
 {
-  std::unordered_set<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
-  rules.insert(id);
+  std::vector<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  rules.push_back(id);
   // theory rewrites marked DSL_SUBCALL are also tried at PRE_DSL effort.
   if (ctx == TheoryRewriteCtx::DSL_SUBCALL)
   {
-    d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].insert(id);
+    d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].push_back(id);
   }
 }
 

@@ -17,6 +17,7 @@
 #include "rewriter/basic_rewrite_rcons.h"
 
 #include "expr/nary_term_util.h"
+#include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -188,6 +189,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
       break;
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       if (ensureProofMacroSubstrStripSymLength(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
+      if (ensureProofMacroQuantPartitionConnectedFv(cdp, eq))
       {
         handledMacro = true;
       }
@@ -432,7 +439,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
                                                              const Node& eq)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand substring strip for " << eq << std::endl;
   Assert(eq.getKind() == Kind::EQUAL);
   Node lhs = eq[0];
@@ -512,6 +519,110 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
+    CDProof* cdp, const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand macro quant partition connected for " << eq
+                     << std::endl;
+  Node q = eq[0];
+  Assert(q.getKind() == Kind::FORALL);
+  Node origBody = q[1];
+  std::unordered_set<Node> obvs(q[0].begin(), q[0].end());
+  std::vector<Node> newBodyDisj;
+  Assert(eq[1].getKind() == Kind::OR);
+  std::vector<Node> newVars;
+  for (const Node& d : eq[1])
+  {
+    if (d.getKind() == Kind::FORALL)
+    {
+      // Corner case: if a nested quantified formula, it may have no relation
+      // to the original, in which case we treat it as a standalone literal.
+      // We use hasSubterm to check for this.
+      if (!expr::hasSubterm(origBody, d))
+      {
+        newBodyDisj.emplace_back(d[1]);
+        for (const Node& v : d[0])
+        {
+          if (std::find(newVars.begin(), newVars.end(), v) == newVars.end())
+          {
+            newVars.emplace_back(v);
+          }
+          else
+          {
+            // variable was repeated
+            Assert(false);
+            return false;
+          }
+        }
+        continue;
+      }
+    }
+    // handle the case where there are no variables from the original
+    newBodyDisj.emplace_back(d);
+  }
+  std::vector<Node> transEq;
+  // To prove (forall X F) = (forall X1 F1) or ... or (forall Xn Fn),
+  // we first remove variables and reorder to ensure that X = X1 ... Xn.
+  if (newVars.size() < q[0].getNumChildren())
+  {
+    theory::Rewriter* rr = d_env.getRewriter();
+    Node uq = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, q);
+    if (uq.isNull())
+    {
+      return false;
+    }
+    Node eqqu = q.eqNode(uq);
+    if (!cdp->addTheoryRewriteStep(eqqu, ProofRewriteRule::QUANT_UNUSED_VARS))
+    {
+      Assert(false);
+      return false;
+    }
+    transEq.emplace_back(eqqu);
+    q = uq;
+  }
+  Node newVarList = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
+  if (newVarList != q[0])
+  {
+    Node rq = nm->mkNode(Kind::FORALL, newVarList, q[1]);
+    Node eqqr = q.eqNode(rq);
+    if (!cdp->addStep(eqqr, ProofRule::QUANT_VAR_REORDERING, {}, {eqqr}))
+    {
+      Assert(false);
+      return false;
+    }
+    transEq.emplace_back(eqqr);
+    q = rq;
+  }
+  Node newBody = nm->mkOr(newBodyDisj);
+  Node eqb = origBody.eqNode(newBody);
+  // We now prove
+  //   (forall X F) = (forall X F1 or ... or Fn)
+  if (!cdp->addStep(eqb, ProofRule::ACI_NORM, {}, {eqb}))
+  {
+    Assert(false);
+    return false;
+  }
+  Node newQuant = nm->mkNode(Kind::FORALL, q[0], newBody);
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(q, cargs);
+  Node eqq = q.eqNode(newQuant);
+  cdp->addStep(eqq, cr, {eqb}, cargs);
+  transEq.emplace_back(eqq);
+  Node eqq2 = newQuant.eqNode(eq[1]);
+  // Then prove
+  //   (forall X F1 or ... or Fn) = (forall X1 F1) or ... or (forall Xn Fn)
+  // via ProofRewriteRule::QUANT_MINISCOPE_FV.
+  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_FV))
+  {
+    Assert(false);
+    return false;
+  }
+  transEq.emplace_back(eqq2);
+  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
 
