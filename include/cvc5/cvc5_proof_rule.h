@@ -2481,6 +2481,15 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MINISCOPE_FV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Datatypes Split**
+   *
+   * .. math::
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_DT_SPLIT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro connected free variable partitioning**
    *
    * .. math::

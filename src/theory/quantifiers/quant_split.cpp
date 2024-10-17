@@ -23,12 +23,79 @@
 #include "theory/quantifiers/term_database.h"
 #include "util/rational.h"
 #include "expr/bound_var_manager.h"
+#include "proof/proof_generator.h"
+#include "proof/proof.h"
+#include "options/smt_options.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+/**
+ * A proof generator for quantifiers splitting inferences
+ */
+class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
+{
+ public:
+  QuantDSplitProofGenerator(Env& env) : EnvObj(env), d_index(userContext()) {}
+  virtual ~QuantDSplitProofGenerator() {}
+  /**
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override
+  {
+    CDProof cdp(d_env);
+    context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
+    if (it==d_index.end())
+    {
+      Assert (false) << "QuantDSplitProofGenerator failed to get proof";
+      return nullptr;
+    }
+    Assert (fact.getKind()==Kind::EQUAL && fact[0].getKind()==Kind::FORALL);
+    Node q = fact[0];
+    std::vector<Node> transEq;
+    if (it->second!=0)
+    {
+      // must reorder variables
+      std::vector<Node> newVars;
+      newVars.push_back( q[0][it->second]);
+      for (size_t i=0, nvars=q[0].getNumChildren(); i<nvars; i++)
+      {
+        if (i!=it->second)
+        {
+          newVars.emplace_back(q[0][i]);
+        }
+      }
+      std::vector<Node> qc(q.begin(), q.end());
+      NodeManager * nm = nodeManager();
+      qc[0] = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
+      Node qn = nm->mkNode(Kind::FORALL, qc);
+      Node eqq = q.eqNode(qn);
+      cdp.addStep(eqq, ProofRule::QUANT_VAR_REORDERING, {}, {eqq});
+      transEq.emplace_back(eqq);
+      q = qn;
+    }
+    Node eqq2 = q.eqNode(fact[1]);
+    cdp.addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_DT_SPLIT);
+    if (!transEq.empty())
+    {
+      transEq.emplace_back(eqq2);
+      cdp.addStep(fact, ProofRule::TRANS, transEq, {});
+    }    
+    return cdp.getProofFor(fact);
+  }
+  /** identify */
+  std::string identify() const override { return "QuantDSplitProofGenerator"; }
+  /** */
+  void notifyLemma(const Node& lem, size_t index)
+  {
+    d_index[lem] = index;
+  }
+private:
+  /** */
+  context::CDHashMap<Node, size_t> d_index;
+};
 
 /**
  * Attributes used for constructing bound variables in a canonical way. These
@@ -50,7 +117,9 @@ QuantDSplit::QuantDSplit(Env& env,
                          TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_quant_to_reduce(userContext()),
-      d_added_split(userContext())
+      d_added_split(userContext()),
+      d_pfgen(options().smt.produceProofs ? new QuantDSplitProofGenerator(d_env)
+                                          : nullptr)
 {
 }
 
@@ -159,7 +228,6 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   FirstOrderModel* m = d_treg.getModel();
-  std::vector<Node> lemmas;
   for (NodeIntMap::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
        ++it)
@@ -174,15 +242,15 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     {
       d_added_split.insert(q);
       Node qsplit = split(nodeManager(), q, it->second);
-      lemmas.push_back(q.eqNode(qsplit));
+      Node lem = q.eqNode(qsplit);
+      // must remember the variable index if proofs are enabled
+      if (d_pfgen!=nullptr)
+      {
+        d_pfgen->notifyLemma(lem, it->second);
+      }
+      Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
+      d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT, LemmaProperty::NONE, d_pfgen.get());
     }
-  }
-
-  // add lemmas to quantifiers engine
-  for (const Node& lem : lemmas)
-  {
-    Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
@@ -212,7 +280,7 @@ Node QuantDSplit::split(NodeManager * nm, const Node& q, size_t index)
     for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       TypeNode tns = dtjtn[k];
-      Node cacheVal = bvm->getCacheValue(q, q[0][index], varCount);
+      Node cacheVal = bvm->getCacheValue(q[1], q[0][index], varCount);
       varCount++;
       Node v = bvm->mkBoundVar<QDSplitVarAttribute>(cacheVal, tns);
       vars.push_back(v);

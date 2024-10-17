@@ -29,6 +29,8 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
+  
+class QuantDSplitProofGenerator;
 
 /** Quantifiers dynamic splitting
  *
@@ -75,6 +77,8 @@ class QuantDSplit : public QuantifiersModule {
   NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
+  /** Proof generator */
+  std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
 }
