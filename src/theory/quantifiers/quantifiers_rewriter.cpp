@@ -262,7 +262,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_DT_SPLIT:
     {
       // always runs split utility on the first variable
-      if (n.getKind()!=Kind::FORALL || !n[0][0].getType().isDatatype())
+      if (n.getKind() != Kind::FORALL || !n[0][0].getType().isDatatype())
       {
         return Node::null();
       }

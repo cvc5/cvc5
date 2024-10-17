@@ -15,17 +15,17 @@
 
 #include "theory/quantifiers/quant_split.h"
 
+#include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "util/rational.h"
-#include "expr/bound_var_manager.h"
-#include "proof/proof_generator.h"
-#include "proof/proof.h"
-#include "options/smt_options.h"
 
 using namespace cvc5::internal::kind;
 
@@ -47,28 +47,28 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   {
     CDProof cdp(d_env);
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
-    if (it==d_index.end())
+    if (it == d_index.end())
     {
-      Assert (false) << "QuantDSplitProofGenerator failed to get proof";
+      Assert(false) << "QuantDSplitProofGenerator failed to get proof";
       return nullptr;
     }
-    Assert (fact.getKind()==Kind::EQUAL && fact[0].getKind()==Kind::FORALL);
+    Assert(fact.getKind() == Kind::EQUAL && fact[0].getKind() == Kind::FORALL);
     Node q = fact[0];
     std::vector<Node> transEq;
-    if (it->second!=0)
+    if (it->second != 0)
     {
       // must reorder variables
       std::vector<Node> newVars;
-      newVars.push_back( q[0][it->second]);
-      for (size_t i=0, nvars=q[0].getNumChildren(); i<nvars; i++)
+      newVars.push_back(q[0][it->second]);
+      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
       {
-        if (i!=it->second)
+        if (i != it->second)
         {
           newVars.emplace_back(q[0][i]);
         }
       }
       std::vector<Node> qc(q.begin(), q.end());
-      NodeManager * nm = nodeManager();
+      NodeManager* nm = nodeManager();
       qc[0] = nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
       Node qn = nm->mkNode(Kind::FORALL, qc);
       Node eqq = q.eqNode(qn);
@@ -82,17 +82,15 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
     {
       transEq.emplace_back(eqq2);
       cdp.addStep(fact, ProofRule::TRANS, transEq, {});
-    }    
+    }
     return cdp.getProofFor(fact);
   }
   /** identify */
   std::string identify() const override { return "QuantDSplitProofGenerator"; }
   /** */
-  void notifyLemma(const Node& lem, size_t index)
-  {
-    d_index[lem] = index;
-  }
-private:
+  void notifyLemma(const Node& lem, size_t index) { d_index[lem] = index; }
+
+ private:
   /** */
   context::CDHashMap<Node, size_t> d_index;
 };
@@ -142,7 +140,8 @@ void QuantDSplit::checkOwnership(Node q)
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
-  for( size_t i=0, nvars = q[0].getNumChildren(); i<nvars; i++ ){
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
       bool isFinite = d_env.isFiniteType(tn);
@@ -244,18 +243,21 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       Node qsplit = split(nodeManager(), q, it->second);
       Node lem = q.eqNode(qsplit);
       // must remember the variable index if proofs are enabled
-      if (d_pfgen!=nullptr)
+      if (d_pfgen != nullptr)
       {
         d_pfgen->notifyLemma(lem, it->second);
       }
       Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-      d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT, LemmaProperty::NONE, d_pfgen.get());
+      d_qim.addPendingLemma(lem,
+                            InferenceId::QUANTIFIERS_DSPLIT,
+                            LemmaProperty::NONE,
+                            d_pfgen.get());
     }
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
-Node QuantDSplit::split(NodeManager * nm, const Node& q, size_t index)
+Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
 {
   std::vector<Node> bvs;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
