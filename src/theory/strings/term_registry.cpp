@@ -152,6 +152,21 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
           Kind::IMPLIES, t, nm->mkNode(Kind::STRING_LENGTH, t[0]).eqNode(len));
     }
   }
+  else if (tk == Kind::STRING_FROM_CODE)
+  {
+    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "kFromCode");
+    Node tc = t[0];
+    Node card = nm->mkConstInt(Rational(alphaCard));
+    Node cond = nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                           nm->mkNode(Kind::LT, tc, card));
+    Node emp = Word::mkEmptyWord(t.getType());
+    lemma = nm->mkNode(Kind::ITE,
+                       cond,
+                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
+                       k.eqNode(emp));
+  }
   return lemma;
 }
 
@@ -305,20 +320,7 @@ void TermRegistry::registerTermInternal(Node n)
     }
     if (doEagerReduce)
     {
-      Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
-      if (!eagerRedLemma.isNull())
-      {
-        // if there was an eager reduction, we make the trust node for it
-        if (d_epg != nullptr)
-        {
-          regTermLem = d_epg->mkTrustNode(
-              eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
-        }
-        else
-        {
-          regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
-        }
-      }
+      regTermLem = eagerReduceTrusted(n);
     }
   }
   if (!regTermLem.isNull())
@@ -329,6 +331,25 @@ void TermRegistry::registerTermInternal(Node n)
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
     d_im->trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
+}
+
+TrustNode TermRegistry::eagerReduceTrusted(const Node& n)
+{
+  TrustNode regTermLem;
+  Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
+  if (!eagerRedLemma.isNull())
+  {
+    if (d_epg != nullptr)
+    {
+      regTermLem = d_epg->mkTrustNode(
+          eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
+    }
+    else
+    {
+      regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+    }
+  }
+  return regTermLem;
 }
 
 void TermRegistry::registerType(TypeNode tn)

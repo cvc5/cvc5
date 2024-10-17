@@ -443,6 +443,18 @@
   )
 )
 
+; define: $str_eager_reduction_from_code
+; args:
+; - n Int: The argument of str.from_code.
+; return: the eager reduction predicate for (str.from_code n)
+(define $str_eager_reduction_from_code ((n Int))
+  (eo::define ((k (@purify (str.from_code n))))
+  (ite
+    (and (<= 0 n) (< n 196608))
+    (= n (str.to_code k))
+    (= k "")))
+)
+
 ; define: $str_eager_reduction_to_code
 ; args:
 ; - s (Seq U): The argument of str.to_code.
@@ -487,6 +499,7 @@
 (program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
   (
+    (($mk_str_eager_reduction (str.from_code x)) ($str_eager_reduction_from_code x))
     (($mk_str_eager_reduction (str.to_code x)) ($str_eager_reduction_to_code x))
     (($mk_str_eager_reduction (str.contains x y)) ($str_eager_reduction_contains x y))
     (($mk_str_eager_reduction (str.indexof x y n)) ($str_eager_reduction_indexof x y n))
