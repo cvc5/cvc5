@@ -1,0 +1,7 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(set-option :dag-thresh 0)
+(declare-const A (Set Int))
+(assert (not (set.is_empty A)))
+(assert (set.forall ((x Int)) A (set.exists ((y Int)) A (>= x y))))
+(check-sat)
