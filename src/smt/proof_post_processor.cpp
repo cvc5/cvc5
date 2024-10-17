@@ -967,6 +967,13 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Assert(res.isNull() || sumBounds == res);
     return sumBounds;
   }
+  else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON)
+  {
+    Node resc = theory::arith::expandMacroNlComparison(children, args, cdp);
+    Assert(!resc.isNull());
+    Assert(res.isNull() || resc == res);
+    return resc;
+  }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
     // get the arguments

@@ -140,11 +140,12 @@ void MonomialCheck::checkMagnitude(unsigned c)
         std::vector<Node> exp;
         NodeMultiset a_exp_proc;
         NodeMultiset b_exp_proc;
+        Node one = mkOne(a.getType());
         compareMonomial(a,
                         a,
                         a_exp_proc,
-                        d_data->d_one,
-                        d_data->d_one,
+                        one,
+                        one,
                         b_exp_proc,
                         exp,
                         lemmas,
@@ -434,10 +435,10 @@ bool MonomialCheck::compareMonomial(
       {
         proof = d_data->getProof();
         proof->addStep(conc, ProofRule::MACRO_ARITH_NL_COMPARISON, exp, {conc});
-        proof->addStep(lemma, ProofRule::SCOPE, {conc}, exp);
+        proof->addStep(clem, ProofRule::SCOPE, {conc}, exp);
       }
       lem.emplace_back(
-          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, nullptr);
+          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, proof);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -603,7 +604,8 @@ bool MonomialCheck::compareMonomial(
   {
     Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
     // try multiply b <= 1
-    exp.push_back(mkLit(d_data->d_one, bv, bvo == ovo ? 0 : 2, true));
+    Node one = mkOne(bv.getType());
+    exp.push_back(mkLit(one, bv, bvo == ovo ? 0 : 2, true));
     return compareMonomial(oa,
                            a,
                            a_index,

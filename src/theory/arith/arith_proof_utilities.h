@@ -62,6 +62,22 @@ Node expandMacroSumUb(const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
 
+/**
+ * Expand an instance of ProofRule::MACRO_ARITH_NL_COMPARSION.
+ * This adds steps to cdp that prove the same as an application of this rule,
+ * assuming that children are free assumptions.
+ *
+ * This method assumes that children and args are valid parameters to
+ * MACRO_ARITH_NL_COMPARSION.
+ *
+ * @param children The children of MACRO_ARITH_NL_COMPARSION.
+ * @param args The arguments of MACRO_ARITH_NL_COMPARSION.
+ * @param cdp The proof to add steps to.
+ * @return The conclusion of the proof rule.
+ */
+Node expandMacroNlComparison(const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
