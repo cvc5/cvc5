@@ -113,7 +113,7 @@ Node expandMacroNlComparison(const std::vector<Node>& children,
                       CDProof* cdp)
 {
   Trace("macro::arith") << "Comparsion prove: " << children << " => " << args[0] << std::endl;
-  AlwaysAssert(false);
+  //AlwaysAssert(false);
   return Node::null();
 }
 

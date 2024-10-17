@@ -140,12 +140,11 @@ void MonomialCheck::checkMagnitude(unsigned c)
         std::vector<Node> exp;
         NodeMultiset a_exp_proc;
         NodeMultiset b_exp_proc;
-        Node one = mkOne(a.getType());
         compareMonomial(a,
                         a,
                         a_exp_proc,
-                        one,
-                        one,
+                        d_data->d_one,
+                        d_data->d_one,
                         b_exp_proc,
                         exp,
                         lemmas,
