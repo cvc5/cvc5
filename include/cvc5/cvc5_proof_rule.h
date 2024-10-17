@@ -1352,15 +1352,14 @@ enum ENUM(ProofRule)
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Variable reordering **
+   * **Quantifiers -- Variable reordering**
    *
    * .. math::
    *
-   *   \inferrule{-\mid F = G}
-   *   {F = G}
+   *   \inferrule{-\mid (\forall X.\> F) = (\forall Y.\> F)}
+   *   {(\forall X.\> F) = (\forall Y.\> F)}
    * 
-   * where :math:`F` is `\forall X.\> H` and :math:`G` is :math:`\forall X.\> H`
-   * and :math:`Y` is a reordering of :math:`X`.
+   * where :math:`Y` is a reordering of :math:`X`.
    * 
    * \endverbatim
    */
@@ -2474,8 +2473,8 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
    * 
-   * where each variable in :math:`X` = :math:`X_1 \ldots X_n`, and the right
-   * hand side does not have any free variable in :math:`X`.
+   * where :math:`X = X_1 \ldots X_n`, and the right hand side does not have any
+   * free variable in :math:`X`.
    *
    * \endverbatim
    */
