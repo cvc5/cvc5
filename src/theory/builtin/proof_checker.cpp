@@ -473,7 +473,6 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Node rhs = d_rewriter->rewriteViaRule(di, args[1][0]);
     if (rhs.isNull() || rhs != args[1][1])
     {
-      AlwaysAssert(false) << rhs << " is not " << args[1][1] << std::endl;
       return Node::null();
     }
     return args[1];

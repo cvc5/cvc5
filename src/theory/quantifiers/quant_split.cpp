@@ -42,6 +42,16 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   QuantDSplitProofGenerator(Env& env) : EnvObj(env), d_index(userContext()) {}
   virtual ~QuantDSplitProofGenerator() {}
   /**
+   * Get proof for fact. This expects facts of the form
+   *    q = QuantDSplit::split(nm, q, n)
+   * We prove this by:
+   *    ------ QUANT_VAR_REORDERING ---------------------------- QUANT_DT_SPLIT
+   *    q = q'                      q' = QuantDSplit::split(nm, q', 0)
+   *    --------------------------------------------------------------- TRANS
+   *    q = QuantDSplit::split(nm, q, n)
+   *
+   * where the variables in q' is reordered from q such that the variable to
+   * split comes first.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
