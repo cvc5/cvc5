@@ -21,12 +21,27 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "util/rational.h"
+#include "expr/bound_var_manager.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+/**
+ * Attributes used for constructing bound variables in a canonical way. These
+ * are attributes that map to bound variable, introduced for the following
+ * purpose:
+ * - QDSplitVarAttribute: cached on (q, v, i) where QuantDSplit::split is called
+ * to split the variable v of q. We introduce bound variables, where the i^th
+ * variable created in that method is cached based on i.
+ */
+struct QDSplitVarAttributeId
+{
+};
+using QDSplitVarAttribute = expr::Attribute<QDSplitVarAttributeId, Node>;
 
 QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersState& qs,
@@ -58,7 +73,7 @@ void QuantDSplit::checkOwnership(Node q)
   bool doSplit = false;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+  for( size_t i=0, nvars = q[0].getNumChildren(); i<nvars; i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
       bool isFinite = d_env.isFiniteType(tn);
@@ -143,7 +158,6 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     return;
   }
   Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
-  NodeManager* nm = nodeManager();
   FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
   for (NodeIntMap::iterator it = d_quant_to_reduce.begin();
@@ -159,56 +173,8 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
     {
       d_added_split.insert(q);
-      std::vector<Node> bvs;
-      for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-      {
-        if (static_cast<int>(i) != it->second)
-        {
-          bvs.push_back(q[0][i]);
-        }
-      }
-      std::vector<Node> disj;
-      disj.push_back(q.negate());
-      TNode svar = q[0][it->second];
-      TypeNode tn = svar.getType();
-      Assert(tn.isDatatype());
-      std::vector<Node> cons;
-      const DType& dt = tn.getDType();
-      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
-      {
-        std::vector<Node> vars;
-        TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
-        Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
-        for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
-        {
-          TypeNode tns = dtjtn[k];
-          Node v = nm->mkBoundVar(tns);
-          vars.push_back(v);
-        }
-        std::vector<Node> bvs_cmb;
-        bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
-        bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-        Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
-        TNode ct = c;
-        Node body = q[1].substitute(svar, ct);
-        if (!bvs_cmb.empty())
-        {
-          Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs_cmb);
-          std::vector<Node> children;
-          children.push_back(bvl);
-          children.push_back(body);
-          if (q.getNumChildren() == 3)
-          {
-            Node ipls = q[2].substitute(svar, ct);
-            children.push_back(ipls);
-          }
-          body = nm->mkNode(Kind::FORALL, children);
-        }
-        cons.push_back(body);
-      }
-      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(Kind::AND, cons);
-      disj.push_back(conc);
-      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj));
+      Node qsplit = split(nodeManager(), q, it->second);
+      lemmas.push_back(q.eqNode(qsplit));
     }
   }
 
@@ -219,6 +185,60 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
     d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
+}
+
+Node QuantDSplit::split(NodeManager * nm, const Node& q, size_t index)
+{
+  std::vector<Node> bvs;
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    if (i != index)
+    {
+      bvs.push_back(q[0][i]);
+    }
+  }
+  TNode svar = q[0][index];
+  TypeNode tn = svar.getType();
+  Assert(tn.isDatatype());
+  std::vector<Node> cons;
+  const DType& dt = tn.getDType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  size_t varCount = 0;
+  for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+  {
+    std::vector<Node> vars;
+    TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
+    Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
+    for (size_t k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+    {
+      TypeNode tns = dtjtn[k];
+      Node cacheVal = bvm->getCacheValue(q, q[0][index], varCount);
+      varCount++;
+      Node v = bvm->mkBoundVar<QDSplitVarAttribute>(cacheVal, tns);
+      vars.push_back(v);
+    }
+    std::vector<Node> bvs_cmb;
+    bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
+    bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
+    Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
+    TNode ct = c;
+    Node body = q[1].substitute(svar, ct);
+    if (!bvs_cmb.empty())
+    {
+      Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs_cmb);
+      std::vector<Node> children;
+      children.push_back(bvl);
+      children.push_back(body);
+      if (q.getNumChildren() == 3)
+      {
+        Node ipls = q[2].substitute(svar, ct);
+        children.push_back(ipls);
+      }
+      body = nm->mkNode(Kind::FORALL, children);
+    }
+    cons.push_back(body);
+  }
+  return nm->mkAnd(cons);
 }
 
 }  // namespace quantifiers
