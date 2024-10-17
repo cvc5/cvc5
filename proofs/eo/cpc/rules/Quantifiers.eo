@@ -96,6 +96,7 @@
     :requires ((($nary_is_eq_set @list @list.nil x y) true))
     :conclusion (= (forall x F) (forall y F))
 )
+
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
 
 ; program: $is_quant_miniscope_fv
@@ -124,7 +125,7 @@
 ; rule: quant-miniscope-fv
 ; implements: ProofRewriteRule::QUANT_MINISCOPE_FV
 ; args:
-; - eq Bool: The equality whose left hand side a quantified formula.
+; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
 ;   The right hand side of the equality can be shown equivalent to the right
 ;   hand side based on reasoning about the disjuncts of F that contain x.
