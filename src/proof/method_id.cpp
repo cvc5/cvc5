@@ -28,6 +28,7 @@ const char* toString(MethodId id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
     case MethodId::RW_EXT_REWRITE: return "RW_EXT_REWRITE";
+    case MethodId::RW_EXT_REWRITE_AGG: return "RW_EXT_REWRITE_AGG";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
