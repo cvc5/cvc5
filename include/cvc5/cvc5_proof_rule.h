@@ -1890,7 +1890,7 @@ enum ENUM(ProofRule)
    * about the core operators of arithmetic.
    *
    * In detail, :math:`F` is implemented by
-   * \texttt{arith::OperatorElim::getAxiomFor(t)}, see
+   * :math:`\texttt{arith::OperatorElim::getAxiomFor(t)}`, see
    * :cvc5src:`theory/arith/operator_elim.h`.
    * \endverbatim
    */
