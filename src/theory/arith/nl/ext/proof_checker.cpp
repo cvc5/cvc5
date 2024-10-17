@@ -34,6 +34,7 @@ void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
   pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
+  pc->registerChecker(ProofRule::MACRO_ARITH_NL_COMPARISON, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(ProofRule id,
@@ -150,6 +151,10 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
             nm->mkNode(Kind::AND,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
+  }
+  else if (id ==ProofRule::MACRO_ARITH_NL_COMPARISON)
+  {
+    return args[0];
   }
   return Node::null();
 }

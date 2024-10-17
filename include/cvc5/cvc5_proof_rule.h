@@ -1830,6 +1830,13 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Non-linear comparison**
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_NL_COMPARISON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
    *
    * .. math::

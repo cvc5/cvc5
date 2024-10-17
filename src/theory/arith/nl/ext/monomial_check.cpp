@@ -425,9 +425,17 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
+      Node conc = mkLit(oa, ob, status, true);
       Node clem = nm->mkNode(
-          Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
+          Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, ProofRule::MACRO_ARITH_NL_COMPARISON, exp, {conc});
+        proof->addStep(lemma, ProofRule::SCOPE, {conc}, exp);
+      }
       lem.emplace_back(
           InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, nullptr);
       cmp_infers[status][oa][ob] = clem;
