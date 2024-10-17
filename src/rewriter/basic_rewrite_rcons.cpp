@@ -16,6 +16,7 @@
 
 #include "rewriter/basic_rewrite_rcons.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/nary_term_util.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
@@ -538,18 +539,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   {
     if (d.getKind() == Kind::FORALL)
     {
-      // corner case: if a nested quantified formula, it may have no relation
-      // to the original, in which case we treat it as a standalone literal
-      bool hasVar = false;
-      for (const Node& v : d[0])
-      {
-        if (obvs.find(v) != obvs.end())
-        {
-          hasVar = true;
-          break;
-        }
-      }
-      if (hasVar)
+      // Corner case: if a nested quantified formula, it may have no relation
+      // to the original, in which case we treat it as a standalone literal.
+      // We use hasSubterm to check for this.
+      if (!expr::hasSubterm(origBody, d))
       {
         newBodyDisj.emplace_back(d[1]);
         for (const Node& v : d[0])
