@@ -29,6 +29,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
@@ -108,6 +109,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
+  // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
+  // manual proof generation thus not registered here.
 }
 
 Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -192,10 +195,78 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> vars(n[0].begin(), n[0].end());
       Node body = n[1];
       Node nret = computeSplit(vars, body, qa);
-      if (nret != n)
+      if (!nret.isNull())
       {
-        return nret;
+        // only do this rule if it is a proper split; otherwise it will be
+        // subsumed by QUANT_UNUSED_VARS.
+        if (nret.getKind() == Kind::OR)
+        {
+          return nret;
+        }
       }
+    }
+    break;
+    case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::OR)
+      {
+        return Node::null();
+      }
+      size_t nvars = n[0].getNumChildren();
+      std::vector<Node> disj;
+      std::unordered_set<Node> varsUsed;
+      size_t varIndex = 0;
+      for (const Node& d : n[1])
+      {
+        // Note that we may apply to a nested quantified formula, in which
+        // case some variables in fvs may not be bound by this quantified
+        // formula.
+        std::unordered_set<Node> fvs;
+        expr::getFreeVariables(d, fvs);
+        size_t prevVarIndex = varIndex;
+        while (varIndex < nvars && fvs.find(n[0][varIndex]) != fvs.end())
+        {
+          varIndex++;
+        }
+        std::vector<Node> dvs(n[0].begin() + prevVarIndex,
+                              n[0].begin() + varIndex);
+        if (dvs.empty())
+        {
+          disj.emplace_back(d);
+        }
+        else
+        {
+          Node bvl = d_nm->mkNode(Kind::BOUND_VAR_LIST, dvs);
+          disj.emplace_back(d_nm->mkNode(Kind::FORALL, bvl, d));
+        }
+      }
+      // must consume all variables
+      if (varIndex != nvars)
+      {
+        return Node::null();
+      }
+      Node ret = d_nm->mkOr(disj);
+      // go back and ensure all variables are bound
+      std::unordered_set<Node> fvs;
+      expr::getFreeVariables(ret, fvs);
+      for (const Node& v : n[0])
+      {
+        if (fvs.find(v) != fvs.end())
+        {
+          return Node::null();
+        }
+      }
+      return ret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_DT_SPLIT:
+    {
+      // always runs split utility on the first variable
+      if (n.getKind() != Kind::FORALL || !n[0][0].getType().isDatatype())
+      {
+        return Node::null();
+      }
+      return QuantDSplit::split(nodeManager(), n, 0);
     }
     break;
     default: break;
@@ -1686,19 +1757,29 @@ Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
         }
         Trace("clause-split-debug") << std::endl;
       }
-      Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, eqc_to_var[eqc]);
+      std::vector<Node>& evars = eqc_to_var[eqc];
+      // for the sake of proofs, we provide the variables in the order
+      // they appear in the original quantified formula
+      std::vector<Node> ovars;
+      for (const Node& v : args)
+      {
+        if (std::find(evars.begin(), evars.end(), v) != evars.end())
+        {
+          ovars.emplace_back(v);
+        }
+      }
+      Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, ovars);
       Node bd = it->second.size() == 1 ? it->second[0]
                                        : nm->mkNode(Kind::OR, it->second);
       Node fa = nm->mkNode(Kind::FORALL, bvl, bd);
       lits.push_back(fa);
     }
     Assert(!lits.empty());
-    Node nf =
-        lits.size() == 1 ? lits[0] : nodeManager()->mkNode(Kind::OR, lits);
+    Node nf = nodeManager()->mkOr(lits);
     Trace("clause-split-debug") << "Made node : " << nf << std::endl;
     return nf;
   }
-  return mkForAll(args, body, qa);
+  return Node::null();
 }
 
 Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
@@ -1818,7 +1899,11 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
-      return computeSplit( args, body, qa );
+      Node ret = computeSplit(args, body, qa);
+      if (!ret.isNull())
+      {
+        return ret;
+      }
     }
   }
   else if (body.getKind() == Kind::NOT)
