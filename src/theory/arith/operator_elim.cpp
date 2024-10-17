@@ -499,7 +499,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   // This class provides proofs for two things:
   // (1) rewrites n --> nn during preprocessing,
   // (2) the axioms A added when rewriting n ---> nn.
-  // The proof rule ARITH_OP_ELIM_AXIOM proves things of the form:
+  // The proof rule ARITH_REDUCTION proves things of the form:
   //    (and (= n nn) A)
   // where A may be omitted. We first determine which case we are in (whether
   // being asked for a proof of a preprocessing rewrite or an axiom) and store
@@ -523,7 +523,7 @@ std::shared_ptr<ProofNode> OperatorElim::getProofFor(Node f)
   }
   CDProof cdp(d_env);
   Node res = getAxiomFor(nodeManager(), tgt);
-  cdp.addStep(res, ProofRule::ARITH_OP_ELIM_AXIOM, {}, {tgt});
+  cdp.addStep(res, ProofRule::ARITH_REDUCTION, {}, {tgt});
   bool success = false;
   // If the axiom was an AND, then the fact in question should be one of the
   // conjuncts, in which case we do an AND_ELIM step.
