@@ -161,13 +161,14 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> eproda;
     std::vector<Node> eprodb;
     Kind k = Kind::EQUAL;
-    std::vector<Node> deq;
+    std::unordered_set<Node> deqZero;
     for (const Node& c : children)
     {
       Kind ck = c.getKind();
-      if (ck == Kind::NOT && c[0].getKind() == Kind::EQUAL)
+      // it may be a disequality with zero
+      if (ck == Kind::NOT && c[0].getKind() == Kind::EQUAL && c[0][1].isConst() && c[0][1].getConst<Rational>().isZero())
       {
-        deq.emplace_back(c);
+        deqZero.insert(c[0][0]);
         continue;
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
@@ -191,7 +192,33 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-
+    // now ensure that the products align
+    std::sort(eproda.begin(), eproda.end());
+    std::sort(eprodb.begin(), eprodb.end());
+    std::sort(cproda.begin(), cproda.end());
+    std::sort(cprodb.begin(), cprodb.end());
+    std::map<Node, size_t> diffa;
+    if (!ArithNlCompareProofGenerator::diffProduct(cproda, eproda, diffa))
+    {
+      // explained monomomials are not a subset of the conclusion for LHS
+      return Node::null();
+    }
+    std::map<Node, size_t> diffb;
+    if (!ArithNlCompareProofGenerator::diffProduct(cprodb, eprodb, diffb))
+    {
+      // explained monomomials are not a subset of the conclusion for RHS
+      return Node::null();
+    }
+    if (diffa!=diffb)
+    {
+      // the conclusion is not a product of what was proven
+      return Node::null();
+    }
+    // variables must be non-zero if strict
+    if (k==Kind::GT || k==Kind::LT)
+    {
+      
+    }
     return args[0];
   }
   return Node::null();

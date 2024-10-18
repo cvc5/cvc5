@@ -423,7 +423,7 @@ bool MonomialCheck::compareMonomial(
           << "infer : " << oa << " <" << status << "> " << ob << std::endl;
       if (status == 2)
       {
-        // must state that all variables are non-zero
+        // must state that all variables are non-zero and not absolute
         for (const Node& v : vla)
         {
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
@@ -437,7 +437,7 @@ bool MonomialCheck::compareMonomial(
       Node conc = mkAndNotifyLit(oa, ob, status, true);
       Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      // use special proof generator
+      // use dedicated proof generator d_ancPfGen
       lem.emplace_back(InferenceId::ARITH_NL_COMPARISON,
                        clem,
                        LemmaProperty::NONE,

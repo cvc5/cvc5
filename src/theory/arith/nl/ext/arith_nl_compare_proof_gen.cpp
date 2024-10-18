@@ -69,7 +69,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     if (e != ec)
     {
       Node eeq = e.eqNode(ec);
-      cdp.addTrustedStep(eeq, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
+      Node eeqSym = ec.eqNode(e);
+      cdp.addTrustedStep(eeqSym, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
       cdp.addStep(ec, ProofRule::EQ_RESOLVE, {e, eeq}, {});
     }
     // add to product
@@ -166,15 +167,31 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
     {
       return Kind::UNDEFINED_KIND;
     }
-    a.emplace_back(lit[0][0]);
-    b.emplace_back(lit[1][0]);
+    addProduct(lit[0][0], a);
+    addProduct(lit[1][0], b);
   }
   else
   {
-    a.emplace_back(lit[0]);
-    b.emplace_back(lit[1]);
+    addProduct(lit[0], a);
+    addProduct(lit[1], b);
   }
   return k;
+}
+
+void ArithNlCompareProofGenerator::addProduct(const Node& n, std::vector<Node>& vec)
+{
+  if (n.getKind()==Kind::NONLINEAR_MULT)
+  {
+    vec.insert(vec.end(), n.begin(), n.end());
+  }
+  else if (n.isConst() && n.getConst<Rational>().isOne())
+  {
+    // do nothing
+  }
+  else
+  {
+    vec.emplace_back(n);
+  }
 }
 
 Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
@@ -202,6 +219,24 @@ Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
     return Kind::LT;
   }
   return Kind::UNDEFINED_KIND;
+}
+
+bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a, const std::vector<Node>& b, std::map<Node, size_t>& diff)
+{
+  size_t indexb = 0;
+  for (size_t i=0, nmona=a.size(); i<nmona; i++)
+  {
+    if (indexb<b.size() && b[indexb]==a[i])
+    {
+      indexb++;
+    }
+    else
+    {
+      diff[a[i]]++;
+    }
+  }
+  // success if we consumed all
+  return (indexb==b.size());
 }
 
 }  // namespace nl
