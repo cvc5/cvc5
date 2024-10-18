@@ -70,7 +70,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     {
       Node eeq = e.eqNode(ec);
       Node eeqSym = ec.eqNode(e);
-      cdp.addTrustedStep(eeqSym, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
+      cdp.addTrustedStep(
+          eeqSym, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
       cdp.addStep(ec, ProofRule::EQ_RESOLVE, {e, eeq}, {});
     }
     // add to product
@@ -83,9 +84,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   bool isAbs = (concc[0].getKind() == Kind::ABS);
   // reorder the explanation based on the order it appears in the conclusion
   std::vector<Node> expcOrdered;
-  size_t cprodIndex[2] = {0,0};
-  
-  
+  size_t cprodIndex[2] = {0, 0};
+
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
   ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
@@ -106,9 +106,10 @@ std::string ArithNlCompareProofGenerator::identify() const
   return "ArithNlCompareProofGenerator";
 }
 
-Node ensureReal(NodeManager * nm, const Node& n)
+Node ensureReal(NodeManager* nm, const Node& n)
 {
-  return n.isConst() ? nm->mkConstReal(n.getConst<Rational>()) : nm->mkNode(Kind::TO_REAL, n);
+  return n.isConst() ? nm->mkConstReal(n.getConst<Rational>())
+                     : nm->mkNode(Kind::TO_REAL, n);
 }
 
 Node ArithNlCompareProofGenerator::mkLit(
@@ -189,9 +190,10 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
   return k;
 }
 
-void ArithNlCompareProofGenerator::addProduct(const Node& n, std::vector<Node>& vec)
+void ArithNlCompareProofGenerator::addProduct(const Node& n,
+                                              std::vector<Node>& vec)
 {
-  if (n.getKind()==Kind::NONLINEAR_MULT)
+  if (n.getKind() == Kind::NONLINEAR_MULT)
   {
     vec.insert(vec.end(), n.begin(), n.end());
   }
@@ -232,12 +234,14 @@ Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
   return Kind::UNDEFINED_KIND;
 }
 
-bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a, const std::vector<Node>& b, std::map<Node, size_t>& diff)
+bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a,
+                                               const std::vector<Node>& b,
+                                               std::map<Node, size_t>& diff)
 {
   size_t indexb = 0;
-  for (size_t i=0, nmona=a.size(); i<nmona; i++)
+  for (size_t i = 0, nmona = a.size(); i < nmona; i++)
   {
-    if (indexb<b.size() && b[indexb]==a[i])
+    if (indexb < b.size() && b[indexb] == a[i])
     {
       indexb++;
     }
@@ -247,34 +251,44 @@ bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a, const
     }
   }
   // success if we consumed all
-  return (indexb==b.size());
+  return (indexb == b.size());
 }
 
-void ArithNlCompareProofGenerator::iterateWhile(const Node& a, const std::vector<Node>& avec, size_t& aindex)
+void ArithNlCompareProofGenerator::iterateWhile(const Node& a,
+                                                const std::vector<Node>& avec,
+                                                size_t& aindex)
 {
   size_t asize = avec.size();
-  while (aindex<asize && avec[aindex]==a)
+  while (aindex < asize && avec[aindex] == a)
   {
     aindex++;
   }
 }
-void ArithNlCompareProofGenerator::iterateWhileCmp(const Node& a, const std::vector<Node>& avec, size_t& aindex,
-                           const Node& b, const std::vector<Node>& bvec, size_t& bindex)
+void ArithNlCompareProofGenerator::iterateWhileCmp(
+    const Node& a,
+    const std::vector<Node>& avec,
+    size_t& aindex,
+    const Node& b,
+    const std::vector<Node>& bvec,
+    size_t& bindex)
 {
   size_t asize = avec.size();
   size_t bsize = bvec.size();
-  while (aindex<asize && bindex<bsize && avec[aindex]==a && bvec[bindex]==b)
+  while (aindex < asize && bindex < bsize && avec[aindex] == a
+         && bvec[bindex] == b)
   {
     aindex++;
     bindex++;
   }
 }
-void ArithNlCompareProofGenerator::iterateWhileEq(const std::vector<Node>& avec, size_t& aindex,
-                           const std::vector<Node>& bvec, size_t& bindex)
+void ArithNlCompareProofGenerator::iterateWhileEq(const std::vector<Node>& avec,
+                                                  size_t& aindex,
+                                                  const std::vector<Node>& bvec,
+                                                  size_t& bindex)
 {
   size_t asize = avec.size();
   size_t bsize = bvec.size();
-  while (aindex<asize && bindex<bsize && avec[aindex]==bvec[bindex])
+  while (aindex < asize && bindex < bsize && avec[aindex] == bvec[bindex])
   {
     aindex++;
     bindex++;

@@ -56,15 +56,25 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   /** */
   static void addProduct(const Node& n, std::vector<Node>& vec);
   /** */
-  static bool diffProduct(const std::vector<Node>& a, const std::vector<Node>& b, std::map<Node, size_t>& diff);
+  static bool diffProduct(const std::vector<Node>& a,
+                          const std::vector<Node>& b,
+                          std::map<Node, size_t>& diff);
   /** */
-  static void iterateWhile(const Node& a, const std::vector<Node>& avec, size_t& index);
+  static void iterateWhile(const Node& a,
+                           const std::vector<Node>& avec,
+                           size_t& index);
   /** */
-  static void iterateWhileCmp(const Node& a, const std::vector<Node>& avec, size_t& aindex,
-                           const Node& b, const std::vector<Node>& bvec, size_t& bindex);
+  static void iterateWhileCmp(const Node& a,
+                              const std::vector<Node>& avec,
+                              size_t& aindex,
+                              const Node& b,
+                              const std::vector<Node>& bvec,
+                              size_t& bindex);
   /** */
-  static void iterateWhileEq(const std::vector<Node>& avec, size_t& aindex,
-                           const std::vector<Node>& bvec, size_t& bindex);
+  static void iterateWhileEq(const std::vector<Node>& avec,
+                             size_t& aindex,
+                             const std::vector<Node>& bvec,
+                             size_t& bindex);
 };
 
 }  // namespace nl
