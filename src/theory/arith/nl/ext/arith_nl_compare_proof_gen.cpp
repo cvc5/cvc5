@@ -55,13 +55,14 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   // get the expected form of the literals
   CDProof cdp(d_env);
   std::vector<Node> expc;
+  std::vector<Node> deq;
   for (const Node& e : exp)
   {
     Node ec = getCompareLit(e);
     if (ec.isNull())
     {
       // not a comparison literal, likely a disequality to zero
-      expc.emplace_back(e);
+      deq.emplace_back(e);
       continue;
     }
     expc.emplace_back(ec);
@@ -82,10 +83,10 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Assert(!concc.isNull());
   Assert(concc.getNumChildren() == 2);
   bool isAbs = (concc[0].getKind() == Kind::ABS);
-  // reorder the explanation based on the order it appears in the conclusion
-  std::vector<Node> expcOrdered;
-  size_t cprodIndex[2] = {0, 0};
-
+  // TODO: reorder the explanation based on the order it appears in the conclusion
+  
+  // add the disequalities, which can appear in any order
+  expc.insert(expc.end(), deq.begin(), deq.end());
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
   ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
