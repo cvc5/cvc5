@@ -731,23 +731,24 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
   }
 }
 
-Node MonomialCheck::mkAndNotifyLit(Node a, Node b, int status, bool isAbsolute) const
+Node MonomialCheck::mkAndNotifyLit(Node a,
+                                   Node b,
+                                   int status,
+                                   bool isAbsolute) const
 {
   Node ret = mkLit(a, b, status, isAbsolute);
   // if proofs are enabled, we ensure we remember what the literal represents
   if (d_ancPfGen != nullptr)
   {
     Kind k;
-    switch(status)
+    switch (status)
     {
-      case 0: k = Kind::EQUAL;break;
-      case 1: k = Kind::GEQ;break;
-      case 2: k = Kind::GT;break;
-      case -1: k = Kind::LEQ;break;
-      case -2: k = Kind::LT;break;
-      default:
-        Unhandled() << "Unknown status " << status;
-        break;
+      case 0: k = Kind::EQUAL; break;
+      case 1: k = Kind::GEQ; break;
+      case 2: k = Kind::GT; break;
+      case -1: k = Kind::LEQ; break;
+      case -2: k = Kind::LT; break;
+      default: Unhandled() << "Unknown status " << status; break;
     }
     NodeManager* nm = nodeManager();
     ArithNlCompareProofGenerator::setCompareLit(nm, ret, k, a, b, isAbsolute);

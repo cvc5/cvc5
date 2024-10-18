@@ -179,10 +179,13 @@ class MonomialCheck : protected EnvObj
                       NodeMultiset& d_order,
                       bool isConcrete,
                       bool isAbsolute);
-  /** 
+  /**
    * Make and notify literal. If proofs are enabled
    */
-  Node mkAndNotifyLit(Node a, Node b, int status, bool isAbsolute = false) const;
+  Node mkAndNotifyLit(Node a,
+                      Node b,
+                      int status,
+                      bool isAbsolute = false) const;
   /**
    * Make literal that compares (the absolute value of) a and b based on
    * status.

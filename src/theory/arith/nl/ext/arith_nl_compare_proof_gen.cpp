@@ -24,11 +24,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
-  
+
 Node mkProduct(NodeManager* nm, const std::vector<Node>& c)
 {
-  Assert (!c.empty());
-  return c.size()==1 ? c[0] : nm->mkNode(Kind::NONLINEAR_MULT, c);
+  Assert(!c.empty());
+  return c.size() == 1 ? c[0] : nm->mkNode(Kind::NONLINEAR_MULT, c);
 }
 
 ArithNlCompareProofGenerator::ArithNlCompareProofGenerator(Env& env)
@@ -73,15 +73,16 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       cdp.addStep(ec, ProofRule::EQ_RESOLVE, {e, eeq}, {});
     }
     // add to product
-    Assert (ec.getNumChildren()==2);
+    Assert(ec.getNumChildren() == 2);
   }
   Node concc = getCompareLit(conc);
   Assert(!concc.isNull());
-  Assert (concc.getNumChildren()==2);
-  bool isAbs = (concc[0].getKind()==Kind::ABS);
+  Assert(concc.getNumChildren() == 2);
+  bool isAbs = (concc[0].getKind() == Kind::ABS);
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
-  ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON : ProofRule::MACRO_ARITH_NL_COMPARISON;
+  ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
+                       : ProofRule::MACRO_ARITH_NL_COMPARISON;
   cdp.addStep(concc, pr, expc, {concc});
   if (conc != concc)
   {
@@ -103,7 +104,7 @@ Node ArithNlCompareProofGenerator::mkLit(
 {
   Node au = a;
   Node bu = b;
-  if (k == Kind::EQUAL && au.getType()!=bu.getType())
+  if (k == Kind::EQUAL && au.getType() != bu.getType())
   {
     // must resolve subtype issues here
     if (au.getType().isInteger())

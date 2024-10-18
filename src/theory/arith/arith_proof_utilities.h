@@ -69,7 +69,7 @@ Node expandMacroSumUb(const std::vector<Node>& children,
  *
  * This method assumes that children and args are valid parameters to
  * MACRO_ARITH_NL_COMPARSION.
- * 
+ *
  * Also handles MACRO_ARITH_NL_ABS_COMPARSION when isAbs is true.
  *
  * @param children The children of MACRO_ARITH_NL_(ABS_)COMPARSION.

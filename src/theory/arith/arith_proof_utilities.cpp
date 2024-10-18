@@ -110,7 +110,8 @@ Node expandMacroSumUb(const std::vector<Node>& children,
 
 Node expandMacroNlComparison(const std::vector<Node>& children,
                              const std::vector<Node>& args,
-                             CDProof* cdp, bool isAbs)
+                             CDProof* cdp,
+                             bool isAbs)
 {
   Trace("macro::arith") << "Comparsion prove: " << children << " => " << args[0]
                         << std::endl;
