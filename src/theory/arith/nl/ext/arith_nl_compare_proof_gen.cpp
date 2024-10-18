@@ -149,16 +149,20 @@ Node ArithNlCompareProofGenerator::getCompareLit(const Node& olit)
   return olit.getAttribute(ancla);
 }
 
-Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit, bool isAbsolute, std::vector<Node>& a, std::vector<Node>& b)
+Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
+                                                       bool isAbsolute,
+                                                       std::vector<Node>& a,
+                                                       std::vector<Node>& b)
 {
   Kind k = lit.getKind();
-  if (k!=Kind::EQUAL && k!=Kind::GT && k!=Kind::GEQ && k!=Kind::LT && k!=Kind::LEQ)
+  if (k != Kind::EQUAL && k != Kind::GT && k != Kind::GEQ && k != Kind::LT
+      && k != Kind::LEQ)
   {
     return Kind::UNDEFINED_KIND;
   }
   if (isAbsolute)
   {
-    if (lit[0].getKind()!=Kind::ABS || lit[1].getKind()!=Kind::ABS)
+    if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)
     {
       return Kind::UNDEFINED_KIND;
     }
@@ -175,28 +179,29 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit, bool isA
 
 Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
 {
-  if (k2==Kind::EQUAL)
+  if (k2 == Kind::EQUAL)
   {
     return k1;
   }
-  if (k1==Kind::EQUAL)
+  if (k1 == Kind::EQUAL)
   {
     return k2;
   }
-  if (k1==k2)
+  if (k1 == k2)
   {
     return k1;
   }
-  if ((k1==Kind::GT && k2==Kind::GEQ) || (k2==Kind::GT && k1==Kind::GEQ))
+  if ((k1 == Kind::GT && k2 == Kind::GEQ)
+      || (k2 == Kind::GT && k1 == Kind::GEQ))
   {
-    return Kind::GT ;
+    return Kind::GT;
   }
-  else 
-  if ((k1==Kind::LT && k2==Kind::LEQ) || (k2==Kind::LT && k1==Kind::LEQ))
+  else if ((k1 == Kind::LT && k2 == Kind::LEQ)
+           || (k2 == Kind::LT && k1 == Kind::LEQ))
   {
     return Kind::LT;
   }
-  return Kind::UNDEFINED_KIND;  
+  return Kind::UNDEFINED_KIND;
 }
 
 }  // namespace nl

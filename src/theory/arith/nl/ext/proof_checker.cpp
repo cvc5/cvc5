@@ -165,32 +165,33 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     for (const Node& c : children)
     {
       Kind ck = c.getKind();
-      if (ck==Kind::NOT && c[0].getKind()==Kind::EQUAL)
+      if (ck == Kind::NOT && c[0].getKind() == Kind::EQUAL)
       {
         deq.emplace_back(c);
         continue;
       }
-      ck = ArithNlCompareProofGenerator::decomposeCompareLit(c, isAbs, eproda, eprodb);
-      if (ck==Kind::UNDEFINED_KIND)
+      ck = ArithNlCompareProofGenerator::decomposeCompareLit(
+          c, isAbs, eproda, eprodb);
+      if (ck == Kind::UNDEFINED_KIND)
       {
         return Node::null();
       }
       // combine the implied relation
       k = ArithNlCompareProofGenerator::combineRelation(k, ck);
-      if (k==Kind::UNDEFINED_KIND)
+      if (k == Kind::UNDEFINED_KIND)
       {
         return Node::null();
       }
     }
     std::vector<Node> cproda;
     std::vector<Node> cprodb;
-    Kind ck = ArithNlCompareProofGenerator::decomposeCompareLit(args[0], isAbs, cproda, cprodb);
-    if (ck!=k)
+    Kind ck = ArithNlCompareProofGenerator::decomposeCompareLit(
+        args[0], isAbs, cproda, cprodb);
+    if (ck != k)
     {
       return Node::null();
     }
-    
-    
+
     return args[0];
   }
   return Node::null();

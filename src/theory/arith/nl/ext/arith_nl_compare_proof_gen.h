@@ -47,7 +47,10 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   /** */
   static Node getCompareLit(const Node& olit);
   /** */
-  static Kind decomposeCompareLit(const Node& lit, bool isAbsolute, std::vector<Node>& a, std::vector<Node>& b);
+  static Kind decomposeCompareLit(const Node& lit,
+                                  bool isAbsolute,
+                                  std::vector<Node>& a,
+                                  std::vector<Node>& b);
   /** */
   static Kind combineRelation(Kind k1, Kind k2);
 };
