@@ -312,6 +312,7 @@ Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
   return Kind::UNDEFINED_KIND;
 }
 
+/*
 bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a,
                                                const std::vector<Node>& b,
                                                std::map<Node, size_t>& diff)
@@ -372,6 +373,7 @@ void ArithNlCompareProofGenerator::iterateWhileEq(const std::vector<Node>& avec,
     bindex++;
   }
 }
+*/
 
 }  // namespace nl
 }  // namespace arith
