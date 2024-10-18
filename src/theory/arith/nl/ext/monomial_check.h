@@ -20,6 +20,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
+#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -74,6 +75,8 @@ class MonomialCheck : protected EnvObj
    */
   void checkMagnitude(unsigned c);
 
+  /** Make literal */
+  static Node mkLit(NodeManager* nm, Node a, Node b, int status, bool isAbsolute = false);
  private:
   /** In the following functions, status states a relationship
    * between two arithmetic terms, where:
@@ -175,8 +178,6 @@ class MonomialCheck : protected EnvObj
                       NodeMultiset& d_order,
                       bool isConcrete,
                       bool isAbsolute);
-  /** Make literal */
-  Node mkLit(Node a, Node b, int status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
@@ -191,6 +192,8 @@ class MonomialCheck : protected EnvObj
   // list of monomials with factors whose model value is non-constant in model
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
+  /** A proof generator for MACRO_ARITH_NL_COMPARISON steps */
+  std::shared_ptr<ArithNlCompareProofGenerator> d_ancPfGen;
 };
 
 }  // namespace nl

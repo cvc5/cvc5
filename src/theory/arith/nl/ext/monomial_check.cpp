@@ -31,7 +31,7 @@ namespace arith {
 namespace nl {
 
 MonomialCheck::MonomialCheck(Env& env, ExtState* data)
-    : EnvObj(env), d_data(data)
+    : EnvObj(env), d_data(data), d_ancPfGen(env.isTheoryProofProducing() ? new ArithNlCompareProofGenerator(env) : nullptr)
 {
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);
@@ -304,7 +304,7 @@ int MonomialCheck::compareSign(
     if (mvaoa.getConst<Rational>().sgn() != status)
     {
       Node zero = mkZero(oa.getType());
-      Node lemma = nm->mkAnd(exp).impNode(mkLit(oa, zero, status * 2));
+      Node lemma = nm->mkAnd(exp).impNode(mkLit(nm, oa, zero, status * 2));
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
@@ -425,19 +425,18 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
-      Node conc = mkLit(oa, ob, status, true);
+      Node cob = ob;
+      if (ob==d_data->d_one)
+      {
+        cob = mkOne(oa.getType());
+      }
+      Node conc = mkLit(nm, oa, ob, status, true);
       Node clem = nm->mkNode(
           Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      CDProof* proof = nullptr;
-      if (d_data->isProofEnabled())
-      {
-        proof = d_data->getProof();
-        proof->addStep(conc, ProofRule::MACRO_ARITH_NL_COMPARISON, exp, {conc});
-        proof->addStep(clem, ProofRule::SCOPE, {conc}, exp);
-      }
+      // use special proof generator
       lem.emplace_back(
-          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, proof);
+          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, d_ancPfGen.get());
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -512,7 +511,7 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
       // can multiply b by <=1
       Node one = mkOne(bv.getType());
-      exp.push_back(mkLit(one, bv, bvo == ovo ? 0 : 2, true));
+      exp.push_back(mkLit(nm, one, bv, bvo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index,
@@ -537,7 +536,7 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // can multiply a by >=1
       Node one = mkOne(av.getType());
-      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
+      exp.push_back(mkLit(nm, av, one, avo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -563,7 +562,7 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // do avo>=1 instead
       Node one = mkOne(av.getType());
-      exp.push_back(mkLit(av, one, avo == ovo ? 0 : 2, true));
+      exp.push_back(mkLit(nm, av, one, avo == ovo ? 0 : 2, true));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -582,7 +581,7 @@ bool MonomialCheck::compareMonomial(
     b_exp_proc[bv] += min_exp;
     Trace("nl-ext-comp-debug") << "...take leading " << min_exp << " from "
                                << av << " and " << bv << std::endl;
-    exp.push_back(mkLit(av, bv, avo == bvo ? 0 : 2, true));
+    exp.push_back(mkLit(nm, av, bv, avo == bvo ? 0 : 2, true));
     bool ret = compareMonomial(oa,
                                a,
                                a_index,
@@ -604,7 +603,7 @@ bool MonomialCheck::compareMonomial(
     Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
     // try multiply b <= 1
     Node one = mkOne(bv.getType());
-    exp.push_back(mkLit(one, bv, bvo == ovo ? 0 : 2, true));
+    exp.push_back(mkLit(nm, one, bv, bvo == ovo ? 0 : 2, true));
     return compareMonomial(oa,
                            a,
                            a_index,
@@ -726,9 +725,9 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
     order_index++;
   }
 }
-Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
+
+Node MonomialCheck::mkLit(NodeManager* nm, Node a, Node b, int status, bool isAbsolute)
 {
-  NodeManager* nm = nodeManager();
   Assert(a.getType().isRealOrInt() && b.getType().isRealOrInt());
   if (status == 0)
   {
@@ -742,7 +741,7 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   }
   else if (status < 0)
   {
-    return mkLit(b, a, -status);
+    return mkLit(nm, b, a, -status);
   }
   Assert(status == 1 || status == 2);
   Kind greater_op = status == 1 ? Kind::GEQ : Kind::GT;
@@ -750,7 +749,6 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
   {
     return nm->mkNode(greater_op, a, b);
   }
-  // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
   Node zero = mkZero(a.getType());
   Node a_is_nonnegative = nm->mkNode(Kind::GEQ, a, zero);
   Node b_is_nonnegative = nm->mkNode(Kind::GEQ, b, zero);
