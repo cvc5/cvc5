@@ -18,9 +18,9 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
-#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -77,6 +77,7 @@ class MonomialCheck : protected EnvObj
 
   /** Make literal */
   static Node mkLit(NodeManager* nm, Kind k, Node a, Node b, bool isAbsolute);
+
  private:
   /** In the following functions, status states a relationship
    * between two arithmetic terms, where:

@@ -158,7 +158,8 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_RE_ELIM: return "MACRO_RE_ELIM";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
-    case ProofRule::MACRO_ARITH_NL_COMPARISON: return "MACRO_ARITH_NL_COMPARISON";
+    case ProofRule::MACRO_ARITH_NL_COMPARISON:
+      return "MACRO_ARITH_NL_COMPARISON";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
     case ProofRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case ProofRule::INT_TIGHT_LB: return "INT_TIGHT_LB";

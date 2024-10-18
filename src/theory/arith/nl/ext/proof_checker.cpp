@@ -152,7 +152,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
-  else if (id ==ProofRule::MACRO_ARITH_NL_COMPARISON)
+  else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON)
   {
     return args[0];
   }

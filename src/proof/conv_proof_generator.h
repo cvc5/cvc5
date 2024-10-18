@@ -174,12 +174,12 @@ class TConvProofGenerator : protected EnvObj, public ProofGenerator
                       uint32_t tctx = 0);
   /** Same as above, but with a trusted step */
   void addTrustedRewriteStep(Node t,
-                      Node s,
-                      TrustId id,
-                      const std::vector<Node>& children,
-                      const std::vector<Node>& args,
-                      bool isPre = false,
-                      uint32_t tctx = 0);
+                             Node s,
+                             TrustId id,
+                             const std::vector<Node>& children,
+                             const std::vector<Node>& args,
+                             bool isPre = false,
+                             uint32_t tctx = 0);
   /** Has rewrite step for term t */
   bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /**

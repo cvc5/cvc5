@@ -76,8 +76,8 @@ Node expandMacroSumUb(const std::vector<Node>& children,
  * @return The conclusion of the proof rule.
  */
 Node expandMacroNlComparison(const std::vector<Node>& children,
-                      const std::vector<Node>& args,
-                      CDProof* cdp);
+                             const std::vector<Node>& args,
+                             CDProof* cdp);
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

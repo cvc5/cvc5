@@ -16,8 +16,8 @@
 #ifndef CVC5__THEORY__ARITH__NL__EXT__ARITH_NL_COMPARE_PROOF_GEN_H
 #define CVC5__THEORY__ARITH__NL__EXT__ARITH_NL_COMPARE_PROOF_GEN_H
 
-#include "smt/env_obj.h"
 #include "proof/proof_generator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -26,7 +26,7 @@ namespace nl {
 
 class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
 {
-public:
+ public:
   ArithNlCompareProofGenerator(Env& env);
   virtual ~ArithNlCompareProofGenerator();
   /**
@@ -35,9 +35,15 @@ public:
   /** identify */
   std::string identify() const override;
   /** Make literal */
-  static Node mkLit(NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute);
+  static Node mkLit(
+      NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute);
   /** */
-  static void setCompareLit(NodeManager* nm, Node olit, Kind k, const Node& a, const Node& b, bool isAbsolute);
+  static void setCompareLit(NodeManager* nm,
+                            Node olit,
+                            Kind k,
+                            const Node& a,
+                            const Node& b,
+                            bool isAbsolute);
   /** */
   static Node getCompareLit(const Node& olit);
 };

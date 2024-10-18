@@ -31,7 +31,11 @@ namespace arith {
 namespace nl {
 
 MonomialCheck::MonomialCheck(Env& env, ExtState* data)
-    : EnvObj(env), d_data(data), d_ancPfGen(env.isTheoryProofProducing() ? new ArithNlCompareProofGenerator(env) : nullptr)
+    : EnvObj(env),
+      d_data(data),
+      d_ancPfGen(env.isTheoryProofProducing()
+                     ? new ArithNlCompareProofGenerator(env)
+                     : nullptr)
 {
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);
@@ -426,17 +430,18 @@ bool MonomialCheck::compareMonomial(
         }
       }
       Node cob = ob;
-      if (ob==d_data->d_one)
+      if (ob == d_data->d_one)
       {
         cob = mkOne(oa.getType());
       }
       Node conc = mkLit(oa, ob, status, true);
-      Node clem = nm->mkNode(
-          Kind::IMPLIES, nm->mkAnd(exp), conc);
+      Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       // use special proof generator
-      lem.emplace_back(
-          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, d_ancPfGen.get());
+      lem.emplace_back(InferenceId::ARITH_NL_COMPARISON,
+                       clem,
+                       LemmaProperty::NONE,
+                       d_ancPfGen.get());
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -728,8 +733,8 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
 
 Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
 {
-  NodeManager * nm = nodeManager();
-  if (status<0)
+  NodeManager* nm = nodeManager();
+  if (status < 0)
   {
     status = -status;
     Node tmp = a;
@@ -770,13 +775,13 @@ Node MonomialCheck::mkLit(Node a, Node b, int status, bool isAbsolute) const
       Node negate_b = nm->mkNode(Kind::NEG, b);
       ret = a_is_nonnegative.iteNode(
           b_is_nonnegative.iteNode(nm->mkNode(k, a, b),
-                                  nm->mkNode(k, a, negate_b)),
+                                   nm->mkNode(k, a, negate_b)),
           b_is_nonnegative.iteNode(nm->mkNode(k, negate_a, b),
-                                  nm->mkNode(k, negate_a, negate_b)));
+                                   nm->mkNode(k, negate_a, negate_b)));
     }
   }
   // if proofs are enabled, we ensure we remember what the literal represents
-  if (d_ancPfGen!=nullptr)
+  if (d_ancPfGen != nullptr)
   {
     ArithNlCompareProofGenerator::setCompareLit(nm, ret, k, a, b, isAbsolute);
   }

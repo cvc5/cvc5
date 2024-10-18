@@ -15,24 +15,27 @@
 
 #include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/nl/ext/monomial_check.h"
 #include "expr/attribute.h"
 #include "proof/proof.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/monomial_check.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-ArithNlCompareProofGenerator::ArithNlCompareProofGenerator(Env& env) : EnvObj(env) {}
+ArithNlCompareProofGenerator::ArithNlCompareProofGenerator(Env& env)
+    : EnvObj(env)
+{
+}
 ArithNlCompareProofGenerator::~ArithNlCompareProofGenerator() {}
 
 std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
 {
-  Assert (fact.getKind()==Kind::IMPLIES);
+  Assert(fact.getKind() == Kind::IMPLIES);
   std::vector<Node> exp;
-  if (fact[0].getKind()==Kind::AND)
+  if (fact[0].getKind() == Kind::AND)
   {
     exp.insert(exp.end(), fact[0].begin(), fact[0].end());
   }
@@ -41,7 +44,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     exp.emplace_back(fact[0]);
   }
   Node conc = fact[1];
-  Trace("arith-nl-compare") << "Comparsion prove: " << exp << " => " << conc << std::endl;
+  Trace("arith-nl-compare")
+      << "Comparsion prove: " << exp << " => " << conc << std::endl;
   // get the expected form of the literals
   CDProof cdp(d_env);
   std::vector<Node> expc;
@@ -54,7 +58,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       continue;
     }
     expc.emplace_back(ec);
-    if (e!=ec)
+    if (e != ec)
     {
       Node eeq = e.eqNode(ec);
       cdp.addTrustedStep(eeq, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
@@ -62,10 +66,11 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     }
   }
   Node concc = getCompareLit(conc);
-  Assert (!concc.isNull());  
-  Trace("arith-nl-compare") << "...processed prove: " << expc << " => " << concc << std::endl;
+  Assert(!concc.isNull());
+  Trace("arith-nl-compare")
+      << "...processed prove: " << expc << " => " << concc << std::endl;
   cdp.addStep(concc, ProofRule::MACRO_ARITH_NL_COMPARISON, expc, {concc});
-  if (conc!=concc)
+  if (conc != concc)
   {
     Node ceq = concc.eqNode(conc);
     cdp.addTrustedStep(ceq, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
@@ -76,9 +81,13 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
-std::string ArithNlCompareProofGenerator::identify() const { return "ArithNlCompareProofGenerator"; }
+std::string ArithNlCompareProofGenerator::identify() const
+{
+  return "ArithNlCompareProofGenerator";
+}
 
-Node ArithNlCompareProofGenerator::mkLit(NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute)
+Node ArithNlCompareProofGenerator::mkLit(
+    NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute)
 {
   Node au = a;
   Node bu = b;
@@ -87,7 +96,7 @@ Node ArithNlCompareProofGenerator::mkLit(NodeManager* nm, Kind k, const Node& a,
     au = nm->mkNode(Kind::ABS, au);
     bu = nm->mkNode(Kind::ABS, bu);
   }
-  if (k==Kind::EQUAL)
+  if (k == Kind::EQUAL)
   {
     return mkEquality(au, bu);
   }
@@ -97,9 +106,15 @@ Node ArithNlCompareProofGenerator::mkLit(NodeManager* nm, Kind k, const Node& a,
 struct ArithNlCompareLitAttributeId
 {
 };
-using ArithNlCompareLitAttribute = expr::Attribute<ArithNlCompareLitAttributeId, Node>;
+using ArithNlCompareLitAttribute =
+    expr::Attribute<ArithNlCompareLitAttributeId, Node>;
 
-void ArithNlCompareProofGenerator::setCompareLit(NodeManager* nm, Node olit, Kind k, const Node& a, const Node& b, bool isAbsolute)
+void ArithNlCompareProofGenerator::setCompareLit(NodeManager* nm,
+                                                 Node olit,
+                                                 Kind k,
+                                                 const Node& a,
+                                                 const Node& b,
+                                                 bool isAbsolute)
 {
   Node lit = mkLit(nm, k, a, b, isAbsolute);
   ArithNlCompareLitAttribute ancla;
@@ -116,4 +131,3 @@ Node ArithNlCompareProofGenerator::getCompareLit(const Node& olit)
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
-
