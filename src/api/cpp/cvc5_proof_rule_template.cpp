@@ -128,6 +128,7 @@ const char* toString(ProofRule rule)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case ProofRule::QUANT_VAR_REORDERING: return "QUANT_VAR_REORDERING";
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
@@ -236,6 +237,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::DT_INST: return "dt-inst";

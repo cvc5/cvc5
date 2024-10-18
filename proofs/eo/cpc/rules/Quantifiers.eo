@@ -80,3 +80,62 @@
   :requires ((($beta_reduce a @list.nil) b))
   :conclusion (= a b)
 )
+
+;;;;; ProofRule::QUANT_VAR_REORDERING
+
+; rule: quant_var_reordering
+; implements: ProofRule::QUANT_VAR_REORDERING
+; premises:
+; - C1: The clause to reorder.
+; args:
+; - C2 Bool: The desired reordered form of C1.
+; requires: Showing that C1 can be reordered to obtain C2.
+; conclusion: The desired clause C2.
+; note: >
+;   The implementation here does not check for duplication of variables in
+;   x and y. The internal proof checker in cvc5 ensures this rule is never
+;   applied with duplication of variables.
+(declare-rule quant_var_reordering ((x @List) (y @List) (F Bool))
+    :args ((= (forall x F) (forall y F)))
+    :requires ((($nary_is_eq_set @list @list.nil x y) true))
+    :conclusion (= (forall x F) (forall y F))
+)
+
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
+
+; program: $is_quant_miniscope_fv
+; args:
+; - x @List: The list of variables of the first formula we have yet to process
+; - F Bool: The body of the first formula in question.
+; - G Bool: The second formula in question.
+; return: >
+;    True if (forall x F) is equivalent to G based on miniscope reasoning with
+;    free variables.
+(program $is_quant_miniscope_fv ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
+  (@List Bool Bool) Bool
+  (
+  (($is_quant_miniscope_fv x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_fv x fs gs)))
+  (($is_quant_miniscope_fv x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_fv x fs gs)))
+  (($is_quant_miniscope_fv (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
+                                                                      (eo::requires ($contains_subterm gs x) false
+                                                                        ($is_quant_miniscope_fv xs (or f fs) (or (forall ys f) gs))))
+  (($is_quant_miniscope_fv @list.nil false false)                     true)
+  (($is_quant_miniscope_fv x f g)                                     false)
+  )
+)
+
+; rule: quant-miniscope-fv
+; implements: ProofRewriteRule::QUANT_MINISCOPE_FV
+; args:
+; - eq Bool: The equality whose left hand side is a quantified formula.
+; requires: >
+;   The right hand side of the equality can be shown equivalent to the right
+;   hand side based on reasoning about the disjuncts of F that contain x.
+; conclusion: The given equality.
+(declare-rule quant-miniscope-fv ((x @List) (F Bool) (G Bool))
+  :args ((= (forall x F) G))
+  :requires ((($is_quant_miniscope_fv x F G) true))
+  :conclusion (= (forall x F) G)
+)
