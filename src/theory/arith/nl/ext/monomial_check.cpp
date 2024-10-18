@@ -434,7 +434,7 @@ bool MonomialCheck::compareMonomial(
       {
         cob = mkOne(oa.getType());
       }
-      Node conc = mkAndNotifyLit(oa, ob, status, true);
+      Node conc = mkAndNotifyLit(oa, cob, status, true);
       Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       // use dedicated proof generator d_ancPfGen
