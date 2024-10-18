@@ -1818,7 +1818,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
-      return computeSplit( args, body, qa );
+      return computeSplit(args, body, qa);
     }
   }
   else if (body.getKind() == Kind::NOT)

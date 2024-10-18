@@ -62,7 +62,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     if (ec.isNull())
     {
       // not a comparison literal, likely a disequality to zero
-      Assert (e.getKind()==Kind::NOT && e[0].getKind()==Kind::EQUAL && e[0][1].isConst() && e[0][1].getConst<Rational>().isZero());
+      Assert(e.getKind() == Kind::NOT && e[0].getKind() == Kind::EQUAL
+             && e[0][1].isConst() && e[0][1].getConst<Rational>().isZero());
       deq[e[0][0]] = e;
       continue;
     }
@@ -88,9 +89,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Kind ck = decomposeCompareLit(concc, isAbs, cprod[0], cprod[1]);
   // convert to counts
   std::map<Node, size_t> mexp[2];
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    std::vector<Node>& cpi = cprod[i]; 
+    std::vector<Node>& cpi = cprod[i];
     std::map<Node, size_t>& mi = mexp[i];
     for (const Node& p : cpi)
     {
@@ -98,36 +99,36 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     }
   }
   // reorder the conclusion based on the explanation
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   std::vector<Node> cprodt[2];
   for (const Node& e : expc)
   {
     std::vector<Node> eprod[2];
     decomposeCompareLit(e, isAbs, eprod[0], eprod[1]);
-    Assert (eprod[0].size()<=1 && eprod[1].size()<=1);
-    for (size_t i=0; i<2; i++)
+    Assert(eprod[0].size() <= 1 && eprod[1].size() <= 1);
+    for (size_t i = 0; i < 2; i++)
     {
       if (eprod[i].empty())
       {
-        size_t ii = 1-i;
+        size_t ii = 1 - i;
         Node a = eprod[ii][0];
         std::vector<Node> vec;
         vec.resize(mexp[ii][a], a);
-        Assert (!vec.empty());
+        Assert(!vec.empty());
         cprodt[i].emplace_back(mkOne(a.getType()));
         cprodt[ii].emplace_back(mkProduct(nm, vec));
         mexp[ii].erase(a);
         break;
       }
-      else if (i==1)
+      else if (i == 1)
       {
         // both non-empty, take min
         Node a = eprod[0][0];
         Node b = eprod[1][0];
         size_t na = mexp[0][a];
         size_t nb = mexp[1][b];
-        size_t n = na>nb ? nb : na;
-        for (size_t j=0; j<2; j++)
+        size_t n = na > nb ? nb : na;
+        for (size_t j = 0; j < 2; j++)
         {
           const Node& c = eprod[j][0];
           std::vector<Node> vec;
@@ -141,7 +142,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   // now get the leftover factors
   for (const std::pair<const Node, size_t>& m : mexp[0])
   {
-    if (m.second>0)
+    if (m.second > 0)
     {
       std::vector<Node> vec;
       vec.resize(m.second, m.first);
@@ -155,9 +156,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     }
   }
   // TODO: go back and guard zeroes
-  for (size_t i=0, nexp=expc.size(); i<nexp; i++)
+  for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
   {
-    
   }
   Node opa = mkProduct(nm, cprodt[0]);
   Node opb = mkProduct(nm, cprodt[1]);
@@ -165,12 +165,12 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
   Trace("arith-nl-compare")
-  << "...grouped conclusion is " << newConc << std::endl;
+      << "...grouped conclusion is " << newConc << std::endl;
   ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
                        : ProofRule::MACRO_ARITH_NL_COMPARISON;
   cdp.addStep(newConc, pr, expc, {newConc});
   // the grouped literal should be equivalent by rewriting
-  if (newConc!=concc)
+  if (newConc != concc)
   {
     cdp.addStep(concc, ProofRule::MACRO_SR_PRED_TRANSFORM, {newConc}, {concc});
   }

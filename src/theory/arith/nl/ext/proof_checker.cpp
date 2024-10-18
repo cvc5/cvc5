@@ -163,22 +163,22 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> cprod[2];
     Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
         args[0], isAbs, cprod[0], cprod[1]);
-    if (conck==Kind::UNDEFINED_KIND)
+    if (conck == Kind::UNDEFINED_KIND)
     {
       return Node::null();
     }
-    if (children.size()==1)
+    if (children.size() == 1)
     {
       // handle singleton case
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         size_t csize = cprod[i].size();
-        if (csize==1)
+        if (csize == 1)
         {
           continue;
         }
         Node p;
-        if (csize>1)
+        if (csize > 1)
         {
           p = nm->mkNode(Kind::NONLINEAR_MULT, cprod[i]);
         }
@@ -190,7 +190,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         cprod[i].emplace_back(p);
       }
     }
-    if (cprod[0].size()!=cprod[1].size())
+    if (cprod[0].size() != cprod[1].size())
     {
       return Node::null();
     }
@@ -203,11 +203,12 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       Kind ck = c.getKind();
       Node zeroGuard;
       Node lit = c;
-      if (ck==Kind::AND)
+      if (ck == Kind::AND)
       {
         Node g = c[1];
         // it may be a disequality with zero
-        if (c.getNumChildren()==2 && g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
+        if (c.getNumChildren() == 2 && g.getKind() == Kind::NOT
+            && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
             && g[0][1].getConst<Rational>().isZero())
         {
           lit = c[0];
@@ -220,12 +221,12 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
           lit, isAbs, eprod[0], eprod[1]);
-      if (eprod[0].size()>1 || eprod[1].size()>1)
+      if (eprod[0].size() > 1 || eprod[1].size() > 1)
       {
         return Node::null();
       }
       // guarded zero disequality should be for LHS
-      if (!zeroGuard.isNull() && (eprod[0].empty() || zeroGuard!=eprod[0][0]))
+      if (!zeroGuard.isNull() && (eprod[0].empty() || zeroGuard != eprod[0][0]))
       {
         return Node::null();
       }
@@ -234,7 +235,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       // check if we have guarded for zero
-      if (ck!=Kind::LT && ck!=Kind::GT && zeroGuard.isNull())
+      if (ck != Kind::LT && ck != Kind::GT && zeroGuard.isNull())
       {
         allZeroGuards = false;
       }
@@ -244,7 +245,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      if (cindex>=cprod[0].size())
+      if (cindex >= cprod[0].size())
       {
         return Node::null();
       }
@@ -264,26 +265,26 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         }
         const Node& ef = eprod[j][0];
         size_t exponentj = 0;
-        if (ef==cf)
+        if (ef == cf)
         {
           exponentj = 1;
         }
-        else if (cf.getKind()==Kind::NONLINEAR_MULT)
+        else if (cf.getKind() == Kind::NONLINEAR_MULT)
         {
           for (const Node& ccf : cf)
           {
-            if (ccf!=ef)
+            if (ccf != ef)
             {
               return Node::null();
             }
           }
           exponentj = cf.getNumChildren();
         }
-        if (exponent==0)
+        if (exponent == 0)
         {
           exponent = exponentj;
         }
-        else if (exponent!=exponentj)
+        else if (exponent != exponentj)
         {
           // exponents don't match
           return Node::null();
