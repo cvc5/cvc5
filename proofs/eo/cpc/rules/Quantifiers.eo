@@ -91,6 +91,10 @@
 ; - C2 Bool: The desired reordered form of C1.
 ; requires: Showing that C1 can be reordered to obtain C2.
 ; conclusion: The desired clause C2.
+; note: >
+;   The implementation here does not check for duplication of variables in
+;   x and y. The internal proof checker in cvc5 ensures this rule is never
+;   applied with duplication of variables.
 (declare-rule quant_var_reordering ((x @List) (y @List) (F Bool))
     :args ((= (forall x F) (forall y F)))
     :requires ((($nary_is_eq_set @list @list.nil x y) true))
