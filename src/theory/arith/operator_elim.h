@@ -132,9 +132,6 @@ class OperatorElim : protected EnvObj, public ProofGenerator
    *
    * By default, this returns the term f( n ), where f is the Skolem function
    * for the identifier asi.
-   *
-   * If the option arithNoPartialFun is enabled, this returns f, where f is
-   * the Skolem constant for the identifier asi.
    */
   static Node getArithSkolemApp(NodeManager* nm, Node n, SkolemId asi);
 };
