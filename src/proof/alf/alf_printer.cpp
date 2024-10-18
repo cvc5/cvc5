@@ -24,6 +24,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
+#include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/alf/alf_dependent_type_converter.h"
@@ -31,6 +32,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 
@@ -216,8 +218,13 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_CONTAINS || k == Kind::STRING_TO_CODE
-             || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
+      if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
+      {
+        // must use standard alphabet size
+        return options().strings.stringsAlphaCard == String::num_codes();
+      }
+      return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+             || k == Kind::STRING_IN_REGEXP;
     }
     break;
     //
