@@ -76,10 +76,16 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     // add to product
     Assert(ec.getNumChildren() == 2);
   }
+  // reorder the explanation based on the order it appears in the conclusion
   Node concc = getCompareLit(conc);
   Assert(!concc.isNull());
   Assert(concc.getNumChildren() == 2);
   bool isAbs = (concc[0].getKind() == Kind::ABS);
+  // reorder the explanation based on the order it appears in the conclusion
+  std::vector<Node> expcOrdered;
+  size_t cprodIndex[2] = {0,0};
+  
+  
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
   ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
@@ -242,6 +248,37 @@ bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a, const
   }
   // success if we consumed all
   return (indexb==b.size());
+}
+
+void ArithNlCompareProofGenerator::iterateWhile(const Node& a, const std::vector<Node>& avec, size_t& aindex)
+{
+  size_t asize = avec.size();
+  while (aindex<asize && avec[aindex]==a)
+  {
+    aindex++;
+  }
+}
+void ArithNlCompareProofGenerator::iterateWhileCmp(const Node& a, const std::vector<Node>& avec, size_t& aindex,
+                           const Node& b, const std::vector<Node>& bvec, size_t& bindex)
+{
+  size_t asize = avec.size();
+  size_t bsize = bvec.size();
+  while (aindex<asize && bindex<bsize && avec[aindex]==a && bvec[bindex]==b)
+  {
+    aindex++;
+    bindex++;
+  }
+}
+void ArithNlCompareProofGenerator::iterateWhileEq(const std::vector<Node>& avec, size_t& aindex,
+                           const std::vector<Node>& bvec, size_t& bindex)
+{
+  size_t asize = avec.size();
+  size_t bsize = bvec.size();
+  while (aindex<asize && bindex<bsize && avec[aindex]==bvec[bindex])
+  {
+    aindex++;
+    bindex++;
+  }
 }
 
 }  // namespace nl

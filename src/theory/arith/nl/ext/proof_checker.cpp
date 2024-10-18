@@ -157,13 +157,19 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON
            || id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
   {
+    Assert (args.size()==1);
     bool isAbs = (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
-    std::vector<Node> eproda;
-    std::vector<Node> eprodb;
+    // decompose the conclusion first
+    std::vector<Node> cprod[2];
+    Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
+        args[0], isAbs, cprod[0], cprod[1]);
+    
     Kind k = Kind::EQUAL;
     std::unordered_set<Node> deqZero;
+    size_t cindex[2] = {0,0};
     for (const Node& c : children)
     {
+      std::vector<Node> eprod[2];
       Kind ck = c.getKind();
       // it may be a disequality with zero
       if (ck == Kind::NOT && c[0].getKind() == Kind::EQUAL && c[0][1].isConst() && c[0][1].getConst<Rational>().isZero())
@@ -172,7 +178,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         continue;
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
-          c, isAbs, eproda, eprodb);
+          c, isAbs, eprod[0], eprod[1]);
       if (ck == Kind::UNDEFINED_KIND)
       {
         return Node::null();
@@ -183,17 +189,43 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
+      // iterate on the products of the conclusion
+      // ensure we advance the products of common factors
+      ArithNlCompareProofGenerator::iterateWhileEq(cprod[0], cindex[0], cprod[1], cindex[1]);
+      // now iterate based on the current
+      for (size_t j=0; j<2; j++)
+      {
+        if (eprod[j].empty())
+        {
+          size_t jj = 1-j;
+          Assert (!eprod[jj].empty());
+          // iterate the other
+          Node a = eprod[jj][0];
+          ArithNlCompareProofGenerator::iterateWhile(a, cprod[jj], cindex[jj]);
+          break;
+        }
+        if (j==1)
+        {
+          Node a = eprod[0][0];
+          Node b = eprod[1][0];
+          // iterate both simultaneously
+          ArithNlCompareProofGenerator::iterateWhileCmp(a, cprod[0], cindex[0], b, cprod[1], cindex[1]);
+        }
+      }
+      
     }
-    std::vector<Node> cproda;
-    std::vector<Node> cprodb;
-    Kind ck = ArithNlCompareProofGenerator::decomposeCompareLit(
-        args[0], isAbs, cproda, cprodb);
-    if (ck != k)
+    if (conck != k)
+    {
+      // conclusion does not match the implied relation
+      return Node::null();
+    }
+    // remaining common factors
+    ArithNlCompareProofGenerator::iterateWhileEq(cprod[0], cindex[0], cprod[1], cindex[1]);
+    if (cindex[0]!=cprod[0].size() || cindex[1]!=cprod[1].size())
     {
       return Node::null();
     }
-    // FIXME
-    return args[0];
+    /*
     // now ensure that the products align
     std::sort(eproda.begin(), eproda.end());
     std::sort(eprodb.begin(), eprodb.end());
@@ -221,6 +253,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       
     }
+    */
     return args[0];
   }
   return Node::null();

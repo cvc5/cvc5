@@ -83,14 +83,12 @@ void ExtState::init(const std::vector<Node>& xts)
   }
 
   // register constants
-  Node rone = nodeManager()->mkConstReal(Rational(1));
-  d_mdb.registerMonomial(rone);
+  d_mdb.registerMonomial(d_one);
 
   // register variables
   Trace("nl-ext-mv") << "Variables in monomials : " << std::endl;
-  for (unsigned i = 0; i < d_ms_vars.size(); i++)
+  for (const Node& v : d_ms_vars)
   {
-    Node v = d_ms_vars[i];
     d_mdb.registerMonomial(v);
     d_model.computeConcreteModelValue(v);
     d_model.computeAbstractModelValue(v);
