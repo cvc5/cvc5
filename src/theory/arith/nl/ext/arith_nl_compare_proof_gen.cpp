@@ -24,6 +24,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
+  
+Node mkProduct(NodeManager* nm, const std::vector<Node>& c)
+{
+  Assert (!c.empty());
+  return c.size()==1 ? c[0] : nm->mkNode(Kind::NONLINEAR_MULT, c);
+}
 
 ArithNlCompareProofGenerator::ArithNlCompareProofGenerator(Env& env)
     : EnvObj(env)
@@ -54,22 +60,29 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     Node ec = getCompareLit(e);
     if (ec.isNull())
     {
+      // not a comparison literal, likely a disequality to zero
       expc.emplace_back(e);
       continue;
     }
     expc.emplace_back(ec);
+    // a comparsion literal
     if (e != ec)
     {
       Node eeq = e.eqNode(ec);
       cdp.addTrustedStep(eeq, TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM, {}, {});
       cdp.addStep(ec, ProofRule::EQ_RESOLVE, {e, eeq}, {});
     }
+    // add to product
+    Assert (ec.getNumChildren()==2);
   }
   Node concc = getCompareLit(conc);
   Assert(!concc.isNull());
+  Assert (concc.getNumChildren()==2);
+  bool isAbs = (concc[0].getKind()==Kind::ABS);
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
-  cdp.addStep(concc, ProofRule::MACRO_ARITH_NL_COMPARISON, expc, {concc});
+  ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON : ProofRule::MACRO_ARITH_NL_COMPARISON;
+  cdp.addStep(concc, pr, expc, {concc});
   if (conc != concc)
   {
     Node ceq = concc.eqNode(conc);
@@ -77,7 +90,6 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     cdp.addStep(conc, ProofRule::EQ_RESOLVE, {concc, ceq}, {});
   }
   cdp.addStep(fact, ProofRule::SCOPE, {conc}, exp);
-  AlwaysAssert(false);
   return cdp.getProofFor(fact);
 }
 
@@ -91,14 +103,23 @@ Node ArithNlCompareProofGenerator::mkLit(
 {
   Node au = a;
   Node bu = b;
+  if (k == Kind::EQUAL && au.getType()!=bu.getType())
+  {
+    // must resolve subtype issues here
+    if (au.getType().isInteger())
+    {
+      au = nm->mkNode(Kind::TO_REAL, au);
+    }
+    else
+    {
+      bu = nm->mkNode(Kind::TO_REAL, bu);
+    }
+  }
+  // add absolute value
   if (isAbsolute)
   {
     au = nm->mkNode(Kind::ABS, au);
     bu = nm->mkNode(Kind::ABS, bu);
-  }
-  if (k == Kind::EQUAL)
-  {
-    return mkEquality(au, bu);
   }
   return nm->mkNode(k, au, bu);
 }

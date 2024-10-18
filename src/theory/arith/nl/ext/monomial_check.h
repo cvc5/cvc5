@@ -179,7 +179,14 @@ class MonomialCheck : protected EnvObj
                       NodeMultiset& d_order,
                       bool isConcrete,
                       bool isAbsolute);
-  /** Make literal */
+  /** 
+   * Make and notify literal. If proofs are enabled
+   */
+  Node mkAndNotifyLit(Node a, Node b, int status, bool isAbsolute = false) const;
+  /**
+   * Make literal that compares (the absolute value of) a and b based on
+   * status.
+   */
   Node mkLit(Node a, Node b, int status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);

@@ -1837,6 +1837,13 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_NL_COMPARISON),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Non-linear absolute value comparison**
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_NL_ABS_COMPARISON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
    *
    * .. math::
