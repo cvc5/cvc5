@@ -76,7 +76,7 @@ class MonomialCheck : protected EnvObj
   void checkMagnitude(unsigned c);
 
   /** Make literal */
-  static Node mkLit(NodeManager* nm, Node a, Node b, int status, bool isAbsolute = false);
+  static Node mkLit(NodeManager* nm, Kind k, Node a, Node b, bool isAbsolute);
  private:
   /** In the following functions, status states a relationship
    * between two arithmetic terms, where:
@@ -178,6 +178,8 @@ class MonomialCheck : protected EnvObj
                       NodeMultiset& d_order,
                       bool isConcrete,
                       bool isAbsolute);
+  /** Make literal */
+  Node mkLit(Node a, Node b, int status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 

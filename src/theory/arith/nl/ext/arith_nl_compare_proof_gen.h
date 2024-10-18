@@ -18,7 +18,6 @@
 
 #include "smt/env_obj.h"
 #include "proof/proof_generator.h"
-#include "proof/conv_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,10 +35,11 @@ public:
   /** identify */
   std::string identify() const override;
   /** Make literal */
-  static Node mkLit(NodeManager* nm, Kind k, Node a, Node b, bool isAbsolute);
-private:
-  /** Converter for absolute value literals */
-  TConvProofGenerator d_absConv;
+  static Node mkLit(NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute);
+  /** */
+  static void setCompareLit(NodeManager* nm, Node olit, Kind k, const Node& a, const Node& b, bool isAbsolute);
+  /** */
+  static Node getCompareLit(const Node& olit);
 };
 
 }  // namespace nl
