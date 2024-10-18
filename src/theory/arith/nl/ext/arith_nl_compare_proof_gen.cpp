@@ -356,69 +356,6 @@ Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
   return Node::null();
 }
 
-/*
-bool ArithNlCompareProofGenerator::diffProduct(const std::vector<Node>& a,
-                                               const std::vector<Node>& b,
-                                               std::map<Node, size_t>& diff)
-{
-  size_t indexb = 0;
-  for (size_t i = 0, nmona = a.size(); i < nmona; i++)
-  {
-    if (indexb < b.size() && b[indexb] == a[i])
-    {
-      indexb++;
-    }
-    else
-    {
-      diff[a[i]]++;
-    }
-  }
-  // success if we consumed all
-  return (indexb == b.size());
-}
-
-void ArithNlCompareProofGenerator::iterateWhile(const Node& a,
-                                                const std::vector<Node>& avec,
-                                                size_t& aindex)
-{
-  size_t asize = avec.size();
-  while (aindex < asize && avec[aindex] == a)
-  {
-    aindex++;
-  }
-}
-void ArithNlCompareProofGenerator::iterateWhileCmp(
-    const Node& a,
-    const std::vector<Node>& avec,
-    size_t& aindex,
-    const Node& b,
-    const std::vector<Node>& bvec,
-    size_t& bindex)
-{
-  size_t asize = avec.size();
-  size_t bsize = bvec.size();
-  while (aindex < asize && bindex < bsize && avec[aindex] == a
-         && bvec[bindex] == b)
-  {
-    aindex++;
-    bindex++;
-  }
-}
-void ArithNlCompareProofGenerator::iterateWhileEq(const std::vector<Node>& avec,
-                                                  size_t& aindex,
-                                                  const std::vector<Node>& bvec,
-                                                  size_t& bindex)
-{
-  size_t asize = avec.size();
-  size_t bsize = bvec.size();
-  while (aindex < asize && bindex < bsize && avec[aindex] == bvec[bindex])
-  {
-    aindex++;
-    bindex++;
-  }
-}
-*/
-
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
