@@ -17,6 +17,7 @@
 
 #include "expr/sequence.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -156,6 +157,40 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON
            || id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
   {
+    bool isAbs = (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
+    std::vector<Node> eproda;
+    std::vector<Node> eprodb;
+    Kind k = Kind::EQUAL;
+    std::vector<Node> deq;
+    for (const Node& c : children)
+    {
+      Kind ck = c.getKind();
+      if (ck==Kind::NOT && c[0].getKind()==Kind::EQUAL)
+      {
+        deq.emplace_back(c);
+        continue;
+      }
+      ck = ArithNlCompareProofGenerator::decomposeCompareLit(c, isAbs, eproda, eprodb);
+      if (ck==Kind::UNDEFINED_KIND)
+      {
+        return Node::null();
+      }
+      // combine the implied relation
+      k = ArithNlCompareProofGenerator::combineRelation(k, ck);
+      if (k==Kind::UNDEFINED_KIND)
+      {
+        return Node::null();
+      }
+    }
+    std::vector<Node> cproda;
+    std::vector<Node> cprodb;
+    Kind ck = ArithNlCompareProofGenerator::decomposeCompareLit(args[0], isAbs, cproda, cprodb);
+    if (ck!=k)
+    {
+      return Node::null();
+    }
+    
+    
     return args[0];
   }
   return Node::null();
