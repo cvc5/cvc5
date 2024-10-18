@@ -163,10 +163,13 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> cprod[2];
     Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
         args[0], isAbs, cprod[0], cprod[1]);
-
+    if (cprod[0].size()!=cprod[1].size())
+    {
+      return Node::null();
+    }
     Kind k = Kind::EQUAL;
     std::unordered_set<Node> deqZero;
-    size_t cindex[2] = {0, 0};
+    size_t cindex = 0;
     for (const Node& c : children)
     {
       std::vector<Node> eprod[2];
@@ -190,42 +193,60 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      // iterate on the products of the conclusion
-      // ensure we advance the products of common factors
-      ArithNlCompareProofGenerator::iterateWhileEq(
-          cprod[0], cindex[0], cprod[1], cindex[1]);
-      // now iterate based on the current
+      if (eprod[0].size()>1 || eprod[1].size()>1)
+      {
+        return Node::null();
+      }
+      if (cindex>=cprod[0].size())
+      {
+        return Node::null();
+      }
+      // check that the corresponding factor is the same
+      size_t exponent = 0;
       for (size_t j = 0; j < 2; j++)
       {
+        const Node& cf = cprod[j][cindex];
         if (eprod[j].empty())
         {
-          size_t jj = 1 - j;
-          Assert(!eprod[jj].empty());
-          // iterate the other
-          Node a = eprod[jj][0];
-          ArithNlCompareProofGenerator::iterateWhile(a, cprod[jj], cindex[jj]);
-          break;
+          // factor of conclusion must be one
+          if (!cf.isConst() || !cf.getConst<Rational>().isOne())
+          {
+            return Node::null();
+          }
+          continue;
         }
-        if (j == 1)
+        const Node& ef = eprod[j][0];
+        size_t exponentj = 0;
+        if (ef==cf)
         {
-          Node a = eprod[0][0];
-          Node b = eprod[1][0];
-          // iterate both simultaneously
-          ArithNlCompareProofGenerator::iterateWhileCmp(
-              a, cprod[0], cindex[0], b, cprod[1], cindex[1]);
+          exponentj = 1;
+        }
+        else if (c.getKind()==Kind::NONLINEAR_MULT)
+        {
+          for (const Node& ccf : cf)
+          {
+            if (ccf!=ef)
+            {
+              return Node::null();
+            }
+          }
+          exponentj = cf.getNumChildren();
+        }
+        if (exponent==0)
+        {
+          exponent = exponentj;
+        }
+        else if (exponent!=exponentj)
+        {
+          // exponents don't match
+          return Node::null();
         }
       }
+      cindex++;
     }
     if (conck != k)
     {
       // conclusion does not match the implied relation
-      return Node::null();
-    }
-    // remaining common factors
-    ArithNlCompareProofGenerator::iterateWhileEq(
-        cprod[0], cindex[0], cprod[1], cindex[1]);
-    if (cindex[0] != cprod[0].size() || cindex[1] != cprod[1].size())
-    {
       return Node::null();
     }
     /*

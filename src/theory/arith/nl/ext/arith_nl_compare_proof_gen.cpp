@@ -83,15 +83,97 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Assert(!concc.isNull());
   Assert(concc.getNumChildren() == 2);
   bool isAbs = (concc[0].getKind() == Kind::ABS);
-  // TODO: reorder the explanation based on the order it appears in the conclusion
-  
+  std::vector<Node> cprod[2];
+  Kind ck = decomposeCompareLit(concc, isAbs, cprod[0], cprod[1]);
+  // convert to counts
+  std::map<Node, size_t> mexp[2];
+  for (size_t i=0; i<2; i++)
+  {
+    std::vector<Node>& cpi = cprod[i]; 
+    std::map<Node, size_t>& mi = mexp[i];
+    for (const Node& p : cpi)
+    {
+      mi[p]++;
+    }
+  }
+  // reorder the conclusion based on the explanation
+  NodeManager * nm = nodeManager();
+  std::vector<Node> cprodt[2];
+  for (const Node& e : expc)
+  {
+    std::vector<Node> eprod[2];
+    decomposeCompareLit(e, isAbs, eprod[0], eprod[1]);
+    Assert (eprod[0].size()<=1 && eprod[1].size()<=1);
+    for (size_t i=0; i<2; i++)
+    {
+      if (eprod[i].empty())
+      {
+        size_t ii = 1-i;
+        Node a = eprod[ii][0];
+        std::vector<Node> vec;
+        vec.resize(mexp[ii][a], a);
+        Assert (!vec.empty());
+        cprodt[i].emplace_back(mkOne(a.getType()));
+        cprodt[ii].emplace_back(mkProduct(nm, vec));
+        mexp[ii].erase(a);
+      }
+      else if (i==1)
+      {
+        // both non-empty, take min
+        Node a = eprod[0][0];
+        Node b = eprod[1][0];
+        size_t na = mexp[0][a];
+        size_t nb = mexp[1][b];
+        size_t n = na>nb ? nb : na;
+        for (size_t j=0; j<2; j++)
+        {
+          const Node& c = eprod[j][0];
+          std::vector<Node> vec;
+          vec.resize(mexp[j][c], c);
+          cprodt[j].emplace_back(mkProduct(nm, vec));
+          mexp[j][c] -= n;
+        }
+      }
+    }
+  }
+  // now get the leftover
+  std::vector<Node> remFactor;
+  for (const std::pair<const Node, size_t>& m : mexp[0])
+  {
+    if (m.second>0)
+    {
+      std::vector<Node> vec;
+      vec.resize(m.second, m.first);
+      remFactor.insert(remFactor.end(), vec.begin(), vec.end());
+    }
+  }
+  if (!remFactor.empty())
+  {
+    Node r = mkProduct(nm, remFactor);
+    Node ru = isAbs ? nm->mkNode(Kind::ABS, r) : r;
+    Node req = ru.eqNode(ru);
+    cdp.addStep(req, ProofRule::REFL, {}, {ru});
+    expc.push_back(req);
+    cprodt[0].push_back(r);
+    cprodt[1].push_back(r);
+  }
+  Node opa = mkProduct(nm, cprodt[0]);
+  Node opb = mkProduct(nm, cprodt[1]);
+  Node newConc = mkLit(nm, ck, opa, opb, isAbs);
   // add the disequalities, which can appear in any order
   expc.insert(expc.end(), deq.begin(), deq.end());
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
+  Trace("arith-nl-compare")
+  << "...grouped conclusion is " << newConc << std::endl;
   ProofRule pr = isAbs ? ProofRule::MACRO_ARITH_NL_ABS_COMPARISON
                        : ProofRule::MACRO_ARITH_NL_COMPARISON;
-  cdp.addStep(concc, pr, expc, {concc});
+  cdp.addStep(newConc, pr, expc, {newConc});
+  // the grouped literal should be equivalent by rewriting
+  if (newConc!=concc)
+  {
+    cdp.addStep(concc, ProofRule::MACRO_SR_PRED_TRANSFORM, {newConc}, {concc});
+  }
   if (conc != concc)
   {
     Node ceq = concc.eqNode(conc);

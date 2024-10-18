@@ -55,6 +55,7 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   static Kind combineRelation(Kind k1, Kind k2);
   /** */
   static void addProduct(const Node& n, std::vector<Node>& vec);
+  
   /** */
   static bool diffProduct(const std::vector<Node>& a,
                           const std::vector<Node>& b,
