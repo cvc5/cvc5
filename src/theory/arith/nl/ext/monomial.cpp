@@ -158,7 +158,7 @@ void MonomialDb::registerMonomial(Node n)
   }
   else
   {
-    Assert(k != Kind::ADD && k != Kind::MULT);
+    Assert(k != Kind::ADD && k != Kind::MULT && !n.isConst());
     d_m_exp[n][n] = 1;
     d_m_vlist[n].push_back(n);
     d_m_degree[n] = 1;

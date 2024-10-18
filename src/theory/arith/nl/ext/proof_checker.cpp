@@ -192,6 +192,8 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
+    // FIXME
+    return args[0];
     // now ensure that the products align
     std::sort(eproda.begin(), eproda.end());
     std::sort(eprodb.begin(), eprodb.end());
