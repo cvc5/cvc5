@@ -116,6 +116,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         cprodt[i].emplace_back(mkOne(a.getType()));
         cprodt[ii].emplace_back(mkProduct(nm, vec));
         mexp[ii].erase(a);
+        break;
       }
       else if (i==1)
       {
@@ -136,26 +137,20 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       }
     }
   }
-  // now get the leftover
-  std::vector<Node> remFactor;
+  // now get the leftover factors
   for (const std::pair<const Node, size_t>& m : mexp[0])
   {
     if (m.second>0)
     {
       std::vector<Node> vec;
       vec.resize(m.second, m.first);
-      remFactor.insert(remFactor.end(), vec.begin(), vec.end());
+      Node r = mkProduct(nm, vec);
+      cprodt[0].push_back(r);
+      cprodt[1].push_back(r);
+      Node v = isAbs ? nm->mkNode(Kind::ABS, m.first) : m.first;
+      Node veq = v.eqNode(v);
+      cdp.addStep(veq, ProofRule::REFL, {}, {v});
     }
-  }
-  if (!remFactor.empty())
-  {
-    Node r = mkProduct(nm, remFactor);
-    Node ru = isAbs ? nm->mkNode(Kind::ABS, r) : r;
-    Node req = ru.eqNode(ru);
-    cdp.addStep(req, ProofRule::REFL, {}, {ru});
-    expc.push_back(req);
-    cprodt[0].push_back(r);
-    cprodt[1].push_back(r);
   }
   Node opa = mkProduct(nm, cprodt[0]);
   Node opb = mkProduct(nm, cprodt[1]);
