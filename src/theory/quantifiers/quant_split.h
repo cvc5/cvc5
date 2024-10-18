@@ -30,6 +30,8 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
+class QuantDSplitProofGenerator;
+
 /** Quantifiers dynamic splitting
  *
  * This module identifies quantified formulas that should be "split", e.g.
@@ -50,7 +52,7 @@ namespace quantifiers {
  */
 class QuantDSplit : public QuantifiersModule {
   using NodeSet = context::CDHashSet<Node>;
-  using NodeIntMap = context::CDHashMap<Node, int>;
+  using NodeIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   QuantDSplit(Env& env,
@@ -68,12 +70,16 @@ class QuantDSplit : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "QuantDSplit"; }
+  /** */
+  static Node split(NodeManager* nm, const Node& q, size_t index);
 
  private:
   /** list of relevant quantifiers asserted in the current context */
   NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
+  /** Proof generator */
+  std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
 }
