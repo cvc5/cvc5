@@ -163,37 +163,84 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     std::vector<Node> cprod[2];
     Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
         args[0], isAbs, cprod[0], cprod[1]);
+    if (conck==Kind::UNDEFINED_KIND)
+    {
+      return Node::null();
+    }
+    if (children.size()==1)
+    {
+      // handle singleton case
+      for (size_t i=0; i<2; i++)
+      {
+        size_t csize = cprod[i].size();
+        if (csize==1)
+        {
+          continue;
+        }
+        Node p;
+        if (csize>1)
+        {
+          p = nm->mkNode(Kind::NONLINEAR_MULT, cprod[i]);
+        }
+        else
+        {
+          p = nm->mkConstRealOrInt(args[0][0].getType(), Rational(1));
+        }
+        cprod[i].clear();
+        cprod[i].emplace_back(p);
+      }
+    }
     if (cprod[0].size()!=cprod[1].size())
     {
       return Node::null();
     }
     Kind k = Kind::EQUAL;
-    std::unordered_set<Node> deqZero;
     size_t cindex = 0;
+    bool allZeroGuards = true;
     for (const Node& c : children)
     {
       std::vector<Node> eprod[2];
       Kind ck = c.getKind();
-      // it may be a disequality with zero
-      if (ck == Kind::NOT && c[0].getKind() == Kind::EQUAL && c[0][1].isConst()
-          && c[0][1].getConst<Rational>().isZero())
+      Node zeroGuard;
+      Node lit = c;
+      if (ck==Kind::AND)
       {
-        deqZero.insert(c[0][0]);
-        continue;
+        Node g = c[1];
+        // it may be a disequality with zero
+        if (c.getNumChildren()==2 && g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
+            && g[0][1].getConst<Rational>().isZero())
+        {
+          lit = c[0];
+          zeroGuard = g[0][0];
+        }
+        else
+        {
+          return Node::null();
+        }
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
-          c, isAbs, eprod[0], eprod[1]);
+          lit, isAbs, eprod[0], eprod[1]);
+      if (eprod[0].size()>1 || eprod[1].size()>1)
+      {
+        return Node::null();
+      }
+      // guarded zero disequality should be for LHS
+      if (!zeroGuard.isNull() && (eprod[0].empty() || zeroGuard!=eprod[0][0]))
+      {
+        return Node::null();
+      }
       if (ck == Kind::UNDEFINED_KIND)
       {
         return Node::null();
       }
+      // check if we have guarded for zero
+      if (ck!=Kind::LT && ck!=Kind::GT && zeroGuard.isNull())
+      {
+        allZeroGuards = false;
+      }
       // combine the implied relation
       k = ArithNlCompareProofGenerator::combineRelation(k, ck);
       if (k == Kind::UNDEFINED_KIND)
-      {
-        return Node::null();
-      }
-      if (eprod[0].size()>1 || eprod[1].size()>1)
       {
         return Node::null();
       }
@@ -221,7 +268,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         {
           exponentj = 1;
         }
-        else if (c.getKind()==Kind::NONLINEAR_MULT)
+        else if (cf.getKind()==Kind::NONLINEAR_MULT)
         {
           for (const Node& ccf : cf)
           {

@@ -55,14 +55,15 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   // get the expected form of the literals
   CDProof cdp(d_env);
   std::vector<Node> expc;
-  std::vector<Node> deq;
+  std::map<Node, Node> deq;
   for (const Node& e : exp)
   {
     Node ec = getCompareLit(e);
     if (ec.isNull())
     {
       // not a comparison literal, likely a disequality to zero
-      deq.emplace_back(e);
+      Assert (e.getKind()==Kind::NOT && e[0].getKind()==Kind::EQUAL && e[0][1].isConst() && e[0][1].getConst<Rational>().isZero());
+      deq[e[0][0]] = e;
       continue;
     }
     expc.emplace_back(ec);
@@ -150,13 +151,17 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       Node v = isAbs ? nm->mkNode(Kind::ABS, m.first) : m.first;
       Node veq = v.eqNode(v);
       cdp.addStep(veq, ProofRule::REFL, {}, {v});
+      expc.emplace_back(veq);
     }
+  }
+  // TODO: go back and guard zeroes
+  for (size_t i=0, nexp=expc.size(); i<nexp; i++)
+  {
+    
   }
   Node opa = mkProduct(nm, cprodt[0]);
   Node opb = mkProduct(nm, cprodt[1]);
   Node newConc = mkLit(nm, ck, opa, opb, isAbs);
-  // add the disequalities, which can appear in any order
-  expc.insert(expc.end(), deq.begin(), deq.end());
   Trace("arith-nl-compare")
       << "...processed prove: " << expc << " => " << concc << std::endl;
   Trace("arith-nl-compare")
