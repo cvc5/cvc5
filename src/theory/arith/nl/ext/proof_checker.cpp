@@ -197,6 +197,10 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
           lit, isAbs, eprod[0], eprod[1]);
+      if (ck == Kind::UNDEFINED_KIND)
+      {
+        return Node::null();
+      }
       if (eprod[0].size() > 1 || eprod[1].size() > 1)
       {
         return Node::null();
@@ -206,12 +210,8 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      if (ck == Kind::UNDEFINED_KIND)
-      {
-        return Node::null();
-      }
-      // check if we have guarded for zero
-      if (ck != Kind::LT && ck != Kind::GT && zeroGuard.isNull())
+      // update whether all guards are present
+      if (ck != Kind::GT && !eprod[0].empty() && zeroGuard.isNull())
       {
         allZeroGuards = false;
       }
@@ -267,6 +267,10 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         }
       }
       cindex++;
+    }
+    if (conck==Kind::GT && !allZeroGuards)
+    {
+      return Node::null();
     }
     if (conck != k)
     {

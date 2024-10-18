@@ -87,7 +87,6 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   bool isAbs = (concc[0].getKind() == Kind::ABS);
   std::vector<Node> cprod[2];
   Kind ck = decomposeCompareLit(concc, isAbs, cprod[0], cprod[1]);
-  bool isStrict = (ck==Kind::GT || ck==Kind::LT);
   // convert to counts
   std::map<Node, size_t> mexp[2];
   for (size_t i = 0; i < 2; i++)
@@ -162,17 +161,37 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       expc.emplace_back(veq);
     }
   }
-  // TODO: go back and guard zeroes
-  if (ck==Kind::GT || ck==Kind::LT)
+  // if strict version, we go back and guard zeroes
+  bool success = true;
+  if (ck==Kind::GT)
   {
+    std::map<Node, Node>::iterator itd;
     for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
     {
-      if (expc[i].getKind()!=ck)
+      Node e = expc[i];
+      if (e.getKind()!=ck)
       {
         // needs to have a disequal to zero explanation
+        std::vector<Node> eprod[2];
+        decomposeCompareLit(e, isAbs, eprod[0], eprod[1]);
+        if (eprod[0].size()!=1)
+        {
+          success = false;
+          break;
+        }
+        itd = deq.find(eprod[0][0]);
+        if (itd==deq.end())
+        {
+          success = false;
+          break;
+        }
+        Node guardEq = nm->mkNode(Kind::AND, e, itd->second);
+        cdp.addStep(guardEq, ProofRule::AND_INTRO, {e, itd->second}, {});
+        expc[i] = guardEq;
       }
     }
   }
+  Assert (success);
   Node opa = mkProduct(nm, cprodt[0]);
   Node opb = mkProduct(nm, cprodt[1]);
   Node newConc = mkLit(nm, ck, opa, opb, isAbs);
@@ -266,8 +285,7 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
                                   bool isSingleton)
 {
   Kind k = lit.getKind();
-  if (k != Kind::EQUAL && k != Kind::GT && k != Kind::GEQ && k != Kind::LT
-      && k != Kind::LEQ)
+  if (k != Kind::EQUAL && k != Kind::GT && k != Kind::GEQ)
   {
     return Kind::UNDEFINED_KIND;
   }
@@ -323,16 +341,6 @@ Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
   if (k1 == k2)
   {
     return k1;
-  }
-  if ((k1 == Kind::GT && k2 == Kind::GEQ)
-      || (k2 == Kind::GT && k1 == Kind::GEQ))
-  {
-    return Kind::GT;
-  }
-  else if ((k1 == Kind::LT && k2 == Kind::LEQ)
-           || (k2 == Kind::LT && k1 == Kind::LEQ))
-  {
-    return Kind::LT;
   }
   return Kind::UNDEFINED_KIND;
 }
