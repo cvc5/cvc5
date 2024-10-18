@@ -513,11 +513,15 @@ bool AletheProofPostprocessCallback::update(Node res,
           }
         }
       }
+      std::stringstream ss;
+      ss << "\"" << args[0] << "\"";
+      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
+      newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
     // ======== Resolution and N-ary Resolution
@@ -2120,9 +2124,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
       std::stringstream ss;
-      ss << id;
-      Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
-      std::vector<Node> newArgs{newVar};
+      ss << "\"" << id << "\"";
+      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
