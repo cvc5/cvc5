@@ -35,6 +35,7 @@ enum class RewriteProofStatus : uint32_t
   EVAL,
   TRANS,
   CONG,
+  CONG_FLATTEN,
   CONG_EVAL,
   TRUE_ELIM,
   TRUE_INTRO,
