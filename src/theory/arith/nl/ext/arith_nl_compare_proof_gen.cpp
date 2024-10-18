@@ -62,9 +62,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     if (ec.isNull())
     {
       // not a comparison literal, likely a disequality to zero
-      Assert(e.getKind() == Kind::NOT && e[0].getKind() == Kind::EQUAL
-             && e[0][1].isConst() && e[0][1].getConst<Rational>().isZero());
-      deq[e[0][0]] = e;
+      Node v = isDisequalZero(e);
+      Assert (!v.isNull());
+      deq[v] = e;
       continue;
     }
     expc.emplace_back(ec);
@@ -87,6 +87,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   bool isAbs = (concc[0].getKind() == Kind::ABS);
   std::vector<Node> cprod[2];
   Kind ck = decomposeCompareLit(concc, isAbs, cprod[0], cprod[1]);
+  bool isStrict = (ck==Kind::GT || ck==Kind::LT);
   // convert to counts
   std::map<Node, size_t> mexp[2];
   for (size_t i = 0; i < 2; i++)
@@ -112,12 +113,18 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       {
         size_t ii = 1 - i;
         Node a = eprod[ii][0];
+        size_t na = mexp[ii][a];
+        size_t nb = mexp[i][a];
+        // Don't take more than this side has. This handles cases like
+        // (> (abs x) (abs 1)) => (> (abs (* x x)) (abs x)),
+        // where we should only consume one copy of x.
+        size_t n = na-nb;
         std::vector<Node> vec;
-        vec.resize(mexp[ii][a], a);
+        vec.resize(n, a);
         Assert(!vec.empty());
         cprodt[i].emplace_back(mkOne(a.getType()));
         cprodt[ii].emplace_back(mkProduct(nm, vec));
-        mexp[ii].erase(a);
+        mexp[ii][a] -= n;
         break;
       }
       else if (i == 1)
@@ -139,7 +146,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       }
     }
   }
-  // now get the leftover factors
+  // now get the leftover factors, one by one
   for (const std::pair<const Node, size_t>& m : mexp[0])
   {
     if (m.second > 0)
@@ -156,8 +163,15 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     }
   }
   // TODO: go back and guard zeroes
-  for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
+  if (ck==Kind::GT || ck==Kind::LT)
   {
+    for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
+    {
+      if (expc[i].getKind()!=ck)
+      {
+        // needs to have a disequal to zero explanation
+      }
+    }
   }
   Node opa = mkProduct(nm, cprodt[0]);
   Node opb = mkProduct(nm, cprodt[1]);
@@ -248,7 +262,8 @@ Node ArithNlCompareProofGenerator::getCompareLit(const Node& olit)
 Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
                                                        bool isAbsolute,
                                                        std::vector<Node>& a,
-                                                       std::vector<Node>& b)
+                                                       std::vector<Node>& b,
+                                  bool isSingleton)
 {
   Kind k = lit.getKind();
   if (k != Kind::EQUAL && k != Kind::GT && k != Kind::GEQ && k != Kind::LT
@@ -262,21 +277,26 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
     {
       return Kind::UNDEFINED_KIND;
     }
-    addProduct(lit[0][0], a);
-    addProduct(lit[1][0], b);
+    addProduct(lit[0][0], a, isSingleton);
+    addProduct(lit[1][0], b, isSingleton);
   }
   else
   {
-    addProduct(lit[0], a);
-    addProduct(lit[1], b);
+    addProduct(lit[0], a, isSingleton);
+    addProduct(lit[1], b, isSingleton);
   }
   return k;
 }
 
 void ArithNlCompareProofGenerator::addProduct(const Node& n,
-                                              std::vector<Node>& vec)
+                                              std::vector<Node>& vec,
+                                  bool isSingleton)
 {
-  if (n.getKind() == Kind::NONLINEAR_MULT)
+  if (isSingleton)
+  {
+    vec.emplace_back(n);
+  }
+  else if (n.getKind() == Kind::NONLINEAR_MULT)
   {
     vec.insert(vec.end(), n.begin(), n.end());
   }
@@ -315,6 +335,17 @@ Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
     return Kind::LT;
   }
   return Kind::UNDEFINED_KIND;
+}
+
+Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
+{
+  if (g.getKind() == Kind::NOT
+            && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
+            && g[0][1].getConst<Rational>().isZero())
+  {
+    return g[0][0];
+  }
+  return Node::null();
 }
 
 /*

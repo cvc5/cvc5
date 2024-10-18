@@ -161,34 +161,13 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     bool isAbs = (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
     // decompose the conclusion first
     std::vector<Node> cprod[2];
+    // note we treat the conclusion as a singleton if there is exactly one
+    // premise.
     Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
-        args[0], isAbs, cprod[0], cprod[1]);
+        args[0], isAbs, cprod[0], cprod[1], children.size()==1);
     if (conck == Kind::UNDEFINED_KIND)
     {
       return Node::null();
-    }
-    if (children.size() == 1)
-    {
-      // handle singleton case
-      for (size_t i = 0; i < 2; i++)
-      {
-        size_t csize = cprod[i].size();
-        if (csize == 1)
-        {
-          continue;
-        }
-        Node p;
-        if (csize > 1)
-        {
-          p = nm->mkNode(Kind::NONLINEAR_MULT, cprod[i]);
-        }
-        else
-        {
-          p = nm->mkConstRealOrInt(args[0][0].getType(), Rational(1));
-        }
-        cprod[i].clear();
-        cprod[i].emplace_back(p);
-      }
     }
     if (cprod[0].size() != cprod[1].size())
     {
@@ -205,14 +184,11 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       Node lit = c;
       if (ck == Kind::AND)
       {
-        Node g = c[1];
+        zeroGuard = ArithNlCompareProofGenerator::isDisequalZero(c[1]);
         // it may be a disequality with zero
-        if (c.getNumChildren() == 2 && g.getKind() == Kind::NOT
-            && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
-            && g[0][1].getConst<Rational>().isZero())
+        if (c.getNumChildren() == 2 && !zeroGuard.isNull())
         {
           lit = c[0];
-          zeroGuard = g[0][0];
         }
         else
         {
@@ -297,35 +273,6 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       // conclusion does not match the implied relation
       return Node::null();
     }
-    /*
-    // now ensure that the products align
-    std::sort(eproda.begin(), eproda.end());
-    std::sort(eprodb.begin(), eprodb.end());
-    std::sort(cproda.begin(), cproda.end());
-    std::sort(cprodb.begin(), cprodb.end());
-    std::map<Node, size_t> diffa;
-    if (!ArithNlCompareProofGenerator::diffProduct(cproda, eproda, diffa))
-    {
-      // explained monomomials are not a subset of the conclusion for LHS
-      return Node::null();
-    }
-    std::map<Node, size_t> diffb;
-    if (!ArithNlCompareProofGenerator::diffProduct(cprodb, eprodb, diffb))
-    {
-      // explained monomomials are not a subset of the conclusion for RHS
-      return Node::null();
-    }
-    if (diffa!=diffb)
-    {
-      // the conclusion is not a product of what was proven
-      return Node::null();
-    }
-    // variables must be non-zero if strict
-    if (k==Kind::GT || k==Kind::LT)
-    {
-
-    }
-    */
     return args[0];
   }
   return Node::null();

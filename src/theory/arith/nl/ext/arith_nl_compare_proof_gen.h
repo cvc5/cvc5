@@ -50,11 +50,15 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   static Kind decomposeCompareLit(const Node& lit,
                                   bool isAbsolute,
                                   std::vector<Node>& a,
-                                  std::vector<Node>& b);
+                                  std::vector<Node>& b,
+                                  bool isSingleton = false);
   /** */
   static Kind combineRelation(Kind k1, Kind k2);
   /** */
-  static void addProduct(const Node& n, std::vector<Node>& vec);
+  static void addProduct(const Node& n, std::vector<Node>& vec,
+                                  bool isSingleton);
+  /** */
+  static Node isDisequalZero(const Node& lit);
 
   /**
   static bool diffProduct(const std::vector<Node>& a,
