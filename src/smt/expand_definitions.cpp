@@ -83,14 +83,16 @@ Node ExpandDefs::expandDefinitions(TNode n,
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
-      TrustNode trn = tr->expandDefinition(n);
+      // ensure rewritten
+      Node nr = rewrite(n);
+      TrustNode trn = tr->expandDefinition(nr);
       if (!trn.isNull())
       {
         node = trn.getNode();
       }
       else
       {
-        node = n;
+        node = nr;
       }
       // the partial functions can fall through, in which case we still
       // consider their children
