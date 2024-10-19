@@ -1892,13 +1892,23 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRICHOTOMY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Operator elimination**
+   * **Arithmetic -- Reduction**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
+   *   \inferrule{- \mid t}{F}
+   * 
+   * where :math:`t` is an application of an extended arithmetic operator (e.g.
+   * division, modulus, cosine, sqrt, is_int, to_int) and :math:`F` is the
+   * reduction predicate for :math:`t`. In other words, :math:`F` is a
+   * predicate that is used to reduce reasoning about :math:`t` to reasoning
+   * about the core operators of arithmetic.
+   *
+   * In detail, :math:`F` is implemented by
+   * :math:`\texttt{arith::OperatorElim::getAxiomFor(t)}`, see
+   * :cvc5src:`theory/arith/operator_elim.h`.
    * \endverbatim
    */
-  EVALUE(ARITH_OP_ELIM_AXIOM),
+  EVALUE(ARITH_REDUCTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
