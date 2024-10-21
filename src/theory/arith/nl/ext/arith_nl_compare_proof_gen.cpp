@@ -168,8 +168,11 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   {
     if (m.second > 0)
     {
-      cprodt[0].push_back(m.first);
-      cprodt[1].push_back(m.first);
+      for (size_t k=0; k<m.second; k++)
+      {
+        cprodt[0].push_back(m.first);
+        cprodt[1].push_back(m.first);
+      }
       Node v = nm->mkNode(Kind::ABS, m.first);
       Node veq = v.eqNode(v);
       cdp.addStep(veq, ProofRule::REFL, {}, {v});
@@ -255,11 +258,9 @@ Node ArithNlCompareProofGenerator::mkLit(
     NodeManager* nm, Kind k, const Node& a, const Node& b)
 {
   Assert (a.getType()==b.getType());
-  Node au = a;
-  Node bu = b;
   // add absolute value
-  au = nm->mkNode(Kind::ABS, au);
-  bu = nm->mkNode(Kind::ABS, bu);
+  Node au = nm->mkNode(Kind::ABS, a);
+  Node bu = nm->mkNode(Kind::ABS, b);
   return nm->mkNode(k, au, bu);
 }
 
@@ -288,11 +289,10 @@ Node ArithNlCompareProofGenerator::getCompareLit(const Node& olit)
 
 Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
                                                        std::vector<Node>& a,
-                                                       std::vector<Node>& b,
-                                  bool isSingleton)
+                                                       std::vector<Node>& b)
 {
   Kind k = lit.getKind();
-  if (k != Kind::EQUAL && k != Kind::GT && k != Kind::GEQ)
+  if (k != Kind::EQUAL && k != Kind::GT)
   {
     return Kind::UNDEFINED_KIND;
   }
@@ -300,20 +300,15 @@ Kind ArithNlCompareProofGenerator::decomposeCompareLit(const Node& lit,
   {
     return Kind::UNDEFINED_KIND;
   }
-  addProduct(lit[0][0], a, isSingleton);
-  addProduct(lit[1][0], b, isSingleton);
+  addProduct(lit[0][0], a);
+  addProduct(lit[1][0], b);
   return k;
 }
 
 void ArithNlCompareProofGenerator::addProduct(const Node& n,
-                                              std::vector<Node>& vec,
-                                  bool isSingleton)
+                                              std::vector<Node>& vec)
 {
-  if (isSingleton)
-  {
-    vec.emplace_back(n);
-  }
-  else if (n.getKind() == Kind::NONLINEAR_MULT)
+  if (n.getKind() == Kind::NONLINEAR_MULT)
   {
     vec.insert(vec.end(), n.begin(), n.end());
   }
@@ -325,23 +320,6 @@ void ArithNlCompareProofGenerator::addProduct(const Node& n,
   {
     vec.emplace_back(n);
   }
-}
-
-Kind ArithNlCompareProofGenerator::combineRelation(Kind k1, Kind k2)
-{
-  if (k2 == Kind::EQUAL)
-  {
-    return k1;
-  }
-  if (k1 == Kind::EQUAL)
-  {
-    return k2;
-  }
-  if (k1 == k2)
-  {
-    return k1;
-  }
-  return Kind::UNDEFINED_KIND;
 }
 
 Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)

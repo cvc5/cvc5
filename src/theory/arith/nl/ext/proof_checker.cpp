@@ -35,7 +35,7 @@ void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
   pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
-  pc->registerChecker(ProofRule::MACRO_ARITH_NL_ABS_COMPARISON, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_ABS_COMPARISON, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(ProofRule id,
@@ -153,7 +153,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
-  else if ( id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
+  else if ( id == ProofRule::ARITH_MULT_ABS_COMPARISON)
   {
     Assert(args.size() == 1);
     // the conclusion kind is kind of the first premise
@@ -169,7 +169,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       if (ck == Kind::AND)
       {
         zeroGuard = ArithNlCompareProofGenerator::isDisequalZero(c[1]);
-        // it may be a disequality with zero
+        // it should be a disequality with zero
         if (c.getNumChildren() == 2 && !zeroGuard.isNull())
         {
           lit = c[0];
