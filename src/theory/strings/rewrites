@@ -219,7 +219,7 @@
   (str.replace t t s)
   s)
 
-(define-rule str-replace-first-concat ((t ?Seq) (r ?Seq :list) (s ?Seq))
+(define-rule str-replace-prefix ((t ?Seq) (r ?Seq :list) (s ?Seq))
   (str.replace (str.++ t r) t s)
   (str.++ s r))
 
@@ -289,6 +289,10 @@
   (and (= (str.len t1) (str.len s1)) (= (str.<= t1 s1) false))
   (str.<= (str.++ s t1 t2) (str.++ s s1 s2))
   false)
+
+(define-rule str-lt-elim ((s String) (t String))
+  (str.< s t)
+  (and (not (= s t)) (str.<= s t)))
 
 ; =============== Regular expression rules
 
