@@ -2507,11 +2507,29 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Macro variable elimination**
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> F \{ x \mapsto t \}
+   *
+   * where :math:`\neg F` entails :math:`x = t`.
    *
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination inequality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> G
+   *
+   * where :math:`G` is the result of replacing all literals containing
+   * :math:`x` with a constant. This applied only when all such literals
+   * are lower (resp. upper) bounds for :math:`x`.
+   *
+   * \endverbatim
+   */
   EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
