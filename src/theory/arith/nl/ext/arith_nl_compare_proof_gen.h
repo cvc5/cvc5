@@ -60,6 +60,10 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   /** identify */
   std::string identify() const override;
   /**
+   * Make the product of terms in c.
+   */
+  static Node mkProduct(NodeManager* nm, const std::vector<Node>& c);
+  /**
    * Make literal that compares the absolute value of a and b with kind k.
    */
   static Node mkLit(
