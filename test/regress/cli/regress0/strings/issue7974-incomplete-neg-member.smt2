@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --incremental
-; EXPECT: (error "Strings Incomplete (due to Negative Membership) by default, try --strings-exp option.")
+; EXPECT: (error "Strings Incomplete (due to Negative Membership) by default, try option.")
 ; EXIT: 1
 (set-logic ALL)
 (declare-fun v () String)
