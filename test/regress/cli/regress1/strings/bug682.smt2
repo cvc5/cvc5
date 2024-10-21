@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --strings-exp
+; COMMAND-LINE: --incremental
 (set-logic QF_S)
 
 (declare-fun a () String)

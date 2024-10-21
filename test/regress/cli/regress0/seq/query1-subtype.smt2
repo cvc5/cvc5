@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --simplification=none
+; COMMAND-LINE: --simplification=none
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () (Seq Real))

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --mbqi --strings-fmf
+; COMMAND-LINE: --mbqi --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun b (Int) Bool)

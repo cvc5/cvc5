@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-fmf --incremental
+; COMMAND-LINE: --strings-fmf --incremental
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: sat

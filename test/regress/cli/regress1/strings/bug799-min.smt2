@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --strings-exp
+; COMMAND-LINE: --incremental
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)

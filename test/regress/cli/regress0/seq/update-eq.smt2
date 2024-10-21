@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --seq-array=lazy
+; COMMAND-LINE: --seq-array=lazy
 (set-logic QF_UFSLIA)
 (declare-sort E 0)
 (declare-fun x () (Seq E))

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-fmf
+; COMMAND-LINE: --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :strings-fmf true)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --deep-restart=input-and-prop --strings-exp
+; COMMAND-LINE: --deep-restart=input-and-prop
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-info :status sat)
 (set-logic QF_SLIA)
 (declare-const i0 Int)

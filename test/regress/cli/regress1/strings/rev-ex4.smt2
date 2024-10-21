@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --strings-fmf
+; COMMAND-LINE: --strings-fmf
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

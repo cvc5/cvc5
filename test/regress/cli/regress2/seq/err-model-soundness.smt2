@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic ALL)
 (declare-sort E 0)
 (declare-fun x () (Seq E))

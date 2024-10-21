@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic QF_S)
 (set-info :status unsat)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --strings-exp --seq-array=eager
+; COMMAND-LINE: --incremental --seq-array=eager
 ; EXPECT: unsat
 
 (set-logic ALL)

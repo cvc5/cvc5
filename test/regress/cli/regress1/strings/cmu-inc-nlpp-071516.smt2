@@ -1,6 +1,6 @@
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :strings-exp true)
+
 
 (declare-fun url () String)
 

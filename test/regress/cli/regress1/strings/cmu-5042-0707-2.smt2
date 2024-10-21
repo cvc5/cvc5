@@ -1,6 +1,6 @@
 (set-logic ALL)
 (set-info :status sat)
-(set-option :strings-exp true)
+
 
 (declare-fun key2 () String)
 (declare-fun key1 () String)

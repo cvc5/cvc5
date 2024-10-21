@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --check-proofs --check-unsat-cores
+; COMMAND-LINE: --check-proofs --check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 (declare-fun b () String)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --seq-array=lazy
+; COMMAND-LINE: --seq-array=lazy
 ; EXPECT: unknown
 (set-logic ALL)
 (declare-sort T@$ 0)

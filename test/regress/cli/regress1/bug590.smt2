@@ -3,7 +3,7 @@
 ; EXPECT: ((charlst2 (
 
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-option :produce-models true)
 (set-info :smt-lib-version 2.6)
 (set-info :status unknown)
