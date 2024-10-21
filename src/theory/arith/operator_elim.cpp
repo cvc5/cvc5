@@ -158,7 +158,9 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
                 nm->mkNode(
                     Kind::MULT,
                     den,
-                    nm->mkNode(Kind::ADD, v, nm->mkConstInt(Rational( rat > 0 ? 1 : -1))))));
+                    nm->mkNode(Kind::ADD,
+                               v,
+                               nm->mkConstInt(Rational(rat > 0 ? 1 : -1))))));
       }
       else
       {
