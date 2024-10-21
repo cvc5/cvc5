@@ -24,40 +24,88 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+/**
+ * A proof generator that takes lemmas InferenceId::ARITH_NL_COMPARISON and
+ * gives them a proof in terms of ProofRule::MACRO_ARITH_NL_ABS_COMPARISON.
+ * 
+ * This involves several things:
+ * (1) It makes the proof involve literals of the form (abs x) ~ (abs y)
+ * instead of their rewritten form (MonomialCheck::mkLit).
+ * (2) Reorders the explanation to match the conclusion.
+ * (3) Groups the disequalities with the proper explanation.
+ * (4) Groups products in the conclusion to match the explanation.
+ * 
+ * For example, after santizing the literals in (1), the lemma:
+ * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (not (= x 0)))
+ *     (> (abs (* x x w)) (abs (* z z y))))
+ * is based on the proof step:
+ * (=> (and 
+ *        (and (= (abs x) (abs z)) (not (= x 0)))
+ *        (> (abs w) (abs y))
+ *     )
+ *     (> (abs (* (* x x) w)) (abs (* z z) y))
+ * )
+ * 
+ */
 class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
   ArithNlCompareProofGenerator(Env& env);
   virtual ~ArithNlCompareProofGenerator();
   /**
+   * Get the proof for fact, which is a lemma with id
+   * InferenceId::ARITH_NL_COMPARISON.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
-  /** Make literal */
+  /**
+   * Make literal that compares the absolute value of a and b with kind k.
+   */
   static Node mkLit(
-      NodeManager* nm, Kind k, const Node& a, const Node& b, bool isAbsolute);
-  /** */
+      NodeManager* nm, Kind k, const Node& a, const Node& b);
+  /**
+   * Mark that the formula olit corresponds to the literal that compares the
+   * absolute values of a and b with kind k.
+   */
   static void setCompareLit(NodeManager* nm,
                             Node olit,
                             Kind k,
                             const Node& a,
-                            const Node& b,
-                            bool isAbsolute);
-  /** */
+                            const Node& b);
+  /** 
+   * Get the literal that was marked by the above method for olit, if the
+   * null node if not applicable.
+   */
   static Node getCompareLit(const Node& olit);
-  /** */
+  /**
+   * Given a literal lit constructed by mkLit above, this decomposes lit
+   * into the arguments passed to mkLit above and adds the left hand side
+   * to a and right hand side to b. If isSingleton is false, we add the
+   * product terms to a and b respectively, otherwise we add the left
+   * and right hand side terms as is.
+   */
   static Kind decomposeCompareLit(const Node& lit,
-                                  bool isAbsolute,
                                   std::vector<Node>& a,
                                   std::vector<Node>& b,
                                   bool isSingleton = false);
-  /** */
+  /**
+   * Given abs(t1) <k1> abs(t2) and abs(s1) <k2> abs(s2), returns the
+   * implied relation k abs(t1*s1) <k> abs(t2*s2), assuming that all terms
+   * are non-zero.
+   * This method assumes that k1 and k2 are only either GT or EQUAL.
+   */
   static Kind combineRelation(Kind k1, Kind k2);
-  /** */
+  /**
+   * Adds the product terms of n to vec if isSingleton is false, otherwise
+   * adds n to vec.
+   */
   static void addProduct(const Node& n, std::vector<Node>& vec,
                                   bool isSingleton);
-  /** */
+  /**
+   * Is lit a disequality with zero? If lit is of the form (not (= t 0)), this
+   * method returns t, otherwise it returns the null node.
+   */
   static Node isDisequalZero(const Node& lit);
 };
 

@@ -120,7 +120,6 @@ PfManager::PfManager(Env& env)
       d_pfpp->setEliminateRule(ProofRule::MACRO_RESOLUTION);
     }
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
-    d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_NL_COMPARISON);
     d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)

@@ -967,12 +967,10 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Assert(res.isNull() || sumBounds == res);
     return sumBounds;
   }
-  else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON
-           || id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
+  else if (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
   {
-    bool isAbs = (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
     Node resc =
-        theory::arith::expandMacroNlComparison(children, args, cdp, isAbs);
+        theory::arith::expandMacroNlAbsComparison(children, args, cdp);
     // Assert(!resc.isNull());
     // Assert(res.isNull() || resc == res);
     return resc;

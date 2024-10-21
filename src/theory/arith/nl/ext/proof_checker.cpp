@@ -35,7 +35,6 @@ void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
   pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
-  pc->registerChecker(ProofRule::MACRO_ARITH_NL_COMPARISON, this);
   pc->registerChecker(ProofRule::MACRO_ARITH_NL_ABS_COMPARISON, this);
 }
 
@@ -154,17 +153,15 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
-  else if (id == ProofRule::MACRO_ARITH_NL_COMPARISON
-           || id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
+  else if ( id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
   {
     Assert(args.size() == 1);
-    bool isAbs = (id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON);
     // decompose the conclusion first
     std::vector<Node> cprod[2];
     // note we treat the conclusion as a singleton if there is exactly one
     // premise.
     Kind conck = ArithNlCompareProofGenerator::decomposeCompareLit(
-        args[0], isAbs, cprod[0], cprod[1], children.size()==1);
+        args[0], cprod[0], cprod[1], children.size()==1);
     if (conck == Kind::UNDEFINED_KIND)
     {
       return Node::null();
@@ -196,7 +193,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
         }
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
-          lit, isAbs, eprod[0], eprod[1]);
+          lit, eprod[0], eprod[1]);
       if (ck == Kind::UNDEFINED_KIND)
       {
         return Node::null();

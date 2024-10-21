@@ -180,12 +180,14 @@ class MonomialCheck : protected EnvObj
                       bool isConcrete,
                       bool isAbsolute);
   /**
-   * Make and notify literal. If proofs are enabled
+   * Make and notify absolute value literal. If proofs are enabled, this
+   * notifies the nl compare proof generator (d_ancPfGen) that the returned
+   * literal corresponds to the given associate comparison literal between a
+   * and b.
    */
-  Node mkAndNotifyLit(Node a,
+  Node mkAndNotifyAbsLit(Node a,
                       Node b,
-                      int status,
-                      bool isAbsolute = false) const;
+                      int status) const;
   /**
    * Make literal that compares (the absolute value of) a and b based on
    * status.
