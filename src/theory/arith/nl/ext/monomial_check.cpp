@@ -423,7 +423,6 @@ bool MonomialCheck::compareMonomial(
           << "infer : " << oa << " <" << status << "> " << ob << std::endl;
       if (status == 2)
       {
-        // must state that all variables are non-zero and not absolute
         for (const Node& v : vla)
         {
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());

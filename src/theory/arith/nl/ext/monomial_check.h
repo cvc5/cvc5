@@ -75,9 +75,6 @@ class MonomialCheck : protected EnvObj
    */
   void checkMagnitude(unsigned c);
 
-  /** Make literal */
-  static Node mkLit(NodeManager* nm, Kind k, Node a, Node b, bool isAbsolute);
-
  private:
   /** In the following functions, status states a relationship
    * between two arithmetic terms, where:
