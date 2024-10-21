@@ -144,7 +144,7 @@ class TheoryValidator:
             "postsolve"
         ]
 
-        self.src_directory = os.path.dirname(os.getcwd())
+        self.src_directory = os.path.dirname(os.path.dirname(__file__))
     
     def validate_header(self, filename, header):
         path_header = os.path.join(self.src_directory, header)
