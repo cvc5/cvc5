@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utilities for monomials.
+ * A proof generator for lemmas that use ProofRule::ARITH_MULT_ABS_COMPARISON.
  */
 
 #ifndef CVC5__THEORY__ARITH__NL__EXT__ARITH_NL_COMPARE_PROOF_GEN_H
@@ -26,24 +26,26 @@ namespace nl {
 
 /**
  * A proof generator that takes lemmas InferenceId::ARITH_NL_COMPARISON and
- * gives them a proof in terms of ProofRule::MACRO_ARITH_NL_ABS_COMPARISON.
+ * gives them a proof in terms of ProofRule::ARITH_MULT_ABS_COMPARISON.
  * 
  * This involves several things:
  * (1) It makes the proof involve literals of the form (abs x) ~ (abs y)
  * instead of their rewritten form (MonomialCheck::mkLit).
  * (2) Reorders the explanation to match the conclusion.
  * (3) Groups the disequalities with the proper explanation.
- * (4) Groups products in the conclusion to match the explanation.
+ * (4) Uses repetition of the explanation to match exponents > 1.
  * 
  * For example, after santizing the literals in (1), the lemma:
- * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (not (= x 0)))
- *     (> (abs (* x x w)) (abs (* z z y))))
+ * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (> (abs w) (abs 1)) (not (= x 0)))
+ *     (> (abs (* x x w w)) (abs (* z z y))))
  * is based on the proof step:
  * (=> (and 
  *        (and (= (abs x) (abs z)) (not (= x 0)))
+ *        (and (= (abs x) (abs z)) (not (= x 0)))
  *        (> (abs w) (abs y))
+ *        (> (abs w) (abs 1))
  *     )
- *     (> (abs (* (* x x) w)) (abs (* z z) y))
+ *     (> (abs (* x x w w)) (abs (* z z y 1)))
  * )
  * 
  */
@@ -59,6 +61,10 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
+  /**
+   * Make the product of terms in c.
+   */
+  static Node mkProduct(NodeManager* nm, const std::vector<Node>& c);
   /**
    * Make literal that compares the absolute value of a and b with kind k.
    */
@@ -81,27 +87,15 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   /**
    * Given a literal lit constructed by mkLit above, this decomposes lit
    * into the arguments passed to mkLit above and adds the left hand side
-   * to a and right hand side to b. If isSingleton is false, we add the
-   * product terms to a and b respectively, otherwise we add the left
-   * and right hand side terms as is.
+   * to a and right hand side to b.
    */
   static Kind decomposeCompareLit(const Node& lit,
                                   std::vector<Node>& a,
-                                  std::vector<Node>& b,
-                                  bool isSingleton = false);
+                                  std::vector<Node>& b);
   /**
-   * Given abs(t1) <k1> abs(t2) and abs(s1) <k2> abs(s2), returns the
-   * implied relation k abs(t1*s1) <k> abs(t2*s2), assuming that all terms
-   * are non-zero.
-   * This method assumes that k1 and k2 are only either GT or EQUAL.
+   * Adds the product terms of n to vec.
    */
-  static Kind combineRelation(Kind k1, Kind k2);
-  /**
-   * Adds the product terms of n to vec if isSingleton is false, otherwise
-   * adds n to vec.
-   */
-  static void addProduct(const Node& n, std::vector<Node>& vec,
-                                  bool isSingleton);
+  static void addProduct(const Node& n, std::vector<Node>& vec);
   /**
    * Is lit a disequality with zero? If lit is of the form (not (= t 0)), this
    * method returns t, otherwise it returns the null node.

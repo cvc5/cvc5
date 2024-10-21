@@ -137,8 +137,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
     std::unordered_set<Node> varSet1(eq[0][0].begin(), eq[0][0].end());
     std::unordered_set<Node> varSet2(eq[1][0].begin(), eq[1][0].end());
     // cannot have repetition
-    if (varSet1.size() != eq[0].getNumChildren()
-        || varSet2.size() != eq[1].getNumChildren())
+    if (varSet1.size() != eq[0][0].getNumChildren()
+        || varSet2.size() != eq[1][0].getNumChildren())
     {
       return Node::null();
     }
