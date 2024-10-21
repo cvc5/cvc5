@@ -222,9 +222,9 @@ add_custom_command(
   COMMAND
     ${Python_EXECUTABLE}
     ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/type_checker_template.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/type_checker.cpp
-    ${KINDS_TOML_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/type_checker_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/type_checker.cpp
+    --kinds ${KINDS_TOML_FILES}
   DEPENDS mkexpr.py type_checker_template.cpp ${KINDS_TOML_FILES}
 )
 
