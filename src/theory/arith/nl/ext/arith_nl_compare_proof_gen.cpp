@@ -224,7 +224,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       << "...processed prove: " << expc << " => " << concc << std::endl;
   Trace("arith-nl-compare")
       << "...grouped conclusion is " << newConc << std::endl;
-  cdp.addStep(newConc, ProofRule::MACRO_ARITH_NL_ABS_COMPARISON, expcFinal, {});
+  cdp.addStep(newConc, ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
   // the grouped literal should be equivalent by rewriting
   if (newConc != concc)
   {

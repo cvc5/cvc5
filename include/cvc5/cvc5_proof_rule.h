@@ -1844,24 +1844,21 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Non-linear absolute value comparison**
+   * **Arithmetic -- Non-linear multiply absolute value comparison**
    *
    * .. math::
-   *   \inferrule{F_1 \dots F_n \mid F}{F}
+   *   \inferrule{F_1 \dots F_n \mid -}{F}
    * 
    * where :math:`F` is of the form 
-   * :math:`abs(t_1^k_1 \cdot t_n^k_n) \diamond abs((s_1^k_1) \cdot (s_n^k_n))`.
+   * :math:`abs(t_1 \cdot t_n) \diamond abs(s_1 \cdot s_n)`.
    * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
    * :math:`abs(t_i) = abs(s_i)`. If :math:`\diamond` is :math:`>`, then
    * each :math:`F_i` is either :math:`abs(t_i) > abs(s_i)` or
    * :math:`abs(t_i) = abs(s_i) \wege abs(t_i) \neq 0`.
-   * 
-   * Note that above :math:`(s_i^k_i)` denotes :math:`s_i` multiplied by itself
-   * :math:`k_i` times, where we assume :math:`k_i \geq 1`.
    *
    * \endverbatim
    */
-  EVALUE(MACRO_ARITH_NL_ABS_COMPARISON),
+  EVALUE(ARITH_MULT_ABS_COMPARISON),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
