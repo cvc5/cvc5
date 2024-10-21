@@ -1,7 +1,7 @@
-# kinds                                                               -*- sh -*-
+# kinds.toml
 #
 # For documentation on this file format, please refer to
-# src/theory/builtin/kinds.
+# src/theory/builtin/kinds.toml.
 #
 
 [theory]
@@ -20,12 +20,16 @@ type = "operator"
 name     = "FORALL"
 children = "2:3"
 comment  = "universally quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "EXISTS"
 children = "2:3"
 comment  = "existentially quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
 
 [[kinds]]
 type = "variable"
@@ -49,6 +53,8 @@ type = "operator"
 name     = "BOUND_VAR_LIST"
 children = "1:"
 comment  = "a list of bound variables (used to bind variables under a quantifier)"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule"
 
 [[kinds]]
 type = "sort"
@@ -65,30 +71,40 @@ type = "operator"
 name     = "INST_PATTERN"
 children = "1:"
 comment  = "instantiation pattern"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "INST_NO_PATTERN"
 children = 1
 comment  = "instantiation no-pattern"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "INST_ATTRIBUTE"
 children = "1:"
 comment  = "instantiation attribute"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "INST_POOL"
 children = "1:"
 comment  = "instantiation pool"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "INST_ADD_TO_POOL"
 children = 2
 comment  = "instantiation add to pool"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
 type = "operator"
@@ -96,12 +112,16 @@ name     = "SKOLEM_ADD_TO_POOL"
 children = 2
 comment  = "skolemization add to pool"
 # oracle formula generator is a pair (assumption generator, constraint generator)
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "ORACLE_FORMULA_GEN"
 children = 2
 comment  = "oracle interface"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule"
 
 [[kinds]]
 type = "sort"
@@ -116,58 +136,5 @@ type = "operator"
 name     = "INST_PATTERN_LIST"
 children = "1:"
 comment  = "a list of instantiation patterns"
-
-[[kinds]]
-type = "typerule"
-name               = "FORALL"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "EXISTS"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "BOUND_VAR_LIST"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_PATTERN_LIST"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "ORACLE_FORMULA_GEN"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_PATTERN"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_NO_PATTERN"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_ATTRIBUTE"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_POOL"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "INST_ADD_TO_POOL"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SKOLEM_ADD_TO_POOL"
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"

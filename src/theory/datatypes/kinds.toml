@@ -1,7 +1,7 @@
-# kinds                                                               -*- sh -*-
+# kinds.toml
 #
 # For documentation on this file format, please refer to
-# src/theory/builtin/kinds.
+# src/theory/builtin/kinds.toml.
 #
 
 [theory]
@@ -21,10 +21,7 @@ type = "operator"
 name     = "CONSTRUCTOR_TYPE"
 children = "1:"
 comment  = "constructor"
-
-[[kinds]]
-type = "cardinality"
-name     = "CONSTRUCTOR_TYPE"
+[kinds.cardinality]
 computer = "::cvc5::internal::theory::datatypes::ConstructorProperties::computeCardinality(%TYPE%)"
 header   = "theory/datatypes/theory_datatypes_type_rules.h"
 
@@ -34,11 +31,8 @@ type = "operator"
 name     = "SELECTOR_TYPE"
 children = 2
 comment  = "selector"
-
 # can re-use function cardinality
-[[kinds]]
-type = "cardinality"
-name     = "SELECTOR_TYPE"
+[kinds.cardinality]
 computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality(%TYPE%)"
 header   = "theory/uf/theory_uf_type_rules.h"
 
@@ -48,11 +42,8 @@ type = "operator"
 name     = "TESTER_TYPE"
 children = 1
 comment  = "tester"
-
 # can re-use function cardinality
-[[kinds]]
-type = "cardinality"
-name     = "TESTER_TYPE"
+[kinds.cardinality]
 computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality(%TYPE%)"
 header   = "theory/uf/theory_uf_type_rules.h"
 
@@ -62,11 +53,8 @@ type = "operator"
 name     = "UPDATER_TYPE"
 children = 2
 comment  = "datatype update"
-
 # can re-use function cardinality
-[[kinds]]
-type = "cardinality"
-name     = "UPDATER_TYPE"
+[kinds.cardinality]
 computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality(%TYPE%)"
 header   = "theory/uf/theory_uf_type_rules.h"
 
@@ -76,6 +64,10 @@ K1       = "APPLY_CONSTRUCTOR"
 K2       = "APPLY_TYPE_ASCRIPTION"
 children = "0:"
 comment  = "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
+[kinds.construle]
+type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
 
 [[kinds]]
 type = "parameterized"
@@ -83,6 +75,8 @@ K1       = "APPLY_SELECTOR"
 K2       = "SELECTOR_TYPE"
 children = 1
 comment  = "selector application; parameter is a datatype term (undefined if mis-applied)"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeSelectorTypeRule"
 
 [[kinds]]
 type = "parameterized"
@@ -90,6 +84,8 @@ K1       = "APPLY_TESTER"
 K2       = "TESTER_TYPE"
 children = 1
 comment  = "tester application; first parameter is a tester, second is a datatype term"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeTesterTypeRule"
 
 [[kinds]]
 type = "parameterized"
@@ -97,20 +93,16 @@ K1       = "APPLY_UPDATER"
 K2       = "UPDATER_TYPE"
 children = 2
 comment  = "datatype updater application; first parameter is an update, second is a datatype term to update, third is the value to update with"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeUpdateTypeRule"
 
 [[kinds]]
 type = "variable"
 name = "DATATYPE_TYPE"
-
-[[kinds]]
-type = "cardinality"
-name     = "DATATYPE_TYPE"
+[kinds.cardinality]
 computer = "%TYPE%.getDType().getCardinality(%TYPE%)"
 header   = "expr/dtype.h"
-
-[[kinds]]
-type = "well-founded"
-name                     = "DATATYPE_TYPE"
+[kinds.well-founded]
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
@@ -126,16 +118,10 @@ type = "operator"
 name     = "PARAMETRIC_DATATYPE"
 children = "1:"
 comment  = "parametric datatype"
-
-[[kinds]]
-type = "cardinality"
-name     = "PARAMETRIC_DATATYPE"
+[kinds.cardinality]
 computer = "%TYPE%.getDType().getCardinality(%TYPE%)"
 header   = "expr/dtype.h"
-
-[[kinds]]
-type = "well-founded"
-name                     = "PARAMETRIC_DATATYPE"
+[kinds.well-founded]
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
@@ -151,16 +137,10 @@ type = "operator"
 name     = "TUPLE_TYPE"
 children = "0:"
 comment  = "tuple type"
-
-[[kinds]]
-type = "cardinality"
-name     = "TUPLE_TYPE"
+[kinds.cardinality]
 computer = "%TYPE%.getDType().getCardinality(%TYPE%)"
 header   = "expr/dtype.h"
-
-[[kinds]]
-type = "well-founded"
-name                     = "TUPLE_TYPE"
+[kinds.well-founded]
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
@@ -177,51 +157,19 @@ K1       = "APPLY_TYPE_ASCRIPTION"
 K2       = "ASCRIPTION_TYPE"
 children = 1
 comment  = "type ascription, for datatype constructor applications; first parameter is an ASCRIPTION_TYPE, second is the datatype constructor application being ascribed"
-
-[[kinds]]
-type = "constant"
-name    = "ASCRIPTION_TYPE"
-F       = "class"
-T       = "AscriptionType"
-hasher  = "::cvc5::internal::AscriptionTypeHashFunction"
-header  = "expr/ascription_type.h"
-comment = "a type parameter for type ascription; payload is an instance of the cvc5::internal::AscriptionType class"
-
-[[kinds]]
-type = "typerule"
-name               = "APPLY_CONSTRUCTOR"
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "APPLY_SELECTOR"
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeSelectorTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "APPLY_TESTER"
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeTesterTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "APPLY_UPDATER"
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeUpdateTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "APPLY_TYPE_ASCRIPTION"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeAscriptionTypeRule"
 
 [[kinds]]
-type = "typerule"
-name               = "ASCRIPTION_TYPE"
+type      = "constant"
+name      = "ASCRIPTION_TYPE"
+class_key = "class"
+cpp_type  = "AscriptionType"
+hasher    = "::cvc5::internal::AscriptionTypeHashFunction"
+header    = "expr/ascription_type.h"
+comment   = "a type parameter for type ascription; payload is an instance of the cvc5::internal::AscriptionType class"
+[kinds.typerule]
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-
-# constructor applications are constant if they are applied only to constants
-[[kinds]]
-type = "construle"
-name               = "APPLY_CONSTRUCTOR"
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
 
 # the remaining kinds are used only by the sygus extension
 [[kinds]]
@@ -229,10 +177,7 @@ type = "operator"
 name     = "DT_SIZE"
 children = 1
 comment  = "datatypes size"
-
-[[kinds]]
-type = "typerule"
-name               = "DT_SIZE"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DtSizeTypeRule"
 
 [[kinds]]
@@ -240,10 +185,7 @@ type = "operator"
 name     = "DT_HEIGHT_BOUND"
 children = 2
 comment  = "datatypes height bound"
-
-[[kinds]]
-type = "typerule"
-name               = "DT_HEIGHT_BOUND"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
@@ -251,10 +193,7 @@ type = "operator"
 name     = "DT_SIZE_BOUND"
 children = 2
 comment  = "datatypes height bound"
-
-[[kinds]]
-type = "typerule"
-name               = "DT_SIZE_BOUND"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
@@ -262,10 +201,7 @@ type = "operator"
 name     = "DT_SYGUS_BOUND"
 children = 2
 comment  = "datatypes sygus bound"
-
-[[kinds]]
-type = "typerule"
-name               = "DT_SYGUS_BOUND"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
@@ -273,10 +209,7 @@ type = "operator"
 name     = "DT_SYGUS_EVAL"
 children = "1:"
 comment  = "datatypes sygus evaluation function"
-
-[[kinds]]
-type = "typerule"
-name               = "DT_SYGUS_EVAL"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::DtSygusEvalTypeRule"
 
 # Kinds for match terms. For example, the match term
@@ -294,42 +227,35 @@ type = "operator"
 name     = "MATCH"
 children = "2:"
 comment  = "match construct"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::MatchTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "MATCH_CASE"
 children = 2
 comment  = "a match case"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::datatypes::MatchCaseTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "MATCH_BIND_CASE"
 children = 3
 comment  = "a match case with bound variables"
-
-[[kinds]]
-type = "typerule"
-name               = "MATCH"
-type_checker_class = "::cvc5::internal::theory::datatypes::MatchTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "MATCH_CASE"
-type_checker_class = "::cvc5::internal::theory::datatypes::MatchCaseTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "MATCH_BIND_CASE"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::MatchBindCaseTypeRule"
 
 [[kinds]]
-type = "constant"
-name    = "TUPLE_PROJECT_OP"
-F       = "class"
-T       = "ProjectOp+"
-hasher  = "::cvc5::internal::ProjectOpHashFunction"
-header  = "theory/datatypes/project_op.h"
-comment = "operator for TUPLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
+type      = "constant"
+name      = "TUPLE_PROJECT_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for TUPLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
+[kinds.typerule]
+type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
 
 [[kinds]]
 type = "parameterized"
@@ -337,30 +263,19 @@ K1       = "TUPLE_PROJECT"
 K2       = "TUPLE_PROJECT_OP"
 children = 1
 comment  = "projects a tuple from an existing tuple using indices passed in TupleProjectOp"
-
-[[kinds]]
-type = "typerule"
-name               = "TUPLE_PROJECT_OP"
-type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
-
-[[kinds]]
-type = "typerule"
-name               = "TUPLE_PROJECT"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::TupleProjectTypeRule"
 
 # For representing codatatype values
 [[kinds]]
-type = "constant"
-name    = "CODATATYPE_BOUND_VARIABLE"
-F       = "class"
-T       = "CodatatypeBoundVariable"
-hasher  = "::cvc5::internal::CodatatypeBoundVariableHashFunction"
-header  = "expr/codatatype_bound_variable.h"
-comment = "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::internal::CodatatypeBoundVariable class (used in models)"
-
-[[kinds]]
-type = "typerule"
-name               = "CODATATYPE_BOUND_VARIABLE"
+type      = "constant"
+name      = "CODATATYPE_BOUND_VARIABLE"
+class_key = "class"
+cpp_type  = "CodatatypeBoundVariable"
+hasher    = "::cvc5::internal::CodatatypeBoundVariableHashFunction"
+header    = "expr/codatatype_bound_variable.h"
+comment   = "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::internal::CodatatypeBoundVariable class (used in models)"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::CodatatypeBoundVariableTypeRule"
 
 [[kinds]]
@@ -368,16 +283,10 @@ type = "operator"
 name     = "NULLABLE_TYPE"
 children = "0:"
 comment  = "nullable type"
-
-[[kinds]]
-type = "cardinality"
-name     = "NULLABLE_TYPE"
+[kinds.cardinality]
 computer = "%TYPE%.getDType().getCardinality(%TYPE%)"
 header   = "expr/dtype.h"
-
-[[kinds]]
-type = "well-founded"
-name                     = "NULLABLE_TYPE"
+[kinds.well-founded]
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
@@ -393,8 +302,5 @@ type = "operator"
 name     = "NULLABLE_LIFT"
 children = "1:"
 comment  = "application of lift operator; first parameter is the lift operator, remaining ones are its arguments"
-
-[[kinds]]
-type = "typerule"
-name               = "NULLABLE_LIFT"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::datatypes::NullableLiftTypeRule"

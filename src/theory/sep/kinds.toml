@@ -1,7 +1,7 @@
-# kinds                                                               -*- sh -*-
+# kinds.toml
 #
 # For documentation on this file format, please refer to
-# src/theory/builtin/kinds.
+# src/theory/builtin/kinds.toml.
 #
 
 [theory]
@@ -19,62 +19,44 @@ header = "theory/sep/theory_sep_rewriter.h"
 type = "nullaryoperator"
 name     = "SEP_NIL"
 comment  = "separation nil"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sep::SepNilTypeRule"
 
 [[kinds]]
 type = "nullaryoperator"
 name     = "SEP_EMP"
 comment  = "separation logic empty heap constraint"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sep::SepEmpTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "SEP_PTO"
 children = 2
 comment  = "points to relation"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sep::SepPtoTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "SEP_STAR"
 children = "2:"
 comment  = "separation star"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sep::SepStarTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "SEP_WAND"
 children = 2
 comment  = "separation magic wand"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sep::SepWandTypeRule"
 
 [[kinds]]
 type = "operator"
 name     = "SEP_LABEL"
 children = 2
 comment  = "separation label (internal use only)"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_EMP"
-type_checker_class = "::cvc5::internal::theory::sep::SepEmpTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_PTO"
-type_checker_class = "::cvc5::internal::theory::sep::SepPtoTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_STAR"
-type_checker_class = "::cvc5::internal::theory::sep::SepStarTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_WAND"
-type_checker_class = "::cvc5::internal::theory::sep::SepWandTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_LABEL"
+[kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::sep::SepLabelTypeRule"
-
-[[kinds]]
-type = "typerule"
-name               = "SEP_NIL"
-type_checker_class = "::cvc5::internal::theory::sep::SepNilTypeRule"
