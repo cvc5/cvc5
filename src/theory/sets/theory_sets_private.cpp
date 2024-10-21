@@ -57,6 +57,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
+      d_hasEnabledRels(false),
       d_rels_enabled(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
@@ -196,6 +197,26 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
   }
 }
 
+void TheorySetsPrivate::ensureRelationsEnabled()
+{
+  if (d_rels_enabled)
+  {
+    return;
+  }
+  d_rels_enabled = true;
+  if (!d_hasEnabledRels)
+  {
+    if (!options().sets.relsExp)
+    {
+      std::stringstream ss;
+      ss << "Relations are not supported in this configuration, try "
+            "--rels-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledRels = true;
+  }
+}
+
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
@@ -291,7 +312,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (d_rels->isRelationKind(nk))
         {
-          d_rels_enabled = true;
+          ensureRelationsEnabled();
         }
         else if(isHigherOrderKind(nk))
         {
