@@ -567,3 +567,15 @@
   :requires ((($str_mk_str_in_re_sigma_star s r) b))
   :conclusion (= (str.in_re s (re.* r)) b)
 )
+; rule: seq-length-eval
+; implements: ProofRewriteRule::SEQ_LENGTH_EVAL
+; args:
+; - eq Bool: The equality between the length of a sequence and a constant integer.
+; requires: >
+;   The right hand side of the equality is a concatenation of units having length n.
+; conclusion: The given equality.
+(declare-rule seq-length-eval ((T Type) (s (Seq T)) (n Int))
+  :args ((= (seq.len s) n))
+  :requires ((($seq_is_units_concat s) true) ((eo::list_len seq.++ s) n))
+  :conclusion (= (seq.len s) n)
+)

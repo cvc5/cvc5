@@ -134,7 +134,7 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const seq.unit (-> (! Type :var T :implicit) T (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int (eo::ite (eo::is_eq T Char) Int T)))
+(declare-const seq.nth (-> (! Type :var T :implicit) (Seq T) Int T))
 
 ; Sequence operators are automatically translated to the string operators.
 ; disclaimer: This function is not in SMT-LIB.

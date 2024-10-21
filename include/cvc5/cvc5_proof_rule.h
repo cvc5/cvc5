@@ -2740,6 +2740,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sequences - sequence length eval**
+   *
+   * .. math::
+   *   \mathit{len}(c) = n
+   *
+   * where :math:`c` is concatenation of :math:`seq.unit` terms of length :math:`n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(SEQ_LENGTH_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**
    *
    * .. math::
