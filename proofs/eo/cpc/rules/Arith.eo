@@ -292,7 +292,7 @@
                         (and (= t (= (- r k) 0/1)) ($arith_to_int_reduction r))))
     ((to_int r)       (eo::define ((k (@purify (to_int r))))
                         (and (= t k) ($arith_to_int_reduction r))))
-    ((/ u v)          (= (/ u v) (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero u) (/_total u v))))
+    ((/ u v)          (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero u) (/_total u v))))
     ((div u v)        (= t (ite (= v 0) (@int_div_by_zero u) (div_total u v))))
     ((mod u v)        (= t (ite (= v 0) (@mod_by_zero u) (mod_total u v))))
     ((/_total u v)    (eo::define ((k (@purify (/_total u v))))
