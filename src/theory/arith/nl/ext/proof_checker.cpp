@@ -155,7 +155,8 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   }
   else if ( id == ProofRule::MACRO_ARITH_NL_ABS_COMPARISON)
   {
-    Assert(args.size() == 1);
+    Assert(!children.empty());
+    Assert(args.empty());
     // decompose the conclusion first
     std::vector<Node> cprod[2];
     // note we treat the conclusion as a singleton if there is exactly one
