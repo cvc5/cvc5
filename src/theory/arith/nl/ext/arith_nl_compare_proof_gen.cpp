@@ -218,29 +218,12 @@ std::string ArithNlCompareProofGenerator::identify() const
   return "ArithNlCompareProofGenerator";
 }
 
-Node ensureReal(NodeManager* nm, const Node& n)
-{
-  return n.isConst() ? nm->mkConstReal(n.getConst<Rational>())
-                     : nm->mkNode(Kind::TO_REAL, n);
-}
-
 Node ArithNlCompareProofGenerator::mkLit(
     NodeManager* nm, Kind k, const Node& a, const Node& b)
 {
+  Assert (a.getType()==b.getType());
   Node au = a;
   Node bu = b;
-  if (k == Kind::EQUAL && au.getType() != bu.getType())
-  {
-    // must resolve subtype issues here
-    if (au.getType().isInteger())
-    {
-      au = ensureReal(nm, au);
-    }
-    else
-    {
-      bu = ensureReal(nm, bu);
-    }
-  }
   // add absolute value
   au = nm->mkNode(Kind::ABS, au);
   bu = nm->mkNode(Kind::ABS, bu);

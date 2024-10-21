@@ -428,12 +428,8 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
-      Node cob = ob;
-      if (ob == d_data->d_one)
-      {
-        cob = mkOne(oa.getType());
-      }
-      Node conc = mkAndNotifyAbsLit(oa, cob, status);
+      Kind k = status==0 ? Kind::EQUAL : Kind::GT;
+      Node conc = mkAndNotifyAbsLit(k, oa, ob);
       Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       // use dedicated proof generator d_ancPfGen
@@ -515,7 +511,8 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
       // can multiply b by <=1
       Node one = mkOne(bv.getType());
-      exp.push_back(mkAndNotifyAbsLit(one, bv, bvo == ovo ? 0 : 2));
+      Kind k =  bvo == ovo ? Kind::EQUAL : Kind::GT;
+      exp.push_back(mkAndNotifyAbsLit(k, one, bv));
       return compareMonomial(oa,
                              a,
                              a_index,
@@ -540,7 +537,8 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // can multiply a by >=1
       Node one = mkOne(av.getType());
-      exp.push_back(mkAndNotifyAbsLit(av, one, avo == ovo ? 0 : 2));
+      Kind k = avo == ovo ? Kind::EQUAL : Kind::GT;
+      exp.push_back(mkAndNotifyAbsLit(k, av, one));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -566,7 +564,8 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
       // do avo>=1 instead
       Node one = mkOne(av.getType());
-      exp.push_back(mkAndNotifyAbsLit(av, one, avo == ovo ? 0 : 2));
+      Kind k = avo == ovo ? Kind::EQUAL : Kind::GT;
+      exp.push_back(mkAndNotifyAbsLit(k, av, one));
       return compareMonomial(oa,
                              a,
                              a_index + 1,
@@ -585,7 +584,8 @@ bool MonomialCheck::compareMonomial(
     b_exp_proc[bv] += min_exp;
     Trace("nl-ext-comp-debug") << "...take leading " << min_exp << " from "
                                << av << " and " << bv << std::endl;
-    exp.push_back(mkAndNotifyAbsLit(av, bv, avo == bvo ? 0 : 2));
+                               Kind k = avo == bvo ? Kind::EQUAL : Kind::GT;
+    exp.push_back(mkAndNotifyAbsLit(k, av, bv));
     bool ret = compareMonomial(oa,
                                a,
                                a_index,
@@ -607,7 +607,8 @@ bool MonomialCheck::compareMonomial(
     Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
     // try multiply b <= 1
     Node one = mkOne(bv.getType());
-    exp.push_back(mkAndNotifyAbsLit(one, bv, bvo == ovo ? 0 : 2));
+    Kind k =bvo == ovo ? Kind::EQUAL : Kind::GT;
+    exp.push_back(mkAndNotifyAbsLit(k, one, bv));
     return compareMonomial(oa,
                            a,
                            a_index,
@@ -730,25 +731,31 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
   }
 }
 
-Node MonomialCheck::mkAndNotifyAbsLit(Node a,
-                                   Node b,
-                                   int status) const
+Node MonomialCheck::mkAndNotifyAbsLit(Kind k,
+                                      Node a,
+                                   Node b) const
 {
+  NodeManager* nm = nodeManager();
+  // must ensure types match now
+  TypeNode at = a.getType();
+  TypeNode bt = b.getType();
+  if (at!=bt)
+  {
+    if (at.isInteger())
+    {
+      a = castToReal(nm, a);
+    }
+    else
+    {
+      Assert( bt.isInteger());
+      b = castToReal(nm, b);
+    }
+  }
+  int status = k==Kind::EQUAL ? 0 : 2;
   Node ret = mkLit(a, b, status, true);
   // if proofs are enabled, we ensure we remember what the literal represents
   if (d_ancPfGen != nullptr)
   {
-    Kind k;
-    switch (status)
-    {
-      case 0: k = Kind::EQUAL; break;
-      case 1: k = Kind::GEQ; break;
-      case 2: k = Kind::GT; break;
-      case -1: k = Kind::LEQ; break;
-      case -2: k = Kind::LT; break;
-      default: Unhandled() << "Unknown status " << status; break;
-    }
-    NodeManager* nm = nodeManager();
     ArithNlCompareProofGenerator::setCompareLit(nm, ret, k, a, b);
   }
   return ret;
