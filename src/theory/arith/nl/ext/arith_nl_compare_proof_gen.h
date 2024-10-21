@@ -36,15 +36,16 @@ namespace nl {
  * (4) Uses repetition of the explanation to match exponents > 1.
  * 
  * For example, after santizing the literals in (1), the lemma:
- * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (not (= x 0)))
- *     (> (abs (* x x w)) (abs (* z z y))))
+ * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (> (abs w) (abs 1)) (not (= x 0)))
+ *     (> (abs (* x x w w)) (abs (* z z y))))
  * is based on the proof step:
  * (=> (and 
  *        (and (= (abs x) (abs z)) (not (= x 0)))
  *        (and (= (abs x) (abs z)) (not (= x 0)))
  *        (> (abs w) (abs y))
+ *        (> (abs w) (abs 1))
  *     )
- *     (> (abs (* x x w)) (abs (* z z y)))
+ *     (> (abs (* x x w w)) (abs (* z z y 1)))
  * )
  * 
  */
