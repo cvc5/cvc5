@@ -205,6 +205,12 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       return res[0][0].getType().isRealOrInt();
     }
     break;
+    case ProofRule::ARITH_REDUCTION:
+    {
+      // FIXME
+      return true;
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
