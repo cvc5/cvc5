@@ -240,6 +240,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+      return "macro-quant-var-elim-eq";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
+      return "macro-quant-var-elim-ineq";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";

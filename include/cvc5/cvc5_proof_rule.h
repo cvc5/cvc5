@@ -2507,6 +2507,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination**
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
+  EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
    *
    * .. math::
