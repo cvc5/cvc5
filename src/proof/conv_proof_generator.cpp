@@ -112,21 +112,6 @@ void TConvProofGenerator::addRewriteStep(Node t,
   }
 }
 
-void TConvProofGenerator::addTrustedRewriteStep(
-    Node t,
-    Node s,
-    TrustId id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    bool isPre,
-    uint32_t tctx)
-{
-  std::vector<Node> targs;
-  targs.push_back(mkTrustId(id));
-  targs.emplace_back(t.eqNode(s));
-  addRewriteStep(t, s, ProofRule::TRUST, children, targs, isPre, tctx);
-}
-
 bool TConvProofGenerator::hasRewriteStep(Node t,
                                          uint32_t tctx,
                                          bool isPre) const

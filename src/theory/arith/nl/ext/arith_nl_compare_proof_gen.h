@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utilities for monomials.
+ * A proof generator for lemmas that use ProofRule::ARITH_MULT_ABS_COMPARISON.
  */
 
 #ifndef CVC5__THEORY__ARITH__NL__EXT__ARITH_NL_COMPARE_PROOF_GEN_H
@@ -26,7 +26,7 @@ namespace nl {
 
 /**
  * A proof generator that takes lemmas InferenceId::ARITH_NL_COMPARISON and
- * gives them a proof in terms of ProofRule::MACRO_ARITH_NL_ABS_COMPARISON.
+ * gives them a proof in terms of ProofRule::ARITH_MULT_ABS_COMPARISON.
  * 
  * This involves several things:
  * (1) It makes the proof involve literals of the form (abs x) ~ (abs y)

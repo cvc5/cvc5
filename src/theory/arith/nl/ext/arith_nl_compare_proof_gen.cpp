@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utilities for monomials.
+ * A proof generator for lemmas that use ProofRule::ARITH_MULT_ABS_COMPARISON.
  */
 
 #include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
