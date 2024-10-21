@@ -135,6 +135,8 @@ class SmtSolver : protected EnvObj
  private:
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
+  /** Finish initialization of preprocessor */
+  void finishInitPreprocessor();
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Assertions manager */
