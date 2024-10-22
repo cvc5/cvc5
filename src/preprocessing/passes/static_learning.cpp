@@ -57,15 +57,10 @@ PreprocessingPassResult StaticLearning::applyInternal(
       d_preprocContext->getTheoryEngine()->ppStaticLearn(a, tlems);
     }
 
-    if (!tlems.empty())
+    // add the lemmas to the end
+    for (const TrustNode& trn : tlems)
     {
-      NodeBuilder learned(Kind::AND);
-      learned << n;
-      for (const TrustNode& trn : tlems)
-      {
-        learned << trn.getProven();
-      }
-      assertionsToPreprocess->replace(i, rewrite(learned.constructNode()));
+      assertionsToPreprocess->pushBackTrusted(trn);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

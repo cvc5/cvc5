@@ -1035,7 +1035,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
