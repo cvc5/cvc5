@@ -602,12 +602,9 @@ class Theory : protected EnvObj
   //--------------------------------- preprocessing
   /**
    * Statically learn from assertion "in," which has been asserted
-   * true at the top level.  The theory should only add (via
-   * ::operator<< or ::append()) to the "learned" builder---it should
-   * *never* clear it.  It is a conjunction to add to the formula at
-   * the top-level and may contain other theories' contributions.
+   * true at the top level.
    */
-  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
+  virtual void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) {}
 
   enum PPAssertStatus
   {

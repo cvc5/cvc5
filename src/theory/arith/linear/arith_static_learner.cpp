@@ -50,7 +50,7 @@ ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr)
 {
 }
 
-void ArithStaticLearner::staticLearning(TNode n, NodeBuilder& learned)
+void ArithStaticLearner::staticLearning(TNode n, std::vector<TrustNode>& learned)
 {
   vector<TNode> workList;
   workList.push_back(n);
@@ -96,7 +96,7 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder& learned)
 }
 
 void ArithStaticLearner::process(TNode n,
-                                 NodeBuilder& learned,
+                                 std::vector<TrustNode>& learned,
                                  const TNodeSet& defTrue)
 {
   Trace("arith::static") << "===================== looking at " << n << endl;
@@ -136,7 +136,7 @@ void ArithStaticLearner::process(TNode n,
   }
 }
 
-void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
+void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
 {
   Assert(n.getKind() == Kind::ITE);
   Assert(n[0].getKind() != Kind::EQUAL);
@@ -172,7 +172,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
         Node nLeqX = NodeBuilder(Kind::LEQ) << n << t;
         Node nLeqY = NodeBuilder(Kind::LEQ) << n << e;
         Trace("arith::static") << n << "is a min =>" << nLeqX << nLeqY << endl;
-        learned << nLeqX << nLeqY;
+        addLearnedLemma(nLeqX, learned);
+        addLearnedLemma(nLeqY, learned);
         ++(d_statistics.d_iteMinMaxApplications);
         break;
       }
@@ -182,7 +183,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
         Node nGeqX = NodeBuilder(Kind::GEQ) << n << t;
         Node nGeqY = NodeBuilder(Kind::GEQ) << n << e;
         Trace("arith::static") << n << "is a max =>" << nGeqX << nGeqY << endl;
-        learned << nGeqX << nGeqY;
+        addLearnedLemma(nGeqX, learned);
+        addLearnedLemma(nGeqY, learned);
         ++(d_statistics.d_iteMinMaxApplications);
         break;
       }
@@ -191,7 +193,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder& learned)
   }
 }
 
-void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
+void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
 {
   Assert(n.getKind() == Kind::ITE);
 
@@ -209,7 +211,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
           min.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
           n,
           nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
-      learned << nGeqMin;
+      addLearnedLemma(nGeqMin, learned);
       Trace("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
@@ -227,7 +229,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder& learned)
           max.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
-      learned << nLeqMax;
+      addLearnedLemma(nLeqMax, learned);
       Trace("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
     }
@@ -272,6 +274,12 @@ void ArithStaticLearner::addBound(TNode n) {
       break;
     default: Unhandled() << k; break;
   }
+}
+
+void ArithStaticLearner::addLearnedLemma(TNode n, std::vector<TrustNode>& learned)
+{
+  TrustNode trn = TrustNode::mkTrustLemma(n, nullptr);
+  learned.emplace_back(trn);
 }
 
 }  // namespace arith
