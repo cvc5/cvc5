@@ -741,6 +741,12 @@ enum ENUM(SkolemId)
    * For example, if the original function is from
    * BV and Strings to Strings, the resulting
    * function is from Ints and Strings to Strings.
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` the original function f, with BV sorts.
+   * - Sort: `(-> T1' ... ( -> Tn' T')...)` Where
+   *   f has sort (->T1 ... (-> Tn T)...) and Ti' (T') is 
+   *   `Int` if Ti (T) is `BV` and Ti' (T') is just Ti (T)
+   *   otherwise.
    */
   EVALUE(BV_TO_INT_UF),
 
