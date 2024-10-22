@@ -17,11 +17,11 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
-#include "expr/sort_to_term.h"
 
 using namespace cvc5::internal::kind;
 
@@ -83,7 +83,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
 
 Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
 {
-  Assert (tn.isRealOrInt());
+  Assert(tn.isRealOrInt());
   if (create)
   {
     NodeManager* nm = nodeManager();
@@ -92,7 +92,8 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
     if (d_vts_inf_free[tn].isNull())
     {
       d_hasAllocated = true;
-      d_vts_inf_free[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY_FREE, stt);
+      d_vts_inf_free[tn] =
+          sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY_FREE, stt);
     }
     if (d_vts_inf[tn].isNull())
     {
