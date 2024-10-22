@@ -129,13 +129,13 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * @return integer node that corresponds to n
    */
   TrustNode trustedIntBlast(Node n,
-                     std::vector<TrustNode>& lemmas,
-                     std::map<Node, Node>& skolems);
+                            std::vector<TrustNode>& lemmas,
+                            std::map<Node, Node>& skolems);
 
   /** Version without proof tracking */
   Node intBlast(Node n,
-                     std::vector<Node>& lemmas,
-                     std::map<Node, Node>& skolems);
+                std::vector<Node>& lemmas,
+                std::map<Node, Node>& skolems);
   /**
    * Get proof for fact, where fact may correspond to:
    * (1) An equality of the form (= n n') where n was rewritten to n' in the

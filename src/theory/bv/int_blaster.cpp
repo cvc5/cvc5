@@ -162,8 +162,8 @@ Node IntBlaster::makeBinary(Node n)
  * Translate n to Integers via post-order traversal.
  */
 TrustNode IntBlaster::trustedIntBlast(Node n,
-                               std::vector<TrustNode>& lemmas,
-                               std::map<Node, Node>& skolems)
+                                      std::vector<TrustNode>& lemmas,
+                                      std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
   Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
@@ -254,7 +254,7 @@ TrustNode IntBlaster::trustedIntBlast(Node n,
   }
   Assert(d_intblastCache.find(n) != d_intblastCache.end());
   Node res = d_intblastCache[n].get();
-  if (res==n)
+  if (res == n)
   {
     return TrustNode::null();
   }
@@ -262,8 +262,8 @@ TrustNode IntBlaster::trustedIntBlast(Node n,
 }
 
 Node IntBlaster::intBlast(Node n,
-                    std::vector<Node>& lemmas,
-                    std::map<Node, Node>& skolems)
+                          std::vector<Node>& lemmas,
+                          std::map<Node, Node>& skolems)
 {
   std::vector<TrustNode> tlemmas;
   TrustNode tr = trustedIntBlast(n, tlemmas, skolems);

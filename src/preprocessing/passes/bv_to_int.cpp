@@ -60,7 +60,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     // ensure bv rewritten
     Node bvNode = (*assertionsToPreprocess)[i];
     Node bvnr = rewrite(bvNode);
-    if (bvnr!=bvNode)
+    if (bvnr != bvNode)
     {
       assertionsToPreprocess->replace(i, bvnr);
       bvNode = bvnr;
@@ -78,7 +78,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     // ensure integer rewritten
     Node intNode = (*assertionsToPreprocess)[i];
     Node inr = rewrite(intNode);
-    if (inr!=intNode)
+    if (inr != intNode)
     {
       assertionsToPreprocess->replace(i, inr);
     }
