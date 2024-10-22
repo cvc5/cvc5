@@ -55,9 +55,16 @@ Theory::PPAssertStatus LinearSolver::ppAssert(
 {
   return d_internal.ppAssert(tin, outSubstitutions);
 }
-void LinearSolver::ppStaticLearn(TNode in, NodeBuilder& learned)
+void LinearSolver::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
-  d_internal.ppStaticLearn(in, learned);
+  NodeBuilder lnb(Kind::AND);
+  d_internal.ppStaticLearn(in, lnb);
+  size_t nchild = lnb.getNumChildren();
+  for (size_t i=0; i<nchild; i++)
+  {
+    TrustNode trn = TrustNode::mkTrustLemma(lnb.getChild(i));
+    learned.emplace_back(trn);
+  }
 }
 EqualityStatus LinearSolver::getEqualityStatus(TNode a, TNode b)
 {

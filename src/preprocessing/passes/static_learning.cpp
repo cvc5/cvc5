@@ -48,23 +48,23 @@ PreprocessingPassResult StaticLearning::applyInternal(
       continue;
     }
 
-    NodeBuilder learned(Kind::AND);
-    learned << n;
-
     /* Process all assertions in nested AND terms. */
     std::vector<TNode> assertions;
     flattenAnd(n, assertions);
+    std::vector<TrustNode> tlems;
     for (TNode a : assertions)
     {
-      d_preprocContext->getTheoryEngine()->ppStaticLearn(a, learned);
+      d_preprocContext->getTheoryEngine()->ppStaticLearn(a, tlems);
     }
 
-    if (learned.getNumChildren() == 1)
+    if (!tlems.empty())
     {
-      learned.clear();
-    }
-    else
-    {
+      NodeBuilder learned(Kind::AND);
+      learned << n;
+      for (const TrustNode& trn : tlems)
+      {
+        learned << trn.getProven();
+      }
       assertionsToPreprocess->replace(i, rewrite(learned.constructNode()));
     }
   }
