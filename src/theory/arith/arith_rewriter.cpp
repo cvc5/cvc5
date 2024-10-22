@@ -68,7 +68,7 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::ARITH_POW_ELIM:
     {
-      if (n.getKind()==Kind::POW)
+      if (n.getKind() == Kind::POW)
       {
         Node nx = expandPowConst(nodeManager(), n);
         if (!nx.isNull())
@@ -1356,25 +1356,32 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
   return ineq;
 }
 
-Node ArithRewriter::expandPowConst(NodeManager * nm, const Node& t)
+Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
 {
   if (t[1].isConst())
   {
     const Rational& exp = t[1].getConst<Rational>();
     TNode base = t[0];
-    if(exp.sgn() == 0){
+    if (exp.sgn() == 0)
+    {
       return nm->mkConstRealOrInt(t.getType(), Rational(1));
-    }else if(exp.sgn() > 0 && exp.isIntegral()){
+    }
+    else if (exp.sgn() > 0 && exp.isIntegral())
+    {
       Rational r(expr::NodeValue::MAX_CHILDREN);
       if (exp <= r)
       {
         unsigned num = exp.getNumerator().toUnsignedInt();
         Node ret;
-        if( num==1 ){
+        if (num == 1)
+        {
           ret = base;
-        }else{
+        }
+        else
+        {
           NodeBuilder nb(Kind::MULT);
-          for(unsigned i=0; i < num; ++i){
+          for (unsigned i = 0; i < num; ++i)
+          {
             nb << base;
           }
           Assert(nb.getNumChildren() > 0);
