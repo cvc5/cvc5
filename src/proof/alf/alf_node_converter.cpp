@@ -662,6 +662,7 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
 
 bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
 {
+  // Note we don't handle skolems that takes types as arguments yet.
   switch (id)
   {
     case SkolemId::PURIFY:
@@ -674,8 +675,6 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
     case SkolemId::ARITH_VTS_DELTA:
     case SkolemId::ARITH_VTS_DELTA_FREE:
-    case SkolemId::ARITH_VTS_INFINITY:
-    case SkolemId::ARITH_VTS_INFINITY_FREE:
     case SkolemId::QUANTIFIERS_SKOLEMIZE:
     case SkolemId::SETS_DEQ_DIFF:
     case SkolemId::STRINGS_NUM_OCCUR:
