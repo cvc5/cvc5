@@ -2329,6 +2329,8 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DISTINCT_ELIM),
+  EVALUE(BV_TO_NAT_ELIM),
+  EVALUE(INT_TO_BV_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Booleans -- Negation Normal Form with normalization**
@@ -2407,6 +2409,7 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARITH_STRING_PRED_SAFE_APPROX),
+  EVALUE(ARITH_POW_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
@@ -2577,6 +2580,7 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+  EVALUE(DT_MATCH_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors - Unsigned multiplication overflow detection elimination**
@@ -2755,6 +2759,7 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(SETS_IS_EMPTY_EVAL),
+  EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
