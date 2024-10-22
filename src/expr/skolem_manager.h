@@ -153,7 +153,7 @@ class SkolemManager
    * skolem functions of the forms described in SkolemId. The user of this
    * method is responsible for providing a proper type for the identifier that
    * matches the description of id.
-   * This is done from the function
+   * This can be done from the function
    * `SkolemManager::getTypeFor`.
    * Skolem functions are useful for modelling
    * the behavior of partial functions, or for theory-specific inferences that
