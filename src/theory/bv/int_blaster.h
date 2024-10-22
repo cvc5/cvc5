@@ -126,7 +126,8 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * ff((bv2nat x))), where k is the bit-width of the domain of f, i is the
    * bit-width of its range, and ff is a Int->Int function that corresponds to
    * f. For functions with other signatures this is similar
-   * @return integer node that corresponds to n
+   * @return trust node proving (= n n_i) where n_i is an integer node that
+   * corresponds to n
    */
   TrustNode trustedIntBlast(Node n,
                             std::vector<TrustNode>& lemmas,
@@ -139,8 +140,8 @@ class IntBlaster : protected EnvObj, public ProofGenerator
   /**
    * Get proof for fact, where fact may correspond to:
    * (1) An equality of the form (= n n') where n was rewritten to n' in the
-   * method intBlast.
-   * (2) A lemma added to lemmas in the method intBlast.
+   * method trustedIntBlast.
+   * (2) A lemma added to lemmas in the method trustedIntBlast.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
