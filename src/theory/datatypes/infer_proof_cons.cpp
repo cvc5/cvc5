@@ -18,7 +18,6 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
-#include "proof/proof_checker.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/model_manager.h"
@@ -83,7 +82,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
              && exp[0].getKind() == Kind::APPLY_CONSTRUCTOR
              && exp[1].getKind() == Kind::APPLY_CONSTRUCTOR
              && exp[0].getOperator() == exp[1].getOperator());
-      Assert(conc.getKind()==Kind::EQUAL);
+      Assert(conc.getKind() == Kind::EQUAL);
       Node narg;
       // we may be asked for a proof of (not P) coming from (= P false) or
       // (= false P), or similarly P from (= P true) or (= true P).
@@ -97,7 +96,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         {
           argSuccess = true;
         }
-        else if (exp[0][i]==conc[1] && exp[1][i]==conc[0])
+        else if (exp[0][i] == conc[1] && exp[1][i] == conc[0])
         {
           // it is for the symmetric fact
           argSuccess = true;
@@ -122,14 +121,15 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       Node tst;
       if (expv.empty())
       {
-        // In rare cases, this rule is applied to a constructor without an explanation
-        // and introduces purification variables. In this case, it can be shown by
-        // MACRO_SR_PRED_INTRO. An example of this would be:
+        // In rare cases, this rule is applied to a constructor without an
+        // explanation and introduces purification variables. In this case, it
+        // can be shown by MACRO_SR_PRED_INTRO. An example of this would be:
         //   C(a) = C(s(@purify(C(a))))
         // which requires converting to original form and rewriting.
-        ProofChecker * pc = d_env.getProofNodeManager()->getChecker();
-        Node concc = pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {conc}, conc);
-        if (concc==conc)
+        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        Node concc =
+            pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {conc}, conc);
+        if (concc == conc)
         {
           cdp->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {}, {conc});
           success = true;
@@ -272,9 +272,10 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       // ---------------------------------------------- RESOLUTION
       // is-nil(x)
       Node tst = expv[0];
-      Assert(tst.getKind()==Kind::NOT && tst[0].getKind()==Kind::APPLY_TESTER);
+      Assert(tst.getKind() == Kind::NOT
+             && tst[0].getKind() == Kind::APPLY_TESTER);
       Node t = tst[0][0];
-      ProofChecker * pc = d_env.getProofNodeManager()->getChecker();
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
       Node sconc = pc->checkDebug(ProofRule::DT_SPLIT, {}, {t});
       if (!sconc.isNull())
       {
@@ -282,29 +283,32 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         cdp->addStep(sconc, ProofRule::DT_SPLIT, {}, {t});
         Node truen = nm->mkConst(true);
         Node curr = sconc;
-        for (const Node& exp : expv)
+        for (const Node& e : expv)
         {
-          if (exp.getKind()!=Kind::NOT || exp[0].getKind()!=Kind::APPLY_TESTER)
+          if (e.getKind() != Kind::NOT || e[0].getKind() != Kind::APPLY_TESTER)
           {
             curr = Node::null();
             break;
           }
-          curr = pc->checkDebug(ProofRule::RESOLUTION, {sconc, exp }, {truen, exp[0]});
+          curr =
+              pc->checkDebug(ProofRule::RESOLUTION, {sconc, e}, {truen, e[0]});
           if (!curr.isNull())
           {
-            Trace("dt-ipc") << "...conclude " << curr << " by resolution via " << exp[0] << std::endl;
-            cdp->addStep(curr, ProofRule::RESOLUTION, {sconc, exp }, {truen, exp[0]});
+            Trace("dt-ipc") << "...conclude " << curr << " by resolution via "
+                            << e[0] << std::endl;
+            cdp->addStep(
+                curr, ProofRule::RESOLUTION, {sconc, e}, {truen, e[0]});
           }
           else
           {
             break;
           }
         }
-        success = (curr==conc);
+        success = (curr == conc);
         Assert(success);
       }
     }
-      break;
+    break;
     // inferences currently not supported
     case InferenceId::DATATYPES_BISIMILAR:
     case InferenceId::DATATYPES_CYCLE:
