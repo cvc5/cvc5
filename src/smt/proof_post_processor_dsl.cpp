@@ -35,7 +35,7 @@ ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
 }
 
 void ProofPostprocessDsl::reconstruct(
-    std::unordered_set<std::shared_ptr<ProofNode>>& pfs)
+    std::vector<std::shared_ptr<ProofNode>>& pfs)
 {
   if (pfs.empty())
   {

@@ -186,7 +186,6 @@ Node SubtypeElimConverterCallback::convert(Node res,
     Trace("pf-subtype-elim-warn")
         << "WARNING: Introduction of subtyping via rule " << id;
     cdp->addTrustedStep(resc, TrustId::SUBTYPE_ELIMINATION, children, {});
-    d_trustedPfs.emplace_back(cdp->getProofFor(resc));
   }
   return resc;
 }

@@ -63,11 +63,6 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
                const std::vector<Node>& args,
                CDProof* cdp) override;
 
-  /**
-   * Get trusted proofs, which is the set of all trusted proofs
-   * that were encountered in the last call to process.
-   */
-  std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
  private:
   /**
    * Try to prove expected via the given rule, children, and arguments. Return
@@ -95,8 +90,6 @@ class SubtypeElimConverterCallback : public ProofNodeConverterCallback,
   SubtypeElimNodeConverter d_nconv;
   /** The proof checker we are using */
   ProofChecker* d_pc;
-  /** Set of all proofs to attempt to reconstruct */
-  std::unordered_set<std::shared_ptr<ProofNode>> d_trustedPfs;
 };
 
 }  // namespace cvc5::internal
