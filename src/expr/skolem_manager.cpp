@@ -584,8 +584,9 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::BV_TO_INT_UF:
     {
       Assert(cacheVals.size() == 1);
-      Assert(cacheVals[0].getType().isFunction());
+      // fetch the original function
       Node bvUF = cacheVals[0];
+      Assert(cacheVals[0].getType().isFunction());
       // old and new types of domain and result
       TypeNode tn = bvUF.getType();
       TypeNode bvRange = tn.getRangeType();
