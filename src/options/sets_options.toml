@@ -24,3 +24,11 @@ name   = "Sets Theory"
   type       = "bool"
   default    = "true"
   help       = "enable the relations extension of the theory of sets"
+
+[[option]]
+  name       = "setsCardExp"
+  category   = "expert"
+  long       = "sets-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enable the cardinality extension of the theory of sets"

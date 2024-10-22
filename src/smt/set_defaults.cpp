@@ -138,6 +138,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, relsExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, setsCardExp, false, "safe options");
   }
   // implied options
   if (opts.smt.debugCheckModels)

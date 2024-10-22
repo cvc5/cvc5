@@ -59,6 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_hasEnabledRels(false),
       d_rels_enabled(false),
+      d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
@@ -196,7 +197,25 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     return eqc_i->second;
   }
 }
-
+void TheorySetsPrivate::ensureCardinalityEnabled()
+{
+  if (d_card_enabled)
+  {
+    return;
+  }
+  d_card_enabled = true;
+  if (!d_hasEnabledCard)
+  {
+    if (!options().sets.setsCardExp)
+    {
+      std::stringstream ss;
+      ss << "Set cardinality is not supported in this configuration, try "
+            "--sets-card-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledCard = true;
+  }
+}
 void TheorySetsPrivate::ensureRelationsEnabled()
 {
   if (d_rels_enabled)
@@ -283,7 +302,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (nk == Kind::SET_CARD)
         {
-          d_card_enabled = true;
+          ensureCardinalityEnabled();
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           if (d_im.hasSent())

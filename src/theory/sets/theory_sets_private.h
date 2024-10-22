@@ -388,6 +388,11 @@ class TheorySetsPrivate : protected EnvObj
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
   /**
+   * Ensure cardinality is enabled, which may throw a logic exception if
+   * setCardExp is false.
+   */
+  void ensureCardinalityEnabled();
+  /**
    * Ensure relations are enabled, which may throw a logic exception if
    * relsExp is false.
    */
@@ -396,7 +401,7 @@ class TheorySetsPrivate : protected EnvObj
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
   std::unique_ptr<CardinalityExtension> d_cardSolver;
-  /** Have we ever see relations? */
+  /** Have we ever seen relations? */
   bool d_hasEnabledRels;
   /** are relations enabled?
    *
@@ -404,6 +409,8 @@ class TheorySetsPrivate : protected EnvObj
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** Have we ever seen cardinality? */
+  bool d_hasEnabledCard;
   /** is cardinality enabled?
    *
    * This flag is set to true during a full effort check if any constraint
