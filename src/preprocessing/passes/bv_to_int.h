@@ -40,7 +40,7 @@ class BVToInt : public PreprocessingPass
 
   // Add the lemmas in `additionalConstraints` to the assertions pipeline.
   void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
-                             const std::vector<Node>& additionalConstraints);
+                             const std::vector<TrustNode>& additionalConstraints);
 
   // include the skolem map as substitutions
   void addSkolemDefinitions(const std::map<Node, Node>& skolems);
