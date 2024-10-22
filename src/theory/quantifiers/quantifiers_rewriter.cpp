@@ -122,7 +122,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       std::vector<Node> fchildren;
       fchildren.push_back(n[0]);
-      fchildren.push_back(n[1].negate());
+      fchildren.push_back(n[1].notNode());
       if (n.getNumChildren() == 3)
       {
         fchildren.push_back(n[2]);
@@ -396,7 +396,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   {
     std::vector<Node> children;
     children.push_back(in[0]);
-    children.push_back(in[1].negate());
+    children.push_back(in[1].notNode());
     if (in.getNumChildren() == 3)
     {
       children.push_back(in[2]);

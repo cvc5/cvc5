@@ -101,6 +101,76 @@
     :conclusion (= (forall x F) (forall y F))
 )
 
+;;;;; ProofRewriteRule::EXISTS_ELIM
+
+; rule: exists-elim
+; implements: ProofRewriteRule::EXISTS_ELIM
+; args:
+; - eq Bool: The equality whose left hand side is an existential quantified formula.
+; conclusion: The given equality.
+(declare-rule exists-elim ((x @List) (F Bool))
+  :args ((= (exists x F) (not (forall x (not F)))))
+  :conclusion (= (exists x F) (not (forall x (not F))))
+)
+
+;;;;; ProofRewriteRule::QUANT_UNUSED_VARS
+
+
+; program: $is_quant_unused_vars
+; args:
+; - F Bool: The first formula in question.
+; - G Bool: The second formula in question.
+; return: true iff G is the result of removing unused variables from F.
+(program $is_quant_unused_vars ((x @List) (y @List) (F Bool) (Q (-> @List Bool Bool)))
+  (Bool Bool) Bool
+  (
+  (($is_quant_unused_vars (Q x F) (Q y F)) (eo::not ($contains_subterm_list F ($nary_diff @list @list.nil x y))))
+  (($is_quant_unused_vars (Q x F) F)       (eo::not ($contains_subterm_list F x)))
+  )
+)
+
+; rule: quant-unused-vars
+; implements: ProofRewriteRule::QUANT_UNUSED_VARS
+; args:
+; - eq Bool: The equality whose left hand side is a quantified formula.
+; requires: >
+;   The variables removed from the left hand side do not occur in its body.
+; conclusion: The given equality.
+(declare-rule quant-unused-vars ((F Bool) (G Bool))
+  :args ((= F G))
+  :requires ((($is_quant_unused_vars F G) true))
+  :conclusion (= F G)
+)
+
+;;;;; ProofRewriteRule::QUANT_MINISCOPE
+
+; program: $mk_quant_miniscope
+; args:
+; - x @List: The list of variables of the formula.
+; - F Bool: The body of the formula in question.
+; return: The result of miniscoping (forall x F) based on conjunctions.
+(program $mk_quant_miniscope ((x @List) (f Bool) (fs Bool :list))
+  (@List Bool) Bool
+  (
+  (($mk_quant_miniscope x (and f fs)) (and (forall x f) ($mk_quant_miniscope x fs)))
+  (($mk_quant_miniscope x true)       true)
+  )
+)
+
+; rule: quant-miniscope
+; implements: ProofRewriteRule::QUANT_MINISCOPE
+; args:
+; - eq Bool: The equality whose left hand side is a quantified formula.
+; requires: >
+;   The right hand side of the equality is the result of miniscoping the
+;   left hand side.
+; conclusion: The given equality.
+(declare-rule quant-miniscope ((x @List) (F Bool) (G Bool))
+  :args ((= (forall x F) G))
+  :requires ((($mk_quant_miniscope x F) G))
+  :conclusion (= (forall x F) G)
+)
+
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
 
 ; program: $is_quant_miniscope_fv
