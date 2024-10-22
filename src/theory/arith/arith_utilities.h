@@ -331,6 +331,12 @@ Node multConstants(const Node& c1, const Node& c2);
 Node mkEquality(const Node& a, const Node& b);
 
 /**
+ * Return the real cast of n. If n is a constant integer, we return a
+ * constant real. Otherwise we apply TO_REAL to n.
+ */
+Node castToReal(NodeManager* nm, const Node& n);
+
+/**
  * Ensures that the returned pair has equal type, where a and b have
  * real or integer type. We add TO_REAL if not.
  */
