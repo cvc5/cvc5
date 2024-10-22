@@ -635,6 +635,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
+
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
