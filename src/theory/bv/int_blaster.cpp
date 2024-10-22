@@ -811,32 +811,9 @@ Node IntBlaster::translateNoChildren(Node original,
 Node IntBlaster::translateFunctionSymbol(Node bvUF,
                                          std::map<Node, Node>& skolems)
 {
-  // construct the new function symbol.
-  Node intUF;
-  // old and new types of domain and result
-  TypeNode tn = bvUF.getType();
-  TypeNode bvRange = tn.getRangeType();
-  std::vector<TypeNode> bvDomain = tn.getArgTypes();
-  std::vector<TypeNode> intDomain;
-
-  // if the original range is a bit-vector sort,
-  // the new range should be an integer sort.
-  // Otherwise, we keep the original range.
-  // Similarly for the domain sorts.
-  TypeNode intRange = bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-  for (const TypeNode& d : bvDomain)
-  {
-    intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
-  }
-
   // create the new function symbol as a skolem
-  std::ostringstream os;
-  os << "__intblast_fun_" << bvUF << "_int";
   SkolemManager* sm = d_nm->getSkolemManager();
-  intUF = sm->mkDummySkolem(
-      os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-
-  // add definition of old function symbol to skolems.
+  Node intUF = sm->mkSkolemFunction(SkolemId::BV_TO_INT_UF, bvUF);
 
   // formal arguments of the lambda expression.
   std::vector<Node> args;
@@ -847,6 +824,9 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 
   // iterate the arguments, cast BV arguments to integers
   int i = 0;
+  TypeNode tn = bvUF.getType();
+  TypeNode bvRange = tn.getRangeType();
+  std::vector<TypeNode> bvDomain = tn.getArgTypes();
   for (const TypeNode& d : bvDomain)
   {
     // Each bit-vector argument is casted to a natural number
