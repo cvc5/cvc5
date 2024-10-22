@@ -1799,25 +1799,6 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_STRING_INFERENCE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Macro elimination**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid F,b}{F = F'}
-   *
-   * where :math:`F'` is the result of eliminating regular expressions from
-   * :math:`F` using the routine
-   * :math:`\texttt{strings::RegExpElimination::eliminate}(F, b)`.
-   * Here, :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
-   *
-   * We do not currently support elaboration of this macro.
-   * \endverbatim
-   */
-  EVALUE(MACRO_RE_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
    *
    * An arithmetic literal is a term of the form :math:`p \diamond c` where
