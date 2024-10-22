@@ -384,6 +384,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       return cacheVals[0].getType();
       break;
     case SkolemId::GROUND_TERM:
+    case SkolemId::ARITH_VTS_INFINITY:
+    case SkolemId::ARITH_VTS_INFINITY_FREE:
     {
       Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
       return cacheVals[0].getConst<SortToTerm>().getType();
@@ -396,7 +398,9 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     // real skolems
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
-    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT: return nm->realType();
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
+    case SkolemId::ARITH_VTS_DELTA:
+    case SkolemId::ARITH_VTS_DELTA_FREE: return nm->realType();
     // int -> int function
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:
