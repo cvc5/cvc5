@@ -1105,15 +1105,7 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
-
-  // run the reconstruction algorithm on the proofs to eliminate
-  std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
-      d_cb.getTrustedProofs();
-  if (!tproofs.empty())
-  {
-    d_ppdsl->reconstruct(tproofs);
-  }
-
+  
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
   {
@@ -1123,6 +1115,16 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     AlwaysAssert(pfc != nullptr);
     // now update
     d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
+  }
+  else
+  {
+    // run the reconstruction algorithm on the proofs to eliminate
+    std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
+        d_cb.getTrustedProofs();
+    if (d_ppdsl!=nullptr)
+    {
+      d_ppdsl->reconstruct(tproofs);
+    }
   }
 
   // take stats and check pedantic
