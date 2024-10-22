@@ -128,10 +128,14 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * f. For functions with other signatures this is similar
    * @return integer node that corresponds to n
    */
-  TrustNode intBlast(Node n,
+  TrustNode trustedIntBlast(Node n,
                      std::vector<TrustNode>& lemmas,
                      std::map<Node, Node>& skolems);
 
+  /** Version without proof tracking */
+  Node intBlast(Node n,
+                     std::vector<Node>& lemmas,
+                     std::map<Node, Node>& skolems);
   /**
    * Get proof for fact, where fact may correspond to:
    * (1) An equality of the form (= n n') where n was rewritten to n' in the

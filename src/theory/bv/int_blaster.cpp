@@ -161,13 +161,13 @@ Node IntBlaster::makeBinary(Node n)
 /**
  * Translate n to Integers via post-order traversal.
  */
-TrustNode IntBlaster::intBlast(Node n,
+TrustNode IntBlaster::trustedIntBlast(Node n,
                                std::vector<TrustNode>& lemmas,
                                std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
   Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
-  n = rewrite(n);
+  Assert(n == rewrite(n));
   Trace("int-blaster-debug") << "n after rewriting: " << n << std::endl;
 
   // helper vector for traversal.
@@ -254,9 +254,30 @@ TrustNode IntBlaster::intBlast(Node n,
   }
   Assert(d_intblastCache.find(n) != d_intblastCache.end());
   Node res = d_intblastCache[n].get();
-  // rewrite the result
-  res = rewrite(res);
+  if (res==n)
+  {
+    return TrustNode::null();
+  }
   return TrustNode::mkTrustRewrite(n, res, this);
+}
+
+Node IntBlaster::intBlast(Node n,
+                    std::vector<Node>& lemmas,
+                    std::map<Node, Node>& skolems)
+{
+  std::vector<TrustNode> tlemmas;
+  TrustNode tr = trustedIntBlast(n, tlemmas, skolems);
+  for (TrustNode& tlem : tlemmas)
+  {
+    lemmas.emplace_back(tlem.getProven());
+  }
+  if (tr.isNull())
+  {
+    return n;
+  }
+  Assert(tr.getKind() == TrustNodeKind::REWRITE);
+  Assert(tr.getProven()[0] == n);
+  return tr.getProven()[1];
 }
 
 Node IntBlaster::translateWithChildren(
