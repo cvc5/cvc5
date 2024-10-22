@@ -824,6 +824,9 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 
   // iterate the arguments, cast BV arguments to integers
   int i = 0;
+  TypeNode tn = bvUF.getType();
+  TypeNode bvRange = tn.getRangeType();
+  std::vector<TypeNode> bvDomain = tn.getArgTypes();
   for (const TypeNode& d : bvDomain)
   {
     // Each bit-vector argument is casted to a natural number
