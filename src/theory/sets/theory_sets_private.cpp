@@ -57,7 +57,9 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
+      d_hasEnabledRels(false),
       d_rels_enabled(false),
+      d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
@@ -195,6 +197,44 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     return eqc_i->second;
   }
 }
+void TheorySetsPrivate::ensureCardinalityEnabled()
+{
+  if (d_card_enabled)
+  {
+    return;
+  }
+  d_card_enabled = true;
+  if (!d_hasEnabledCard)
+  {
+    if (!options().sets.setsCardExp)
+    {
+      std::stringstream ss;
+      ss << "Set cardinality is not supported in this configuration, try "
+            "--sets-card-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledCard = true;
+  }
+}
+void TheorySetsPrivate::ensureRelationsEnabled()
+{
+  if (d_rels_enabled)
+  {
+    return;
+  }
+  d_rels_enabled = true;
+  if (!d_hasEnabledRels)
+  {
+    if (!options().sets.relsExp)
+    {
+      std::stringstream ss;
+      ss << "Relations are not supported in this configuration, try "
+            "--rels-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledRels = true;
+  }
+}
 
 void TheorySetsPrivate::fullEffortReset()
 {
@@ -262,7 +302,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (nk == Kind::SET_CARD)
         {
-          d_card_enabled = true;
+          ensureCardinalityEnabled();
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           if (d_im.hasSent())
@@ -291,7 +331,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (d_rels->isRelationKind(nk))
         {
-          d_rels_enabled = true;
+          ensureRelationsEnabled();
         }
         else if(isHigherOrderKind(nk))
         {
