@@ -1105,7 +1105,7 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
-  
+
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
   {
@@ -1117,9 +1117,10 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
     // go back and find the (possibly new) trusted steps
     std::vector<std::shared_ptr<ProofNode>> tproofs;
-    std::unordered_set<ProofRule> trustRules{ProofRule::TRUST, ProofRule::TRUST_THEORY_REWRITE};
+    std::unordered_set<ProofRule> trustRules{ProofRule::TRUST,
+                                             ProofRule::TRUST_THEORY_REWRITE};
     expr::getSubproofRules(pf, trustRules, tproofs);
-    if (d_ppdsl!=nullptr)
+    if (d_ppdsl != nullptr)
     {
       d_ppdsl->reconstruct(tproofs);
     }
@@ -1129,9 +1130,8 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     // As an optimization, we have tracked the trusted steps while running
     // the updater. Now run the reconstruction algorithm on the proofs to
     // eliminate.
-    std::vector<std::shared_ptr<ProofNode>>& tproofs =
-        d_cb.getTrustedProofs();
-    if (d_ppdsl!=nullptr)
+    std::vector<std::shared_ptr<ProofNode>>& tproofs = d_cb.getTrustedProofs();
+    if (d_ppdsl != nullptr)
     {
       d_ppdsl->reconstruct(tproofs);
     }

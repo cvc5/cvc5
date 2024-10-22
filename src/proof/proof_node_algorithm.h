@@ -74,9 +74,8 @@ void getSubproofRule(std::shared_ptr<ProofNode> pn,
  * @param pfs The list of subproofs of pn that have rule r.
  */
 void getSubproofRules(std::shared_ptr<ProofNode> pn,
-                     std::unordered_set<ProofRule> rs,
-                     std::vector<std::shared_ptr<ProofNode>>& pfs);
-
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs);
 
 /**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we

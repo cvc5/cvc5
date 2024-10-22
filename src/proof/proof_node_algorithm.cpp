@@ -96,8 +96,8 @@ void getSubproofRule(std::shared_ptr<ProofNode> pn,
 }
 
 void getSubproofRules(std::shared_ptr<ProofNode> pn,
-                     std::unordered_set<ProofRule> rs,
-                     std::vector<std::shared_ptr<ProofNode>>& pfs)
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs)
 {
   // proof should not be cyclic
   std::unordered_set<ProofNode*> visited;
@@ -114,7 +114,7 @@ void getSubproofRules(std::shared_ptr<ProofNode> pn,
     if (it == visited.end())
     {
       visited.insert(cur.get());
-      if (rs.find(cur->getRule())!=rs.end())
+      if (rs.find(cur->getRule()) != rs.end())
       {
         pfs.push_back(cur);
       }
