@@ -3407,8 +3407,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
   EVALUE(STR_REPLACE_SELF),
-  /** Auto-generated from RARE rule str-replace-first-concat */
-  EVALUE(STR_REPLACE_FIRST_CONCAT),
+  /** Auto-generated from RARE rule str-replace-prefix */
+  EVALUE(STR_REPLACE_PREFIX),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-empty */
@@ -3439,6 +3439,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEQ_EMPTY_EQ),
   /** Auto-generated from RARE rule str-leq-concat */
   EVALUE(STR_LEQ_CONCAT),
+  /** Auto-generated from RARE rule str-lt-elim */
+  EVALUE(STR_LT_ELIM),
   /** Auto-generated from RARE rule re-all-elim */
   EVALUE(RE_ALL_ELIM),
   /** Auto-generated from RARE rule re-opt-elim */
