@@ -42,7 +42,6 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
                            TheoryRewriteCtx::PRE_DSL),
-                           
 }
 
 Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -59,20 +58,18 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::SETS_INSERT_ELIM:
     {
-      if (node.getKind()==Kind::SET_INSERT)
+      if (node.getKind() == Kind::SET_INSERT)
       {
-        NodeManager * nm = nodeManager();
-        size_t setNodeIndex =  node.getNumChildren()-1;
+        NodeManager* nm = nodeManager();
+        size_t setNodeIndex = node.getNumChildren() - 1;
         Node elems = nm->mkNode(Kind::SET_SINGLETON, n[0]);
 
         for (size_t i = 1; i < setNodeIndex; ++i)
         {
           Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[i]);
-          elems =
-              nm->mkNode(Kind::SET_UNION, elems, singleton);
+          elems = nm->mkNode(Kind::SET_UNION, elems, singleton);
         }
-        return 
-            nm->mkNode(Kind::SET_UNION, elems, n[setNodeIndex]);
+        return nm->mkNode(Kind::SET_UNION, elems, n[setNodeIndex]);
       }
     }
     break;
@@ -702,7 +699,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   else if (k == Kind::SET_INSERT)
   {
     Node ret = rewriteViaRule(ProofRewriteRule::SETS_INSERT_ELIM, node);
-    return RewriteResponse( REWRITE_AGAIN, ret);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   else if (k == Kind::SET_SUBSET)
   {

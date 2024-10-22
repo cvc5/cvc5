@@ -36,8 +36,8 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter* rr)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_TO_NAT_ELIM,
                            TheoryRewriteCtx::PRE_DSL),
-  registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
-                           TheoryRewriteCtx::PRE_DSL),
+      registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
+                               TheoryRewriteCtx::PRE_DSL),
 }
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)

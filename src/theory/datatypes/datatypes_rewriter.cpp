@@ -145,7 +145,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::DT_MATCH_ELIM:
     {
-      if (n.getKind()==Kind::MATCH)
+      if (n.getKind() == Kind::MATCH)
       {
         return expandMatch(n);
       }
@@ -337,7 +337,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 }
 Node DatatypesRewriter::expandMatch(Node in)
 {
-  Assert (in.getKind()==Kind::MATCH);
+  Assert(in.getKind() == Kind::MATCH);
   NodeManager* nm = NodeManager::currentNM();
   // ensure we've type checked
   TypeNode tin = in.getType();
