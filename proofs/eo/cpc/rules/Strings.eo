@@ -576,6 +576,6 @@
 ; conclusion: The given equality.
 (declare-rule seq-length-eval ((T Type) (s (Seq T)) (n Int))
   :args ((= (seq.len s) n))
-  :requires ((($seq_is_units_concat s) true) ((eo::list_len seq.++ s) n))
+  :requires (((eo::define ((sn ($str_nary_intro s))) (eo::and ($seq_is_units_concat n) (eo::is_eq (eo::list_len seq.++ sn) n)))))
   :conclusion (= (seq.len s) n)
 )
