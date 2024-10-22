@@ -21,6 +21,7 @@
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "expr/sort_to_term.h"
 
 using namespace cvc5::internal::kind;
 
@@ -66,12 +67,12 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
     if (d_vts_delta_free.isNull())
     {
       d_hasAllocated = true;
-      d_vts_delta_free = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA_FREE, {});
+      d_vts_delta_free = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA_FREE);
     }
     if (d_vts_delta.isNull())
     {
       d_hasAllocated = true;
-      d_vts_delta = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA, {});
+      d_vts_delta = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA);
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_delta.setAttribute(vtsa, true);
@@ -91,12 +92,12 @@ Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
     if (d_vts_inf_free[tn].isNull())
     {
       d_hasAllocated = true;
-      d_vts_inf_free[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY_FREE, {stt});
+      d_vts_inf_free[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY_FREE, stt);
     }
     if (d_vts_inf[tn].isNull())
     {
       d_hasAllocated = true;
-      d_vts_inf[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY, {stt});
+      d_vts_inf[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY, stt);
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);
