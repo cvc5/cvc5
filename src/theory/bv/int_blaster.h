@@ -22,10 +22,10 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "options/smt_options.h"
-#include "smt/env_obj.h"
-#include "theory/arith/nl/iand_utils.h"
 #include "proof/proof_generator.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
+#include "theory/arith/nl/iand_utils.h"
 
 namespace cvc5::internal {
 
@@ -129,18 +129,19 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    * @return integer node that corresponds to n
    */
   TrustNode intBlast(Node n,
-                std::vector<TrustNode>& lemmas,
-                std::map<Node, Node>& skolems);
+                     std::vector<TrustNode>& lemmas,
+                     std::map<Node, Node>& skolems);
 
   /**
    * Get proof for fact, where fact may correspond to:
    * (1) An equality of the form (= n n') where n was rewritten to n' in the
    * method intBlast.
    * (2) A lemma added to lemmas in the method intBlast.
-   */ 
+   */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
+
  protected:
   /**
    * A generic function that creates a logical shift node (either left or
@@ -162,10 +163,13 @@ class IntBlaster : protected EnvObj, public ProofGenerator
                        bool isLeftShift);
 
   /** Adds the constraint 0 <= node < 2^size to lemmas */
-  void addRangeConstraint(Node node, uint32_t size, std::vector<TrustNode>& lemmas);
+  void addRangeConstraint(Node node,
+                          uint32_t size,
+                          std::vector<TrustNode>& lemmas);
 
   /** Adds a constraint that encodes bitwise and */
-  void addBitwiseConstraint(Node bitwiseConstraint, std::vector<TrustNode>& lemmas);
+  void addBitwiseConstraint(Node bitwiseConstraint,
+                            std::vector<TrustNode>& lemmas);
 
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint32_t bvsize);

@@ -73,10 +73,7 @@ std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
   return nullptr;
 }
 
-std::string IntBlaster::identify() const
-{
-  return "IntBlaster";
-}
+std::string IntBlaster::identify() const { return "IntBlaster"; }
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint32_t size,
@@ -165,8 +162,8 @@ Node IntBlaster::makeBinary(Node n)
  * Translate n to Integers via post-order traversal.
  */
 TrustNode IntBlaster::intBlast(Node n,
-                          std::vector<TrustNode>& lemmas,
-                          std::map<Node, Node>& skolems)
+                               std::vector<TrustNode>& lemmas,
+                               std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
   Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
