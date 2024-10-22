@@ -2525,7 +2525,7 @@ enum ENUM(ProofRewriteRule)
    *   \forall x Y.\> F = \forall Y.\> G
    *
    * where :math:`G` is the result of replacing all literals containing
-   * :math:`x` with a constant. This applied only when all such literals
+   * :math:`x` with a constant. This is applied only when all such literals
    * are lower (resp. upper) bounds for :math:`x`.
    *
    * \endverbatim
