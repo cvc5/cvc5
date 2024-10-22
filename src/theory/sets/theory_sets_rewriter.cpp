@@ -41,7 +41,7 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
   registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
-                           TheoryRewriteCtx::PRE_DSL),
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -58,10 +58,10 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::SETS_INSERT_ELIM:
     {
-      if (node.getKind() == Kind::SET_INSERT)
+      if (n.getKind() == Kind::SET_INSERT)
       {
         NodeManager* nm = nodeManager();
-        size_t setNodeIndex = node.getNumChildren() - 1;
+        size_t setNodeIndex = n.getNumChildren() - 1;
         Node elems = nm->mkNode(Kind::SET_SINGLETON, n[0]);
 
         for (size_t i = 1; i < setNodeIndex; ++i)
