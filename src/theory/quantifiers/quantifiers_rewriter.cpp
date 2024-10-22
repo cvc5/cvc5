@@ -263,14 +263,14 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
     {
-      if (n.getKind()!=Kind::FORALL)
+      if (n.getKind() != Kind::FORALL)
       {
         return Node::null();
       }
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
-      if (id==ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
+      if (id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
       {
         getVarElim(n[1], args, vars, subs);
       }
@@ -285,7 +285,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
-        qc[1] = n[1].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        qc[1] =
+            n[1].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         if (args.empty())
         {
           return qc[1];
@@ -1566,8 +1567,7 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
         << "VE " << vars.size() << "/" << args.size() << std::endl;
     Assert(vars.size() == subs.size());
     // remake with eliminated nodes
-    body =
-        body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     if (!qa.d_ipl.isNull())
     {
       qa.d_ipl = qa.d_ipl.substitute(
