@@ -198,11 +198,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     break;
     case ProofRule::ARITH_POLY_NORM_REL:
     {
-      // we don't support bitvectors yet
-      Node res = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
-      Assert(res[0].getType().isBoolean());
-      return res[0][0].getType().isRealOrInt();
+      return true;
     }
     break;
     case ProofRule::STRING_REDUCTION:

@@ -227,20 +227,15 @@
 ; implements: ProofRule::ARITH_POLY_NORM_REL
 ; premises:
 ; - eq Bool: >
-;   An equality stating that (- x1 x2) and (- y1 y2) are equal modulo polynomial
-;   normalization and scaling factors cx and cy.
+;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
+;   are equal modulo polynomial normalization and some scaling factors.
 ; args:
 ; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
-; requires: >
-;   That r is a polynomial normalization relation. If r is an arithmetic
-;   inequality, the scaling factors must have the same sign. For bitvectors,
-;   they must be set to 1.
-; conclusion: The given equality.
-(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
-  :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
+; conclusion: An equivalence between relations of the terms specified by eq.
+(declare-rule arith_poly_norm_rel ((U Type) (t U) (s U) (r (-> U U Bool)))
+  :premises ((= t s))
   :args (r)
-  :requires ((($is_poly_norm_rel (r cx cy)) true))
-  :conclusion (= (r x1 x2) (r y1 y2))
+  :conclusion ($mk_poly_norm_rel t s r)
 )
 
 ; define: $get_aci_normal_form
