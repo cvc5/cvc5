@@ -76,8 +76,7 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
   Node eatom = eliminate(atom, d_isAggressive);
   if (!eatom.isNull())
   {
-    // Currently aggressive doesnt work due to fresh bound variables
-    if (isProofEnabled() && !d_isAggressive)
+    if (isProofEnabled())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node eq = atom.eqNode(eatom);
