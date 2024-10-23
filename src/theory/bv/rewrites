@@ -176,8 +176,8 @@
   (= c1 (@bv 1 (@bvsize c1)))
   (bvult x (bvadd y c1))
   (and
-    (not (bvult y x))
-    (not (= y (bvnot (@bv 0 (@bvsize y)))))))
+    (not (= y (bvnot (@bv 0 (@bvsize y)))))
+    (not (bvult y x))))
 (define-cond-rule bv-concat-to-mult
   ((x ?BitVec) (i Int) (m Int) (n0 Int))
   (and (= (+ 1 i m) (@bvsize x)) (= n0 0))

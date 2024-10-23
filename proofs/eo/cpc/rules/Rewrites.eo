@@ -522,7 +522,7 @@
 (declare-rule bv-ult-add-one ((@n0 Int) (@n1 Int) (@n2 Int) (x1 (BitVec @n0)) (y1 (BitVec @n1)) (c1 (BitVec @n2)))
   :premises ((= c1 (@bv 1 (@bvsize c1))))
   :args (x1 y1 c1)
-  :conclusion (= (bvult x1 (bvadd y1 c1)) (and (not (bvult y1 x1)) (not (= y1 (bvnot (@bv 0 (@bvsize y1)))))))
+  :conclusion (= (bvult x1 (bvadd y1 c1)) (and (not (= y1 (bvnot (@bv 0 (@bvsize y1))))) (not (bvult y1 x1))))
 )
 (declare-rule bv-concat-to-mult ((@n0 Int) (x1 (BitVec @n0)) (i1 Int) (m1 Int) (n1 Int))
   :premises ((= (+ 1 i1 m1) (@bvsize x1)) (= n1 0))
