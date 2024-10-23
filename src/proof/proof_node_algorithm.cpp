@@ -103,7 +103,6 @@ void getSubproofRules(std::shared_ptr<ProofNode> pn,
   std::unordered_set<ProofNode*> visited;
   std::unordered_set<ProofNode*>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-  std::unordered_set<ProofRule>::iterator itr;
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pn);
   do
