@@ -1,9 +1,9 @@
-
-(include "../theories/Builtin.eo")
-(include "../programs/Nary.eo")
-
 (include "../theories/Arith.eo")
+(include "../theories/Builtin.eo")
 (include "../theories/Strings.eo")
+(include "../programs/Nary.eo")
+(include "../programs/PolyNorm.eo")
+
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,

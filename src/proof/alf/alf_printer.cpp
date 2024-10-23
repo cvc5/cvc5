@@ -176,6 +176,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
+    case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -194,15 +195,6 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       // we don't support bitvectors yet
       Assert(pargs[0].getKind() == Kind::EQUAL);
       return pargs[0][0].getType().isRealOrInt();
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM_REL:
-    {
-      // we don't support bitvectors yet
-      Node res = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
-      Assert(res[0].getType().isBoolean());
-      return res[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::STRING_REDUCTION:
