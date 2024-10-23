@@ -228,7 +228,8 @@
 ; premises:
 ; - eq Bool: >
 ;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
-;   are equal modulo polynomial normalization and some scaling factors.
+;   are equal modulo polynomial normalization and some scaling factors. These
+;   terms may be of arithmetic or bitvector type.
 ; args:
 ; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
 ; conclusion: An equivalence between relations of the terms specified by eq.
