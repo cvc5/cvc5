@@ -259,7 +259,7 @@
 ; - r Real: The argument to to_int.
 ; return: the reduction predicate for (to_int r).
 (define $arith_to_int_reduction ((r Real))
-  (eo::define ((k (to_real (@purify (to_int r)))))
+  (eo::define ((k (@purify (to_int r))))
     (and (<= 0/1 (- r k)) (< (- r k) 1/1))))
 
 ; define: $arith_int_div_total_reduction
@@ -288,7 +288,7 @@
   (eo::match ((r Real) (U Type) (u U) (V Type) (v V))
     t
     (
-    ((is_int r)       (eo::define ((k (to_real (@purify (to_int r)))))
+    ((is_int r)       (eo::define ((k (@purify (to_int r))))
                         (and (= t (= (- r k) 0/1)) ($arith_to_int_reduction r))))
     ((to_int r)       (eo::define ((k (@purify (to_int r))))
                         (and (= t k) ($arith_to_int_reduction r))))

@@ -118,7 +118,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node v = sm->mkPurifySkolem(pterm);
       Node one = nm->mkConstReal(Rational(1));
       Node zero = nm->mkConstReal(Rational(0));
-      Node diff = nm->mkNode(Kind::SUB, node[0], nm->mkNode(Kind::TO_REAL, v));
+      Node diff = nm->mkNode(Kind::SUB, node[0], v);
       Node lem = mkInRange(diff, zero, one);
       lems.emplace_back(lem, v);
       if (k == Kind::IS_INTEGER)
