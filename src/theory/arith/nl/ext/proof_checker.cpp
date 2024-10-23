@@ -126,7 +126,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[1].getType().isRealOrInt());
     Assert(args[2].getType().isRealOrInt());
     Assert(args[3].getType().isRealOrInt());
-    Assert(args[4].isConst() && args[4].getConst<Rational>().isIntegral());
+    Assert(args[4].isConst() && args[4].getType().isBoolean());
     Node x = args[0];
     Node y = args[1];
     Node t = nm->mkNode(Kind::NONLINEAR_MULT, x, y);
