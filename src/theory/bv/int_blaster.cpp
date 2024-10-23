@@ -22,18 +22,18 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/node_traversal.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
-#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
