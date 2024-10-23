@@ -1361,12 +1361,13 @@ Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
   if (t[1].isConst())
   {
     const Rational& exp = t[1].getConst<Rational>();
+    Assert (exp.isIntegral());
     TNode base = t[0];
     if (exp.sgn() == 0)
     {
       return nm->mkConstRealOrInt(t.getType(), Rational(1));
     }
-    else if (exp.sgn() > 0 && exp.isIntegral())
+    else if (exp.sgn() > 0)
     {
       Rational r(expr::NodeValue::MAX_CHILDREN);
       if (exp <= r)

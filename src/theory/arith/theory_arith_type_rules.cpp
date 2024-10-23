@@ -240,16 +240,27 @@ TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert (n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
-  TypeNode arg2 = n[1].getTypeOrNull();
-  TypeNode t = arg1.leastUpperBound(arg2);
-  if (t.isNull())
+  if (check)
   {
-    if (errOut)
+    if (!isMaybeRealOrInt(arg1))
     {
-      (*errOut) << "expecting same arithmetic types to POW";
+      if (errOut)
+      {
+        (*errOut) << "expecting arithmetic term for POW";
+      }
+      return TypeNode::null();
+    }
+    TypeNode arg2 = n[1].getTypeOrNull();
+    if (!isMaybeInteger(arg2))
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting integer exponent to POW";
+      }
+      return TypeNode::null();
     }
   }
-  return t;
+  return arg1;
 }
 
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
