@@ -250,7 +250,7 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
     Node var = d->d_vm(m->p[i].x);
     if (m->p[i].d > 1)
     {
-      Node exp = d->d_nm->mkConstReal(m->p[i].d);
+      Node exp = d->d_nm->mkConstInt(m->p[i].d);
       term = d->d_nm->mkNode(
           Kind::NONLINEAR_MULT, term, d->d_nm->mkNode(Kind::POW, var, exp));
     }
