@@ -251,3 +251,67 @@
   :premises ((> s t))
   :conclusion (>= s ($least_int_gt t))
 )
+
+;;;;; ProofRule::ARITH_REDUCTION
+
+; define: $arith_to_int_reduction
+; args:
+; - r Real: The argument to to_int.
+; return: the reduction predicate for (to_int r).
+(define $arith_to_int_reduction ((r Real))
+  (eo::define ((k (@purify (to_int r))))
+    (and (<= 0/1 (- r k)) (< (- r k) 1/1))))
+
+; define: $arith_int_div_total_reduction
+; args:
+; - u Int: The first argument to div_total.
+; - v Int: The second argument to div_total.
+; return: the reduction predicate for (div_total u v).
+; note: >
+;   We use an optimized form of the lemma when v is a non-zero constant.
+;   This method does not evaluate if v is the constant zero.
+(define $arith_int_div_total_reduction ((u Int) (v Int))
+  (eo::define ((k (@purify (div_total u v))))
+  (eo::define ((lb (<= (* v k) u)))
+  (eo::ite (eo::is_z v)
+    (eo::requires (eo::is_eq v 0) false
+      (and lb (< u (* v (+ k (eo::ite (eo::is_neg v) -1 1))))))
+    (and
+      (=> (> v 0) (and lb (< u (* v (+ k 1)))))
+      (=> (< v 0) (and lb (< u (* v (+ k -1))))))))))
+
+; define: $arith_reduction_pred
+; args:
+; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
+; return: the reduction predicate for term t.
+(define $arith_reduction_pred ((T Type :implicit) (t T))
+  (eo::match ((r Real) (U Type) (u U) (V Type) (v V))
+    t
+    (
+    ((is_int r)       (eo::define ((k (@purify (to_int r))))
+                        (and (= t (= (- r k) 0/1)) ($arith_to_int_reduction r))))
+    ((to_int r)       (eo::define ((k (@purify (to_int r))))
+                        (and (= t k) ($arith_to_int_reduction r))))
+    ((/ u v)          (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero u) (/_total u v))))
+    ((div u v)        (= t (ite (= v 0) (@int_div_by_zero u) (div_total u v))))
+    ((mod u v)        (= t (ite (= v 0) (@mod_by_zero u) (mod_total u v))))
+    ((/_total u v)    (eo::define ((k (@purify (/_total u v))))
+                        (and (= t k) (=> (not (= v ($arith_mk_zero (eo::typeof v)))) (= (* v k) u)))))
+    ((div_total u v)  (eo::define ((k (@purify (div_total u v))))
+                        (and (= t k) ($arith_int_div_total_reduction u v))))
+    ((mod_total u v)  (eo::define ((k (@purify (div_total u v))))
+                        (and (= t (- u (* v k))) ($arith_int_div_total_reduction u v))))
+    ((abs u)          (= t (ite (< u ($arith_mk_zero (eo::typeof u))) (- u) u)))
+    )
+  )
+)
+
+; rule: arith_reduction
+; implements: ProofRule::ARITH_REDUCTION
+; args:
+; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
+; conclusion: The reduction predicate for t.
+(declare-rule arith_reduction ((T Type) (t T))
+  :args (t)
+  :conclusion ($arith_reduction_pred t)
+)

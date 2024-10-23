@@ -205,6 +205,16 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       return res[0][0].getType().isRealOrInt();
     }
     break;
+    case ProofRule::ARITH_REDUCTION:
+    {
+      Kind k = pargs[0].getKind();
+      return k == Kind::TO_INTEGER || k == Kind::IS_INTEGER
+             || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+             || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
+             || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
+             || k == Kind::ABS;
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
