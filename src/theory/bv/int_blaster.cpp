@@ -33,6 +33,7 @@
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
+#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -70,7 +71,9 @@ IntBlaster::~IntBlaster() {}
 std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
 {
   // proofs not yet supported
-  return nullptr;
+  CDProof cdp(d_env);
+  cdp.addTrustedStep(fact, TrustId::INT_BLASTER, {}, {});
+  return cdp.getProofFor(fact);
 }
 
 std::string IntBlaster::identify() const { return "IntBlaster"; }
