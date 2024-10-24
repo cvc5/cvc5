@@ -1361,7 +1361,10 @@ Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
   if (t[1].isConst())
   {
     const Rational& exp = t[1].getConst<Rational>();
-    Assert (exp.isIntegral());
+    if (!exp.isIntegral())
+    {
+      return Node::null();
+    }
     TNode base = t[0];
     if (exp.sgn() == 0)
     {
