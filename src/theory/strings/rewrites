@@ -219,6 +219,10 @@
   (str.replace t t s)
   s)
 
+(define-rule str-replace-prefix ((t ?Seq) (r ?Seq :list) (s ?Seq))
+  (str.replace (str.++ t r) t s)
+  (str.++ s r))
+
 (define-cond-rule str-replace-no-contains ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (not (str.contains t s))
   (str.replace t s r)
@@ -227,6 +231,11 @@
 (define-rule str-replace-empty ((t ?Seq) (s ?Seq))
   (str.replace t "" s)
   (str.++ s t))
+
+(define-cond-rule str-replace-all-no-contains ((t ?Seq) (s ?Seq) (r ?Seq))
+  (not (str.contains t s))
+  (str.replace_all t s r)
+  t)
 
 (define-rule* str-len-concat-rec ((s1 ?Seq) (s2 ?Seq) (s3 ?Seq :list))
   (str.len (str.++ s1 s2 s3))
@@ -260,6 +269,31 @@
   (str.to_upper (str.to_lower s))
   (str.to_upper s))
 
+(define-rule str-to-lower-from-int ((n Int))
+  (str.to_lower (str.from_int n))
+  (str.from_int n))
+
+(define-rule str-to-upper-from-int ((n Int))
+  (str.to_upper (str.from_int n))
+  (str.from_int n))
+
+(define-rule str-leq-empty ((s String))
+  (str.<= "" s)
+  true)
+
+(define-rule str-leq-empty-eq ((s String))
+  (str.<= s "")
+  (= s ""))
+
+(define-cond-rule str-leq-concat ((s String :list) (t1 String) (s1 String) (t2 String :list) (s2 String :list))
+  (and (= (str.len t1) (str.len s1)) (= (str.<= t1 s1) false))
+  (str.<= (str.++ s t1 t2) (str.++ s s1 s2))
+  false)
+
+(define-rule str-lt-elim ((s String) (t String))
+  (str.< s t)
+  (and (not (= s t)) (str.<= s t)))
+
 ; =============== Regular expression rules
 
 (define-rule re-all-elim () re.all (re.* re.allchar))
@@ -289,6 +323,8 @@
 (define-rule re-inter-none ((xs RegLan :list) (ys RegLan :list)) (re.inter xs re.none ys) re.none)
 (define-rule* re-inter-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs (re.inter b ys) zs) (re.inter xs b ys zs))
 (define-rule* re-inter-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs b ys b zs) (re.inter xs b ys zs))
+
+(define-rule re-star-none () (re.* re.none) (str.to_re ""))
 
 (define-cond-rule re-loop-neg ((n Int) (m Int) (r RegLan))
   (> n m)
@@ -322,6 +358,10 @@
   (str.substr (str.++ s1 s2 s3) n m)
   (str.substr (str.++ s2 s3) (- n (str.len s1)) m)
 )
+
+(define-rule seq-rev-rev ((x ?Seq))
+  (str.rev (str.rev x))
+  x)
 
 (define-rule* seq-rev-concat ((x ?Seq) (y ?Seq :list) (z ?Seq))
   (str.rev (str.++ x y z))
