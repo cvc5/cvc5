@@ -116,9 +116,16 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
-  Node nacc = expr::getACINormalForm(n);
-  recordProofStep(n, nacc, ProofRule::ACI_NORM);
-  return nacc;
+  // since string constants are converted to concatenation terms, we ensure
+  // these are flattened using ACI_NORM. This ensures (str.++ "AB" x) is
+  // handled as (str.++ "A" "B" x), not (str.++ (str.++ "A" "B") x).
+  if (k==Kind::STRING_CONCAT)
+  {
+    Node nacc = expr::getACINormalForm(n);
+    recordProofStep(n, nacc, ProofRule::ACI_NORM);
+    return nacc;
+  }
+  return n;
 }
 
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
