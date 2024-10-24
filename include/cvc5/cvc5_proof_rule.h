@@ -2934,6 +2934,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ITE_THEN_LOOKAHEAD_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule ite-then-lookahead-not-self */
+  EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-else-lookahead-not-self */
+  EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
   /** Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
@@ -3574,6 +3578,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */
   EVALUE(EQ_SYMM),
+  /** Auto-generated from RARE rule eq-cond-deq */
+  EVALUE(EQ_COND_DEQ),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
   /** Auto-generated from RARE rule uf-bv2nat-geq-elim */

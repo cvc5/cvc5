@@ -3,6 +3,11 @@
 (define-rule eq-refl ((t ?)) (= t t) true)
 (define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
 
+(define-cond-rule eq-cond-deq ((t ?) (s ?) (r ?))
+  (= (= s r) false)
+  (= (= t s) (= t r))
+  (and (not (= t s)) (not (= t r))))
+
 (define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
 ; bv to arith conversions
