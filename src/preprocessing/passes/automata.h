@@ -50,10 +50,6 @@ class Automata : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
-  // the DFA itself. Initially it will be done for a single formula, for
-  // example, x + 2y <= 1, so we have a adjacency list of the RHS values of hte
-  // inequality.
-  std::map<int, std::vector<AutomataEdge>> dfa;
 };
 
 }  // namespace passes

@@ -162,6 +162,149 @@ void buildDfa(const int& initial_state,
   }
 }
 
+// to_process.pop_back();  // removing redundant TRUE constant
+//
+// // after preprocessing, we always have exp = c + SUMexp
+// for (const TNode& a : to_process)
+// {
+//   TNode aux = a;
+//   int c = 0;
+//   int mod_value = 0;
+//   std::vector<std::string> vars;
+//   std::vector<int> coefficients;
+//   kind::Kind_t assertion_kind = kind::Kind_t::EQUAL;
+//
+//   switch (aux.getKind())
+//   {
+//     case kind::Kind_t::EQUAL:
+//     {
+//       if ((*aux.begin()).getKind() == kind::Kind_t::INTS_MODULUS_TOTAL)
+//       {
+//         assertion_kind = kind::Kind_t::INTS_MODULUS_TOTAL;
+//       }
+//       else
+//       {
+//         assertion_kind = kind::Kind_t::EQUAL;
+//       }
+//       break;
+//     }
+//     case kind::Kind_t::NOT:
+//     {
+//       assertion_kind = kind::Kind_t::LEQ;
+//       break;
+//     }
+//     default: break;
+//   }
+//
+//   // preprocessing to get coefficients of every formula. Each kind has a
+//   // different format in cvc5 after preprocessing
+//   switch (assertion_kind)
+//   {
+//     // case a1x1 + ... anxn = c
+//     case kind::Kind_t::EQUAL:
+//     {
+//       TNode lhs = *aux.begin();
+//       if (lhs.getKind() == kind::Kind_t::MULT)
+//       {
+//         lhs = *lhs.begin();
+//         int64_t coef = stoi(lhs.getConst<Rational>().toString());
+//         coefficients.push_back(coef);
+//       }
+//       else
+//       {
+//         // for sure it's a single var
+//         coefficients.push_back(1);
+//       }
+//
+//       // now process right side of relation
+//       TNode rhs = *aux.rbegin();
+//       for (const TNode& assertion : rhs)
+//       {
+//         if (assertion.getKind() == kind::Kind_t::MULT)
+//         {
+//           lhs = *assertion.begin();
+//           int64_t coef = stoi(lhs.getConst<Rational>().toString());
+//           coefficients.push_back(-1 * coef);
+//         }
+//         else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+//         {
+//           coefficients.push_back(-1);
+//         }
+//         else
+//         {
+//           // for sure it's the constant C
+//           c = stoi(assertion.getConst<Rational>().toString());
+//         }
+//       }
+//       break;
+//     }
+//       // case a1x1 + ... + anxn <= c (cvc5 converts into a not (>=))
+//     case kind::Kind_t::NOT:
+//     {
+//       aux = *aux.begin();
+//       TNode lhs = *aux.begin();
+//       TNode rhs = *(aux.end() - 1);
+//       c = stoi(rhs.getConst<Rational>().toString());
+//       c--;
+//       for (const TNode& assertion : lhs)
+//       {
+//         if (assertion.getKind() == kind::Kind_t::MULT)
+//         {
+//           lhs = *assertion.begin();
+//           int64_t coef = stoi(lhs.getConst<Rational>().toString());
+//           coefficients.push_back(coef);
+//         }
+//         else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+//         {
+//           coefficients.push_back(1);
+//         }
+//         else
+//         {
+//           std::cout << "We shouldn't get here" << std::endl;
+//         }
+//       }
+//       break;
+//     }
+//     case kind::Kind_t::INTS_MODULUS_TOTAL:
+//     {
+//       TNode lhs = *aux.begin();   // the mod part
+//       TNode rhs = *aux.rbegin();  // c
+//       c = stoi(rhs.getConst<Rational>().toString());
+//
+//       rhs = *lhs.rbegin();
+//       lhs = *lhs.begin();
+//       mod_value = stoi(rhs.getConst<Rational>().toString());
+//       for (const TNode& assertion : lhs)
+//       {
+//         if (assertion.getKind() == kind::Kind_t::MULT)
+//         {
+//           lhs = *assertion.begin();
+//           int64_t coef = stoi(lhs.getConst<Rational>().toString());
+//           coefficients.push_back(coef);
+//         }
+//         else if (assertion.getKind() == kind::Kind_t::VARIABLE)
+//         {
+//           coefficients.push_back(1);
+//         }
+//         else
+//         {
+//           std::cout << "We shouldn't get here" << std::endl;
+//         }
+//       }
+//       break;
+//     }
+//     default: break;
+//   }
+//
+//   buildDfa(c, coefficients, dfa, assertion_kind, mod_value);
+//   printDfa(dfa);
+//
+//   coefficients.clear();
+//
+//   // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE
+//   // LATER
+// }
+
 Automata::Automata(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "automata")
 {
@@ -180,147 +323,9 @@ PreprocessingPassResult Automata::applyInternal(
   {
     to_process.push_back(a);
   }
-  to_process.pop_back();  // removing redundant TRUE constant
-
-  // after preprocessing, we always have exp = c + SUMexp
-  for (const TNode& a : to_process)
+  for (const auto& e : to_process)
   {
-    TNode aux = a;
-    int c = 0;
-    int mod_value = 0;
-    std::vector<std::string> vars;
-    std::vector<int> coefficients;
-    kind::Kind_t assertion_kind = kind::Kind_t::EQUAL;
-
-    switch (aux.getKind())
-    {
-      case kind::Kind_t::EQUAL:
-      {
-        if ((*aux.begin()).getKind() == kind::Kind_t::INTS_MODULUS_TOTAL)
-        {
-          assertion_kind = kind::Kind_t::INTS_MODULUS_TOTAL;
-        }
-        else
-        {
-          assertion_kind = kind::Kind_t::EQUAL;
-        }
-        break;
-      }
-      case kind::Kind_t::NOT:
-      {
-        assertion_kind = kind::Kind_t::LEQ;
-        break;
-      }
-      default: break;
-    }
-
-    // preprocessing to get coefficients of every formula. Each kind has a
-    // different format in cvc5 after preprocessing
-    switch (assertion_kind)
-    {
-      // case a1x1 + ... anxn = c
-      case kind::Kind_t::EQUAL:
-      {
-        TNode lhs = *aux.begin();
-        if (lhs.getKind() == kind::Kind_t::MULT)
-        {
-          lhs = *lhs.begin();
-          int64_t coef = stoi(lhs.getConst<Rational>().toString());
-          coefficients.push_back(coef);
-        }
-        else
-        {
-          // for sure it's a single var
-          coefficients.push_back(1);
-        }
-
-        // now process right side of relation
-        TNode rhs = *aux.rbegin();
-        for (const TNode& assertion : rhs)
-        {
-          if (assertion.getKind() == kind::Kind_t::MULT)
-          {
-            lhs = *assertion.begin();
-            int64_t coef = stoi(lhs.getConst<Rational>().toString());
-            coefficients.push_back(-1 * coef);
-          }
-          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
-          {
-            coefficients.push_back(-1);
-          }
-          else
-          {
-            // for sure it's the constant C
-            c = stoi(assertion.getConst<Rational>().toString());
-          }
-        }
-        break;
-      }
-        // case a1x1 + ... + anxn <= c (cvc5 converts into a not (>=))
-      case kind::Kind_t::NOT:
-      {
-        aux = *aux.begin();
-        TNode lhs = *aux.begin();
-        TNode rhs = *(aux.end() - 1);
-        c = stoi(rhs.getConst<Rational>().toString());
-        c--;
-        for (const TNode& assertion : lhs)
-        {
-          if (assertion.getKind() == kind::Kind_t::MULT)
-          {
-            lhs = *assertion.begin();
-            int64_t coef = stoi(lhs.getConst<Rational>().toString());
-            coefficients.push_back(coef);
-          }
-          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
-          {
-            coefficients.push_back(1);
-          }
-          else
-          {
-            std::cout << "We shouldn't get here" << std::endl;
-          }
-        }
-        break;
-      }
-      case kind::Kind_t::INTS_MODULUS_TOTAL:
-      {
-        TNode lhs = *aux.begin();   // the mod part
-        TNode rhs = *aux.rbegin();  // c
-        c = stoi(rhs.getConst<Rational>().toString());
-
-        rhs = *lhs.rbegin();
-        lhs = *lhs.begin();
-        mod_value = stoi(rhs.getConst<Rational>().toString());
-        for (const TNode& assertion : lhs)
-        {
-          if (assertion.getKind() == kind::Kind_t::MULT)
-          {
-            lhs = *assertion.begin();
-            int64_t coef = stoi(lhs.getConst<Rational>().toString());
-            coefficients.push_back(coef);
-          }
-          else if (assertion.getKind() == kind::Kind_t::VARIABLE)
-          {
-            coefficients.push_back(1);
-          }
-          else
-          {
-            std::cout << "We shouldn't get here" << std::endl;
-          }
-        }
-        break;
-      }
-      default: break;
-    }
-
-    buildDfa(c, coefficients, dfa, assertion_kind, mod_value);
-    printDfa(dfa);
-
-    coefficients.clear();
-
-    // I AM ASSUMING THERE IS ONLY ONE ASSERTION PER FILE, WE DEAL WITH MORE
-    // LATER
+    std::cout << e << std::endl;
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
