@@ -223,7 +223,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
         // must use standard alphabet size
         return options().strings.stringsAlphaCard == String::num_codes();
       }
-      return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+      return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF || k == Kind::STRING_INDEXOF_RE
              || k == Kind::STRING_IN_REGEXP;
     }
     break;
