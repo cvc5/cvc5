@@ -2747,6 +2747,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sequences - sequence length eval**
+   *
+   * .. math::
+   *   \mathit{len}(c) = n
+   *
+   * where :math:`c` is concatenation of :math:`seq.unit` terms of length :math:`n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(SEQ_LENGTH_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets - empty tester evaluation**
    *
    * .. math::
@@ -3408,8 +3420,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_EMP),
   /** Auto-generated from RARE rule str-contains-is-emp */
   EVALUE(STR_CONTAINS_IS_EMP),
-  /** Auto-generated from RARE rule str-concat-emp */
-  EVALUE(STR_CONCAT_EMP),
   /** Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */

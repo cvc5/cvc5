@@ -65,6 +65,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::SEQ_LENGTH_EVAL,
+                           TheoryRewriteCtx::DSL_SUBCALL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -91,6 +93,29 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       StringsEntail sent(nullptr, ae, nullptr);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
+    case ProofRewriteRule::SEQ_LENGTH_EVAL:
+    {
+      if (n.getKind()==Kind::STRING_LENGTH)
+      {
+        if (n[0].getKind()==Kind::CONST_SEQUENCE)
+        {
+          return nodeManager()->mkConstInt(Rational(Word::getLength(n[0])));
+        }
+        // maybe after converting to its node form
+        if (n[0].getKind()==Kind::STRING_CONCAT)
+        {
+          for (const Node& nc : n[0])
+          {
+            if (nc.getKind()!=Kind::SEQ_UNIT)
+            {
+              return Node::null();
+            }
+          }
+          return nodeManager()->mkConstInt(Rational(n[0].getNumChildren()));
+        }
+      }
+    }
+    break;
     default: break;
   }
   return Node::null();

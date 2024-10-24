@@ -39,14 +39,18 @@
   (= (str.++ x2 (str.++ x1 x)) y)
   (= y (str.++ x2 x1 x)))
 
-(define-rule str-substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
+(define-cond-rule str-substr-empty-str ((r ?Seq) (n Int) (m Int))
+  (= (str.len r) 0)
+  (str.substr r n m)
+  r
+)
 (define-cond-rule str-substr-empty-range ((x String) (n Int) (m Int)) (>= 0 m) (str.substr x n m) "")
 (define-cond-rule str-substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
 (define-cond-rule str-substr-empty-start-neg ((x String) (n Int) (m Int)) (< n 0) (str.substr x n m) "")
-(define-cond-rule str-substr-eq-empty ((s String) (n Int) (m Int))
-  (and (= n 0) (> m n))
-  (= (str.substr s n m) "")
-  (= s ""))
+(define-cond-rule str-substr-eq-empty ((s ?Seq) (r ?Seq) (n Int) (m Int))
+  (and (= n 0) (> m n) (= (str.len r) 0))
+  (= (str.substr s n m) r)
+  (= s r))
 
 (define-cond-rule str-len-replace-inv ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (= (str.len s) (str.len r))
@@ -203,10 +207,6 @@
   (str.contains x y)
   (= x y))
 
-(define-rule str-concat-emp ((xs String :list) (ys String :list)) 
-  (str.++ xs "" ys) 
-  (str.++ xs ys))
-
 (define-rule str-at-elim ((x ?Seq) (n Int)) (str.at x n) (str.substr x n 1))
 
 ; not effective since due to not proving inequalities on length
@@ -224,8 +224,9 @@
   (str.replace t s r)
   t)
 
-(define-rule str-replace-empty ((t ?Seq) (s ?Seq))
-  (str.replace t "" s)
+(define-cond-rule str-replace-empty ((t ?Seq) (s ?Seq) (r ?Seq))
+  (= (str.len r) 0)
+  (str.replace t r s)
   (str.++ s t))
 
 (define-rule* str-len-concat-rec ((s1 ?Seq) (s2 ?Seq) (s3 ?Seq :list))

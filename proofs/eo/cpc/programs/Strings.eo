@@ -22,6 +22,18 @@
   )
 )
 
+; program: $seq_is_units_concat
+; args:
+; - s (Seq U): a sequence term
+; return: true if s is a concatenation of units.
+(program $seq_is_units_concat ((U Type) (s (Seq U) :list) (u U))
+  (U) Bool
+  (
+    (($seq_is_units_concat (seq.++ (seq.unit u) s)) ($seq_is_units_concat s))
+    (($seq_is_units_concat (seq.empty U)) true)
+  )
+)
+
 ; define: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
