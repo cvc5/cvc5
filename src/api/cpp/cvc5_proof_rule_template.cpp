@@ -128,6 +128,7 @@ const char* toString(ProofRule rule)
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
+    case ProofRule::QUANT_VAR_REORDERING: return "QUANT_VAR_REORDERING";
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
@@ -166,7 +167,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
     case ProofRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
-    case ProofRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
     case ProofRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
@@ -236,8 +237,13 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
+    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+      return "macro-quant-var-elim-eq";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
+      return "macro-quant-var-elim-ineq";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";

@@ -49,7 +49,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(ProofRule::INT_TIGHT_UB, this);
   pc->registerChecker(ProofRule::INT_TIGHT_LB, this);
-  pc->registerChecker(ProofRule::ARITH_OP_ELIM_AXIOM, this);
+  pc->registerChecker(ProofRule::ARITH_REDUCTION, this);
   pc->registerChecker(ProofRule::ARITH_MULT_POS, this);
   pc->registerChecker(ProofRule::ARITH_MULT_NEG, this);
   pc->registerChecker(ProofRule::ARITH_POLY_NORM, this);
@@ -389,11 +389,11 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       // Check that all have the same constant:
     }
-    case ProofRule::ARITH_OP_ELIM_AXIOM:
+    case ProofRule::ARITH_REDUCTION:
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      return OperatorElim::getAxiomFor(args[0]);
+      return OperatorElim::getAxiomFor(nm, args[0]);
     }
     case ProofRule::ARITH_POLY_NORM:
     {

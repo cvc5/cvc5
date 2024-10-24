@@ -581,6 +581,29 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(type.isFloatingPoint());
       return nm->mkFunctionType({type}, nm->realType());
     }
+    case SkolemId::BV_TO_INT_UF:
+    {
+      Assert(cacheVals.size() == 1);
+      // fetch the original function
+      Node bvUF = cacheVals[0];
+      Assert(cacheVals[0].getType().isFunction());
+      // old and new types of domain and result
+      TypeNode tn = bvUF.getType();
+      TypeNode bvRange = tn.getRangeType();
+      std::vector<TypeNode> bvDomain = tn.getArgTypes();
+      std::vector<TypeNode> intDomain;
+
+      // if the original range is a bit-vector sort,
+      // the new range should be an integer sort.
+      // Otherwise, we keep the original range.
+      // Similarly for the domain sorts.
+      TypeNode intRange = bvRange.isBitVector() ? nm->integerType() : bvRange;
+      for (const TypeNode& d : bvDomain)
+      {
+        intDomain.push_back(d.isBitVector() ? nm->integerType() : d);
+      }
+      return nm->mkFunctionType(intDomain, intRange);
+    }
     //
     default: break;
   }
@@ -623,6 +646,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::SETS_FOLD_UNION:
     case SkolemId::FP_MIN_ZERO:
     case SkolemId::FP_MAX_ZERO:
+    case SkolemId::BV_TO_INT_UF:
     case SkolemId::FP_TO_REAL: return 1;
 
     // Number of skolem indices: 2
