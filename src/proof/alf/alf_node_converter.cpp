@@ -662,7 +662,7 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
 
 bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
 {
-  // Note we don't handle skolems that takes types as arguments yet.
+  // Note we don't handle skolems that take types as arguments yet.
   switch (id)
   {
     case SkolemId::PURIFY:

@@ -173,7 +173,7 @@ enum ENUM(SkolemId)
   EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
   /**
    * Used to reason about virtual term substitution. This term represents
-   * an infinitessemal.
+   * an infinitesimal.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``Real``
@@ -181,7 +181,7 @@ enum ENUM(SkolemId)
   EVALUE(ARITH_VTS_DELTA),
   /**
    * Used to reason about virtual term substitution. This term represents
-   * an infinitessemal.
+   * an infinitesimal.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``Real``
