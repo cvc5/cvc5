@@ -454,17 +454,19 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   Trace("brc-macro") << "...was via string rewrite rule " << rule << std::endl;
   Assert(rhs == eq[1]);
   TypeNode stype = lhs.getType();
-  Node cm1 = theory::strings::utils::mkConcat(ch1, stype);
-  Node cm2 = theory::strings::utils::mkConcat(ch2, stype);
   Node cm;
   // depending on the rule, are either stripping from front or back
   if (rule == theory::strings::Rewrite::SS_STRIP_END_PT)
   {
-    cm = nm->mkNode(Kind::STRING_CONCAT, cm1, cm2);
+    std::vector<Node> ch(ch1.begin(), ch1.end());
+    ch.insert(ch.end(), ch2.begin(), ch2.end());
+    cm = theory::strings::utils::mkConcat(ch, stype);
   }
   else
   {
-    cm = nm->mkNode(Kind::STRING_CONCAT, cm2, cm1);
+    std::vector<Node> ch(ch2.begin(), ch2.end());
+    ch.insert(ch.end(), ch1.begin(), ch1.end());
+    cm = theory::strings::utils::mkConcat(ch, stype);
   }
   if (cm == lhs[0])
   {
