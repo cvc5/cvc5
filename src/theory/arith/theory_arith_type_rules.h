@@ -121,10 +121,9 @@ class IAndTypeRule
 };
 
 /**
- * Type rule for the POW2 operator.
- * Always returns integerType.
+ * Type rule for the POW operator.
  */
-class Pow2TypeRule
+class PowTypeRule
 {
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);

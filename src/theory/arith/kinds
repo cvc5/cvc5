@@ -119,7 +119,7 @@ typerule NONLINEAR_MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule SUB ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule NEG ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule DIVISION ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule POW ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule POW ::cvc5::internal::theory::arith::PowTypeRule
 
 typerule CONST_RATIONAL ::cvc5::internal::theory::arith::ArithConstantTypeRule
 typerule CONST_INTEGER ::cvc5::internal::theory::arith::ArithConstantTypeRule

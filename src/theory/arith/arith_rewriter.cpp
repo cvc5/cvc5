@@ -51,6 +51,8 @@ namespace arith {
 ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
     : TheoryRewriter(nm), d_opElim(oe)
 {
+  registerProofRewriteRule(ProofRewriteRule::ARITH_POW_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
@@ -64,6 +66,18 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::ARITH_POW_ELIM:
+    {
+      if (n.getKind() == Kind::POW)
+      {
+        Node nx = expandPowConst(nodeManager(), n);
+        if (!nx.isNull())
+        {
+          return nx;
+        }
+      }
+    }
+    break;
     case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
     {
       if (n.getKind() == Kind::DIVISION && n[1].isConst())
@@ -403,38 +417,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case Kind::POW:
       {
-        if (t[1].isConst())
+        Node tx = expandPowConst(nodeManager(), t);
+        if (!tx.isNull())
         {
-          const Rational& exp = t[1].getConst<Rational>();
-          TNode base = t[0];
-          if(exp.sgn() == 0){
-            return RewriteResponse(
-                REWRITE_DONE,
-                nodeManager()->mkConstRealOrInt(t.getType(), Rational(1)));
-          }else if(exp.sgn() > 0 && exp.isIntegral()){
-            cvc5::internal::Rational r(expr::NodeValue::MAX_CHILDREN);
-            if (exp <= r)
-            {
-              unsigned num = exp.getNumerator().toUnsignedInt();
-              Node ret;
-              if( num==1 ){
-                ret = base;
-              }else{
-                NodeBuilder nb(Kind::MULT);
-                for(unsigned i=0; i < num; ++i){
-                  nb << base;
-                }
-                Assert(nb.getNumChildren() > 0);
-                ret = nb;
-              }
-              // ensure type is preserved
-              if (t.getType().isReal())
-              {
-                ret = rewriter::ensureReal(ret);
-              }
-              return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-            }
-          }
+          return RewriteResponse(REWRITE_AGAIN_FULL, tx);
         }
         return RewriteResponse(REWRITE_DONE, t);
       }
@@ -1368,6 +1354,48 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
     return ret;
   }
   return ineq;
+}
+
+Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
+{
+  if (t[1].isConst())
+  {
+    const Rational& exp = t[1].getConst<Rational>();
+    if (!exp.isIntegral())
+    {
+      return Node::null();
+    }
+    TNode base = t[0];
+    if (exp.sgn() == 0)
+    {
+      return nm->mkConstRealOrInt(t.getType(), Rational(1));
+    }
+    else if (exp.sgn() > 0)
+    {
+      Rational r(expr::NodeValue::MAX_CHILDREN);
+      if (exp <= r)
+      {
+        unsigned num = exp.getNumerator().toUnsignedInt();
+        Node ret;
+        if (num == 1)
+        {
+          ret = base;
+        }
+        else
+        {
+          NodeBuilder nb(Kind::MULT);
+          for (unsigned i = 0; i < num; ++i)
+          {
+            nb << base;
+          }
+          Assert(nb.getNumChildren() > 0);
+          ret = nb;
+        }
+        return ret;
+      }
+    }
+  }
+  return Node::null();
 }
 
 }  // namespace arith
