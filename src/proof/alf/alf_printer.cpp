@@ -136,6 +136,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ARITH_SUM_UB:
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
+    case ProofRule::ARITH_MULT_TANGENT:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::ARITH_TRANS_EXP_NEG:
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:

@@ -126,14 +126,13 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[1].getType().isRealOrInt());
     Assert(args[2].getType().isRealOrInt());
     Assert(args[3].getType().isRealOrInt());
-    Assert(args[4].isConst() && args[4].getConst<Rational>().isIntegral());
+    Assert(args[4].isConst() && args[4].getType().isBoolean());
     Node x = args[0];
     Node y = args[1];
     Node t = nm->mkNode(Kind::NONLINEAR_MULT, x, y);
     Node a = args[2];
     Node b = args[3];
-    int sgn = args[4].getConst<Rational>().getNumerator().sgn();
-    Assert(sgn == -1 || sgn == 1);
+    int sgn = args[4].getConst<bool>() ? 1 : -1;
     Node tplane = nm->mkNode(Kind::SUB,
                              nm->mkNode(Kind::ADD,
                                         nm->mkNode(Kind::MULT, b, x),
