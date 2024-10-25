@@ -305,10 +305,10 @@
   (re.inter xs (str.to_re s) ys) 
   re.none)
 
-(define-cond-rule str-substr-len-include ((s1 ?Seq) (s2 ?Seq :list) (n Int))
-  (= n (str.len s1))
-  (str.substr (str.++ s1 s2) 0 n)
-  s1
+(define-cond-rule str-substr-len-include ((s1 ?Seq) (s2 ?Seq :list) (n Int) (m Int))
+  (<= (+ n m) (str.len s1))
+  (str.substr (str.++ s1 s2) n m)
+  (str.substr s1 n m)
 )
 
 (define-cond-rule str-substr-len-include-pre ((s1 ?Seq) (s2 ?Seq) (s3 ?Seq :list) (n Int))
