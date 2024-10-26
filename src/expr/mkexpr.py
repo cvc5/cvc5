@@ -169,16 +169,12 @@ class TheoryValidator:
         rewriter = kinds.get("rewriter")
         required_fields = ["class", "header"]
         if not rewriter:
-            print(f"{filename}: error: theory not defined")
+            print(f"{filename}: error: rewriter not defined")
             exit(1)
         
         self.check_required_fields(filename, "rewriter", rewriter, required_fields)
         self.check_not_allowed_fields(filename, "rewriter", rewriter, required_fields)
         self.validate_header(filename, rewriter["header"])
-        
-        # if "header" not in rewriter:
-        #     print(f"{filename}: error: rewriter does not contain required field 'header'")
-        #     exit(1)
 
     def validate_typerule(self, filename, typerule):
         required_fields = ["type_checker_class"]
