@@ -153,6 +153,8 @@ class CVC5_EXPORT NodeValue
 
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
 
+  NodeManager* getNodeManager() const { return d_nm; }
+
   uint32_t getNumChildren() const
   {
     return (getMetaKind() == kind::metakind::PARAMETERIZED) ? d_nchildren - 1
@@ -357,6 +359,9 @@ class CVC5_EXPORT NodeValue
 
   /** Number of children */
   uint32_t d_nchildren : NBITS_NCHILDREN;
+
+  /** Associated node manager. */
+  NodeManager* d_nm = nullptr;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];

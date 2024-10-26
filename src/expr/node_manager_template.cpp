@@ -1318,6 +1318,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   nvStack.d_id = 0;
   nvStack.d_kind = static_cast<uint32_t>(k);
   nvStack.d_rc = 0;
+  nvStack.d_nm = this;
   nvStack.d_nchildren = 1;
 
 #if defined(__GNUC__) \
@@ -1352,6 +1353,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   nv->d_nchildren = 0;
   nv->d_kind = static_cast<uint32_t>(k);
   nv->d_id = d_nextId++;
+  nv->d_nm = this;
   nv->d_rc = 0;
 
   new (&nv->d_children) T(val);
