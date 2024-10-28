@@ -171,6 +171,44 @@ enum ENUM(SkolemId)
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * an infinitesimal. This skolem is expected to appear in instantiations
+   * and immediately be rewritten via virtual term substitution.
+   *
+   * - Number of skolem indices: ``0``
+   * - Sort: ``Real``
+   */
+  EVALUE(ARITH_VTS_DELTA),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * an infinitesimal. Unlike ARITH_VTS_DELTA, this skolem may appear in
+   * lemmas.
+   *
+   * - Number of skolem indices: ``0``
+   * - Sort: ``Real``
+   */
+  EVALUE(ARITH_VTS_DELTA_FREE),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * infinity.  This skolem is expected to appear in instantiations
+   * and immediately be rewritten via virtual term substitution.
+   *
+   * - Number of skolem indices: ``0``
+   *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
+   * - Sort: The sort given by the index.
+   */
+  EVALUE(ARITH_VTS_INFINITY),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * infinity. Unlike ARITH_VTS_INFINITY, this skolem may appear in
+   * lemmas.
+   *
+   * - Number of skolem indices: ``0``
+   *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
+   * - Sort: The sort given by the index.
+   */
+  EVALUE(ARITH_VTS_INFINITY_FREE),
   /** 
    * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields

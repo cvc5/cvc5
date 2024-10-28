@@ -22,11 +22,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/node_traversal.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -67,9 +68,19 @@ IntBlaster::IntBlaster(Env& env,
 
 IntBlaster::~IntBlaster() {}
 
+std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
+{
+  // proofs not yet supported
+  CDProof cdp(d_env);
+  cdp.addTrustedStep(fact, TrustId::INT_BLASTER, {}, {});
+  return cdp.getProofFor(fact);
+}
+
+std::string IntBlaster::identify() const { return "IntBlaster"; }
+
 void IntBlaster::addRangeConstraint(Node node,
                                     uint32_t size,
-                                    std::vector<Node>& lemmas)
+                                    std::vector<TrustNode>& lemmas)
 {
   Node rangeConstraint = mkRangeConstraint(node, size);
   Trace("int-blaster-debug")
@@ -79,12 +90,13 @@ void IntBlaster::addRangeConstraint(Node node,
     Trace("int-blaster-debug")
         << "range constraint added to cache and lemmas " << std::endl;
     d_rangeAssertions.insert(rangeConstraint);
-    lemmas.push_back(rangeConstraint);
+    TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
+    lemmas.push_back(trn);
   }
 }
 
 void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
-                                      std::vector<Node>& lemmas)
+                                      std::vector<TrustNode>& lemmas)
 {
   if (d_bitwiseAssertions.find(bitwiseConstraint) == d_bitwiseAssertions.end())
   {
@@ -92,7 +104,8 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
         << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
         << std::endl;
     d_bitwiseAssertions.insert(bitwiseConstraint);
-    lemmas.push_back(bitwiseConstraint);
+    TrustNode trn = TrustNode::mkTrustLemma(bitwiseConstraint, this);
+    lemmas.push_back(trn);
   }
 }
 
@@ -151,13 +164,13 @@ Node IntBlaster::makeBinary(Node n)
 /**
  * Translate n to Integers via post-order traversal.
  */
-Node IntBlaster::intBlast(Node n,
-                          std::vector<Node>& lemmas,
-                          std::map<Node, Node>& skolems)
+TrustNode IntBlaster::trustedIntBlast(Node n,
+                                      std::vector<TrustNode>& lemmas,
+                                      std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
   Trace("int-blaster-debug") << "n before rewriting: " << n << std::endl;
-  n = rewrite(n);
+  Assert(n == rewrite(n));
   Trace("int-blaster-debug") << "n after rewriting: " << n << std::endl;
 
   // helper vector for traversal.
@@ -243,13 +256,37 @@ Node IntBlaster::intBlast(Node n,
     }
   }
   Assert(d_intblastCache.find(n) != d_intblastCache.end());
-  return d_intblastCache[n].get();
+  Node res = d_intblastCache[n].get();
+  if (res == n)
+  {
+    return TrustNode::null();
+  }
+  return TrustNode::mkTrustRewrite(n, res, this);
+}
+
+Node IntBlaster::intBlast(Node n,
+                          std::vector<Node>& lemmas,
+                          std::map<Node, Node>& skolems)
+{
+  std::vector<TrustNode> tlemmas;
+  TrustNode tr = trustedIntBlast(n, tlemmas, skolems);
+  for (TrustNode& tlem : tlemmas)
+  {
+    lemmas.emplace_back(tlem.getProven());
+  }
+  if (tr.isNull())
+  {
+    return n;
+  }
+  Assert(tr.getKind() == TrustNodeKind::REWRITE);
+  Assert(tr.getProven()[0] == n);
+  return tr.getProven()[1];
 }
 
 Node IntBlaster::translateWithChildren(
     Node original,
     const std::vector<Node>& translated_children,
-    std::vector<Node>& lemmas)
+    std::vector<TrustNode>& lemmas)
 {
   // The translation of the original node is determined by the kind of
   // the node.
@@ -730,7 +767,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
 }
 
 Node IntBlaster::translateNoChildren(Node original,
-                                     std::vector<Node>& lemmas,
+                                     std::vector<TrustNode>& lemmas,
                                      std::map<Node, Node>& skolems)
 {
   Trace("int-blaster-debug")
@@ -1063,7 +1100,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 Node IntBlaster::createBVAndNode(Node x,
                                  Node y,
                                  uint32_t bvsize,
-                                 std::vector<Node>& lemmas)
+                                 std::vector<TrustNode>& lemmas)
 {
   // We support three configurations:
   // 1. translating to IAND
@@ -1126,7 +1163,7 @@ Node IntBlaster::createBVAndNode(Node x,
 Node IntBlaster::createBVOrNode(Node x,
                                 Node y,
                                 uint32_t bvsize,
-                                std::vector<Node>& lemmas)
+                                std::vector<TrustNode>& lemmas)
 {
   // Based on Hacker's Delight section 2-2 equation h:
   // x+y = x|y + x&y
