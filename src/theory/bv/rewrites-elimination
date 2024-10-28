@@ -132,7 +132,7 @@
   (concat (repeat n (extract wm1 wm1 x)) x))
 
 (define-cond-rule bv-uaddo-eliminate
-  ((x ?BitVec) (y ?BitVec) (wm1 Int))
+  ((x ?BitVec) (y ?BitVec) (w Int))
   (= w (@bvsize x))
   (bvuaddo x y)
   (= (extract w w
@@ -241,10 +241,10 @@
   ((x ?BitVec) (y ?BitVec) (nm1 Int))
   (def
     (n (@bvsize x))
-    (xLt0 (= (extract nm1 nm1 x) (@bv 1 1)))
-    (yLt0 (= (extract nm1 nm1 y) (@bv 1 1)))
+    (xe (= (extract nm1 nm1 x) (@bv 1 1)))
+    (ye (= (extract nm1 nm1 y) (@bv 1 1)))
     (s (bvsub x y))
-    (sLt0 (= (extract nm1 nm1 s) (@bv 1 1)))
+    (se (= (extract nm1 nm1 s) (@bv 1 1)))
   )
   (= nm1 (- n 1))
   (bvssubo x y)
