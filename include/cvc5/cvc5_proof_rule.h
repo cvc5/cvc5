@@ -2896,8 +2896,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_AND_DUP),
   /** Auto-generated from RARE rule bool-and-conf */
   EVALUE(BOOL_AND_CONF),
+  /** Auto-generated from RARE rule bool-and-conf2 */
+  EVALUE(BOOL_AND_CONF2),
   /** Auto-generated from RARE rule bool-or-taut */
   EVALUE(BOOL_OR_TAUT),
+  /** Auto-generated from RARE rule bool-or-taut2 */
+  EVALUE(BOOL_OR_TAUT2),
   /** Auto-generated from RARE rule bool-or-de-morgan */
   EVALUE(BOOL_OR_DE_MORGAN),
   /** Auto-generated from RARE rule bool-implies-de-morgan */
