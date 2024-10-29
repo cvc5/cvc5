@@ -241,10 +241,10 @@
   ((x ?BitVec) (y ?BitVec) (nm1 Int))
   (def
     (n (@bvsize x))
-    (xe (= (extract nm1 nm1 x) (@bv 1 1)))
-    (ye (= (extract nm1 nm1 y) (@bv 1 1)))
+    (xe (extract nm1 nm1 x))
+    (ye (extract nm1 nm1 y))
     (s (bvsub x y))
-    (se (= (extract nm1 nm1 s) (@bv 1 1)))
+    (se (extract nm1 nm1 s))
   )
   (= nm1 (- n 1))
   (bvssubo x y)
