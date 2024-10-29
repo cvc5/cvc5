@@ -220,7 +220,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
-    case ProofRewriteRule::DISTINCT_CARD_CONFLICT: return "distinct-card-conflict";
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      return "distinct-card-conflict";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
       return "arith-div-by-const-elim";
