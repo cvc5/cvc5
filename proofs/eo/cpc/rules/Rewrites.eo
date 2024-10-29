@@ -784,7 +784,7 @@
 (declare-rule bv-ssubo-eliminate ((@n0 Int) (@n1 Int) (x1 (BitVec @n0)) (y1 (BitVec @n1)) (nm1 Int))
   :premises ((= nm1 (- (@bvsize x1) 1)))
   :args (x1 y1 nm1)
-  :conclusion (= (bvssubo x1 y1) (eo::define ((_let_1 (@bv 1 1))) (eo::define ((_let_2 (= (extract nm1 nm1 (bvsub x1 y1)) _let_1))) (eo::define ((_let_3 (= (extract nm1 nm1 y1) _let_1))) (eo::define ((_let_4 (@bv 0 1))) (eo::define ((_let_5 (= (extract nm1 nm1 x1) _let_1))) (or (and (and (= _let_5 _let_1) (= _let_3 _let_4)) (= _let_2 _let_4)) (and (and (= _let_5 _let_4) (= _let_3 _let_1)) (= _let_2 _let_1)))))))))
+  :conclusion (= (bvssubo x1 y1) (eo::define ((_let_1 (@bv 1 1))) (eo::define ((_let_2 (extract nm1 nm1 (bvsub x1 y1)))) (eo::define ((_let_3 (extract nm1 nm1 y1))) (eo::define ((_let_4 (@bv 0 1))) (eo::define ((_let_5 (extract nm1 nm1 x1))) (or (and (and (= _let_5 _let_1) (= _let_3 _let_4)) (= _let_2 _let_4)) (and (and (= _let_5 _let_4) (= _let_3 _let_1)) (= _let_2 _let_1)))))))))
 )
 (declare-rule bv-ite-equal-children ((@n0 Int) (c1 (_ BitVec 1)) (x1 (BitVec @n0)))
   :args (c1 x1)
