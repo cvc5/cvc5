@@ -156,7 +156,6 @@ const char* toString(ProofRule rule)
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
-    case ProofRule::MACRO_RE_ELIM: return "MACRO_RE_ELIM";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case ProofRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
@@ -242,6 +241,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+      return "macro-quant-var-elim-eq";
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
+      return "macro-quant-var-elim-ineq";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
