@@ -170,7 +170,7 @@ class Op(Enum):
     STRING_AT = ('str.at', 'STRING_CHARAT')
     STRING_CONTAINS = ('str.contains', 'STRING_CONTAINS')
     STRING_LT = ('str.<', 'STRING_LT')
-    STRING_LEQ = ('str.<=', 'STRING.LEQ')
+    STRING_LEQ = ('str.<=', 'STRING_LEQ')
     STRING_INDEXOF = ('str.indexof', 'STRING_INDEXOF')
     STRING_INDEXOF_RE = ('str.indexof_re', 'STRING_INDEXOF_RE')
     STRING_REPLACE = ('str.replace', 'STRING_REPLACE')
