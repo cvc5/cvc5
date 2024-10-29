@@ -2312,6 +2312,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DISTINCT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin -- Distinct elimination**
+   *
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bot
+   *
+   * where :math:`n` is greater than the cardinality of the type of
+   * :math:`t_1, \ldots, t_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_CARD_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Booleans -- Negation Normal Form with normalization**
    *
    * .. math::
