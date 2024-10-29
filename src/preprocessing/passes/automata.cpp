@@ -323,10 +323,9 @@ PreprocessingPassResult Automata::applyInternal(
   {
     to_process.push_back(a);
   }
-  for (const auto& e : to_process)
-  {
-    std::cout << e << std::endl;
-  }
+
+  std::system("ls");
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
