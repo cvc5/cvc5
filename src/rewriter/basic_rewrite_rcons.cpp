@@ -648,7 +648,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   {
     return false;
   }
-  if (args.size()!=q[0].getNumChildren()-1)
+  if (args.size() != q[0].getNumChildren() - 1)
   {
     // a rare case of MACRO_QUANT_VAR_ELIM_EQ does "datatype tester expansion"
     // e.g. forall x. is-cons(x) => P(x) ----> forall yz. P(cons(y,z))
@@ -765,7 +765,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     cdp->addStep(eqBody, ProofRule::TRANS, transEqBody, {});
   }
   // We've now proven that (or (not (= x t)) F) is equivalent to F, we can
-  // forall x. F = 
+  // forall x. F =
   // forall x. (or (not (= x t)) F) =
   // F * { x -> t }
   // where the latter equality is proven by QUANT_VAR_ELIM_EQ.
