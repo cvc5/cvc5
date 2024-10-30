@@ -277,14 +277,14 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         std::vector<Node> lits;
         getVarElim(n[1], args, vars, subs, lits);
       }
-      else if (id==ProofRewriteRule::QUANT_VAR_ELIM_EQ)
+      else if (id == ProofRewriteRule::QUANT_VAR_ELIM_EQ)
       {
-        if (args.size()!=1)
+        if (args.size() != 1)
         {
           return Node::null();
         }
         std::vector<Node> lits;
-        if (body.getKind()==Kind::OR)
+        if (body.getKind() == Kind::OR)
         {
           lits.insert(lits.end(), body.begin(), body.end());
         }
@@ -292,20 +292,21 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           lits.push_back(body);
         }
-        if (lits[0].getKind()!=Kind::NOT || lits[0][0].getKind()!=Kind::EQUAL)
+        if (lits[0].getKind() != Kind::NOT
+            || lits[0][0].getKind() != Kind::EQUAL)
         {
           return Node::null();
         }
         Node eq = lits[0][0];
-        if (eq[0]!=args[0] || expr::hasSubterm(eq[1], eq[0]))
+        if (eq[0] != args[0] || expr::hasSubterm(eq[1], eq[0]))
         {
           return Node::null();
         }
         vars.push_back(eq[0]);
         subs.push_back(eq[1]);
         args.clear();
-        std::vector<Node> remLits(lits.begin()+1, lits.end());
-        body = d_nm->mkOr(remLits);        
+        std::vector<Node> remLits(lits.begin() + 1, lits.end());
+        body = d_nm->mkOr(remLits);
       }
       else
       {
@@ -1298,7 +1299,7 @@ bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs,
-                                             std::vector<Node>& lits) const
+                                     std::vector<Node>& lits) const
 {
   return getVarElimInternal(body, body, false, args, vars, subs, lits);
 }

@@ -189,8 +189,7 @@ class BasicRewriteRCons : protected EnvObj
    * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroQuantVarElimEq(CDProof* cdp,
-                                                    const Node& eq);
+  bool ensureProofMacroQuantVarElimEq(CDProof* cdp, const Node& eq);
   /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.

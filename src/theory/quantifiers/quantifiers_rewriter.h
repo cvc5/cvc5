@@ -144,7 +144,7 @@ class QuantifiersRewriter : public TheoryRewriter
                   std::vector<Node>& args,
                   std::vector<Node>& vars,
                   std::vector<Node>& subs,
-                                             std::vector<Node>& lits) const;
+                  std::vector<Node>& lits) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
