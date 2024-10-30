@@ -650,23 +650,25 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   Assert (vars.size()==1);
   Trace("brc-macro") << "Ensure quant var elim eq: " << eq << std::endl;
   Trace("brc-macro") << "Eliminate " << vars << " -> " << subs << " from " << lits << std::endl;
-  // merge prenex in reverse to handle other variables
-  // equivalence between literal
-  Node body1 = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, vars[0], q[1]));
+  // merge prenex in reverse to handle other variables first
+  NodeManager * nm = nodeManager();
+  Node body1;
   Node body2;
   if (eq[1].getKind()==Kind::FORALL)
   {
+    body1 = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, vars[0]), q[1]);
     std::vector<Node> transEq;
     Node unmergeQ = nm->mkNode(Kind::FORALL, eq[1][0], body1);
     Node mergeQ;
-    if (vars[0]!=q[0][0])
+    Node q0v = q[0];
+    if (vars[0]!=q0v[q0v.getNumChildren()-1])
     {
       // reordering
       std::vector<Node> mvars(eq[1][0].begin(), eq[1][0].end());
       mvars.push_back(vars[0]);
       mergeQ = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, mvars), q[1]);
       Node eqq = q.eqNode(mergeQ);
-      cdp->addStep(eqq, ProofRule::QUANT_VAR_REORDERING, {}, {eqq})
+      cdp->addStep(eqq, ProofRule::QUANT_VAR_REORDERING, {}, {eqq});
       transEq.push_back(eqq);
     }
     else
@@ -676,21 +678,93 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     Node eqq2s = unmergeQ.eqNode(mergeQ);
     cdp->addTheoryRewriteStep(eqq2s,
                               ProofRewriteRule::QUANT_MERGE_PRENEX);
-    Node eqq2 = mergeQ.eqNode(mergeQ);
+    Node eqq2 = mergeQ.eqNode(unmergeQ);
+    cdp->addStep(eqq2, ProofRule::SYMM, {eqq2s}, {});
     transEq.push_back(eqq2);
-    if (transEq.size()>1)
-    {
-      cdp->addStep(eq, ProofRule::TRANS, transEq, {});
-    }
     body2 = eq[1][1];
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(unmergeQ, cargs);
+    Node beq = body1.eqNode(body2);
+    Node eqq3 = unmergeQ.eqNode(eq[1]);
+    cdp->addStep(eqq3, cr, {beq}, cargs);
+    transEq.push_back(eqq3);
+    cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   }
   else
   {
+    body1 = eq[0];
     body2 = eq[1];
   }
-  Trace("brc-macro") << "Prove: " << body1 << " == " << body2 << std::endl;
-  AlwaysAssert(false);
-  return false;
+  Trace("brc-macro") << "Remains to prove: " << body1 << " == " << body2 << std::endl;
+  Assert (body1.getKind()==Kind::FORALL);
+  Node eqLit = vars[0].eqNode(subs[0]).notNode();
+  Node lit = lits[0].negate();
+  if (eqLit!=lit)
+  {
+    Node equivLit = eqLit.eqNode(lit);
+    cdp->addTrustedStep(
+        equivLit, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  }
+  // add a copy and prove it is redundant
+  std::vector<Node> disj;
+  disj.push_back(lit);
+  if (body1[1].getKind()==Kind::OR)
+  {
+    disj.insert(disj.end(), body1[1].begin(), body1[1].end());
+  }
+  else
+  {
+    disj.push_back(body1[1]);
+  }
+  Node body1r = nm->mkOr(disj);
+  disj[0] = eqLit;
+  Node body1re = nm->mkOr(disj);
+  std::vector<Node> transEqBody;
+  Node eqBody = body1[1].eqNode(body1r);
+  cdp->addStep(eqBody, ProofRule::ACI_NORM, {}, {eqBody});
+  transEqBody.push_back(eqBody);
+  if (eqLit!=lit)
+  {
+    std::vector<Node> cprems;
+    for (size_t i=0, nchild=body1r.getNumChildren(); i<nchild; i++)
+    {
+      Node eql = body1r[i].eqNode(body1re[i]);
+      if (body1r[i]==body1re[i])
+      {
+        cdp->addStep(eql, ProofRule::REFL, {}, {eql[0]});
+      }
+      else
+      {
+      cdp->addTrustedStep(
+          eql, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      }
+      cprems.emplace_back(eql);
+    }
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(body1r, cargs);
+    Node eqbr = body1r.eqNode(body1re);
+    cdp->addStep(eqbr, cr, cprems, cargs);
+    transEqBody.emplace_back(eqbr);
+    eqBody = body1[1].eqNode(body1re);
+  }
+  if (transEqBody.size()>1)
+  {
+    cdp->addStep(eqBody, ProofRule::TRANS, transEqBody, {});
+  }
+  std::vector<Node> finalTransEq;
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(body1, cargs);
+  Node body1p = nm->mkNode(Kind::FORALL, body1[0], body1re);
+  Node eqq = body1.eqNode(body1p);
+  cdp->addStep(eqq, cr, {eqBody}, cargs);
+  finalTransEq.push_back(eqq);
+  eqq = body1p.eqNode(body2);
+  cdp->addTheoryRewriteStep(eqq,
+                            ProofRewriteRule::QUANT_VAR_ELIM_EQ);
+  finalTransEq.push_back(eqq);
+  Node beq = body1.eqNode(body2);
+  cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
+  return true;
 }
 
 bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
