@@ -361,7 +361,10 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
   // at LAST_CALL effort (see postCheck).
   if (d_im.hasPendingLemma())
   {
-    return true;
+    d_im.doPendingFacts();
+    d_im.doPendingLemmas();
+    d_im.doPendingPhaseRequirements();
+    return false;
   }
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
