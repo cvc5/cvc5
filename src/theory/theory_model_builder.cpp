@@ -937,6 +937,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         i2 = i;
         ++i;
+        if (evaluableEqc.find(*i2) != evaluableEqc.end())
+        {
+          // we never assign to evaluable equivalence classes
+          continue;
+        }
         // check whether it has an assigner object
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
@@ -958,13 +963,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         {
           assignable = assignableEqc.find(*i2) != assignableEqc.end();
         }
-        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
-            << ", evaluable=" << evaluable << std::endl;
-        if (assignable && !evaluable)
+            << std::endl;
+        if (assignable)
         {
-          Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
           // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
@@ -1076,6 +1079,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     if (!changed)
     {
       Trace("model-builder-debug") << "...must assign one" << std::endl;
+      // Avoid infinite loops: if we are in a deadlock, we abort model building
+      // unsuccessfully here.
       if (assignOne)
       {
         return false;
