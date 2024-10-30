@@ -32,6 +32,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -195,6 +196,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
       break;
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       if (ensureProofMacroQuantPartitionConnectedFv(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+      if (ensureProofMacroQuantVarElimEq(cdp, eq))
       {
         handledMacro = true;
       }
@@ -624,6 +631,66 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   transEq.emplace_back(eqq2);
   cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
+                                                    const Node& eq)
+{
+  Node q = eq[0];
+  Assert(q.getKind() == Kind::FORALL);
+  std::vector<Node> args(q[0].begin(), q[0].end());
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  std::vector<Node> lits;
+  theory::quantifiers::QuantifiersRewriter qrew(nodeManager(), d_env.getRewriter(), options());
+  if (!qrew.getVarElim(q[1], args, vars, subs, lits))
+  {
+    return false;
+  }
+  Assert (vars.size()==1);
+  Trace("brc-macro") << "Ensure quant var elim eq: " << eq << std::endl;
+  Trace("brc-macro") << "Eliminate " << vars << " -> " << subs << " from " << lits << std::endl;
+  // merge prenex in reverse to handle other variables
+  // equivalence between literal
+  Node body1 = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, vars[0], q[1]));
+  Node body2;
+  if (eq[1].getKind()==Kind::FORALL)
+  {
+    std::vector<Node> transEq;
+    Node unmergeQ = nm->mkNode(Kind::FORALL, eq[1][0], body1);
+    Node mergeQ;
+    if (vars[0]!=q[0][0])
+    {
+      // reordering
+      std::vector<Node> mvars(eq[1][0].begin(), eq[1][0].end());
+      mvars.push_back(vars[0]);
+      mergeQ = nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, mvars), q[1]);
+      Node eqq = q.eqNode(mergeQ);
+      cdp->addStep(eqq, ProofRule::QUANT_VAR_REORDERING, {}, {eqq})
+      transEq.push_back(eqq);
+    }
+    else
+    {
+      mergeQ = q;
+    }
+    Node eqq2s = unmergeQ.eqNode(mergeQ);
+    cdp->addTheoryRewriteStep(eqq2s,
+                              ProofRewriteRule::QUANT_MERGE_PRENEX);
+    Node eqq2 = mergeQ.eqNode(mergeQ);
+    transEq.push_back(eqq2);
+    if (transEq.size()>1)
+    {
+      cdp->addStep(eq, ProofRule::TRANS, transEq, {});
+    }
+    body2 = eq[1][1];
+  }
+  else
+  {
+    body2 = eq[1];
+  }
+  Trace("brc-macro") << "Prove: " << body1 << " == " << body2 << std::endl;
+  AlwaysAssert(false);
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,

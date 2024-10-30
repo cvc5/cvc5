@@ -143,7 +143,8 @@ class QuantifiersRewriter : public TheoryRewriter
   bool getVarElim(Node body,
                   std::vector<Node>& args,
                   std::vector<Node>& vars,
-                  std::vector<Node>& subs) const;
+                  std::vector<Node>& subs,
+                                             std::vector<Node>& lits) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
@@ -241,7 +242,8 @@ class QuantifiersRewriter : public TheoryRewriter
                           bool pol,
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
-                          std::vector<Node>& subs) const;
+                          std::vector<Node>& subs,
+                          std::vector<Node>& lits) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,

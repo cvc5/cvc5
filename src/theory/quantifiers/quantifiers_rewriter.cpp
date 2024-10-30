@@ -272,7 +272,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> subs;
       if (id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
       {
-        getVarElim(n[1], args, vars, subs);
+        std::vector<Node> lits;
+        getVarElim(n[1], args, vars, subs, lits);
       }
       else
       {
@@ -1264,9 +1265,10 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
 bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
-                                     std::vector<Node>& subs) const
+                                     std::vector<Node>& subs,
+                                             std::vector<Node>& lits) const
 {
-  return getVarElimInternal(body, body, false, args, vars, subs);
+  return getVarElimInternal(body, body, false, args, vars, subs, lits);
 }
 
 bool QuantifiersRewriter::getVarElimInternal(Node body,
@@ -1274,7 +1276,8 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              bool pol,
                                              std::vector<Node>& args,
                                              std::vector<Node>& vars,
-                                             std::vector<Node>& subs) const
+                                             std::vector<Node>& subs,
+                                             std::vector<Node>& lits) const
 {
   Kind nk = n.getKind();
   while (nk == Kind::NOT)
@@ -1287,14 +1290,19 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
   {
     for (const Node& cn : n)
     {
-      if (getVarElimInternal(body, cn, pol, args, vars, subs))
+      if (getVarElimInternal(body, cn, pol, args, vars, subs, lits))
       {
         return true;
       }
     }
     return false;
   }
-  return getVarElimLit(body, n, pol, args, vars, subs);
+  if (getVarElimLit(body, n, pol, args, vars, subs))
+  {
+    lits.emplace_back(pol ? n : n.notNode());
+    return true;
+  }
+  return false;
 }
 
 bool QuantifiersRewriter::hasVarElim(Node n,
@@ -1303,7 +1311,8 @@ bool QuantifiersRewriter::hasVarElim(Node n,
 {
   std::vector< Node > vars;
   std::vector< Node > subs;
-  return getVarElimInternal(n, n, pol, args, vars, subs);
+  std::vector<Node> lits;
+  return getVarElimInternal(n, n, pol, args, vars, subs, lits);
 }
 
 bool QuantifiersRewriter::getVarElimIneq(Node body,
@@ -1553,7 +1562,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   // standard variable elimination
   if (d_opts.quantifiers.varElimQuant)
   {
-    getVarElim(body, args, vars, subs);
+    std::vector<Node> lits;
+    getVarElim(body, args, vars, subs, lits);
   }
   // variable elimination based on one-direction inequalities
   if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)
