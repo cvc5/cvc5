@@ -648,11 +648,18 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   {
     return false;
   }
+  if (args.size()!=q[0].getNumChildren()-1)
+  {
+    // a rare case of MACRO_QUANT_VAR_ELIM_EQ does "datatype tester expansion"
+    // e.g. forall x. is-cons(x) => P(x) ----> forall yz. P(cons(y,z))
+    // This is not handled currently.
+    return false;
+  }
   Assert(vars.size() == 1);
   Trace("brc-macro") << "Ensure quant var elim eq: " << eq << std::endl;
   Trace("brc-macro") << "Eliminate " << vars << " -> " << subs << " from "
                      << lits << std::endl;
-  // merge prenex in reverse to handle other variables first
+  // merge prenex in reverse to handle the other irrelevant variables first
   NodeManager* nm = nodeManager();
   Node body1;
   Node body2;
@@ -666,7 +673,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     Node q0v = q[0];
     if (vars[0] != q0v[q0v.getNumChildren() - 1])
     {
-      // reordering
+      // use reordering if the eliminated variable is not the last one
       std::vector<Node> mvars(eq[1][0].begin(), eq[1][0].end());
       mvars.push_back(vars[0]);
       mergeQ = nm->mkNode(
@@ -698,6 +705,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     body1 = eq[0];
     body2 = eq[1];
   }
+  // we now have proven forall Y1 x Y2. F = forall Y1 Y2. F *sigma is a
+  // consequence of forall x. F = F * sigma, now prove the latter equality.
   Trace("brc-macro") << "Remains to prove: " << body1 << " == " << body2
                      << std::endl;
   Assert(body1.getKind() == Kind::FORALL);
@@ -709,7 +718,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     cdp->addTrustedStep(
         equivLit, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   }
-  // add a copy and prove it is redundant
+  // add a copy of the equality literal and prove it is redundant with ACI_NORM
   std::vector<Node> disj;
   disj.push_back(lit);
   if (body1[1].getKind() == Kind::OR)
@@ -755,6 +764,11 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   {
     cdp->addStep(eqBody, ProofRule::TRANS, transEqBody, {});
   }
+  // We've now proven that (or (not (= x t)) F) is equivalent to F, we can
+  // forall x. F = 
+  // forall x. (or (not (= x t)) F) =
+  // F * { x -> t }
+  // where the latter equality is proven by QUANT_VAR_ELIM_EQ.
   std::vector<Node> finalTransEq;
   std::vector<Node> cargs;
   ProofRule cr = expr::getCongRule(body1, cargs);

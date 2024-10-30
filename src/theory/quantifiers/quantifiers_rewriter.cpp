@@ -264,7 +264,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
     {
-      if (n.getKind() != Kind::FORALL)
+      if (n.getKind() != Kind::FORALL || n.getNumChildren()!=2)
       {
         return Node::null();
       }
