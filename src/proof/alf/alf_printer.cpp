@@ -253,6 +253,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
