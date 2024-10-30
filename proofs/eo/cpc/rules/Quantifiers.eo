@@ -172,8 +172,8 @@
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
-;   The right hand side of the equality can be shown equivalent to the right
-;   hand side based on reasoning about the disjuncts of F that contain x.
+;   The right hand side of the equality is the result of a legal variable
+;   elimination.
 ; conclusion: The given equality.
 (declare-rule quant-var-elim-eq ((T Type) (x T) (F Bool) (G Bool))
   :args ((= (forall (@list x) F) G))
