@@ -139,6 +139,12 @@ class QuantifiersRewriter : public TheoryRewriter
    * corresponds to a variable elimination for some v via the above method
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
+   *
+   * The vector lits is populated with the literals that are equivalent to
+   * each vars[0]==subs[0].
+   *
+   * For simplicity, this method will only add a single element to
+   * vars/subs/lits.
    */
   bool getVarElim(Node body,
                   std::vector<Node>& args,
