@@ -141,7 +141,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * based on eliminating v.
    *
    * The vector lits is populated with the literals that are equivalent to
-   * each vars[0]==subs[0].
+   * each vars[i]==subs[i].
    *
    * For simplicity, this method will only add a single element to
    * vars/subs/lits.
