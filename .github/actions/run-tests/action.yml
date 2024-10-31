@@ -64,6 +64,8 @@ runs:
           export PATH="${{ inputs.build-dir }}/install/bin:$PATH"
           export CMAKE_GENERATOR="MSYS Makefiles"
         fi
+        export CFLAGS=-Werror
+        export CXXFLAGS=-Werror
         cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake \
           -DPython_EXECUTABLE=$(command -v python3)
         make -j${{ env.num_proc }}
