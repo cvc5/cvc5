@@ -92,11 +92,17 @@ class PfManager : protected EnvObj
   ~PfManager();
   /**
    * Print the proof on the given output stream in the given format.
+   *
+   * @param out The output stream.
+   * @param fp The proof to print.
+   * @param mode The format (e.g. cpc, alethe) to print.
+   * @param scopeMode The expected form of fp (see ProofScopeMode).
+   * @param assertionNames The named assertions of the input.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
                   options::ProofFormatMode mode,
-                  ProofScopeMode scopeMode = ProofScopeMode::UNIFIED,
+                  ProofScopeMode scopeMode,
                   const std::map<Node, std::string>& assertionNames =
                       std::map<Node, std::string>());
 
@@ -129,6 +135,10 @@ class PfManager : protected EnvObj
    * respect to assertions in as. Note this includes equalities of the form
    * (= f (lambda (...) t)) which originate from define-fun commands for f.
    * These are considered assertions in the final proof.
+   *
+   * @param pfn The proof.
+   * @param as Reference to the assertions.
+   * @param scopeMode The expected form of fp (see ProofScopeMode).
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
       std::shared_ptr<ProofNode> pfn,

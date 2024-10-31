@@ -869,6 +869,7 @@ const static std::
             {internal::Kind::FUNCTION_TYPE, SortKind::FUNCTION_SORT},
             {internal::Kind::SEQUENCE_TYPE, SortKind::SEQUENCE_SORT},
             {internal::Kind::SET_TYPE, SortKind::SET_SORT},
+            {internal::Kind::SORT_TYPE, SortKind::UNINTERPRETED_SORT},
             {internal::Kind::TUPLE_TYPE, SortKind::TUPLE_SORT},
             {internal::Kind::NULLABLE_TYPE, SortKind::NULLABLE_SORT},
         };

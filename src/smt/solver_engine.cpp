@@ -1798,7 +1798,8 @@ void SolverEngine::proofToString(std::ostream& out,
 {
   options::ProofFormatMode format_mode =
       getOptions().proof.proofFormatMode;
-  d_pfManager->printProof(out, fp, format_mode);
+  d_pfManager->printProof(
+      out, fp, format_mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)
@@ -2150,6 +2151,10 @@ void SolverEngine::setOption(const std::string& key,
 {
   if (fromUser && options().base.safeOptions)
   {
+    if (key == "trace")
+    {
+      throw OptionException("cannot use trace messages with safe-options");
+    }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
     if (oinfo.category == options::OptionInfo::Category::EXPERT)

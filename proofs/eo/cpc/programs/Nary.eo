@@ -30,6 +30,19 @@
     )
 )
 
+; define: $nary_is_eq_set
+; args:
+; - cons (-> L L L): The n-ary function symbol.
+; - nil L: The nil terminator of cons.
+; - c1 L: The first term, assumed to be a cons-list.
+; - c2 L: The second term, assumed to be a cons-list.
+; return: >
+;   true if c1 is a subset of c2 and c2 is a subset of c1.
+(define $nary_is_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
+  (eo::ite ($nary_is_subset cons nil c1 c2)
+    ($nary_is_subset cons nil c2 c1)
+    false))
+
 ; program: $nary_remove
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.

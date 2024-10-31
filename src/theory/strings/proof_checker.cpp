@@ -58,7 +58,6 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::RE_UNFOLD_POS, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
-  pc->registerChecker(ProofRule::MACRO_RE_ELIM, this);
   pc->registerChecker(ProofRule::STRING_CODE_INJ, this);
   pc->registerChecker(ProofRule::STRING_SEQ_UNIT_INJ, this);
   // trusted rule
@@ -477,23 +476,6 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
           nodeManager(), skChild, reLen, isRev);
     }
     return conc;
-  }
-  else if (id == ProofRule::MACRO_RE_ELIM)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    bool isAgg;
-    if (!getBool(args[1], isAgg))
-    {
-      return Node::null();
-    }
-    Node ea = RegExpElimination::eliminate(args[0], isAgg);
-    // if we didn't eliminate, then this trivially proves the reflexive equality
-    if (ea.isNull())
-    {
-      ea = args[0];
-    }
-    return args[0].eqNode(ea);
   }
   else if (id == ProofRule::STRING_CODE_INJ)
   {
