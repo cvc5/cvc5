@@ -252,7 +252,8 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     Assert(f.isVar());
     // do not print selectors, constructors, testers, updaters
     TypeNode ft = f.getType();
-    if (ft.isDatatypeSelector() || ft.isDatatypeConstructor () || ft.isDatatypeTester() || ft.isDatatypeUpdater())
+    if (ft.isDatatypeSelector() || ft.isDatatypeConstructor()
+        || ft.isDatatypeTester() || ft.isDatatypeUpdater())
     {
       continue;
     }
