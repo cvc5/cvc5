@@ -41,10 +41,6 @@ PreprocessingPassResult Rewrite::applyInternal(
   {
     const Node& a = (*assertionsToPreprocess)[i];
     Node ar = rewrite(a);
-    if (a == ar)
-    {
-      continue;
-    }
     assertionsToPreprocess->replace(i, ar, d_proof.get());
     if (assertionsToPreprocess->isInConflict())
     {

@@ -44,10 +44,6 @@ PreprocessingPassResult ExtRewPre::applyInternal(
   {
     const Node& a = (*assertionsToPreprocess)[i];
     Node ar = d_env.rewriteViaMethod(a, d_id);
-    if (a == ar)
-    {
-      continue;
-    }
     assertionsToPreprocess->replace(i, ar, d_proof.get());
     if (assertionsToPreprocess->isInConflict())
     {
