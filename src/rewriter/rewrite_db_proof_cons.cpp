@@ -86,13 +86,14 @@ bool RewriteDbProofCons::prove(
       if (!eqp.isNull())
       {
         eq = eqp;
-        Trace("rpc") << "- closure-preprocess to " << eq[0] << " == " << eq[1] << std::endl;
+        Trace("rpc") << "- closure-preprocess to " << eq[0] << " == " << eq[1]
+                     << std::endl;
       }
       else
       {
         Trace("rpc") << "...does not closure-preprocess" << std::endl;
       }
-    }while (!eqp.isNull() && eqp[0].isClosure());
+    } while (!eqp.isNull() && eqp[0].isClosure());
   }
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
@@ -154,7 +155,9 @@ bool RewriteDbProofCons::prove(
   return success;
 }
 
-Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const Node& b)
+Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
+                                             const Node& a,
+                                             const Node& b)
 {
   // Ensure patterns are removed by calling d_rdnc postConvert (single step),
   // which also ensures differences e.g. LAMBDA vs FUNCTION_ARRAY_CONST are
@@ -167,7 +170,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     return Node::null();
   }
   // only apply this to standard binders (those with 2 children)
-  if (ai.getNumChildren() != 2 || bi.getNumChildren()!=2)
+  if (ai.getNumChildren() != 2 || bi.getNumChildren() != 2)
   {
     return Node::null();
   }
@@ -181,22 +184,22 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     eq = ai[1].eqNode(bi[1]);
     cdp->addStep(eqConv, cr, {eq}, cargs);
   }
-  else if (ai[0].getNumChildren()==bi[0].getNumChildren())
+  else if (ai[0].getNumChildren() == bi[0].getNumChildren())
   {
     size_t nchild = ai[0].getNumChildren();
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::unordered_set<Node> uvars;
-    for (size_t i=0; i<nchild; i++)
+    for (size_t i = 0; i < nchild; i++)
     {
       // rare corner case: don't use if duplicate variables
       if (!uvars.insert(ai[0][i]).second)
       {
         return Node::null();
       }
-      if (ai[0][i]!=bi[0][i])
+      if (ai[0][i] != bi[0][i])
       {
-        if (ai[0][i].getType()!=bi[0][i].getType())
+        if (ai[0][i].getType() != bi[0][i].getType())
         {
           return Node::null();
         }
@@ -208,7 +211,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     {
       return Node::null();
     }
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     std::vector<Node> aeArgs;
     aeArgs.push_back(ai);
     aeArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
@@ -217,7 +220,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     Node res = pc->checkDebug(ProofRule::ALPHA_EQUIV, {}, aeArgs);
     if (!res.isNull())
     {
-      Assert (res.getKind()==Kind::EQUAL);
+      Assert(res.getKind() == Kind::EQUAL);
       cdp->addStep(res, ProofRule::ALPHA_EQUIV, {}, aeArgs);
       // Remains to prove that the result of applying alpha equivalence to the
       // left hand side is equal to the right hand side. This may be a
@@ -226,7 +229,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
       // easily succeed in proving eq by REFL, but this will not be used
       // in the final proof.
       eq = res[1].eqNode(bi);
-      if (res!=eqConv)
+      if (res != eqConv)
       {
         cdp->addStep(eqConv, ProofRule::TRANS, {res, eq}, {});
       }
@@ -241,14 +244,14 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     return Node::null();
   }
   std::vector<Node> transEq;
-  if (ai!=a)
+  if (ai != a)
   {
     Node aeq = a.eqNode(ai);
     cdp->addStep(aeq, ProofRule::ENCODE_EQ_INTRO, {}, {a});
     transEq.push_back(aeq);
   }
   transEq.push_back(eqConv);
-  if (bi!=b)
+  if (bi != b)
   {
     Node beq = b.eqNode(bi);
     cdp->addStep(beq, ProofRule::ENCODE_EQ_INTRO, {}, {b});
@@ -256,7 +259,7 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
     transEq.push_back(beqs);
   }
-  if (transEq.size()>1)
+  if (transEq.size() > 1)
   {
     Node eqo = a.eqNode(b);
     cdp->addStep(eqo, ProofRule::TRANS, transEq, {});
