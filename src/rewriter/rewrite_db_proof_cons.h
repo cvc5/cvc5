@@ -82,6 +82,23 @@ class RewriteDbProofCons : protected EnvObj
 
  private:
   /**
+   * Preprocess closure equality. This is called at the beginning of prove to
+   * simplify equalities between closures. In particular we apply two possible
+   * simplifications:
+   * 
+   * For (forall x P) = (forall x Q), we return (= P Q), where a CONG step
+   * is added to transform this step.
+   * 
+   * For (forall x. P) = (forall y. Q), we return
+   * (= (forall y. P[y/x]) (forall y. Q)), where an ALPHA_EQUIV step is added
+   * to transform this step.
+   * 
+   * In either case, we add a proof of (= a b) whose free assumptions are
+   * either empty (if the returned equality is reflexive), or the returned
+   * equality.
+   */
+  Node preprocessClosureEq(CDProof* cdp, const Node& a, const Node& b);
+  /**
    * Notify class for the match trie, which is responsible for calling this
    * class to notify matches for heads of rewrite rules. It is used as a
    * callback to the match procedure in the trie maintained by this class.
