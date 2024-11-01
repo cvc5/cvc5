@@ -284,9 +284,6 @@ void TheoryUF::preRegisterTerm(TNode node)
     d_thss->preRegisterTerm(node);
   }
 
-  // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
-  Assert(node.getKind() != Kind::HO_APPLY || logicInfo().isHigherOrder());
-
   Kind k = node.getKind();
   switch (k)
   {
@@ -344,6 +341,12 @@ void TheoryUF::preRegisterTerm(TNode node)
     }
     break;
     default:
+      if (node.getType().isFunction())
+      {
+        std::stringstream ss;
+        ss << "Function terms are only supported with higher-order logic. Try adding the logic prefix HO_.";
+        throw LogicException(ss.str());
+      }
       // Variables etc
       d_equalityEngine->addTerm(node);
       break;
