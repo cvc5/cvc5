@@ -186,8 +186,14 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     size_t nchild = ai[0].getNumChildren();
     std::vector<Node> vars;
     std::vector<Node> subs;
+    std::unordered_set<Node> uvars;
     for (size_t i=0; i<nchild; i++)
     {
+      // rare corner case: don't use if duplicate variables
+      if (!uvars.insert(ai[0][i]).second)
+      {
+        return Node::null();
+      }
       if (ai[0][i]!=bi[0][i])
       {
         if (ai[0][i].getType()!=bi[0][i].getType())
@@ -197,6 +203,10 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
         vars.emplace_back(ai[0][i]);
         subs.emplace_back(bi[0][i]);
       }
+    }
+    if (vars.empty())
+    {
+      return Node::null();
     }
     NodeManager * nm = nodeManager();
     std::vector<Node> aeArgs;
