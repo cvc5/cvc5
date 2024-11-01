@@ -73,7 +73,7 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   /**
    * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
    */
-  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
+  HistogramStat<theory::TheoryId> d_trustTheoryRewriteCount;
   /**
    * Counts number of theory ids in TRUST / THEORY_LEMMA steps.
    */

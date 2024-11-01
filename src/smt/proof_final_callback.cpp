@@ -46,7 +46,7 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::theoryRewriteRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(
+      d_trustTheoryRewriteCount(
           statisticsRegistry().registerHistogram<theory::TheoryId>(
               "finalProof::trustTheoryRewriteCount")),
       d_trustTheoryLemmaCount(
@@ -161,7 +161,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                            << " ---> " << eq[1] << std::endl;
-    d_trustTheoryIdCount << tid;
+    d_trustTheoryRewriteCount << tid;
   }
   else if (r == ProofRule::MACRO_REWRITE)
   {
