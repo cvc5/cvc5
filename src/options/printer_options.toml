@@ -14,7 +14,7 @@ name   = "Printing"
 
 [[option]]
   name       = "nodeDepth"
-  category   = "expert"
+  category   = "common"
   long       = "expr-depth=N"
   type       = "int64_t"
   default    = "-1"
