@@ -44,8 +44,7 @@ std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
     Assert(false) << "Could not prove " << fact << " via RewriteProofGenerator";
     return nullptr;
   }
-  std::vector<Node> pargs;
-  pargs.emplace_back(t);
+  std::vector<Node> pargs{t};
   pargs.insert(pargs.end(), d_pargs.begin(), d_pargs.end());
   std::shared_ptr<ProofNode> pf =
       pnm->mkNode(ProofRule::MACRO_SR_EQ_INTRO, {}, pargs, fact);
