@@ -388,7 +388,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   opts.write_smt().produceProofs = true;
   Env env(d_nodeManager, &opts);
   smt::PfManager pfm(env);
-  env.finishInit(pfm.getProofNodeManager());
+  env.finishInit(&pfm);
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
   NodeManager * nm = env.getNodeManager();
