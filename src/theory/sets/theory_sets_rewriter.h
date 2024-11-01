@@ -27,7 +27,9 @@ namespace sets {
 class TheorySetsRewriter : public TheoryRewriter
 {
  public:
-  TheorySetsRewriter(NodeManager* nm, bool cardEnabled=true, bool relsEnabled=true);
+  TheorySetsRewriter(NodeManager* nm,
+                     bool cardEnabled = true,
+                     bool relsEnabled = true);
 
   /**
    * Rewrite n based on the proof rewrite rule id.
