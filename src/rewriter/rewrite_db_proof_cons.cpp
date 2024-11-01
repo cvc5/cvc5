@@ -92,7 +92,7 @@ bool RewriteDbProofCons::prove(
       {
         Trace("rpc") << "...does not closure-preprocess" << std::endl;
       }
-    }while (!eqp.isNull());
+    }while (!eqp.isNull() && eqp[0].isClosure());
   }
   Trace("rpc-debug") << "- prove basic" << std::endl;
   // first, try with the basic utility
@@ -225,6 +225,10 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp, const Node& a, const 
     {
       return Node::null();
     }
+  }
+  else
+  {
+    return Node::null();
   }
   std::vector<Node> transEq;
   if (ai!=a)
