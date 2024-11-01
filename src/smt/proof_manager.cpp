@@ -150,6 +150,7 @@ PfManager::PfManager(Env& env)
 PfManager::~PfManager() {}
 
 // TODO: Remove in favor of `std::erase_if` with C++ 20+ (see cvc5-wishues#137).
+#if __cplusplus < 202002L
 template <class T, class Alloc, class Pred>
 constexpr typename std::vector<T, Alloc>::size_type erase_if(
     std::vector<T, Alloc>& c, Pred pred)
@@ -160,6 +161,7 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
   c.erase(it, c.end());
   return r;
 }
+#endif
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
