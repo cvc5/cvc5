@@ -39,7 +39,7 @@
 
 ; define: $get_arg_list
 ; args:
-; - x T: The term to inspect.
+; - t T: The term to inspect.
 ; return: >
 ;   The list of arguments provided to the function at the head of t, or the nil
 ;   list if t is not a function application.
