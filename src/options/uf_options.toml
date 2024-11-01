@@ -98,3 +98,11 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "true"
   help       = "enables the higher-order logic solver"
+
+[[option]]
+  name       = "cardExp"
+  category   = "expert"
+  long       = "uf-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "allows logics with UF+cardinality"

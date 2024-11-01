@@ -1,6 +1,5 @@
 ; COMMAND-LINE: -i --sat-solver=cadical
-; DISABLE-TESTER: cpc
-; DISABLE-TESTER: alethe
+; DISABLE-TESTER: proof
 (set-logic QF_LIA)
 (declare-fun s () Int)
 (push)

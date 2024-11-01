@@ -396,6 +396,7 @@ set(regress_0_tests
   regress0/bv/core/slice-18.smtv1.smt2
   regress0/bv/core/slice-19.smtv1.smt2
   regress0/bv/core/slice-20.smtv1.smt2
+  regress0/bv/dd_fuzz21.smt2
   regress0/bv/div_mod.cvc.smt2
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
@@ -1317,6 +1318,7 @@ set(regress_0_tests
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
   regress0/proofs/equal-eval-rw_340.smt2
+  regress0/proofs/eval-rhs.smt2
   regress0/proofs/fixed-point-rew.smt2
   regress0/proofs/fixed-point-rew-conc.smt2
   regress0/proofs/indexof-eval-rw_155.smt2
@@ -1368,6 +1370,7 @@ set(regress_0_tests
   regress0/proofs/scope.smt2
   regress0/proofs/subtype-elim-1.smt2
   regress0/proofs/subtype-elim-2.smt2
+  regress0/proofs/subtype-elim-rare-fail.smt2
   regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
@@ -2641,6 +2644,7 @@ set(regress_1_tests
   regress1/proj-issue719-zll-repeat.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
+  regress1/proofs/alpha-eq-var-shadow.smt2
   regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2

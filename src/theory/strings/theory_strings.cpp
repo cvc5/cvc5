@@ -1123,22 +1123,12 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   Kind ak = atom.getKind();
   if (ak == Kind::STRING_FROM_CODE)
   {
-    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    NodeManager* nm = nodeManager();
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
-    Node t = atom[0];
-    Node card = nm->mkConstInt(Rational(d_termReg.getAlphabetCardinality()));
-    Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, d_zero, t),
-                           nm->mkNode(Kind::LT, t, card));
-    Node emp = Word::mkEmptyWord(atom.getType());
-    Node pred = nm->mkNode(Kind::ITE,
-                           cond,
-                           t.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                           k.eqNode(emp));
-    TrustNode tnk = TrustNode::mkTrustLemma(pred);
-    lems.push_back(SkolemLemma(tnk, k));
+    // for the sake of proofs, we use the eager reduction utility
+    Node k = nodeManager()->getSkolemManager()->mkPurifySkolem(atom);
+    TrustNode lemma = d_termReg.eagerReduceTrusted(atom);
+    lems.push_back(SkolemLemma(lemma, k));
+    // We rewrite the term to its purify variable, which can be justified
+    // trivially.
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
   if (ak == Kind::REGEXP_RANGE)

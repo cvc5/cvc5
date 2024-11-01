@@ -45,7 +45,6 @@ class ArithPreprocess : protected EnvObj
  public:
   ArithPreprocess(Env& env,
                   InferenceManager& im,
-                  ProofNodeManager* pnm,
                   OperatorElim& oe);
   ~ArithPreprocess() {}
   /**

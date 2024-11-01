@@ -24,7 +24,6 @@ namespace arith {
 
 ArithPreprocess::ArithPreprocess(Env& env,
                                  InferenceManager& im,
-                                 ProofNodeManager* pnm,
                                  OperatorElim& oe)
     : EnvObj(env), d_im(im), d_opElim(oe), d_reduced(userContext())
 {

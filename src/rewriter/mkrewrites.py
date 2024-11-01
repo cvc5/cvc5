@@ -72,6 +72,8 @@ def gen_mk_const(expr):
         return f'String("{expr.val}")'
     elif isinstance(expr, CInt):
         return f'Rational({expr.val})'
+    elif isinstance(expr, CRational):
+        return f'internal::Rational("{expr.val}")'
     elif isinstance(expr, App):
         args = [gen_mk_const(child) for child in expr.children]
         if expr.op == Op.NEG:
@@ -83,9 +85,15 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or \
-           (isinstance(expr, App) and expr.op == Op.NEG):
-          return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
+        if isinstance(expr, CInt):
+          return f'nm->mkConstInt({gen_mk_const(expr)})'
+        elif isinstance(expr, CRational):
+          return f'nm->mkConstReal({gen_mk_const(expr)})'
+        elif isinstance(expr, App) and expr.op == Op.NEG:
+          if isinstance(expr.children[0], CInt):
+            return f'nm->mkConstInt({gen_mk_const(expr)})'
+          else:
+            return f'nm->mkConstReal({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
@@ -96,6 +104,8 @@ def gen_mk_node(defns, expr):
                        Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
           args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
+        elif expr.op in {Op.REAL_PI}:
+          return f'nm->mkNullaryOperator(nm->realType(), Kind::PI)'
         return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
@@ -137,13 +147,15 @@ def type_check(expr) -> bool:
     elif isinstance(expr, CInt):
         expr.sort = Sort(BaseSort.Int, is_const=True)
         hasConst = True
+    elif isinstance(expr, CRational):
+        expr.sort = Sort(BaseSort.Real, is_const=True)
+        hasConst = True
     elif isinstance(expr, App):
         sort = None
         if expr.op == Op.NEG:
             sort = Sort(BaseSort.Int)
         elif expr.op == Op.STRING_LENGTH:
             sort = Sort(BaseSort.Int)
-
         if sort:
             sort.is_const = all(child.sort and child.sort.is_const
                                 for child in expr.children)
@@ -353,14 +365,20 @@ def gen_rewrite_db(args):
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(db);")
 
+    # Note that we manually indent by two spaces, since we do not clang-format
+    # the include file automatically.
     def doc(rule: str):
         rule = rule.lower().replace('_', '-')
-        return f'/** Auto-generated from RARE rule {rule} */'
+        return f'  /** Auto-generated from RARE rule {rule} */'
 
+    # Note that we do not automatically clang-format the API include file,
+    # since this breaks the documentation for latex formulas which require
+    # being more than 80 lines currently.
+    # The indendentation on EVALUE lines is manually set to two spaces below.
     cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
     with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
-        f.write(format_cpp(cvc5_proof_rule_h.format(
-            rules='\n'.join([f'{doc(id)}\nEVALUE({id}),' for id in ids]))))
+        f.write(cvc5_proof_rule_h.format(
+            rules='\n'.join([f'{doc(id)}\n  EVALUE({id}),' for id in ids])))
 
     cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
     os.makedirs(bin_api_dir, exist_ok=True)

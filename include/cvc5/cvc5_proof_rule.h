@@ -1352,6 +1352,20 @@ enum ENUM(ProofRule)
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Variable reordering**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid (\forall X.\> F) = (\forall Y.\> F)}
+   *   {(\forall X.\> F) = (\forall Y.\> F)}
+   * 
+   * where :math:`Y` is a reordering of :math:`X`.
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_REORDERING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Singleton injectivity**
    *
    * .. math::
@@ -1785,25 +1799,6 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_STRING_INFERENCE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Macro elimination**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid F,b}{F = F'}
-   *
-   * where :math:`F'` is the result of eliminating regular expressions from
-   * :math:`F` using the routine
-   * :math:`\texttt{strings::RegExpElimination::eliminate}(F, b)`.
-   * Here, :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
-   *
-   * We do not currently support elaboration of this macro.
-   * \endverbatim
-   */
-  EVALUE(MACRO_RE_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
    *
    * An arithmetic literal is a term of the form :math:`p \diamond c` where
@@ -1878,13 +1873,23 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRICHOTOMY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Operator elimination**
+   * **Arithmetic -- Reduction**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
+   *   \inferrule{- \mid t}{F}
+   * 
+   * where :math:`t` is an application of an extended arithmetic operator (e.g.
+   * division, modulus, cosine, sqrt, is_int, to_int) and :math:`F` is the
+   * reduction predicate for :math:`t`. In other words, :math:`F` is a
+   * predicate that is used to reduce reasoning about :math:`t` to reasoning
+   * about the core operators of arithmetic.
+   *
+   * In detail, :math:`F` is implemented by
+   * :math:`\texttt{arith::OperatorElim::getAxiomFor(t)}`, see
+   * :cvc5src:`theory/arith/operator_elim.h`.
    * \endverbatim
    */
-  EVALUE(ARITH_OP_ELIM_AXIOM),
+  EVALUE(ARITH_REDUCTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
@@ -2454,6 +2459,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping free variables**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
+   * 
+   * where :math:`X = X_1 \ldots X_n`, and the right hand side does not have any
+   * free variable in :math:`X`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro connected free variable partitioning**
    *
    * .. math::
@@ -2468,6 +2486,32 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> F \{ x \mapsto t \}
+   *
+   * where :math:`\neg F` entails :math:`x = t`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination inequality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> G
+   *
+   * where :math:`G` is the result of replacing all literals containing
+   * :math:`x` with a constant. This is applied only when all such literals
+   * are lower (resp. upper) bounds for :math:`x`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
@@ -2728,6 +2772,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MUL_ZERO),
   /** Auto-generated from RARE rule arith-div-total */
   EVALUE(ARITH_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-div-total-zero */
+  EVALUE(ARITH_DIV_TOTAL_ZERO),
   /** Auto-generated from RARE rule arith-int-div-total */
   EVALUE(ARITH_INT_DIV_TOTAL),
   /** Auto-generated from RARE rule arith-int-div-total-one */
@@ -2740,12 +2786,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
-  /** Auto-generated from RARE rule arith-neg-neg-one */
-  EVALUE(ARITH_NEG_NEG_ONE),
-  /** Auto-generated from RARE rule arith-elim-uminus */
-  EVALUE(ARITH_ELIM_UMINUS),
-  /** Auto-generated from RARE rule arith-elim-minus */
-  EVALUE(ARITH_ELIM_MINUS),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -2782,10 +2822,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MULT_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-dist */
   EVALUE(ARITH_MULT_DIST),
-  /** Auto-generated from RARE rule arith-plus-cancel1 */
-  EVALUE(ARITH_PLUS_CANCEL1),
-  /** Auto-generated from RARE rule arith-plus-cancel2 */
-  EVALUE(ARITH_PLUS_CANCEL2),
   /** Auto-generated from RARE rule arith-abs-elim */
   EVALUE(ARITH_ABS_ELIM),
   /** Auto-generated from RARE rule arith-to-real-elim */
@@ -2796,6 +2832,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-sine-zero */
+  EVALUE(ARITH_SINE_ZERO),
+  /** Auto-generated from RARE rule arith-sine-pi2 */
+  EVALUE(ARITH_SINE_PI2),
+  /** Auto-generated from RARE rule arith-cosine-elim */
+  EVALUE(ARITH_COSINE_ELIM),
+  /** Auto-generated from RARE rule arith-tangent-elim */
+  EVALUE(ARITH_TANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-secent-elim */
+  EVALUE(ARITH_SECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cosecent-elim */
+  EVALUE(ARITH_COSECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cotangent-elim */
+  EVALUE(ARITH_COTANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-pi-not-int */
+  EVALUE(ARITH_PI_NOT_INT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3214,10 +3266,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_1),
   /** Auto-generated from RARE rule bv-zero-extend-eq-const-2 */
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_2),
-  /** Auto-generated from RARE rule bv-zero-extend-ult-const-1 */
-  EVALUE(BV_ZERO_EXTEND_ULT_CONST_1),
-  /** Auto-generated from RARE rule bv-zero-extend-ult-const-2 */
-  EVALUE(BV_ZERO_EXTEND_ULT_CONST_2),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-1 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_1),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-2 */
@@ -3362,10 +3410,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
   EVALUE(STR_REPLACE_SELF),
+  /** Auto-generated from RARE rule str-replace-prefix */
+  EVALUE(STR_REPLACE_PREFIX),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-empty */
   EVALUE(STR_REPLACE_EMPTY),
+  /** Auto-generated from RARE rule str-replace-all-no-contains */
+  EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
   /** Auto-generated from RARE rule str-len-concat-rec */
   EVALUE(STR_LEN_CONCAT_REC),
   /** Auto-generated from RARE rule str-indexof-self */
@@ -3380,6 +3432,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_LOWER_UPPER),
   /** Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-lower-from-int */
+  EVALUE(STR_TO_LOWER_FROM_INT),
+  /** Auto-generated from RARE rule str-to-upper-from-int */
+  EVALUE(STR_TO_UPPER_FROM_INT),
+  /** Auto-generated from RARE rule str-leq-empty */
+  EVALUE(STR_LEQ_EMPTY),
+  /** Auto-generated from RARE rule str-leq-empty-eq */
+  EVALUE(STR_LEQ_EMPTY_EQ),
+  /** Auto-generated from RARE rule str-leq-concat */
+  EVALUE(STR_LEQ_CONCAT),
+  /** Auto-generated from RARE rule str-lt-elim */
+  EVALUE(STR_LT_ELIM),
   /** Auto-generated from RARE rule re-all-elim */
   EVALUE(RE_ALL_ELIM),
   /** Auto-generated from RARE rule re-opt-elim */
@@ -3412,6 +3476,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_FLATTEN),
   /** Auto-generated from RARE rule re-inter-dup */
   EVALUE(RE_INTER_DUP),
+  /** Auto-generated from RARE rule re-star-none */
+  EVALUE(RE_STAR_NONE),
   /** Auto-generated from RARE rule re-loop-neg */
   EVALUE(RE_LOOP_NEG),
   /** Auto-generated from RARE rule re-inter-cstring */
@@ -3424,6 +3490,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
   /** Auto-generated from RARE rule str-substr-len-skip */
   EVALUE(STR_SUBSTR_LEN_SKIP),
+  /** Auto-generated from RARE rule seq-rev-rev */
+  EVALUE(SEQ_REV_REV),
   /** Auto-generated from RARE rule seq-rev-concat */
   EVALUE(SEQ_REV_CONCAT),
   /** Auto-generated from RARE rule seq-len-unit */
@@ -3500,8 +3568,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG_REV),
   /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-rev */
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev
-   */
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev */
   EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG_REV),
   /** Auto-generated from RARE rule str-in-re-strip-char-rev */
   EVALUE(STR_IN_RE_STRIP_CHAR_REV),

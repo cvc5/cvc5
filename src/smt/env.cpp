@@ -28,6 +28,7 @@
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/oracle_checker.h"
@@ -45,6 +46,7 @@ Env::Env(NodeManager* nm, const Options* opts)
     : d_nm(nm),
       d_context(new context::Context()),
       d_userContext(new context::UserContext()),
+      d_pfManager(nullptr),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter(nm)),
       d_evalRew(nullptr),
@@ -76,12 +78,13 @@ Env::~Env() {}
 
 NodeManager* Env::getNodeManager() { return d_nm; }
 
-void Env::finishInit(ProofNodeManager* pnm)
+void Env::finishInit(smt::PfManager* pm)
 {
-  if (pnm != nullptr)
+  if (pm != nullptr)
   {
+    d_pfManager = pm;
     Assert(d_proofNodeManager == nullptr);
-    d_proofNodeManager = pnm;
+    d_proofNodeManager = pm->getProofNodeManager();
     d_rewriter->finishInit(*this);
   }
   d_topLevelSubs.reset(
@@ -103,6 +106,8 @@ void Env::shutdown()
 context::Context* Env::getContext() { return d_context.get(); }
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
+
+smt::PfManager* Env::getProofManager() { return d_pfManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 

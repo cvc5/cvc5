@@ -184,7 +184,8 @@ bool Instantiate::addInstantiationInternal(
     // this assertion is critical to soundness
     if (bad_inst)
     {
-      Trace("inst") << "***& Bad Instantiate " << q << " with " << std::endl;
+      Trace("inst") << "***& Bad Instantiate [" << id << "] " << q << " with "
+                    << std::endl;
       for (unsigned j = 0; j < terms.size(); j++)
       {
         Trace("inst") << "   " << terms[j] << std::endl;
@@ -194,7 +195,6 @@ bool Instantiate::addInstantiationInternal(
   }
 #endif
 
-  EntailmentCheck* ec = d_treg.getEntailmentCheck();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -210,6 +210,7 @@ bool Instantiate::addInstantiationInternal(
   // check for positive entailment
   if (options().quantifiers.instNoEntail)
   {
+    EntailmentCheck* ec = d_treg.getEntailmentCheck();
     // should check consistency of equality engine
     // (if not aborting on utility's reset)
     std::map<TNode, TNode> subs;
@@ -355,7 +356,8 @@ bool Instantiate::addInstantiationInternal(
   d_instDebugTemp[q]++;
   if (TraceIsOn("inst"))
   {
-    Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
+    Trace("inst") << "*** Instantiate [" << id << "] " << q << " with "
+                  << std::endl;
     for (size_t i = 0, size = terms.size(); i < size; i++)
     {
       if (TraceIsOn("inst"))
@@ -372,29 +374,23 @@ bool Instantiate::addInstantiationInternal(
   }
   if (options().quantifiers.instMaxLevel != -1)
   {
-    if (doVts)
+    Assert(lem.getKind() == Kind::IMPLIES);
+    uint64_t maxInstLevel = 0;
+    uint64_t clevel;
+    for (const Node& tc : terms)
     {
-      // virtual term substitution/instantiation level features are
-      // incompatible
-      std::stringstream ss;
-      ss << "Cannot combine instantiation strategies that require virtual term "
-            "substitution with those that restrict instantiation levels";
-      throw LogicException(ss.str());
-    }
-    else
-    {
-      uint64_t maxInstLevel = 0;
-      for (const Node& tc : terms)
+      if (!QuantAttributes::getInstantiationLevel(tc, clevel))
       {
-        if (tc.hasAttribute(InstLevelAttribute())
-            && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
-        {
-          maxInstLevel = tc.getAttribute(InstLevelAttribute());
-        }
+        // ensure it is set to zero.
+        QuantAttributes::setInstantiationLevelAttr(tc, 0);
+        continue;
       }
-      QuantAttributes::setInstantiationLevelAttr(
-          orig_body, q[1], maxInstLevel + 1);
+      if (clevel > maxInstLevel)
+      {
+        maxInstLevel = clevel;
+      }
     }
+    QuantAttributes::setInstantiationLevelAttr(lem[1], maxInstLevel + 1);
   }
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
