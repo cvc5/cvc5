@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp -q
+; COMMAND-LINE: -q
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((a 0)) (((b))))
