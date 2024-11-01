@@ -24,7 +24,7 @@
 
 ; program: $get_arg_list_rec
 ; args:
-; - t T: The term to inspect.
+; - t S: The term to inspect.
 ; - acc @List: The accumulator storing the arguments we have seen so far.
 ; return: >
 ;   The list of arguments provided to the function at the head of t appended to

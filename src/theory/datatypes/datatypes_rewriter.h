@@ -85,10 +85,11 @@ class DatatypesRewriter : public TheoryRewriter
    */
   static Node expandApplySelector(Node n, bool sharedSel);
   /**
-   * Expand updater term. Given n = (APPLY_UPDATER{C} t s), this method returns
+   * Expand updater term. Given n = (APPLY_UPDATER{SELECTOR_k} t s), this method returns
    *   (ITE (APPLY_TESTER{C} t)
-   *      (C (APPLY_SELECTOR{1} t)... s ... (APPLY_SELECTOR{n} t))
+   *      (C (APPLY_SELECTOR SELECTOR_1 t)...s...(APPLY_SELECTOR SELECTOR_m t))
    *       t).
+   * where 1 <= k <= m.
    */
   Node expandUpdater(const Node& n);
   /**
