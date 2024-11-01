@@ -228,22 +228,16 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     ss << "Cannot process term of abstract type " << node;
     throw LogicException(ss.str());
   }
-  if (k == Kind::HO_APPLY || node.getType().isFunction())
+  if (k == Kind::HO_APPLY)
   {
     if (!isHol)
     {
-      std::stringstream ss;
-      if (k == Kind::HO_APPLY)
+      if (!node.getType().isFunction())
       {
-        ss << "Partial function applications";
+        // If not HO logic, we convert to APPLY_UF
+        Node ret = TheoryUfRewriter::getApplyUfForHoApply(node);
+        return TrustNode::mkTrustRewrite(node, ret);
       }
-      else
-      {
-        ss << "Function terms";
-      }
-      ss << " are only supported with "
-            "higher-order logic. Try adding the logic prefix HO_.";
-      throw LogicException(ss.str());
     }
   }
   else if (k == Kind::APPLY_UF)
@@ -301,20 +295,18 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_state.addEqualityEngineTriggerPredicate(node);
       break;
     case Kind::APPLY_UF:
+      preRegisterFunctionTerm(node);
+      break;
     case Kind::HO_APPLY:
     {
-      // Maybe it's a predicate
-      if (node.getType().isBoolean())
+      if (!logicInfo().isHigherOrder())
       {
-        d_state.addEqualityEngineTriggerPredicate(node);
+        std::stringstream ss;
+        ss << "Partial function applications are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
+        throw LogicException(ss.str());
       }
-      else
-      {
-        // Function applications/predicates
-        d_equalityEngine->addTerm(node);
-      }
-      // Remember the function and predicate terms
-      d_functionsTerms.push_back(node);
+      preRegisterFunctionTerm(node);
     }
     break;
     case Kind::INT_TO_BITVECTOR:
@@ -368,6 +360,22 @@ void TheoryUF::preRegisterTerm(TNode node)
       addSharedTerm(node);
     }
   }
+}
+
+void TheoryUF::preRegisterFunctionTerm(TNode node)
+{
+  // Maybe it's a predicate
+  if (node.getType().isBoolean())
+  {
+    d_state.addEqualityEngineTriggerPredicate(node);
+  }
+  else
+  {
+    // Function applications/predicates
+    d_equalityEngine->addTerm(node);
+  }
+  // Remember the function and predicate terms
+  d_functionsTerms.push_back(node);
 }
 
 void TheoryUF::explain(TNode literal, Node& exp)

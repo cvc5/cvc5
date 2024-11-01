@@ -26,6 +26,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_id.h"
+#include "proof/alf/alf_printer.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -37,6 +38,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
       d_ruleCount(statisticsRegistry().registerHistogram<ProofRule>(
           "finalProof::ruleCount")),
+      d_ruleEouCount(statisticsRegistry().registerHistogram<ProofRule>(
+          "finalProof::ruleUnhandledEoCount")),
       d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "finalProof::instRuleId")),
       d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
@@ -48,7 +51,10 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           "finalProof::trustCount")),
       d_trustTheoryIdCount(
           statisticsRegistry().registerHistogram<theory::TheoryId>(
-              "finalProof::trustTheoryIdCount")),
+              "finalProof::trustTheoryRewriteCount")),
+      d_trustTheoryLemmaCount(
+          statisticsRegistry().registerHistogram<theory::TheoryId>(
+              "finalProof::trustTheoryLemmaCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -137,6 +143,16 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     {
       d_trustIds << id;
       Trace("final-pf-hole") << " " << id;
+      if (id == TrustId::THEORY_LEMMA)
+      {
+        const std::vector<Node>& args = pn->getArguments();
+        TheoryId tid = THEORY_BUILTIN;
+        if (args.size() >= 3)
+        {
+          builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+        }
+        d_trustTheoryLemmaCount << tid;
+      }
     }
     Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
   }
@@ -178,11 +194,44 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         premises.push_back(pncc->getResult());
       }
       NodeManager* nm = nodeManager();
-      Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
+      Node query = conc;
+      if (!premises.empty())
+      {
+        query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), query);
+      }
+      // print the trusted step information
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
         output(OutputTag::TRUSTED_PROOF_STEPS)
-            << "(trusted-proof-step " << query << ")" << std::endl;
+            << "(trusted-proof-step " << query;
+        output(OutputTag::TRUSTED_PROOF_STEPS) << " :rule " << r;
+        TheoryId tid = THEORY_LAST;
+        if (r == ProofRule::TRUST)
+        {
+          TrustId id;
+          if (getTrustId(pn->getArguments()[0], id))
+          {
+            output(OutputTag::TRUSTED_PROOF_STEPS) << " :trust-id " << id;
+            if (id == TrustId::THEORY_LEMMA)
+            {
+              const std::vector<Node>& args = pn->getArguments();
+              if (args.size() >= 3)
+              {
+                builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+              }
+            }
+          }
+        }
+        else if (r == ProofRule::TRUST_THEORY_REWRITE)
+        {
+          const std::vector<Node>& args = pn->getArguments();
+          builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+        }
+        if (tid != THEORY_LAST)
+        {
+          output(OutputTag::TRUSTED_PROOF_STEPS) << " :theory " << tid;
+        }
+        output(OutputTag::TRUSTED_PROOF_STEPS) << ")" << std::endl;
       }
       if (options().proof.checkProofSteps)
       {
