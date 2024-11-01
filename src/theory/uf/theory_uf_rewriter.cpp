@@ -135,7 +135,6 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       expr::getFreeVariables(arg, fvs);
       if (!fvs.empty())
       {
-        Node prev = new_body;
         ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
       }
