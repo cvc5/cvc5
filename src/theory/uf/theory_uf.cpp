@@ -291,16 +291,14 @@ void TheoryUF::preRegisterTerm(TNode node)
       // Add the trigger for equality
       d_state.addEqualityEngineTriggerPredicate(node);
       break;
-    case Kind::APPLY_UF:
-      preRegisterFunctionTerm(node);
-      break;
+    case Kind::APPLY_UF: preRegisterFunctionTerm(node); break;
     case Kind::HO_APPLY:
     {
       if (!logicInfo().isHigherOrder())
       {
         std::stringstream ss;
         ss << "Partial function applications are only supported with "
-            "higher-order logic. Try adding the logic prefix HO_.";
+              "higher-order logic. Try adding the logic prefix HO_.";
         throw LogicException(ss.str());
       }
       preRegisterFunctionTerm(node);
@@ -344,7 +342,8 @@ void TheoryUF::preRegisterTerm(TNode node)
       if (node.getType().isFunction())
       {
         std::stringstream ss;
-        ss << "Function terms are only supported with higher-order logic. Try adding the logic prefix HO_.";
+        ss << "Function terms are only supported with higher-order logic. Try "
+              "adding the logic prefix HO_.";
         throw LogicException(ss.str());
       }
       // Variables etc

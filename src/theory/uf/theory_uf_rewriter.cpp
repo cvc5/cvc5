@@ -188,11 +188,11 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       Kind k = n.getKind();
       Node lambda;
-      if (k==Kind::APPLY_UF)
+      if (k == Kind::APPLY_UF)
       {
         lambda = uf::FunctionConst::toLambda(n.getOperator());
       }
-      else if (k==Kind::HO_APPLY)
+      else if (k == Kind::HO_APPLY)
       {
         lambda = uf::FunctionConst::toLambda(n[0]);
       }
@@ -203,7 +203,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> vars;
       std::vector<Node> subs;
       Node body = lambda[1];
-      if (k==Kind::APPLY_UF)
+      if (k == Kind::APPLY_UF)
       {
         vars.insert(vars.end(), lambda[0].begin(), lambda[0].end());
         subs.insert(subs.end(), n.begin(), n.end());
@@ -214,12 +214,12 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       else
       {
-        Assert (k==Kind::HO_APPLY);
+        Assert(k == Kind::HO_APPLY);
         vars.push_back(lambda[0][0]);
         subs.push_back(n[1]);
-        if (lambda[0].getNumChildren()>1)
+        if (lambda[0].getNumChildren() > 1)
         {
-          std::vector<Node> newVars(lambda[0].begin()+1, lambda[0].end());
+          std::vector<Node> newVars(lambda[0].begin() + 1, lambda[0].end());
           Node bvl = d_nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
           body = d_nm->mkNode(Kind::LAMBDA, bvl, body);
         }
@@ -228,8 +228,8 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // This rule will only be used to express valid instances of beta
       // reduction. If a beta reduction had to eliminate shadowing, then it
       // will not be inferred by this rule as is.
-      Node ret = body.substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node ret =
+          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       return ret;
     }
     break;
