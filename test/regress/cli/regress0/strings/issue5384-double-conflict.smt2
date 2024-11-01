@@ -1,5 +1,5 @@
 (set-logic QF_S)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 (declare-fun _substvar_130_ () Bool)
 (declare-fun _substvar_156_ () Bool)
