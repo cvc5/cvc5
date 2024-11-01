@@ -339,29 +339,29 @@ void TheoryUF::preRegisterTerm(TNode node)
     }
     break;
     default:
-      if (node.getType().isFunction())
+      // Variables etc
+      d_equalityEngine->addTerm(node);
+      if (logicInfo().isHigherOrder())
+      {
+        // When using lazy lambda handling, if node is a lambda function, it must
+        // be marked as a shared term. This is to ensure we split on the equality
+        // of lambda functions with other functions when doing care graph
+        // based theory combination.
+        if (d_lambdaLift->isLambdaFunction(node))
+        {
+          addSharedTerm(node);
+        }
+      }
+      else if (node.getType().isFunction())
       {
         std::stringstream ss;
         ss << "Function terms are only supported with higher-order logic. Try "
               "adding the logic prefix HO_.";
         throw LogicException(ss.str());
       }
-      // Variables etc
-      d_equalityEngine->addTerm(node);
       break;
   }
 
-  if (logicInfo().isHigherOrder())
-  {
-    // When using lazy lambda handling, if node is a lambda function, it must
-    // be marked as a shared term. This is to ensure we split on the equality
-    // of lambda functions with other functions when doing care graph
-    // based theory combination.
-    if (d_lambdaLift->isLambdaFunction(node))
-    {
-      addSharedTerm(node);
-    }
-  }
 }
 
 void TheoryUF::preRegisterFunctionTerm(TNode node)
