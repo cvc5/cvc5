@@ -220,6 +220,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
+    case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
       return "arith-div-by-const-elim";
@@ -229,6 +231,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "arith-string-pred-safe-approx";
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       return "macro-arith-string-pred-entail";
+    case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
@@ -249,6 +252,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
     case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
@@ -268,6 +272,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-substr-strip-sym-length";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
+    case ProofRewriteRule::SETS_INSERT_ELIM:
+      return "sets-insert-elim";
       //================================================= RARE rules
       // clang-format off
       ${printer}$
