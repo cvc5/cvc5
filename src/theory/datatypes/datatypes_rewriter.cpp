@@ -53,6 +53,8 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_UPDATER_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_MATCH_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -148,6 +150,14 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (n.getKind() == Kind::APPLY_UPDATER)
       {
         return expandUpdater(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_MATCH_ELIM:
+    {
+      if (n.getKind() == Kind::MATCH)
+      {
+        return expandMatch(n);
       }
     }
     break;
@@ -337,6 +347,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 }
 Node DatatypesRewriter::expandMatch(Node in)
 {
+  Assert(in.getKind() == Kind::MATCH);
   NodeManager* nm = NodeManager::currentNM();
   // ensure we've type checked
   TypeNode tin = in.getType();

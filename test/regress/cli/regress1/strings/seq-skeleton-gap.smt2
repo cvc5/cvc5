@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --seq-array=lazy
+; COMMAND-LINE: --seq-array=lazy
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun a () (Seq Int))

@@ -107,8 +107,8 @@
 ; Power function.
 ; disclaimer: This function is not a function in SMT-LIB. 
 (declare-const ^ (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     T U ($arith_typeunion T U)))
+                     (! T :requires (($is_arith_type T) true))
+                     T T))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
 ; these two operators in EunoiaC based on their arity when applied, and with
