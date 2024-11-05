@@ -70,7 +70,11 @@ class QuantDSplit : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "QuantDSplit"; }
-  /** */
+  /**
+   * Split the index^th variable of quantified formula q based on its possible
+   * constructors. This variable should have datatype type. This method is
+   * used for ProofRewriteRule::QUANT_DT_SPLIT.
+   */
   static Node split(NodeManager* nm, const Node& q, size_t index);
 
  private:
