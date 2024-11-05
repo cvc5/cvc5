@@ -132,8 +132,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // expert extensions to theories
     SET_AND_NOTIFY_IF_NOT_USER(uf, ufHoExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(uf, ufCardExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, datatypesExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(datatypes, datatypesExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, relsExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, setsCardExp, false, "safe options");
