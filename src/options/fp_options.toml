@@ -7,7 +7,7 @@ name   = "Floating-Point"
   long       = "fp"
   type       = "bool"
   default    = "true"
-  help       = "enables the floating point theory"
+  help       = "enables the floating point theory in applicable logics"
 
 [[option]]
   name       = "fpExp"

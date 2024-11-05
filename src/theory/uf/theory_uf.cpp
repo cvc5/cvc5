@@ -93,11 +93,11 @@ void TheoryUF::finishInit() {
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
   if (logicInfo().hasCardinalityConstraints())
   {
-    if (!options().uf.ufCard)
+    if (!options().uf.ufCardExp)
     {
       std::stringstream ss;
       ss << "Logic with cardinality constraints not available in this "
-            "configuration, try --uf-card.";
+            "configuration, try --uf-card-exp.";
       throw LogicException(ss.str());
     }
   }
@@ -114,11 +114,11 @@ void TheoryUF::finishInit() {
   d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
-    if (!options().uf.ufHo)
+    if (!options().uf.ufHoExp)
     {
       std::stringstream ss;
       ss << "Higher-order logic not available in this configuration, try "
-            "--uf-ho.";
+            "--uf-ho-exp.";
       throw LogicException(ss.str());
     }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
