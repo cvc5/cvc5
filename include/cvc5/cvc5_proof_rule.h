@@ -3664,8 +3664,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(UF_INT2BV_BV2NAT),
   /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
   EVALUE(UF_BV2NAT_GEQ_ELIM),
-  /** Auto-generated from RARE rule uf-int2bv-bvult-elim */
-  EVALUE(UF_INT2BV_BVULT_ELIM),
+  /** Auto-generated from RARE rule uf-int2bv-bvult-equiv */
+  EVALUE(UF_INT2BV_BVULT_EQUIV),
+  /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
+  EVALUE(UF_INT2BV_BVULE_EQUIV),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry

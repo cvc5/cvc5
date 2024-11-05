@@ -31,6 +31,10 @@
   (>= (bv2nat x) n)
   (ite (>= n w) false (ite (< n 0) true (bvuge x (int2bv w n)))))
 
-(define-rule uf-int2bv-bvult-elim ((w Int) (t Int) (s Int))
-  (bvult (int2bv w t) (int2bv w s))
-  (< (mod_total t (int.pow2 w)) (mod_total s (int.pow2 w))))
+(define-rule uf-int2bv-bvult-equiv ((t ?BitVec) (s ?BitVec))
+  (bvult t s)
+  (< (bv2nat t) (bv2nat s)))
+
+(define-rule uf-int2bv-bvule-equiv ((t ?BitVec) (s ?BitVec))
+  (bvule t s)
+  (<= (bv2nat t) (bv2nat s)))
