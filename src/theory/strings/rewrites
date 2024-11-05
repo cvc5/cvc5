@@ -233,7 +233,7 @@
   (str.++ s t))
 
 (define-cond-rule str-replace-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (r ?Seq))
-  (not (str.contains t1 s))
+  (str.contains t1 s)
   (str.replace (str.++ t1 t2) s r)
   (str.++ (str.replace t1 s r) t2))
 
