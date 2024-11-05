@@ -805,14 +805,16 @@ EvalResult Evaluator::evalInternal(
               {
                 if (curr > index)
                 {
-                  chars.insert(chars.end(),svec.begin()+ index, svec.begin() + curr);
+                  chars.insert(
+                      chars.end(), svec.begin() + index, svec.begin() + curr);
                 }
                 chars.insert(chars.end(), yvec.begin(), yvec.end());
                 index = curr + sizeX;
               }
               else
               {
-                chars.insert(chars.end(), svec.begin()+ index, svec.begin() + sizeS);
+                chars.insert(
+                    chars.end(), svec.begin() + index, svec.begin() + sizeS);
               }
             } while (curr != std::string::npos && curr < sizeS);
             // constant evaluation
