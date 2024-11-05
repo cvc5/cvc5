@@ -24,6 +24,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
+#include "options/strings_options.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/alf/alf_dependent_type_converter.h"
@@ -31,6 +32,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 
@@ -203,6 +205,16 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       return res[0][0].getType().isRealOrInt();
     }
     break;
+    case ProofRule::ARITH_REDUCTION:
+    {
+      Kind k = pargs[0].getKind();
+      return k == Kind::TO_INTEGER || k == Kind::IS_INTEGER
+             || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+             || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
+             || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
+             || k == Kind::ABS;
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -216,8 +228,13 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_CONTAINS || k == Kind::STRING_TO_CODE
-             || k == Kind::STRING_INDEXOF || k == Kind::STRING_IN_REGEXP;
+      if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
+      {
+        // must use standard alphabet size
+        return options().strings.stringsAlphaCard == String::num_codes();
+      }
+      return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
     }
     break;
     //
@@ -243,8 +260,10 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
+    case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
@@ -628,6 +647,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
+
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {

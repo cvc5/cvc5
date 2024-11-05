@@ -337,14 +337,6 @@ name   = "Arithmetic Theory"
   help       = "threshold for substituting an equality in ppAssert"
 
 [[option]]
-  name       = "arithNoPartialFun"
-  category   = "expert"
-  long       = "arith-no-partial-fun"
-  type       = "bool"
-  default    = "false"
-  help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
-
-[[option]]
   name       = "pbRewrites"
   category   = "expert"
   long       = "pb-rewrites"

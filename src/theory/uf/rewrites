@@ -3,6 +3,11 @@
 (define-rule eq-refl ((t ?)) (= t t) true)
 (define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
 
+(define-cond-rule eq-cond-deq ((t ?) (s ?) (r ?))
+  (= (= s r) false)
+  (= (= t s) (= t r))
+  (and (not (= t s)) (not (= t r))))
+
 (define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
 ; bv to arith conversions
@@ -17,7 +22,7 @@
 ;  (mod t (^ 2 w)))
 
 
-(define-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int))
-  (def (w (@bvsize x)))
+(define-cond-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int) (w Int))
+  (= w (@bvsize x))
   (>= (bv2nat x) n)
   (ite (>= n w) false (ite (< n 0) true (bvuge x (int2bv w n)))))

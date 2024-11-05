@@ -73,7 +73,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   /**
    * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
    */
-  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
+  HistogramStat<theory::TheoryId> d_trustTheoryRewriteCount;
+  /**
+   * Counts number of theory ids in TRUST / THEORY_LEMMA steps.
+   */
+  HistogramStat<theory::TheoryId> d_trustTheoryLemmaCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
