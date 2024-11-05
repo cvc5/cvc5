@@ -48,17 +48,30 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
         "Cannot get interpolation when produce-interpolants options is off.";
     throw ModalException(msg);
   }
+  // apply top-level substitutions
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
                           << std::endl;
   // must expand definitions
-  Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
+  SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
+  std::vector<Node> axiomsn;
+  for (const Node& ax : axioms)
+  {
+    axiomsn.emplace_back(rewrite(tls.apply(ax)));
+  }
+  Node conjn = tls.apply(conj);
   conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
   d_subsolver = std::make_unique<quantifiers::SygusInterpol>(d_env);
   if (d_subsolver->solveInterpolation(
-          name, axioms, conjn, grammarType, interpol))
+          name, axiomsn, conjn, grammarType, interpol))
   {
+    if (!tls.empty())
+    {
+      NodeManager * nm = nodeManager();
+      Node sformula = tls.toFormula(nm);
+      interpol = nm->mkNode(Kind::AND, sformula, interpol);
+    }
     if (options().smt.checkInterpolants)
     {
       checkInterpol(interpol, axioms, conj);
@@ -73,7 +86,18 @@ bool InterpolationSolver::getInterpolantNext(Node& interpol)
   // should already have initialized a subsolver, since we are immediately
   // preceeded by a successful call to get-interpolant(-next).
   Assert(d_subsolver != nullptr);
-  return d_subsolver->solveInterpolationNext(interpol);
+  if (!d_subsolver->solveInterpolationNext(interpol))
+  {
+    return false;
+  }
+  SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
+  if (!tls.empty())
+  {
+    NodeManager * nm = nodeManager();
+    Node sformula = tls.toFormula(nm);
+    interpol = nm->mkNode(Kind::AND, sformula, interpol);
+  }
+  return true;
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,
