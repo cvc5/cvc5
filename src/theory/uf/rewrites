@@ -31,6 +31,6 @@
   (>= (bv2nat x) n)
   (ite (>= n w) false (ite (< n 0) true (bvuge x (int2bv w n)))))
 
-(define-rule uf-bvult-int2bv ((w Int) (t Int) (s Int))
+(define-rule uf-int2bv-bvult-elim ((w Int) (t Int) (s Int))
   (bvult (int2bv w t) (int2bv w s))
   (< (mod_total t (int.pow2 w)) (mod_total s (int.pow2 w))))
