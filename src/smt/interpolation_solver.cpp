@@ -117,14 +117,8 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
     if (!tlsShared.empty())
     {
       // must conjoin equalities from shared top-level substitutions
-      std::vector<Node> tlconj;
-      std::unordered_map<Node, Node> ssubs = tlsShared.getSubstitutions();
-      for (const std::pair<const Node, Node>& s : ssubs)
-      {
-        tlconj.emplace_back(s.first.eqNode(s.second));
-      }
       NodeManager* nm = nodeManager();
-      d_tlsConj = nm->mkAnd(tlconj);
+      d_tlsConj = tlsShared.toFormula(nm);
       interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
     }
     if (options().smt.checkInterpolants)
