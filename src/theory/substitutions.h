@@ -117,7 +117,7 @@ class SubstitutionMap
    * Return a formula that is equivalent to this substitution, e.g. for
    * [x -> t, y -> s], we return (and (= x t) (= y s)).
    */
-  Node toFormula(NodeManager * nm) const;
+  Node toFormula(NodeManager* nm) const;
   /**
    * Adds a substitution from x to t.
    */

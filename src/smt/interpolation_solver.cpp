@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::theory;
 
@@ -78,14 +78,14 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
       std::unordered_map<Node, Node> subs = tls.getSubstitutions();
       for (const std::pair<const Node, Node>& s : subs)
       {
-        if (conjSyms.find(s.first)!=conjSyms.end())
+        if (conjSyms.find(s.first) != conjSyms.end())
         {
           tlconj.emplace_back(s.first.eqNode(s.second));
         }
       }
       if (!tlconj.empty())
       {
-        NodeManager * nm = nodeManager();
+        NodeManager* nm = nodeManager();
         d_tlsConj = nm->mkAnd(tlconj);
         interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
       }
@@ -111,7 +111,7 @@ bool InterpolationSolver::getInterpolantNext(Node& interpol)
   // conjoin the top-level substitutions, as computed in getInterpolant
   if (!d_tlsConj.isNull())
   {
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
   }
   return true;

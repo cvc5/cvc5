@@ -93,7 +93,7 @@ class InterpolationSolver : protected EnvObj
 
   /** The subsolver */
   std::unique_ptr<theory::quantifiers::SygusInterpol> d_subsolver;
-  /** 
+  /**
    * The conjunction of equalities corresponding to top-level substitutions that
    * were applied to the goal, whose left hand sides are symbols that appeared
    * in the goal.
