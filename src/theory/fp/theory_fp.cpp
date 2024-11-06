@@ -58,12 +58,12 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
 }
 
 TheoryRewriter* TheoryFp::getTheoryRewriter()
-{ 
+{
   if (!options().fp.fp)
   {
     return nullptr;
   }
-  return &d_rewriter; 
+  return &d_rewriter;
 }
 
 ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
