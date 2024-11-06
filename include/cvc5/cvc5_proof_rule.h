@@ -3733,8 +3733,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(EQ_COND_DEQ),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv */
+  EVALUE(UF_BV2NAT_INT2BV),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extend */
+  EVALUE(UF_BV2NAT_INT2BV_EXTEND),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extract */
+  EVALUE(UF_BV2NAT_INT2BV_EXTRACT),
+  /** Auto-generated from RARE rule uf-int2bv-bv2nat */
+  EVALUE(UF_INT2BV_BV2NAT),
   /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
   EVALUE(UF_BV2NAT_GEQ_ELIM),
+  /** Auto-generated from RARE rule uf-int2bv-bvult-equiv */
+  EVALUE(UF_INT2BV_BVULT_EQUIV),
+  /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
+  EVALUE(UF_INT2BV_BVULE_EQUIV),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry
