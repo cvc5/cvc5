@@ -68,6 +68,16 @@ void getSubproofRule(std::shared_ptr<ProofNode> pn,
                      std::vector<std::shared_ptr<ProofNode>>& pfs);
 
 /**
+ * Get the subproofs of pn that have a rule in rs.
+ * @param pn The proof node.
+ * @param rs The rules to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRules(std::shared_ptr<ProofNode> pn,
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs);
+
+/**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
  * do *not* distinguish between free vs. non-free assumptions in this call.
  * This call involves at most a single dag traversal over the proof node.

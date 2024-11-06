@@ -149,32 +149,18 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       {
         const Rational& rat = den.getConst<Rational>();
         Assert(!num.isConst() && rat.sgn() != 0);
-        if (rat > 0)
-        {
-          lem = nm->mkNode(
-              Kind::AND,
-              leqNum,
-              nm->mkNode(
-                  Kind::LT,
-                  num,
-                  nm->mkNode(
-                      Kind::MULT,
-                      den,
-                      nm->mkNode(Kind::ADD, v, nm->mkConstInt(Rational(1))))));
-        }
-        else
-        {
-          lem = nm->mkNode(
-              Kind::AND,
-              leqNum,
-              nm->mkNode(
-                  Kind::LT,
-                  num,
-                  nm->mkNode(
-                      Kind::MULT,
-                      den,
-                      nm->mkNode(Kind::ADD, v, nm->mkConstInt(Rational(-1))))));
-        }
+        lem = nm->mkNode(
+            Kind::AND,
+            leqNum,
+            nm->mkNode(
+                Kind::LT,
+                num,
+                nm->mkNode(
+                    Kind::MULT,
+                    den,
+                    nm->mkNode(Kind::ADD,
+                               v,
+                               nm->mkConstInt(Rational(rat > 0 ? 1 : -1))))));
       }
       else
       {
