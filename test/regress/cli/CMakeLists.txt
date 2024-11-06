@@ -2003,6 +2003,7 @@ set(regress_0_tests
   regress0/tptp/tptp_parser7.smt2
   regress0/tptp/tptp_parser8.smt2
   regress0/tptp/tptp_parser9.smt2
+  regress0/uf-conv-rewrites.smt2
   regress0/uf/bool-pred-nested.smt2
   regress0/uf/ccredesign-fuzz.smtv1.smt2
   regress0/uf/cnf_abc.smt2
