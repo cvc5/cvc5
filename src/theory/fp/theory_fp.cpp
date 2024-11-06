@@ -577,6 +577,13 @@ bool TheoryFp::isRegistered(TNode node)
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
+  if (!options().fp.fp)
+  {
+    std::stringstream ss;
+    ss << "Floating points not available in this configuration, try "
+          "--fp.";
+    throw LogicException(ss.str());
+  }
   if (!options().fp.fpExp)
   {
     TypeNode tn = node.getType();

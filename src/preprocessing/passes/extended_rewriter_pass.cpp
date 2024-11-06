@@ -20,24 +20,31 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 ExtRewPre::ExtRewPre(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ext-rew-pre"){};
+    : PreprocessingPass(preprocContext, "ext-rew-pre"),
+      d_id(options().smt.extRewPrep == options::ExtRewPrepMode::AGG
+               ? MethodId::RW_EXT_REWRITE_AGG
+               : MethodId::RW_EXT_REWRITE),
+      d_proof(options().smt.produceProofs
+                  ? new RewriteProofGenerator(d_env, d_id)
+                  : nullptr)
+{
+}
 
 PreprocessingPassResult ExtRewPre::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(
-        i,
-        extendedRewrite(
-            (*assertionsToPreprocess)[i],
-            options().smt.extRewPrep == options::ExtRewPrepMode::AGG));
+    const Node& a = (*assertionsToPreprocess)[i];
+    Node ar = d_env.rewriteViaMethod(a, d_id);
+    assertionsToPreprocess->replace(i, ar, d_proof.get());
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

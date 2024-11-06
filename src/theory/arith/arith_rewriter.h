@@ -115,7 +115,10 @@ class ArithRewriter : public TheoryRewriter
 
   /** return rewrite */
   RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
-
+  /**
+   * Return the result of expanding (^ x c) for constant c.
+   */
+  static Node expandPowConst(NodeManager* nm, const Node& n);
   /**
    * Rewrite inequality to bv. If applicable, return
    * the bitvector inequality that is the rewritten form of the arithmetic
