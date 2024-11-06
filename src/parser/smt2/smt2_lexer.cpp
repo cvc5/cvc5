@@ -320,8 +320,8 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
   Assert(!d_token.empty());
   switch (d_token[0])
   {
-    case '!': 
-      if (d_token.size()==1)
+    case '!':
+      if (d_token.size() == 1)
       {
         return Token::ATTRIBUTE_TOK;
       }
