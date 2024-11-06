@@ -55,6 +55,9 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
   // We can apply top-level substitutions x -> t that are implied by the
   // assertions but only if all symbols in (= x t) are also contained in the
   // goal (to satisfy the shared symbol requirement of get-interpolant).
+  // We construct a subset of the top-level substitutions (tlShared) here that
+  // can legally be applied, and conjoin these with our final solution when
+  // applicable below.
   SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
   SubstitutionMap tlsShared;
   std::unordered_map<Node, Node> subs = tls.getSubstitutions();
