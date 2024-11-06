@@ -953,7 +953,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
-  Assert(t.getKind() == Kind::POW2);  
+  Assert(t.getKind() == Kind::POW2);
   if (!d_expertEnabled)
   {
     return RewriteResponse(REWRITE_DONE, t);
