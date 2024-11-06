@@ -1978,7 +1978,7 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
+  std::vector<Node> axioms = getAssertions();
   // expand definitions in the conjecture as well
   Node abd;
   bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
