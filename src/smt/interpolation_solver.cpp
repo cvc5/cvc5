@@ -52,14 +52,57 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
   // apply top-level substitutions
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
                           << std::endl;
-  // must expand definitions
+  // We can apply top-level substitutions x -> t that are implied by the
+  // assertions but only if all symbols in (= x t) are also contained in the
+  // goal (to satisfy the shared symbol requirement of get-interpolant).
   SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
+  SubstitutionMap tlsShared;
+  std::unordered_map<Node, Node> subs = tls.getSubstitutions();
+  std::unordered_set<Node> conjSyms;
+  expr::getSymbols(conj, conjSyms);
   std::vector<Node> axiomsn;
+  for (const std::pair<const Node, Node>& s : subs)
+  {
+    // Furthermore note that if we have a target grammar, we cannot conjoin
+    // substitutions since this would violate the grammar from the user.
+    if (grammarType.isNull())
+    {
+      bool isShared = true;
+      // legal substitution if all variables in (= x t) also appear in the goal
+      if (conjSyms.find(s.first) == conjSyms.end())
+      {
+        // solved variable is not shared
+        isShared = false;
+      }
+      else
+      {
+        std::unordered_set<Node> ssyms;
+        expr::getSymbols(s.second, ssyms);
+        for (const Node& sym : ssyms)
+        {
+          if (conjSyms.find(sym) == conjSyms.end())
+          {
+            // variable in right hand side is not shared
+            isShared = false;
+            break;
+          }
+        }
+      }
+      if (isShared)
+      {
+        // can apply as a substitution
+        tlsShared.addSubstitution(s.first, s.second);
+        continue;
+      }
+    }
+    // must treat the substitution as an assertion
+    axiomsn.emplace_back(s.first.eqNode(s.second));
+  }
   for (const Node& ax : axioms)
   {
-    axiomsn.emplace_back(rewrite(tls.apply(ax)));
+    axiomsn.emplace_back(rewrite(tlsShared.apply(ax)));
   }
-  Node conjn = tls.apply(conj);
+  Node conjn = tlsShared.apply(conj);
   conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
@@ -68,27 +111,18 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
   if (d_subsolver->solveInterpolation(
           name, axiomsn, conjn, grammarType, interpol))
   {
-    if (!tls.empty())
+    if (!tlsShared.empty())
     {
-      // must conjoin equalities from top-level substitutions, but only if
-      // they appear in goal (to satisfy the shared variable requirement).
-      std::unordered_set<Node> conjSyms;
-      expr::getSymbols(conj, conjSyms);
+      // must conjoin equalities from shared top-level substitutions
       std::vector<Node> tlconj;
-      std::unordered_map<Node, Node> subs = tls.getSubstitutions();
-      for (const std::pair<const Node, Node>& s : subs)
+      std::unordered_map<Node, Node> ssubs = tlsShared.getSubstitutions();
+      for (const std::pair<const Node, Node>& s : ssubs)
       {
-        if (conjSyms.find(s.first) != conjSyms.end())
-        {
-          tlconj.emplace_back(s.first.eqNode(s.second));
-        }
+        tlconj.emplace_back(s.first.eqNode(s.second));
       }
-      if (!tlconj.empty())
-      {
-        NodeManager* nm = nodeManager();
-        d_tlsConj = nm->mkAnd(tlconj);
-        interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
-      }
+      NodeManager* nm = nodeManager();
+      d_tlsConj = nm->mkAnd(tlconj);
+      interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
     }
     if (options().smt.checkInterpolants)
     {
