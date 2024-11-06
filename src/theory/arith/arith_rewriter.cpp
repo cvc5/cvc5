@@ -48,8 +48,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
-    : TheoryRewriter(nm), d_opElim(oe)
+ArithRewriter::ArithRewriter(NodeManager* nm,
+                             OperatorElim& oe,
+                             bool expertEnabled)
+    : TheoryRewriter(nm), d_opElim(oe), d_expertEnabled(expertEnabled)
 {
   registerProofRewriteRule(ProofRewriteRule::ARITH_POW_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
@@ -343,6 +345,11 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::POW2: return RewriteResponse(REWRITE_DONE, t);
       case Kind::INTS_ISPOW2: return RewriteResponse(REWRITE_DONE, t);
       case Kind::INTS_LOG2: return RewriteResponse(REWRITE_DONE, t);
+      case Kind::INTS_DIVISION:
+      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
+      case Kind::INTS_DIVISION_TOTAL:
+      case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
+      case Kind::ABS: return rewriteAbs(t);
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -356,12 +363,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::ARCCOSECANT:
       case Kind::ARCSECANT:
       case Kind::ARCCOTANGENT:
-      case Kind::SQRT: return preRewriteTranscendental(t);
-      case Kind::INTS_DIVISION:
-      case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
-      case Kind::INTS_DIVISION_TOTAL:
-      case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
-      case Kind::ABS: return rewriteAbs(t);
+      case Kind::SQRT:
       case Kind::IS_INTEGER:
       case Kind::TO_INTEGER:
       case Kind::TO_REAL:
@@ -1002,13 +1004,12 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::preRewriteTranscendental(TNode t)
-{
-  return RewriteResponse(REWRITE_DONE, t);
-}
-
 RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
 {
+  if (!d_expertEnabled)
+  {
+    return RewriteResponse(REWRITE_DONE, t);
+  }
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
   Assert(t.getTypeOrNull(true).isReal());

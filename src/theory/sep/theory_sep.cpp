@@ -92,7 +92,7 @@ void TheorySep::initializeHeapTypes()
 
 TheoryRewriter* TheorySep::getTheoryRewriter()
 {
-  if (!options().sep.sepExp)
+  if (!options().sep.sep)
   {
     return nullptr;
   }
