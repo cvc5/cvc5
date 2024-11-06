@@ -899,6 +899,10 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
 RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 {
   Assert(t.getKind() == Kind::IAND);
+  if (!d_expertEnabled)
+  {
+    return RewriteResponse(REWRITE_DONE, t);
+  }
   uint32_t bsize = t.getOperator().getConst<IntAnd>().d_size;
   NodeManager* nm = nodeManager();
   // if constant, we eliminate
@@ -949,7 +953,11 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
-  Assert(t.getKind() == Kind::POW2);
+  Assert(t.getKind() == Kind::POW2);  
+  if (!d_expertEnabled)
+  {
+    return RewriteResponse(REWRITE_DONE, t);
+  }
   NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst())
