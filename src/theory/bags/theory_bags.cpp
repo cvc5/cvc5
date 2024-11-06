@@ -54,7 +54,7 @@ TheoryBags::~TheoryBags() {}
 
 TheoryRewriter* TheoryBags::getTheoryRewriter()
 {
-  if (!options().bags.bagsExp)
+  if (!options().bags.bags)
   {
     return nullptr;
   }
