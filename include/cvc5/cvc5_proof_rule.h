@@ -2503,7 +2503,7 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Macro variable elimination equality**
    *
    * .. math::
-   *   \forall x.\> x \neq t \vee F = F \{ x \mapsto t \}
+   *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
    *
    * \endverbatim
    */

@@ -147,7 +147,7 @@
 ; - t T: The term x was equated to
 ; - F Bool: The (remaining) body of the quantified formula from which we are eliminating x.
 ; return: >
-;    The result of eliminating x from F. This method does not evaluate t contains x.
+;    The result of eliminating x from F. This method does not evaluate if t contains x.
 (define $mk_quant_var_elim_eq_subs ((T Type :implicit) (x T) (t T) (F Bool))
   (eo::requires ($contains_subterm t x) false ($substitute x t F)))
 

@@ -275,7 +275,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
       {
         std::vector<Node> lits;
-        getVarElim(n[1], args, vars, subs, lits);
+        getVarElim(body, args, vars, subs, lits);
       }
       else if (id == ProofRewriteRule::QUANT_VAR_ELIM_EQ)
       {
