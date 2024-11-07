@@ -275,7 +275,7 @@
 ; - b S: The point of y we are considering.
 ; - s Bool: Which direction the tangent plane is for, where true is >=, false is <=.
 ; conclusion: The tangent plane lemma at (a,b) for (x,y).
-(declare-rule arith_mult_tangent ((R Type) (S Type) (x R) (y R) (a R) (b R) (s Bool))
+(declare-rule arith_mult_tangent ((R Type) (S Type) (x R) (y S) (a R) (b S) (s Bool))
   :args (x y a b s)
   :conclusion (eo::define ((tp (- (+ (* b x) (* a y)) (* a b))))
               (eo::define ((r1 (eo::ite s >= <=)))
