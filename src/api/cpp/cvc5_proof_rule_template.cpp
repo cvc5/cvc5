@@ -256,6 +256,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
