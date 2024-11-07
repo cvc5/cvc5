@@ -231,7 +231,7 @@ class QuantAttributes
    * Is q a quantified formula we are performing quantifier elimination for?
    * This also true if we are performing partial quantifier elimination on q.
    */
-  bool isQuantElim( Node q );
+  bool isQuantElim(Node q);
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
   /** is internal quantifier */
