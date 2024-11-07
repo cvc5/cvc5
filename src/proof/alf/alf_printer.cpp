@@ -63,12 +63,13 @@ AlfPrinter::AlfPrinter(Env& env,
   d_false = nodeManager()->mkConst(false);
 }
 
-bool AlfPrinter::isHandled(const ProofNode* pfn) const
+bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
 {
   const std::vector<Node> pargs = pfn->getArguments();
   switch (pfn->getRule())
   {
     // List of handled rules
+    case ProofRule::ASSUME:
     case ProofRule::SCOPE:
     case ProofRule::REFL:
     case ProofRule::SYMM:
@@ -177,6 +178,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
+    case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -195,15 +197,6 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       // we don't support bitvectors yet
       Assert(pargs[0].getKind() == Kind::EQUAL);
       return pargs[0][0].getType().isRealOrInt();
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM_REL:
-    {
-      // we don't support bitvectors yet
-      Node res = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
-      Assert(res[0].getType().isBoolean());
-      return res[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -232,7 +225,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
       {
         // must use standard alphabet size
-        return options().strings.stringsAlphaCard == String::num_codes();
+        return opts.strings.stringsAlphaCard == String::num_codes();
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
              || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
@@ -254,8 +247,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
   return false;
 }
 
-bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
-                                        const Node& n) const
+bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
@@ -264,6 +256,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
     case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
+    case ProofRewriteRule::EXISTS_ELIM:
+    case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
     case ProofRewriteRule::RE_LOOP_ELIM:
@@ -282,7 +276,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   return false;
 }
 
-bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
+bool AlfPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
   if (eq[0].isVar())
@@ -302,7 +296,7 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq) const
   return false;
 }
 
-bool AlfPrinter::canEvaluate(Node n) const
+bool AlfPrinter::canEvaluate(Node n)
 {
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
@@ -392,7 +386,7 @@ bool AlfPrinter::canEvaluate(Node n) const
   return true;
 }
 
-bool AlfPrinter::canEvaluateRegExp(Node r) const
+bool AlfPrinter::canEvaluateRegExp(Node r)
 {
   Assert(r.getType().isRegExp());
   Trace("alf-printer-debug") << "canEvaluateRegExp? " << r << std::endl;
@@ -933,7 +927,7 @@ void AlfPrinter::printStepPost(AlfPrintChannel* out, const ProofNode* pn)
   std::vector<std::shared_ptr<ProofNode>> children;
   getChildrenFromProofRule(pn, children);
   std::vector<Node> args;
-  bool handled = isHandled(pn);
+  bool handled = isHandled(options(), pn);
   if (handled)
   {
     getArgsFromProofRule(pn, args);
