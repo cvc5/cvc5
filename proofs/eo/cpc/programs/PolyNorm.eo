@@ -124,7 +124,7 @@
   )
 )
 
-; define: $is_arith_poly_norm
+; define: $is_poly_norm
 ; args:
 ; - a T: The first arithmetic term to process, of type Int or Real.
 ; - b T: The second arithmetic term to process, of type Int or Real.
@@ -171,9 +171,7 @@
   (
     (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (= cx cy))  (eo::ite (eo::and (eo::is_bin cx) (eo::is_bin cy))
-                                             (eo::and (= cx (eo::to_bin (eo::len cx) 1)) (= cy (eo::to_bin (eo::len cy) 1)))
-                                             (eo::and ($is_arith_type (eo::typeof cx)) ($is_arith_type (eo::typeof cy)))))
+    (($is_poly_norm_rel_consts (= cx cy))  true)
     (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts b)          false)
