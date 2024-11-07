@@ -2578,6 +2578,11 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
    *
+   * or alternatively
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t) = \bot
+   *
    * \endverbatim
    */
   EVALUE(QUANT_VAR_ELIM_EQ),
