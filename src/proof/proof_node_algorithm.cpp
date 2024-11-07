@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -91,6 +91,14 @@ void getSubproofRule(std::shared_ptr<ProofNode> pn,
                      ProofRule r,
                      std::vector<std::shared_ptr<ProofNode>>& pfs)
 {
+  std::unordered_set<ProofRule> rs{r};
+  getSubproofRules(pn, rs, pfs);
+}
+
+void getSubproofRules(std::shared_ptr<ProofNode> pn,
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs)
+{
   // proof should not be cyclic
   std::unordered_set<ProofNode*> visited;
   std::unordered_set<ProofNode*>::iterator it;
@@ -105,7 +113,7 @@ void getSubproofRule(std::shared_ptr<ProofNode> pn,
     if (it == visited.end())
     {
       visited.insert(cur.get());
-      if (cur->getRule() == r)
+      if (rs.find(cur->getRule()) != rs.end())
       {
         pfs.push_back(cur);
       }

@@ -111,7 +111,12 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
 
 void InferenceManager::assertSetsConflict(const Node& conf, InferenceId id)
 {
-  conflict(conf, id);
+  if (d_ipc)
+  {
+    d_ipc->notifyConflict(conf, id);
+  }
+  TrustNode trn = TrustNode::mkTrustConflict(conf, d_ipc.get());
+  trustedConflict(trn, id);
 }
 
 bool InferenceManager::assertSetsFact(Node atom,
@@ -120,6 +125,8 @@ bool InferenceManager::assertSetsFact(Node atom,
                                       Node exp)
 {
   Node conc = polarity ? atom : atom.notNode();
+  // notify before asserting below, since that call may induce a conflict which
+  // needs immediate explanation.
   if (d_ipc)
   {
     d_ipc->notifyFact(conc, exp, id);

@@ -342,6 +342,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(Kind::SET_MAP, internal::Kind::SET_MAP),
         KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
+        KIND_ENUM(Kind::SET_ALL, internal::Kind::SET_ALL),
+        KIND_ENUM(Kind::SET_SOME, internal::Kind::SET_SOME),
         KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
@@ -619,6 +621,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_ITE, Kind::BITVECTOR_ITE},
         {internal::Kind::BITVECTOR_REDOR, Kind::BITVECTOR_REDOR},
         {internal::Kind::BITVECTOR_REDAND, Kind::BITVECTOR_REDAND},
+        {internal::Kind::BITVECTOR_BIT_OP, Kind::BITVECTOR_BIT},
         {internal::Kind::BITVECTOR_EXTRACT_OP, Kind::BITVECTOR_EXTRACT},
         {internal::Kind::BITVECTOR_REPEAT_OP, Kind::BITVECTOR_REPEAT},
         {internal::Kind::BITVECTOR_ZERO_EXTEND_OP, Kind::BITVECTOR_ZERO_EXTEND},
@@ -743,6 +746,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_IS_SINGLETON, Kind::SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, Kind::SET_MAP},
         {internal::Kind::SET_FILTER, Kind::SET_FILTER},
+        {internal::Kind::SET_ALL, Kind::SET_ALL},
+        {internal::Kind::SET_SOME, Kind::SET_SOME},
         {internal::Kind::SET_FOLD, Kind::SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, Kind::RELATION_JOIN},
@@ -864,6 +869,7 @@ const static std::
             {internal::Kind::FUNCTION_TYPE, SortKind::FUNCTION_SORT},
             {internal::Kind::SEQUENCE_TYPE, SortKind::SEQUENCE_SORT},
             {internal::Kind::SET_TYPE, SortKind::SET_SORT},
+            {internal::Kind::SORT_TYPE, SortKind::UNINTERPRETED_SORT},
             {internal::Kind::TUPLE_TYPE, SortKind::TUPLE_SORT},
             {internal::Kind::NULLABLE_TYPE, SortKind::NULLABLE_SORT},
         };
@@ -892,13 +898,13 @@ const static std::unordered_set<Kind> s_indexed_kinds(
  * Mapping from external (API) kind to the corresponding internal operator kind.
  */
 const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
+    {Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT_OP},
     {Kind::BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT_OP},
     {Kind::BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT_OP},
     {Kind::BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT_OP},
     {Kind::BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
     {Kind::BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
     {Kind::BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
-    {Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT_OP},
     {Kind::DIVISIBLE, internal::Kind::DIVISIBLE_OP},
     {Kind::FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
     {Kind::FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
@@ -2206,8 +2212,8 @@ size_t Op::getNumIndicesHelper() const
     case Kind::BITVECTOR_SIGN_EXTEND: size = 1; break;
     case Kind::BITVECTOR_ROTATE_LEFT: size = 1; break;
     case Kind::BITVECTOR_ROTATE_RIGHT: size = 1; break;
-    case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::BITVECTOR_BIT: size = 1; break;
+    case Kind::INT_TO_BITVECTOR: size = 1; break;
     case Kind::IAND: size = 1; break;
     case Kind::FLOATINGPOINT_TO_UBV: size = 1; break;
     case Kind::FLOATINGPOINT_TO_SBV: size = 1; break;
@@ -4864,7 +4870,8 @@ std::string Grammar::toString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  return d_grammar == nullptr ? "" : d_grammar->toString();
+  return d_grammar == nullptr || !d_grammar->hasRules() ? ""
+                                                        : d_grammar->toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4880,7 +4887,9 @@ Sort Grammar::resolve()
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
 {
+  CVC5_API_TRY_CATCH_BEGIN;
   return out << grammar.toString();
+  CVC5_API_TRY_CATCH_END;
 }
 
 bool Grammar::operator==(const Grammar& grammar) const
@@ -5021,24 +5030,6 @@ Stat::Stat(bool internal, bool defaulted, StatData&& sd)
 {
 }
 
-bool Stat::operator==(const Stat& stat) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_data.get() == stat.d_data.get();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Stat::operator!=(const Stat& stat) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_data.get() != stat.d_data.get();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::string Stat::toString() const
 {
   std::stringstream ss;
@@ -5164,24 +5155,6 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 {
   out << stats.toString();
   return out;
-}
-
-bool Statistics::operator==(const Statistics& stat) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return this == &stat;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Statistics::operator!=(const Statistics& stat) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return this != &stat;
-  ////////
-  CVC5_API_TRY_CATCH_END;
 }
 
 /*--------------------------------------------------------------------------- */
@@ -5851,9 +5824,18 @@ Sort TermManager::mkFunctionSort(const std::vector<Sort>& sorts,
 Term TermManager::mkSkolem(SkolemId id, const std::vector<Term>& indices)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  cvc5::internal::SkolemManager* sm = d_nm->getSkolemManager();
+  CVC5_API_CHECK(indices.size() == sm->getNumIndicesForSkolemId(id))
+      << "invalid number of indices, expected "
+      << sm->getNumIndicesForSkolemId(id) << " got " << indices.size();
   //////// all checks before this line
   // iterate over indices and convert the Terms to Nodes
   std::vector<internal::Node> nodeIndices = Term::termVectorToNodes(indices);
+  // automatically sort if a commutative skolem
+  if (internal::SkolemManager::isCommutativeSkolemId(id))
+  {
+    std::sort(nodeIndices.begin(), nodeIndices.end());
+  }
   internal::Node res =
       d_nm->getSkolemManager()->mkSkolemFunction(id, nodeIndices);
   return Term(this, res);
@@ -6892,21 +6874,14 @@ void Solver::ensureWellFormedTerm(const Term& t) const
   // only check if option is set
   if (d_slv->getOptions().expr.wellFormedChecking)
   {
-    bool wasShadow = false;
-    if (internal::expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
+    // Call isWellFormedTerm of the underlying solver, which checks if the
+    // given node has free variables. We do not check for variable shadowing,
+    // since this can be handled by our rewriter.
+    if (!d_slv->isWellFormedTerm(*t.d_node))
     {
       std::stringstream se;
-      se << "cannot process term " << *t.d_node << " with ";
-      if (wasShadow)
-      {
-        se << "shadowed variables " << std::endl;
-      }
-      else
-      {
-        std::unordered_set<internal::Node> fvs;
-        internal::expr::getFreeVariables(*t.d_node, fvs);
-        se << "free variables: " << fvs << std::endl;
-      }
+      se << "cannot process term " << *t.d_node << " with free variables"
+         << std::endl;
       throw CVC5ApiException(se.str().c_str());
     }
   }
@@ -9095,18 +9070,6 @@ size_t hash<cvc5::Grammar>::operator()(const cvc5::Grammar& grammar) const
     return 0;
   }
   return std::hash<cvc5::internal::SygusGrammar>{}(*grammar.d_grammar);
-}
-
-size_t hash<cvc5::Stat>::operator()(const cvc5::Stat& stat) const
-{
-  std::cout << "pointer: " << stat.d_data.get() << std::endl;
-  std::cout << "hash: " << std::hash<void*>{}(stat.d_data.get()) << std::endl;
-  return std::hash<void*>{}(stat.d_data.get());
-}
-
-size_t hash<cvc5::Statistics>::operator()(const cvc5::Statistics& stat) const
-{
-  return std::hash<const void*>{}(&stat);
 }
 
 }  // namespace std

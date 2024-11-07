@@ -70,5 +70,27 @@ TEST_F(TestApiBlackSynthResult, isUnknown)
   ASSERT_FALSE(res.isUnknown());
 }
 
+TEST_F(TestApiBlackSynthResult, equalHash)
+{
+  d_solver->setOption("sygus", "true");
+  (void)d_solver->synthFun("f", {}, d_bool);
+  Term tfalse = d_tm.mkFalse();
+  Term ttrue = d_tm.mkTrue();
+  d_solver->addSygusConstraint(ttrue);
+  cvc5::SynthResult res1 = d_solver->checkSynth();
+  d_solver->addSygusConstraint(tfalse);
+  cvc5::SynthResult res2 = d_solver->checkSynth();
+  ASSERT_EQ(res1, res1);
+  ASSERT_NE(res1, res2);
+  ASSERT_NE(res1, cvc5::SynthResult());
+  ASSERT_NE(cvc5::SynthResult(), res1);
+  ASSERT_EQ(std::hash<cvc5::SynthResult>{}(res1),
+            std::hash<cvc5::SynthResult>{}(res1));
+  ASSERT_NE(std::hash<cvc5::SynthResult>{}(res1),
+            std::hash<cvc5::SynthResult>{}(res2));
+  ASSERT_NE(std::hash<cvc5::SynthResult>{}(cvc5::SynthResult()),
+            std::hash<cvc5::SynthResult>{}(res2));
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

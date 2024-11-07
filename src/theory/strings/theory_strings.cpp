@@ -176,7 +176,7 @@ void TheoryStrings::finishInit()
   d_valuation.setIrrelevantKind(Kind::STRING_IN_REGEXP);
   d_valuation.setIrrelevantKind(Kind::STRING_LEQ);
   // seq nth doesn't always evaluate
-  d_valuation.setUnevaluatedKind(Kind::SEQ_NTH);
+  d_valuation.setSemiEvaluatedKind(Kind::SEQ_NTH);
 }
 
 std::string TheoryStrings::identify() const
@@ -1123,53 +1123,15 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   Kind ak = atom.getKind();
   if (ak == Kind::STRING_FROM_CODE)
   {
-    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    NodeManager* nm = nodeManager();
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
-    Node t = atom[0];
-    Node card = nm->mkConstInt(Rational(d_termReg.getAlphabetCardinality()));
-    Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, d_zero, t),
-                           nm->mkNode(Kind::LT, t, card));
-    Node emp = Word::mkEmptyWord(atom.getType());
-    Node pred = nm->mkNode(Kind::ITE,
-                           cond,
-                           t.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                           k.eqNode(emp));
-    TrustNode tnk = TrustNode::mkTrustLemma(pred);
-    lems.push_back(SkolemLemma(tnk, k));
+    // for the sake of proofs, we use the eager reduction utility
+    Node k = nodeManager()->getSkolemManager()->mkPurifySkolem(atom);
+    TrustNode lemma = d_termReg.eagerReduceTrusted(atom);
+    lems.push_back(SkolemLemma(lemma, k));
+    // We rewrite the term to its purify variable, which can be justified
+    // trivially.
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
-  if (options().strings.stringsCodeElim)
-  {
-    if (ak == Kind::STRING_TO_CODE)
-    {
-      // If we are eliminating code, convert it to nth.
-      // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
-      NodeManager* nm = nodeManager();
-      Node t = atom[0];
-      Node cond =
-          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, t), d_one);
-      Node ret = nm->mkNode(
-          Kind::ITE, cond, nm->mkNode(Kind::SEQ_NTH, t, d_zero), d_neg_one);
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-    }
-  }
-  else if (ak == Kind::SEQ_NTH && atom[0].getType().isString())
-  {
-    // If we are not eliminating code, we are eliminating nth (over strings);
-    // convert it to code.
-    // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
-    NodeManager* nm = nodeManager();
-    Node ret = nm->mkNode(Kind::STRING_TO_CODE,
-                          nm->mkNode(Kind::STRING_SUBSTR,
-                                     atom[0],
-                                     atom[1],
-                                     nm->mkConstInt(Rational(1))));
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-  }
-  else if (ak == Kind::REGEXP_RANGE)
+  if (ak == Kind::REGEXP_RANGE)
   {
     for (const Node& nc : atom)
     {

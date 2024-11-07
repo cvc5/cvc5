@@ -225,6 +225,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint hasSolution() except +
         bint hasNoSolution() except +
         bint isUnknown() except +
+        bint operator==(const SynthResult& r) except +
+        bint operator!=(const SynthResult& r) except +
         string toString() except +
 
     cdef cppclass TermManager:
@@ -452,7 +454,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Proof] getProof(ProofComponent c) except +
-        string proofToString(Proof proof, ProofFormat format) except +
+        string proofToString(Proof proof, ProofFormat format, const map[Term, string]& assertionNames) except +
         vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
@@ -716,6 +718,7 @@ cdef extern from "<cvc5/cvc5_parser.h>" namespace "cvc5::parser":
         string getLogic() except +
         vector[Sort] getDeclaredSorts() except +
         vector[Term] getDeclaredTerms() except +
+        map[Term, string] getNamedTerms() except +
 
     cdef cppclass Command:
         Command() except +

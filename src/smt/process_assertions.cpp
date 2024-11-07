@@ -223,6 +223,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     {
       applyPass("fun-def-fmf", ap);
     }
+    if (options().quantifiers.preSkolemQuant
+        != options::PreSkolemQuantMode::OFF)
+    {
+      // needed since quantifier preprocessing may introduce skolems that were
+      // solved for already
+      applyPass("apply-substs", ap);
+    }
   }
   if (!options().strings.stringLazyPreproc)
   {
@@ -464,7 +471,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
                                                const AssertionPipeline& ap)
 {
-  PrintBenchmark pb(Printer::getPrinter(os));
+  PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that users may define ordinary and recursive functions. The latter
   // get added to the list of assertions as quantified formulas. Since we are

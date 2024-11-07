@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -38,6 +38,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SKOLEMIZE, this);
   pc->registerChecker(ProofRule::INSTANTIATE, this);
   pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
+  pc->registerChecker(ProofRule::QUANT_VAR_REORDERING, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -45,7 +46,6 @@ Node QuantifiersProofRuleChecker::checkInternal(
     const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
-  NodeManager* nm = nodeManager();
   if (id == ProofRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
@@ -57,28 +57,18 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    // can use either negated FORALL or EXISTS
-    if (children[0].getKind() != Kind::EXISTS
-        && (children[0].getKind() != Kind::NOT
-            || children[0][0].getKind() != Kind::FORALL))
+    // must use negated FORALL
+    if (children[0].getKind() != Kind::NOT
+        || children[0][0].getKind() != Kind::FORALL)
     {
       return Node::null();
     }
-    Node exists;
-    if (children[0].getKind() == Kind::EXISTS)
-    {
-      exists = children[0];
-    }
-    else
-    {
-      std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
-      echildren[1] = echildren[1].notNode();
-      exists = nm->mkNode(Kind::EXISTS, echildren);
-    }
-    std::vector<Node> vars(exists[0].begin(), exists[0].end());
-    std::vector<Node> skolems = Skolemize::getSkolemConstants(exists);
-    Node res = exists[1].substitute(
+    Node q = children[0][0];
+    std::vector<Node> vars(q[0].begin(), q[0].end());
+    std::vector<Node> skolems = Skolemize::getSkolemConstants(q);
+    Node res = q[1].substitute(
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    res = res.notNode();
     return res;
   }
   else if (id == ProofRule::INSTANTIATE)
@@ -133,6 +123,30 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
+  }
+  else if (id == ProofRule::QUANT_VAR_REORDERING)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node eq = args[0];
+    if (eq.getKind() != Kind::EQUAL || eq[0].getKind() != Kind::FORALL
+        || eq[1].getKind() != Kind::FORALL || eq[0][1] != eq[1][1])
+    {
+      return Node::null();
+    }
+    std::unordered_set<Node> varSet1(eq[0][0].begin(), eq[0][0].end());
+    std::unordered_set<Node> varSet2(eq[1][0].begin(), eq[1][0].end());
+    // cannot have repetition
+    if (varSet1.size() != eq[0][0].getNumChildren()
+        || varSet2.size() != eq[1][0].getNumChildren())
+    {
+      return Node::null();
+    }
+    if (varSet1 != varSet2)
+    {
+      return Node::null();
+    }
+    return eq;
   }
 
   // no rule

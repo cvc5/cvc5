@@ -32,9 +32,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-Node mkAssocAnd(const std::vector<Node>& children)
+Node mkAssocAnd(NodeManager* nm, const std::vector<Node>& children)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (children.size() == 0)
   {
     return nm->mkConst(true);

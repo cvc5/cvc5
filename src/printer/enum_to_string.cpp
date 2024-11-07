@@ -38,7 +38,15 @@ const char* toString(cvc5::SkolemId id)
       return "transcendental_purify";
     case cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG:
       return "transcendental_purify_arg";
+    case cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
+      return "transcendental_sine_phase_shift";
+    case cvc5::SkolemId::ARITH_VTS_DELTA: return "arith_vts_delta";
+    case cvc5::SkolemId::ARITH_VTS_DELTA_FREE: return "arith_vts_delta_free";
+    case cvc5::SkolemId::ARITH_VTS_INFINITY: return "arith_vts_infinity";
+    case cvc5::SkolemId::ARITH_VTS_INFINITY_FREE:
+      return "arith_vts_infinity_free";
     case cvc5::SkolemId::SHARED_SELECTOR: return "shared_selector";
+    case cvc5::SkolemId::HO_DEQ_DIFF: return "ho_deq_diff";
     case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
       return "quantifiers_skolemize";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR: return "strings_num_occur";
@@ -89,8 +97,8 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::SETS_FOLD_COMBINE: return "sets_fold_combine";
     case cvc5::SkolemId::SETS_FOLD_ELEMENTS: return "sets_fold_elements";
     case cvc5::SkolemId::SETS_FOLD_UNION: return "sets_fold_union";
-    case cvc5::SkolemId::SETS_MAP_DOWN_ELEMENT:
-      return "sets_map_down_element";
+    case cvc5::SkolemId::SETS_MAP_DOWN_ELEMENT: return "sets_map_down_element";
+    case cvc5::SkolemId::BV_TO_INT_UF: return "bv_to_int_uf";
     case cvc5::SkolemId::NONE: return "none";
     default: return "?";
   }

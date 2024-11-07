@@ -223,7 +223,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "term-db-mode=MODE"
   type       = "TermDbMode"
-  default    = "ALL"
+  default    = "RELEVANT"
   help       = "which ground terms to consider for instantiation"
   help_mode  = "Modes for terms included in the quantifiers term database."
 [[option.mode.ALL]]
@@ -644,7 +644,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefined"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun"
   type       = "bool"
   default    = "false"
@@ -652,7 +652,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefinedRelevant"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun-rlv"
   type       = "bool"
   default    = "false"
@@ -1325,7 +1325,15 @@ name   = "Quantifiers"
   long       = "sygus-verify-timeout=N"
   type       = "uint64_t"
   default    = "0"
-  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms"
+  help       = "timeout (in milliseconds) for verifying satisfiability of synthesized terms (0 == no limit)"
+
+[[option]]
+  name       = "fullSygusVerify"
+  category   = "expert"
+  long       = "full-sygus-verify"
+  type       = "bool"
+  default    = "false"
+  help       = "resort to full effort techniques instead of answering unknown when checking sygus candidates"
 
 # Internal uses of sygus
 

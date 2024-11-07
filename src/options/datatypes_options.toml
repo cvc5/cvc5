@@ -164,3 +164,11 @@ name   = "Datatypes Theory"
   type       = "int64_t"
   default    = "-1"
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"
+
+[[option]]
+  name       = "datatypesExp"
+  category   = "expert"
+  long       = "datatypes-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables reasoning about codatatypes"

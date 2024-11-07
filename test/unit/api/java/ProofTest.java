@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Jörg Schurr, Mudathir Mohamed, Aina Niemetz
+ *   Hans-Joerg Schurr, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -164,5 +164,19 @@ class ProofTest
   {
     Proof proof = createProof();
     assertDoesNotThrow(() -> proof.getArguments());
+  }
+
+  @Test
+  void eq() throws CVC5ApiException
+  {
+    Proof x = createProof();
+    Proof y = x.getChildren()[0];
+    Proof z = new Proof();
+
+    assertTrue(x.equals(x));
+    assertFalse(x.equals(y));
+    assertFalse(x.equals(z));
+
+    assertTrue(x.hashCode() == x.hashCode());
   }
 }

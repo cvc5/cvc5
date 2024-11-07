@@ -57,7 +57,9 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
+      d_hasEnabledRels(false),
       d_rels_enabled(false),
+      d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
@@ -195,6 +197,44 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     return eqc_i->second;
   }
 }
+void TheorySetsPrivate::ensureCardinalityEnabled()
+{
+  if (d_card_enabled)
+  {
+    return;
+  }
+  d_card_enabled = true;
+  if (!d_hasEnabledCard)
+  {
+    if (!options().sets.setsCardExp)
+    {
+      std::stringstream ss;
+      ss << "Set cardinality is not supported in this configuration, try "
+            "--sets-card-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledCard = true;
+  }
+}
+void TheorySetsPrivate::ensureRelationsEnabled()
+{
+  if (d_rels_enabled)
+  {
+    return;
+  }
+  d_rels_enabled = true;
+  if (!d_hasEnabledRels)
+  {
+    if (!options().sets.relsExp)
+    {
+      std::stringstream ss;
+      ss << "Relations are not supported in this configuration, try "
+            "--rels-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledRels = true;
+  }
+}
 
 void TheorySetsPrivate::fullEffortReset()
 {
@@ -262,7 +302,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (nk == Kind::SET_CARD)
         {
-          d_card_enabled = true;
+          ensureCardinalityEnabled();
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           if (d_im.hasSent())
@@ -291,7 +331,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (d_rels->isRelationKind(nk))
         {
-          d_rels_enabled = true;
+          ensureRelationsEnabled();
         }
         else if(isHigherOrderKind(nk))
         {
@@ -390,6 +430,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       continue;
     }
+
     // check map up rules
     checkMapUp();
     d_im.doPendingLemmas();
@@ -649,7 +690,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options().sets.setsExt)
+    if (options().sets.setsExp)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
@@ -721,7 +762,7 @@ void TheorySetsPrivate::checkFilterUp()
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       std::vector<Node> exp;
       exp.push_back(pair.second);
       Node B = pair.second[1];
@@ -729,11 +770,11 @@ void TheorySetsPrivate::checkFilterUp()
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node skolem = d_treg.getProxy(term);
       Node memberFilter = nm->mkNode(Kind::SET_MEMBER, x, skolem);
-      Node not_p_x = p_x.notNode();
-      Node not_memberFilter = memberFilter.notNode();
-      Node orNode =
-          p_x.andNode(memberFilter).orNode(not_p_x.andNode(not_memberFilter));
-      d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      // (set.member x A)
+      // ---------------------------------------
+      // (set.member x (set.filter P A)) = (P x)
+      Node conclusion = memberFilter.eqNode(p_x);
+      d_im.assertInference(conclusion, InferenceId::SETS_FILTER_UP, exp);
       if (d_state.isInConflict())
       {
         return;
@@ -750,7 +791,6 @@ void TheorySetsPrivate::checkFilterDown()
   {
     Node p = term[0];
     Node A = term[1];
-
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
@@ -759,7 +799,7 @@ void TheorySetsPrivate::checkFilterDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node x = pair.first;
+      Node x = pair.second[0];
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node fact = memberA.andNode(p_x);
@@ -787,7 +827,7 @@ void TheorySetsPrivate::checkMapUp()
         d_state.getMapSkolemElements(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       if (skolemElements->contains(x))
       {
         // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
@@ -840,7 +880,7 @@ void TheorySetsPrivate::checkMapDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node y = pair.first;
+      Node y = pair.second[0];
 
       // general case
       // (=>
@@ -1579,8 +1619,6 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
 }
 
 /********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
-/********************** Helper functions ***************************/
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
@@ -1614,7 +1652,8 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
-  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_FOLD;
+  return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
+         || k == Kind::SET_SOME || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
@@ -1710,40 +1749,15 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 {
   Assert(node.getKind() == Kind::SET_IS_SINGLETON);
+  Assert(rewrite(node) == node);
 
-  // we call the rewriter here to handle the pattern
-  // (is_singleton (singleton x)) because the rewriter is called after expansion
-  Node rewritten = rewrite(node);
-  if (rewritten.getKind() != Kind::SET_IS_SINGLETON)
-  {
-    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
-  }
-
-  // (is_singleton A) is expanded as
-  // (exists ((x: T)) (= A (singleton x)))
-  // where T is the sort of elements of A
+  // (is_singleton A) is expanded as (= A (set.singleton (set.choose A)))
 
   NodeManager* nm = nodeManager();
-  Node set = rewritten[0];
-
-  std::map<Node, Node>::iterator it = d_isSingletonNodes.find(rewritten);
-
-  if (it != d_isSingletonNodes.end())
-  {
-    return TrustNode::mkTrustRewrite(rewritten, it->second, nullptr);
-  }
-
-  TypeNode setType = set.getType();
-  ensureFirstClassSetType(setType);
-  Node boundVar = nm->mkBoundVar(setType.getSetElementType());
-  Node singleton = nm->mkNode(Kind::SET_SINGLETON, boundVar);
-  Node equal = set.eqNode(singleton);
-  std::vector<Node> variables = {boundVar};
-  Node boundVars = nm->mkNode(Kind::BOUND_VAR_LIST, variables);
-  Node exists = nm->mkNode(Kind::EXISTS, boundVars, equal);
-  d_isSingletonNodes[rewritten] = exists;
-
-  return TrustNode::mkTrustRewrite(node, exists, nullptr);
+  Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
+  Node ss = nm->mkNode(Kind::SET_SINGLETON, choose);
+  Node ret = nm->mkNode(Kind::EQUAL, node[0], ss);
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const

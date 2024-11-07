@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Mathias Preiner
+ *   Andrew Reynolds, Hans-Joerg Schurr, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -39,9 +39,6 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           "finalProof::ruleCount")),
       d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "finalProof::instRuleId")),
-      d_annotationRuleIds(
-          statisticsRegistry().registerHistogram<theory::InferenceId>(
-              "finalProof::annotationRuleId")),
       d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
           "finalProof::dslRuleCount")),
       d_theoryRewriteRuleCount(
@@ -49,9 +46,12 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
               "finalProof::theoryRewriteRuleCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(
+      d_trustTheoryRewriteCount(
           statisticsRegistry().registerHistogram<theory::TheoryId>(
-              "finalProof::trustTheoryIdCount")),
+              "finalProof::trustTheoryRewriteCount")),
+      d_trustTheoryLemmaCount(
+          statisticsRegistry().registerHistogram<theory::TheoryId>(
+              "finalProof::trustTheoryLemmaCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -132,25 +132,6 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
-  else if (r == ProofRule::ANNOTATION)
-  {
-    // we currently assume the annotation is a single inference id
-    const std::vector<Node>& args = pn->getArguments();
-    if (args.size() > 0)
-    {
-      InferenceId id;
-      if (getInferenceId(args[0], id))
-      {
-        d_annotationRuleIds << id;
-        // Use e.g. `--check-proofs --proof-annotate -t im-pf` to see a list of
-        // inference that appear in the final proof.
-        Trace("im-pf") << "(inference-pf " << id << " " << pn->getResult()
-                       << ")" << std::endl;
-        Trace("im-pf-assert")
-            << "(assert " << pn->getResult() << ") ; " << id << std::endl;
-      }
-    }
-  }
   else if (r == ProofRule::TRUST)
   {
     TrustId id;
@@ -159,6 +140,16 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     {
       d_trustIds << id;
       Trace("final-pf-hole") << " " << id;
+      if (id == TrustId::THEORY_LEMMA)
+      {
+        const std::vector<Node>& args = pn->getArguments();
+        TheoryId tid = THEORY_BUILTIN;
+        if (args.size() >= 3)
+        {
+          builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+        }
+        d_trustTheoryLemmaCount << tid;
+      }
     }
     Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
   }
@@ -170,7 +161,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                            << " ---> " << eq[1] << std::endl;
-    d_trustTheoryIdCount << tid;
+    d_trustTheoryRewriteCount << tid;
   }
   else if (r == ProofRule::MACRO_REWRITE)
   {
@@ -200,11 +191,44 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         premises.push_back(pncc->getResult());
       }
       NodeManager* nm = nodeManager();
-      Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
+      Node query = conc;
+      if (!premises.empty())
+      {
+        query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), query);
+      }
+      // print the trusted step information
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
         output(OutputTag::TRUSTED_PROOF_STEPS)
-            << "(trusted-proof-step " << query << ")" << std::endl;
+            << "(trusted-proof-step " << query;
+        output(OutputTag::TRUSTED_PROOF_STEPS) << " :rule " << r;
+        TheoryId tid = THEORY_LAST;
+        if (r == ProofRule::TRUST)
+        {
+          TrustId id;
+          if (getTrustId(pn->getArguments()[0], id))
+          {
+            output(OutputTag::TRUSTED_PROOF_STEPS) << " :trust-id " << id;
+            if (id == TrustId::THEORY_LEMMA)
+            {
+              const std::vector<Node>& args = pn->getArguments();
+              if (args.size() >= 3)
+              {
+                builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+              }
+            }
+          }
+        }
+        else if (r == ProofRule::TRUST_THEORY_REWRITE)
+        {
+          const std::vector<Node>& args = pn->getArguments();
+          builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+        }
+        if (tid != THEORY_LAST)
+        {
+          output(OutputTag::TRUSTED_PROOF_STEPS) << " :theory " << tid;
+        }
+        output(OutputTag::TRUSTED_PROOF_STEPS) << ")" << std::endl;
       }
       if (options().proof.checkProofSteps)
       {

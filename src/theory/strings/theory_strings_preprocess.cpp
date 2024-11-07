@@ -282,8 +282,8 @@ Node StringsPreprocess::reduce(Node t,
     // skk = n
     Node retN = skk.eqNode(n);
 
-    Node i = SkolemCache::mkIndexVar(t);
-    Node l = SkolemCache::mkLengthVar(t);
+    Node i = SkolemCache::mkIndexVar(nm, t);
+    Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, i, l);
     Node bound = nm->mkNode(
         Kind::AND,
@@ -303,7 +303,7 @@ Node StringsPreprocess::reduce(Node t,
     // forall il.
     //   n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //     ~in_re(substr(s, i, l), r)
-    Node firstMatch = utils::mkForallInternal(bvl, body);
+    Node firstMatch = utils::mkForallInternal(nm, bvl, body);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
     Node validLen =
         nm->mkNode(Kind::AND,
@@ -321,9 +321,10 @@ Node StringsPreprocess::reduce(Node t,
     Node match = nm->mkNode(
         Kind::OR,
         retNegOne,
-        nm->mkNode(Kind::AND,
-                   nm->mkNode(Kind::GEQ, skk, n),
-                   utils::mkForallInternal(bvll, matchBody.negate()).negate()));
+        nm->mkNode(
+            Kind::AND,
+            nm->mkNode(Kind::GEQ, skk, n),
+            utils::mkForallInternal(nm, bvll, matchBody.negate()).negate()));
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -361,7 +362,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = sc->mkSkolemFun(SkolemId::STRINGS_ITOS_RESULT, t[0]);
+    Node u = sc->mkSkolemFun(nm, SkolemId::STRINGS_ITOS_RESULT, t[0]);
 
     Node lem = nm->mkNode(Kind::GEQ, leni, one);
     conc.push_back(lem);
@@ -372,7 +373,7 @@ Node StringsPreprocess::reduce(Node t,
     lem = zero.eqNode(nm->mkNode(Kind::APPLY_UF, u, zero));
     conc.push_back(lem);
 
-    Node x = SkolemCache::mkIndexVar(t);
+    Node x = SkolemCache::mkIndexVar(nm, t);
     Node xPlusOne = nm->mkNode(Kind::ADD, x, one);
     Node xbv = nm->mkNode(Kind::BOUND_VAR_LIST, x);
     Node g = nm->mkNode(Kind::AND,
@@ -398,7 +399,7 @@ Node StringsPreprocess::reduce(Node t,
 
     lem =
         nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
-    lem = utils::mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(nm, xbv, lem);
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(Kind::GEQ, n, zero);
@@ -447,7 +448,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(s.getType());
     Node sEmpty = s.eqNode(emp);
-    Node k = sc->mkSkolemFun(SkolemId::STRINGS_STOI_NON_DIGIT, t[0]);
+    Node k = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_NON_DIGIT, t[0]);
     Node kc1 = nm->mkNode(Kind::GEQ, k, zero);
     Node kc2 = nm->mkNode(Kind::LT, k, lens);
     Node c0 = nm->mkNode(Kind::STRING_TO_CODE, nm->mkConst(String("0")));
@@ -462,7 +463,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<Node> conc2;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = sc->mkSkolemFun(SkolemId::STRINGS_STOI_RESULT, t[0]);
+    Node u = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_RESULT, t[0]);
 
     lem = stoit.eqNode(nm->mkNode(Kind::APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -473,7 +474,7 @@ Node StringsPreprocess::reduce(Node t,
     lem = nm->mkNode(Kind::GT, lens, zero);
     conc2.push_back(lem);
 
-    Node x = SkolemCache::mkIndexVar(t);
+    Node x = SkolemCache::mkIndexVar(nm, t);
     Node xbv = nm->mkNode(Kind::BOUND_VAR_LIST, x);
     Node g = nm->mkNode(Kind::AND,
                         nm->mkNode(Kind::GEQ, x, zero),
@@ -492,7 +493,7 @@ Node StringsPreprocess::reduce(Node t,
 
     lem =
         nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
-    lem = utils::mkForallInternal(xbv, lem);
+    lem = utils::mkForallInternal(nm, xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(Kind::LT, stoit, zero);
@@ -637,9 +638,9 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node rpaw = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
 
-    Node numOcc = sc->mkSkolemFun(SkolemId::STRINGS_NUM_OCCUR, x, y);
-    Node us = sc->mkSkolemFun(SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
-    Node uf = sc->mkSkolemFun(SkolemId::STRINGS_OCCUR_INDEX, x, y);
+    Node numOcc = sc->mkSkolemFun(nm, SkolemId::STRINGS_NUM_OCCUR, x, y);
+    Node us = sc->mkSkolemFun(nm, SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
+    Node uf = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_INDEX, x, y);
 
     Node ufno = nm->mkNode(Kind::APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(Kind::APPLY_UF, us, numOcc);
@@ -653,7 +654,7 @@ Node StringsPreprocess::reduce(Node t,
     lem.push_back(nm->mkNode(Kind::APPLY_UF, uf, zero).eqNode(zero));
     lem.push_back(nm->mkNode(Kind::STRING_INDEXOF, x, y, ufno).eqNode(negOne));
 
-    Node i = SkolemCache::mkIndexVar(t);
+    Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvli = nm->mkNode(Kind::BOUND_VAR_LIST, i);
     Node bound = nm->mkNode(Kind::AND,
                             nm->mkNode(Kind::GEQ, i, zero),
@@ -675,7 +676,7 @@ Node StringsPreprocess::reduce(Node t,
 
     Node body =
         nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
-    Node q = utils::mkForallInternal(bvli, body);
+    Node q = utils::mkForallInternal(nm, bvli, body);
     lem.push_back(q);
 
     // assert:
@@ -720,15 +721,15 @@ Node StringsPreprocess::reduce(Node t,
     // k = z ++ x
     Node res1 = k.eqNode(nm->mkNode(Kind::STRING_CONCAT, z, x));
 
-    Node k1 = sc->mkSkolemFun(SkolemId::RE_FIRST_MATCH_PRE, x, y);
-    Node k2 = sc->mkSkolemFun(SkolemId::RE_FIRST_MATCH, x, y);
-    Node k3 = sc->mkSkolemFun(SkolemId::RE_FIRST_MATCH_POST, x, y);
+    Node k1 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH_PRE, x, y);
+    Node k2 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH, x, y);
+    Node k3 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH_POST, x, y);
     Node k2Len = nm->mkNode(Kind::STRING_LENGTH, k2);
     // x = k1 ++ k2 ++ k3
     Node split = x.eqNode(nm->mkNode(Kind::STRING_CONCAT, k1, k2, k3));
     // len(k1) = indexof_re(x, y, 0)
     Node k1Len = nm->mkNode(Kind::STRING_LENGTH, k1).eqNode(idx);
-    Node l = SkolemCache::mkLengthVar(t);
+    Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
     Node bound = nm->mkNode(Kind::AND,
                             nm->mkNode(Kind::LEQ, zero, l),
@@ -741,7 +742,7 @@ Node StringsPreprocess::reduce(Node t,
                               y)
                        .negate());
     // forall l. 0 <= l < len(k2) => ~in_re(substr(k2, 0, l), r)
-    Node shortestMatch = utils::mkForallInternal(bvll, body);
+    Node shortestMatch = utils::mkForallInternal(nm, bvll, body);
     // in_re(k2, y)
     Node match = nm->mkNode(Kind::STRING_IN_REGEXP, k2, y);
     // k = k1 ++ z ++ k3
@@ -769,10 +770,10 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
 
-    Node numOcc = sc->mkSkolemFun(SkolemId::STRINGS_NUM_OCCUR_RE, x, y);
-    Node us = sc->mkSkolemFun(SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
-    Node uf = sc->mkSkolemFun(SkolemId::STRINGS_OCCUR_INDEX_RE, x, y);
-    Node ul = sc->mkSkolemFun(SkolemId::STRINGS_OCCUR_LEN_RE, x, y);
+    Node numOcc = sc->mkSkolemFun(nm, SkolemId::STRINGS_NUM_OCCUR_RE, x, y);
+    Node us = sc->mkSkolemFun(nm, SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
+    Node uf = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_INDEX_RE, x, y);
+    Node ul = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_LEN_RE, x, y);
 
     Node emp = Word::mkEmptyWord(t.getType());
 
@@ -800,7 +801,7 @@ Node StringsPreprocess::reduce(Node t,
     lemmas.push_back(
         nm->mkNode(Kind::STRING_INDEXOF_RE, rem, yp, zero).eqNode(negOne));
 
-    Node i = SkolemCache::mkIndexVar(t);
+    Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvli = nm->mkNode(Kind::BOUND_VAR_LIST, i);
     Node bound = nm->mkNode(Kind::AND,
                             nm->mkNode(Kind::GEQ, i, zero),
@@ -822,7 +823,7 @@ Node StringsPreprocess::reduce(Node t,
     flem.push_back(nm->mkNode(Kind::STRING_IN_REGEXP,
                               nm->mkNode(Kind::STRING_SUBSTR, x, ii, ulip1),
                               yp));
-    Node l = SkolemCache::mkLengthVar(t);
+    Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
     Node lenBound = nm->mkNode(Kind::AND,
                                nm->mkNode(Kind::LT, zero, l),
@@ -836,7 +837,7 @@ Node StringsPreprocess::reduce(Node t,
                        .negate());
     // forall l. 0 < l < Ul(i + 1) =>
     //   ~in_re(substr(x, Uf(i + 1) - Ul(i + 1), l), y')
-    flem.push_back(utils::mkForallInternal(bvll, shortestMatchBody));
+    flem.push_back(utils::mkForallInternal(nm, bvll, shortestMatchBody));
     Node pfxMatch =
         nm->mkNode(Kind::STRING_SUBSTR, x, ufi, nm->mkNode(Kind::SUB, ii, ufi));
     // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
@@ -848,7 +849,7 @@ Node StringsPreprocess::reduce(Node t,
                                nm->mkNode(Kind::APPLY_UF, us, ip1))));
     Node body =
         nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
-    Node forall = utils::mkForallInternal(bvli, body);
+    Node forall = utils::mkForallInternal(nm, bvli, body);
     lemmas.push_back(forall);
 
     // IF indexof(x, y', 0) = -1
@@ -895,7 +896,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lenr = nm->mkNode(Kind::STRING_LENGTH, r);
     Node eqLenA = lenx.eqNode(lenr);
 
-    Node i = SkolemCache::mkIndexVar(t);
+    Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvi = nm->mkNode(Kind::BOUND_VAR_LIST, i);
 
     Node ci = mkCodePointAtIndex(x, i);
@@ -919,7 +920,7 @@ Node StringsPreprocess::reduce(Node t,
                             nm->mkNode(Kind::LEQ, zero, i),
                             nm->mkNode(Kind::LT, i, lenr));
     Node body = nm->mkNode(Kind::OR, bound.negate(), ri.eqNode(res));
-    Node rangeA = utils::mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(nm, bvi, body);
 
     // upper 65 ... 90
     // lower 97 ... 122
@@ -943,7 +944,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lenr = nm->mkNode(Kind::STRING_LENGTH, r);
     Node eqLenA = lenx.eqNode(lenr);
 
-    Node i = SkolemCache::mkIndexVar(t);
+    Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvi = nm->mkNode(Kind::BOUND_VAR_LIST, i);
 
     Node revi = nm->mkNode(Kind::SUB,
@@ -956,7 +957,7 @@ Node StringsPreprocess::reduce(Node t,
                             nm->mkNode(Kind::LEQ, zero, i),
                             nm->mkNode(Kind::LT, i, lenr));
     Node body = nm->mkNode(Kind::OR, bound.negate(), ssr.eqNode(ssx));
-    Node rangeA = utils::mkForallInternal(bvi, body);
+    Node rangeA = utils::mkForallInternal(nm, bvi, body);
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
@@ -974,7 +975,7 @@ Node StringsPreprocess::reduce(Node t,
     //negative contains reduces to existential
     Node lenx = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, x);
     Node lens = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, s);
-    Node b1 = SkolemCache::mkIndexVar(t);
+    Node b1 = SkolemCache::mkIndexVar(nm, t);
     Node b1v = NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, b1);
     Node body = NodeManager::currentNM()->mkNode(
         Kind::AND,
@@ -987,13 +988,13 @@ Node StringsPreprocess::reduce(Node t,
             Kind::EQUAL,
             NodeManager::currentNM()->mkNode(Kind::STRING_SUBSTR, x, b1, lens),
             s));
-    retNode = utils::mkForallInternal(b1v, body.negate()).negate();
+    retNode = utils::mkForallInternal(nm, b1v, body.negate()).negate();
   }
   else if (t.getKind() == Kind::STRING_LEQ)
   {
     Node ltp = sc->mkTypedSkolemCached(
         nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
-    Node k = SkolemCache::mkIndexVar(t);
+    Node k = SkolemCache::mkIndexVar(nm, t);
 
     std::vector<Node> conj;
     conj.push_back(nm->mkNode(Kind::GEQ, k, zero));
@@ -1018,7 +1019,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(Kind::ITE, ite_ch));
 
-    Node conjn = utils::mkForallInternal(nm->mkNode(Kind::BOUND_VAR_LIST, k),
+    Node conjn = utils::mkForallInternal(nm,
+                                         nm->mkNode(Kind::BOUND_VAR_LIST, k),
                                          nm->mkNode(Kind::AND, conj).negate())
                      .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
@@ -1121,10 +1123,17 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
-  // We use (SEQ_NTH, x, i) instead of
-  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)) here. The former may be
-  // converted to the latter during preprocessing based on our options.
+  // If x is a string, we use (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)).
+  // It is possible to have an extension where (STRING_NTH x i) is generated
+  // here for a new STRING_NTH kind, if there was a native way of handling nth
+  // for strings, but this is not explored here.
   NodeManager* nm = NodeManager::currentNM();
+  if (x.getType().isString())
+  {
+    Node one = nm->mkConstInt(Rational(1));
+    return nm->mkNode(Kind::STRING_TO_CODE,
+                      nm->mkNode(Kind::STRING_SUBSTR, {x, i, one}));
+  }
   return nm->mkNode(Kind::SEQ_NTH, x, i);
 }
 

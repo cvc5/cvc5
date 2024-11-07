@@ -52,9 +52,27 @@ struct Cvc5SymbolManager
    * Constructor.
    * @param tm The associated term manager.
    */
-  Cvc5SymbolManager(Cvc5TermManager* tm) : d_sm(tm->d_tm), d_tm(tm) {}
+  Cvc5SymbolManager(Cvc5TermManager* tm)
+      : d_sm_wrapped(new cvc5::parser::SymbolManager(tm->d_tm)),
+        d_sm(*d_sm_wrapped),
+        d_tm(tm)
+  {
+  }
+  Cvc5SymbolManager(cvc5::parser::SymbolManager& sm, Cvc5TermManager* tm)
+      : d_sm(sm), d_tm(tm)
+  {
+  }
+  /**
+   * The created symbol manager instance.
+   *
+   * This will be a newly created symbol manager when created via
+   * cvc5_symbol_manager_new(). However, if we create a parsere via
+   * cvc5_parser_new() while passing NULL as a symbol manager, this will be
+   * NULL and `d_sm` will point to the symbol manager created by the parser.
+   */
+  std::unique_ptr<cvc5::parser::SymbolManager> d_sm_wrapped;
   /** The associated symbol manager instance. */
-  cvc5::parser::SymbolManager d_sm;
+  cvc5::parser::SymbolManager& d_sm;
   /** The associated term manager. */
   Cvc5TermManager* d_tm = nullptr;
 };
@@ -66,7 +84,12 @@ struct Cvc5InputParser
    * Constructor.
    * @param cvc5 The associated solver instance.
    */
-  Cvc5InputParser(Cvc5* cvc5) : d_parser(&cvc5->d_solver), d_cvc5(cvc5) {}
+  Cvc5InputParser(Cvc5* cvc5) : d_parser(&cvc5->d_solver), d_cvc5(cvc5)
+  {
+    d_sm_wrapped.reset(new Cvc5SymbolManager(*d_parser.getSymbolManager(),
+                                             cvc5_get_tm(d_cvc5)));
+    d_sm = d_sm_wrapped.get();
+  }
   /**
    * Constructor.
    * @param cvc5 The associated solver instance.
@@ -89,6 +112,11 @@ struct Cvc5InputParser
   Cvc5* d_cvc5 = nullptr;
   /** The associated symbol manager instance. */
   Cvc5SymbolManager* d_sm = nullptr;
+  /**
+   * Maintain Cvc5SymbolManager wrapper instance if symbol manager was not
+   * given via constructor but created by the parser.
+   */
+  std::unique_ptr<Cvc5SymbolManager> d_sm_wrapped;
   /** The allocated command objects. */
   std::vector<cvc5_cmd_t> d_alloc_cmds;
 };
@@ -178,6 +206,34 @@ const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm, size_t* size)
   return *size > 0 ? res.data() : nullptr;
 }
 
+
+void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                             size_t* size,
+                             Cvc5Term* terms[],
+                             const char** names[])
+{
+  static thread_local std::vector<Cvc5Term> rterms;
+  static thread_local std::vector<const char*> rnames;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(sm);
+  CVC5_CAPI_CHECK_NOT_NULL(size);
+  CVC5_CAPI_CHECK_NOT_NULL(terms);
+  CVC5_CAPI_CHECK_NOT_NULL(names);
+  rterms.clear();
+  rnames.clear();
+  auto res = sm->d_sm.getNamedTerms();
+  auto tm = sm->d_tm;
+  for (auto& t : res)
+  {
+    rterms.push_back(tm->export_term(t.first));
+    rnames.push_back(t.second.c_str());
+  }
+  *size = rterms.size();
+  *terms = rterms.data();
+  *names = rnames.data();
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 
 const char* cvc5_cmd_invoke(Cvc5Command cmd, Cvc5* cvc5, Cvc5SymbolManager* sm)
@@ -247,6 +303,24 @@ void cvc5_parser_release(Cvc5InputParser* parser)
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   parser->d_alloc_cmds.clear();
   CVC5_CAPI_TRY_CATCH_END;
+}
+
+Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser)
+{
+  Cvc5* res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  res = parser->d_cvc5;
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser)
+{
+  Cvc5SymbolManager* res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  res = parser->d_sm;
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
 }
 
 void cvc5_parser_set_file_input(Cvc5InputParser* parser,

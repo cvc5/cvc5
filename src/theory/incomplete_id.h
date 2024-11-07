@@ -87,6 +87,8 @@ enum class IncompleteId
   UNPROCESSED_THEORY_CONFLICT,
   // the prop layer stopped search
   STOP_SEARCH,
+  // due to preprocessing
+  PREPROCESSING,
   //------------------- unknown
   // the reason for the incompleteness is unknown
   UNKNOWN

@@ -40,7 +40,7 @@ class BaseAlfNodeConverter : public NodeConverter
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
    * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
    * overloading.
    * @return the operator.
    */
@@ -88,7 +88,7 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * f could be interpreted or uninterpreted.
    * @param n The term whose operator we wish to retrieve.
    * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (alf.as)? This makes a difference e.g. for symbols with
+   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
    * overloading.
    * @return the operator.
    */
@@ -152,8 +152,6 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   TypeNode d_sortType;
   /** Used for getting unique index for uncategorized skolems */
   std::map<Node, size_t> d_constIndex;
-  /** Used for getting unique names for bound variables */
-  std::map<std::string, size_t> d_varIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
 };

@@ -47,6 +47,33 @@ public class DatatypeDecl extends AbstractPointer
   protected native void deletePointer(long pointer);
 
   /**
+   * Syntactic equality operator.
+   *
+   * @param d The datatype declaration to compare to for equality.
+   * @return True if the datatype declarations are equal.
+   */
+  @Override
+  public boolean equals(Object d)
+  {
+    if (this == d)
+    {
+      return true;
+    }
+    if (d == null || getClass() != d.getClass())
+    {
+      return false;
+    }
+    DatatypeDecl decl = (DatatypeDecl) d;
+    if (this.pointer == decl.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, decl.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
    * Add datatype constructor declaration.
    * @param ctor The datatype constructor declaration to add.
    */
@@ -103,4 +130,16 @@ public class DatatypeDecl extends AbstractPointer
   }
 
   private native String getName(long pointer);
+
+  /**
+   * Get the hash value of a datatype declaration.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

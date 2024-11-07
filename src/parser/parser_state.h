@@ -37,6 +37,17 @@ namespace parser {
 class Command;
 
 /**
+ * The parsing mode, defines how strict we are on accepting non-conforming
+ * inputs.
+ */
+enum class ParsingMode
+{
+  DEFAULT,  // reasonably strict
+  STRICT,   // more strict
+  LENIENT,  // less strict
+};
+
+/**
  * Callback from the parser state to the parser, for command preemption
  * and error handling.
  */
@@ -67,16 +78,16 @@ class CVC5_EXPORT ParserState
    * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
-   * @param psc The callback for implementing parser-specific methods
-   * @param solver solver API object
-   * @param symm reference to the symbol manager
-   * @param input the parser input
-   * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param psc The callback for implementing parser-specific methods.
+   * @param solver The solver API object.
+   * @param symm The symbol manager.
+   * @param input The parser input.
+   * @param parsingMode The parsing mode.
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
               SymManager* sm,
-              bool strictMode = false);
+              ParsingMode parsingMode = ParsingMode::DEFAULT);
 
   virtual ~ParserState();
 
@@ -91,13 +102,15 @@ class CVC5_EXPORT ParserState
   void disableChecks() { d_checksEnabled = false; }
 
   /** Enable strict parsing, according to the language standards. */
-  void enableStrictMode() { d_strictMode = true; }
+  void enableStrictMode() { d_parsingMode = ParsingMode::STRICT; }
 
   /** Disable strict parsing. Allows certain syntactic infelicities to
       pass without comment. */
-  void disableStrictMode() { d_strictMode = false; }
+  void disableStrictMode() { d_parsingMode = ParsingMode::DEFAULT; }
 
-  bool strictModeEnabled() { return d_strictMode; }
+  bool strictModeEnabled() { return d_parsingMode == ParsingMode::STRICT; }
+
+  bool lenientModeEnabled() { return d_parsingMode == ParsingMode::LENIENT; }
 
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
@@ -215,7 +228,7 @@ class CVC5_EXPORT ParserState
    * @param name The name of the variable
    * @param type The type of the variable
    * @param fresh If true, the variable is always new. If false, we lookup the
-   * variable in a cache and return a
+   * variable in a cache and return a.
    */
   Term bindBoundVar(const std::string& name,
                     const Sort& type,
@@ -231,6 +244,20 @@ class CVC5_EXPORT ParserState
    */
   std::vector<Term> bindBoundVars(
       std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+      bool fresh = true);
+  /**
+   * Same as above, but ensure that the shadowing is compatible with current
+   * let bindings.
+   *
+   * @param sortedVarNames The names and types of the variables.
+   * @param letBinders The current let binders in scope that may contain
+   * the shadowed variables we bind in this call.
+   * @param fresh If true, the variables are always new. If false, we lookup
+   * each variable in the cache.
+   */
+  std::vector<Term> bindBoundVarsCtx(
+      std::vector<std::pair<std::string, Sort>>& sortedVarNames,
+      std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
       bool fresh = true);
 
   /**
@@ -563,7 +590,7 @@ class CVC5_EXPORT ParserState
   bool d_checksEnabled;
 
   /** Are we parsing in strict mode? */
-  bool d_strictMode;
+  ParsingMode d_parsingMode;
 
   /** Are we in parse-only mode? */
   bool d_parseOnly;

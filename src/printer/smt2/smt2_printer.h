@@ -30,23 +30,24 @@ class DType;
 namespace printer {
 namespace smt2 {
 
-enum Variant
+enum class Variant
 {
   no_variant,
-  smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
-                   // support for the string standard
-};                 /* enum Variant */
+  // A variant used for printing commands in the preamble of ALF proofs. This is used by the ALF printer.
+  alf_variant
+};
 
 class Smt2Printer : public cvc5::internal::Printer
 {
  public:
-  Smt2Printer(Variant variant = no_variant) : d_variant(variant) {}
+  Smt2Printer(Variant variant = Variant::no_variant) : d_variant(variant) {}
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
   void toStream(std::ostream& out,
                 TNode n,
-                const LetBinding* lbind) const override;
+                const LetBinding* lbind,
+                bool lbindTop) const override;
   void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -295,7 +296,9 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamSkolem(std::ostream& out,
                       Node cacheVal,
                       SkolemId id,
-                      bool isApplied) const;
+                      bool isApplied,
+                      int toDepth,
+                      const LetBinding* lbind) const;
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in

@@ -1,0 +1,82 @@
+(include "../theories/Sets.eo")
+
+; define: $set_is_empty_eval
+; args:
+; - t (Set T): The set to check.
+; return: >
+;   true if we can determine that t is the empty set, false if we can
+;   determine t is not empty. Otherwise this method returns an unevaluated term.
+(define $set_is_empty_eval ((T Type :implicit) (t (Set T)))
+  (eo::match ((U Type) (x U) (s (Set U)))
+    t
+    (
+    ((set.empty U) true)
+    ((set.singleton x) false)
+    ((set.union (set.singleton x) s) false)
+    )
+  )
+)
+
+; rule: sets-is-empty-eval
+; implements: ProofRewriteRule::SETS_IS_EMPTY_EVAL
+; args:
+; - eq Bool: The equality to prove, whose left hand side is an application of set.is_empty.
+; requires: >
+;   showing that the set that set.is_empty is applied to is (or is not) the
+;   empty set, as denoted by the right hand side of eq.
+; conclusion: The given equality.
+(declare-rule sets-is-empty-eval ((T Type) (t (Set T)) (b Bool))
+  :args ((= (set.is_empty t) b))
+  :requires ((($set_is_empty_eval t) b))
+  :conclusion (= (set.is_empty t) b)
+)
+
+; rule: sets_singleton_inj
+; implements: ProofRule::SETS_SINGLETON_INJ
+; premises:
+; - deq: An equality between singleton sets.
+; conclusion: The elements of the singleton sets are equal.
+(declare-rule sets_singleton_inj ((T Type) (a T) (b T))
+  :premises ((= (set.singleton a) (set.singleton b)))
+  :conclusion (= a b)
+)
+
+; rule: sets_ext
+; implements: ProofRule::SETS_EXT
+; premises:
+; - deq: A disequality between sets.
+; conclusion: >
+;   The sets are disequal for a witness element, as given by the skolem
+;   (@set_deq_diff a b).
+(declare-rule sets_ext ((T Type) (a (Set T)) (b (Set T)))
+  :premises ((not (= a b)))
+  :conclusion (not (= (set.member (@sets_deq_diff a b) a) (set.member (@sets_deq_diff a b) b)))
+)
+
+
+; rule: sets_filter_down
+; implements: ProofRewriteRule::SETS_FILTER_DOWN
+; premises:
+; - mem: A membership of element x into a set filter term.
+; conclusion: >
+;   The membership holds for the set for which we are filtering, and the
+;   predicate is true for x.
+(declare-rule sets_filter_down ((T Type) (P (-> T Bool)) (x T) (S (Set T)))
+  :premises ((set.member x (set.filter P S)))
+  :conclusion (and (set.member x S) (P x))
+)
+
+; rule: sets_filter_up
+; implements: ProofRewriteRule::SETS_FILTER_UP
+; args:
+; - P (-> T Bool): The predicate to filter on.
+; premises:
+; - mem: A membership of element x into a set term.
+; conclusion: >
+;   The membership into the same set, filtered by P, holds if and only if the
+;   predicate is true for x.
+(declare-rule sets_filter_up ((T Type) (P (-> T Bool)) (x T) (S (Set T)))
+  :premises ((set.member x S))
+  :args (P)
+  :conclusion (= (set.member x (set.filter P S)) (P x))
+)

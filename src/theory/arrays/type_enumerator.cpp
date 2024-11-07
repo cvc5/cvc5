@@ -91,7 +91,7 @@ Node ArrayEnumerator::operator*()
     // since this utility requires all children of n to be constant, which
     // implies the first argument to STORE on the next iteration must be
     // normalized.
-    n = TheoryArraysRewriter::normalizeConstant(n);
+    n = TheoryArraysRewriter::normalizeConstant(d_nm, n);
   }
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;

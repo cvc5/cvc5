@@ -18,8 +18,10 @@
 
 include(deps-helper)
 
-find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
-find_library(CLN_LIBRARIES NAMES cln)
+if (NOT BUILD_CLN)
+  find_path(CLN_INCLUDE_DIR NAMES cln/cln.h)
+  find_library(CLN_LIBRARIES NAMES cln)
+endif()
 
 set(CLN_FOUND_SYSTEM FALSE)
 if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
@@ -61,7 +63,6 @@ if(NOT CLN_FOUND_SYSTEM)
   set(CLN_SO_VERSION
     "${CLN_SO_MAJOR_VER}.${CLN_SO_MINOR_VER}.${CLN_SO_PATCH_VER}"
   )
-  string(REPLACE "." "-" CLN_TAG ${CLN_VERSION})
 
   find_program(AUTORECONF autoreconf)
   if(NOT AUTORECONF)
@@ -71,23 +72,23 @@ if(NOT CLN_FOUND_SYSTEM)
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
-    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(CLN_BYPRODUCTS
-        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln.${CLN_SO_MAJOR_VER}${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libcln.${CLN_SO_MAJOR_VER}${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
     else()
       set(CLN_BYPRODUCTS
-        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_MAJOR_VER}
-        <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_VERSION}
+        <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_MAJOR_VER}
+        <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}.${CLN_SO_VERSION}
       )
     endif()
   else()
     set(LINK_OPTS --enable-static --disable-shared)
-    set(CLN_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_STATIC_LIBRARY_SUFFIX}")
-    set(CLN_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libcln${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    set(CLN_BYPRODUCTS <INSTALL_DIR>/lib/libcln${CMAKE_STATIC_LIBRARY_SUFFIX})
   endif()
 
   set(CONFIGURE_OPTS "")
@@ -113,15 +114,20 @@ if(NOT CLN_FOUND_SYSTEM)
     endif()
   endif()
 
+  set(CLN_WITH_GMP)
+  if(NOT GMP_FOUND_SYSTEM)
+    set(CLN_WITH_GMP "--with-gmp=<INSTALL_DIR>")
+  endif()
+
   ExternalProject_Add(
     CLN-EP
     ${COMMON_EP_CONFIG}
-    URL "https://www.ginac.de/CLN/cln-1.3.7.tar.bz2"
+    URL "https://www.ginac.de/CLN/cln-${CLN_VERSION}.tar.bz2"
     URL_HASH SHA256=7c7ed8474958337e4df5bb57ea5176ad0365004cbb98b621765bc4606a10d86b
     DOWNLOAD_NAME cln.tar.bz2
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV} ${SHELL} <SOURCE_DIR>/configure
-        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic
+        --prefix=<INSTALL_DIR> ${LINK_OPTS} --with-pic ${CLN_WITH_GMP}
         ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${CLN_BYPRODUCTS}
   )
@@ -162,4 +168,11 @@ else()
   # These libraries are required to compile a program that
   # uses the cvc5 static library.
   install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    foreach(CLN_DYLIB ${BUILD_BYPRODUCTS})
+      get_filename_component(CLN_DYLIB_NAME ${CLN_DYLIB} NAME)
+      update_rpath_macos(${CLN_DYLIB_NAME})
+    endforeach()
+  endif()
 endif()

@@ -68,7 +68,7 @@ std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
       coreAsserts.insert(
           coreAsserts.end(), coreLemmas.begin(), coreLemmas.end());
       std::stringstream ss;
-      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(
           ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
@@ -128,7 +128,7 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
     std::vector<Node> coreDefs;
     partitionUnsatCore(core, coreDefs, coreAsserts);
     std::stringstream ss;
-    smt::PrintBenchmark pb(Printer::getPrinter(ss));
+    smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
     pb.printBenchmark(ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ";; unsat core" << std::endl;
     output(OutputTag::UNSAT_CORE_BENCHMARK) << ss.str();
@@ -309,8 +309,8 @@ std::vector<Node> UnsatCoreManager::convertPreprocessedToInput(
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppa, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfm.connectProofToAssertions(pepf, d_slv, ProofScopeMode::UNIFIED);
+  std::shared_ptr<ProofNode> pfn = d_pfm.connectProofToAssertions(
+      pepf, d_slv.getAssertions(), ProofScopeMode::UNIFIED);
   getUnsatCoreInternal(pfn, core, isInternal);
   return core;
 }

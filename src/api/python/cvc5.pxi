@@ -14,6 +14,7 @@ from libcpp.pair cimport pair
 from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 
 from cvc5 cimport cout
 from cvc5 cimport stringstream
@@ -186,9 +187,22 @@ cdef class SymbolManager:
     cdef c_SymbolManager* csm
     cdef TermManager tm
 
-    def __cinit__(self, TermManager tm):
-        self.csm = new c_SymbolManager(dereference(tm.ctm))
-        self.tm = tm
+    def __cinit__(self, tm):
+        """
+            Constructor.
+            Initialize with associated Solver or TermManager instance.
+            .. warning:: Initializing with associated solver instance is
+                         deprecated and will be removed in a future release.
+        """
+        if isinstance(tm, TermManager):
+            self.csm = new c_SymbolManager(dereference((<TermManager?>tm).ctm))
+            self.tm = tm
+        # backwards compatibility, deprecated
+        elif isinstance(tm, Solver):
+            self.csm = new c_SymbolManager(dereference((<Solver?>tm).tm.ctm))
+            self.tm = (<Solver?>tm).tm
+        else:
+          raise ValueError("Expecting a TermManager or Solver argument")
 
     def __dealloc__(self):
         del self.csm
@@ -228,6 +242,22 @@ cdef class SymbolManager:
             :return: The declared terms.
         """
         return [_term(self.tm, c) for c in self.csm.getDeclaredTerms()]
+
+    def getNamedTerms(self):
+        """
+            Get a mapping from terms to names that have been given to them via
+            the :named attribute.
+
+            :return: A map of the named terms to their names.
+        """
+        namedi = {}
+        for p in self.csm.getNamedTerms():
+            k = p.first
+            v = p.second
+            termk = _term(self.tm, k)
+            termv = v.decode()
+            namedi[termk] = termv
+        return namedi
 
 # ----------------------------------------------------------------------------
 # Command
@@ -1072,6 +1102,12 @@ cdef class SynthResult:
     def __cinit__(self):
         # gets populated by solver
         self.cr = c_SynthResult()
+
+    def __eq__(self, SynthResult other):
+        return self.cr == other.cr
+
+    def __ne__(self, SynthResult other):
+        return self.cr != other.cr
 
     def isNull(self):
         """
@@ -3572,7 +3608,8 @@ cdef class Solver:
         return proofs
 
     def proofToString(self, proof,
-                      format = ProofFormat.DEFAULT):
+                      format = ProofFormat.DEFAULT,
+                      assertionNames = {}):
         """
             Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.
@@ -3584,11 +3621,18 @@ cdef class Solver:
                           :py:meth:`getProof()`.
             :param format: The proof format used to print the proof.  Must be
                           "None" if the proof is not a full proof.
+            :param assertionNames: Mapping between assertions and names, if
+                                   they were  given by the user.  This is used
+                                   by the Alethe proof format.
 
             :return: The proof printed in the current format.
         """
+        cdef map[c_Term, string] assertionMap
+        for k in assertionNames:
+            assertionMap[(<Term> k).cterm] = assertionNames[k].encode('utf-8')
         return self.csolver.proofToString((<Proof?> proof).cproof,
-                                         <c_ProofFormat> format.value)
+                                         <c_ProofFormat> format.value,
+                                         assertionMap)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
@@ -4269,24 +4313,32 @@ cdef class Solver:
         """
             Get an interpolant.
 
+            This determines a term :math:`I`, optionally with respect to a
+            a given grammar, such that :math:`A \\rightarrow I` and
+            :math:`I \\rightarrow B` are valid, if such a term exits.
+            :math:`A` is the current set of assertions and :math:`B` is the
+            conjecture, given as :code:`conj`.
+
             SMT-LIB:
 
             .. code-block:: smtlib
 
-                ( get-interpolant <conj> )
-                ( get-interpolant <conj> <grammar> )
+                ( get-interpolant <symbol> <conj> )
+                ( get-interpolant <symbol> <conj> <grammar> )
 
-            Requires option
-            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
-            to be set to a mode different from `none`.
+            .. note:: In SMT-LIB, :code:`<symbol>` assigns a symbol to the
+                      interpolant.
+
+            .. note:: Requires option
+                 :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+                 to be set to a mode different from :code:`none`.
 
             .. warning:: This function is experimental and may change in future
                         versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the interpolant.
-            :return: The interpolant.
-                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+            :return: The interpolant, if such a term exists.
         """
         if grammar is None:
             return _term(self.tm, self.csolver.getInterpolant(conj.cterm))

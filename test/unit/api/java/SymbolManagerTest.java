@@ -27,9 +27,13 @@ class SymbolManagerTest extends ParserTest
 {
   void parseAndSetLogic(String logic)
   {
+    parseCommand("(set-logic " + logic + ")\n");
+  }
+  void parseCommand(String cmds)
+  {
     InputParser parser = new InputParser(d_solver, d_symman);
     parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "symbol_manager_test");
-    parser.appendIncrementalStringInput("(set-logic " + logic + ")\n");
+    parser.appendIncrementalStringInput(cmds);
     Command cmd = parser.nextCommand();
     assertNotEquals(cmd.isNull(), true);
     cmd.invoke(d_solver, d_symman);
@@ -55,5 +59,13 @@ class SymbolManagerTest extends ParserTest
   {
     assertEquals(d_symman.getDeclaredSorts().length, 0);
     assertEquals(d_symman.getDeclaredTerms().length, 0);
+  }
+  @Test
+  void getNamedTerms()
+  {
+    parseAndSetLogic("QF_LIA");
+    assertEquals(d_symman.getNamedTerms().size(), 0);
+    parseCommand("(assert (! false :named a0))");
+    assertEquals(d_symman.getNamedTerms().size(), 1);
   }
 }

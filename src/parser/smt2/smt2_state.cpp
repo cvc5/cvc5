@@ -27,13 +27,14 @@ namespace parser {
 Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
                      SymManager* sm,
-                     bool strictMode,
+                     ParsingMode parsingMode,
                      bool isSygus)
-    : ParserState(psc, solver, sm, strictMode),
+    : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
+  d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
 
 Smt2State::~Smt2State() {}
@@ -806,6 +807,11 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
+      if (!strictModeEnabled())
+      {
+        addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
+        addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
+      }
       addIndexedOperator(Kind::DIVISIBLE, "divisible");
     }
 
@@ -817,6 +823,7 @@ void Smt2State::setLogic(std::string name)
       if (!strictModeEnabled())
       {
         addOperator(Kind::ABS, "abs");
+        addOperator(Kind::DIVISION_TOTAL, "/_total");
       }
     }
 
@@ -891,6 +898,8 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(Kind::SET_MAP, "set.map");
     addOperator(Kind::SET_FILTER, "set.filter");
+    addOperator(Kind::SET_ALL, "set.all");
+    addOperator(Kind::SET_SOME, "set.some");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
     addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
@@ -1032,6 +1041,8 @@ bool Smt2State::hasGrammars() const
   return sygus() || d_solver->getOption("produce-abducts") == "true"
          || d_solver->getOption("produce-interpolants") == "true";
 }
+
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -114,7 +114,9 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     // failed to rewrite, we add a trust step which assumes eq is provable
     // from proven, and proceed as normal.
     Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
-    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {proven}, {}, eq);
+    Node seq = proven.eqNode(eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {}, {}, seq);
+    d_tspb->addStep(ProofRule::EQ_RESOLVE, {proven, seq}, {}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());

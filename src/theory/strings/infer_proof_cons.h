@@ -252,24 +252,26 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                               Node lit,
                               bool concludeNew,
                               TheoryProofStepBuffer& psb,
-                              std::unordered_set<Node>& termsToPurify);
+                              const std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
    * positions that are relevant for the core calculus of strings (direct
    * children of concat or equal).
    */
-  static Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify);
+  static Node purifyCoreTerm(Node n,
+                             const std::unordered_set<Node>& termsToPurify);
   /**
    * Purify application, which replaces each direct child nc of n with
    * maybePurifyTerm(nc, termsToPurify).
    */
-  static Node purifyApp(Node n, std::unordered_set<Node>& termsToPurify);
+  static Node purifyApp(Node n, const std::unordered_set<Node>& termsToPurify);
   /**
    * Maybe purify term, which returns the skolem variable for n if it occurs
    * in termsToPurify.
    */
-  static Node maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify);
+  static Node maybePurifyTerm(Node n,
+                              const std::unordered_set<Node>& termsToPurify);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */

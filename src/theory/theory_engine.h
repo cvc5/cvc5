@@ -92,6 +92,7 @@ class RelevanceManager;
 class Rewriter;
 class SharedSolver;
 class TheoryModel;
+class ConflictProcessor;
 
 }  // namespace theory
 
@@ -440,6 +441,11 @@ class TheoryEngine : protected EnvObj
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
 
+  /** Called externally to notify that the current branch is incomplete. */
+  void setModelUnsound(theory::IncompleteId id);
+  /** Called externally that we are unsound (user-context). */
+  void setRefutationUnsound(theory::IncompleteId id);
+
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
@@ -675,6 +681,8 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
   /** The list of modules */
   std::vector<theory::TheoryEngineModule*> d_modules;
+  /** Conflict processor */
+  std::unique_ptr<theory::ConflictProcessor> d_cp;
   /** User plugin modules */
   std::vector<std::unique_ptr<theory::PluginModule>> d_userPlugins;
 

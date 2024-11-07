@@ -38,14 +38,12 @@ class SatSolverFactory
   static CDCLTSatSolver* createCadical(Env& env,
                                        StatisticsRegistry& registry,
                                        ResourceManager* resmgr,
-                                       const std::string& name = "",
-                                       bool logProofs = false);
+                                       const std::string& name = "");
 
   static CDCLTSatSolver* createCadicalCDCLT(Env& env,
                                             StatisticsRegistry& registry,
                                             ResourceManager* resmgr,
-                                            const std::string& name = "",
-                                            bool logProofs = false);
+                                            const std::string& name = "");
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         ResourceManager* resmgr,

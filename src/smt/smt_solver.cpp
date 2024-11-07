@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -81,7 +82,7 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::resetAssertions()
@@ -98,7 +99,7 @@ void SmtSolver::resetAssertions()
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
   // must reset the preprocessor as well
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::interrupt()
@@ -133,6 +134,15 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
 void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
+  // carry information about soundness to the theory engine we are sending to
+  if (ap.isRefutationUnsound())
+  {
+    d_theoryEngine->setRefutationUnsound(theory::IncompleteId::PREPROCESSING);
+  }
+  if (ap.isModelUnsound())
+  {
+    d_theoryEngine->setModelUnsound(theory::IncompleteId::PREPROCESSING);
+  }
   // get the assertions
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
@@ -221,6 +231,18 @@ void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
+}
+
+void SmtSolver::finishInitPreprocessor()
+{
+  // determine if we are assigning a preprocess proof generator here
+  smt::PfManager* pm = d_env.getProofManager();
+  smt::PreprocessProofGenerator* pppg = nullptr;
+  if (pm != nullptr)
+  {
+    pppg = pm->getPreprocessProofGenerator();
+  }
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get(), pppg);
 }
 
 }  // namespace smt

@@ -21,6 +21,8 @@
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -79,6 +81,12 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::EVALUATE);
     return ret;
   }
+  else if (k == Kind::FUNCTION_ARRAY_CONST)
+  {
+    Node ret = theory::uf::FunctionConst::toLambda(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
+  }
   else if (k == Kind::FORALL)
   {
     // ignore annotation
@@ -89,6 +97,12 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
       return ret;
     }
+  }
+  else if (k == Kind::APPLY_UF)
+  {
+    Node ret = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
   }
   // convert indexed operators to symbolic
   if (GenericOp::isNumeralIndexedOperatorKind(k))
@@ -102,9 +116,16 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
-  Node nacc = expr::getACINormalForm(n);
-  recordProofStep(n, nacc, ProofRule::ACI_NORM);
-  return nacc;
+  // since string constants are converted to concatenation terms, we ensure
+  // these are flattened using ACI_NORM. This ensures (str.++ "AB" x) is
+  // handled as (str.++ "A" "B" x), not (str.++ (str.++ "A" "B") x).
+  if (k==Kind::STRING_CONCAT)
+  {
+    Node nacc = expr::getACINormalForm(n);
+    recordProofStep(n, nacc, ProofRule::ACI_NORM);
+    return nacc;
+  }
+  return n;
 }
 
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
@@ -148,7 +169,16 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 }
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
-    : EnvObj(env), d_tpg(env, nullptr), d_proof(env)
+    : EnvObj(env),
+      // must rewrite within operators
+      d_tpg(env,
+            nullptr,
+            TConvPolicy::FIXPOINT,
+            TConvCachePolicy::NEVER,
+            "ProofRewriteDb",
+            nullptr,
+            true),
+      d_proof(env)
 {
 }
 

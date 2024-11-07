@@ -113,6 +113,14 @@ class CVC5_EXPORT SymbolManager
    */
   std::vector<Term> getDeclaredTerms() const;
 
+  /**
+   * Get a mapping from terms to names that have been given to them via the
+   * :named attribute.
+   *
+   * @return A map of the named terms to their names.
+   */
+  std::map<Term, std::string> getNamedTerms() const;
+
  private:
   /** Get the underlying implementation */
   SymManager* toSymManager();
@@ -169,7 +177,7 @@ class CVC5_EXPORT Command
  private:
   /**
    * Constructor.
-   * @param n The internal command that is to be wrapped by this command.
+   * @param cmd The internal command that is to be wrapped by this command.
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
@@ -259,7 +267,7 @@ class CVC5_EXPORT InputParser
    * @param input The input string.
    * @param name  The name to use as input stream name for error messages.
    */
-  void setStringInput(modes::InputLanguage,
+  void setStringInput(modes::InputLanguage lang,
                       const std::string& input,
                       const std::string& name);
 
@@ -308,6 +316,13 @@ class CVC5_EXPORT InputParser
    */
   void setStringInputInternal(const std::string& input,
                               const std::string& name);
+  /**
+   * Set the input to incremental string input.
+   * @param lang The input language.
+   * @param name The name of the stream, for use in error messages.
+   */
+  void setIncrementalStringInputInternal(modes::InputLanguage lang,
+                                         const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**
@@ -325,6 +340,10 @@ class CVC5_EXPORT InputParser
   std::stringstream d_istringStream;
   /** Are we initialized to use the above string stream? */
   bool d_usingIStringStream;
+  /** The last language argument passed to setIncrementalStringInput(). */
+  modes::InputLanguage d_istringLang;
+  /** The last name argument passed to setIncrementalStringInput(). */
+  std::string d_istringName;
   /** The parser */
   std::shared_ptr<Parser> d_parser;
 };

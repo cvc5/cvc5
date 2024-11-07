@@ -784,10 +784,12 @@ class SolverTest
       assertTrue(s.isString());
       assertTrue(s.getString().endsWith("ms"));
       s = stats.get("resource::resourceUnitsUsed");
+      s.toString();
       assertTrue(s.isInternal());
       assertFalse(s.isDefault());
       assertTrue(s.isInt());
       assertTrue(s.getInt() >= 0);
+      s.toString();
     }
     for (Map.Entry<String, Stat> s : stats)
     {
@@ -801,6 +803,7 @@ class SolverTest
         assertTrue(elem.getValue().isInternal());
         assertTrue(elem.getValue().isDouble());
         assertTrue(Double.isNaN(elem.getValue().getDouble()));
+        elem.getValue().toString();
       }
     }
   }
@@ -938,6 +941,35 @@ class SolverTest
     assertNotEquals(0, proofs.length);
     printedProof = d_solver.proofToString(proofs[0], ProofFormat.NONE);
     assertFalse(printedProof.isEmpty());
+  }
+
+  @Test
+  void proofToStringAssertionNames()
+  {
+    d_solver.setOption("produce-proofs", "true");
+
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+
+    Term x_eq_y = d_solver.mkTerm(Kind.EQUAL, x, y);
+    Term not_x_eq_y = d_solver.mkTerm(Kind.NOT, x_eq_y);
+
+    Map<Term, String> assertionNames = new HashMap();
+    assertionNames.put(x_eq_y, "as1");
+    assertionNames.put(not_x_eq_y, "as2");
+
+    d_solver.assertFormula(x_eq_y);
+    d_solver.assertFormula(not_x_eq_y);
+    assertTrue(d_solver.checkSat().isUnsat());
+
+    Proof[] proofs = d_solver.getProof();
+    assertNotEquals(0, proofs.length);
+    String printedProof = d_solver.proofToString(proofs[0], ProofFormat.ALETHE, assertionNames);
+    assertFalse(printedProof.isEmpty());
+    assertTrue(printedProof.contains("as1"));
+    assertTrue(printedProof.contains("as2"));
   }
 
   @Test

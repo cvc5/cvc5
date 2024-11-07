@@ -27,7 +27,11 @@ namespace theory {
 namespace sets {
 
 InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
-    : EnvObj(env), d_tsr(tsr), d_imap(userContext()), d_expMap(userContext())
+    : EnvObj(env),
+      d_tsr(tsr),
+      d_uimap(userContext()),
+      d_fmap(context()),
+      d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
   d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
@@ -38,24 +42,37 @@ void InferProofCons::notifyFact(const Node& conc,
                                 InferenceId id)
 {
   Assert(conc.getKind() != Kind::AND && conc.getKind() != Kind::IMPLIES);
-  d_imap[conc] = id;
+  if (d_fmap.find(conc) != d_fmap.end())
+  {
+    // already exists, redundant
+    return;
+  }
+  d_fmap[conc] = id;
   d_expMap[conc] = exp;
 }
 
 void InferProofCons::notifyConflict(const Node& conf, InferenceId id)
 {
-  d_imap[conf.notNode()] = id;
+  Trace("sets-ipc-debug") << "SetsIpc::conflict " << conf << " " << id
+                          << std::endl;
+  d_uimap[conf.notNode()] = id;
 }
 
 void InferProofCons::notifyLemma(const Node& lem, InferenceId id)
 {
-  d_imap[lem] = id;
+  Trace("sets-ipc-debug") << "SetsIpc::lemma " << lem << " " << id << std::endl;
+  d_uimap[lem] = id;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
-  NodeInferenceMap::iterator it = d_imap.find(fact);
-  Assert(it != d_imap.end());
+  NodeInferenceMap::iterator it = d_uimap.find(fact);
+  if (it == d_uimap.end())
+  {
+    // should be a fact
+    it = d_fmap.find(fact);
+    Assert(it != d_fmap.end());
+  }
   InferenceId id = it->second;
 
   // temporary proof
@@ -85,6 +102,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   }
   else
   {
+    // should be a fact
     NodeExpMap::iterator itex = d_expMap.find(fact);
     if (itex != d_expMap.end())
     {
@@ -135,7 +153,11 @@ bool InferProofCons::convert(CDProof& cdp,
       // assumption and rewriting.
       std::vector<Node> exp(assumps.begin() + 1, assumps.end());
       Node aelim = psb.applyPredElim(assumps[0], exp);
-      success = (aelim == conc);
+      success = true;
+      if (!CDProof::isSame(aelim, conc))
+      {
+        success = psb.applyPredTransform(aelim, conc, {});
+      }
       // should never fail
       Assert(success);
     }
@@ -294,7 +316,7 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(exp.getKind() == Kind::NOT && exp[0].getKind() == Kind::EQUAL
              && exp[0][0] < exp[0][1]);
       Node res = psb.tryStep(ProofRule::SETS_EXT, {exp}, {}, conc);
-      success = (res == conc);
+      success = CDProof::isSame(res, conc);
       Assert(success);
     }
     break;
@@ -304,7 +326,58 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1);
       Node res =
           psb.tryStep(ProofRule::SETS_SINGLETON_INJ, {assumps[0]}, {}, conc);
-      success = (res == conc);
+      success = CDProof::isSame(res, conc);
+      Assert(success);
+    }
+    break;
+    case InferenceId::SETS_FILTER_UP:
+    case InferenceId::SETS_FILTER_DOWN:
+    {
+      Node mem = assumps[0];
+      if (assumps.size() == 2)
+      {
+        // Transform based on the second equality A = B:
+        //
+        //                  ------ REFL
+        //                   x = x               A = B
+        //                  ----------------------------------- CONG
+        // (set.member x A) (set.member x A) = (set.member x B)
+        // ---------------------------------------------------- EQ_RESOLVE
+        // (set.member x B)
+        Assert(assumps[0].getKind() == Kind::SET_MEMBER);
+        Assert(assumps[1].getKind() == Kind::EQUAL);
+        Node refl = psb.tryStep(ProofRule::REFL, {}, {assumps[0][0]});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(assumps[0], cargs);
+        Node aeq = assumps[1];
+        if (aeq[1] == assumps[0][1])
+        {
+          // flip?
+          aeq = aeq[1].eqNode(aeq[0]);
+          psb.tryStep(ProofRule::SYMM, {assumps[1]}, {});
+        }
+        Node eq = psb.tryStep(cr, {refl, aeq}, cargs);
+        Trace("sets-ipc") << "...via CONG is " << eq << ", now try with " << mem
+                          << std::endl;
+        mem = psb.tryStep(ProofRule::EQ_RESOLVE, {mem, eq}, {});
+        Assert(!mem.isNull());
+      }
+      ProofRule pr = (id == InferenceId::SETS_FILTER_UP)
+                         ? ProofRule::SETS_FILTER_UP
+                         : ProofRule::SETS_FILTER_DOWN;
+      std::vector<Node> pfArgs;
+      if (id == InferenceId::SETS_FILTER_UP)
+      {
+        Assert(conc.getKind() == Kind::EQUAL
+               && conc[0].getKind() == Kind::SET_MEMBER
+               && conc[0][1].getKind() == Kind::SET_FILTER);
+        Node pred = conc[0][1][0];
+        pfArgs.push_back(pred);
+      }
+      Node res = psb.tryStep(pr, {mem}, pfArgs);
+      Trace("sets-ipc") << "Filter rule " << id << " returns " << res
+                        << ", expects " << conc << std::endl;
+      success = CDProof::isSame(res, conc);
       Assert(success);
     }
     break;

@@ -49,7 +49,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_internal(env, d_astate, d_im, d_bab),
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
-      d_arithPreproc(env, d_im, d_pnm, d_opElim),
+      d_arithPreproc(env, d_im, d_opElim),
       d_rewriter(nodeManager(), d_opElim),
       d_arithModelCacheSet(false),
       d_checker(nodeManager())
@@ -127,6 +127,14 @@ void TheoryArith::preRegisterTerm(TNode n)
   // informative error message
   if (isTransKind || k == Kind::IAND || k == Kind::POW2)
   {
+    if (!options().arith.arithExp)
+    {
+      std::stringstream ss;
+      ss << "Support for arithmetic extensions (required for " << k
+         << ") not available in this configuration, try "
+            "--arith-exp.";
+      throw LogicException(ss.str());
+    }
     if (d_nonlinearExtension == nullptr)
     {
       std::stringstream ss;

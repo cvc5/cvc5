@@ -90,12 +90,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   }
   else
   {
-    // log DRAT proofs if the mode is SKETCH.
-    bool logProofs =
-        (env.isSatProofProducing()
-         && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
+        d_env, statisticsRegistry(), env.getResourceManager(), "");
   }
 
   // CNF stream and theory proxy required pointers to each other, make the
@@ -775,7 +771,35 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 std::vector<Node> PropEngine::getUnsatCoreLemmas()
 {
   Assert(d_env.isSatProofProducing());
-  return d_ppm->getUnsatCoreLemmas();
+  std::vector<Node> lems = d_ppm->getUnsatCoreLemmas();
+  if (isOutputOn(OutputTag::UNSAT_CORE_LEMMAS))
+  {
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas start" << std::endl;
+    std::stringstream ss;
+    for (const Node& lem : lems)
+    {
+      output(OutputTag::UNSAT_CORE_LEMMAS) << "(unsat-core-lemma ";
+      output(OutputTag::UNSAT_CORE_LEMMAS)
+          << SkolemManager::getOriginalForm(lem);
+      uint64_t timestamp = 0;
+      theory::InferenceId id = d_ppm->getInferenceIdFor(lem, timestamp);
+      if (id != theory::InferenceId::NONE)
+      {
+        output(OutputTag::UNSAT_CORE_LEMMAS) << " :source " << id;
+      }
+      output(OutputTag::UNSAT_CORE_LEMMAS) << " :timestamp " << timestamp;
+      output(OutputTag::UNSAT_CORE_LEMMAS) << ")" << std::endl;
+      // for trace below
+      ss << id << ", " << timestamp << std::endl;
+    }
+    output(OutputTag::UNSAT_CORE_LEMMAS)
+        << ";; unsat core lemmas end" << std::endl;
+    // print in csv form for debugging
+    Trace("ocl-timestamp") << "TIMESTAMPS" << std::endl;
+    Trace("ocl-timestamp") << ss.str() << std::endl;
+  }
+  return lems;
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(

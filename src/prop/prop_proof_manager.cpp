@@ -16,6 +16,7 @@
 #include "prop/prop_proof_manager.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "printer/printer.h"
 #include "proof/proof_ensure_closed.h"
@@ -27,6 +28,8 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
+#include "util/resource_manager.h"
 #include "util/string.h"
 
 namespace cvc5::internal {
@@ -47,9 +50,9 @@ PropPfManager::PropPfManager(Env& env,
       // (= a b), whose proof depends on symmetry applied to (= b a). It does
       // not have a generator for (= b a). However if asked for a proof of the
       // fact (= b a) (after having expanded the proof of (= a b)), since it has
-      // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
-      // on the proof of (= a b). As a result the assumption (= b a) would be
-      // assigned a proof with assumption (= b a). This breakes the invariant of
+      // no generator for (= b a), a proof (= b a) can be generated via symmetry
+      // on the proof of (= a b). As a result, the assumption (= b a) would be
+      // assigned a proof with assumption (= b a). This breaks the invariant of
       // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
       // of both the assumption (= b a) we are asking the proof for and the
       // assumption (= b a) in the proof of (= a b) are the same.
@@ -63,15 +66,24 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
-      d_satPm(nullptr)
+      d_trackLemmaClauseIds(false),
+      d_lemmaClauseIds(userContext()),
+      d_lemmaClauseTimestamp(userContext()),
+      d_currLemmaId(theory::InferenceId::NONE),
+      d_satPm(nullptr),
+      d_uclIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
+          "ppm::unsatCoreLemmaIds")),
+      d_uclSize(statisticsRegistry().registerInt("ppm::unsatCoreLemmaSize")),
+      d_numUcl(statisticsRegistry().registerInt("ppm::unsatCoreLemmaCalls"))
 {
-  // add trivial assumption. This is so that we can check the that the prop
-  // engine's proof is closed, as the SAT solver's refutation proof may use True
-  // as an assumption even when True is not given as an assumption. An example
-  // is when a propagated literal has an empty explanation (i.e., it is a valid
+  // Add trivial assumption. This is so that we can check that the prop engine's
+  // proof is closed, as the SAT solver's refutation proof may use True as an
+  // assumption even when True is not given as an assumption. An example is when
+  // a propagated literal has an empty explanation (i.e., it is a valid
   // literal), which leads to adding True as its explanation, since for creating
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
+  d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
@@ -83,7 +95,9 @@ void PropPfManager::convertAndAssert(theory::InferenceId id,
                                      bool input,
                                      ProofGenerator* pg)
 {
+  d_currLemmaId = id;
   d_pfCnfStream.convertAndAssert(node, negated, removable, input, pg);
+  d_currLemmaId = theory::InferenceId::NONE;
   // if input, register the assertion in the proof manager
   if (input)
   {
@@ -136,177 +150,55 @@ std::vector<Node> PropPfManager::getUnsatCoreLemmas()
       usedLemmas.push_back(lemma);
     }
   }
+  if (d_trackLemmaClauseIds)
+  {
+    ++d_numUcl;
+    uint64_t timestamp;
+    for (const Node& lemma : usedLemmas)
+    {
+      d_uclIds << getInferenceIdFor(lemma, timestamp);
+      ++d_uclSize;
+    }
+  }
   return usedLemmas;
 }
 
-std::vector<Node> PropPfManager::getMinimizedAssumptions()
+theory::InferenceId PropPfManager::getInferenceIdFor(const Node& lem,
+                                                     uint64_t& timestamp) const
 {
-  std::vector<Node> minAssumptions;
-  std::vector<SatLiteral> unsatAssumptions;
-  d_satSolver->getUnsatAssumptions(unsatAssumptions);
-  for (const Node& nc : d_assumptions)
+  context::CDHashMap<Node, theory::InferenceId>::const_iterator it =
+      d_lemmaClauseIds.find(lem);
+  if (it != d_lemmaClauseIds.end())
   {
-    if (nc.isConst())
+    context::CDHashMap<Node, uint64_t>::const_iterator itt =
+        d_lemmaClauseTimestamp.find(lem);
+    if (itt != d_lemmaClauseTimestamp.end())
     {
-      if (nc.getConst<bool>())
-      {
-        // never include true
-        continue;
-      }
-      minAssumptions.clear();
-      minAssumptions.push_back(nc);
-      return minAssumptions;
+      timestamp = itt->second;
     }
-    else if (d_pfCnfStream.hasLiteral(nc))
-    {
-      SatLiteral il = d_pfCnfStream.getLiteral(nc);
-      if (std::find(unsatAssumptions.begin(), unsatAssumptions.end(), il)
-          == unsatAssumptions.end())
-      {
-        continue;
-      }
-    }
-    else
-    {
-      Assert(false) << "Missing literal for assumption " << nc;
-    }
-    minAssumptions.push_back(nc);
+    return it->second;
   }
-  return minAssumptions;
+  return theory::InferenceId::NONE;
 }
-
-std::vector<Node> PropPfManager::getUnsatCoreClauses(std::ostream* outDimacs)
+std::vector<Node> PropPfManager::getUnsatCoreClauses()
 {
   std::vector<Node> uc;
   // if it has a proof
   std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
-  if (satPf != nullptr)
+  // Note that we currently assume that the proof is the standard way of
+  // communicating the unsat core of theory lemmas. If no proofs are
+  // available, then a trust step (e.g. SAT_REFUTATION) with free assumptions
+  // F1 ... Fn can be used to indicate that F1 ... Fn is the unsat core
+  if (satPf == nullptr)
   {
-    // then, get the proof *without* connecting the CNF
-    expr::getFreeAssumptions(satPf.get(), uc);
-    if (outDimacs != nullptr)
-    {
-      std::vector<Node> auxUnits = computeAuxiliaryUnits(uc);
-      d_pfCnfStream.dumpDimacs(*outDimacs, uc, auxUnits);
-      // include the auxiliary units if any
-      uc.insert(uc.end(), auxUnits.begin(), auxUnits.end());
-    }
-    return uc;
+    std::stringstream ss;
+    ss << "ERROR: cannot get unsat core clauses when SAT solver is not proof "
+          "producing.";
+    throw LogicException(ss.str());
   }
-  // otherwise we need to compute it
-  // as a minor optimization, we use only minimized assumptions
-  std::vector<Node> minAssumptions = getMinimizedAssumptions();
-  std::unordered_set<Node> cset(minAssumptions.begin(), minAssumptions.end());
-  std::vector<Node> inputs = getInputClauses();
-  std::vector<Node> lemmas = getLemmaClauses();
-  cset.insert(inputs.begin(), inputs.end());
-  cset.insert(lemmas.begin(), lemmas.end());
-  if (!reproveUnsatCore(cset, uc, outDimacs))
-  {
-    // otherwise, must include all
-    return getLemmaClauses();
-  }
+  // then, get the proof *without* connecting the CNF
+  expr::getFreeAssumptions(satPf.get(), uc);
   return uc;
-}
-
-bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
-                                     std::vector<Node>& uc,
-                                     std::ostream* outDimacs)
-{
-  std::unique_ptr<CDCLTSatSolver> csm(SatSolverFactory::createCadical(
-      d_env, statisticsRegistry(), d_env.getResourceManager(), ""));
-  NullRegistrar nreg;
-  context::Context nctx;
-  CnfStream csms(d_env, csm.get(), &nreg, &nctx);
-  Trace("cnf-input-min") << "Get literals..." << std::endl;
-  std::vector<SatLiteral> csma;
-  std::map<SatLiteral, Node> litToNode;
-  std::map<SatLiteral, Node> litToNodeAbs;
-  NodeManager* nm = NodeManager::currentNM();
-  TypeNode bt = nm->booleanType();
-  TypeNode ft = nm->mkFunctionType({bt}, bt);
-  SkolemManager* skm = nm->getSkolemManager();
-  // Function used to ensure that subformulas are not treated by CNF below.
-  Node litOf = skm->mkDummySkolem("litOf", ft);
-  for (const Node& c : cset)
-  {
-    Node ca = c;
-    std::vector<SatLiteral> satClause;
-    std::vector<Node> lits;
-    if (c.getKind() == Kind::OR)
-    {
-      lits.insert(lits.end(), c.begin(), c.end());
-    }
-    else
-    {
-      lits.push_back(c);
-    }
-    // For each literal l in the current clause, if it has Boolean
-    // substructure, we replace it with (litOf l), which will be treated as a
-    // literal. We do this since we require that the clause be treated
-    // verbatim by the SAT solver, otherwise the unsat core will not include
-    // the necessary clauses (e.g. it will skip those corresponding to CNF
-    // conversion).
-    std::vector<Node> cls;
-    bool childChanged = false;
-    for (const Node& cl : lits)
-    {
-      bool negated = cl.getKind() == Kind::NOT;
-      Node cla = negated ? cl[0] : cl;
-      if (d_env.theoryOf(cla) == theory::THEORY_BOOL && !cla.isVar())
-      {
-        Node k = nm->mkNode(Kind::APPLY_UF, {litOf, cla});
-        cls.push_back(negated ? k.notNode() : k);
-        childChanged = true;
-      }
-      else
-      {
-        cls.push_back(cl);
-      }
-    }
-    if (childChanged)
-    {
-      ca = nm->mkOr(cls);
-    }
-    Trace("cnf-input-min-assert") << "Assert: " << ca << std::endl;
-    csms.ensureLiteral(ca);
-    SatLiteral lit = csms.getLiteral(ca);
-    csma.emplace_back(lit);
-    litToNode[lit] = c;
-    litToNodeAbs[lit] = ca;
-  }
-  Trace("cnf-input-min") << "Solve under " << csma.size() << " assumptions..."
-                         << std::endl;
-  SatValue res = csm->solve(csma);
-  bool success = false;
-  if (res == SAT_VALUE_FALSE)
-  {
-    // we successfully reproved the input
-    Trace("cnf-input-min") << "...got unsat" << std::endl;
-    std::vector<SatLiteral> uassumptions;
-    csm->getUnsatAssumptions(uassumptions);
-    Trace("cnf-input-min") << "...#unsat assumptions=" << uassumptions.size()
-                           << std::endl;
-    std::vector<Node> aclauses;
-    for (const SatLiteral& lit : uassumptions)
-    {
-      Assert(litToNode.find(lit) != litToNode.end());
-      Trace("cnf-input-min-result")
-          << "assert: " << litToNode[lit] << std::endl;
-      uc.emplace_back(litToNode[lit]);
-      aclauses.emplace_back(litToNodeAbs[lit]);
-    }
-    if (outDimacs)
-    {
-      // dump using the CNF stream we created above
-      csms.dumpDimacs(*outDimacs, aclauses);
-    }
-    success = true;
-  }
-  // should never happen, if it does, we revert to the entire input
-  Trace("cnf-input-min") << "...got sat" << std::endl;
-  Assert(success) << "Failed to minimize DIMACS";
-  return success;
 }
 
 std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
@@ -348,19 +240,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   // get the proof based on the proof mode
   options::PropProofMode pmode = options().proof.propProofMode;
   std::shared_ptr<ProofNode> conflictProof;
-  if (pmode == options::PropProofMode::PROOF)
-  {
-    // take proof from SAT solver as is
-    conflictProof = d_satSolver->getProof();
-  }
-  else
-  {
-    // set up a proof and get the internal proof
-    CDProof cdp(d_env);
-    getProofInternal(&cdp);
-    Node falsen = NodeManager::currentNM()->mkConst(false);
-    conflictProof = cdp.getProofFor(falsen);
-  }
+  // take proof from SAT solver as is
+  conflictProof = d_satSolver->getProof();
 
   Assert(conflictProof);
   if (TraceIsOn("sat-proof"))
@@ -384,7 +265,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     return conflictProof;
   }
   // Must clone if we are using the original proof, since we don't want to
-  // modify the original SAT proof.
+  // modify the original SAT proof. Note that other propProofMode settings
+  // may also require cloning here.
   if (pmode == options::PropProofMode::PROOF)
   {
     conflictProof = conflictProof->clone();
@@ -444,6 +326,13 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   else
   {
     d_lemmaClauses.insert(normClauseNode);
+    if (d_trackLemmaClauseIds)
+    {
+      d_lemmaClauseIds[normClauseNode] = d_currLemmaId;
+      uint64_t currTimestamp = d_env.getResourceManager()->getResource(
+          Resource::TheoryFullCheckStep);
+      d_lemmaClauseTimestamp[normClauseNode] = currTimestamp;
+    }
   }
   if (d_satPm)
   {
@@ -453,125 +342,6 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
 }
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }
-
-void PropPfManager::getProofInternal(CDProof* cdp)
-{
-  // This method is called when the SAT solver did not generate a fully self
-  // contained ProofNode proving false. This method adds a step to cdp
-  // based on a set of computed assumptions, possibly relying on the internal
-  // proof.
-  NodeManager* nm = NodeManager::currentNM();
-  Node falsen = nm->mkConst(false);
-  std::vector<Node> clauses;
-  // deduplicate assumptions
-  Trace("cnf-input") << "#assumptions=" << d_assumptions.size() << std::endl;
-  std::vector<Node> minAssumptions = getMinimizedAssumptions();
-  if (minAssumptions.size() == 1 && minAssumptions[0] == falsen)
-  {
-    // if false exists, no proof is necessary
-    return;
-  }
-  std::unordered_set<Node> cset(minAssumptions.begin(), minAssumptions.end());
-  Trace("cnf-input") << "#assumptions (min)=" << cset.size() << std::endl;
-  std::vector<Node> inputs = getInputClauses();
-  Trace("cnf-input") << "#input=" << inputs.size() << std::endl;
-  std::vector<Node> lemmas = getLemmaClauses();
-  Trace("cnf-input") << "#lemmas=" << lemmas.size() << std::endl;
-  cset.insert(inputs.begin(), inputs.end());
-  cset.insert(lemmas.begin(), lemmas.end());
-
-  // Otherwise, we will dump a DIMACS. The proof further depends on the
-  // mode, which we handle below.
-  std::stringstream dinputFile;
-  dinputFile << options().driver.filename << ".drat_input.cnf";
-  // the stream which stores the DIMACS of the computed clauses
-  std::fstream dout(dinputFile.str(), std::ios::out);
-  options::PropProofMode pmode = options().proof.propProofMode;
-  // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
-  bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
-                  && options().proof.satProofMinDimacs);
-  // go back and minimize assumptions if minimal is true
-  bool computedClauses = false;
-  if (minimal)
-  {
-    // get the unsat core clauses
-    std::shared_ptr<ProofNode> satPf = d_satSolver->getProof();
-    if (satPf != nullptr)
-    {
-      clauses = getUnsatCoreClauses(&dout);
-      computedClauses = true;
-    }
-    else if (reproveUnsatCore(cset, clauses, &dout))
-    {
-      computedClauses = true;
-    }
-    else
-    {
-      // failed to reprove
-    }
-  }
-  // if we did not minimize, just include all
-  if (!computedClauses)
-  {
-    // if no minimization is necessary, just include all
-    clauses.insert(clauses.end(), cset.begin(), cset.end());
-    std::vector<Node> auxUnits = computeAuxiliaryUnits(clauses);
-    d_pfCnfStream.dumpDimacs(dout, clauses, auxUnits);
-    // include the auxiliary units if any
-    clauses.insert(clauses.end(), auxUnits.begin(), auxUnits.end());
-  }
-  // construct the proof
-  std::vector<Node> args;
-  Node dfile = nm->mkConst(String(dinputFile.str()));
-  args.push_back(dfile);
-  ProofRule r = ProofRule::UNKNOWN;
-  if (pmode == options::PropProofMode::SKETCH)
-  {
-    // if sketch, get the rule and arguments from the SAT solver.
-    std::pair<ProofRule, std::vector<Node>> sk = d_satSolver->getProofSketch();
-    r = sk.first;
-    args.insert(args.end(), sk.second.begin(), sk.second.end());
-  }
-  else if (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE)
-  {
-    // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
-    // arguments.
-    r = ProofRule::SAT_EXTERNAL_PROVE;
-  }
-  else
-  {
-    Assert(false) << "Unknown proof mode " << pmode;
-  }
-  // use the rule, clauses and arguments we computed above
-  cdp->addStep(falsen, r, clauses, args);
-}
-
-std::vector<Node> PropPfManager::computeAuxiliaryUnits(
-    const std::vector<Node>& clauses)
-{
-  std::vector<Node> auxUnits;
-  for (const Node& c : clauses)
-  {
-    if (c.getKind() != Kind::OR)
-    {
-      continue;
-    }
-    // Determine if any OR child occurs as a top level clause. If so, it may
-    // be relevant to include this as a unit clause.
-    for (const Node& l : c)
-    {
-      const Node& atom = l.getKind() == Kind::NOT ? l[0] : l;
-      if (atom.getKind() == Kind::OR
-          && std::find(clauses.begin(), clauses.end(), atom) != clauses.end()
-          && std::find(auxUnits.begin(), auxUnits.end(), atom)
-                 == auxUnits.end())
-      {
-        auxUnits.push_back(atom);
-      }
-    }
-  }
-  return auxUnits;
-}
 
 std::vector<Node> PropPfManager::getInputClauses()
 {
@@ -680,7 +450,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // the d_proof, so that there are no non-input assumptions.
   if (!proofLogging)
   {
-    d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {clauseExp});
+    d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {});
   }
 }
 

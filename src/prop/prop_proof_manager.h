@@ -119,6 +119,15 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getUnsatCoreLemmas();
 
   /**
+   * Get inference id for a lemma, e.g. one that appears in the return of
+   * getUnsatCoreLemmas. Note that the inference id will be InferenceId::NONE
+   * if lem is not an unsat core lemma, or if it corresponded e.g. to a lemma
+   * learned via theory propagation.
+   */
+  theory::InferenceId getInferenceIdFor(const Node& lem,
+                                        uint64_t& timestamp) const;
+
+  /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
    * previously registered assertions in d_assertions.
    *
@@ -180,65 +189,11 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getLemmaClauses();
   /**
    * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
-   * we examine its leaves. Otherwise, we recompute the unsat core lemmas
-   * using the method reproveUnsatCore.
+   * we examine its leaves. Otherwise, we throw an exception.
    *
-   * @param outDimacs If provided, we write the DIMACS output of uc to this
-   * stream
    * @return the unsat core of lemmas.
    */
-  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
-  /**
-   * Get minimized assumptions. Returns a vector of nodes which is a
-   * subset of the assumptions (d_assumptions) that appear in the unsat
-   * core. This should be called only when the unsat core is available (after
-   * an unsatisfiable check-sat).
-   */
-  std::vector<Node> getMinimizedAssumptions();
-  /**
-   * Calculate a subset of cset that is propositionally unsatisfiable.
-   * If sucessful, return true and store this in uc.
-   *
-   * @param cset The set of formulas to compute an unsat core for
-   * @param uc The set of formulas returned as the unsat core
-   * @param outDimacs If provided, we write a DIMACS representation of uc to
-   * this stream
-   */
-  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
-                        std::vector<Node>& uc,
-                        std::ostream* outDimacs = nullptr);
-  /**
-   * Add a proof of false to cdp whose free assumptions are a subset of the
-   * clauses (after CNF conversion), which is a union of:
-   * (1) assumptions (d_assumptions),
-   * (2) input clauses (d_inputClauses),
-   * (3) lemma clauses (d_lemmaClauses).
-   * The choice of what to add to cdp is dependent on the prop-proof-mode.
-   *
-   * @param cdp The proof object to add the refutation proof to.
-   */
-  void getProofInternal(CDProof* cdp);
-  /**
-   * Get auxilary units. Computes top-level formulas in clauses that
-   * also occur as literals which we call "auxiliary units". In particular,
-   * consider the set of propositionally unsatisfiable clauses:
-   *
-   * (or ~(or A B) ~C)
-   * (or A B)
-   * C
-   *
-   * Here, we return (or A B) as an auxilary unit clause.
-   *
-   * Note that in the above example, it is ambiguous whether to interpret the
-   * second clause (or A B) as a unit clause or as a clause with literals
-   * A and B. To ensure that we generate an unsatisfiable DIMACS, we include
-   * both in a proof output. In particular, Any OR-term that occurs as a literal
-   * of another clause is included in the return vector.
-   *
-   * @param clauses The clauses
-   * @return the auxiliary units for the set of clauses.
-   */
-  std::vector<Node> computeAuxiliaryUnits(const std::vector<Node>& clauses);
+  std::vector<Node> getUnsatCoreClauses();
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *
@@ -270,10 +225,30 @@ class PropPfManager : protected EnvObj
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */
   context::CDHashSet<Node> d_lemmaClauses;
+  /** Are we tracking inference identifiers? */
+  bool d_trackLemmaClauseIds;
+  /** Mapping lemma clauses to inference identifiers */
+  context::CDHashMap<Node, theory::InferenceId> d_lemmaClauseIds;
+  /**
+   * Mapping lemma clauses to a timestamp. Currently, the timestamp corresponds
+   * to the number of calls to full check we have seen thus far.
+   */
+  context::CDHashMap<Node, uint64_t> d_lemmaClauseTimestamp;
+  /** The current identifier */
+  theory::InferenceId d_currLemmaId;
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
   /** Temporary, pointer to SAT proof manager */
   SatProofManager* d_satPm;
+  /**
+   * Counts number of inference ids in requested unsat core lemmas. Note this is
+   * tracked only if -o unsat-core-lemmas is on.
+   */
+  HistogramStat<theory::InferenceId> d_uclIds;
+  /** Total number of unsat core lemmas */
+  IntStat d_uclSize;
+  /** Total number of times we asked for unsat core lemmas */
+  IntStat d_numUcl;
 }; /* class PropPfManager */
 
 }  // namespace prop
