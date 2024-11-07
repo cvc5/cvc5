@@ -233,7 +233,7 @@ class QuantAttributes
    */
   bool isQuantElim(Node q) const;
   /** is quant elim partial */
-  bool isQuantElimPartial( Node q ) const;
+  bool isQuantElimPartial(Node q) const;
   /** is internal quantifier */
   bool isQuantBounded(Node q) const;
   /** get quant name, which is used for :qid */

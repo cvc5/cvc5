@@ -380,7 +380,7 @@ bool QuantAttributes::isQuantElim(Node q) const
 }
 bool QuantAttributes::isQuantElimPartial(Node q) const
 {
-  std::map< Node, QAttributes >::const_iterator it = d_qattr.find( q );
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
   if( it==d_qattr.end() ){
     return false;
   }
