@@ -1,6 +1,6 @@
 ; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
-; COMMAND-LINE: --strings-exp --seq-array=eager
+; COMMAND-LINE: --seq-array=eager
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-sort T 0)

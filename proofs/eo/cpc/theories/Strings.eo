@@ -148,6 +148,8 @@
 ; disclaimer: This function is not in SMT-LIB.
 (define seq.replace () str.replace)
 ; disclaimer: This function is not in SMT-LIB.
+(define seq.replace_all () str.replace_all)
+; disclaimer: This function is not in SMT-LIB.
 (define seq.indexof () str.indexof)
 ; disclaimer: This function is not in SMT-LIB.
 (define seq.prefixof () str.prefixof)

@@ -70,7 +70,8 @@
   :conclusion (= B ($substitute_list vs ts B))
 )
 
-; rule: beta_reduce implements ProofRewriteRule::BETA_REDUCE
+; rule: beta-reduce
+; implements: ProofRewriteRule::BETA_REDUCE.
 ; args:
 ; - eq : Bool. The equality to prove between terms a and b.
 ; requires: Showing that a beta-reduces to b.

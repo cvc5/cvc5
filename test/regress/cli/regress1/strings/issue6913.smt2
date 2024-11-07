@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 ; EXPECT: unsat
 ;; repeated assumption in local proof lead to confusion with
 ;; discharge. Disabling for now while the use of "discharge" is not
