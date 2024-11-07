@@ -362,6 +362,9 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     }
     else if (tn.isBitVector())
     {
+      // if this quantified formula corresponds to a quantifier we are
+      // eliminating via get-qe, we cannot use cegqiBv since it introduces
+      // witness/skolem terms.
       if (d_qreg.getQuantAttributes().isQuantElim(d_quant))
       {
         vinst = new ModelValueInstantiator(d_env, tn);
