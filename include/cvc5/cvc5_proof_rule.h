@@ -3212,10 +3212,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ULE_ELIMINATE),
   /** Auto-generated from RARE rule bv-comp-eliminate */
   EVALUE(BV_COMP_ELIMINATE),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-1 */
-  EVALUE(BV_REPEAT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-2 */
-  EVALUE(BV_REPEAT_ELIMINATE_2),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */
