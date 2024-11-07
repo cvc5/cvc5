@@ -362,7 +362,14 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     }
     else if (tn.isBitVector())
     {
-      vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
+      if (d_qreg.getQuantAttributes().isQuantElim(d_quant))
+      {
+        vinst = new ModelValueInstantiator(d_env, tn);
+      }
+      else
+      {
+        vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
+      }
     }
     else if (tn.isBoolean())
     {
