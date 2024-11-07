@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --no-jh-rlv-order
+; COMMAND-LINE: --no-jh-rlv-order
 (set-logic QF_SLIA)
 (declare-fun literal_0 () String)
 (assert (and (str.<= (str.++ literal_0 "\u{2f}\u{71}\u{75}\u{65}\u{73}\u{74}\u{69}\u{6f}\u{6e}\u{2f}\u{74}\u{79}\u{70}\u{65}\u{2f}\u{6e}\u{75}\u{6d}\u{65}\u{72}\u{69}\u{63}\u{61}\u{6c}\u{2f}\u{65}\u{64}\u{69}\u{74}\u{71}\u{75}\u{65}\u{73}\u{74}\u{69}\u{6f}\u{6e}\u{2e}\u{68}\u{74}\u{6d}\u{6c}") 

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-option :incremental true)
 (set-logic SLIA)
 (declare-const x String)

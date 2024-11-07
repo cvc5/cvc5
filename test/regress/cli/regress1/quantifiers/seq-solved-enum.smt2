@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --full-saturate-quant
+; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL)
 

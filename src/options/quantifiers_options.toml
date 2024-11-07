@@ -644,7 +644,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefined"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun"
   type       = "bool"
   default    = "false"
@@ -652,7 +652,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefinedRelevant"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun-rlv"
   type       = "bool"
   default    = "false"

@@ -3119,23 +3119,28 @@ public class Solver extends AbstractPointer
   private native void pop(long pointer, int nscopes);
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   * <p>
+   * This determines a term {@code I} such that {@code A->I} and {@code I->B}
+   * are valid, if such a term exits. {@code A} is the current set of
+   * assertions and {@code B} is the conjecture, given as {@code conj}.
+   * </p>
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <conj> )
+   * ( get-interpolant <symbol> <conj> )
    * }
    *
-   * Requires option {@code produce-interpolants} to be set to a mode different
-   * from {@code none}.
+   * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
+   *
+   * @api.note Requires option {@code produce-interpolants} to be set to a mode
+   * different from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
-   *         {@code A} is the current set of assertions and {@code B} is given
-   *         in the input by {@code conj}, or the null term if such a term
-   *         cannot be found.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   public Term getInterpolant(Term conj)
   {
@@ -3146,24 +3151,30 @@ public class Solver extends AbstractPointer
   private native long getInterpolant(long pointer, long conjPointer);
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   * <p>
+   * This determines a term {@code I}, with respect to a given grammar, such
+   * that {@code A->I} and {@code I->B} are valid, if such a term exits.
+   * {@code A} is the current set of assertions and {@code B} is the
+   * conjecture, given as {@code conj}.
+   * </p>
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <conj> <g> )
+   * ( get-interpolant <symbol> <conj> <g> )
    * }
    *
-   * Requires option {@code produce-interpolants} to be set to a mode different
-   * from {@code none}.
+   * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
+   *
+   * @api.note Requires option {@code produce-interpolants} to be set to a mode
+   * different from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @param grammar The grammar for the interpolant I.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
-   *         {@code A} is the current set of assertions and {@code B} is given
-   *         in the input by {@code conj}, or the null term if such a term
-   *         cannot be found.
+   * @param grammar The grammar for the interpolant {@code I}.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {

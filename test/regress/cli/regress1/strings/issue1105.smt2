@@ -1,6 +1,6 @@
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 (declare-datatype Val
     ((Str (str String))
