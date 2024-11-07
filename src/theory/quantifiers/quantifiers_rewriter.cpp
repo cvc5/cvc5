@@ -108,6 +108,10 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -254,6 +258,42 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       return ret;
+    }
+    break;
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
+    {
+      if (n.getKind() != Kind::FORALL)
+      {
+        return Node::null();
+      }
+      std::vector<Node> args(n[0].begin(), n[0].end());
+      std::vector<Node> vars;
+      std::vector<Node> subs;
+      if (id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
+      {
+        getVarElim(n[1], args, vars, subs);
+      }
+      else
+      {
+        // assume empty attribute
+        QAttributes qa;
+        getVarElimIneq(n[1], args, vars, subs, qa);
+      }
+      // if we eliminated a variable, update body and reprocess
+      if (!vars.empty())
+      {
+        Assert(vars.size() == subs.size());
+        std::vector<Node> qc(n.begin(), n.end());
+        qc[1] =
+            n[1].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        if (args.empty())
+        {
+          return qc[1];
+        }
+        qc[0] = d_nm->mkNode(Kind::BOUND_VAR_LIST, args);
+        return d_nm->mkNode(Kind::FORALL, qc);
+      }
     }
     break;
     default: break;
@@ -1508,39 +1548,32 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   }
   Trace("var-elim-quant-debug")
       << "computeVarElimination " << body << std::endl;
-  Node prev;
-  while (prev != body && !args.empty())
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  // standard variable elimination
+  if (d_opts.quantifiers.varElimQuant)
   {
-    prev = body;
-
-    std::vector<Node> vars;
-    std::vector<Node> subs;
-    // standard variable elimination
-    if (d_opts.quantifiers.varElimQuant)
+    getVarElim(body, args, vars, subs);
+  }
+  // variable elimination based on one-direction inequalities
+  if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)
+  {
+    getVarElimIneq(body, args, vars, subs, qa);
+  }
+  // if we eliminated a variable, update body and reprocess
+  if (!vars.empty())
+  {
+    Trace("var-elim-quant-debug")
+        << "VE " << vars.size() << "/" << args.size() << std::endl;
+    Assert(vars.size() == subs.size());
+    // remake with eliminated nodes
+    body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    if (!qa.d_ipl.isNull())
     {
-      getVarElim(body, args, vars, subs);
+      qa.d_ipl = qa.d_ipl.substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
     }
-    // variable elimination based on one-direction inequalities
-    if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)
-    {
-      getVarElimIneq(body, args, vars, subs, qa);
-    }
-    // if we eliminated a variable, update body and reprocess
-    if (!vars.empty())
-    {
-      Trace("var-elim-quant-debug")
-          << "VE " << vars.size() << "/" << args.size() << std::endl;
-      Assert(vars.size() == subs.size());
-      // remake with eliminated nodes
-      body =
-          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      if (!qa.d_ipl.isNull())
-      {
-        qa.d_ipl = qa.d_ipl.substitute(
-            vars.begin(), vars.end(), subs.begin(), subs.end());
-      }
-      Trace("var-elim-quant") << "Return " << body << std::endl;
-    }
+    Trace("var-elim-quant") << "Return " << body << std::endl;
   }
   return body;
 }

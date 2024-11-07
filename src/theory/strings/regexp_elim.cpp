@@ -76,14 +76,12 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
   Node eatom = eliminate(atom, d_isAggressive);
   if (!eatom.isNull())
   {
-    // Currently aggressive doesnt work due to fresh bound variables
-    if (isProofEnabled() && !d_isAggressive)
+    if (isProofEnabled())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node eq = atom.eqNode(eatom);
-      Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
       std::shared_ptr<ProofNode> pn =
-          pnm->mkNode(ProofRule::MACRO_RE_ELIM, {}, {atom, aggn}, eq);
+          pnm->mkTrustedNode(TrustId::RE_ELIM, {}, {}, eq);
       d_epg->setProofFor(eq, pn);
       return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
     }

@@ -68,7 +68,7 @@ void ProofPostprocessCallback::setCollectAllTrustedRules()
   d_collectAllTrusted = true;
 }
 
-std::unordered_set<std::shared_ptr<ProofNode>>&
+std::vector<std::shared_ptr<ProofNode>>&
 ProofPostprocessCallback::getTrustedProofs()
 {
   return d_trustedPfs;
@@ -107,7 +107,7 @@ bool ProofPostprocessCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
   if (d_collectAllTrusted
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
-    d_trustedPfs.insert(pn);
+    d_trustedPfs.emplace_back(pn);
   }
   return false;
 }
@@ -1106,14 +1106,6 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   // now, process
   d_updater.process(pf);
 
-  // run the reconstruction algorithm on the proofs to eliminate
-  std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
-      d_cb.getTrustedProofs();
-  if (!tproofs.empty())
-  {
-    d_ppdsl->reconstruct(tproofs);
-  }
-
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
   {
@@ -1123,6 +1115,26 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     AlwaysAssert(pfc != nullptr);
     // now update
     d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
+    // go back and find the (possibly new) trusted steps
+    std::vector<std::shared_ptr<ProofNode>> tproofs;
+    std::unordered_set<ProofRule> trustRules{ProofRule::TRUST,
+                                             ProofRule::TRUST_THEORY_REWRITE};
+    expr::getSubproofRules(pf, trustRules, tproofs);
+    if (d_ppdsl != nullptr)
+    {
+      d_ppdsl->reconstruct(tproofs);
+    }
+  }
+  else
+  {
+    // As an optimization, we have tracked the trusted steps while running
+    // the updater. Now run the reconstruction algorithm on the proofs to
+    // eliminate.
+    std::vector<std::shared_ptr<ProofNode>>& tproofs = d_cb.getTrustedProofs();
+    if (d_ppdsl != nullptr)
+    {
+      d_ppdsl->reconstruct(tproofs);
+    }
   }
 
   // take stats and check pedantic

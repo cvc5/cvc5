@@ -171,6 +171,44 @@ enum ENUM(SkolemId)
    * - Sort: ``Real``
    */
   EVALUE(TRANSCENDENTAL_SINE_PHASE_SHIFT),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * an infinitesimal. This skolem is expected to appear in instantiations
+   * and immediately be rewritten via virtual term substitution.
+   *
+   * - Number of skolem indices: ``0``
+   * - Sort: ``Real``
+   */
+  EVALUE(ARITH_VTS_DELTA),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * an infinitesimal. Unlike ARITH_VTS_DELTA, this skolem may appear in
+   * lemmas.
+   *
+   * - Number of skolem indices: ``0``
+   * - Sort: ``Real``
+   */
+  EVALUE(ARITH_VTS_DELTA_FREE),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * infinity.  This skolem is expected to appear in instantiations
+   * and immediately be rewritten via virtual term substitution.
+   *
+   * - Number of skolem indices: ``0``
+   *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
+   * - Sort: The sort given by the index.
+   */
+  EVALUE(ARITH_VTS_INFINITY),
+  /**
+   * Used to reason about virtual term substitution. This term represents
+   * infinity. Unlike ARITH_VTS_INFINITY, this skolem may appear in
+   * lemmas.
+   *
+   * - Number of skolem indices: ``0``
+   *   - ``1:`` A term that represents an arithmetic sort (Int or Real).
+   * - Sort: The sort given by the index.
+   */
+  EVALUE(ARITH_VTS_INFINITY_FREE),
   /** 
    * A shared datatype selector, see Reynolds et. al. "Datatypes with Shared
    * Selectors", IJCAR 2018. Represents a selector that can extract fields
@@ -732,6 +770,24 @@ enum ENUM(SkolemId)
    * - Sort: ``(-> FP Real)``
    */
   EVALUE(FP_TO_REAL),
+
+  /**
+   * A skolem function introduced by the int-blaster.
+   * Given a function f with argument and/or return types
+   * that include bit-vectors, we get a function
+   * that replaces them by integer types.
+   * For example, if the original function is from
+   * BV and Strings to Strings, the resulting
+   * function is from Ints and Strings to Strings.
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` the original function f, with BV sorts.
+   * - Sort: `(-> T1' ... ( -> Tn' T')...)` Where
+   *   f has sort (->T1 ... (-> Tn T)...) and Ti' (T') is 
+   *   `Int` if Ti (T) is `BV` and Ti' (T') is just Ti (T)
+   *   otherwise.
+   */
+  EVALUE(BV_TO_INT_UF),
+
   //================================================= Unknown rule
   /** Indicates this is not a skolem. */
   EVALUE(NONE),
