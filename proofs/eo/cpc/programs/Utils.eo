@@ -21,6 +21,45 @@
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 
+
+; program: $get_arg_list_rec
+; args:
+; - t S: The term to inspect.
+; - acc @List: The accumulator storing the arguments we have seen so far.
+; return: >
+;   The list of arguments provided to the function at the head of t appended to
+;   acc, or acc if t is not a function application.
+(program $get_arg_list_rec ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
+  (S @List) @List
+  (
+    (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (eo::cons @list x acc)))
+    (($get_arg_list_rec y acc)      acc)
+  )
+)
+
+; define: $get_arg_list
+; args:
+; - t T: The term to inspect.
+; return: >
+;   The list of arguments provided to the function at the head of t, or the nil
+;   list if t is not a function application.
+(define $get_arg_list ((T Type :implicit) (t T)) ($get_arg_list_rec t @list.nil))
+
+
+
+; program: $is_app
+; args:
+; - f (-> T U): The function.
+; - t S: The term to inspect.
+; return: True if and only if t is an application of f.
+(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T) (y S))
+  ((-> T U) S) Bool
+  (
+    (($is_app f (g x))  ($is_app f g))
+    (($is_app f x)      (eo::is_eq f x))
+  )
+)
+
 ; define: $compare_var
 ; args:
 ; - a T: The first term to compare.

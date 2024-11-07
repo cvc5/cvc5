@@ -2312,6 +2312,45 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DISTINCT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Builtin -- Distinct cardinality conflict**
+   *
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bot
+   *
+   * where :math:`n` is greater than the cardinality of the type of
+   * :math:`t_1, \ldots, t_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_CARD_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **UF -- Bitvector to natural elimination**
+   *
+   * .. math::
+   *   \texttt{bv2nat}(t) = t_1 + \ldots + t_n
+   *
+   * where for :math:`i=1, \ldots, n`, :math:`t_i` is
+   * :math:`\texttt{ite}(x[i-1, i-1] = 1, 2^i, 0)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_TO_NAT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **UF -- Integer to bitvector elimination**
+   *
+   * .. math::
+   *   \texttt{int2bv}_n(t) = (bvconcat t_1 \ldots t_n)
+   *
+   * where for :math:`i=1, \ldots, n`, :math:`t_i` is
+   * :math:`\texttt{ite}(\texttt{mod}(t,2^n) \geq 2^{n-1}, 1, 0)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(INT_TO_BV_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Booleans -- Negation Normal Form with normalization**
    *
    * .. math::
@@ -2338,7 +2377,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_BY_CONST_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic - strings predicate entailment**
+   * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
    *   (= s t) = c
@@ -2358,7 +2397,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_ARITH_STRING_PRED_ENTAIL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic - strings predicate entailment**
+   * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
    *   (>= n 0) = true
@@ -2372,7 +2411,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_STRING_PRED_ENTAIL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic - strings predicate entailment**
+   * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
    *   (>= n 0) = (>= m 0)
@@ -2390,6 +2429,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_STRING_PRED_SAFE_APPROX),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- power elimination**
+   *
+   * .. math::
+   *   (^ x c) = (x \cdot \ldots \cdot x)
+   *
+   * where :math:`c` is a non-negative integer.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Equality -- Beta reduction**
    *
    * .. math::
@@ -2401,6 +2452,28 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Lambda elimination**
+   *
+   * .. math::
+   *   (\lambda x_1 \ldots x_n.\> f(x_1 \ldots x_n)) = f
+   *
+   * \endverbatim
+   */
+  EVALUE(LAMBDA_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Constant array select**
+   *
+   * .. math::
+   *   (select A x) = c
+   *
+   * where :math:`A` is a constant array storing element :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
@@ -2537,7 +2610,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_INST),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Datatypes - collapse selector**
+   * **Datatypes -- collapse selector**
    *
    * .. math::
    *   s_i(c(t_1, \ldots, t_n)) = t_i
@@ -2549,7 +2622,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_COLLAPSE_SELECTOR),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Datatypes - collapse tester**
+   * **Datatypes -- collapse tester**
    *
    * .. math::
    *   \mathit{is}_c(c(t_1, \ldots, t_n)) = true
@@ -2566,7 +2639,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_COLLAPSE_TESTER),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Datatypes - collapse tester**
+   * **Datatypes -- collapse tester**
    *
    * .. math::
    *   \mathit{is}_c(t) = true
@@ -2578,7 +2651,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Datatypes - constructor equality**
+   * **Datatypes -- constructor equality**
    *
    * .. math::
    *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
@@ -2596,7 +2669,33 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_CONS_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   * **Datatypes - updater elimination**
+   *
+   * .. math::
+   *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots s_n(t)), t)
+   *
+   * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_UPDATER_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- match elimination**
+   *
+   * .. math::
+   *   \texttt{match}(t ((p_1 c_1) \ldots (p_n c_n))) = \texttt{ite}(F_1, r_1, \texttt{ite}( \ldots, r_n))
+   * 
+   * where for :math:`i=1, \ldots, n`, :math:`F_1` is a formula that holds iff
+   * :math:`t` matches :math:`p_i` and :math:`r_i` is the result of a
+   * substitution on :math:`c_i` based on this match.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_MATCH_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Unsigned multiplication overflow detection elimination**
    *
    * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
    * overflow detection circuits", 2001.
@@ -2606,7 +2705,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_UMULO_ELIMINATE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors - Unsigned multiplication overflow detection elimination**
+   * **Bitvectors -- Unsigned multiplication overflow detection elimination**
    *
    * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
    * overflow detection circuits", 2001.
@@ -2616,13 +2715,13 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_SMULO_ELIMINATE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors - Combine like terms during addition by counting terms**
+   * **Bitvectors -- Combine like terms during addition by counting terms**
    * \endverbatim
    */
   EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors - Extract negations from multiplicands**
+   * **Bitvectors -- Extract negations from multiplicands**
    *
    * .. math::
    *    bvmul(bvneg(a),\ b,\ c) = bvneg(bvmul(a,\ b,\ c))
@@ -2632,7 +2731,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_MULT_SIMPLIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors - Extract continuous substrings of bitvectors**
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
    *
    * .. math::
    *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
@@ -2643,7 +2742,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression loop elimination**
+   * **Strings -- regular expression loop elimination**
    *
    * .. math::
    *   re.loop_{l,u}(R) = re.union(R^l, \ldots, R^u)
@@ -2655,7 +2754,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_LOOP_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression intersection/union inclusion**
+   * **Strings -- regular expression intersection/union inclusion**
    *
    * .. math::
    *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
@@ -2678,7 +2777,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression membership evaluation**
+   * **Strings -- regular expression membership evaluation**
    *
    * .. math::
    *   \mathit{str.in\_re}(s, R) = c
@@ -2691,7 +2790,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_EVAL),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - regular expression membership consume**
+   * **Strings -- regular expression membership consume**
    *
    * .. math::
    *   \mathit{str.in_re}(s, R) = b
@@ -2704,7 +2803,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_CONSUME),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - string in regular expression concatenation star character**
+   * **Strings -- string in regular expression concatenation star character**
    *
    * .. math::
    *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =\\ \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
@@ -2716,7 +2815,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_CONCAT_STAR_CHAR),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - string in regular expression sigma**
+   * **Strings -- string in regular expression sigma**
    *
    * .. math::
    *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
@@ -2731,7 +2830,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_SIGMA),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - string in regular expression sigma star**
+   * **Strings -- string in regular expression sigma star**
    *
    * .. math::
    *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
@@ -2744,7 +2843,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_SIGMA_STAR),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings - strings substring strip symbolic length**
+   * **Strings -- strings substring strip symbolic length**
    *
    * .. math::
    *   str.substr(s, n, m) = t
@@ -2757,7 +2856,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Sets - empty tester evaluation**
+   * **Sets -- empty tester evaluation**
    *
    * .. math::
    *   \mathit{sets.is\_empty}(\epsilon) = \top
@@ -2772,6 +2871,16 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(SETS_IS_EMPTY_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets insert elimination**
+   *
+   * .. math::
+   *   \mathit{sets.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-plus-zero */
@@ -2906,8 +3015,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_AND_DUP),
   /** Auto-generated from RARE rule bool-and-conf */
   EVALUE(BOOL_AND_CONF),
+  /** Auto-generated from RARE rule bool-and-conf2 */
+  EVALUE(BOOL_AND_CONF2),
   /** Auto-generated from RARE rule bool-or-taut */
   EVALUE(BOOL_OR_TAUT),
+  /** Auto-generated from RARE rule bool-or-taut2 */
+  EVALUE(BOOL_OR_TAUT2),
   /** Auto-generated from RARE rule bool-or-de-morgan */
   EVALUE(BOOL_OR_DE_MORGAN),
   /** Auto-generated from RARE rule bool-implies-de-morgan */
@@ -2944,6 +3057,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ITE_THEN_LOOKAHEAD_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule ite-then-lookahead-not-self */
+  EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-else-lookahead-not-self */
+  EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
   /** Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
@@ -3426,14 +3543,24 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-empty */
   EVALUE(STR_REPLACE_EMPTY),
+  /** Auto-generated from RARE rule str-replace-contains-pre */
+  EVALUE(STR_REPLACE_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-re-none */
+  EVALUE(STR_REPLACE_RE_NONE),
+  /** Auto-generated from RARE rule str-replace-re-all-none */
+  EVALUE(STR_REPLACE_RE_ALL_NONE),
   /** Auto-generated from RARE rule str-len-concat-rec */
   EVALUE(STR_LEN_CONCAT_REC),
   /** Auto-generated from RARE rule str-indexof-self */
   EVALUE(STR_INDEXOF_SELF),
   /** Auto-generated from RARE rule str-indexof-no-contains */
   EVALUE(STR_INDEXOF_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-indexof-contains-pre */
+  EVALUE(STR_INDEXOF_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-indexof-re-none */
+  EVALUE(STR_INDEXOF_RE_NONE),
   /** Auto-generated from RARE rule str-to-lower-concat */
   EVALUE(STR_TO_LOWER_CONCAT),
   /** Auto-generated from RARE rule str-to-upper-concat */
@@ -3442,16 +3569,24 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_LOWER_UPPER),
   /** Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-lower-len */
+  EVALUE(STR_TO_LOWER_LEN),
+  /** Auto-generated from RARE rule str-to-upper-len */
+  EVALUE(STR_TO_UPPER_LEN),
   /** Auto-generated from RARE rule str-to-lower-from-int */
   EVALUE(STR_TO_LOWER_FROM_INT),
   /** Auto-generated from RARE rule str-to-upper-from-int */
   EVALUE(STR_TO_UPPER_FROM_INT),
+  /** Auto-generated from RARE rule str-to-int-concat-neg-one */
+  EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
   /** Auto-generated from RARE rule str-leq-empty */
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
   EVALUE(STR_LEQ_EMPTY_EQ),
-  /** Auto-generated from RARE rule str-leq-concat */
-  EVALUE(STR_LEQ_CONCAT),
+  /** Auto-generated from RARE rule str-leq-concat-false */
+  EVALUE(STR_LEQ_CONCAT_FALSE),
+  /** Auto-generated from RARE rule str-leq-concat-true */
+  EVALUE(STR_LEQ_CONCAT_TRUE),
   /** Auto-generated from RARE rule str-lt-elim */
   EVALUE(STR_LT_ELIM),
   /** Auto-generated from RARE rule re-all-elim */
@@ -3468,6 +3603,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_FLATTEN),
   /** Auto-generated from RARE rule re-concat-star-swap */
   EVALUE(RE_CONCAT_STAR_SWAP),
+  /** Auto-generated from RARE rule re-concat-star-repeat */
+  EVALUE(RE_CONCAT_STAR_REPEAT),
   /** Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */
@@ -3500,6 +3637,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
   /** Auto-generated from RARE rule str-substr-len-skip */
   EVALUE(STR_SUBSTR_LEN_SKIP),
+  /** Auto-generated from RARE rule seq-len-rev */
+  EVALUE(SEQ_LEN_REV),
   /** Auto-generated from RARE rule seq-rev-rev */
   EVALUE(SEQ_REV_REV),
   /** Auto-generated from RARE rule seq-rev-concat */
@@ -3600,10 +3739,24 @@ enum ENUM(ProofRewriteRule)
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */
   EVALUE(EQ_SYMM),
+  /** Auto-generated from RARE rule eq-cond-deq */
+  EVALUE(EQ_COND_DEQ),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv */
+  EVALUE(UF_BV2NAT_INT2BV),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extend */
+  EVALUE(UF_BV2NAT_INT2BV_EXTEND),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extract */
+  EVALUE(UF_BV2NAT_INT2BV_EXTRACT),
+  /** Auto-generated from RARE rule uf-int2bv-bv2nat */
+  EVALUE(UF_INT2BV_BV2NAT),
   /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
   EVALUE(UF_BV2NAT_GEQ_ELIM),
+  /** Auto-generated from RARE rule uf-int2bv-bvult-equiv */
+  EVALUE(UF_INT2BV_BVULT_EQUIV),
+  /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
+  EVALUE(UF_INT2BV_BVULE_EQUIV),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry

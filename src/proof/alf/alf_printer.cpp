@@ -205,6 +205,16 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
       return res[0][0].getType().isRealOrInt();
     }
     break;
+    case ProofRule::ARITH_REDUCTION:
+    {
+      Kind k = pargs[0].getKind();
+      return k == Kind::TO_INTEGER || k == Kind::IS_INTEGER
+             || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+             || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
+             || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
+             || k == Kind::ABS;
+    }
+    break;
     case ProofRule::STRING_REDUCTION:
     {
       // depends on the operator
@@ -224,7 +234,7 @@ bool AlfPrinter::isHandled(const ProofNode* pfn) const
         return options().strings.stringsAlphaCard == String::num_codes();
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
-             || k == Kind::STRING_IN_REGEXP;
+             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
     }
     break;
     //
@@ -250,8 +260,10 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id,
   {
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
+    case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
+    case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::RE_LOOP_ELIM:
@@ -636,6 +648,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
       dscope != nullptr ? dscope->getArguments() : d_emptyVec;
   const std::vector<Node>& assertions =
       ascope != nullptr ? ascope->getArguments() : d_emptyVec;
+
   bool wasAlloc;
   for (size_t i = 0; i < 2; i++)
   {
