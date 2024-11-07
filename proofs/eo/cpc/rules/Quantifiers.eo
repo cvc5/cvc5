@@ -115,7 +115,6 @@
 
 ;;;;; ProofRewriteRule::QUANT_UNUSED_VARS
 
-
 ; program: $is_quant_unused_vars
 ; args:
 ; - F Bool: The first formula in question.
