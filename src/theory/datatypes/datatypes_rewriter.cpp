@@ -51,6 +51,8 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_UPDATER_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_MATCH_ELIM,
@@ -151,6 +153,27 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return expandUpdater(n);
       }
+    }
+    break;
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER:
+    {
+      if (n.getKind() != Kind::APPLY_UPDATER
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      Node op = n.getOperator();
+      size_t cindex = utils::indexOf(n[0].getOperator());
+      size_t cuindex = utils::cindexOf(op);
+      if (cindex==cuindex)
+      {
+        size_t updateIndex = utils::indexOf(op);
+        std::vector<Node> children(n[0].begin(), n[0].end());
+        children[updateIndex] = n[1];
+        children.insert(children.begin(),n[0].getOperator());
+        return d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+      }
+      return n[0];
     }
     break;
     case ProofRewriteRule::DT_MATCH_ELIM:
