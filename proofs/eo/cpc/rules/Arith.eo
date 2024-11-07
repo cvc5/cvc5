@@ -283,7 +283,7 @@
                 (= (r1 (* x y) tp)
                    (or
                      (and (<= x a) (r2 y b))
-                     (and (>= x a) (r1 y b)))))))
+                     (and (>= x a) (r1 y b))))))))
 
 ;;;;; ProofRule::ARITH_REDUCTION
 
