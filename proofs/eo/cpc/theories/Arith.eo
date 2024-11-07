@@ -111,7 +111,7 @@
                      T T))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
-; these two operators in EunoiaC based on their arity when applied, and with
+; these two operators in Eunoia based on their arity when applied, and with
 ; eo::as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
 ; disclaimer: This function is overloaded in SMT-LIB.

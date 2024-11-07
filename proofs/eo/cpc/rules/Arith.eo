@@ -4,6 +4,8 @@
 (include "../programs/Arith.eo")
 (include "../programs/Utils.eo")
 
+;;;;; ProofRule::ARITH_SUM_UB
+
 ; program: $arith_rel_sum
 ; args:
 ; - r1 T : The first arithmetic relation.
@@ -65,6 +67,8 @@
   :conclusion ($mk_arith_sum_ub F)
 )
 
+;;;;; ProofRule::ARITH_MULT_POS
+
 ; program: $mk_arith_mult_pos
 ; args:
 ; - m S: A real or integer term to multiply by.
@@ -91,6 +95,8 @@
   :args (m F)
   :conclusion (=> (and (> m ($arith_mk_zero (eo::typeof m))) F) ($mk_arith_mult_pos m F))
 )
+
+;;;;; ProofRule::ARITH_MULT_NEG
 
 ; program: $arith_rel_inv
 ; args:
@@ -135,6 +141,8 @@
   :args (m F)
   :conclusion (=> (and (< m ($arith_mk_zero (eo::typeof m))) F) ($mk_arith_mult_neg m F))
 )
+
+;;;;; ProofRule::ARITH_TRICHOTOMY
 
 ; program: $arith_rel_trichotomy
 ; args:
@@ -207,6 +215,8 @@
   :conclusion ($mk_arith_trichotomy ($arith_normalize_lit (not F1)) ($arith_normalize_lit (not F2)))
 )
 
+;;;;; ProofRule::INT_TIGHT_UB
+
 ; program: $greatest_int_lt
 ; args:
 ; - c R: A rational or integer value.
@@ -231,6 +241,8 @@
   :conclusion (<= s ($greatest_int_lt t))
 )
 
+;;;;; ProofRule::INT_TIGHT_LB
+
 ; program: $least_int_gt
 ; args:
 ; - c R: A rational or integer value.
@@ -251,6 +263,27 @@
   :premises ((> s t))
   :conclusion (>= s ($least_int_gt t))
 )
+
+;;;;; ProofRule::ARITH_MULT_TANGENT
+
+; rule: arith_mult_tangent
+; implements: ProofRule::ARITH_MULT_TANGENT
+; args:
+; - x R: The first arithmetic term.
+; - y S: The second arithmetic term.
+; - a R: The point of x we are considering.
+; - b S: The point of y we are considering.
+; - s Bool: Which direction the tangent plane is for, where true is >=, false is <=.
+; conclusion: The tangent plane lemma at (a,b) for (x,y).
+(declare-rule arith_mult_tangent ((R Type) (S Type) (x R) (y S) (a R) (b S) (s Bool))
+  :args (x y a b s)
+  :conclusion (eo::define ((tp (- (+ (* b x) (* a y)) (* a b))))
+              (eo::define ((r1 (eo::ite s >= <=)))
+              (eo::define ((r2 (eo::ite s <= >=)))
+                (= (r1 (* x y) tp)
+                   (or
+                     (and (<= x a) (r2 y b))
+                     (and (>= x a) (r1 y b))))))))
 
 ;;;;; ProofRule::ARITH_REDUCTION
 
