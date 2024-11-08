@@ -3523,8 +3523,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_EMP),
   /** Auto-generated from RARE rule str-contains-is-emp */
   EVALUE(STR_CONTAINS_IS_EMP),
-  /** Auto-generated from RARE rule str-concat-emp */
-  EVALUE(STR_CONCAT_EMP),
   /** Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
@@ -3641,6 +3639,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule seq-len-empty */
+  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */
