@@ -1,5 +1,11 @@
 (include "../programs/Nary.eo")
 
+; note: >
+;  This is the generic tester predicate whose first argument is expected to be
+;  a constructor symbol for datatype D. We do not currently insist this is the
+;  case.
+(declare-const is (-> (! Type :var C :implicit) (! Type :var D :implicit) C D Bool))
+
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
 ;   symbols over this sort are also not part of the SMT-LIB standard.
