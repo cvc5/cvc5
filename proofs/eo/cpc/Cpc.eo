@@ -70,7 +70,7 @@
 (include "./theories/Bags.eo")
 (include "./theories/FiniteFields.eo")
 (include "./rules/Quantifiers.eo")
-(include "./theories/Datatypes.eo")
+(include "./rules/Datatypes.eo")
 (include "./theories/SepLogic.eo")
 (include "./rules/Rewrites.eo")
 

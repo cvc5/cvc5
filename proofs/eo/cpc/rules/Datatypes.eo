@@ -1,0 +1,14 @@
+(include "../theories/Datatypes.eo")
+
+(program $mk_dt_split ((D Type) (x D) (T Type) (c T) (xs eo::List :list))
+  (eo::List D) Bool
+  (
+    (($mk_dt_split eo::List::nil x)          false)
+    (($mk_dt_split (eo::List::cons c xs) x)  (eo::cons or (is c x) ($mk_dt_split xs x)))
+  )
+)
+
+(declare-rule dt_split ((D Type) (x D))
+  :args (x)
+  :conclusion ($singleton_elim ($mk_dt_split (eo::dt_constructors (eo::typeof x)) x))
+)
