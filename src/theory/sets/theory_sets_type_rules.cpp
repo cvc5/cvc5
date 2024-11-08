@@ -1252,9 +1252,9 @@ TypeNode SetEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
 }
 
 TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,
-                                                TNode n,
-                                                bool check,
-                                                std::ostream* errOut)
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
 {
   return nm->mkAbstractType(Kind::SET_TYPE);
 }

@@ -1146,7 +1146,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::EQUAL: return "=";
     case Kind::DISTINCT: return "distinct";
     case Kind::SEXPR: break;
-    
+
     case Kind::TYPE_OF: return "@type_of";
 
     // bool theory

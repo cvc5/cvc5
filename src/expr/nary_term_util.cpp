@@ -16,8 +16,10 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -25,8 +27,6 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "expr/sort_to_term.h"
-#include "expr/emptyset.h"
 
 using namespace cvc5::internal::kind;
 
@@ -314,17 +314,17 @@ Node narySubstitute(Node src,
             case Kind::SET_EMPTY_OF_TYPE:
             case Kind::SEQ_EMPTY_OF_TYPE:
             {
-              if (children[0].getKind()==Kind::SORT_TO_TERM)
+              if (children[0].getKind() == Kind::SORT_TO_TERM)
               {
                 const SortToTerm& st = children[0].getConst<SortToTerm>();
                 TypeNode tn = st.getType();
-                if (k==Kind::SET_EMPTY_OF_TYPE)
+                if (k == Kind::SET_EMPTY_OF_TYPE)
                 {
                   ret = nm->mkConst(EmptySet(tn));
                 }
                 else
                 {
-                  Assert (k==Kind::SEQ_EMPTY_OF_TYPE);
+                  Assert(k == Kind::SEQ_EMPTY_OF_TYPE);
                   ret = theory::strings::Word::mkEmptyWord(tn);
                 }
               }
@@ -333,13 +333,11 @@ Node narySubstitute(Node src,
                 ret = nm->mkNode(k, children);
               }
             }
-              break;
+            break;
             case Kind::TYPE_OF:
               ret = nm->mkConst(SortToTerm(children[0].getType()));
               break;
-            default:
-              ret = nm->mkNode(k, children);
-              break;
+            default: ret = nm->mkNode(k, children); break;
           }
         }
       }

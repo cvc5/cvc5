@@ -209,7 +209,7 @@ class SeqNthTypeRule
  */
 class SeqEmptyOfTypeTypeRule
 {
-public:
+ public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,

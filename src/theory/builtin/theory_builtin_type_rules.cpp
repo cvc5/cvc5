@@ -191,9 +191,9 @@ TypeNode TypeOfTypeRule::preComputeType(NodeManager* nm, TNode n)
 }
 
 TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,
-                                                   TNode n,
-                                                   bool check,
-                                                   std::ostream* errOut)
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
 {
   return nodeManager->builtinOperatorType();
 }

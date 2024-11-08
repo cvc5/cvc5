@@ -548,16 +548,15 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   return t.getSequenceElementType();
 }
 
-
 TypeNode SeqEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
 }
 
 TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
-                                                TNode n,
-                                                bool check,
-                                                std::ostream* errOut)
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
 {
   return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
 }
