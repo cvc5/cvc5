@@ -712,12 +712,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   Assert(body1.getKind() == Kind::FORALL);
   Node eqLit = vars[0].eqNode(subs[0]).notNode();
   Node lit = lits[0].negate();
-  if (eqLit != lit)
-  {
-    Node equivLit = eqLit.eqNode(lit);
-    cdp->addTrustedStep(
-        equivLit, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
-  }
   // add a copy of the equality literal and prove it is redundant with ACI_NORM
   std::vector<Node> disj;
   disj.push_back(lit);
