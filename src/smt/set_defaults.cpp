@@ -125,14 +125,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     // all "experimental" theories that are enabled by default should be
     // disabled here
-    SET_AND_NOTIFY_IF_NOT_USER(uf, hoExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(uf, cardExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sep, sep, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(bags, bags, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(ff, ff, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(fp, fp, false, "safe options");
+    // expert extensions to theories
+    SET_AND_NOTIFY_IF_NOT_USER(uf, ufHoExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(uf, ufCardExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(datatypes, datatypesExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(sep, sepExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(bags, bagsExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(ff, ffExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, codatatypesExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, relsExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, setsCardExp, false, "safe options");
     // these are disabled by default but are listed here in case they are
     // enabled by default later
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");

@@ -166,9 +166,9 @@ name   = "Datatypes Theory"
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"
 
 [[option]]
-  name       = "codatatypesExp"
+  name       = "datatypesExp"
   category   = "expert"
-  long       = "co-dt-exp"
+  long       = "datatypes-exp"
   type       = "bool"
   default    = "true"
   help       = "enables reasoning about codatatypes"

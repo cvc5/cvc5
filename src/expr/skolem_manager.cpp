@@ -384,6 +384,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       return cacheVals[0].getType();
       break;
     case SkolemId::GROUND_TERM:
+    case SkolemId::ARITH_VTS_INFINITY:
+    case SkolemId::ARITH_VTS_INFINITY_FREE:
     {
       Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
       return cacheVals[0].getConst<SortToTerm>().getType();
@@ -396,7 +398,9 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     // real skolems
     case SkolemId::TRANSCENDENTAL_PURIFY_ARG:
-    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT: return nm->realType();
+    case SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT:
+    case SkolemId::ARITH_VTS_DELTA:
+    case SkolemId::ARITH_VTS_DELTA_FREE: return nm->realType();
     // int -> int function
     case SkolemId::INT_DIV_BY_ZERO:
     case SkolemId::MOD_BY_ZERO:
@@ -581,6 +585,29 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(type.isFloatingPoint());
       return nm->mkFunctionType({type}, nm->realType());
     }
+    case SkolemId::BV_TO_INT_UF:
+    {
+      Assert(cacheVals.size() == 1);
+      // fetch the original function
+      Node bvUF = cacheVals[0];
+      Assert(cacheVals[0].getType().isFunction());
+      // old and new types of domain and result
+      TypeNode tn = bvUF.getType();
+      TypeNode bvRange = tn.getRangeType();
+      std::vector<TypeNode> bvDomain = tn.getArgTypes();
+      std::vector<TypeNode> intDomain;
+
+      // if the original range is a bit-vector sort,
+      // the new range should be an integer sort.
+      // Otherwise, we keep the original range.
+      // Similarly for the domain sorts.
+      TypeNode intRange = bvRange.isBitVector() ? nm->integerType() : bvRange;
+      for (const TypeNode& d : bvDomain)
+      {
+        intDomain.push_back(d.isBitVector() ? nm->integerType() : d);
+      }
+      return nm->mkFunctionType(intDomain, intRange);
+    }
     //
     default: break;
   }
@@ -623,6 +650,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::SETS_FOLD_UNION:
     case SkolemId::FP_MIN_ZERO:
     case SkolemId::FP_MAX_ZERO:
+    case SkolemId::BV_TO_INT_UF:
     case SkolemId::FP_TO_REAL: return 1;
 
     // Number of skolem indices: 2
