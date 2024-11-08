@@ -25,6 +25,8 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "expr/sort_to_term.h"
+#include "expr/emptyset.h"
 
 using namespace cvc5::internal::kind;
 
@@ -310,13 +312,33 @@ Node narySubstitute(Node src,
           switch (k)
           {
             case Kind::SET_EMPTY_OF_TYPE:
-              break;
             case Kind::SEQ_EMPTY_OF_TYPE:
+            {
+              if (children[0].getKind()==Kind::SORT_TO_TERM)
+              {
+                const SortToTerm& st = children[0].getConst<SortToTerm>();
+                TypeNode tn = st.getType();
+                if (k==Kind::SET_EMPTY_OF_TYPE)
+                {
+                  ret = nm->mkConst(EmptySet(tn));
+                }
+                else
+                {
+                  Assert (k==Kind::SEQ_EMPTY_OF_TYPE);
+                  ret = theory::strings::Word::mkEmptyWord(tn);
+                }
+              }
+              else
+              {
+                ret = nm->mkNode(k, children);
+              }
+            }
               break;
             case Kind::TYPE_OF:
+              ret = nm->mkConst(SortToTerm(children[0].getType()));
               break;
             default:
-              ret = nm->mkNode(cur.getKind(), children);
+              ret = nm->mkNode(k, children);
               break;
           }
         }

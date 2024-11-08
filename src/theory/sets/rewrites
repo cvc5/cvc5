@@ -81,4 +81,8 @@
   (set.card x)
   0)
 
+(define-rule sets-minus-self ((x ?Set))
+  (set.minus x x)
+  (@set.empty_of_type (@type_of x)))
+
 ; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)

@@ -559,7 +559,7 @@ TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
                                                 bool check,
                                                 std::ostream* errOut)
 {
-  return nodeManager->mkAbstractType(Kind::SEQUENCE_TYPE);
+  return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
 }
 
 Cardinality SequenceProperties::computeCardinality(TypeNode type)

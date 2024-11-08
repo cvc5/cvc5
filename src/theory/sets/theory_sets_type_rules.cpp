@@ -1256,7 +1256,7 @@ TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,
                                                 bool check,
                                                 std::ostream* errOut)
 {
-  return nodeManager->mkAbstractType(Kind::SET_TYPE);
+  return nm->mkAbstractType(Kind::SET_TYPE);
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)
