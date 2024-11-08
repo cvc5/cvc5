@@ -1177,7 +1177,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      static int repCheckInstance = 0;
+      static thread_local int repCheckInstance = 0;
       ++repCheckInstance;
       AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
