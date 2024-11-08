@@ -106,15 +106,6 @@
     (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
     (int.pow2 x)))
 
-; define: $arith_eval_int_log_2
-; args:
-; - x Int: The term to compute the log (base 2) of.
-; return: >
-;   the log base 2 of x. If x is not strictly positive, we return
-;   the term (int.log2 x).
-(define $arith_eval_int_log_2 ((x Int))
-  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
-
 ; program: $arith_eval_int_is_pow_2_rec
 ; args:
 ; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
