@@ -306,7 +306,19 @@ Node narySubstitute(Node src,
           {
             children.insert(children.begin(), cur.getOperator());
           }
-          ret = nm->mkNode(cur.getKind(), children);
+          Kind k = cur.getKind();
+          switch (k)
+          {
+            case Kind::SET_EMPTY_OF_TYPE:
+              break;
+            case Kind::SEQ_EMPTY_OF_TYPE:
+              break;
+            case Kind::TYPE_OF:
+              break;
+            default:
+              ret = nm->mkNode(cur.getKind(), children);
+              break;
+          }
         }
       }
       visited[cur] = ret;

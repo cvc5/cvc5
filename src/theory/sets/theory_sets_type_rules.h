@@ -396,6 +396,19 @@ struct RelationAggregateTypeRule
                               std::ostream* errOut);
 }; /* struct RelationAggregateTypeRule */
 
+/**
+ * Type rule for set.empty_of_type
+ */
+struct SetEmptyOfTypeTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
 struct SetsProperties
 {
   static Cardinality computeCardinality(TypeNode type);
