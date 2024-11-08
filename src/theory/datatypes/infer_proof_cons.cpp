@@ -110,7 +110,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       }
       if (!narg.isNull())
       {
-        cdp->addStep(unifConc, ProofRule::DT_UNIF, {exp}, {narg});
+        addDtUnif(cdp, unifConc, exp, narg);
         success = true;
       }
     }
@@ -327,6 +327,33 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   else
   {
     Trace("dt-ipc") << "...success" << std::endl;
+  }
+}
+
+void InferProofCons::addDtUnif(CDProof* cdp,
+                               const Node& conc,
+                               const Node& exp,
+                               const Node& narg)
+{
+  //                         ---------------------------------------- DT_CONS_EQ
+  // C(t1...tn) = C(s1...sn) (C(t1..tn) = C(s1..sn)) = (and t1 = s1 ... tn = sn)
+  // ---------------------------------------------------------------- EQ_RESOLVE
+  // (and t1 = s1 ... tn = sn)
+  // ------------------------ AND_ELIM
+  // ti = si
+  Node consEq =
+      d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, exp);
+  Assert(!consEq.isNull());
+  Node ceq = exp.eqNode(consEq);
+  cdp->addTheoryRewriteStep(ceq, ProofRewriteRule::DT_CONS_EQ);
+  cdp->addStep(consEq, ProofRule::EQ_RESOLVE, {exp, ceq}, {});
+  if (consEq.getKind() == Kind::AND)
+  {
+    cdp->addStep(conc, ProofRule::AND_ELIM, {consEq}, {narg});
+  }
+  else
+  {
+    AlwaysAssert(consEq == conc);
   }
 }
 
