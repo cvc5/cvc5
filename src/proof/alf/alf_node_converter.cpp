@@ -457,6 +457,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       if (k == Kind::APPLY_TESTER)
       {
+        indices.clear();
         size_t cindex = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
         if (dt.isTuple())
@@ -476,9 +477,9 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         }
         else
         {
-          opName << "is-" << dt[cindex].getConstructor();
+          opName << "is";
+          indices.push_back(dt[cindex].getConstructor());
         }
-        indices.clear();
       }
       else if (k == Kind::APPLY_UPDATER)
       {
