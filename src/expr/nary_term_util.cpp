@@ -309,6 +309,9 @@ Node narySubstitute(Node src,
             children.insert(children.begin(), cur.getOperator());
           }
           Kind k = cur.getKind();
+          // We treat @set.empty_of_type, @seq.empty_of_type, @type_of as
+          // macros in this method, meaning they are immediately evaluated
+          // as soon as RARE rules are instantiated.
           switch (k)
           {
             case Kind::SET_EMPTY_OF_TYPE:
