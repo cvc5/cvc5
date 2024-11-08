@@ -1,7 +1,7 @@
 ; Equality
 
 (define-cond-rule sets-eq-singleton-emp ((x ?Set) (y ?))
-  (set.is_empty x)
+  (= x (@set.empty_of_type (@type_of x)))
   (= x (set.singleton y))
   false)
 
@@ -10,7 +10,7 @@
   (= x y))
 
 (define-cond-rule sets-member-emp ((x ?) (y ?Set))
-  (set.is_empty y)
+  (= y (@set.empty_of_type (@type_of y)))
   (set.member x y)
   false)
   
@@ -86,3 +86,7 @@
   (@set.empty_of_type (@type_of x)))
 
 ; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)
+
+(define-rule sets-is-empty-elim ((x ?Set))
+  (set.is_empty x)
+  (= x (@set.empty_of_type (@type_of x))))

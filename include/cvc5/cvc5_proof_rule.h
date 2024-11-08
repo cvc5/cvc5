@@ -3433,6 +3433,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_EMP),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-is-empty-elim */
+  EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
