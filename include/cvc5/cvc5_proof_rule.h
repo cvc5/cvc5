@@ -2573,6 +2573,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
+   *
+   * or alternatively
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t) = \bot
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro variable elimination inequality**
    *
    * .. math::
