@@ -462,18 +462,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         const DType& dt = DType::datatypeOf(op);
         if (dt.isTuple())
         {
-          opName << "is-tuple";
-        }
-        else if (dt.isNullable())
-        {
-          if (cindex == 0)
-          {
-            opName << "nullable.is_null";
-          }
-          else
-          {
-            opName << "nullable.is_some";
-          }
+          opName << "is";
+          std::string tname = dt[0].getNumArgs()==0 ? "tuple.unit" : "tuple";
+          Node tsym = mkInternalSymbol(tname, dt[0].getConstructor().getType());
+          indices.push_back(tsym);
         }
         else
         {
