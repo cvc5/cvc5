@@ -10,7 +10,7 @@
 ;  This is the generic updater whose first argument is expected to be
 ;  a selector symbol for datatype D. We do not currently insist this is the
 ;  case.
-;(declare-const update (-> (! Type :var D :implicit) (! Type :var S :implicit) D (-> D S) D))
+(declare-const update (-> (! Type :var D :implicit) (! Type :var T :implicit) (! Type :var U :implicit) (! Type :var S :implicit) (-> T S) D U D))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
