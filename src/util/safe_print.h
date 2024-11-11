@@ -42,6 +42,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <string>
 

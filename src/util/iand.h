@@ -19,6 +19,7 @@
 #define CVC5__IAND_H
 
 #include <iosfwd>
+#include <ostream>
 
 #include "base/exception.h"
 #include "util/integer.h"

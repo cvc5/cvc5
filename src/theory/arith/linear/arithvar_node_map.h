@@ -26,6 +26,8 @@
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
+#include "expr/node.h"
+#include "util/dense_map.h"
 
 namespace cvc5::internal {
 namespace theory {

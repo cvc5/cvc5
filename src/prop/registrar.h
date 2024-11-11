@@ -23,6 +23,8 @@
 #ifndef CVC5__PROP__REGISTRAR_H
 #define CVC5__PROP__REGISTRAR_H
 
+#include "expr/node.h"
+
 namespace cvc5::internal {
 namespace prop {
 
