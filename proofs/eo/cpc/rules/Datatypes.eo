@@ -52,6 +52,13 @@
   )
 )
 
+;;;;; ProofRule::DT_SPLIT
+
+; program: $mk_dt_split
+; args:
+; - L eo::List: The list of a constructors yet to process.
+; - x D: The datatype term we are splitting on.
+; return: A disjunction of testers for the constructors in L, applied to x.
 (program $mk_dt_split ((D Type) (x D) (T Type) (c T) (xs eo::List :list))
   (eo::List D) Bool
   (
@@ -60,11 +67,27 @@
   )
 )
 
+; rule: dt_split
+; implements: ProofRule::DT_SPLIT.
+; args:
+; - x D: The datatype term to split on.
+; conclusion: >
+;   A disjunction of testers, indicating the possible top symbols of x. This is
+;   computed by getting the constructors for the type of x and calling the above
+;   $mk_dt_split method.
 (declare-rule dt_split ((D Type) (x D))
   :args (x)
   :conclusion ($singleton_elim ($mk_dt_split ($dt_get_constructors (eo::typeof x)) x))
 )
 
+;;;;; ProofRewriteRule::DT_INST
+
+; program: $mk_dt_inst_rec
+; args:
+; - L eo::List: The list of a selectors yet to process.
+; - x D: The datatype term we applying dt-inst to.
+; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
+; return: The result of dt-inst for x, given t and the remaining selectors in x.
 (program $mk_dt_inst_rec ((D Type) (x D) (T Type) (t T) (S Type) (s S) (xs eo::List :list))
   (eo::List D T) Bool
   (
@@ -73,6 +96,18 @@
   )
 )
 
+; program: $mk_dt_inst_tuple_rec
+; args:
+; - T Type: The type of x we have yet to process.
+; - x D: The tuple term we applying dt-inst to.
+; - n Int: The number of component types of the type of x we have processed.
+; return: The result of dt-inst for x, given t and the remaining selectors in x.
+; note: >
+;   This method is different from $mk_dt_inst_rec since the constructor tuple
+;   is n-ary. For example, for (Tuple Int Int), this method will return
+;   (tuple (tuple.select 0 x) (tuple (tuple.select 1 x) tuple.unit)), whereas
+;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
+;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
 (program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
   (Type D Int) Bool
   (
@@ -81,6 +116,12 @@
   )
 )
 
+; program: $mk_dt_inst
+; args:
+; - D Type: The datatype we are considering.
+; - c C: The constructor of datatype D.
+; - x D: The datatype term of type D we are applying dt-inst to.
+; return: An equality that is equivalent to (is c x).
 (program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
   (Type C D) Bool
   (
@@ -90,6 +131,14 @@
   )
 )
 
+; rule: dt-inst
+; implements: ProofRewriteRule::DT_INST.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that $mk_dt_inst applied to the left hand side returns
+;   the right hand side.
+; conclusion: The given equality.
 (declare-rule dt-inst ((D Type) (T Type) (c T) (x D) (t T))
   :args ((= (is c x) (= x t)))
   :requires ((($mk_dt_inst (eo::typeof x) c x) t))
