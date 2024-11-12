@@ -342,6 +342,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::TO_REAL:
         case Kind::TO_INTEGER:
         case Kind::IS_INTEGER:
+        case Kind::ABS:
         case Kind::STRING_CONCAT:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_LENGTH:
@@ -359,7 +360,13 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
-        case Kind::CONST_BITVECTOR_SYMBOLIC: break;
+        case Kind::BITVECTOR_ULT:
+        case Kind::BITVECTOR_ULE:
+        case Kind::BITVECTOR_UGT:
+        case Kind::BITVECTOR_UGE:
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
+        case Kind::BITVECTOR_TO_NAT:
+        case Kind::INT_TO_BITVECTOR: break;
         case Kind::EQUAL:
         {
           TypeNode tn = cur[0].getType();
