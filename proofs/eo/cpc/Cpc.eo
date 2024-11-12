@@ -165,7 +165,7 @@
                                           (eo::define ((ey ($run_evaluate y)))
                                           (eo::define ((r (eo::find ex ey)))
                                             (eo::ite (eo::is_eq r 0) true
-                                            (eo::ite (eo::is_neg r) false
+                                            (eo::ite (eo::is_z r) false
                                               (str.prefixof ex ey)))))))
       (($run_evaluate (str.indexof x y n)) (eo::define ((en ($run_evaluate n)))
                                            (eo::ite (eo::is_neg en) -1
