@@ -422,14 +422,6 @@
               (= k (str.++ k1 z k2))
               (not (str.contains (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y)))))
             (= k x)))))
-    (($str_reduction_pred (seq.nth x n))
-        (eo::define ((k (@purify (seq.nth x n))))
-        (eo::define ((k1 (@purify ($str_prefix x n))))
-        (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
-          (=> (and (>= n 0) (> (str.len x) n))
-              (and (= x (str.++ k1 (seq.unit k) k2))
-                   (= (str.len k1) n)
-                   (= (str.len k2) (- (str.len x) (+ n 1)))))))))
     (($str_reduction_pred (str.from_int n))
         (eo::define ((k (@purify (str.from_int n))))
         (eo::define ((R (@strings_itos_result n)))
@@ -471,8 +463,14 @@
                       (= ux1 (+ cd (* 10 (R @var.str_index))))
                       (and (>= cd 0) (< cd 10))
                       (>= k ux1)))))))))))))
-              
-
+    (($str_reduction_pred (seq.nth x n))
+        (eo::define ((k (@purify (seq.nth x n))))
+        (eo::define ((k1 (@purify ($str_prefix x n))))
+        (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
+          (=> (and (>= n 0) (> (str.len x) n))
+              (and (= x (str.++ k1 (seq.unit k) k2))
+                   (= (str.len k1) n)
+                   (= (str.len k2) (- (str.len x) (+ n 1)))))))))
 
     ; str.update
     ; str.to_int
