@@ -453,7 +453,7 @@ Node StringsPreprocess::reduce(Node t,
     Node k = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_NON_DIGIT, t[0]);
     Node kc1 = nm->mkNode(Kind::GEQ, k, zero);
     Node kc2 = nm->mkNode(Kind::LT, k, lens);
-    Node c0 = nm->mkNode(Kind::STRING_TO_CODE, nm->mkConst(String("0")));
+    Node c0 = nm->mkConstInt(Rational(48));
     Node codeSk = nm->mkNode(Kind::SUB, mkCodePointAtIndex(s, k), c0);
     Node ten = nm->mkConstInt(Rational(10));
     Node kc3 = nm->mkNode(Kind::OR,
