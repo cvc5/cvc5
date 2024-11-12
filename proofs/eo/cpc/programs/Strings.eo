@@ -405,8 +405,8 @@
 ; return: the reduction predicate for term t of sort s.
 ; note: >
 ;   The operators listed in comments are missing from the signature currently.
-(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int))
-  ((Seq U)) Bool
+(program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int))
+  (T) Bool
   (
     (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
     (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
@@ -430,9 +430,29 @@
               (and (= x (str.++ k1 (seq.unit k) k2))
                    (= (str.len k1) n)
                    (= (str.len k2) (- (str.len x) (+ n 1)))))))))
-          
+    (($str_reduction_pred (str.from_int n))
+        (eo::define ((k (@purify (str.from_int n))))
+        (eo::define ((U (@strings_itos_result n)))
+        (ite (>= n 0)
+          (and (>= (str.len k) 1)
+               (= n (U (str.len k)))
+               (= 0 (U 0))
+               (forall ((@var.str_index Int))
+                  (eo::define ((cd (- (str.to_code (str.substr k @var.str_index 1)) 48)))
+                  (eo::define ((ux1 (U (+ @var.str_index 1))))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index (str.len k)))
+                    (and
+                      (= ux1 (+ cd (* 10 (U @var.str_index))))
+                      (and (>= cd (ite (and (= @var.str_index 0) (> (str.len k) 1)) 1 0))
+                           (< cd 10))
+                      (>= n ux1)))))))
+          (= k "")))))
+
+
+
     ; str.update
-    ; str.from_int
     ; str.to_int
     ; str.replaceall
     ; str.replace_re
