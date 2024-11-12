@@ -144,16 +144,20 @@
 
 ;;;;; ProofRewriteRule::QUANT_MINISCOPE
 
-; program: $mk_quant_miniscope
+; program: $is_quant_miniscope
 ; args:
 ; - x @List: The list of variables of the formula.
 ; - F Bool: The body of the formula in question.
+; - G Bool: The rewritten form of the quantified formula.
 ; return: The result of miniscoping (forall x F) based on conjunctions.
-(program $mk_quant_miniscope ((x @List) (f Bool) (fs Bool :list))
-  (@List Bool) Bool
+(program $is_quant_miniscope ((x @List) (f Bool) (fs Bool :list) (y @List) (g Bool) (gs Bool :list))
+  (@List Bool Bool) Bool
   (
-  (($mk_quant_miniscope x (and f fs)) (and (forall x f) ($mk_quant_miniscope x fs)))
-  (($mk_quant_miniscope x true)       true)
+  (($is_quant_miniscope x (and f fs) (and (forall x f) gs)) ($is_quant_miniscope x fs gs))
+  (($is_quant_miniscope x (and f fs) (and (forall y g) gs)) (eo::requires ($substitute_list y x g) f 
+                                                            (eo::requires ($contains_subterm_list f y) false
+                                                              ($is_quant_miniscope x fs gs))))
+  (($is_quant_miniscope x true true)                        true)
   )
 )
 
@@ -167,7 +171,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope ((x @List) (F Bool) (G Bool))
   :args ((= (forall x F) G))
-  :requires ((($mk_quant_miniscope x F) G))
+  :requires ((($is_quant_miniscope x F G) true))
   :conclusion (= (forall x F) G)
 )
 
