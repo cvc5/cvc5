@@ -149,14 +149,16 @@
 ; - x @List: The list of variables of the formula.
 ; - F Bool: The body of the formula in question.
 ; - G Bool: The rewritten form of the quantified formula.
-; return: The result of miniscoping (forall x F) based on conjunctions.
+; return: True if G is a result of miniscoping (forall x F) based on conjunctions.
 (program $is_quant_miniscope ((x @List) (f Bool) (fs Bool :list) (y @List) (g Bool) (gs Bool :list))
   (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope x (and f fs) (and (forall x f) gs)) ($is_quant_miniscope x fs gs))
+  (($is_quant_miniscope x (and f fs) (and (forall x f) gs)) ($is_quant_miniscope x fs gs))      ; used same variables
+  (($is_quant_miniscope x (and f fs) (and f gs))            (eo::requires ($contains_subterm_list f x) false
+                                                              ($is_quant_miniscope x fs gs)))   ; x not bound in f
   (($is_quant_miniscope x (and f fs) (and (forall y g) gs)) (eo::requires ($substitute_list y x g) f 
                                                             (eo::requires ($contains_subterm_list f y) false
-                                                              ($is_quant_miniscope x fs gs))))
+                                                              ($is_quant_miniscope x fs gs))))  ; renamed variables
   (($is_quant_miniscope x true true)                        true)
   )
 )
