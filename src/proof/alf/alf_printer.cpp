@@ -339,6 +339,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::INTS_DIVISION_TOTAL:
         case Kind::INTS_ISPOW2:
         case Kind::INTS_LOG2:
+        case Kind::POW2:
         case Kind::TO_REAL:
         case Kind::TO_INTEGER:
         case Kind::IS_INTEGER:
@@ -364,6 +365,10 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_ULE:
         case Kind::BITVECTOR_UGT:
         case Kind::BITVECTOR_UGE:
+        case Kind::BITVECTOR_SLT:
+        case Kind::BITVECTOR_SLE:
+        case Kind::BITVECTOR_SGT:
+        case Kind::BITVECTOR_SGE:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
         case Kind::BITVECTOR_TO_NAT:
         case Kind::INT_TO_BITVECTOR: break;
