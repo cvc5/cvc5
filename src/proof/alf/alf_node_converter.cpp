@@ -463,7 +463,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         opName << "is";
         if (dt.isTuple())
         {
-          std::string tname = dt[0].getNumArgs()==0 ? "tuple.unit" : "tuple";
+          std::string tname = dt[0].getNumArgs() == 0 ? "tuple.unit" : "tuple";
           Node tsym = mkInternalSymbol(tname, dt[0].getConstructor().getType());
           indices.push_back(tsym);
         }
@@ -483,7 +483,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         {
           std::vector<Node> args;
           args.push_back(d_nm->mkConstInt(cindex));
-          Node ssym = mkInternalApp("tuple.select", args, dt[cindex][index].getSelector().getType());
+          Node ssym = mkInternalApp(
+              "tuple.select", args, dt[cindex][index].getSelector().getType());
           indices.push_back(ssym);
         }
         else
