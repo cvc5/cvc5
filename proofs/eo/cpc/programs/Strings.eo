@@ -405,15 +405,35 @@
 ; return: the reduction predicate for term t of sort s.
 ; note: >
 ;   The operators listed in comments are missing from the signature currently.
-(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (n Int) (m Int))
+(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int))
   ((Seq U)) Bool
   (
     (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
     (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    (($str_reduction_pred (str.replace x y z)) 
+        (eo::define ((k (@purify (str.replace x y z))))
+        (ite (= y ($mk_emptystr (eo::typeof y)))
+          (= k (str.++ z x))
+          (ite (str.contains x y)
+            (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
+            (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
+            (and
+              (= x (str.++ k1 y k2))
+              (= k (str.++ k1 z k2))
+              (not (str.contains (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y)))))
+            (= k x)))))
+    (($str_reduction_pred (seq.nth x n))
+        (eo::define ((k (@purify (seq.nth x n))))
+        (eo::define ((k1 (@purify ($str_prefix x n))))
+        (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
+          (=> (and (>= n 0) (< n (str.len x))
+              (and (= x (str.++ k1 (seq.unit k) k2))
+                   (= (str.len k1) n)
+                   (= (str.len k2) (- (str.len x) (+ n 1))))))))))
+          
     ; str.update
     ; str.from_int
     ; str.to_int
-    ; seq.nth
     ; str.replaceall
     ; str.replace_re
     ; str.replace_re_all
