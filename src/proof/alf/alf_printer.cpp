@@ -352,6 +352,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
+        case Kind::STRING_PREFIX:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -361,6 +362,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
+        case Kind::BITVECTOR_XOR:
         case Kind::BITVECTOR_ULT:
         case Kind::BITVECTOR_ULE:
         case Kind::BITVECTOR_UGT:
@@ -369,6 +371,9 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_SLE:
         case Kind::BITVECTOR_SGT:
         case Kind::BITVECTOR_SGE:
+        case Kind::BITVECTOR_REPEAT:
+        case Kind::BITVECTOR_SIGN_EXTEND:
+        case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
         case Kind::BITVECTOR_TO_NAT:
         case Kind::INT_TO_BITVECTOR: break;
