@@ -2,15 +2,20 @@
 
 ; note: >
 ;  This is the generic tester predicate whose first argument is expected to be
-;  a constructor symbol for datatype D. We do not currently insist this is the
+;  a constructor symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-const is (-> (! Type :var C :implicit) (! Type :var D :implicit) C D Bool))
+(declare-const is (-> (! Type :var C :implicit)
+                      (! Type :var D :implicit)
+                      C D Bool))
 
 ; note: >
 ;  This is the generic updater whose first argument is expected to be
-;  a selector symbol for datatype D. We do not currently insist this is the
+;  a selector symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-const update (-> (! Type :var D :implicit) (! Type :var T :implicit) (! Type :var U :implicit) (! Type :var S :implicit) (-> T S) D U D))
+(declare-const update (-> (! Type :var D :implicit)
+                          (! Type :var T :implicit)
+                          (! Type :var S :implicit)
+                          S D T D))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function

@@ -1,6 +1,14 @@
 (include "../theories/Datatypes.eo")
 
 
+; program: $dt_get_constructors
+; args:
+; - T Type: The datatype to get the constructors for.
+; return: The list of constructors of T, as a eo::List.
+; note: >
+;   (Unit) tuples are treated as a special case of datatypes with a single
+;   constructor. Parametric datatypes must reference the type constructor to
+;   extract their constructors.
 (program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
   (Type) eo::List
   (
@@ -11,6 +19,14 @@
   )
 )
 
+; program: $tuple_get_selectors_rec
+; args:
+; - T Type: The tuple type to get the selectors for.
+; - n Int: The number of component types we have processed so far.
+; return: The list of selectors of T, as a eo::List.
+; note: >
+;   Tuples use a special selector tuple.select indexed by an integer, which is
+;   why they require a special method here.
 (program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
   (Type Int) Bool
   (
@@ -19,13 +35,20 @@
   )
 )
 
-(program $dt_get_selectors ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
+; program: $dt_get_selectors
+; args:
+; - D Type: The type to get the selectors for.
+; - c T: The constructor of D.
+; return: The list of selectors of c, as a eo::List.
+; note: >
+;   (Unit) tuples are treated as a special case of datatypes whose selectors are
+;   tuple.select indexed by an integer, which requires the above method.
+(program $dt_get_selectors ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list))
   (Type T) eo::List
   (
-    (($dt_get_selectors (Tuple T1 T2) c) ($tuple_get_selectors_rec (Tuple T1 T2) 0))
-    (($dt_get_selectors UnitTuple c)     eo::List::nil)
-    (($dt_get_selectors (DC T1) c)       ($dt_get_selectors DC c))  ; parameteric datatypes, traverse
-    (($dt_get_selectors D c)             (eo::dt_selectors c)) ; user-defined datatypes
+    (($dt_get_selectors (Tuple T1 T2) tuple)  ($tuple_get_selectors_rec (Tuple T1 T2) 0))
+    (($dt_get_selectors UnitTuple tuple.unit) eo::List::nil)
+    (($dt_get_selectors D c)                  (eo::dt_selectors c)) ; user-defined datatypes
   )
 )
 
