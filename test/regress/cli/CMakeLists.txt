@@ -2003,6 +2003,7 @@ set(regress_0_tests
   regress0/tptp/tptp_parser7.smt2
   regress0/tptp/tptp_parser8.smt2
   regress0/tptp/tptp_parser9.smt2
+  regress0/uf-conv-rewrites.smt2
   regress0/uf/bool-pred-nested.smt2
   regress0/uf/ccredesign-fuzz.smtv1.smt2
   regress0/uf/cnf_abc.smt2
@@ -2482,6 +2483,7 @@ set(regress_1_tests
   regress1/ho/soundness_fmf_SYO362^5-delta.smt2
   regress1/ho/store-ax-min.smt2
   regress1/hole6.cvc.smt2
+  regress1/interpolant-subs.smt2
   regress1/interpolant-unk-570.smt2
   regress1/ite5.smt2
   regress1/issue10750-zll-repeat.smt2

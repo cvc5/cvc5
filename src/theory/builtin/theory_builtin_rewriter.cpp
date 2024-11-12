@@ -34,6 +34,8 @@ namespace builtin {
 TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
     : TheoryRewriter(nm)
 {
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
 }
@@ -42,6 +44,15 @@ Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        if (n[0].getType().isCardinalityLessThan(n.getNumChildren()))
+        {
+          return nodeManager()->mkConst(false);
+        }
+      }
+      break;
     case ProofRewriteRule::DISTINCT_ELIM:
       if (n.getKind() == Kind::DISTINCT)
       {

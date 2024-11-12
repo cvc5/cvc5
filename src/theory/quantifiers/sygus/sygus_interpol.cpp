@@ -374,7 +374,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
   Trace("sygus-interpol")
       << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
-      << ", solving for " << d_sygusConj[0][0] << std::endl;
+      << std::endl;
   d_subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol")

@@ -513,7 +513,7 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   // the d_proof, so that there are no non-input assumptions.
   if (!proofLogging)
   {
-    d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {clauseExp});
+    d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {});
   }
 }
 

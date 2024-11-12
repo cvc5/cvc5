@@ -74,6 +74,8 @@
 (include "./theories/SepLogic.eo")
 (include "./rules/Rewrites.eo")
 
+(include "./programs/PolyNorm.eo")
+
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
 ;   and are used to model cvc5's internal symbols, including its skolems,
@@ -221,49 +223,20 @@
   :conclusion (= a b)
 )
 
-; define: $is_poly_norm_rel
-; args:
-; - b Bool: >
-;   a formula of the form (r cx cy) where r is a binary relation and cx and
-;   cy are scaling factors.
-; return: >
-;   The result of checking if r is a polynomial normalization relation for a
-;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
-;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
-;   scaling factors must have the same sign. For bitvectors, they must be set to
-;   1. Returns false for any other relation.
-(program $is_poly_norm_rel ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
-  (Bool) Bool
-  (
-    (($is_poly_norm_rel (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel (= cx cy))  (eo::ite (eo::and (eo::is_bin cx) (eo::is_bin cy))
-                                      (eo::and (= cx (eo::to_bin (eo::len cx) 1)) (= cy (eo::to_bin (eo::len cy) 1)))
-                                      (eo::and ($is_arith_type (eo::typeof cx)) ($is_arith_type (eo::typeof cy)))))
-    (($is_poly_norm_rel (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel b)          false)
-  )
-)
-
 ; rule: arith_poly_norm_rel
 ; implements: ProofRule::ARITH_POLY_NORM_REL
 ; premises:
 ; - eq Bool: >
-;   An equality stating that (- x1 x2) and (- y1 y2) are equal modulo polynomial
-;   normalization and scaling factors cx and cy.
+;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
+;   are equal modulo polynomial normalization and some scaling factors. These
+;   terms may be of arithmetic or bitvector type.
 ; args:
 ; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
-; requires: >
-;   That r is a polynomial normalization relation. If r is an arithmetic
-;   inequality, the scaling factors must have the same sign. For bitvectors,
-;   they must be set to 1.
-; conclusion: The given equality.
-(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U))
-  :premises ((= (* cx (- x1 x2)) (* cy (- y1 y2))))
+; conclusion: An equivalence between relations of the terms specified by eq.
+(declare-rule arith_poly_norm_rel ((U Type) (t U) (s U) (r (-> U U Bool)))
+  :premises ((= t s))
   :args (r)
-  :requires ((($is_poly_norm_rel (r cx cy)) true))
-  :conclusion (= (r x1 x2) (r y1 y2))
+  :conclusion ($mk_poly_norm_rel t s r)
 )
 
 ; define: $get_aci_normal_form
