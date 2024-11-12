@@ -426,10 +426,10 @@
         (eo::define ((k (@purify (seq.nth x n))))
         (eo::define ((k1 (@purify ($str_prefix x n))))
         (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
-          (=> (and (>= n 0) (< n (str.len x))
+          (=> (and (>= n 0) (> (str.len x) n))
               (and (= x (str.++ k1 (seq.unit k) k2))
                    (= (str.len k1) n)
-                   (= (str.len k2) (- (str.len x) (+ n 1))))))))))
+                   (= (str.len k2) (- (str.len x) (+ n 1)))))))))
           
     ; str.update
     ; str.from_int
