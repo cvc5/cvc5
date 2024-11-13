@@ -110,7 +110,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceProofs"
-  category   = "regular"
+  category   = "common"
   long       = "produce-proofs"
   type       = "bool"
   default    = "false"
@@ -142,7 +142,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkProofs"
-  category   = "regular"
+  category   = "common"
   long       = "check-proofs"
   type       = "bool"
   default    = "false"

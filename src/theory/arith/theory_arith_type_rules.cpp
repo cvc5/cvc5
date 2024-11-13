@@ -228,32 +228,29 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode Pow2TypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode PowTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  return nm->integerType();
+  return TypeNode::null();
 }
-TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
+
+TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
                                    std::ostream* errOut)
 {
-  if (n.getKind() != Kind::POW2)
+  Assert (n.getKind() == Kind::POW);
+  TypeNode arg1 = n[0].getTypeOrNull();
+  TypeNode arg2 = n[1].getTypeOrNull();
+  TypeNode t = arg1.leastUpperBound(arg2);
+  if (t.isNull())
   {
-    InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
-  }
-  if (check)
-  {
-    TypeNode arg1 = n[0].getTypeOrNull();
-    if (!isMaybeInteger(arg1))
+    if (errOut)
     {
-      if (errOut)
-      {
-        (*errOut) << "expecting integer terms";
-      }
-      return TypeNode::null();
+      (*errOut) << "expecting same arithmetic types to POW";
     }
+    return TypeNode::null();
   }
-  return nodeManager->integerType();
+  return t;
 }
 
 TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)

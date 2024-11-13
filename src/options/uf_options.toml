@@ -92,15 +92,15 @@ name   = "Uninterpreted Functions Theory"
   help       = "model-based inferences for bit-vector to arithmetic conversions"
 
 [[option]]
-  name       = "hoExp"
+  name       = "ufHoExp"
   category   = "expert"
-  long       = "ho-exp"
+  long       = "uf-ho-exp"
   type       = "bool"
   default    = "true"
-  help       = "enables the higher-order logic solver"
+  help       = "enables the higher-order logic solver in applicable logics"
 
 [[option]]
-  name       = "cardExp"
+  name       = "ufCardExp"
   category   = "expert"
   long       = "uf-card-exp"
   type       = "bool"
