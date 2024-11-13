@@ -87,11 +87,29 @@ class RewriteDbProofCons : protected EnvObj
    * simplifications:
    *
    * For (forall x P) = (forall x Q), we return (= P Q), where a CONG step
-   * is added to transform this step.
+   * is added to transform this step. That is, the proof is:
+   * 
+   * P = Q
+   * ----------------------------- CONG
+   * (forall x. P) = (forall x. Q)
+   * 
+   * where P = Q is left to prove.
    *
    * For (forall x. P) = (forall y. Q), we return
-   * (= (forall y. P[y/x]) (forall y. Q)), where an ALPHA_EQUIV step is added
-   * to transform this step.
+   * (= (forall y. P[y/x]) (forall y. Q)). If P[y/x] is not Q, the proof is:
+   * 
+   * ----------------------- ALPHA_EQUIV
+   * (forall x. P) = (forall y. P[y/x])   (forall y. P[y/x]) = (forall y. Q)
+   * ----------------------------------------------------------------- TRANS
+   *  (forall x. P) = (forall y. Q)
+   * 
+   * where (forall y. P[y/x]) = (forall y. Q) is left to prove. If P[y/x] is Q,
+   * the proof is:
+   * 
+   * ----------------------------- ALPHA_EQUIV
+   * (forall x. P) = (forall y. Q)
+   * 
+   * where (forall y. Q) = (forall y. Q) is left to prove (trivially).
    *
    * In either case, we add a proof of (= a b) whose free assumptions are
    * either empty (if the returned equality is reflexive), or the returned
