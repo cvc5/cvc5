@@ -3129,7 +3129,7 @@ public class Solver extends AbstractPointer
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <xsymbol> <conj> )
+   * ( get-interpolant <symbol> <conj> )
    * }
    *
    * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
