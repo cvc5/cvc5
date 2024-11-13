@@ -39,8 +39,8 @@ runs:
           fi
         fi
 
-        # Copy COPYING file and licenses directory to install directory
-        cp COPYING ${{ inputs.build-dir }}/install/
+        # Copy AUTHORS and COPYING files and licenses directory to install directory
+        cp AUTHORS COPYING ${{ inputs.build-dir }}/install/
         cp -r licenses ${{ inputs.build-dir }}/install/
 
         # Create ZIP file
