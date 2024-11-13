@@ -22,10 +22,10 @@
 #define CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include "context/cdhashmap.h"
+#include "proof/trust_node.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
-#include "proof/trust_node.h"
 
 namespace cvc5::context {
 class Context;
@@ -53,7 +53,9 @@ public:
  void addBound(TNode n);
 
 private:
- void process(TNode n, std::vector<TrustNode>& learned, const TNodeSet& defTrue);
+ void process(TNode n,
+              std::vector<TrustNode>& learned,
+              const TNodeSet& defTrue);
 
  void iteMinMax(TNode n, std::vector<TrustNode>& learned);
  void iteConstant(TNode n, std::vector<TrustNode>& learned);

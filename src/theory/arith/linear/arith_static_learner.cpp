@@ -50,7 +50,8 @@ ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr)
 {
 }
 
-void ArithStaticLearner::staticLearning(TNode n, std::vector<TrustNode>& learned)
+void ArithStaticLearner::staticLearning(TNode n,
+                                        std::vector<TrustNode>& learned)
 {
   vector<TNode> workList;
   workList.push_back(n);
@@ -214,15 +215,19 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
       std::vector<Node> conj;
       if (!n[1].isConst())
       {
-        conj.push_back(nm->mkNode(
-            first.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT, n[1], 
-            nm->mkConstRealOrInt(n.getType(), first.getNoninfinitesimalPart())));
+        conj.push_back(
+            nm->mkNode(first.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
+                       n[1],
+                       nm->mkConstRealOrInt(n.getType(),
+                                            first.getNoninfinitesimalPart())));
       }
       if (!n[2].isConst())
       {
         conj.push_back(nm->mkNode(
-              second.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT, n[2], 
-              nm->mkConstRealOrInt(n.getType(), second.getNoninfinitesimalPart())));
+            second.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
+            n[2],
+            nm->mkConstRealOrInt(n.getType(),
+                                 second.getNoninfinitesimalPart())));
       }
       nGeqMin = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nGeqMin);
       addLearnedLemma(nGeqMin, learned);
@@ -246,15 +251,19 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
       std::vector<Node> conj;
       if (!n[1].isConst())
       {
-        conj.push_back(nm->mkNode(
-            first.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT, n[1], 
-            nm->mkConstRealOrInt(n.getType(), first.getNoninfinitesimalPart())));
+        conj.push_back(
+            nm->mkNode(first.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
+                       n[1],
+                       nm->mkConstRealOrInt(n.getType(),
+                                            first.getNoninfinitesimalPart())));
       }
       if (!n[2].isConst())
       {
         conj.push_back(nm->mkNode(
-            second.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT, n[2], 
-            nm->mkConstRealOrInt(n.getType(), second.getNoninfinitesimalPart())));
+            second.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
+            n[2],
+            nm->mkConstRealOrInt(n.getType(),
+                                 second.getNoninfinitesimalPart())));
       }
       nLeqMax = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nLeqMax);
       addLearnedLemma(nLeqMax, learned);
@@ -304,7 +313,8 @@ void ArithStaticLearner::addBound(TNode n) {
   }
 }
 
-void ArithStaticLearner::addLearnedLemma(TNode n, std::vector<TrustNode>& learned)
+void ArithStaticLearner::addLearnedLemma(TNode n,
+                                         std::vector<TrustNode>& learned)
 {
   TrustNode trn = TrustNode::mkTrustLemma(n, nullptr);
   learned.emplace_back(trn);
