@@ -860,7 +860,8 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
       Node a = assertions[i];
       Node as = rewrite(d_substitutions.apply(a));
       // replace the assertion
-      assertionsToPreprocess->replace(i, as);
+      assertionsToPreprocess->replace(
+          i, as, nullptr, TrustId::PREPROCESS_UNCONSTRAINED_SIMP);
     }
   }
 
