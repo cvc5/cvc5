@@ -47,6 +47,8 @@ enum class TrustId : uint32_t
   /** BvToInt preprocessing pass */
   PREPROCESS_BV_TO_INT,
   PREPROCESS_BV_TO_INT_LEMMA,
+  /** BoolToBv preprocessing pass */
+  PREPROCESS_BOOL_TO_BV,
   /** Ackermann preprocessing pass */
   PREPROCESS_ACKERMANN,
   PREPROCESS_ACKERMANN_LEMMA,
@@ -123,12 +125,6 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
-  /**
-   * A conversion between a literal used in the inference id lemma
-   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
-   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
-   */
-  ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** Arithmetic operator elimination */
   ARITH_OP_ELIM,
   /** An extended theory rewrite */
@@ -160,8 +156,6 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
-  /** */
-  QUANTIFIERS_INST_REWRITE,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */

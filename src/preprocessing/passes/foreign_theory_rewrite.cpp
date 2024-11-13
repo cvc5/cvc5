@@ -154,9 +154,9 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     {
       continue;
     }
-    ar = rewrite(ar);
     assertionsToPreprocess->replace(
         i, ar, nullptr, TrustId::PREPROCESS_FOREIGN_THEORY_REWRITE);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

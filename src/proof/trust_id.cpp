@@ -39,6 +39,7 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESS_BV_TO_INT: return "PREPROCESS_BV_TO_INT";
     case TrustId::PREPROCESS_BV_TO_INT_LEMMA:
       return "PREPROCESS_BV_TO_INT_LEMMA";
+    case TrustId::PREPROCESS_BOOL_TO_BV: return "PREPROCESS_BOOL_TO_BV";
     case TrustId::PREPROCESS_ACKERMANN: return "PREPROCESS_ACKERMANN";
     case TrustId::PREPROCESS_ACKERMANN_LEMMA:
       return "PREPROCESS_ACKERMANN_LEMMA";
@@ -67,8 +68,6 @@ const char* toString(TrustId id)
     case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
-    case TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM:
-      return "ARITH_NL_COMPARE_LIT_TRANSFORM";
     case TrustId::ARITH_OP_ELIM: return "ARITH_OP_ELIM";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
@@ -79,7 +78,6 @@ const char* toString(TrustId id)
     case TrustId::ARITH_PRED_CAST_TYPE: return "ARITH_PRED_CAST_TYPE";
     case TrustId::RE_ELIM: return "RE_ELIM";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
-    case TrustId::QUANTIFIERS_INST_REWRITE: return "QUANTIFIERS_INST_REWRITE";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";
     case TrustId::MACRO_THEORY_REWRITE_RCONS:
       return "MACRO_THEORY_REWRITE_RCONS";
