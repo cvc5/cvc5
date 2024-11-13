@@ -86,7 +86,7 @@ class RewriteDbProofCons : protected EnvObj
    * simplify equalities between closures. In particular we apply two possible
    * simplifications:
    *
-   * For (forall x P) = (forall x Q), we return (= P Q), where a CONG step
+   * For (forall x P) = (forall x Q), we return P = Q, where a CONG step
    * is added to transform this step. That is, the proof is:
    *
    * P = Q
@@ -96,7 +96,7 @@ class RewriteDbProofCons : protected EnvObj
    * where P = Q is left to prove.
    *
    * For (forall x. P) = (forall y. Q), we return
-   * (= (forall y. P[y/x]) (forall y. Q)). If P[y/x] is not Q, the proof is:
+   * (forall y. P[y/x]) = (forall y. Q). If P[y/x] is not Q, the proof is:
    *
    * ----------------------- ALPHA_EQUIV
    * (forall x. P) = (forall y. P[y/x])   (forall y. P[y/x]) = (forall y. Q)
