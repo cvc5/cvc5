@@ -211,6 +211,20 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
           min.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
           n,
           nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
+      std::vector<Node> conj;
+      if (!n[1].isConst())
+      {
+        conj.push_back(nm->mkNode(
+            first.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT, n[1], 
+            nm->mkConstRealOrInt(n.getType(), first.getNoninfinitesimalPart())));
+      }
+      if (!n[2].isConst())
+      {
+        conj.push_back(nm->mkNode(
+              second.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT, n[2], 
+              nm->mkConstRealOrInt(n.getType(), second.getNoninfinitesimalPart())));
+      }
+      nGeqMin = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nGeqMin);
       addLearnedLemma(nGeqMin, learned);
       Trace("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
@@ -229,6 +243,20 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
           max.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
+      std::vector<Node> conj;
+      if (!n[1].isConst())
+      {
+        conj.push_back(nm->mkNode(
+            first.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT, n[1], 
+            nm->mkConstRealOrInt(n.getType(), first.getNoninfinitesimalPart())));
+      }
+      if (!n[2].isConst())
+      {
+        conj.push_back(nm->mkNode(
+            second.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT, n[2], 
+            nm->mkConstRealOrInt(n.getType(), second.getNoninfinitesimalPart())));
+      }
+      nLeqMax = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nLeqMax);
       addLearnedLemma(nLeqMax, learned);
       Trace("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
