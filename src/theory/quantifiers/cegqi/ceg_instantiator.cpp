@@ -1048,7 +1048,10 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
     // add the existentials, if any witness term was eliminated
     for (const Node& q : exists)
     {
-      d_qim.addPendingLemma(q, InferenceId::QUANTIFIERS_CEGQI_WITNESS, LemmaProperty::NONE, d_vwpg.get());
+      d_qim.addPendingLemma(q,
+                            InferenceId::QUANTIFIERS_CEGQI_WITNESS,
+                            LemmaProperty::NONE,
+                            d_vwpg.get());
     }
     return true;
   }

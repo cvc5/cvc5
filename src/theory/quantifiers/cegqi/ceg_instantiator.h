@@ -21,11 +21,11 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
-#include "util/statistics_stats.h"
 #include "theory/quantifiers/cegqi/ceg_utils.h"
-#include "proof/valid_witness_proof_generator.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace theory {

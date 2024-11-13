@@ -124,7 +124,7 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
-  /** 
+  /**
    * An existential corresponding to a witness term introduced e.g. in
    * quantifier instantiation
    */
