@@ -65,6 +65,22 @@
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
 (define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
 
+(define-cond-rule arith-ite-lb-1 ((b Bool) (x ?) (y ?))
+  (>= x y)
+  (>= (ite b x y) y)
+  true)
+(define-cond-rule arith-ite-lb-2 ((b Bool) (x ?) (y ?))
+  (>= y x)
+  (>= (ite b x y) x)
+  true)
+(define-cond-rule arith-ite-ub-1 ((b Bool) (x ?) (y ?))
+  (>= x y)
+  (<= (ite b x y) x)
+  true)
+(define-cond-rule arith-ite-ub-2 ((b Bool) (x ?) (y ?))
+  (>= x y)
+  (<= (ite b x y) y)
+  true)
 
 ; trancendentals
 
