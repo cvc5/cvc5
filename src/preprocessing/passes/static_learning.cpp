@@ -65,7 +65,10 @@ PreprocessingPassResult StaticLearning::applyInternal(
     }
     else
     {
-      assertionsToPreprocess->replace(i, rewrite(learned.constructNode()));
+      assertionsToPreprocess->replace(i,
+                                      rewrite(learned.constructNode()),
+                                      nullptr,
+                                      TrustId::PREPROCESS_STATIC_LEARNING);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

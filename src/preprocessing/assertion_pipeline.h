@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "proof/lazy_proof.h"
+#include "proof/rewrite_proof_generator.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -66,12 +67,16 @@ class AssertionPipeline : protected EnvObj
    * body of the overall proof).
    * @param pg The proof generator who can provide a proof of n. The proof
    * generator is not required and is ignored if isInput is true.
+   * @param trustId The trust id to use if pg is not provided when isInput
+   * is false and proofs are enabled.
    */
   void push_back(Node n,
                  bool isInput = false,
-                 ProofGenerator* pg = nullptr);
+                 ProofGenerator* pg = nullptr,
+                 TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
   /** Same as above, with TrustNode */
-  void pushBackTrusted(TrustNode trn);
+  void pushBackTrusted(TrustNode trn,
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
 
   /**
    * Get the constant reference to the underlying assertions. It is only
@@ -91,12 +96,21 @@ class AssertionPipeline : protected EnvObj
    * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
    * where d_nodes[i] is the assertion at position i prior to this call.
    */
-  void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
+  void replace(size_t i,
+               Node n,
+               ProofGenerator* pg = nullptr,
+               TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
   /**
    * Same as above, with TrustNode trn, which is of kind REWRITE and proves
    * d_nodes[i] = n for some n.
    */
-  void replaceTrusted(size_t i, TrustNode trn);
+  void replaceTrusted(size_t i,
+                      TrustNode trn,
+                      TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
+  /**
+   * Ensure assertion at index i is rewritten.
+   */
+  void ensureRewritten(size_t i);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
@@ -124,8 +138,12 @@ class AssertionPipeline : protected EnvObj
    *
    * @param n The substitution node
    * @param pg The proof generator that can provide a proof of n.
+   * @param trustId The trust id to use if pg is not provided and proofs are
+   * enabled.
    */
-  void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
+  void addSubstitutionNode(Node n,
+                           ProofGenerator* pg = nullptr,
+                           TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
 
   /**
    * Checks whether the assertion at a given index represents substitutions.
@@ -209,6 +227,10 @@ class AssertionPipeline : protected EnvObj
    * Maintains proofs for eliminating top-level AND from inputs to this class.
    */
   std::unique_ptr<LazyCDProof> d_andElimEpg;
+  /**
+   * Maintains proofs for rewrite steps.
+   */
+  std::unique_ptr<RewriteProofGenerator> d_rewpg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

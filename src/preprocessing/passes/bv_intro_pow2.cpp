@@ -46,7 +46,8 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     if (res != cur)
     {
       res = rewrite(res);
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_BV_INTRO_POW2);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

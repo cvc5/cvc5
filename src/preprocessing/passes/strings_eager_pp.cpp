@@ -49,7 +49,9 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
     }
     if (prev != rew)
     {
-      assertionsToPreprocess->replace(i, rewrite(rew));
+      rew = rewrite(rew);
+      assertionsToPreprocess->replace(
+          i, rew, nullptr, TrustId::PREPROCESS_STRINGS_EAGER_PP);
       if (assertionsToPreprocess->isInConflict())
       {
         return PreprocessingPassResult::CONFLICT;

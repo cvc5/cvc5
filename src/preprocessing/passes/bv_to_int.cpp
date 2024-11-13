@@ -58,13 +58,8 @@ PreprocessingPassResult BVToInt::applyInternal(
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     // ensure bv rewritten
+    assertionsToPreprocess->ensureRewritten(i);
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node bvnr = rewrite(bvNode);
-    if (bvnr != bvNode)
-    {
-      assertionsToPreprocess->replace(i, bvnr);
-      bvNode = bvnr;
-    }
     TrustNode tr =
         d_intBlaster.trustedIntBlast(bvNode, additionalConstraints, skolems);
     if (tr.isNull())
@@ -76,12 +71,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     Trace("bv-to-int-debug") << "int node: " << tr.getProven()[1] << std::endl;
     assertionsToPreprocess->replaceTrusted(i, tr);
     // ensure integer rewritten
-    Node intNode = (*assertionsToPreprocess)[i];
-    Node inr = rewrite(intNode);
-    if (inr != intNode)
-    {
-      assertionsToPreprocess->replace(i, inr);
-    }
+    assertionsToPreprocess->ensureRewritten(i);
   }
   addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
   addSkolemDefinitions(skolems);

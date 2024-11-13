@@ -32,10 +32,6 @@ enum class TrustId : uint32_t
   THEORY_LEMMA,
   /** An internal inference made by a theory without a proof */
   THEORY_INFERENCE,
-  /** A rewrite of the input formula by a preprocessing pass without a proof */
-  PREPROCESS,
-  /** A lemma added during preprocessing without a proof */
-  PREPROCESS_LEMMA,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -45,7 +41,39 @@ enum class TrustId : uint32_t
   THEORY_PREPROCESS_LEMMA,
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
-
+  /** Specific preprocessing passes */
+  /** BvToBool preprocessing pass */
+  PREPROCESS_BV_TO_BOOL,
+  /** BvToInt preprocessing pass */
+  PREPROCESS_BV_TO_INT,
+  PREPROCESS_BV_TO_INT_LEMMA,
+  /** Ackermann preprocessing pass */
+  PREPROCESS_ACKERMANN,
+  PREPROCESS_ACKERMANN_LEMMA,
+  /** StaticLearning preprocessing pass */
+  PREPROCESS_STATIC_LEARNING,
+  /** HoElim preprocessing pass */
+  PREPROCESS_HO_ELIM,
+  PREPROCESS_HO_ELIM_LEMMA,
+  /** BitvectorEagerAtoms preprocessing pass */
+  PREPROCESS_BITVECTOR_EAGER_ATOMS,
+  /** FfBitsum preprocessing pass */
+  PREPROCESS_FF_BITSUM,
+  /** FfDisjunctiveBit preprocessing pass */
+  PREPROCESS_FF_DISJUNCTIVE_BIT,
+  /** FunDefFmf preprocessing pass */
+  PREPROCESS_FUN_DEF_FMF,
+  /** LearnedRewrite preprocessing pass */
+  PREPROCESS_LEARNED_REWRITE,
+  PREPROCESS_LEARNED_REWRITE_LEMMA,
+  /** BvIntroPow2 preprocessing pass */
+  PREPROCESS_BV_INTRO_POW2,
+  /** ForeignTheoryRewrite preprocessing pass */
+  PREPROCESS_FOREIGN_THEORY_REWRITE,
+  /** UnconstrainedSimp preprocessing pass */
+  PREPROCESS_UNCONSTRAINED_SIMP,
+  /** StringsEagerPp preprocessing pass */
+  PREPROCESS_STRINGS_EAGER_PP,
   /**
    * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
    * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
@@ -95,6 +123,14 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
+  /**
+   * A conversion between a literal used in the inference id lemma
+   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
+   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
+   */
+  ARITH_NL_COMPARE_LIT_TRANSFORM,
+  /** Arithmetic operator elimination */
+  ARITH_OP_ELIM,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
@@ -124,6 +160,8 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** */
+  QUANTIFIERS_INST_REWRITE,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */
@@ -135,6 +173,11 @@ enum class TrustId : uint32_t
   MACRO_THEORY_REWRITE_RCONS_SIMPLE,
   /** An unproven step from the int-blaster */
   INT_BLASTER,
+  /** Untracked sources of trust, which are discouraged */
+  /** A rewrite of the input formula by a preprocessing pass without a proof */
+  UNKNOWN_PREPROCESS,
+  /** A lemma added during preprocessing without a proof */
+  UNKNOWN_PREPROCESS_LEMMA,
 };
 /** Converts a trust id to a string. */
 const char* toString(TrustId id);
