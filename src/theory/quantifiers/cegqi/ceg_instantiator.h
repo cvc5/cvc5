@@ -25,6 +25,7 @@
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 #include "theory/quantifiers/cegqi/ceg_utils.h"
+#include "proof/valid_witness_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -415,6 +416,10 @@ class CegInstantiator : protected EnvObj
   static CegHandledStatus isCbqiSort(
       TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
+  /**
+   * A proof generator for witness terms.
+   */
+  std::unique_ptr<ValidWitnessProofGenerator> d_vwpg;
 };
 
 }  // namespace quantifiers
