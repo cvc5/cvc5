@@ -48,7 +48,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     Assert(qn.getKind() == Kind::FORALL);
     Node k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                    {qn, nm->mkConstInt(Rational(0))});
-    d_exists.push_back(qn.notNode());
+    d_exists.push_back(q.notNode());
     return k;
   }
   return n;
