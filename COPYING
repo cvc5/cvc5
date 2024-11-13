@@ -76,7 +76,7 @@ copyright and licensing information.
 
 cvc5 also links against the libgcc and libstdc++ libraries, which are licensed
 under the GNU GPL v3 with the GCC Runtime Library exception. See the files
-licenses/lgpl-3.0.txt and licenses/GCC-exception-3.1.txt for a copy of
+licenses/gpl-3.0.txt and licenses/GCC-exception-3.1.txt for a copy of
 the license and the exception, respectively.  Note that according to the
 terms of GPLv3 with the GCC-exception, both cvc5's source, and
 the combined work (cvc5 linked with the libraries) may (and do) remain under
