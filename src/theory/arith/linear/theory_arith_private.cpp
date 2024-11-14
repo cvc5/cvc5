@@ -1804,7 +1804,7 @@ bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
-  //AlwaysAssert(!isProofEnabled() || conf.getGenerator() != nullptr);
+  // AlwaysAssert(!isProofEnabled() || conf.getGenerator() != nullptr);
   Trace("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
   d_containing.outputTrustedConflict(conf, id);
 }
@@ -3400,9 +3400,10 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         if (isProofEnabled())
         {
           std::vector<Node> assump;
-          if (possibleConflict.getKind()==Kind::AND)
+          if (possibleConflict.getKind() == Kind::AND)
           {
-            assump.insert(assump.end(), possibleConflict.begin(), possibleConflict.end());
+            assump.insert(
+                assump.end(), possibleConflict.begin(), possibleConflict.end());
           }
           else
           {
