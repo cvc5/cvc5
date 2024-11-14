@@ -11,10 +11,15 @@ inputs:
     description: token to upload package to release
   shell:
     default: bash
+outputs:
+  install-path:
+    description: path to the installation directory
+    value: ${{ steps.create-zip.outputs.install-path }}
 runs:
   using: composite
   steps:
     - name: Create ZIP file
+      id: create-zip
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Create ZIP file"
@@ -46,6 +51,7 @@ runs:
         # Create ZIP file
         pushd ${{ inputs.build-dir }}
         mv install ${{ inputs.package-name }}
+        echo "install-path=${{ inputs.build-dir }}/${{ inputs.package-name }}" >> $GITHUB_OUTPUT
         zip -r ${{ inputs.package-name }} ${{ inputs.package-name }}
         popd
 

@@ -52,9 +52,10 @@ runs:
 
         for cnt,asset in enumerate(assets):
           delete = False
-          # We generate 10 artifacts per build:
+          # We generate 10 packages per build:
           # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
-          if cnt >= 20: # Keep at most 2 builds
+          # and 4 JARS {Linux-x86_64, macOS-x86_64, macOS-arm64, Win64-x86_64}
+          if cnt >= 28: # Keep at most 2 builds
             delete = True
           if asset.name.startswith(samedayprefix):
             delete = True
