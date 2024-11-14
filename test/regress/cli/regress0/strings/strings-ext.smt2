@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-deq-ext
+; COMMAND-LINE: --strings-deq-ext --enum-inst
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const s String)
