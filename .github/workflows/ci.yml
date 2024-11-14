@@ -255,7 +255,7 @@ jobs:
       with:
         install-path: ${{ steps.create-shared-package.outputs.install-path }}
         jar-libs-dir: cvc5-libs
-        jar-name: java-${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}
+        jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
