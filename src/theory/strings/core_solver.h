@@ -313,6 +313,12 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
                                      bool isRev,
                                      SkolemCache* skc,
                                      std::vector<Node>& newSkolems);
+  /**
+   */
+  static Node getExtensionalityConclusion(NodeManager* nm,
+                                          const Node& a,
+                                          const Node& b,
+                                          SkolemCache* skc);
 
   /** Called when ii is ready to be processed as a fact */
   void processFact(InferInfo& ii, ProofGenerator*& pg) override;
