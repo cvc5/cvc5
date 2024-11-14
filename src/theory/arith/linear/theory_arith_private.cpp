@@ -1804,7 +1804,6 @@ bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
-  // AlwaysAssert(!isProofEnabled() || conf.getGenerator() != nullptr);
   Trace("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
   d_containing.outputTrustedConflict(conf, id);
 }
