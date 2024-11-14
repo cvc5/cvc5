@@ -305,7 +305,7 @@ void InferProofCons::convert(InferenceId infer,
     {
       ps.d_rule = ProofRule::STRING_EXT;
     }
-      break;
+    break;
     // ========================== substitution+rewriting, CONCAT_EQ, ...
     case InferenceId::STRINGS_F_CONST:
     case InferenceId::STRINGS_F_UNIFY:

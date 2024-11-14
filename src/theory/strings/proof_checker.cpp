@@ -540,7 +540,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     SkolemCache skc(nm, nullptr);
-    return CoreSolver::getExtensionalityConclusion(nm, deq[0][0], deq[0][1], &skc);
+    return CoreSolver::getExtensionalityConclusion(
+        nm, deq[0][0], deq[0][1], &skc);
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {

@@ -852,9 +852,9 @@ Node CoreSolver::getDecomposeConclusion(NodeManager* nm,
 }
 
 Node CoreSolver::getExtensionalityConclusion(NodeManager* nm,
-                                          const Node& a,
-                                          const Node& b,
-                                          SkolemCache* skc)
+                                             const Node& a,
+                                             const Node& b,
+                                             SkolemCache* skc)
 {
   Node k = skc->mkSkolemFun(nm, SkolemId::STRINGS_DEQ_DIFF, a, b);
   // we could use seq.nth instead of substr
@@ -2496,7 +2496,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   SkolemCache* sc = d_termReg.getSkolemCache();
   Node conc = getExtensionalityConclusion(nm, eq[0], eq[1], sc);
   Node deq = eq.negate();
-  
+
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   // Note that we take A != B verbatim, and do not explain it.
