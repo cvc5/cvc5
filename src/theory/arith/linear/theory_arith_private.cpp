@@ -1804,6 +1804,7 @@ bool TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
+  AlwaysAssert(!isProofEnabled() || conf.getGenerator()!=nullptr);
   Trace("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
   d_containing.outputTrustedConflict(conf, id);
 }
@@ -3395,7 +3396,13 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         revertOutOfConflict();
         Trace("arith::conflict") << "dio conflict   " << possibleConflict << endl;
         // TODO (project #37): justify (proofs in the DIO solver)
-        raiseBlackBoxConflict(possibleConflict);
+        Pf pf;
+        if (isProofEnabled())
+        {
+          pf =
+              d_pnm->mkTrustedNode(TrustId::ARITH_DIO_LEMMA, {}, {}, possibleConflict);
+        }
+        raiseBlackBoxConflict(possibleConflict, pf);
         outputConflicts();
         emmittedConflictOrSplit = true;
       }
