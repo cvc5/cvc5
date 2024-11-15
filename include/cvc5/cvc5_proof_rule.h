@@ -2692,6 +2692,23 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_CONS_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse tester**
+   *
+   * .. math::
+   *   u_{c,i}(c(t_1, \ldots, t_i, \ldots, t_n), s) = c(t_1, \ldots, s, \ldots, t_n)
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   u_{c,i}(d(t_1, \ldots, t_n), s) = d(t_1, \ldots, t_n)
+   *
+   * where :math:`c` and :math:`d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_UPDATER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes - updater elimination**
    *
    * .. math::
