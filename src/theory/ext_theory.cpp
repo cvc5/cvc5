@@ -209,11 +209,11 @@ bool ExtTheory::doInferencesInternal(int effort,
   std::vector<Node> sterms;
   std::vector<std::vector<Node> > exp;
   getSubstitutedTerms(effort, terms, sterms, exp);
-  std::map<Node, unsigned> sterm_index;
   NodeManager* nm = nodeManager();
   for (unsigned i = 0, size = terms.size(); i < size; i++)
   {
     bool processed = false;
+    // if the substitution applied to terms[i] changed it
     if (sterms[i] != terms[i])
     {
       Node sr = rewrite(sterms[i]);
@@ -224,9 +224,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       {
         processed = true;
         markInactive(terms[i], id);
-        // We have exp[i] => terms[i] = sr, convert this to a clause.
-        // This ensures the proof infrastructure can process this as a
-        // normal theory lemma.
+        // We have exp[i] => terms[i] = sr
         Node eq = terms[i].eqNode(sr);
         Node lem = eq;
         if (!exp[i].empty())
@@ -250,19 +248,9 @@ bool ExtTheory::doInferencesInternal(int effort,
       }
       else
       {
-        // check if we have already reduced this
-        std::map<Node, unsigned>::iterator itsi = sterm_index.find(sr);
-        if (itsi == sterm_index.end())
-        {
-          sterm_index[sr] = i;
-        }
-        else
-        {
-          // unsigned j = itsi->second;
-          // note : can add (non-reducing) lemma :
-          //   exp[j] ^ exp[i] => sterms[i] = sterms[j]
-        }
-
+        // note : can add (non-reducing) lemma :
+        //   exp[j] ^ exp[i] => sterms[i] = sterms[j]
+        // if there are any duplicates, but we do not do this currently.
         Trace("extt-nred") << "Non-reduced term : " << sr << std::endl;
       }
     }
