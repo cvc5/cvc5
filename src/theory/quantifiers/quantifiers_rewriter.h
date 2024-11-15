@@ -139,11 +139,18 @@ class QuantifiersRewriter : public TheoryRewriter
    * corresponds to a variable elimination for some v via the above method
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
+   *
+   * The vector lits is populated with the literals that are equivalent to
+   * each vars[i]==subs[i].
+   *
+   * For simplicity, this method will only add a single element to
+   * vars/subs/lits.
    */
   bool getVarElim(Node body,
                   std::vector<Node>& args,
                   std::vector<Node>& vars,
-                  std::vector<Node>& subs) const;
+                  std::vector<Node>& subs,
+                  std::vector<Node>& lits) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
@@ -241,7 +248,8 @@ class QuantifiersRewriter : public TheoryRewriter
                           bool pol,
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
-                          std::vector<Node>& subs) const;
+                          std::vector<Node>& subs,
+                          std::vector<Node>& lits) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,

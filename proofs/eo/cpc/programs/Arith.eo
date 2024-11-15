@@ -59,6 +59,15 @@
 (define $arith_eval_qsub ((U Type :implicit) (T Type :implicit) (x U) (y T))
   (eo::add (eo::to_q x) (eo::neg (eo::to_q y)))
 )
+; define: $arith_mk_binary_minus
+; args:
+; - x T: the first term
+; - y U: the second term
+; return: The subtraction of x and y.
+; note: >
+;   This macro is necessary to use in contexts where the types of the
+;   arguments cannot be statically computed.
+(define $arith_mk_binary_minus ((T Type :implicit) (U Type :implicit) (x T) (y U)) (- x y))
 
 ; program: $arith_eval_int_log_2_rec
 ; args:

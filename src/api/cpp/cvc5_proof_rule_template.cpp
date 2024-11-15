@@ -155,6 +155,7 @@ const char* toString(ProofRule rule)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case ProofRule::STRING_EXT: return "STRING_EXT";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
@@ -250,6 +251,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-quant-var-elim-eq";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
       return "macro-quant-var-elim-ineq";
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ: return "quant-var-elim-eq";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
@@ -265,6 +267,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "bv-add-combine-like-terms";
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
+    case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";

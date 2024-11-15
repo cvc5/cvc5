@@ -1786,6 +1786,24 @@ enum ENUM(ProofRule)
   EVALUE(STRING_SEQ_UNIT_INJ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{s \neq t\mid -}
+   *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{set.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
+   *
+   * where :math:`s,t` are terms of sequence type, :math:`k` is the
+   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. Alternatively,
+   * if :math:`s,t` are terms of string type, we use 
+   * :math:`\mathit{seq.substr}(s,k,1)` instead of :math:`\mathit{seq.nth}(s,k)`
+   * and similarly for :math:`t`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STRING_EXT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- (Macro) String inference**
    *
    * .. math::
@@ -1962,13 +1980,13 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) = ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = \bot$}
    *
-   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) = ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = \top$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y`, :math:`a,b` are real
-   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
+   * constants, :math:`\sigma \in \{ \top, \bot\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_TANGENT),
@@ -2573,6 +2591,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
+   *
+   * or alternatively
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t) = \bot
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro variable elimination inequality**
    *
    * .. math::
@@ -2747,6 +2780,17 @@ enum ENUM(ProofRewriteRule)
    * constant c \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    repeat(n,\ t) = concat(t ... t)
+   *
+   * where :math:`t` is repeated :math:`n` times.
+   * \endverbatim
+   */
+  EVALUE(BV_REPEAT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression loop elimination**
@@ -3218,10 +3262,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ULE_ELIMINATE),
   /** Auto-generated from RARE rule bv-comp-eliminate */
   EVALUE(BV_COMP_ELIMINATE),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-1 */
-  EVALUE(BV_REPEAT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-2 */
-  EVALUE(BV_REPEAT_ELIMINATE_2),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */

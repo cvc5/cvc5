@@ -1942,12 +1942,10 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
-  // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
+  std::vector<Node> axioms = getAssertions();
   Node interpol;
   bool success =
-      d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1980,11 +1978,10 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
+  std::vector<Node> axioms = getAssertions();
   // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
   Node abd;
-  bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);

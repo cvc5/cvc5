@@ -114,6 +114,11 @@ class SubstitutionMap
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions() const;
   /**
+   * Return a formula that is equivalent to this substitution, e.g. for
+   * [x -> t, y -> s], we return (and (= x t) (= y s)).
+   */
+  Node toFormula(NodeManager* nm) const;
+  /**
    * Adds a substitution from x to t.
    */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
