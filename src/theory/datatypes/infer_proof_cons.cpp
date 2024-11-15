@@ -269,7 +269,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       // We prove this by:
       // ------------------------ DT_SPLIT
       // is-cons(x) or is-nil(x)            ~is-cons(x)
-      // ---------------------------------------------- RESOLUTION
+      // ---------------------------------------------- CHAIN_RESOLUTION
       // is-nil(x)
       Node tst = expv[0];
       Assert(tst.getKind() == Kind::NOT
@@ -283,6 +283,10 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         cdp->addStep(sconc, ProofRule::DT_SPLIT, {}, {t});
         Node truen = nm->mkConst(true);
         Node curr = sconc;
+        std::vector<Node> premises;
+        premises.push_back(sconc);
+        std::vector<Node> pols;
+        std::vector<Node> lits;
         for (const Node& e : expv)
         {
           if (e.getKind() != Kind::NOT || e[0].getKind() != Kind::APPLY_TESTER)
@@ -290,18 +294,23 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
             curr = Node::null();
             break;
           }
+          premises.push_back(e);
+          pols.emplace_back(truen);
+          lits.emplace_back(e[0]);
+        }
+        if (!curr.isNull())
+        {
+          std::vector<Node> args;
+          args.push_back(nm->mkNode(Kind::SEXPR, pols));
+          args.push_back(nm->mkNode(Kind::SEXPR, lits));
           curr =
-              pc->checkDebug(ProofRule::RESOLUTION, {sconc, e}, {truen, e[0]});
+              pc->checkDebug(ProofRule::CHAIN_RESOLUTION, {sconc, e}, args);
           if (!curr.isNull())
           {
-            Trace("dt-ipc") << "...conclude " << curr << " by resolution via "
-                            << e[0] << std::endl;
+            Trace("dt-ipc") << "...conclude " << curr << " by chain resolution via "
+                            << premises << std::endl;
             cdp->addStep(
-                curr, ProofRule::RESOLUTION, {sconc, e}, {truen, e[0]});
-          }
-          else
-          {
-            break;
+                curr, ProofRule::CHAIN_RESOLUTION, premises, args);
           }
         }
         success = (curr == conc);
