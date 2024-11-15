@@ -303,14 +303,13 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           std::vector<Node> args;
           args.push_back(nm->mkNode(Kind::SEXPR, pols));
           args.push_back(nm->mkNode(Kind::SEXPR, lits));
-          curr =
-              pc->checkDebug(ProofRule::CHAIN_RESOLUTION, {sconc, e}, args);
+          curr = pc->checkDebug(ProofRule::CHAIN_RESOLUTION, {sconc, e}, args);
           if (!curr.isNull())
           {
-            Trace("dt-ipc") << "...conclude " << curr << " by chain resolution via "
-                            << premises << std::endl;
-            cdp->addStep(
-                curr, ProofRule::CHAIN_RESOLUTION, premises, args);
+            Trace("dt-ipc")
+                << "...conclude " << curr << " by chain resolution via "
+                << premises << std::endl;
+            cdp->addStep(curr, ProofRule::CHAIN_RESOLUTION, premises, args);
           }
         }
         success = (curr == conc);
