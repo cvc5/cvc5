@@ -2765,6 +2765,17 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_BITWISE_SLICING),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    repeat(n,\ t) = concat(t ... t)
+   *
+   * where :math:`t` is repeated :math:`n` times.
+   * \endverbatim
+   */
+  EVALUE(BV_REPEAT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression loop elimination**
    *
    * .. math::
@@ -3234,10 +3245,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ULE_ELIMINATE),
   /** Auto-generated from RARE rule bv-comp-eliminate */
   EVALUE(BV_COMP_ELIMINATE),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-1 */
-  EVALUE(BV_REPEAT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-2 */
-  EVALUE(BV_REPEAT_ELIMINATE_2),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */

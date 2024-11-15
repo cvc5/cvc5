@@ -49,16 +49,6 @@
   ((x ?BitVec) (y ?BitVec))
   (bvcomp x y)
   (ite (= x y) (@bv 1 1) (@bv 0 1)))
-(define-cond-rule bv-repeat-eliminate-1
-  ((x ?BitVec) (n Int) (nm1 Int))
-  (and (> n 1) (= nm1 (- n 1)))
-  (repeat n x)
-  (concat x (repeat nm1 x)))
-(define-cond-rule bv-repeat-eliminate-2
-  ((x ?BitVec) (n Int))
-  (= n 1)
-  (repeat n x)
-  x)
 
 (define-cond-rule bv-rotate-left-eliminate-1
   ((x ?BitVec) (amount Int) (u1 Int) (u2 Int) (l2 Int))
