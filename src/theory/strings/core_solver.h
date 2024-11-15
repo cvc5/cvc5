@@ -258,6 +258,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
    * where we are in the second case if isRev is true. This method is called
    * both by the core solver and by the strings proof checker.
    *
+   * @param nm Pointer to the node manager
    * @param x The first term
    * @param y The second term
    * @param rule The proof rule whose conclusion we are asking for
@@ -300,6 +301,7 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
    * k_2 may be shared, hence their length constraint must be guarded by the
    * premises of this inference.
    *
+   * @param nm Pointer to the node manager
    * @param x The string term
    * @param l The length term
    * @param isRev Whether the equation is in a reverse direction
@@ -313,6 +315,20 @@ class CoreSolver : public InferSideEffectProcess, protected EnvObj
                                      bool isRev,
                                      SkolemCache* skc,
                                      std::vector<Node>& newSkolems);
+  /**
+   * This returns the conclusion of the extensionality rule, see
+   * ProofRule::STRING_EXT.
+   * 
+   * @param nm Pointer to the node manager
+   * @param a The first string term
+   * @param a The second string term
+   * @param skc The skolem cache (to allocate fresh variables if necessary)
+   * @return The conclusion of the inference.
+   */
+  static Node getExtensionalityConclusion(NodeManager* nm,
+                                          const Node& a,
+                                          const Node& b,
+                                          SkolemCache* skc);
 
   /** Called when ii is ready to be processed as a fact */
   void processFact(InferInfo& ii, ProofGenerator*& pg) override;
