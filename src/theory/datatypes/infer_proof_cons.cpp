@@ -303,7 +303,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           std::vector<Node> args;
           args.push_back(nm->mkNode(Kind::SEXPR, pols));
           args.push_back(nm->mkNode(Kind::SEXPR, lits));
-          curr = pc->checkDebug(ProofRule::CHAIN_RESOLUTION, {sconc, e}, args);
+          curr = pc->checkDebug(ProofRule::CHAIN_RESOLUTION, premises, args);
           if (!curr.isNull())
           {
             Trace("dt-ipc")
