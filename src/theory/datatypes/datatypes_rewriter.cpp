@@ -165,12 +165,12 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Node op = n.getOperator();
       size_t cindex = utils::indexOf(n[0].getOperator());
       size_t cuindex = utils::cindexOf(op);
-      if (cindex==cuindex)
+      if (cindex == cuindex)
       {
         size_t updateIndex = utils::indexOf(op);
         std::vector<Node> children(n[0].begin(), n[0].end());
         children[updateIndex] = n[1];
-        children.insert(children.begin(),n[0].getOperator());
+        children.insert(children.begin(), n[0].getOperator());
         return d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
       }
       return n[0];
