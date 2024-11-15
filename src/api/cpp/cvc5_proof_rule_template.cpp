@@ -155,6 +155,7 @@ const char* toString(ProofRule rule)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case ProofRule::STRING_EXT: return "STRING_EXT";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
