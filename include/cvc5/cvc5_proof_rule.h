@@ -1249,19 +1249,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(BV_EAGER_ATOM),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Unification**
-   *
-   * .. math::
-   *
-   *   \inferrule{C(t_1,\dots,t_n)= C(s_1,\dots,s_n)\mid i}{t_1 = s_i}
-   *
-   * where :math:`C` is a constructor.
-   * \endverbatim
-   */
-  EVALUE(DT_UNIF),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
