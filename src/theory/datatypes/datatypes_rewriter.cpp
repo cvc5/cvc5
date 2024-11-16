@@ -57,6 +57,8 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_MATCH_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_CYCLE,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -181,6 +183,34 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (n.getKind() == Kind::MATCH)
       {
         return expandMatch(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CYCLE:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0] != n[1])
+      {
+        std::unordered_set<TNode> visited;
+        std::vector<TNode> visit;
+        TNode cur;
+        visit.push_back(n[1]);
+        do
+        {
+          cur = visit.back();
+          visit.pop_back();
+          if (visited.find(cur) == visited.end())
+          {
+            visited.insert(cur);
+            if (cur == n[0])
+            {
+              return d_nm->mkConst(false);
+            }
+            if (cur.getKind() == Kind::APPLY_CONSTRUCTOR)
+            {
+              visit.insert(visit.end(), cur.begin(), cur.end());
+            }
+          }
+        } while (!visit.empty());
       }
     }
     break;

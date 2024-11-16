@@ -317,9 +317,42 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       }
     }
     break;
+    case InferenceId::DATATYPES_CYCLE:
+    {
+      Assert(!expv.empty());
+      Node lastEq = expv[expv.size() - 1];
+      Assert(lastEq.getKind() == Kind::EQUAL);
+      std::vector<Node> subs(expv.begin(), expv.begin() + expv.size() - 1);
+      ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+      Node eq;
+      if (!subs.empty())
+      {
+        eq = pc->checkDebug(ProofRule::SUBS, subs, {lastEq[1]});
+        Assert(!eq.isNull());
+        cdp->addStep(eq, ProofRule::SUBS, subs, {lastEq[1]});
+      }
+      else
+      {
+        eq = lastEq[1].eqNode(lastEq[1]);
+      }
+      Node eq1 = lastEq[0].eqNode(eq[1]);
+      Trace("dt-ipc-cycle") << "Cycle eq? " << eq1 << std::endl;
+      Node falsen =
+          d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_CYCLE, eq1);
+      if (!falsen.isNull())
+      {
+        Node eqq = eq1.eqNode(falsen);
+        cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::DT_CYCLE);
+        cdp->addStep(falsen, ProofRule::EQ_RESOLVE, {eq1, eqq}, {});
+        if (eq1 != lastEq)
+        {
+          cdp->addStep(eq1, ProofRule::TRANS, {lastEq, eq}, {});
+        }
+      }
+    }
+    break;
     // inferences currently not supported
     case InferenceId::DATATYPES_BISIMILAR:
-    case InferenceId::DATATYPES_CYCLE:
     default:
       Trace("dt-ipc") << "...no conversion for inference " << infer
                       << std::endl;
