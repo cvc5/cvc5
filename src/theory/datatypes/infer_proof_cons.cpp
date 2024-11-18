@@ -319,6 +319,13 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     break;
     case InferenceId::DATATYPES_CYCLE:
     {
+      // the conflict is of the form
+      // (and (= x (C1 ... x1 ...))
+      //      (= x1 (C2 ... x2 ...)) ....
+      //      (= x{n-1} (Cn ... xn ...)))
+      // We take the first n-1 equalities as a substitution and apply it to
+      // the right hand side of the last equality, and use DT_CYCLE to derive
+      // a conflict.
       Assert(!expv.empty());
       Node lastEq = expv[expv.size() - 1];
       Assert(lastEq.getKind() == Kind::EQUAL);
