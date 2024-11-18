@@ -1911,6 +1911,7 @@ set(regress_0_tests
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
   regress0/strings/strings-charat.cvc.smt2
+  regress0/strings/strings-ext.smt2
   regress0/strings/strings-native-simple.cvc.smt2
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2

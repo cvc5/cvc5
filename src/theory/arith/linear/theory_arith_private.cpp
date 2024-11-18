@@ -1035,7 +1035,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
@@ -3395,7 +3395,27 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         revertOutOfConflict();
         Trace("arith::conflict") << "dio conflict   " << possibleConflict << endl;
         // TODO (project #37): justify (proofs in the DIO solver)
-        raiseBlackBoxConflict(possibleConflict);
+        Pf pf;
+        if (isProofEnabled())
+        {
+          std::vector<Node> assump;
+          if (possibleConflict.getKind() == Kind::AND)
+          {
+            assump.insert(
+                assump.end(), possibleConflict.begin(), possibleConflict.end());
+          }
+          else
+          {
+            assump.push_back(possibleConflict);
+          }
+          Node falsen = nodeManager()->mkConst(false);
+          CDProof cdp(d_env);
+          cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
+          Node npc = possibleConflict.notNode();
+          cdp.addStep(npc, ProofRule::SCOPE, {falsen}, assump);
+          pf = cdp.getProofFor(npc);
+        }
+        raiseBlackBoxConflict(possibleConflict, pf);
         outputConflicts();
         emmittedConflictOrSplit = true;
       }

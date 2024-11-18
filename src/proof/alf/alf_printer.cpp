@@ -159,6 +159,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CPROP:
     case ProofRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_CONFLICT_DEQ:
     case ProofRule::CONCAT_SPLIT:
     case ProofRule::CONCAT_LPROP:
     case ProofRule::STRING_LENGTH_POS:
@@ -170,6 +171,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_CODE_INJ:
     case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::STRING_DECOMPOSE:
+    case ProofRule::STRING_EXT:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:

@@ -1249,19 +1249,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(BV_EAGER_ATOM),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Unification**
-   *
-   * .. math::
-   *
-   *   \inferrule{C(t_1,\dots,t_n)= C(s_1,\dots,s_n)\mid i}{t_1 = s_i}
-   *
-   * where :math:`C` is a constructor.
-   * \endverbatim
-   */
-  EVALUE(DT_UNIF),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -1784,6 +1771,24 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(STRING_SEQ_UNIT_INJ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{s \neq t\mid -}
+   *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{set.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
+   *
+   * where :math:`s,t` are terms of sequence type, :math:`k` is the
+   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. Alternatively,
+   * if :math:`s,t` are terms of string type, we use 
+   * :math:`\mathit{seq.substr}(s,k,1)` instead of :math:`\mathit{seq.nth}(s,k)`
+   * and similarly for :math:`t`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STRING_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- (Macro) String inference**
@@ -2674,6 +2679,23 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_CONS_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse tester**
+   *
+   * .. math::
+   *   u_{c,i}(c(t_1, \ldots, t_i, \ldots, t_n), s) = c(t_1, \ldots, s, \ldots, t_n)
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   u_{c,i}(d(t_1, \ldots, t_n), s) = d(t_1, \ldots, t_n)
+   *
+   * where :math:`c` and :math:`d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_UPDATER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes - updater elimination**
    *
    * .. math::
@@ -2745,6 +2767,17 @@ enum ENUM(ProofRewriteRule)
    * constant c \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    repeat(n,\ t) = concat(t ... t)
+   *
+   * where :math:`t` is repeated :math:`n` times.
+   * \endverbatim
+   */
+  EVALUE(BV_REPEAT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression loop elimination**
@@ -3216,10 +3249,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ULE_ELIMINATE),
   /** Auto-generated from RARE rule bv-comp-eliminate */
   EVALUE(BV_COMP_ELIMINATE),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-1 */
-  EVALUE(BV_REPEAT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-repeat-eliminate-2 */
-  EVALUE(BV_REPEAT_ELIMINATE_2),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
   /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */
