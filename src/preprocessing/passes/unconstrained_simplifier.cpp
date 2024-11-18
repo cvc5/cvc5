@@ -859,6 +859,7 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     {
       Node a = assertions[i];
       Node as = d_substitutions.apply(a);
+      // nothing to do if substitutions has no effect, skip
       if (as != a)
       {
         // replace the assertion

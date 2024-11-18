@@ -95,6 +95,8 @@ class AssertionPipeline : protected EnvObj
    * @param n The replacement assertion.
    * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
    * where d_nodes[i] is the assertion at position i prior to this call.
+   * @param trustId The trust id to use if pg is not provided and proofs are
+   * enabled.
    */
   void replace(size_t i,
                Node n,
@@ -108,7 +110,9 @@ class AssertionPipeline : protected EnvObj
                       TrustNode trn,
                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
   /**
-   * Ensure assertion at index i is rewritten.
+   * Ensure assertion at index i is rewritten. If it is not already in
+   * rewritten form, the assertion is replaced by its rewritten form.
+   * @param i The index of the assertion.
    */
   void ensureRewritten(size_t i);
 
