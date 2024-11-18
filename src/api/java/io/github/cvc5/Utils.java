@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Hans-Joerg Schurr
+ *   Mudathir Mohamed, Aina Niemetz, Hans-Joerg Schurr, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -31,6 +31,8 @@ import java.util.List;
 public class Utils
 {
   public static final String LIBPATH_IN_JAR = "/cvc5-libs";
+
+  private static boolean areLibrariesLoaded = false;
 
   static
   {
@@ -133,7 +135,7 @@ public class Utils
    */
   public static void loadLibraries()
   {
-    if (!Boolean.parseBoolean(System.getProperty("cvc5.skipLibraryLoad")))
+    if (!areLibrariesLoaded && !Boolean.parseBoolean(System.getProperty("cvc5.skipLibraryLoad")))
     {
       try
       {
@@ -160,6 +162,7 @@ public class Utils
           throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
         }
       }
+      areLibrariesLoaded = true;
     }
   }
 
