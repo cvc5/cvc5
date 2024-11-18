@@ -85,6 +85,14 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * information is stored in cdp.
    */
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
+  /**
+   * Adds a step concluding t_i = s_i from C(t_1 ... t_n) = C(s_1 ... s_n),
+   * where i is stored in the node narg.
+   */
+  void addDtUnif(CDProof* cdp,
+                 const Node& conc,
+                 const Node& exp,
+                 const Node& narg);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The lazy fact map */

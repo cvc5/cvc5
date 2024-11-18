@@ -39,6 +39,7 @@ namespace rewriter {
  * (4) Quantifier patterns are dropped.
  * (5) APPLY_UF is converted to HO_APPLY chains.
  * (6) Function constants are converted to lambdas.
+ * (7) Annotations are applied to parametric datatype constructors.
  *
  * This node converter converts from the default representation of cvc5 terms
  * to the representation of terms required by the DSL proof reconstruction
