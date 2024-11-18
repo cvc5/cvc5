@@ -356,6 +356,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         {
           cdp->addStep(eq1, ProofRule::TRANS, {lastEq, eq}, {});
         }
+        success = true;
       }
     }
     break;
