@@ -322,8 +322,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       // the conflict is of the form
       // (and (= x (C1 ... x1 ...))
       //      (= x1 (C2 ... x2 ...)) ....
-      //      (= x{n-1} (C2 ... xn ...))
-      //      (= xn (Cn ... x ...)))
+      //      (= x{n-1} (Cn ... xn ...))
+      //      (= xn (C{n+1} ... x ...)))
       // We take the first n-1 equalities as a substitution and apply it to
       // the right hand side of the last equality, and use DT_CYCLE to derive
       // a conflict.
