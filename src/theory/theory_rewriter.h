@@ -189,7 +189,7 @@ class TheoryRewriter
    * used when rewrites are not possible, for example in handling
    * under-specified operations using partially defined functions.
    */
-  virtual TrustNode expandDefinition(Node node);
+  virtual Node expandDefinition(Node node);
 
   /**
    * Rewrite n based on the proof rewrite rule id.

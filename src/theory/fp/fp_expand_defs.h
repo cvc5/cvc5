@@ -44,7 +44,7 @@ class FpExpandDefs
  public:
   FpExpandDefs(NodeManager* nm) : d_nm(nm) {}
   /** expand definitions in node */
-  TrustNode expandDefinition(Node node);
+  Node expandDefinition(Node node);
 
  private:
   /**

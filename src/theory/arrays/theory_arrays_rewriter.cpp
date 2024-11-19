@@ -64,9 +64,8 @@ void setMostFrequentValueCount(TNode store, uint64_t count)
 }
 
 TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
-                                           Rewriter* r,
-                                           EagerProofGenerator* epg)
-    : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
+                                           Rewriter* r)
+    : TheoryRewriter(nm), d_rewriter(r)
 {
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,
                            TheoryRewriteCtx::PRE_DSL);
@@ -717,22 +716,16 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-TrustNode TheoryArraysRewriter::expandDefinition(Node node)
+Node TheoryArraysRewriter::expandDefinition(Node node)
 {
   Kind kind = node.getKind();
 
   if (kind == Kind::EQ_RANGE)
   {
-    Node expandedEqRange = expandEqRange(d_nm, node);
-    if (d_epg)
-    {
-      return d_epg->mkTrustNodeRewrite(
-          node, expandedEqRange, ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND);
-    }
-    return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
+    return expandEqRange(d_nm, node);
   }
 
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace arrays

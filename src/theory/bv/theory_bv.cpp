@@ -239,7 +239,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 
         Node concat = utils::mkConcat(children);
         Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-        if (isLegalElimination(extract[0], concat))
+        if (d_valuation.isLegalElimination(extract[0], concat))
         {
           outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
           return Theory::PP_ASSERT_STATUS_SOLVED;

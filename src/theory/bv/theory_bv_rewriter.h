@@ -46,7 +46,7 @@ class TheoryBVRewriter : public TheoryRewriter
    * Override TheoryRewriter::expandDefinition in order to
    * eliminate overflow operators
    */
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
 
   /**
    * This function is called when int-blasting is disabled.
