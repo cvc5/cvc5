@@ -851,6 +851,44 @@ Node CoreSolver::getDecomposeConclusion(NodeManager* nm,
   return nm->mkNode(Kind::AND, conc, lc);
 }
 
+Node CoreSolver::getExtensionalityConclusion(NodeManager* nm,
+                                             const Node& a,
+                                             const Node& b,
+                                             SkolemCache* skc)
+{
+  Node k = skc->mkSkolemFun(nm, SkolemId::STRINGS_DEQ_DIFF, a, b);
+  // we could use seq.nth instead of substr
+  Node ss1, ss2;
+  if (a.getType().isString())
+  {
+    // substring of length 1
+    Node one = nm->mkConstInt(Rational(1));
+    ss1 = nm->mkNode(Kind::STRING_SUBSTR, a, k, one);
+    ss2 = nm->mkNode(Kind::STRING_SUBSTR, b, k, one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(Kind::SEQ_NTH, a, k);
+    ss2 = nm->mkNode(Kind::SEQ_NTH, b, k);
+  }
+
+  // disequality between nth/substr
+  Node conc1 = ss1.eqNode(ss2).negate();
+
+  // The skolem k is in the bounds of at least
+  // one string/sequence
+  Node len1 = nm->mkNode(Kind::STRING_LENGTH, a);
+  Node len2 = nm->mkNode(Kind::STRING_LENGTH, b);
+  Node zero = nm->mkConstInt(Rational(0));
+  Node conc2 = nm->mkNode(Kind::LEQ, zero, k);
+  Node conc3 = nm->mkNode(Kind::LT, k, len1);
+  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
+
+  std::vector<Node> concs = {conc1, conc2, conc3};
+  return nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
+}
+
 void CoreSolver::getNormalForms(Node eqc,
                                 std::vector<NormalForm>& normal_forms,
                                 std::map<Node, unsigned>& term_to_nf_index,
@@ -2456,36 +2494,9 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   NodeManager* nm = nodeManager();
   SkolemCache* sc = d_termReg.getSkolemCache();
-  Node k = sc->mkSkolemFun(nm, SkolemId::STRINGS_DEQ_DIFF, n1, n2);
+  Node conc = getExtensionalityConclusion(nm, eq[0], eq[1], sc);
   Node deq = eq.negate();
-  // we could use seq.nth instead of substr
-  Node ss1, ss2;
-  if (n1.getType().isString())
-  {
-    // substring of length 1
-    ss1 = nm->mkNode(Kind::STRING_SUBSTR, n1, k, d_one);
-    ss2 = nm->mkNode(Kind::STRING_SUBSTR, n2, k, d_one);
-  }
-  else
-  {
-    // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(Kind::SEQ_NTH, n1, k);
-    ss2 = nm->mkNode(Kind::SEQ_NTH, n2, k);
-  }
 
-  // disequality between nth/substr
-  Node conc1 = ss1.eqNode(ss2).negate();
-
-  // The skolem k is in the bounds of at least
-  // one string/sequence
-  Node len1 = nm->mkNode(Kind::STRING_LENGTH, n1);
-  Node len2 = nm->mkNode(Kind::STRING_LENGTH, n2);
-  Node conc2 = nm->mkNode(Kind::LEQ, d_zero, k);
-  Node conc3 = nm->mkNode(Kind::LT, k, len1);
-  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
-
-  std::vector<Node> concs = {conc1, conc2, conc3};
-  Node conc = nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   // Note that we take A != B verbatim, and do not explain it.

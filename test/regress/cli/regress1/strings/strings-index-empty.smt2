@@ -1,4 +1,4 @@
-; COMMAND-LINE: --simplification=none --strings-exp --no-strings-lazy-pp
+; COMMAND-LINE: --simplification=none --no-strings-lazy-pp
 ; EXPECT: sat
 (set-logic SLIA)
 (set-info :status sat)

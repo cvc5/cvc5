@@ -16,19 +16,6 @@
 ; bvsize
 (declare-const @bvsize (-> (! Int :var m :implicit) (BitVec m) Int))
 
-; evaluator for terms that may impact the type of nodes
-(program $eval_bv_sym ((S Type) (T Type) (f (-> T S)) (x S) (ys S :list) (z S) (y T) (m Int) (xb (BitVec m)))
-    (S) S
-    (
-    (($eval_bv_sym (+ x ys))     ($arith_eval_add ($eval_bv_sym x) ($eval_bv_sym ys)))
-    (($eval_bv_sym (- x z))      ($arith_eval_sub ($eval_bv_sym x) ($eval_bv_sym z)))
-    (($eval_bv_sym (@bvsize xb)) ($bv_bitwidth (eo::typeof xb)))
-    (($eval_bv_sym (int.log2 x)) ($arith_eval_int_log_2 ($eval_bv_sym x)))
-    (($eval_bv_sym (mod x z))    (eo::zmod ($eval_bv_sym x) ($eval_bv_sym z)))
-    (($eval_bv_sym x)            x)
-    )
-)
-
 ; define: @bv_empty
 ; return: The empty bitvector.
 (define @bv_empty () (eo::to_bin 0 0))
@@ -41,25 +28,20 @@
   (BitVec (eo::add n m))) :right-assoc-nil @bv_empty
 )
 
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
 (declare-const extract (->
   (! Int :var n :implicit)
   (! Int :var h)
   (! Int :var l)
   (BitVec n)
-  (BitVec (eo::add ($eval_bv_sym h) (eo::neg ($eval_bv_sym l)) 1)))
+  (BitVec (eo::add h (eo::neg l) 1))
+  )
 )
 
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
 (declare-const repeat 
     (-> (! Int :var n :implicit)
         (! Int :var i)
         (BitVec n)
-        (BitVec (eo::mul ($eval_bv_sym i) n))
+        (BitVec (eo::mul i n))
     ) 
 )
 
@@ -219,13 +201,10 @@
     (BitVec m) (BitVec m) (BitVec m))
 )
 
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
 (declare-const zero_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (eo::add m ($eval_bv_sym i))))
+        (BitVec m) (BitVec (eo::add m i)))
 )
 
 ; disclaimer: >
@@ -234,7 +213,7 @@
 (declare-const sign_extend
     (-> (! Int :var m :implicit)
         (! Int :var i)
-        (BitVec m) (BitVec (eo::add m ($eval_bv_sym i))))
+        (BitVec m) (BitVec (eo::add m i)))
 )
 
 (declare-const rotate_left
@@ -353,7 +332,7 @@
 ;   indices to support RARE.
 (declare-const int2bv (->
   (! Int :var w)
-  Int (BitVec ($eval_bv_sym w)))
+  Int (BitVec w))
 )
 
 ; disclaimer: >
@@ -380,7 +359,4 @@
 )
 
 ; symbolic constant
-; disclaimer: >
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
-(declare-const @bv (-> Int (! Int :var w) (BitVec ($eval_bv_sym w))))
+(declare-const @bv (-> Int (! Int :var w) (BitVec w)))

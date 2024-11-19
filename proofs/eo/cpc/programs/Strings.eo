@@ -1,9 +1,9 @@
-
-(include "../theories/Builtin.eo")
-(include "../programs/Nary.eo")
-
 (include "../theories/Arith.eo")
+(include "../theories/Builtin.eo")
 (include "../theories/Strings.eo")
+(include "../programs/Nary.eo")
+(include "../programs/PolyNorm.eo")
+
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -37,6 +37,23 @@
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (eo::list_concat str.++ x y)
+)
+
+; define: $str_mk_nth
+; args:
+; - x (Seq T): The string-like term
+; - n Int: The index
+; return: >
+;   A term corresponding to extracting the n^th position of x, which as a
+;   special case is a string of length one if x is a string. This is used
+;   by ProofRule::STRING_EXT.
+(define $str_mk_nth ((T Type :implicit) (x (Seq T)) (n Int))
+  (eo::match ((U Type))
+  (eo::typeof x)
+  (
+    (String   (str.substr x n 1))
+    ((Seq U)  (seq.nth x n))
+  ))
 )
 
 ; define: $str_cons
@@ -424,74 +441,6 @@
   )
 )
 
-; program: $str_eager_reduction_contains
-; args:
-; - s (Seq U): The first argument of str.contains.
-; - t (Seq U): The second argument of str.contains.
-; return: the eager reduction predicate for (str.contains s t).
-(program $str_eager_reduction_contains ((U Type) (t (Seq U)) (r (Seq U)))
-  ((Seq U) (Seq U)) Bool
-  (
-    (($str_eager_reduction_contains t r)
-        (eo::define ((k1 (@purify ($str_first_ctn_pre t r))))
-        (eo::define ((k2 (@purify ($str_first_ctn_post t r))))
-        (ite
-          (str.contains t r)
-          (= t (str.++ k1 r k2))
-          (not (= t r)))
-        )))
-  )
-)
-
-; define: $str_eager_reduction_from_code
-; args:
-; - n Int: The argument of str.from_code.
-; return: the eager reduction predicate for (str.from_code n)
-(define $str_eager_reduction_from_code ((n Int))
-  (eo::define ((k (@purify (str.from_code n))))
-  (ite
-    (and (<= 0 n) (< n 196608))
-    (= n (str.to_code k))
-    (= k "")))
-)
-
-; define: $str_eager_reduction_to_code
-; args:
-; - s (Seq U): The argument of str.to_code.
-; return: the eager reduction predicate for (str.to_code s)
-(define $str_eager_reduction_to_code ((s String))
-  (eo::define ((t (str.to_code s)))
-  (ite
-    (= (str.len s) 1)
-    (and (>= t 0) (< t 196608))
-    (= t (eo::neg 1))))
-)
-
-; program: $str_eager_reduction_indexof
-; args:
-; - x (Seq U): The first argument to str.indexof.
-; - y (Seq U): The second argument to str.indexof.
-; - n Int: The third argument to str.indexof.
-; return: the eager reduction predicate for (str.indexof x y n).
-(program $str_eager_reduction_indexof ((U Type) (x U) (y U) (n Int))
-  (U U Int) Bool
-  (
-    (($str_eager_reduction_indexof x y n)
-        (eo::define ((t (str.indexof x y n)))
-        (and (or (= t (eo::neg 1)) (>= t n))
-             (<= t (str.len x)))))
-  )
-)
-
-; define: $str_eager_reduction_in_re
-; args:
-; - x (Seq U): The first argument to str.in_re.
-; - r RegLan: The second argument to str.in_re.
-; return: the eager reduction predicate for (str.in_re x r).
-(define $str_eager_reduction_in_re ((U Type :implicit) (x (Seq U)) (r RegLan))
-  (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r)))
-)
-
 ; program: $mk_str_eager_reduction
 ; args:
 ; - t U: The term to process.
@@ -499,11 +448,36 @@
 (program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
   (
-    (($mk_str_eager_reduction (str.from_code x)) ($str_eager_reduction_from_code x))
-    (($mk_str_eager_reduction (str.to_code x)) ($str_eager_reduction_to_code x))
-    (($mk_str_eager_reduction (str.contains x y)) ($str_eager_reduction_contains x y))
-    (($mk_str_eager_reduction (str.indexof x y n)) ($str_eager_reduction_indexof x y n))
-    (($mk_str_eager_reduction (str.in_re x r)) ($str_eager_reduction_in_re x r))
+    (($mk_str_eager_reduction (str.from_code n))
+      (eo::define ((k (@purify (str.from_code n))))
+      (ite
+        (and (<= 0 n) (< n 196608))
+        (= n (str.to_code k))
+        (= k ""))))
+    (($mk_str_eager_reduction (str.to_code x))
+        (eo::define ((t (str.to_code x)))
+        (ite
+          (= (str.len x) 1)
+          (and (>= t 0) (< t 196608))
+          (= t (eo::neg 1)))))
+    (($mk_str_eager_reduction (str.contains x y))
+        (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
+        (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
+        (ite
+          (str.contains x y)
+          (= x (str.++ k1 y k2))
+          (not (= x y)))
+        )))
+    (($mk_str_eager_reduction (str.indexof x y n))
+        (eo::define ((t (str.indexof x y n)))
+        (and (or (= t (eo::neg 1)) (>= t n))
+          (<= t (str.len x)))))
+    (($mk_str_eager_reduction (str.indexof_re x r n))
+        (eo::define ((t (str.indexof_re x r n)))
+        (and (or (= t (eo::neg 1)) (>= t n))
+          (<= t (str.len x)))))
+    (($mk_str_eager_reduction (str.in_re x r))
+        (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
   )
 )
 

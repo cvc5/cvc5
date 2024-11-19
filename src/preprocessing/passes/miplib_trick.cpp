@@ -533,7 +533,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
               Node n = rewrite(geq.andNode(leq));
-              assertionsToPreprocess->push_back(n);
+              assertionsToPreprocess->push_back(
+                  n, false, nullptr, TrustId::PREPROCESS_MIPLIB_TRICK_LEMMA);
               TrustSubstitutionMap tnullMap(d_env, &fakeContext);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
@@ -596,7 +597,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           newAssertion = rewrite(newAssertion);
           Trace("miplib") << "  " << newAssertion << endl;
 
-          assertionsToPreprocess->push_back(newAssertion);
+          assertionsToPreprocess->push_back(
+              newAssertion,
+              false,
+              nullptr,
+              TrustId::PREPROCESS_MIPLIB_TRICK_LEMMA);
           Trace("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),
                                              k_end = asserts[pos_var].end();
@@ -619,7 +624,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
       {
         Trace("miplib") << " - removing " << assertion << endl;
-        assertionsToPreprocess->replace(i, trueNode);
+        assertionsToPreprocess->replace(
+            i, trueNode, nullptr, TrustId::PREPROCESS_MIPLIB_TRICK);
         ++d_statistics.d_numMiplibAssertionsRemoved;
       }
       else if (assertion.getKind() == Kind::AND)
@@ -633,8 +639,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         }
       }
       Trace("miplib") << "had: " << assertion << endl;
-      assertionsToPreprocess->replace(
-          i, rewrite(top_level_substs.apply(assertion)));
+      assertionsToPreprocess->replace(i,
+                                      top_level_substs.apply(assertion),
+                                      nullptr,
+                                      TrustId::PREPROCESS_MIPLIB_TRICK);
+      assertionsToPreprocess->ensureRewritten(i);
       Trace("miplib") << "now: " << assertion << endl;
       if (assertionsToPreprocess->isInConflict())
       {
