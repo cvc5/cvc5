@@ -362,17 +362,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     }
     else if (tn.isBitVector())
     {
-      // if this quantified formula corresponds to a quantifier we are
-      // eliminating via get-qe, we cannot use cegqiBv since it introduces
-      // witness/skolem terms.
-      if (d_qreg.getQuantAttributes().isQuantElim(d_quant))
-      {
-        vinst = new ModelValueInstantiator(d_env, tn);
-      }
-      else
-      {
-        vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
-      }
+      vinst = new BvInstantiator(d_env, tn, d_treg.getBvInverter());
     }
     else if (tn.isBoolean())
     {
@@ -1015,12 +1005,19 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
 
   // construct the final instantiation by eliminating witness terms
+  bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
   std::vector<Node> svec;
   std::vector<Node> exists;
   for (const Node& s : subs)
   {
     if (expr::hasSubtermKind(Kind::WITNESS, s))
     {
+      if (isQElim)
+      {
+        Trace("cegqi-inst-debug") << "...no witness if QE" << std::endl;
+        // not allowed to use witness if doing quantifier elimination
+        return false;
+      }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
       const std::vector<Node>& wexists = ewc.getExistentials();
