@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,8 @@ using namespace cvc5::main;
  */
 int main(int argc, char* argv[])
 {
-  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
+  cvc5::TermManager tm;
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>(tm);
   try
   {
     return runCvc5(argc, argv, solver);
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
               << "Please use --help to get help on command-line options."
               << std::endl;
   }
-  catch (Exception& e)
+  catch (cvc5::CVC5ApiException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;

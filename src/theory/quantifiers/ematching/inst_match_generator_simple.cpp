@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,8 +55,8 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Env& env,
   {
     if (d_match_pattern[i].getKind() == Kind::INST_CONSTANT)
     {
-      if (!options().quantifiers.cegqi
-          || TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
+      // check independent of options
+      if (TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
       {
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
       }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz, Andrew Reynolds
+ *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,12 +21,12 @@
 #include <map>
 #include <unordered_set>
 
+#include "context/cdhashset.h"
+#include "proof/proof_generator.h"
 #include "proof/proof_node_updater.h"
-#include "prop/proof_cnf_stream.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
-
 namespace prop {
 
 /**
@@ -39,7 +39,7 @@ class ProofPostprocessCallback : protected EnvObj,
                                  public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(Env& env, ProofCnfStream* proofCnfStream);
+  ProofPostprocessCallback(Env& env, ProofGenerator* pg);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -75,8 +75,23 @@ class ProofPostprocessCallback : protected EnvObj,
               bool& continueUpdate) override;
 
  private:
+  /**
+   * Blocks a proof, so that it is not further updated by a post processor of
+   * this class's proof. */
+  void addBlocked(std::shared_ptr<ProofNode> pfn);
+
+  /**
+   * Whether a given proof is blocked for further updates.  An example of a
+   * blocked proof node is one integrated into this class via an external proof
+   * generator. */
+  bool isBlocked(std::shared_ptr<ProofNode> pfn);
   /** The cnf stream proof generator */
-  ProofCnfStream* d_proofCnfStream;
+  ProofGenerator* d_pg;
+  /** Blocked proofs.
+   *
+   * These are proof nodes added to this class by external generators. */
+  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
+      d_blocked;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from cnf transformation */
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
@@ -86,12 +101,12 @@ class ProofPostprocessCallback : protected EnvObj,
 /**
  * The proof postprocessor module. This postprocesses the refutation proof
  * produced by the SAT solver. Its main task is to connect the refutation's
- * assumptions to the CNF transformation proof in ProofCnfStream.
+ * assumptions to the CNF transformation proof in ProofGenerator.
  */
 class ProofPostprocess : protected EnvObj
 {
  public:
-  ProofPostprocess(Env& env, ProofCnfStream* proofCnfStream);
+  ProofPostprocess(Env& env, ProofGenerator* pg);
   ~ProofPostprocess();
   /** post-process
    *

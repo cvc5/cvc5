@@ -22,6 +22,7 @@ Table of Contents
    output-tags
    proofs/proofs
    resource-limits
+   skolem-ids
    statistics
    examples/examples
    theories/theories

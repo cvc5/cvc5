@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,8 +34,7 @@ const char* toString(Rewrite r)
     case Rewrite::CONSTANT_EVALUATION: return "CONSTANT_EVALUATION";
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
     case Rewrite::COUNT_BAG_MAKE: return "COUNT_BAG_MAKE";
-    case Rewrite::DUPLICATE_REMOVAL_BAG_MAKE:
-      return "DUPLICATE_REMOVAL_BAG_MAKE";
+    case Rewrite::SETOF_BAG_MAKE: return "SETOF_BAG_MAKE";
     case Rewrite::EQ_CONST_FALSE: return "EQ_CONST_FALSE";
     case Rewrite::EQ_REFL: return "EQ_REFL";
     case Rewrite::EQ_SYM: return "EQ_SYM";

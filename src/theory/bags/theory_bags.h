@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,6 @@
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
-#include "theory/bags/card_solver.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
@@ -82,6 +81,7 @@ class TheoryBags : public Theory
   Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
+
   void presolve() override;
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;
@@ -129,9 +129,6 @@ class TheoryBags : public Theory
   TermRegistry d_termReg;
   /** the main solver for bags */
   BagSolver d_solver;
-
-  /** the main solver for bags */
-  CardSolver d_cardSolver;
 
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;

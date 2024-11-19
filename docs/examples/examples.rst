@@ -1,8 +1,9 @@
 Examples
 ===========
 
-The following examples show how the APIs (:doc:`../api/cpp/cpp`, :doc:`../api/java/index`, :doc:`../api/python/python`)
-and input languages can be used.
+The following examples show how the APIs (:doc:`../api/cpp/cpp`,
+:doc:`../api/java/java`, :doc:`../api/python/python`) and input languages can
+be used.
 For every example, the same problem is constructed and solved using different
 input mechanisms.
 
@@ -27,3 +28,6 @@ input mechanisms.
     combination
     sygus-fun
     sygus-inv
+    parser
+    parser_sym_manager
+    uf

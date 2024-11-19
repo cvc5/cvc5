@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/rewrites.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,7 +41,7 @@ class SequencesRewriter;
 class StringsEntail
 {
  public:
-  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter& rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter* rewriter);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -302,7 +303,7 @@ class StringsEntail
   /**
    * Infers a conjunction of equalities that correspond to (str.contains x y)
    * if it can show that the length of y is greater or equal to the length of
-   * x. If y is a concatentation, we get x = y1 ++ ... ++ yn, the conjunction
+   * x. If y is a concatenation, we get x = y1 ++ ... ++ yn, the conjunction
    * is of the form:
    *
    * (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
@@ -314,6 +315,26 @@ class StringsEntail
    * infer that any of the yi must be empty.
    */
   Node inferEqsFromContains(Node x, Node y);
+  /**
+   * Rewrite for MACRO_SUBSTR_STRIP_SYM_LENGTH.
+   * @param node The node to rewrite, which should be of the form (str.substr s
+   * n m).
+   * @param rule If we rewrite via this method, this is updated to the internal
+   * rewrite identifier (strings/rewrites.h) that was used.
+   * @param ch1 Along with ch2, this stores how the argument s of node was
+   * partitioned. In particular, s is equivalent to (str.++ ch1 ch2)
+   * (respectively (str.++ ch2 ch1) if rule was set to
+   * Rewrite::SS_STRIP_END_PT), and we have determined based on n and m that
+   * ch1/ch2 are in separate parts of the computation of the substring, e.g.
+   * ch1 is what is contained in the substring, and ch2 is not contained, or
+   * vice versa.
+   * @param ch2 The second part of the partition of s.
+   * @return The rewritten form of node.
+   */
+  Node rewriteViaMacroSubstrStripSymLength(const Node& node,
+                                           Rewrite& rule,
+                                           std::vector<Node>& ch1,
+                                           std::vector<Node>& ch2);
 
  private:
   /** component contains base
@@ -394,7 +415,7 @@ class StringsEntail
    * Reference to the sequences rewriter that owns this `StringsEntail`
    * instance.
    */
-  SequencesRewriter& d_rewriter;
+  SequencesRewriter* d_rewriter;
 };
 
 }  // namespace strings

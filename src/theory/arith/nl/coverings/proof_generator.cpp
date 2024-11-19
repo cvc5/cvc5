@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Gereon Kremer, Hans-Joerg Schurr, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,11 +107,8 @@ void CoveringsProofGenerator::startNewProof()
 void CoveringsProofGenerator::startRecursive() { d_current->openChild(); }
 void CoveringsProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrent(intervalId,
-                        ProofRule::ARITH_NL_COVERING_RECURSIVE,
-                        {},
-                        {d_false},
-                        d_false);
+  d_current->setCurrentTrust(
+      intervalId, TrustId::ARITH_NL_COVERING_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CoveringsProofGenerator::startScope()
@@ -144,11 +141,11 @@ void CoveringsProofGenerator::addDirect(Node var,
   {
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
-    d_current->setCurrent(intervalId,
-                          ProofRule::ARITH_NL_COVERING_DIRECT,
-                          {constraint},
-                          {d_false},
-                          d_false);
+    d_current->setCurrentTrust(intervalId,
+                               TrustId::ARITH_NL_COVERING_DIRECT,
+                               {constraint},
+                               {d_false},
+                               d_false);
     d_current->closeChild();
     return;
   }
@@ -185,11 +182,11 @@ void CoveringsProofGenerator::addDirect(Node var,
   // Add to proof manager
   startScope();
   d_current->openChild();
-  d_current->setCurrent(intervalId,
-                        ProofRule::ARITH_NL_COVERING_DIRECT,
-                        {constraint},
-                        {d_false},
-                        d_false);
+  d_current->setCurrentTrust(intervalId,
+                             TrustId::ARITH_NL_COVERING_DIRECT,
+                             {constraint},
+                             {d_false},
+                             d_false);
   d_current->closeChild();
   endScope(res);
 }

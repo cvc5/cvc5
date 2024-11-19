@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -433,7 +433,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       curr = nm->mkNode(Kind::STORE, curr, conds[ii], vals[ii]);
       // normalize it using the array rewriter utility, which must be done at
       // each iteration of this loop
-      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(nm, curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;

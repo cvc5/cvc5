@@ -1,6 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
-; COMMAND-LINE: --no-debug-check-models
+; COMMAND-LINE: --ff-solver split
+; COMMAND-LINE: --ff-solver gb
 ; XOR compilation strategy (sound case)
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")

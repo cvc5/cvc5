@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,20 +24,23 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
+ArraysProofRuleChecker::ArraysProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
+{
+}
 void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE, this);
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
   pc->registerChecker(ProofRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(ProofRule::ARRAYS_EXT, this);
-  pc->registerChecker(ProofRule::ARRAYS_EQ_RANGE_EXPAND, this);
 }
 
 Node ArraysProofRuleChecker::checkInternal(ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (id == ProofRule::ARRAYS_READ_OVER_WRITE)
   {
     Assert(children.size() == 1);
@@ -97,17 +100,12 @@ Node ArraysProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node k = SkolemCache::getExtIndexSkolem(adeq);
+    Node k = SkolemCache::getExtIndexSkolem(nm, adeq);
     Node a = adeq[0][0];
     Node b = adeq[0][1];
     Node as = nm->mkNode(Kind::SELECT, a, k);
     Node bs = nm->mkNode(Kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
-  }
-  if (id == ProofRule::ARRAYS_EQ_RANGE_EXPAND)
-  {
-    Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
-    return args[0].eqNode(expandedEqRange);
   }
   // no rule
   return Node::null();

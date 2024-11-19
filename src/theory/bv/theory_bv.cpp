@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Liana Hadarean
+ *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/skolem_manager.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
@@ -37,12 +38,13 @@ TheoryBV::TheoryBV(Env& env,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
-      d_rewriter(),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats(statisticsRegistry(), "theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::"),
+      d_checker(nodeManager())
 {
   switch (options().bv.bvSolver)
   {
@@ -62,15 +64,7 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryBV::getProofChecker()
-{
-  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
-  {
-    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
-        ->getProofChecker();
-  }
-  return nullptr;
-}
+ProofRuleChecker* TheoryBV::getProofChecker() { return &d_checker; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -222,12 +216,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         uint32_t var_bw = utils::getSize(extract[0]);
         std::vector<Node> children;
 
+        SkolemManager* sm = nodeManager()->getSkolemManager();
         // create sk1 with size bw(x)-1-h
         if (low == 0 || high != var_bw - 1)
         {
           Assert(high != var_bw - 1);
-          uint32_t skolem_size = var_bw - high - 1;
-          Node skolem = utils::mkVar(skolem_size);
+          Node ext = utils::mkExtract(extract[0], var_bw - 1, high + 1);
+          Node skolem = sm->mkPurifySkolem(ext);
           children.push_back(skolem);
         }
 
@@ -237,8 +232,8 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         if (high == var_bw - 1 || low != 0)
         {
           Assert(low != 0);
-          uint32_t skolem_size = low;
-          Node skolem = utils::mkVar(skolem_size);
+          Node ext = utils::mkExtract(extract[0], low - 1, 0);
+          Node skolem = sm->mkPurifySkolem(ext);
           children.push_back(skolem);
         }
 
@@ -280,6 +275,12 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
       res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
     }
   }
+  // When int-blasting, it is better to handle most overflow operators
+  // natively, rather than to eliminate them eagerly.
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::OFF)
+  {
+    res = d_rewriter.eliminateOverflows(res);
+  }
 
   Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)
@@ -288,6 +289,24 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   }
 
   return d_internal->ppRewrite(t);
+}
+
+TrustNode TheoryBV::ppStaticRewrite(TNode atom)
+{
+  Kind k = atom.getKind();
+  if (k == Kind::EQUAL)
+  {
+    if (RewriteRule<SolveEq>::applies(atom))
+    {
+      Node res = RewriteRule<SolveEq>::run<false>(atom);
+      if (res != atom)
+      {
+        res = d_env.getRewriter()->rewrite(res);
+        return TrustNode::mkTrustRewrite(atom, res);
+      }
+    }
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::presolve() { d_internal->presolve(); }
@@ -324,7 +343,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -358,10 +377,10 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
           Node c_eq_0 = c.eqNode(zero);
           Node b_eq_c = b.eqNode(c);
 
-          Node dis = NodeManager::currentNM()->mkNode(
-              Kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }

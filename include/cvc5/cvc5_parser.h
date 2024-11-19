@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,19 +63,63 @@ class CVC5_EXPORT SymbolManager
   friend class main::CommandExecutor;
 
  public:
-  SymbolManager(cvc5::Solver* s);
+  /**
+   * Constructor.
+   * @param tm The associated term manager instance.
+   */
+  SymbolManager(cvc5::TermManager& tm);
+  /**
+   * Constructor.
+   * @param slv The solver instance.
+   * @warning This constructor is deprecated and replaced by
+   *          `SymbolManager::SymbolManager(TermManager&)`. It will be removed
+   *          in a future release.
+   */
+  [[deprecated("Use SymbolManager::SymbolManager(TermManager&) instead")]]
+  SymbolManager(cvc5::Solver* slv);
+
+  /**
+   * Destructor.
+   */
   ~SymbolManager();
 
   /**
-   * @return true if the logic of this symbol manager has been set.
+   * Determine if the logic of this symbol manager has been set.
+   * @return True if the logic has been set.
    */
   bool isLogicSet() const;
   /**
+   * Get the logic configured for this symbol manager.
    * @note Asserts isLogicSet().
-   *
-   * @return the logic used by this symbol manager
+   * @return The configured logic.
    */
   const std::string& getLogic() const;
+
+  /**
+   * Get the list of sorts that have been declared via `declare-sort` commands.
+   * These are the sorts that are printed as part of a response to a
+   * `get-model` command.
+   *
+   * @return The declared sorts.
+   */
+  std::vector<Sort> getDeclaredSorts() const;
+
+  /**
+   * Get the list of terms that have been declared via `declare-fun` and
+   * `declare-const`. These are the terms that are printed in response to a
+   * `get-model` command.
+   *
+   * @return The declared terms.
+   */
+  std::vector<Term> getDeclaredTerms() const;
+
+  /**
+   * Get a mapping from terms to names that have been given to them via the
+   * :named attribute.
+   *
+   * @return A map of the named terms to their names.
+   */
+  std::map<Term, std::string> getNamedTerms() const;
 
  private:
   /** Get the underlying implementation */
@@ -113,18 +157,19 @@ class CVC5_EXPORT Command
               std::ostream& out);
 
   /**
-   * @return A string representation of this result.
+   * Get a string representation of this command.
+   * @return The string representation.
    */
   std::string toString() const;
 
   /**
-   * Get the name for this command, e.g. "assert".
-   *
+   * Get the name for this command, e.g., "assert".
    * @return The name of this command.
    */
   std::string getCommandName() const;
 
   /**
+   * Determine if this command is null.
    * @return True if this command is null.
    */
   bool isNull() const;
@@ -132,7 +177,7 @@ class CVC5_EXPORT Command
  private:
   /**
    * Constructor.
-   * @param n The internal command that is to be wrapped by this command.
+   * @param cmd The internal command that is to be wrapped by this command.
    * @return The Command.
    */
   Command(std::shared_ptr<Cmd> cmd);
@@ -146,10 +191,13 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  * This class is the main interface for retrieving commands and expressions
  * from an input using a parser.
  *
- * After construction, it is expected that an input is first set via e.g.
- * setFileInput, setStreamInput, or setIncrementalStringInput and
- * appendIncrementalStringInput. Then, the methods nextCommand and
- * nextExpression can be invoked to parse the input.
+ * After construction, it is expected that an input is first configured via,
+ * e.g., `InputParser::setFileInput()`, `InputParser::setStreamInput()`,
+ * `InputParser::setStringInput()` or
+ * `InputParser::setIncrementalStringInput()` and
+ * `InputParser::appendIncrementalStringInput()`.
+ * Then, functions `InputParser::nextCommand()` and
+ * `InputParser::nextExpression()` can be invoked to parse the input.
  *
  * The input parser interacts with a symbol manager, which determines which
  * symbols are defined in the current context, based on the background logic
@@ -158,60 +206,74 @@ std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
  *
  * If provided, the symbol manager must have a logic that is compatible
  * with the provided solver. That is, if both the solver and symbol
- * manager have their logics set (SymbolManager::isLogicSet and
- * Solver::isLogicSet), then their logics must be the same.
+ * manager have their logics set (`SymbolManager::isLogicSet()` and
+ * `Solver::isLogicSet()`), then their logics must be the same.
  *
- * Upon setting an input source, if either the solver (resp. symbol
- * manager) has its logic set, then the symbol manager (resp. solver) is set to
- * use that logic, if its logic is not already set.
+ * Upon setting an input source, if either the solver (resp. symbol manager)
+ * has its logic set, then the symbol manager (resp. solver) is set to use that
+ * logic, if its logic is not already set.
  */
 class CVC5_EXPORT InputParser
 {
+  friend class internal::InteractiveShell;
+
  public:
   /**
    * Construct an input parser
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
-   * symbols to terms and sorts. Must have a logic that is compatible
-   * with the solver.
+   *           symbols to terms and sorts. Must have a logic that is compatible
+   *           with the solver.
    */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
    * Construct an input parser with an initially empty symbol manager.
-   *
    * @param solver The solver (e.g. for constructing terms and sorts)
    */
   InputParser(Solver* solver);
 
   /**
-   * @return The underlying solver of this input parser
+   * Get the associated solver instance of this input parser.
+   * @return The solver instance.
    */
   Solver* getSolver();
   /**
-   * @return The underlying symbol manager of this input parser
+   * Get the associated symbol manager of this input parser.
+   * @return The associated symbol manager.
    */
   SymbolManager* getSymbolManager();
-  /** Set the input for the given file.
-   *
-   * @param lang the input language (e.g. modes::InputLanguage::SMT_LIB_2_6)
-   * @param filename the input filename
+  /**
+   * Configure given file as input.
+   * @param lang     The input language (e.g.,
+   *                 `modes::InputLanguage::SMT_LIB_2_6`).
+   * @param filename The name of the file to configure.
    */
   void setFileInput(modes::InputLanguage lang, const std::string& filename);
 
-  /** Set the input for the given stream.
-   *
-   * @param lang the input language
-   * @param input the input stream
-   * @param name the name of the stream, for use in error messages
+  /**
+   * Configure given stream as input.
+   * @param lang  The input language.
+   * @param input The input stream.
+   * @param name  The name of the stream, for use in error messages.
    */
   void setStreamInput(modes::InputLanguage lang,
                       std::istream& input,
                       const std::string& name);
 
   /**
-   * Set that we will be feeding strings to this parser via
-   * appendIncrementalStringInput below.
+   * Configure a given concrete input string as the input to this parser.
+   * @param lang  The input language of the input string.
+   * @param input The input string.
+   * @param name  The name to use as input stream name for error messages.
+   */
+  void setStringInput(modes::InputLanguage lang,
+                      const std::string& input,
+                      const std::string& name);
+
+  /**
+   * Configure that we will be feeding strings to this parser via
+   * `appendIncrementalStringInput()` below.
    *
    * @param lang the input language
    * @param name the name of the stream, for use in error messages
@@ -220,9 +282,7 @@ class CVC5_EXPORT InputParser
                                  const std::string& name);
   /**
    * Append string to the input being parsed by this parser. Should be
-   * called after calling setIncrementalStringInput and only after the
-   * previous string (if one was provided) is finished being parsed.
-   *
+   * called after calling `setIncrementalStringInput()`.
    * @param input The input string
    */
   void appendIncrementalStringInput(const std::string& input);
@@ -233,20 +293,36 @@ class CVC5_EXPORT InputParser
    * is read that requires initializing the logic.
    *
    * @return The parsed command. This is the null command if no command was
-   * read.
+   *         read.
    */
   Command nextCommand();
 
   /**
    * Parse and return the next term. Requires setting the logic prior
    * to this point.
+   * @return The parsed term.
    */
   Term nextTerm();
 
-  /** Is this parser done reading input? */
+  /**
+   * Is this parser done reading input?
+   * @return True if parser is done reading input.
+   */
   bool done() const;
 
  private:
+  /**
+   * Set the input to the given concrete input string, without allocating a new parser.
+   */
+  void setStringInputInternal(const std::string& input,
+                              const std::string& name);
+  /**
+   * Set the input to incremental string input.
+   * @param lang The input language.
+   * @param name The name of the stream, for use in error messages.
+   */
+  void setIncrementalStringInputInternal(modes::InputLanguage lang,
+                                         const std::string& name);
   /** Initialize this input parser, called during construction */
   void initialize();
   /**
@@ -260,13 +336,110 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** Incremental string input language */
+  /** A stringstream, for incremental string inputs */
+  std::stringstream d_istringStream;
+  /** Are we initialized to use the above string stream? */
+  bool d_usingIStringStream;
+  /** The last language argument passed to setIncrementalStringInput(). */
   modes::InputLanguage d_istringLang;
-  /** Incremental string name */
+  /** The last name argument passed to setIncrementalStringInput(). */
   std::string d_istringName;
   /** The parser */
   std::shared_ptr<Parser> d_parser;
 };
+
+/**
+ * Base class for all Parser exceptions.
+ * If thrown, API objects can still be used
+ */
+class CVC5_EXPORT ParserException : public CVC5ApiException
+{
+ public:
+  /** Default constructor */
+  ParserException();
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   */
+  ParserException(const std::string& msg);
+  /**
+   * Construct with message from a C string.
+   * @param msg The error message.
+   */
+  ParserException(const char* msg);
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   * @param filename name of the file.
+   * @param line The error line number.
+   * @param column The error column number.
+   */
+  ParserException(const std::string& msg,
+                  const std::string& filename,
+                  unsigned long line,
+                  unsigned long column);
+
+  /**
+   * Print error to output stream.
+   * @param os The output stream to write the error on.
+   */
+  void toStream(std::ostream& os) const override;
+
+  /**
+   * @return The file name.
+   */
+  std::string getFilename() const;
+
+  /**
+   * @return The line number of the parsing error.
+   */
+  unsigned long getLine() const;
+  /**
+   * @return The column number of the parsing error.
+   */
+  unsigned long getColumn() const;
+
+ protected:
+  /** The file name of the parsing error. */
+  std::string d_filename;
+  /** The line number of the parsing error. */
+  unsigned long d_line;
+  /** The column number of the parsing error. */
+  unsigned long d_column;
+}; /* class ParserException */
+
+/**
+ * An end of file exception.
+ * If thrown, API objects can still be used
+ */
+class ParserEndOfFileException : public ParserException
+{
+ public:
+  /** default constructor */
+  ParserEndOfFileException();
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   */
+  ParserEndOfFileException(const std::string& msg);
+  /**
+   * Construct with message from a C string.
+   * @param msg The error message.
+   */
+  ParserEndOfFileException(const char* msg);
+  /**
+   * Construct with message from a string.
+   * @param msg The error message.
+   * @param filename The name of the file.
+   * @param line The error line number.
+   * @param column The error column number.
+   */
+  ParserEndOfFileException(const std::string& msg,
+                           const std::string& filename,
+                           unsigned long line,
+                           unsigned long column);
+
+}; /* class ParserEndOfFileException */
 
 }  // namespace parser
 }  // namespace cvc5

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,13 +52,14 @@ TheoryUF::TheoryUF(Env& env,
       d_ho(nullptr),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
-      d_rewriter(),
+      d_rewriter(nodeManager(), env.getRewriter()),
+      d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this),
       d_cpacb(*this)
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
+  d_true = nodeManager()->mkConst(true);
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -90,6 +91,16 @@ void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
+  if (logicInfo().hasCardinalityConstraints())
+  {
+    if (!options().uf.ufCardExp)
+    {
+      std::stringstream ss;
+      ss << "Logic with cardinality constraints not available in this "
+            "configuration, try --uf-card-exp.";
+      throw LogicException(ss.str());
+    }
+  }
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // the ufssMode option.
@@ -103,6 +114,13 @@ void TheoryUF::finishInit() {
   d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
+    if (!options().uf.ufHoExp)
+    {
+      std::stringstream ss;
+      ss << "Higher-order logic not available in this configuration, try "
+            "--uf-ho-exp.";
+      throw LogicException(ss.str());
+    }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
@@ -204,6 +222,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                       << std::endl;
   Kind k = node.getKind();
   bool isHol = logicInfo().isHigherOrder();
+  if (node.getType().isAbstract())
+  {
+    std::stringstream ss;
+    ss << "Cannot process term of abstract type " << node;
+    throw LogicException(ss.str());
+  }
   if (k == Kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
@@ -362,7 +386,7 @@ void TheoryUF::explain(TNode literal, Node& exp)
   {
     d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-  exp = NodeManager::currentNM()->mkAnd(assumptions);
+  exp = nodeManager()->mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
@@ -406,7 +430,7 @@ void TheoryUF::presolve() {
   Trace("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryUF::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
@@ -517,7 +541,9 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         Trace("diamonds") << "+ C holds" << endl;
         Node newEquality = a.eqNode(d);
         Trace("diamonds") << "  ==> " << newEquality << endl;
-        learned << n.impNode(newEquality);
+        Node lem = n.impNode(newEquality);
+        TrustNode trn = TrustNode::mkTrustLemma(lem, nullptr);
+        learned.emplace_back(trn);
       } else {
         Trace("diamonds") << "+ C fails" << endl;
       }
@@ -599,7 +625,7 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   // also split on functions
   if (logicInfo().isHigherOrder())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (size_t k = 0, nchild = a.getNumChildren(); k < nchild; ++k)
     {
       TNode x = a[k];
@@ -626,11 +652,11 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
 }
 
 void TheoryUF::computeCareGraph() {
-  if (d_sharedTerms.empty())
+  if (d_state.getSharedTerms().empty())
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.

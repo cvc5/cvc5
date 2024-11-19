@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,11 +51,11 @@ CoreSolver::CoreSolver(Env& env,
       d_extDeq(userContext()),
       d_modelUnsoundId(IncompleteId::NONE)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_neg_one = nodeManager()->mkConstInt(Rational(-1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 CoreSolver::~CoreSolver() {
@@ -673,7 +673,12 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
 
 const std::vector<Node>& CoreSolver::getRelevantDeq() const { return d_rlvDeq; }
 
-NormalForm& CoreSolver::getNormalForm(Node n)
+bool CoreSolver::hasNormalForm(const Node& n) const
+{
+  return d_normal_form.find(n) != d_normal_form.end();
+}
+
+NormalForm& CoreSolver::getNormalForm(const Node& n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
   if (itn == d_normal_form.end())
@@ -723,7 +728,8 @@ Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
   return x;
 }
 
-Node CoreSolver::getConclusion(Node x,
+Node CoreSolver::getConclusion(NodeManager* nm,
+                               Node x,
                                Node y,
                                ProofRule rule,
                                bool isRev,
@@ -732,15 +738,11 @@ Node CoreSolver::getConclusion(Node x,
 {
   Trace("strings-csolver") << "CoreSolver::getConclusion: " << x << " " << y
                            << " " << rule << " " << isRev << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   Node conc;
   if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
   {
-    // must compare so that we are agnostic to order of x/y
-    Node ux = x < y ? x : y;
-    Node uy = x < y ? y : x;
-    Node sk = skc->mkSkolemCached(ux,
-                                  uy,
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
                                   isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
                                         : SkolemCache::SK_ID_V_UNIFIED_SPT,
                                   "v_spt");
@@ -756,9 +758,7 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
                                 : nm->mkNode(Kind::STRING_CONCAT, x, sk));
-      // make agnostic to x/y
-      conc = x < y ? nm->mkNode(Kind::OR, eq1, eq2)
-                   : nm->mkNode(Kind::OR, eq2, eq1);
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
     }
     // we can assume its length is greater than zero
     Node emp = Word::mkEmptyWord(sk.getType());
@@ -792,10 +792,9 @@ Node CoreSolver::getConclusion(Node x,
     Assert(d.isConst());
     Node c = y;
     Assert(c.isConst());
-    size_t cLen = Word::getLength(c);
     size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
-    Node preC =
-        p == cLen ? c : (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
+    Node rp = nm->mkConstInt(p);
+    Node preC = (isRev ? utils::mkSuffixOfLen(c, rp) : utils::mkPrefix(c, rp));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
@@ -832,14 +831,14 @@ size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
   return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
 }
 
-Node CoreSolver::getDecomposeConclusion(Node x,
+Node CoreSolver::getDecomposeConclusion(NodeManager* nm,
+                                        Node x,
                                         Node l,
                                         bool isRev,
                                         SkolemCache* skc,
                                         std::vector<Node>& newSkolems)
 {
   Assert(l.getType().isInteger());
-  NodeManager* nm = NodeManager::currentNM();
   Node n =
       isRev ? nm->mkNode(Kind::SUB, nm->mkNode(Kind::STRING_LENGTH, x), l) : l;
   Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
@@ -850,6 +849,44 @@ Node CoreSolver::getDecomposeConclusion(Node x,
   // add the length constraint to the conclusion
   Node lc = nm->mkNode(Kind::STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
   return nm->mkNode(Kind::AND, conc, lc);
+}
+
+Node CoreSolver::getExtensionalityConclusion(NodeManager* nm,
+                                             const Node& a,
+                                             const Node& b,
+                                             SkolemCache* skc)
+{
+  Node k = skc->mkSkolemFun(nm, SkolemId::STRINGS_DEQ_DIFF, a, b);
+  // we could use seq.nth instead of substr
+  Node ss1, ss2;
+  if (a.getType().isString())
+  {
+    // substring of length 1
+    Node one = nm->mkConstInt(Rational(1));
+    ss1 = nm->mkNode(Kind::STRING_SUBSTR, a, k, one);
+    ss2 = nm->mkNode(Kind::STRING_SUBSTR, b, k, one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(Kind::SEQ_NTH, a, k);
+    ss2 = nm->mkNode(Kind::SEQ_NTH, b, k);
+  }
+
+  // disequality between nth/substr
+  Node conc1 = ss1.eqNode(ss2).negate();
+
+  // The skolem k is in the bounds of at least
+  // one string/sequence
+  Node len1 = nm->mkNode(Kind::STRING_LENGTH, a);
+  Node len2 = nm->mkNode(Kind::STRING_LENGTH, b);
+  Node zero = nm->mkConstInt(Rational(0));
+  Node conc2 = nm->mkNode(Kind::LEQ, zero, k);
+  Node conc3 = nm->mkNode(Kind::LT, k, len1);
+  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
+
+  std::vector<Node> concs = {conc1, conc2, conc3};
+  return nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -868,7 +905,7 @@ void CoreSolver::getNormalForms(Node eqc,
     Node n = (*eqc_i);
     // this check should be in sync with the check in checkCycles to ensure
     // we don't compute normal forms for irrelevant terms.
-    if (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end())
+    if (n.isConst() || (!d_bsolver.isCongruent(n) && rlvSet.find(n)!=rlvSet.end()))
     {
       Kind nk = n.getKind();
       bool isCLike = utils::isConstantLike(n);
@@ -1215,7 +1252,7 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
                                   std::vector<CoreInferInfo>& pinfer,
                                   TypeNode stype)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node emp = Word::mkEmptyWord(stype);
 
   const std::vector<Node>& nfiv = nfi.d_nf;
@@ -1562,8 +1599,13 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node xcv = nm->mkNode(
               Kind::STRING_CONCAT, isRev ? strb : nc, isRev ? nc : strb);
           std::vector<Node> newSkolems;
-          iinfo.d_conc = getConclusion(
-              xcv, stra, ProofRule::CONCAT_CPROP, isRev, skc, newSkolems);
+          iinfo.d_conc = getConclusion(nodeManager(),
+                                       xcv,
+                                       stra,
+                                       ProofRule::CONCAT_CPROP,
+                                       isRev,
+                                       skc,
+                                       newSkolems);
           Assert(newSkolems.size() == 1);
           iinfo.d_skolems[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.setId(InferenceId::STRINGS_SSPLIT_CST_PROP);
@@ -1579,8 +1621,13 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
       SkolemCache* skc = d_termReg.getSkolemCache();
       std::vector<Node> newSkolems;
-      iinfo.d_conc = getConclusion(
-          nc, nfcv[index], ProofRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
+      iinfo.d_conc = getConclusion(nodeManager(),
+                                   nc,
+                                   nfcv[index],
+                                   ProofRule::CONCAT_CSPLIT,
+                                   isRev,
+                                   skc,
+                                   newSkolems);
       NormalForm::getExplanationForPrefixEq(
           nfi, nfj, index, index, iinfo.d_premises);
       iinfo.d_premises.push_back(expNonEmpty);
@@ -1676,21 +1723,21 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (lentTestSuccess == -1)
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR);
-      iinfo.d_conc =
-          getConclusion(x, y, ProofRule::CONCAT_SPLIT, isRev, skc, newSkolems);
+      iinfo.d_conc = getConclusion(
+          nodeManager(), x, y, ProofRule::CONCAT_SPLIT, isRev, skc, newSkolems);
     }
     else if (lentTestSuccess == 0)
     {
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
-      iinfo.d_conc =
-          getConclusion(x, y, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      iinfo.d_conc = getConclusion(
+          nodeManager(), x, y, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     else
     {
       Assert(lentTestSuccess == 1);
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
-      iinfo.d_conc =
-          getConclusion(y, x, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
+      iinfo.d_conc = getConclusion(
+          nodeManager(), y, x, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     // add the length constraint(s) as the last antecedant
     Node lc = utils::mkAnd(lcVec);
@@ -1746,7 +1793,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
                                                       int index,
                                                       CoreInferInfo& info)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node conc;
   const std::vector<Node>& veci = nfi.d_nf;
   const std::vector<Node>& vecoi = nfj.d_nf;
@@ -1956,7 +2003,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
 void CoreSolver::processDeq(Node ni, Node nj)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
 
@@ -2161,7 +2208,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
           Node conc = getDecomposeConclusion(
-              nck, d_one, false, skc, newSkolems);
+              nodeManager(), nck, d_one, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(Kind::GEQ, nckLenTerm, d_one));
@@ -2204,10 +2251,10 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // After step 3, `k1` is marked congruent because `x` is the older
           // variable. So we get `x` in the normal form again.
           std::vector<Node> newSkolems;
-          Node conc =
-              getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
+          Node conc = getDecomposeConclusion(
+              nodeManager(), ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          Node lenConstraint = nm->mkNode(Kind::GT, uxLen, uyLen);
+          Node lenConstraint = nm->mkNode(Kind::GEQ, uxLen, uyLen);
           Node lenConstraintr = rewrite(lenConstraint);
           // If the length constraint rewrites to false, don't bother sending
           // the lemma. If it rewrites to true, then we include it as a
@@ -2323,7 +2370,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       {
         cc.push_back(nfk[k].eqNode(emp));
       }
-      Node conc = NodeManager::currentNM()->mkAnd(cc);
+      Node conc = nodeManager()->mkAnd(cc);
       Assert(d_state.areEqual(niLenTerm, njLenTerm))
           << "Lengths not equal " << niLenTerm << " " << njLenTerm;
       d_im.sendInference(
@@ -2445,39 +2492,11 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   }
   d_extDeq.insert(eq);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemCache* sc = d_termReg.getSkolemCache();
-  TypeNode intType = nm->integerType();
-  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
+  Node conc = getExtensionalityConclusion(nm, eq[0], eq[1], sc);
   Node deq = eq.negate();
-  // we could use seq.nth instead of substr
-  Node ss1, ss2;
-  if (n1.getType().isString())
-  {
-    // substring of length 1
-    ss1 = nm->mkNode(Kind::STRING_SUBSTR, n1, k, d_one);
-    ss2 = nm->mkNode(Kind::STRING_SUBSTR, n2, k, d_one);
-  }
-  else
-  {
-    // as an optimization, for sequences, use seq.nth
-    ss1 = nm->mkNode(Kind::SEQ_NTH, n1, k);
-    ss2 = nm->mkNode(Kind::SEQ_NTH, n2, k);
-  }
 
-  // disequality between nth/substr
-  Node conc1 = ss1.eqNode(ss2).negate();
-
-  // The skolem k is in the bounds of at least
-  // one string/sequence
-  Node len1 = nm->mkNode(Kind::STRING_LENGTH, n1);
-  Node len2 = nm->mkNode(Kind::STRING_LENGTH, n2);
-  Node conc2 = nm->mkNode(Kind::LEQ, d_zero, k);
-  Node conc3 = nm->mkNode(Kind::LT, k, len1);
-  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
-
-  std::vector<Node> concs = {conc1, conc2, conc3};
-  Node conc = nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
   // A != B => ( seq.len(A) != seq.len(B) or
   //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
   // Note that we take A != B verbatim, and do not explain it.
@@ -2656,7 +2675,7 @@ void CoreSolver::checkLengthsEqc()
       std::vector<Node> ant;
       ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
       ant.push_back(llt[0].eqNode(nfi.d_base));
-      Node lc = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, nf);
+      Node lc = nodeManager()->mkNode(Kind::STRING_LENGTH, nf);
       Node lcr = rewrite(lc);
       Trace("strings-process-debug")
           << "Rewrote length " << lc << " to " << lcr << std::endl;
@@ -2715,6 +2734,24 @@ size_t CoreSolver::pickInferInfo(const std::vector<CoreInferInfo>& pinfer)
   return use_index;
 }
 
+void CoreSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode CoreSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // process the state change to this solver
+  if (!ii.d_nfPair[0].isNull())
+  {
+    Assert(!ii.d_nfPair[1].isNull());
+    addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
+  }
+  // now, process it with the inference manager
+  return d_im.processLemma(ii, p);
+}
+
 void CoreSolver::checkNormalFormsEq()
 {
   // we've computed the possible inferences above
@@ -2723,12 +2760,9 @@ void CoreSolver::checkNormalFormsEq()
     // add one inference from our list of possible inferences
     size_t use_index = pickInferInfo(d_pinfers);
     InferInfo& ii = d_pinfers[use_index].d_infer;
-    // process the state change to this solver
-    if (!ii.d_nfPair[0].isNull())
-    {
-      Assert(!ii.d_nfPair[1].isNull());
-      addNormalFormPair(ii.d_nfPair[0], ii.d_nfPair[1]);
-    }
+    // Send the inference, which is a lemma. This class will process the side
+    // effects of the inference.
+    ii.d_sim = this;
     d_im.sendInference(ii, true);
     return;
   }

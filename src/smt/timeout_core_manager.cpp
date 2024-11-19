@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,8 +41,8 @@ namespace smt {
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
     : EnvObj(env), d_numAssertsNsk(0)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
@@ -267,7 +267,7 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
     {
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       std::stringstream ss;
-      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
       output(OutputTag::TIMEOUT_CORE_BENCHMARK)
           << ";; timeout core" << std::endl;

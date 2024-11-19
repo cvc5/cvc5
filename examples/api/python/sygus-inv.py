@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,7 +21,8 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = cvc5.Solver()
+  tm = cvc5.TermManager()
+  slv = cvc5.Solver(tm)
 
   # required options
   slv.setOption("sygus", "true")
@@ -30,27 +31,27 @@ if __name__ == "__main__":
   # set the logic
   slv.setLogic("LIA")
 
-  integer = slv.getIntegerSort()
-  boolean = slv.getBooleanSort()
+  integer = tm.getIntegerSort()
+  boolean = tm.getBooleanSort()
 
-  zero = slv.mkInteger(0)
-  one = slv.mkInteger(1)
-  ten = slv.mkInteger(10)
+  zero = tm.mkInteger(0)
+  one = tm.mkInteger(1)
+  ten = tm.mkInteger(10)
 
   # declare input variables for functions
-  x = slv.mkVar(integer, "x")
-  xp = slv.mkVar(integer, "xp")
+  x = tm.mkVar(integer, "x")
+  xp = tm.mkVar(integer, "xp")
 
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
-  ite = slv.mkTerm(Kind.ITE,
-                   slv.mkTerm(Kind.LT, x, ten),
-                   slv.mkTerm(Kind.EQUAL, xp, slv.mkTerm(Kind.ADD, x, one)),
-                   slv.mkTerm(Kind.EQUAL, xp, x))
+  ite = tm.mkTerm(Kind.ITE,
+                   tm.mkTerm(Kind.LT, x, ten),
+                   tm.mkTerm(Kind.EQUAL, xp, tm.mkTerm(Kind.ADD, x, one)),
+                   tm.mkTerm(Kind.EQUAL, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
-  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(Kind.EQUAL, x, zero))
+  pre_f = slv.defineFun("pre-f", [x], boolean, tm.mkTerm(Kind.EQUAL, x, zero))
   trans_f = slv.defineFun("trans-f", [x, xp], boolean, ite)
-  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.LEQ, x, ten))
+  post_f = slv.defineFun("post-f", [x], boolean, tm.mkTerm(Kind.LEQ, x, ten))
 
   # declare the invariant-to-synthesize
   inv_f = slv.synthFun("inv-f", [x], boolean)

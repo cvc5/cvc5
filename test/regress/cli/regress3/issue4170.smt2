@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 (set-logic HO_ALL)
 (set-option :sygus-inference true)
 (set-info :status sat)

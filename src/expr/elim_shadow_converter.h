@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
-#define CVC4__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+#ifndef CVC5__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+#define CVC5__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
 
 #include <unordered_set>
 
@@ -41,12 +41,14 @@ class ElimShadowNodeConverter : public NodeConverter
   /**
    * Eliminate shadowing of the top-most variables in closure q.
    */
-  ElimShadowNodeConverter(const Node& q);
+  ElimShadowNodeConverter(NodeManager* nm, const Node& q);
   /**
    * Eliminate shadowing of variables vars. Node n is a term used as a unique
    * identifier for which the introduced bound variables are indexed on.
    */
-  ElimShadowNodeConverter(const Node& n, const std::unordered_set<Node>& vars);
+  ElimShadowNodeConverter(NodeManager* nm,
+                          const Node& n,
+                          const std::unordered_set<Node>& vars);
   ~ElimShadowNodeConverter() {}
   /**
    * Convert node n as described above during post-order traversal. This
@@ -55,12 +57,17 @@ class ElimShadowNodeConverter : public NodeConverter
    */
   Node postConvert(Node n) override;
   /**
-   * Get the bound variable used for eliminating shadowing of variable v
+   * Get the bound variable used for eliminating shadowing of the i^th variable
    * bound by closure n that occurs as a subterm of closure q.
    */
-  static Node getElimShadowVar(const Node& q, const Node& n, const Node& v);
+  static Node getElimShadowVar(const Node& q, const Node& n, size_t i);
 
-  /** Eliminate shadowing in the closure q */
+  /**
+   * Eliminate shadowing in the closure q. This includes eliminating duplicate
+   * variables in the quantifier prefix of q.
+   * @param q The term to process which should have a binder kind.
+   * @return The result of eliminating shadowing in q.
+   */
   static Node eliminateShadow(const Node& q);
 
  private:

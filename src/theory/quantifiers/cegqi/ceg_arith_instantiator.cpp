@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +37,8 @@ namespace quantifiers {
 ArithInstantiator::ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc)
     : Instantiator(env, tn), d_vtc(vtc)
 {
-  d_zero = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
-  d_one = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(1));
+  d_zero = nodeManager()->mkConstRealOrInt(tn, Rational(0));
+  d_one = nodeManager()->mkConstRealOrInt(tn, Rational(1));
 }
 
 void ArithInstantiator::reset(CegInstantiator* ci,
@@ -76,7 +76,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
                                         std::vector<Node>& terms,
                                         CegInstEffort effort)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node eq_lhs = terms[0];
   Node eq_rhs = terms[1];
   Node lhs_coeff = term_props[0].d_coeff;
@@ -147,7 +147,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
                                          CegInstEffort effort)
 {
   Trace("cegqi-arith-debug") << "Process assertion " << lit << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool pol = lit.getKind() != Kind::NOT;
   // arithmetic inequalities and disequalities
@@ -303,7 +303,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                                           Node pv,
                                           CegInstEffort effort)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool use_inf = d_type.isInteger() ? options().quantifiers.cegqiUseInfInt
                                     : options().quantifiers.cegqiUseInfReal;
   bool upper_first = Random::getRandom().pickWithProb(0.5);
@@ -718,7 +718,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   sf.d_subs[index] = veq[1];
   if (!veq_c.isNull())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     sf.d_subs[index] = nm->mkNode(Kind::INTS_DIVISION_TOTAL, veq[1], veq_c);
     Trace("cegqi-arith-debug")
         << "...bound type is : " << sf.d_props[index].d_type << std::endl;
@@ -751,7 +751,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
                                            Node& vts_coeff_inf,
                                            Node& vts_coeff_delta)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("cegqi-arith-debug")
       << "isolate for " << pv << " in " << atom << std::endl;
   std::map<Node, Node> msum;
@@ -957,7 +957,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
                                                      Node inf_coeff,
                                                      Node delta_coeff)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node val = t;
   Trace("cegqi-arith-bound2") << "Value : " << val << std::endl;
   Assert(!e.getType().isInteger() || t.getType().isInteger());
@@ -1014,7 +1014,7 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
                                  const Node& inf_coeff,
                                  const Node& delta_coeff)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node vval = val;
   if (!inf_coeff.isNull())
   {
@@ -1036,7 +1036,7 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
 
 Node ArithInstantiator::negate(const Node& t) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   return rewrite(nm->mkNode(
       Kind::MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), t));
 }

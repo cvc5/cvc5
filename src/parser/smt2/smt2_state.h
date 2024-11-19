@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ class Smt2State : public ParserState
   Smt2State(ParserStateCallback* psc,
             Solver* solver,
             SymManager* sm,
-            bool strictMode = false,
+            ParsingMode parsingMode = ParsingMode::DEFAULT,
             bool isSygus = false);
 
   ~Smt2State();
@@ -52,6 +52,10 @@ class Smt2State : public ParserState
    * Add core theory symbols to the parser state.
    */
   void addCoreSymbols();
+  /**
+   * Add skolem symbols to the parser state.
+   */
+  void addSkolemSymbols();
 
   void addOperator(Kind k, const std::string& name);
 
@@ -73,6 +77,13 @@ class Smt2State : public ParserState
    * @param name The name of the symbol (e.g. "lambda")
    */
   void addClosureKind(Kind tKind, const std::string& name);
+  /**
+   * Registers a skolem
+   *
+   * @param skolemID The is of the skolem
+   * @param name The name of the skolem, e.g. @array_deq_diff
+   */
+  void addSkolemId(SkolemId skolemID, const std::string& name);
   /**
    * Checks whether an indexed operator is enabled. All indexed operators in
    * the current logic are considered to be enabled. This includes operators
@@ -158,7 +169,8 @@ class Smt2State : public ParserState
    */
   bool getTesterName(Term cons, std::string& name) override;
 
-  /** Make function defined by a define-fun(s)-rec command.
+  /**
+   * Make function defined by a define-fun(s)-rec command and bind it.
    *
    * fname : the name of the function.
    * sortedVarNames : the list of variable arguments for the function.
@@ -172,7 +184,7 @@ class Smt2State : public ParserState
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
-  Term bindDefineFunRec(
+  Term setupDefineFunRecScope(
       const std::string& fname,
       const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
       Sort t,
@@ -193,7 +205,7 @@ class Smt2State : public ParserState
    * This function:
    * (1) Calls ParserState::pushScope().
    * (2) Computes the bound variable list for the quantified formula
-   *     that defined this definition and stores it in bvs.
+   *     that defined this definition and stores it in bvs and binds it.
    */
   void pushDefineFunRecScope(
       const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
@@ -244,6 +256,12 @@ class Smt2State : public ParserState
    * grammar-specific token `Constant`.
    */
   bool hasGrammars() const;
+  /**
+   * Are we using fresh binders? If this returns true, then every binder
+   * is assumed to refer to fresh variables. If this returns false, then
+   * variables are assumed to be globally unique up to their name and type.
+   */
+  bool usingFreshBinders() const;
 
   void checkThatLogicIsSet();
 
@@ -262,7 +280,8 @@ class Smt2State : public ParserState
 
   void checkUserSymbol(const std::string& name)
   {
-    if (name.length() > 0 && (name[0] == '.' || name[0] == '@'))
+    if (!lenientModeEnabled() && name.length() > 0
+        && (name[0] == '.' || name[0] == '@'))
     {
       std::stringstream ss;
       ss << "cannot declare or define symbol `" << name
@@ -457,6 +476,8 @@ class Smt2State : public ParserState
 
   /** Are we parsing a sygus file? */
   bool d_isSygus;
+  /** are we using fresh binders? */
+  bool d_freshBinders;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
@@ -465,6 +486,8 @@ class Smt2State : public ParserState
   internal::LogicInfo d_logic;
   /** Maps strings to the operator it is bound to */
   std::unordered_map<std::string, Kind> d_operatorKindMap;
+  /** Maps strings to the skolem it is bound to */
+  std::unordered_map<std::string, SkolemId> d_skolemMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).

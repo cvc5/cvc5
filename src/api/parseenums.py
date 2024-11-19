@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -44,7 +44,8 @@ BLOCK_COMMENT_BEGIN = '/*'
 BLOCK_COMMENT_END = '*/'
 MACRO_BLOCK_BEGIN = '#if 0'
 MACRO_BLOCK_END = '#endif'
-
+CMACRO_BLOCK_BEGIN = '#ifdef CVC5_API_USE_C_ENUMS'
+CMACRO_BLOCK_END = '#endif'
 
 class CppNamespace:
 
@@ -69,7 +70,8 @@ class CppEnum:
 class EnumParser:
     tokenmap = {
         BLOCK_COMMENT_BEGIN: BLOCK_COMMENT_END,
-        MACRO_BLOCK_BEGIN: MACRO_BLOCK_END
+        MACRO_BLOCK_BEGIN: MACRO_BLOCK_END,
+        CMACRO_BLOCK_BEGIN: CMACRO_BLOCK_END,
     }
 
     def __init__(self):
@@ -124,6 +126,8 @@ class EnumParser:
 
         # check if entering block comment or macro block
         for token in self.tokenmap:
+            if token == CMACRO_BLOCK_BEGIN and not self.in_enum:
+                continue
             if token in line:
                 # if entering block comment, override previous block comment
                 if token == BLOCK_COMMENT_BEGIN:

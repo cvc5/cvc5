@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_DatatypeSelector_deletePointer(
     JNIEnv*, jobject, jlong pointer)
 {
   delete ((DatatypeSelector*)pointer);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeSelector
+ * Method:    equals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_DatatypeSelector_equals(
+    JNIEnv* env, jobject, jlong pointer1, jlong pointer2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* sel1 = reinterpret_cast<DatatypeSelector*>(pointer1);
+  DatatypeSelector* sel2 = reinterpret_cast<DatatypeSelector*>(pointer2);
+  // We compare the actual terms, not their pointers.
+  return static_cast<jboolean>(*sel1 == *sel2);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -118,4 +134,18 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeSelector_toString(
   DatatypeSelector* current = (DatatypeSelector*)pointer;
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeSelector
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeSelector_hashCode(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeSelector* result = reinterpret_cast<DatatypeSelector*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::DatatypeSelector>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

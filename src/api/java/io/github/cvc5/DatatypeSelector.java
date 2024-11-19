@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +29,33 @@ public class DatatypeSelector extends AbstractPointer
   protected native void deletePointer(long pointer);
 
   // endregion
+
+  /**
+   * Syntactic equality operator.
+   *
+   * @param s The datatype selector to compare to for equality.
+   * @return True if the datatype selectors are equal.
+   */
+  @Override
+  public boolean equals(Object s)
+  {
+    if (this == s)
+    {
+      return true;
+    }
+    if (s == null || getClass() != s.getClass())
+    {
+      return false;
+    }
+    DatatypeSelector sel = (DatatypeSelector) s;
+    if (this.pointer == sel.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, sel.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
 
   /** @return The Name of this Datatype selector. */
   public String getName()
@@ -95,4 +122,16 @@ public class DatatypeSelector extends AbstractPointer
    * @return A String representation of this datatype selector.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a datatype selector.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Hans-Joerg Schurr, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,6 +141,11 @@ Node ProofChecker::checkDebug(ProofRule id,
   return res;
 }
 
+void ProofChecker::setProofCheckMode(options::ProofCheckMode pcMode)
+{
+  d_pcMode = pcMode;
+}
+
 Node ProofChecker::checkInternal(ProofRule id,
                                  const std::vector<Node>& cchildren,
                                  const std::vector<Node>& args,
@@ -162,7 +167,10 @@ Node ProofChecker::checkInternal(ProofRule id,
   {
     if (useTrustedChecker)
     {
-      (*out) << "ProofChecker::check: trusting ProofRule " << id << std::endl;
+      if (out != nullptr)
+      {
+        (*out) << "ProofChecker::check: trusting ProofRule " << id << std::endl;
+      }
       // trusted checker
       return expected;
     }

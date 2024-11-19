@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ void AstPrinter::toStream(std::ostream& out, TNode n) const
   size_t dag = options::ioutils::getDagThresh(out);
   int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
-    LetBinding lbind(dag + 1);
+    LetBinding lbind("_let_", dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
     toStream(out, n, toDepth);
@@ -406,12 +406,12 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
       Node nl = letList[i];
       uint32_t id = lbind->getId(nl);
       out << "_let_" << id << " := ";
-      Node nlc = lbind->convert(nl, "_let_", false);
+      Node nlc = lbind->convert(nl, false);
       toStream(out, nlc, toDepth, lbind);
     }
     out << " IN ";
   }
-  Node nc = lbind->convert(n, "_let_");
+  Node nc = lbind->convert(n);
   // print the body, passing the lbind object
   toStream(out, nc, toDepth, lbind);
   out << cparen.str();

@@ -45,7 +45,7 @@ def identify_next_version():
         sys.exit(1)
     logging.debug('git version info: {}'.format(curversion))
 
-    re_release = re.compile('^cvc5-(\d+)\.(\d+)\.(\d+)')
+    re_release = re.compile(r'^cvc5-(\d+)\.(\d+)\.(\d+)')
     m = re_release.match(curversion)
     if m:
         major, minor, patch = map(int, m.groups())

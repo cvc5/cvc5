@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,7 +95,7 @@ Node Rewriter::rewrite(TNode node) {
 
 Node Rewriter::extendedRewrite(TNode node, bool aggr)
 {
-  quantifiers::ExtendedRewriter er(*this, aggr);
+  quantifiers::ExtendedRewriter er(d_nm, *this, aggr);
   return er.extendedRewrite(node);
 }
 
@@ -147,6 +147,32 @@ void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 {
   return d_theoryRewriters[theoryId];
+}
+
+Node Rewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  // dispatches to the appropriate theory
+  TheoryId tid = theoryOf(n);
+  TheoryRewriter* tr = getTheoryRewriter(tid);
+  if (tr != nullptr)
+  {
+    return tr->rewriteViaRule(id, n);
+  }
+  return Node::null();
+}
+
+ProofRewriteRule Rewriter::findRule(const Node& a,
+                                    const Node& b,
+                                    TheoryRewriteCtx ctx)
+{
+  // dispatches to the appropriate theory
+  TheoryId tid = theoryOf(a);
+  TheoryRewriter* tr = getTheoryRewriter(tid);
+  if (tr != nullptr)
+  {
+    return tr->findRule(a, b, ctx);
+  }
+  return ProofRewriteRule::NONE;
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,

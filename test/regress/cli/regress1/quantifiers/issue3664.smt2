@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun-rlv --sygus-inference
+; COMMAND-LINE: --fmf-fun-rlv --sygus-inference=try
 ; EXPECT: sat
 ; DISABLE-TESTER: model
 (set-logic QF_NRA)

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,15 +22,20 @@ get_filename_component(CVC5_JNI_PATH ${CVC5_JAR_PATH} DIRECTORY)
 
 # specify source files for junit tests
 set(java_test_src_files
+  ${CMAKE_CURRENT_SOURCE_DIR}/CommandTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/DatatypeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/FiniteFieldTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SymbolManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TermManagerTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
 )
 
@@ -66,14 +71,22 @@ endmacro()
 if(USE_COCOA)
   cvc5_add_java_api_test(FiniteFieldTest)
 endif()
+cvc5_add_java_api_test(CommandTest)
 cvc5_add_java_api_test(DatatypeTest)
 cvc5_add_java_api_test(GrammarTest)
+cvc5_add_java_api_test(InputParserTest)
 cvc5_add_java_api_test(OpTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
+cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
+cvc5_add_java_api_test(TermManagerTest)
 cvc5_add_java_api_test(ProofTest)
 
-cvc5_add_unit_test_white(UncoveredTest api/java)
+# suppress deprecated warnings to not error in CI
+set_source_files_properties(UncoveredTest.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+cvc5_add_unit_test_black(UncoveredTest api/java)

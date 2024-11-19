@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -20,7 +20,8 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     slv.setLogic("QF_BV") # Set the logic
     # The following example has been adapted from the book A Hacker's Delight by
     # Henry S. Warren.
@@ -42,31 +43,31 @@ if __name__ == "__main__":
     # equivalent by encoding the problem in the bit-vector theory.
 
     # Creating a bit-vector type of width 32
-    bitvector32 = slv.mkBitVectorSort(32)
+    bitvector32 = tm.mkBitVectorSort(32)
 
     # Variables
-    x = slv.mkConst(bitvector32, "x")
-    a = slv.mkConst(bitvector32, "a")
-    b = slv.mkConst(bitvector32, "b")
+    x = tm.mkConst(bitvector32, "x")
+    a = tm.mkConst(bitvector32, "a")
+    b = tm.mkConst(bitvector32, "b")
 
     # First encode the assumption that x must be equal to a or b
-    x_eq_a = slv.mkTerm(Kind.EQUAL, x, a)
-    x_eq_b = slv.mkTerm(Kind.EQUAL, x, b)
-    assumption = slv.mkTerm(Kind.OR, x_eq_a, x_eq_b)
+    x_eq_a = tm.mkTerm(Kind.EQUAL, x, a)
+    x_eq_b = tm.mkTerm(Kind.EQUAL, x, b)
+    assumption = tm.mkTerm(Kind.OR, x_eq_a, x_eq_b)
 
     # Assert the assumption
     slv.assertFormula(assumption)
 
     # Introduce a new variable for the new value of x after assignment.
     # x after executing code (0)
-    new_x = slv.mkConst(bitvector32, "new_x")
+    new_x = tm.mkConst(bitvector32, "new_x")
     # x after executing code (1) or (2)
-    new_x_ = slv.mkConst(bitvector32, "new_x_")
+    new_x_ = tm.mkConst(bitvector32, "new_x_")
 
     # Encoding code (0)
     # new_x = x == a ? b : a
-    ite = slv.mkTerm(Kind.ITE, x_eq_a, b, a)
-    assignment0 = slv.mkTerm(Kind.EQUAL, new_x, ite)
+    ite = tm.mkTerm(Kind.ITE, x_eq_a, b, a)
+    assignment0 = tm.mkTerm(Kind.EQUAL, new_x, ite)
 
     # Assert the encoding of code (0)
     print("Asserting {} to cvc5".format(assignment0))
@@ -76,13 +77,13 @@ if __name__ == "__main__":
 
     # Encoding code (1)
     # new_x_ = a xor b xor x
-    a_xor_b_xor_x = slv.mkTerm(Kind.BITVECTOR_XOR, a, b, x)
-    assignment1 = slv.mkTerm(Kind.EQUAL, new_x_, a_xor_b_xor_x)
+    a_xor_b_xor_x = tm.mkTerm(Kind.BITVECTOR_XOR, a, b, x)
+    assignment1 = tm.mkTerm(Kind.EQUAL, new_x_, a_xor_b_xor_x)
 
     # Assert encoding to cvc5 in current context
     print("Asserting {} to cvc5".format(assignment1))
     slv.assertFormula(assignment1)
-    new_x_eq_new_x_ = slv.mkTerm(Kind.EQUAL, new_x, new_x_)
+    new_x_eq_new_x_ = tm.mkTerm(Kind.EQUAL, new_x, new_x_)
 
     print("Checking sat assuming:", new_x_eq_new_x_.notTerm())
     print("Expect UNSAT.")
@@ -92,9 +93,9 @@ if __name__ == "__main__":
 
     # Encoding code (2)
     # new_x_ = a + b - x
-    a_plus_b = slv.mkTerm(Kind.BITVECTOR_ADD, a, b)
-    a_plus_b_minus_x = slv.mkTerm(Kind.BITVECTOR_SUB, a_plus_b, x)
-    assignment2 = slv.mkTerm(Kind.EQUAL, new_x_, a_plus_b_minus_x)
+    a_plus_b = tm.mkTerm(Kind.BITVECTOR_ADD, a, b)
+    a_plus_b_minus_x = tm.mkTerm(Kind.BITVECTOR_SUB, a_plus_b, x)
+    assignment2 = tm.mkTerm(Kind.EQUAL, new_x_, a_plus_b_minus_x)
 
     # Assert encoding to cvc5 in current context
     print("Asserting {} to cvc5".format(assignment2))
@@ -105,17 +106,17 @@ if __name__ == "__main__":
     print("cvc5:", slv.checkSatAssuming(new_x_eq_new_x_.notTerm()))
 
 
-    x_neq_x = slv.mkTerm(Kind.EQUAL, x, x).notTerm()
-    query = slv.mkTerm(Kind.AND, new_x_eq_new_x_, x_neq_x)
+    x_neq_x = tm.mkTerm(Kind.EQUAL, x, x).notTerm()
+    query = tm.mkTerm(Kind.AND, new_x_eq_new_x_, x_neq_x)
     print("Check sat assuming: ", query.notTerm())
     print("Expect SAT.")
     print("cvc5:", slv.checkSatAssuming(query.notTerm()))
 
     # Assert that a is odd
-    extract_op = slv.mkOp(Kind.BITVECTOR_EXTRACT, 0, 0)
-    lsb_of_a = slv.mkTerm(extract_op, a)
+    extract_op = tm.mkOp(Kind.BITVECTOR_EXTRACT, 0, 0)
+    lsb_of_a = tm.mkTerm(extract_op, a)
     print("Sort of {} is {}".format(lsb_of_a, lsb_of_a.getSort()))
-    a_odd = slv.mkTerm(Kind.EQUAL, lsb_of_a, slv.mkBitVector(1, 1))
+    a_odd = tm.mkTerm(Kind.EQUAL, lsb_of_a, tm.mkBitVector(1, 1))
     print("Assert", a_odd)
     print("Check satisifiability")
     slv.assertFormula(a_odd)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@ const char* toString(MethodId id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
     case MethodId::RW_EXT_REWRITE: return "RW_EXT_REWRITE";
+    case MethodId::RW_EXT_REWRITE_AGG: return "RW_EXT_REWRITE_AGG";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";

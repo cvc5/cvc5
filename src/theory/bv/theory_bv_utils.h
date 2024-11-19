@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -175,7 +175,7 @@ Node mkSignExtend(TNode node, unsigned amount);
 Node mkExtract(TNode node, unsigned high, unsigned low);
 /* Create extract node of bit-width 1 where the resulting node represents
  * the bit at given index.  */
-Node mkBitOf(TNode node, unsigned index);
+Node mkBit(TNode node, unsigned index);
 
 /* Create n-ary concat node of given children.  */
 Node mkConcat(TNode t1, TNode t2);

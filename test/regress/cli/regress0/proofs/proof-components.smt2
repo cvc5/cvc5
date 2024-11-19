@@ -1,8 +1,9 @@
 ; SCRUBBER: grep -v -E '(\(|\)|:proves)'
-; COMMAND-LINE: --simplification=none
+; COMMAND-LINE: --simplification=none --proof-format=none
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
+; DISABLE-TESTER: alethe
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")

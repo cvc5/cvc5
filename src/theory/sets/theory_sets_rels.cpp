@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
@@ -50,8 +51,8 @@ TheorySetsRels::TheorySetsRels(Env& env,
       d_treg(treg),
       d_shared_terms(userContext())
 {
-  d_trueNode = NodeManager::currentNM()->mkConst(true);
-  d_falseNode = NodeManager::currentNM()->mkConst(false);
+  d_trueNode = nodeManager()->mkConst(true);
+  d_falseNode = nodeManager()->mkConst(false);
 }
 
 TheorySetsRels::~TheorySetsRels() {}
@@ -98,6 +99,14 @@ void TheorySetsRels::check(Theory::Effort level)
           std::vector<Node>& join_terms = kind_terms[Kind::RELATION_JOIN];
           for( unsigned int j = 0; j < join_terms.size(); j++ ) {
             applyJoinRule( join_terms[j], rel_rep, exp );
+          }
+        }
+        if (kind_terms.find(Kind::RELATION_TABLE_JOIN) != kind_terms.end())
+        {
+          std::vector<Node>& joinTerms = kind_terms[Kind::RELATION_TABLE_JOIN];
+          for (size_t j = 0; j < joinTerms.size(); j++)
+          {
+            applyTableJoinRule(joinTerms[j], rel_rep, exp);
           }
         }
         if (kind_terms.find(Kind::RELATION_PRODUCT) != kind_terms.end())
@@ -150,7 +159,8 @@ void TheorySetsRels::check(Theory::Effort level)
                             << " terms of kind " << k_t_it->first << std::endl;
         std::vector<Node>::iterator term_it = k_t_it->second.begin();
         if (k_t_it->first == Kind::RELATION_JOIN
-            || k_t_it->first == Kind::RELATION_PRODUCT)
+            || k_t_it->first == Kind::RELATION_PRODUCT
+            || k_t_it->first == Kind::RELATION_TABLE_JOIN)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -258,6 +268,7 @@ void TheorySetsRels::check(Theory::Effort level)
         {
           if (eqc_node.getKind() == Kind::RELATION_TRANSPOSE
               || eqc_node.getKind() == Kind::RELATION_JOIN
+              || eqc_node.getKind() == Kind::RELATION_TABLE_JOIN
               || eqc_node.getKind() == Kind::RELATION_PRODUCT
               || eqc_node.getKind() == Kind::RELATION_TCLOSURE
               || eqc_node.getKind() == Kind::RELATION_JOIN_IMAGE
@@ -299,7 +310,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( rel_mem_it == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     Node join_image_rel = join_image_term[0];
     std::unordered_set<Node> hasChecked;
@@ -359,22 +370,22 @@ void TheorySetsRels::check(Theory::Effort level)
             existing_members.push_back( snd_element_snd_mem );
             reasons.push_back( *mem_rep_exp_it_snd );
             if( fst_mem_rep != fst_element_snd_mem ) {
-              reasons.push_back(NodeManager::currentNM()->mkNode(
+              reasons.push_back(nodeManager()->mkNode(
                   Kind::EQUAL, fst_mem_rep, fst_element_snd_mem));
             }
             if( join_image_rel != (*mem_rep_exp_it_snd)[1] ) {
-              reasons.push_back(NodeManager::currentNM()->mkNode(
+              reasons.push_back(nodeManager()->mkNode(
                   Kind::EQUAL, (*mem_rep_exp_it_snd)[1], join_image_rel));
             }
             if( existing_members.size() == min_card ) {
               if( min_card >= 2) {
-                new_membership = NodeManager::currentNM()->mkNode(
+                new_membership = nodeManager()->mkNode(
                     Kind::OR,
                     new_membership,
-                    NodeManager::currentNM()->mkNode(
+                    nodeManager()->mkNode(
                         Kind::NOT,
-                        NodeManager::currentNM()->mkNode(Kind::DISTINCT,
-                                                         existing_members)));
+                        nodeManager()->mkNode(Kind::DISTINCT,
+                                              existing_members)));
               }
               Assert(reasons.size() >= 1);
               sendInfer(new_membership,
@@ -420,7 +431,7 @@ void TheorySetsRels::check(Theory::Effort level)
         }
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
@@ -460,7 +471,7 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::applyIdenRule( Node mem_rep, Node iden_term, Node exp) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** applyIdenRule on " << iden_term
                         << " with mem_rep = " << mem_rep  << " and exp = " << exp << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     if( d_rel_nodes.find( iden_term ) == d_rel_nodes.end() ) {
       computeMembersForIdenTerm( iden_term );
       d_rel_nodes.insert( iden_term );
@@ -475,10 +486,10 @@ void TheorySetsRels::check(Theory::Effort level)
         iden_term[0]);
 
     if( exp[1] != iden_term ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, exp[1], iden_term));
+          nodeManager()->mkNode(Kind::EQUAL, exp[1], iden_term));
     }
     sendInfer(
         nm->mkNode(Kind::AND, fact, nm->mkNode(Kind::EQUAL, fst_mem, snd_mem)),
@@ -501,7 +512,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( d_rReps_memberReps_cache.find( iden_term_rel_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( iden_term_rel_rep );
     std::vector< Node >::iterator mem_rep_exp_it = (*rel_mem_exp_it).second.begin();
@@ -512,10 +523,10 @@ void TheorySetsRels::check(Theory::Effort level)
       Node new_mem = RelsUtils::constructPair( iden_term, fst_exp_mem, fst_exp_mem );
 
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
-        reason = NodeManager::currentNM()->mkNode(
+        reason = nodeManager()->mkNode(
             Kind::AND,
             reason,
-            NodeManager::currentNM()->mkNode(
+            nodeManager()->mkNode(
                 Kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel));
       }
       sendInfer(nm->mkNode(Kind::SET_MEMBER, new_mem, iden_term),
@@ -567,7 +578,7 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " or can be infered by TC_Graph of tc_rel[0]! " << std::endl;
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
@@ -766,7 +777,7 @@ void TheorySetsRels::check(Theory::Effort level)
       Node cur_node_rep,
       std::unordered_set<Node>& seen)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node tc_mem = RelsUtils::constructPair( tc_rel,
         TupleUtils::nthElementOfTuple((reasons.front())[0], 0),
         TupleUtils::nthElementOfTuple((reasons.back())[0], 1) );
@@ -777,17 +788,17 @@ void TheorySetsRels::check(Theory::Effort level)
       Node snd_element_begin =
           TupleUtils::nthElementOfTuple( reasons[i+1][0], 0 );
       if( fst_element_end != snd_element_begin ) {
-        all_reasons.push_back(NodeManager::currentNM()->mkNode(
+        all_reasons.push_back(nodeManager()->mkNode(
             Kind::EQUAL, fst_element_end, snd_element_begin));
       }
       if( tc_rel != reasons[i][1] && tc_rel[0] != reasons[i][1] ) {
-        all_reasons.push_back(NodeManager::currentNM()->mkNode(
-            Kind::EQUAL, tc_rel[0], reasons[i][1]));
+        all_reasons.push_back(
+            nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons[i][1]));
       }
     }
     if( tc_rel != reasons.back()[1] && tc_rel[0] != reasons.back()[1] ) {
-      all_reasons.push_back(NodeManager::currentNM()->mkNode(
-          Kind::EQUAL, tc_rel[0], reasons.back()[1]));
+      all_reasons.push_back(
+          nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
     }
     if( all_reasons.size() > 1) {
       sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
@@ -861,20 +872,14 @@ void TheorySetsRels::check(Theory::Effort level)
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
     Node reason   = exp;
-    Node mem1 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
-    Node fact_1 =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
-    Node fact_2 =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node fact_1 = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, pt_rel[0]);
+    Node fact_2 = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, pt_rel[1]);
 
     if( pt_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
-          Kind::AND,
-          exp,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
+      reason = nodeManager()->mkNode(
+          Kind::AND, exp, nodeManager()->mkNode(Kind::EQUAL, pt_rel, exp[1]));
     }
     sendInfer(fact_1, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
     sendInfer(fact_2, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
@@ -929,10 +934,8 @@ void TheorySetsRels::check(Theory::Effort level)
     for(; i < tup_len; ++i) {
       r2_element.push_back(TupleUtils::nthElementOfTuple(mem, i));
     }
-    Node mem1 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
-    Node mem2 =
-        NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
+    Node mem1 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r1_element);
+    Node mem2 = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, r2_element);
 
     computeTupleReps(mem1);
     computeTupleReps(mem2);
@@ -949,18 +952,76 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node reason = exp;
     if( join_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, join_rel, exp[1]));
+          nodeManager()->mkNode(Kind::EQUAL, join_rel, exp[1]));
     }
-    Node fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-    fact =
-        NodeManager::currentNM()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
     makeSharedTerm(shared_x);
+  }
+
+  void TheorySetsRels::applyTableJoinRule(Node n, Node nRep, Node exp)
+  {
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_TABLE_JOIN rule on joined term = "
+                        << n << ", its representative = " << nRep
+                        << " with explanation = " << exp << std::endl;
+    if (d_rel_nodes.find(n) == d_rel_nodes.end())
+    {
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_TABLE_JOIN-COMPOSE rule on term: "
+          << n << " with explanation: " << exp << std::endl;
+
+      computeMembersForBinOpRel(n);
+      d_rel_nodes.insert(n);
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    Node A = n[0];
+    Node B = n[1];
+    Node e = exp[0];
+
+    Node repA = getRepresentative(A);
+    Node repB = getRepresentative(B);
+
+    TypeNode tupleAType = A.getType().getSetElementType();
+    TypeNode tupleBType = B.getType().getSetElementType();
+    size_t tupleALength = tupleAType.getTupleLength();
+    size_t productTupleLength =
+        n.getType().getSetElementType().getTupleLength();
+
+    std::vector<Node> elements = TupleUtils::getTupleElements(e);
+    Node a = TupleUtils::constructTupleFromElements(
+        tupleAType, elements, 0, tupleALength - 1);
+    Node b = TupleUtils::constructTupleFromElements(
+        tupleBType, elements, tupleALength, productTupleLength - 1);
+
+    computeTupleReps(a);
+    computeTupleReps(b);
+
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    Node joinConstraints = d_trueNode;
+    for (size_t i = 0; i < indices.size(); i += 2)
+    {
+      Node x = elements[indices[i]];
+      Node y = elements[tupleALength + indices[i + 1]];
+      Node equal = x.eqNode(y);
+      joinConstraints = joinConstraints.andNode(equal);
+    }
+
+    Node fact1 = nm->mkNode(Kind::SET_MEMBER, a, A);
+    Node fact2 = nm->mkNode(Kind::SET_MEMBER, b, B);
+    Node premise = exp;
+    if (n != exp[1])
+    {
+      premise = premise.andNode(n.eqNode(exp[1]));
+    }
+    Node conclusion = fact1.andNode(fact2).andNode(joinConstraints);
+    sendInfer(conclusion, InferenceId::SETS_RELS_TABLE_JOIN_DOWN, premise);
   }
 
   /*
@@ -977,7 +1038,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( tp_terms.size() < 1) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
       Trace("rels-debug")
           << "\n[Theory::Rels] *********** Applying RELATION_TRANSPOSE-Equal "
@@ -994,7 +1055,7 @@ void TheorySetsRels::check(Theory::Effort level)
                            "RELATION_TRANSPOSE rule on transposed term = "
                         << tp_rel << ", its representative = " << tp_rel_rep
                         << " with explanation = " << exp << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     if(d_rel_nodes.find( tp_rel ) == d_rel_nodes.end()) {
       Trace("rels-debug")
@@ -1009,10 +1070,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reversed_mem = TupleUtils::reverseTuple( exp[0] );
 
     if( tp_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(
+      reason = nodeManager()->mkNode(
           Kind::AND,
           reason,
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, tp_rel, exp[1]));
+          nodeManager()->mkNode(Kind::EQUAL, tp_rel, exp[1]));
     }
     sendInfer(nm->mkNode(Kind::SET_MEMBER, reversed_mem, tp_rel[0]),
               InferenceId::SETS_RELS_TRANSPOSE_REV,
@@ -1045,6 +1106,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[0]);
         break;
@@ -1060,6 +1122,7 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       case Kind::RELATION_JOIN:
       case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN:
       {
         computeMembersForBinOpRel(rel[1]);
         break;
@@ -1067,7 +1130,24 @@ void TheorySetsRels::check(Theory::Effort level)
       default:
         break;
     }
-    composeMembersForRels(rel);
+    Kind k = rel.getKind();
+    switch (k)
+    {
+      case Kind::RELATION_JOIN:
+      case Kind::RELATION_PRODUCT:
+      {
+        composeMembersForRels(rel);
+        break;
+      }
+      case Kind::RELATION_TABLE_JOIN:
+      {
+        applyTableJoinUp(rel);
+        break;
+      }
+      default:
+        Assert(false) << "No implementation for up rules for kind " << k
+                      << std::endl;
+    }
   }
 
   // Bottom-up fashion to compute unary relation
@@ -1078,7 +1158,8 @@ void TheorySetsRels::check(Theory::Effort level)
       case Kind::RELATION_TRANSPOSE:
       case Kind::RELATION_TCLOSURE: computeMembersForUnaryOpRel(rel[0]); break;
       case Kind::RELATION_JOIN:
-      case Kind::RELATION_PRODUCT: computeMembersForBinOpRel(rel[0]); break;
+      case Kind::RELATION_PRODUCT:
+      case Kind::RELATION_TABLE_JOIN: computeMembersForBinOpRel(rel[0]); break;
       default:
         break;
     }
@@ -1089,7 +1170,7 @@ void TheorySetsRels::check(Theory::Effort level)
     {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     const std::vector<Node>& members = d_rReps_memberReps_cache[rel0_rep];
     const std::vector<Node>& exps = d_rReps_memberReps_exp_cache[rel0_rep];
@@ -1136,7 +1217,7 @@ void TheorySetsRels::check(Theory::Effort level)
        d_rReps_memberReps_cache.find( r2_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     std::vector<Node> r1_rep_exps = d_rReps_memberReps_exp_cache[r1_rep];
     std::vector<Node> r2_rep_exps = d_rReps_memberReps_exp_cache[r2_rep];
@@ -1224,6 +1305,94 @@ void TheorySetsRels::check(Theory::Effort level)
 
   }
 
+  void TheorySetsRels::applyTableJoinUp(Node n)
+  {
+    Assert(n.getKind() == Kind::RELATION_TABLE_JOIN);
+    Trace("rels-debug")
+        << "[Theory::Rels] Start composing members for relation = " << n
+        << std::endl;
+    Node a = n[0];
+    Node b = n[1];
+    Node aRep = getRepresentative(a);
+    Node bRep = getRepresentative(b);
+
+    if (d_rReps_memberReps_cache.find(aRep) == d_rReps_memberReps_cache.end()
+        || d_rReps_memberReps_cache.find(bRep)
+               == d_rReps_memberReps_cache.end())
+    {
+      // no members found for a, b
+      return;
+    }
+
+    NodeManager* nm = NodeManager::currentNM();
+
+    std::vector<Node> aMemberships = d_rReps_memberReps_exp_cache[aRep];
+    std::vector<Node> bMemberships = d_rReps_memberReps_exp_cache[bRep];
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    for (unsigned int i = 0; i < aMemberships.size(); i++)
+    {
+      for (unsigned int j = 0; j < bMemberships.size(); j++)
+      {
+        Node aConstraint = aMemberships[i];
+        Node bConstraint = bMemberships[j];
+        Node e1 = aConstraint[0];
+        Node e2 = bConstraint[0];
+        TypeNode elementType = n.getType().getSetElementType();
+        Node tuple = TupleUtils::concatTuples(elementType, e1, e2);
+        std::vector<Node> reasons;
+
+        std::vector<Node> aElements = TupleUtils::getTupleElements(e1);
+        std::vector<Node> bElements = TupleUtils::getTupleElements(e2);
+
+        // whether e1, e2 have matching join elements
+        bool notMatched = false;
+        for (size_t k = 0; k < indices.size(); k += 2)
+        {
+          Node x = aElements[indices[k]];
+          Node y = bElements[indices[k + 1]];
+
+          // Since we require notification x and y are equal,
+          // they must be shared terms of theory of sets. Hence, we make the
+          // following calls to makeSharedTerm to ensure this is the case.
+          makeSharedTerm(x);
+          makeSharedTerm(y);
+
+          if (!areEqual(x, y))
+          {
+            notMatched = true;
+            break;
+          }
+          else if (x != y)
+          {
+            Trace("rels-debug") << "...equal" << std::endl;
+            reasons.push_back(nm->mkNode(Kind::EQUAL, x, y));
+          }
+        }
+
+        if (notMatched)
+        {
+          continue;
+        }
+
+        Node fact = nm->mkNode(Kind::SET_MEMBER, tuple, n);
+        reasons.push_back(aConstraint);
+        reasons.push_back(bConstraint);
+        if (a != aConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, a, aConstraint[1]));
+        }
+        if (b != bConstraint[1])
+        {
+          reasons.push_back(nm->mkNode(Kind::EQUAL, b, bConstraint[1]));
+        }
+        sendInfer(fact,
+                  InferenceId::SETS_RELS_TABLE_JOIN_UP,
+                  nm->mkNode(Kind::AND, reasons));
+      }
+    }
+  }
+
   void TheorySetsRels::processInference(Node conc, InferenceId id, Node exp)
   {
     Trace("sets-pinfer") << "Process inference: " << exp << " => " << conc
@@ -1232,7 +1401,7 @@ void TheorySetsRels::check(Theory::Effort level)
     {
       Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
       // we wrap the spurious explanation into a splitting lemma
-      Node lem = NodeManager::currentNM()->mkNode(Kind::OR, exp.negate(), conc);
+      Node lem = nodeManager()->mkNode(Kind::OR, exp.negate(), conc);
       d_im.assertInference(lem, id, d_trueNode, 1);
       return;
     }
@@ -1242,8 +1411,9 @@ void TheorySetsRels::check(Theory::Effort level)
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
-           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TCLOSURE
-           || k == Kind::RELATION_IDEN || k == Kind::RELATION_JOIN_IMAGE;
+           || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
+           || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
+           || k == Kind::RELATION_JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
@@ -1313,7 +1483,7 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkNode(Kind::SET_SINGLETON, n);
+    Node ss = nodeManager()->mkNode(Kind::SET_SINGLETON, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
@@ -1347,12 +1517,12 @@ void TheorySetsRels::check(Theory::Effort level)
         makeSharedTerm(element);
         tuple_elements.push_back(element);
       }
-      Node tuple_reduct = NodeManager::currentNM()->mkNode(
-          Kind::APPLY_CONSTRUCTOR, tuple_elements);
-      tuple_reduct = NodeManager::currentNM()->mkNode(
-          Kind::SET_MEMBER, tuple_reduct, n[1]);
+      Node tuple_reduct =
+          nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, tuple_elements);
+      tuple_reduct =
+          nodeManager()->mkNode(Kind::SET_MEMBER, tuple_reduct, n[1]);
       Node tuple_reduction_lemma =
-          NodeManager::currentNM()->mkNode(Kind::EQUAL, n, tuple_reduct);
+          nodeManager()->mkNode(Kind::EQUAL, n, tuple_reduct);
       sendInfer(tuple_reduction_lemma, InferenceId::SETS_RELS_TUPLE_REDUCTION, d_trueNode);
       d_symbolic_tuples.insert(n);
     }
@@ -1363,7 +1533,8 @@ void TheorySetsRels::check(Theory::Effort level)
     std::map< Node, TupleTrie >::iterator       it;
 
     if( argIndex==(int)reps.size()-1 ){
-      if (reps[argIndex].getKind() == Kind::SKOLEM)
+      Kind k = reps[argIndex].getKind();
+      if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
       {
         it = d_data.begin();
         while(it != d_data.end()) {
@@ -1423,7 +1594,7 @@ void TheorySetsRels::check(Theory::Effort level)
   bool TupleTrie::addTerm( Node n, std::vector< Node >& reps, int argIndex ){
     if( argIndex==(int)reps.size() ){
       if( d_data.empty() ){
-        //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
+        //store n in d_data (this should be interpreted as the "data" and not as a reference to a child)
         d_data[n].clear();
         return true;
       }else{
@@ -1446,7 +1617,7 @@ void TheorySetsRels::check(Theory::Effort level)
   {
     Trace("rels-lemma") << "Rels::lemma " << fact << " from " << reason
                         << " by " << id << std::endl;
-    Node lemma = NodeManager::currentNM()->mkNode(Kind::IMPLIES, reason, fact);
+    Node lemma = nodeManager()->mkNode(Kind::IMPLIES, reason, fact);
     d_im.addPendingLemma(lemma, id);
   }
 }

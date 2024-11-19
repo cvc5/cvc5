@@ -1,0 +1,15 @@
+; EXPECT: sat
+; EXPECT: sat
+(set-logic QF_AFP)
+(set-option :check-models true)
+(set-option :incremental true)
+(declare-fun a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert (fp.geq ((_ to_fp 8 24) (select a (_ bv0 32))) (_ +zero 8 24)))
+(assert (fp.leq ((_ to_fp 8 24) (select a (_ bv0 32))) (fp (_ bv0 1) (_ bv159 8) (_ bv0 23))))
+(assert (not (bvslt ((_ fp.to_ubv 32) RTZ ((_ to_fp 8 24) (select a (_ bv0 32)))) (_ bv5 32))))
+(assert (distinct (_ -oo 8 24) ((_ to_fp 8 24) (select a (_ bv2 32)))))
+(assert (fp.geq ((_ to_fp 8 24) (select a (_ bv2 32))) (_ +zero 8 24)))
+(assert (fp.leq ((_ to_fp 8 24) (select a (_ bv2 32))) (fp (_ bv0 1) (_ bv159 8) (_ bv0 23))))
+(check-sat)
+(assert (bvslt (_ bv0 32) ((_ fp.to_ubv 32) RTZ ((_ to_fp 8 24) (select a (_ bv2 32))))))
+(check-sat)

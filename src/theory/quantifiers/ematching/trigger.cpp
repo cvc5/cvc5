@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,8 @@ Trigger::Trigger(Env& env,
                  QuantifiersRegistry& qr,
                  TermRegistry& tr,
                  Node q,
-                 std::vector<Node>& nodes)
+                 std::vector<Node>& nodes,
+                 bool isUser)
     : EnvObj(env),
       d_qstate(qs),
       d_qim(qim),
@@ -88,29 +89,33 @@ Trigger::Trigger(Env& env,
   d_trNode = NodeManager::currentNM()->mkNode(Kind::SEXPR, extNodes);
   if (isOutputOn(OutputTag::TRIGGER))
   {
+    output(OutputTag::TRIGGER) << (isUser ? "(user-trigger " : "(trigger ");
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    output(OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " "
-                               << d_trNode << ")" << std::endl;
+    output(OutputTag::TRIGGER)
+        << qa.quantToString(q) << " " << d_trNode;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
       d_mg = new InstMatchGeneratorSimple(env, this, q, d_nodes[0]);
-      ++(stats.d_triggers);
+      ++(stats.d_simple_triggers);
+      output(OutputTag::TRIGGER) << " :simple";
     }else{
       d_mg = InstMatchGenerator::mkInstMatchGenerator(env, this, q, d_nodes[0]);
-      ++(stats.d_simple_triggers);
+      ++(stats.d_triggers);
     }
   }else{
     if (options().quantifiers.multiTriggerCache)
     {
       d_mg = new InstMatchGeneratorMulti(env, this, q, d_nodes);
+      output(OutputTag::TRIGGER) << " :multi-cache";
     }
     else
     {
       d_mg =
           InstMatchGenerator::mkInstMatchGeneratorMulti(env, this, q, d_nodes);
+      output(OutputTag::TRIGGER) << " :multi";
     }
     if (TraceIsOn("multi-trigger"))
     {
@@ -121,6 +126,10 @@ Trigger::Trigger(Env& env,
       }
     }
     ++(stats.d_multi_triggers);
+  }
+  if (isOutputOn(OutputTag::TRIGGER))
+  {
+    output(OutputTag::TRIGGER) << ")" << std::endl;
   }
 
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
@@ -199,7 +208,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
     it = visited.find(cur);
     if (it == visited.end())
     {
-      if (cur.getNumChildren() == 0)
+      if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST)
       {
         visited[cur] = cur;
       }

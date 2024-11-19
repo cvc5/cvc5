@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +37,8 @@ SygusPbe::SygusPbe(Env& env,
                    SynthConjecture* p)
     : SygusModule(env, qs, qim, tds, p)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   d_is_pbe = false;
 }
 
@@ -49,7 +49,7 @@ bool SygusPbe::initialize(Node conj,
                           const std::vector<Node>& candidates)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   if (!options().quantifiers.sygusUnifPbe)
   {
@@ -221,7 +221,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
 
     // only consider the enumerators that are at minimum size (for fairness)
     Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / " << enums.size() << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; i++)
     {
       unsigned j = enum_consider[i];

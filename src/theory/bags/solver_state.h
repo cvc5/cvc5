@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,6 +110,23 @@ class SolverState : public TheoryState
    */
   void collectDisequalBagTerms();
 
+  /**
+   * @pre n is a unary function.
+   * Check whether n is injective and store the result.
+   * It uses a sub-solver to check whether the following formula is unsat
+   * (and
+   *   (= (f x) (f y))
+   *   (distinct x y)
+   * )
+   */
+  void checkInjectivity(Node n);
+
+  /**
+   * @pre n is a unary function.
+   * Check whether we found that n is an injective function
+   */
+  bool isInjective(Node n) const;
+
  private:
   /** constants */
   Node d_true;
@@ -142,6 +159,11 @@ class SolverState : public TheoryState
    */
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
+
+  /**
+   * A cache for injective functions
+   */
+  std::map<Node, bool> d_functions;
 }; /* class SolverState */
 
 }  // namespace bags

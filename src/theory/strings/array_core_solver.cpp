@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Ying Sheng, Andres Noetzli, Andrew Reynolds
+ *   Ying Sheng, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
 
 void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> extractTerms = d_esolver.getActive(Kind::STRING_SUBSTR);
   for (const Node& n : extractTerms)
   {
@@ -112,7 +112,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
 
 void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Trace("seq-array-core-debug")
       << "number of update terms: " << updateTerms.size() << std::endl;
@@ -222,7 +222,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
                             const std::vector<Node>& updateTerms)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Trace("seq-array-debug") << "NTH SIZE: " << nthTerms.size() << std::endl;
   if (TraceIsOn("seq-array-terms"))

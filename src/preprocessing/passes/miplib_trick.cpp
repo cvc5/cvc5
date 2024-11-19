@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,7 +90,7 @@ size_t MipLibTrick::removeFromConjunction(
     Node& n, const std::unordered_set<unsigned long>& toRemove)
 {
   Assert(n.getKind() == Kind::AND);
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
+  Node trueNode = nodeManager()->mkConst(true);
   size_t removals = 0;
   for (Node::iterator j = n.begin(); j != n.end(); ++j)
   {
@@ -208,7 +208,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap& top_level_substs = tlsm.get();
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConstInt(Rational(0)), one = nm->mkConstInt(Rational(1));
   Node trueNode = nm->mkConst(true);
@@ -325,7 +325,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           break;
         }
         sort(posv.begin(), posv.end());
-        const Node pos = NodeManager::currentNM()->mkNode(Kind::AND, posv);
+        const Node pos = nodeManager()->mkNode(Kind::AND, posv);
         const TNode var = ((*j1)[1][0].isConst()) ? (*j1)[1][1] : (*j1)[1][0];
         const pair<Node, Node> pos_var(pos, var);
         const Rational& constant = ((*j1)[1][0].isConst())
@@ -533,7 +533,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
               Node n = rewrite(geq.andNode(leq));
-              assertionsToPreprocess->push_back(n);
+              assertionsToPreprocess->push_back(
+                  n, false, nullptr, TrustId::PREPROCESS_MIPLIB_TRICK_LEMMA);
               TrustSubstitutionMap tnullMap(d_env, &fakeContext);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
@@ -596,7 +597,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           newAssertion = rewrite(newAssertion);
           Trace("miplib") << "  " << newAssertion << endl;
 
-          assertionsToPreprocess->push_back(newAssertion);
+          assertionsToPreprocess->push_back(
+              newAssertion,
+              false,
+              nullptr,
+              TrustId::PREPROCESS_MIPLIB_TRICK_LEMMA);
           Trace("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),
                                              k_end = asserts[pos_var].end();
@@ -619,7 +624,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
       {
         Trace("miplib") << " - removing " << assertion << endl;
-        assertionsToPreprocess->replace(i, trueNode);
+        assertionsToPreprocess->replace(
+            i, trueNode, nullptr, TrustId::PREPROCESS_MIPLIB_TRICK);
         ++d_statistics.d_numMiplibAssertionsRemoved;
       }
       else if (assertion.getKind() == Kind::AND)
@@ -633,8 +639,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         }
       }
       Trace("miplib") << "had: " << assertion << endl;
-      assertionsToPreprocess->replace(
-          i, rewrite(top_level_substs.apply(assertion)));
+      assertionsToPreprocess->replace(i,
+                                      top_level_substs.apply(assertion),
+                                      nullptr,
+                                      TrustId::PREPROCESS_MIPLIB_TRICK);
+      assertionsToPreprocess->ensureRewritten(i);
       Trace("miplib") << "now: " << assertion << endl;
       if (assertionsToPreprocess->isInConflict())
       {

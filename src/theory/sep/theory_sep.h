@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -101,8 +101,6 @@ class TheorySep : public Theory {
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
 
   TrustNode explain(TNode n) override;
-
-  void computeCareGraph() override;
 
   void postProcessModel(TheoryModel* m) override;
 
@@ -329,7 +327,7 @@ class TheorySep : public Theory {
     std::vector< Node > d_heap_locs;
     std::vector< Node > d_heap_locs_model;
     //get value
-    Node getValue( TypeNode tn );
+    Node getValue(NodeManager* nm, TypeNode tn);
   };
   //heap info ( label -> HeapInfo )
   std::map< Node, HeapInfo > d_label_model;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Andrew Reynolds
+ *   Yoni Zohar, Makai Mann, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,8 @@ namespace nl {
 
 static Rational intpow2(uint32_t b)
 {
+  // b must be <= max-int to prevent a failure when using gmp.
+  Assert(b <= static_cast<uint32_t>(std::numeric_limits<int32_t>::max()));
   return Rational(Integer(2).pow(b), Integer(1));
 }
 
@@ -51,7 +53,6 @@ Node intExtract(Node x, uint32_t i, uint32_t size)
   NodeManager* nm = NodeManager::currentNM();
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
-  Assert(i * size <= std::numeric_limits<int32_t>::max());
   Node extract =
       nm->mkNode(Kind::INTS_MODULUS_TOTAL,
                  nm->mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
@@ -153,7 +154,6 @@ Node IAndUtils::createSumNode(Node x,
     // compute the ite for this part
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
-    Assert(i * granularity <= std::numeric_limits<int32_t>::max());
     sumNode =
         nm->mkNode(Kind::ADD,
                    sumNode,

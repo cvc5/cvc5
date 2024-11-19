@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,12 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/uf_options.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -40,9 +42,12 @@ HoExtension::HoExtension(Env& env,
       d_ll(ll),
       d_extensionality(userContext()),
       d_cachedLemmas(userContext()),
-      d_uf_std_skolem(userContext())
+      d_uf_std_skolem(userContext()),
+      d_lamEqProcessed(userContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
+  // don't send true lemma
+  d_cachedLemmas.insert(d_true);
 }
 
 TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -66,9 +71,9 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     {
       Node op = node[0];
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
         app = rewrite(app);
         Trace("uf-lazy-ll")
@@ -81,7 +86,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   {
     // Say (lambda ((x Int)) t[x]) occurs in the input. We replace this
     // by k during ppRewrite. In the following, if we see (k s), we replace
-    // it by t[s]. This maintains the invariant that the *only* occurences
+    // it by t[s]. This maintains the invariant that the *only* occurrences
     // of k are as arguments to other functions; k is not applied
     // in any preprocessed constraints.
     if (options().uf.ufHoLazyLambdaLift)
@@ -90,7 +95,7 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       // immediately
       Node op = node.getOperator();
       Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull())
+      if (!opl.isNull() && !d_ll.isLifted(opl))
       {
         Assert(opl.getKind() == Kind::LAMBDA);
         std::vector<Node> args(node.begin(), node.end());
@@ -98,6 +103,24 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
         Trace("uf-lazy-ll")
             << "Beta reduce: " << node << " -> " << app << std::endl;
         return TrustNode::mkTrustRewrite(node, app, nullptr);
+      }
+      // If an unlifted lambda occurs in an argument to APPLY_UF, it must be
+      // lifted. We do this only if the lambda needs lifting, i.e. it is one
+      // that may induce circular model dependencies.
+      for (const Node& nc : node)
+      {
+        if (nc.getType().isFunction())
+        {
+          Node lam = d_ll.getLambdaFor(nc);
+          if (!lam.isNull() && d_ll.needsLift(lam))
+          {
+            TrustNode trn = d_ll.lift(lam);
+            if (!trn.isNull())
+            {
+              lems.push_back(SkolemLemma(trn, nc));
+            }
+          }
+        }
       }
     }
   }
@@ -126,12 +149,16 @@ Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
   TypeNode tn = deq[0][0].getType();
   std::vector<TypeNode> argTypes = tn.getArgTypes();
   std::vector<Node> skolems;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
+  std::vector<Node> cacheVals;
+  cacheVals.push_back(deq[0][0]);
+  cacheVals.push_back(deq[0][1]);
+  cacheVals.push_back(Node::null());
   for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
   {
-    Node k = sm->mkDummySkolem(
-        "k", argTypes[i], "skolem created for extensionality.");
+    cacheVals[2] = nm->mkConstInt(Rational(i));
+    Node k = sm->mkSkolemFunction(SkolemId::HO_DEQ_DIFF, cacheVals);
     skolems.push_back(k);
   }
   Node t[2];
@@ -166,7 +193,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
   {
     d_extensionality.insert(deq);
     Node conc = getExtensionalityDeq(deq);
-    Node lem = NodeManager::currentNM()->mkNode(Kind::OR, deq[0], conc);
+    Node lem = nodeManager()->mkNode(Kind::OR, deq[0], conc);
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
     d_im.lemma(lem, InferenceId::UF_HO_EXTENSIONALITY);
@@ -181,7 +208,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   std::vector<TNode> args;
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
@@ -259,7 +286,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
   // Theory::computeRelevantTerms) function terms.
   eq::EqualityEngine* ee =
       m != nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
   Trace("uf-ho") << "HoExtension::checkExtensionality, collectModel="
@@ -274,11 +301,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
     {
       hasFunctions = true;
-      // if during collect model, must have an infinite type
-      // if not during collect model, must have a finite type
-      // we consider the cardinality of tn's range type (as opposed to tn)
-      // since the model construction will enumerate values of this type.
-      if (d_env.isFiniteType(tn.getRangeType()) != isCollectModel)
+      // If during collect model, must have an infinite function type, since
+      // such function are not necessary to be handled during solving.
+      // If not during collect model, must have a finite function type, since
+      // such function symbols must be handled during solving.
+      if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -334,12 +361,37 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 return 1;
               }
             }
+            bool success = false;
+            TypeNode tn = edeq[0][0].getType();
             Trace("uf-ho-debug")
-                << "Add extensionality deq to model : " << edeq << std::endl;
-            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
+                << "Add extensionality deq to model for : " << edeq
+                << std::endl;
+            if (d_env.isFiniteType(tn))
+            {
+              // We are an infinite function type with a finite range sort.
+              // Model construction assigns the first value for all
+              // unconstrained variables for such sorts, which does not
+              // suffice in this context since we are trying to make the
+              // functions disequal. Thus, for such case we enumerate the first
+              // two values for this sort and set the extensionality index to
+              // be equal to these two distinct values.  There must be at least
+              // two values since this is an infinite function sort.
+              TypeEnumerator te(tn);
+              Node v1 = *te;
+              te++;
+              Node v2 = *te;
+              Assert(!v2.isNull() && v2 != v1);
+              success = m->assertEquality(edeq[0][0], v1, true)
+                        && m->assertEquality(edeq[0][1], v2, true);
+            }
+            else
+            {
+              success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+            }
+            if (!success)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
-              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq);
+              Node lem = nm->mkNode(Kind::OR, deq.negate(), eq.negate());
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
               d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
@@ -478,7 +530,7 @@ unsigned HoExtension::checkLazyLambda()
     return 0;
   }
   Trace("uf-ho") << "HoExtension::checkLazyLambda..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned numLemmas = 0;
   d_lambdaEqc.clear();
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
@@ -497,6 +549,8 @@ unsigned HoExtension::checkLazyLambda()
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
     Node lamRep;  // the first lambda function we encounter in the equivalence
                   // class
+    bool needsLift = false;
+    bool doLift = false;
     Node lamRepLam;
     std::unordered_set<Node> normalEqFunWait;
     while (!eqc_i.isFinished())
@@ -504,13 +558,14 @@ unsigned HoExtension::checkLazyLambda()
       Node n = *eqc_i;
       ++eqc_i;
       Node lam = d_ll.getLambdaFor(n);
-      if (lam.isNull())
+      if (lam.isNull() || d_ll.isLifted(lam))
       {
         if (!lamRep.isNull())
         {
           // if we are equal to a lambda function, we must beta-reduce
           // applications of this
           normalEqFuns.insert(n);
+          doLift = needsLift;
         }
         else
         {
@@ -524,6 +579,8 @@ unsigned HoExtension::checkLazyLambda()
         // there is a lambda function in this equivalence class
         lamRep = n;
         lamRepLam = lam;
+        needsLift = d_ll.needsLift(lam) && !d_ll.isLifted(lam);
+        doLift = needsLift && !normalEqFunWait.empty();
         // must consider all normal functions we've seen so far
         normalEqFuns.insert(normalEqFunWait.begin(), normalEqFunWait.end());
         normalEqFunWait.clear();
@@ -533,6 +590,20 @@ unsigned HoExtension::checkLazyLambda()
         // two lambda functions are in same equivalence class
         Node f = lamRep < n ? lamRep : n;
         Node g = lamRep < n ? n : lamRep;
+        // swap based on order
+        if (g<f)
+        {
+          Node tmp = f;
+          f = g;
+          g = tmp;
+        }
+        Node fgEq = f.eqNode(g);
+        if (d_lamEqProcessed.find(fgEq)!=d_lamEqProcessed.end())
+        {
+          continue;
+        }
+        d_lamEqProcessed.insert(fgEq);
+
         Trace("uf-ho-debug") << "  found equivalent lambda functions " << f
                              << " and " << g << std::endl;
         Node flam = lamRep < n ? lamRepLam : lam;
@@ -544,12 +615,42 @@ unsigned HoExtension::checkLazyLambda()
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(Kind::FORALL, flam[0], lhs.eqNode(rhs));
+        // do quantifier elimination if the option is set
+        // For example, say (= f1 f2) where f1 is (lambda ((x Int)) (< x a))
+        // and f2 is (lambda ((x Int)) (< x b)).
+        // By default, we would generate the inference
+        //  (=> (= f1 f2) (forall ((x Int)) (= (< x a) (< x b))),
+        // where quantified reasoning is introduced into the main solving
+        // procedure.
+        // With --uf-lambda-qe, we use a subsolver to compute the quantifier
+        // elimination of:
+        //   (forall ((x Int)) (= (< x a) (< x b)),
+        // which is (and (<= a b) (<= b a)). We instead generate the lemma
+        //   (=> (= f1 f2) (and (<= a b) (<= b a)).
+        // The motivation for this is to reduce the complexity of constraints
+        // in the main solver. This is motivated by usages of set.filter where
+        // the lambdas are over a decidable theory that admits quantifier
+        // elimination, e.g. LIA or BV.
+        if (options().uf.ufHoLambdaQe)
+        {
+          Trace("uf-lambda-qe") << "Given " << flam << " == " << glam << std::endl;
+          Trace("uf-lambda-qe") << "Run QE on " << univ << std::endl;
+          std::unique_ptr<SolverEngine> lqe;
+          // initialize the subsolver using the standard method
+          initializeSubsolver(lqe, d_env);
+          Node univQe = lqe->getQuantifierElimination(univ, true);
+          Trace("uf-lambda-qe") << "QE is " << univQe << std::endl;
+          Assert (!univQe.isNull());
+          // Note that if quantifier elimination failed, then univQe will
+          // be equal to univ, in which case this above code has no effect.
+          univ = univQe;
+        }
         // f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
         //
         // For example, if f -> lambda z. z+1, g -> lambda y. y+3, this
         // will infer: f = g => forall x. x+1 = x+3, which simplifies to
         // f != g.
-        Node lem = nm->mkNode(Kind::IMPLIES, f.eqNode(g), univ);
+        Node lem = nm->mkNode(Kind::IMPLIES, fgEq, univ);
         if (cacheLemma(lem))
         {
           d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_UNIV_EQ);
@@ -560,6 +661,16 @@ unsigned HoExtension::checkLazyLambda()
     if (!lamRep.isNull())
     {
       d_lambdaEqc[eqc] = lamRep;
+      // Do the lambda lifting lemma if needed. This happens if a lambda
+      // needs lifting based on the symbols in its body and is equated to an
+      // ordinary function symbol. For example, this is what ensures we
+      // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
+      if (doLift)
+      {
+        TrustNode tlift = d_ll.lift(lamRepLam);
+        Assert(!tlift.isNull());
+        d_im.trustedLemma(tlift, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
+      }
     }
   }
   Trace("uf-ho-debug")
@@ -697,12 +808,12 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
     Node lam = d_ll.getLambdaFor(p.second);
+    lam = rewrite(lam);
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
     m->assertSkeleton(lam);
-    Trace("model-builder-debug") << "Assign via lambda: " << lam << std::endl;
-    // assign it as the function definition for all variables in this class
-    m->assignFunctionDefinition(p.second, lam);
+    // we don't assign the function definition here, which is handled internally
+    // in the model builder.
   }
   return addedLemmas == 0;
 }

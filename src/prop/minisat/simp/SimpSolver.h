@@ -30,6 +30,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 namespace cvc5::internal {
 namespace prop {
   class TheoryProxy;
+  class PropPfManager;
 }
 }  // namespace cvc5::internal
 
@@ -43,10 +44,10 @@ class SimpSolver : public Solver {
     // Constructor/Destructor:
     //
   SimpSolver(Env& env,
-             cvc5::internal::prop::TheoryProxy* proxy,
+             prop::TheoryProxy* proxy,
              context::Context* context,
              context::UserContext* userContext,
-             ProofNodeManager* pnm,
+             prop::PropPfManager* ppm,
              bool enableIncremental = false);
   ~SimpSolver();
 

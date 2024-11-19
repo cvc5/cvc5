@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,9 +53,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
       d_statistics(statisticsRegistry()),
       d_llpg(options().smt.produceProofs ? new smt::PreprocessProofGenerator(
                  d_env, userContext(), "NonClausalSimp::llpg")
-                                         : nullptr),
-      d_llra(options().smt.produceProofs ? new LazyCDProof(
-                 d_env, nullptr, userContext(), "NonClausalSimp::llra")
                                          : nullptr),
       d_tsubsList(userContext())
 {
@@ -113,20 +110,19 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Iterate through " << propagator->getLearnedLiterals().size()
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   context::Context* u = userContext();
   Rewriter* rw = d_env.getRewriter();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
-      std::make_shared<TrustSubstitutionMap>(
-          d_env, u, "NonClausalSimp::cprop", TrustId::PREPROCESS_LEMMA);
+      std::make_shared<TrustSubstitutionMap>(d_env, u, "NonClausalSimp::cprop");
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
   std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
       std::make_shared<TrustSubstitutionMap>(
-          d_env, u, "NonClausalSimp::newSubs", TrustId::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::newSubs");
   SubstitutionMap& nss = newSubstitutions->get();
 
   size_t j = 0;
@@ -357,6 +353,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Trace("non-clausal-simplify")
             << "substitute: will notify SAT layer of substitution: "
             << trhs.getProven() << std::endl;
+        // note that trhs.getProven() may not be in rewritten form (e.g. the
+        // rewriter may swap order). This is handled internally within
+        // addSubstitutionNode.
         assertionsToPreprocess->addSubstitutionNode(trhs.getProven(),
                                                     trhs.getGenerator());
       }
@@ -409,36 +408,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!learnedLitsToConjoin.empty())
   {
-    size_t replIndex = assertionsToPreprocess->size() - 1;
-    Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
-        << "non-clausal simplification, reassert: " << newConj << std::endl;
-    ProofGenerator* pg = nullptr;
-    if (isProofEnabled())
+        << "non-clausal simplification, reassert: " << learnedLitsToConjoin
+        << std::endl;
+    for (const Node& lit : learnedLitsToConjoin)
     {
-      // justify in d_llra
-      for (const Node& lit : learnedLitsToConjoin)
-      {
-        d_llra->addLazyStep(lit, d_llpg.get());
-      }
-      if (learnedLitsToConjoin.size() > 1)
-      {
-        d_llra->addStep(
-            newConj, ProofRule::AND_INTRO, learnedLitsToConjoin, {});
-        pg = d_llra.get();
-      }
-      else
-      {
-        // otherwise we ask the learned literal proof generator directly
-        pg = d_llpg.get();
-      }
+      assertionsToPreprocess->push_back(lit, false, d_llpg.get());
     }
-    // ------- from d_llpg    --------- from d_llpg
-    //  conj[0]       ....    d_conj[n]
-    // -------------------------------- AND_INTRO
-    //  newConj
-    // where newConj is conjoined at the given index
-    assertionsToPreprocess->conjoin(replIndex, newConj, pg);
   }
 
   // Note that typically ttls.apply(assert)==assert here.

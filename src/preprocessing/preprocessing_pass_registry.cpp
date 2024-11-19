@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,6 +33,8 @@
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
+#include "preprocessing/passes/ff_bitsum.h"
+#include "preprocessing/passes/ff_disjunctive_bit.h"
 #include "preprocessing/passes/foreign_theory_rewrite.h"
 #include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/global_negate.h"
@@ -81,6 +83,7 @@ void PreprocessingPassRegistry::registerPassInfo(
 PreprocessingPass* PreprocessingPassRegistry::createPass(
     PreprocessingPassContext* ppCtx, const std::string& name)
 {
+  Assert(d_ppInfo.count(name));
   return d_ppInfo[name](ppCtx);
 }
 
@@ -126,6 +129,8 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);
+  registerPassInfo("ff-bitsum", callCtor<FfBitsum>);
+  registerPassInfo("ff-disjunctive-bit", callCtor<FfDisjunctiveBit>);
   registerPassInfo("learned-rewrite", callCtor<LearnedRewrite>);
   registerPassInfo("foreign-theory-rewrite", callCtor<ForeignTheoryRewrite>);
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);

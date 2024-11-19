@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,8 +46,8 @@ CardinalityExtension::CardinalityExtension(Env& env,
       d_card_processed(userContext()),
       d_finite_type_constants_processed(false)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_true = nodeManager()->mkConst(true);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
 }
 
 void CardinalityExtension::reset()
@@ -88,7 +88,7 @@ void CardinalityExtension::checkCardinalityExtended()
 
 void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode setType = nm->mkSetType(t);
   bool finiteType = d_env.isFiniteType(t);
   // skip infinite types that do not have univset terms
@@ -230,7 +230,7 @@ void CardinalityExtension::check()
 void CardinalityExtension::checkRegister()
 {
   Trace("sets") << "Cardinality graph..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // first, ensure cardinality relationships are added as lemmas for all
   // non-basic set terms
   const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
@@ -267,7 +267,7 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
     return;
   }
   d_card_processed.insert(n);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
   std::vector<Node> cterms;
   if (n.getKind() == Kind::SET_INTER)
@@ -333,7 +333,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                                               std::vector<Node>& exp)
 {
   Trace("sets-cycle-debug") << "Traverse eqc " << eqc << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (std::find(curr.begin(), curr.end(), eqc) != curr.end())
   {
     Trace("sets-debug") << "Found venn region loop..." << std::endl;
@@ -729,7 +729,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   std::map<Node, std::vector<Node> >& ffeqc = d_ff[eqc];
   Assert(d_nf.find(eqc) == d_nf.end());
   std::vector<Node>& nfeqc = d_nf[eqc];
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   bool success = true;
   Node emp_set = d_treg.getEmptySet(tn);
   if (!base.isNull())
@@ -974,7 +974,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
 
 void CardinalityExtension::checkMinCard()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
   for (int i = (int)(setEqc.size() - 1); i >= 0; i--)
   {
@@ -1062,7 +1062,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       }
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       SkolemManager* sm = nm->getSkolemManager();
       if (elementTypeFinite)
       {

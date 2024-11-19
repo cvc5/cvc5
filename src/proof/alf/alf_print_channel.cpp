@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +18,26 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "proof/alf/alf_proof_rule.h"
+#include "expr/skolem_manager.h"
+#include "printer/printer.h"
+#include "proof/trust_id.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5::internal {
 namespace proof {
 
+AlfPrintChannel::AlfPrintChannel() {}
+
+AlfPrintChannel::~AlfPrintChannel() {}
+
 AlfPrintChannelOut::AlfPrintChannelOut(std::ostream& out,
-                                       const LetBinding& lbind,
-                                       const std::string& tprefix)
-    : d_out(out), d_lbind(lbind), d_termLetPrefix(tprefix)
+                                       const LetBinding* lbind,
+                                       const std::string& tprefix,
+                                       bool trackWarn)
+    : d_out(out),
+      d_lbind(lbind),
+      d_termLetPrefix(tprefix),
+      d_trackWarn(trackWarn)
 {
 }
 
@@ -53,21 +64,34 @@ void AlfPrintChannelOut::printAssume(TNode n, size_t i, bool isPush)
 void AlfPrintChannelOut::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
-                                   const std::vector<Node>& premises,
+                                   const std::vector<size_t>& premises,
                                    const std::vector<Node>& args,
                                    bool isPop)
+{
+  printStepInternal(rname, n, i, premises, args, isPop, false);
+}
+
+void AlfPrintChannelOut::printStepInternal(const std::string& rname,
+                                           TNode n,
+                                           size_t i,
+                                           const std::vector<size_t>& premises,
+                                           const std::vector<Node>& args,
+                                           bool isPop,
+                                           bool reqPremises)
 {
   d_out << "(" << (isPop ? "step-pop" : "step") << " @p" << i;
   if (!n.isNull())
   {
-    printNode(n);
+    d_out << " ";
+    printNodeInternal(d_out, n);
   }
   d_out << " :rule " << rname;
   bool firstTime = true;
-  if (!premises.empty())
+  // if reqPremises is true, we print even if empty
+  if (!premises.empty() || reqPremises)
   {
     d_out << " :premises (";
-    for (const Node& p : premises)
+    for (size_t p : premises)
     {
       if (firstTime)
       {
@@ -77,7 +101,7 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
       {
         d_out << " ";
       }
-      printNodeInternal(d_out, p);
+      d_out << "@p" << p;
     }
     d_out << ")";
   }
@@ -102,42 +126,85 @@ void AlfPrintChannelOut::printStep(const std::string& rname,
   d_out << ")" << std::endl;
 }
 
-void AlfPrintChannelOut::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelOut::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
-  if (d_warnedRules.find(r) == d_warnedRules.end())
+  if (d_trackWarn)
   {
-    d_out << "; WARNING: add trust step for " << r << std::endl;
-    d_warnedRules.insert(r);
+    if (d_warnedRules.find(r) == d_warnedRules.end())
+    {
+      d_out << "; WARNING: add trust step for " << r << std::endl;
+      d_warnedRules.insert(r);
+    }
   }
-  d_out << "; trust " << r << std::endl;
-  printStep("trust", n, i, {}, {nc}, false);
+  d_out << "; trust " << r;
+  if (r == ProofRule::DSL_REWRITE)
+  {
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
+  else if (r == ProofRule::THEORY_REWRITE)
+  {
+    ProofRewriteRule di;
+    if (rewriter::getRewriteRule(args[0], di))
+    {
+      d_out << " " << di;
+    }
+  }
+  else if (r == ProofRule::TRUST)
+  {
+    TrustId tid;
+    if (getTrustId(args[0], tid))
+    {
+      d_out << " " << tid;
+    }
+  }
+  d_out << std::endl;
+  // trust takes a premise-list which must be specified even if empty
+  printStepInternal("trust", n, i, premises, {nc}, false, true);
 }
 
 void AlfPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
-  std::stringstream ss;
-  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  Node nc = d_lbind.convert(n, d_termLetPrefix, true);
-  nc.toStream(ss);
-  std::string s = ss.str();
-  out << s;
+  if (d_lbind)
+  {
+    // use the toStream with custom letification method
+    Printer::getPrinter(out)->toStream(out, n, d_lbind, true);
+  }
+  else
+  {
+    // just use default print
+    Printer::getPrinter(out)->toStream(out, n);
+  }
 }
 
 void AlfPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
-  // due to use of special names in the node converter, we must clean symbols
-  std::stringstream ss;
-  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
-  tn.toStream(ss);
-  std::string s = ss.str();
-  // cleanSymbols(s);
-  out << s;
+  tn.toStream(out);
 }
 
-AlfPrintChannelPre::AlfPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
+AlfPrintChannelPre::AlfPrintChannelPre(LetBinding* lbind) : d_lbind(lbind) {}
 
-void AlfPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
+void AlfPrintChannelPre::printNode(TNode n)
+{
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
+}
+
+void AlfPrintChannelPre::printTypeNode(TypeNode tn)
+{
+  // current do nothing
+}
 
 void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 {
@@ -147,7 +214,7 @@ void AlfPrintChannelPre::printAssume(TNode n, size_t i, bool isPush)
 void AlfPrintChannelPre::printStep(const std::string& rname,
                                    TNode n,
                                    size_t i,
-                                   const std::vector<Node>& premises,
+                                   const std::vector<size_t>& premises,
                                    const std::vector<Node>& args,
                                    bool isPop)
 {
@@ -155,15 +222,18 @@ void AlfPrintChannelPre::printStep(const std::string& rname,
   {
     processInternal(n);
   }
-  // don't process premises, even if they may be non-variable, as this
-  // will introduce internal (proof) symbols into the letification
   for (const Node& a : args)
   {
     processInternal(a);
   }
 }
 
-void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc)
+void AlfPrintChannelPre::printTrustStep(ProofRule r,
+                                        TNode n,
+                                        size_t i,
+                                        const std::vector<size_t>& premises,
+                                        const std::vector<Node>& args,
+                                        TNode nc)
 {
   Assert(!nc.isNull());
   processInternal(nc);
@@ -171,14 +241,11 @@ void AlfPrintChannelPre::printTrustStep(ProofRule r, TNode n, size_t i, TNode nc
 
 void AlfPrintChannelPre::processInternal(const Node& n)
 {
-  d_lbind.process(n);
+  if (d_lbind)
+  {
+    d_lbind->process(n);
+  }
   d_keep.insert(n);  // probably not necessary
-  expr::getVariables(n, d_vars, d_varsVisited);
-}
-
-const std::unordered_set<TNode>& AlfPrintChannelPre::getVariables() const
-{
-  return d_vars;
 }
 
 }  // namespace proof

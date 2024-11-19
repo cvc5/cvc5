@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
                   env, userContext(), "datatypes::lemPg")
                                : nullptr)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 InferenceManager::~InferenceManager()
@@ -93,7 +93,7 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
 {
   if (isProofEnabled())
   {
-    Node exp = NodeManager::currentNM()->mkAnd(conf);
+    Node exp = nodeManager()->mkAnd(conf);
     prepareDtInference(d_false, exp, id, d_ipc.get());
   }
   conflictExp(id, conf, d_ipc.get());
@@ -112,7 +112,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   Node lem;
   if (!exp.isNull() && !exp.isConst())
   {
-    lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, exp, conc);
+    lem = nodeManager()->mkNode(Kind::IMPLIES, exp, conc);
   }
   else
   {

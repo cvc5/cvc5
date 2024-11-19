@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,7 +129,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                               std::map<Node, std::vector<Node>>& unif_cenums,
                               std::map<Node, std::vector<Node>>& unif_cvalues)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
   std::map<Node, std::vector<Node>> unif_renums, unif_rvalues;
   // build model value map
@@ -245,7 +245,7 @@ void CegisUnif::setConditions(
     const std::map<Node, std::vector<Node>>& unif_cvalues)
 {
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // set the conditions
   for (const Node& c : d_unif_candidates)
   {
@@ -397,8 +397,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
   // parent's conjecture, hence this lemma states: if the parent conjecture has
   // a solution, it satisfies the specification for the given concrete point.
-  Node rlem = NodeManager::currentNM()->mkNode(
-      Kind::OR, d_parent->getConjecture().negate(), plem);
+  Node rlem =
+      nodeManager()->mkNode(Kind::OR, d_parent->getConjecture().negate(), plem);
   d_qim.addPendingLemma(rlem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
@@ -422,7 +422,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node newLit = sm->mkDummySkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
@@ -515,7 +515,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
     return;
   }
   // initialize type information for candidates
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (const Node& e : es)
   {
@@ -596,7 +596,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
                                                     StrategyPtInfo& si,
                                                     unsigned index)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // instantiate template for removing redundant operators
   if (!si.d_sbt_lemma_tmpl[index].first.isNull())
   {
@@ -671,7 +671,7 @@ void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
   {
     disj.push_back(ei.eqNode(itc->second.d_enums[0][i]));
   }
-  Node lem = NodeManager::currentNM()->mkNode(Kind::OR, disj);
+  Node lem = nodeManager()->mkNode(Kind::OR, disj);
   Trace("cegis-unif-enum-lemma")
       << "CegisUnifEnum::lemma, domain:" << lem << "\n";
   d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_DOMAIN);

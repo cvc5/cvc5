@@ -3,7 +3,7 @@
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-info :status unsat)
 (declare-codatatypes ((a 0)) (((b (c Int) (d a)))))
 (declare-fun e () a)

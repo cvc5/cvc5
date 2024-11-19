@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,8 @@
 
 #ifndef CVC5__INTERACTIVE_SHELL_H
 #define CVC5__INTERACTIVE_SHELL_H
+
+#include <cvc5/cvc5_types.h>
 
 #include <iosfwd>
 #include <memory>
@@ -74,6 +76,8 @@ class InteractiveShell
   bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
+  /** The language */
+  modes::InputLanguage d_lang;
 
   std::string d_historyFilename;
 

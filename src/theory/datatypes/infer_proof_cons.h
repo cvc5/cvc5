@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,6 +85,14 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * information is stored in cdp.
    */
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
+  /**
+   * Adds a step concluding t_i = s_i from C(t_1 ... t_n) = C(s_1 ... s_n),
+   * where i is stored in the node narg.
+   */
+  void addDtUnif(CDProof* cdp,
+                 const Node& conc,
+                 const Node& exp,
+                 const Node& narg);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The lazy fact map */

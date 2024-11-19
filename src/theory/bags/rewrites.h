@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ enum class Rewrite : uint32_t
   CONSTANT_EVALUATION,
   COUNT_EMPTY,
   COUNT_BAG_MAKE,
-  DUPLICATE_REMOVAL_BAG_MAKE,
+  SETOF_BAG_MAKE,
   EQ_CONST_FALSE,
   EQ_REFL,
   EQ_SYM,

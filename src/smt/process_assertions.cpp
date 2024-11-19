@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
+#include "options/ff_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -56,7 +57,7 @@ class ScopeCounter
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 ProcessAssertions::~ProcessAssertions()
@@ -222,6 +223,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     {
       applyPass("fun-def-fmf", ap);
     }
+    if (options().quantifiers.preSkolemQuant
+        != options::PreSkolemQuantMode::OFF)
+    {
+      // needed since quantifier preprocessing may introduce skolems that were
+      // solved for already
+      applyPass("apply-substs", ap);
+    }
   }
   if (!options().strings.stringLazyPreproc)
   {
@@ -241,7 +249,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (options().quantifiers.sygusInference)
+  if (options().quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     applyPass("sygus-infer", ap);
   }
@@ -313,6 +321,16 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
   Trace("smt") << " assertions     : " << ap.size() << endl;
+
+  // ff
+  if (options().ff.ffElimDisjunctiveBit)
+  {
+    applyPass("ff-disjunctive-bit", ap);
+  }
+  if (options().ff.ffBitsum || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
+  {
+    applyPass("ff-bitsum", ap);
+  }
 
   // ensure rewritten
   applyPass("rewrite", ap);
@@ -453,7 +471,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
                                                const AssertionPipeline& ap)
 {
-  PrintBenchmark pb(Printer::getPrinter(os));
+  PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that users may define ordinary and recursive functions. The latter
   // get added to the list of assertions as quantified formulas. Since we are

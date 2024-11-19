@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/dtype.h"
+#include "expr/free_var_cache.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
@@ -57,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 class TermDbSygus : protected EnvObj
 {
  public:
-  TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc = nullptr);
+  TermDbSygus(Env& env, QuantifiersState& qs);
   ~TermDbSygus() {}
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);
@@ -191,24 +192,15 @@ class TermDbSygus : protected EnvObj
    * This class caches a list of free variables for each type, which are
    * used, for instance, for constructing canonical forms of terms with free
    * variables. This function returns the i^th free variable for type tn.
-   * If useSygusType is true, then this function returns a variable of the
-   * analog type for sygus type tn (see d_fv for details).
    */
-  TNode getFreeVar(TypeNode tn, int i, bool useSygusType = false);
+  TNode getFreeVar(const TypeNode& tn, size_t i);
   /** get free variable and increment
    *
    * This function returns the next free variable for type tn, and increments
    * the counter in var_count for that type.
    */
-  TNode getFreeVarInc(TypeNode tn,
-                      std::map<TypeNode, int>& var_count,
-                      bool useSygusType = false);
-  /** returns true if n is a cached free variable (in d_fv). */
-  bool isFreeVar(Node n) const;
-  /** returns the identifier for a cached free variable. */
-  size_t getFreeVarId(Node n) const;
-  /** returns true if n has a cached free variable (in d_fv). */
-  bool hasFreeVar(Node n);
+  TNode getFreeVarInc(const TypeNode& tn,
+                      std::map<TypeNode, size_t>& var_count);
   /** get sygus proxy variable
    *
    * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set
@@ -231,7 +223,7 @@ class TermDbSygus : protected EnvObj
    */
   Node mkGeneric(const DType& dt,
                  unsigned c,
-                 std::map<TypeNode, int>& var_count,
+                 std::map<TypeNode, size_t>& var_count,
                  std::map<int, Node>& pre,
                  bool doBetaRed = true);
   /** same as above, but with empty var_count */
@@ -249,7 +241,7 @@ class TermDbSygus : protected EnvObj
    * use the var_count map.
    */
   Node canonizeBuiltin(Node n);
-  Node canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count);
+  Node canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count);
   /** sygus to builtin
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
@@ -352,30 +344,14 @@ class TermDbSygus : protected EnvObj
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
-  /** a cache of fresh variables for each type
-   *
-   * We store two versions of this list:
-   *   index 0: mapping from builtin types to fresh variables of that type,
-   *   index 1: mapping from sygus types to fresh varaibles of the type they
-   *            encode.
-   */
-  std::map<TypeNode, std::vector<Node> > d_fv[2];
-  /** Maps free variables to the domain type they are associated with in d_fv */
-  std::map<Node, TypeNode> d_fv_stype;
-  /** Id count for free variables terms */
-  std::map<TypeNode, size_t> d_fvTypeIdCounter;
   /**
-   * Maps free variables to a unique identifier for their builtin type. Notice
-   * that, e.g. free variables of type Int and those that are of a sygus
-   * datatype type that encodes Int must have unique identifiers. This is
-   * to ensure that sygusToBuiltin for non-ground terms maps variables to
-   * unique variabales.
+   * A cache of fresh variables for each type
    */
-  std::map<Node, size_t> d_fvId;
-  /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
-  bool hasFreeVar(Node n, std::map<Node, bool>& visited);
+  FreeVarCache d_fv;
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
+  /** Get builtin free variable for sygus datatype variable v */
+  Node getBuiltinFreeVarFor(const Node& v);
   //-----------------------------end conversion from sygus to builtin
   // TODO :issue #1235 : below here needs refactor
  public:
@@ -385,7 +361,6 @@ class TermDbSygus : protected EnvObj
  private:
   /** computes the map d_min_type_depth */
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
-  bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
   /**
@@ -439,8 +414,6 @@ class TermDbSygus : protected EnvObj
 
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
-  /** involves div-by-zero */
-  bool involvesDivByZero( Node n );
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );

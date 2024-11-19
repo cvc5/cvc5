@@ -39,6 +39,8 @@ It does not (currently) support the following features of Z3Py:
     finite_field
     fp
     set
+    string
+    sequence
     quant
     solver
     internals

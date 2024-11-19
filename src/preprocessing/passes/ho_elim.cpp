@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,12 +36,12 @@ namespace passes {
 HoElim::HoElim(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ho-elim")
 {
-  d_hoElimSc = NodeManager::currentNM()->mkSortConstructor("@ho-elim-sort", 1);
+  d_hoElimSc = nodeManager()->mkSortConstructor("@ho-elim-sort", 1);
 }
 
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::vector<Node> visit;
@@ -159,7 +159,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> preReplace;
@@ -177,8 +177,8 @@ Node HoElim::eliminateHo(Node n)
     if (it == d_visited.end())
     {
       TypeNode tn = cur.getType();
-      // lambdas are already eliminated by now
-      Assert(cur.getKind() != Kind::LAMBDA);
+      // lambdas are already eliminated by now if hoElim
+      Assert(!options().quantifiers.hoElim || cur.getKind() != Kind::LAMBDA);
       if (tn.isFunction())
       {
         d_funTypes.insert(tn);
@@ -318,7 +318,7 @@ PreprocessingPassResult HoElim::applyInternal(
     return PreprocessingPassResult::NO_CONFLICT;
   }
   // step [1]: apply lambda lifting to eliminate all lambdas
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> axioms;
   if (options().quantifiers.hoElim)
   {
@@ -329,9 +329,10 @@ PreprocessingPassResult HoElim::applyInternal(
       Node res = eliminateLambdaComplete(prev, newLambda);
       if (res != prev)
       {
-        res = rewrite(res);
-        Assert(!expr::hasFreeVar(res));
-        assertionsToPreprocess->replace(i, res);
+        assertionsToPreprocess->replace(
+            i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+        assertionsToPreprocess->ensureRewritten(i);
+        Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
       }
     }
     // do lambda lifting on new lambda definitions
@@ -374,10 +375,13 @@ PreprocessingPassResult HoElim::applyInternal(
     // add lambda lifting axioms as a conjunction to the first assertion
     if (!axioms.empty())
     {
-      Node conj = nm->mkAnd(axioms);
-      conj = rewrite(conj);
-      Assert(!expr::hasFreeVar(conj));
-      assertionsToPreprocess->conjoin(0, conj);
+      for (const Node& ax : axioms)
+      {
+        Node axr = rewrite(ax);
+        Assert(!expr::hasFreeVar(axr));
+        assertionsToPreprocess->push_back(
+            axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
+      }
     }
     axioms.clear();
   }
@@ -389,9 +393,10 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateHo(prev);
     if (res != prev)
     {
-      res = rewrite(res);
-      Assert(!expr::hasFreeVar(res));
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+      assertionsToPreprocess->ensureRewritten(i);
+      Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
     }
   }
   // extensionality: process all function types
@@ -471,10 +476,13 @@ PreprocessingPassResult HoElim::applyInternal(
   // add new axioms as a conjunction to the first assertion
   if (!axioms.empty())
   {
-    Node conj = nm->mkAnd(axioms);
-    conj = rewrite(conj);
-    Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->conjoin(0, conj);
+    for (const Node& ax : axioms)
+    {
+      Node axr = rewrite(ax);
+      Assert(!expr::hasFreeVar(axr));
+      assertionsToPreprocess->push_back(
+          axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
+    }
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
@@ -492,7 +500,7 @@ Node HoElim::getHoApplyUf(TypeNode tn)
   {
     std::vector<TypeNode> remArgTypes;
     remArgTypes.insert(remArgTypes.end(), argTypes.begin() + 1, argTypes.end());
-    tr = NodeManager::currentNM()->mkFunctionType(remArgTypes, tr);
+    tr = nodeManager()->mkFunctionType(remArgTypes, tr);
   }
   TypeNode tnr = getUSort(tr);
 
@@ -504,7 +512,7 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   std::map<TypeNode, Node>::iterator it = d_hoApplyUf.find(tnf);
   if (it == d_hoApplyUf.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
@@ -542,14 +550,13 @@ TypeNode HoElim::getUSort(TypeNode tn)
     TypeNode s;
     if (typeChanged)
     {
-      TypeNode ntn =
-          NodeManager::currentNM()->mkFunctionType(argTypes, rangeType);
+      TypeNode ntn = nodeManager()->mkFunctionType(argTypes, rangeType);
       s = getUSort(ntn);
     }
     else
     {
       // make the uninterpreted sort, given by (ho-elim-sort tn)
-      s = NodeManager::currentNM()->mkSort(d_hoElimSc, {tn});
+      s = nodeManager()->mkSort(d_hoElimSc, {tn});
     }
     d_ftypeMap[tn] = s;
     return s;

@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,14 +18,15 @@
 import cvc5
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
 
-    integer = slv.getIntegerSort()
-    set_ = slv.mkSetSort(integer)
+    integer = tm.getIntegerSort()
+    set_ = tm.mkSetSort(integer)
 
-    A = slv.mkConst(set_, "A")
-    B = slv.mkConst(set_, "B")
-    C = slv.mkConst(set_, "C")
+    A = tm.mkConst(set_, "A")
+    B = tm.mkConst(set_, "B")
+    C = tm.mkConst(set_, "C")
 
     assert A.getId() != B.getId()
     assert C.getId() != B.getId()

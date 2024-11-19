@@ -1,0 +1,11 @@
+; EXPECT: sat
+(set-logic QF_LIRA)
+(declare-fun x () Real)
+(declare-fun y () Real)
+(declare-fun z () Int)
+(assert (= x 1/4))
+(assert (= y -1/4))
+(assert (= z -10))
+(assert (= x 0.25))
+(assert (= y -0.25))
+(check-sat)

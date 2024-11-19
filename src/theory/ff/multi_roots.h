@@ -4,13 +4,15 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Multivariate root finding.
+ * Multivariate root finding. Implements "FindZero" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #include "cvc5_private.h"
@@ -30,15 +32,16 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
 /**
- * Find a common zero for all poynomials in this ideal.
+ * Find a common zero for all poynomials in this ideal. Figure 5 from [OKTB23].
  */
-std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& ideal);
+std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& ideal, const Env& env);
 
 /**
  * Enumerates **assignment**s: monic, degree-one, univariate polynomials.
@@ -147,13 +150,16 @@ std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal);
 bool allVarsAssigned(const CoCoA::ideal& ideal);
 
 /**
- * Compute a brancher
+ * Apply a branching rule (Figure 6 of [OKTB23]). Returns an assignment
+ * enumerator.
  *
- * * based on a univariate, super-linear polynomial if one exists
- * * o.w., a minimal polynomial if the variety is zero-dimensional
- * * o.w., a round-robin guesser.
+ * Cases:
+ * * if the basis has a univariate, super-linear poly, enumerate its roots
+ * * if the variety has dimension 0, construct a minimal poly an enumerate its
+ *   roots
+ * * Otherwise, do round-robin guessing
  */
-std::unique_ptr<AssignmentEnumerator> brancher(const CoCoA::ideal& ideal);
+std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal);
 
 }  // namespace ff
 }  // namespace theory

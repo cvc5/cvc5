@@ -4,13 +4,20 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields UNSAT core construction
+ * Finite fields UNSAT core construction.
+ *
+ * Essentially a dependency graph for polynomials in the ideal.
+ * It is a dependency graph for proofs in IdealCalc (Figure 4 from [OKTB23])
+ *
+ * Hooks into CoCoA.
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #ifdef CVC5_USE_COCOA
@@ -77,7 +84,10 @@ void Tracer::unsetFunctionPointers()
 
 std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 {
-  std::vector<size_t> bs;
+  // accumulates ancestors of i that are inputs.
+  std::vector<size_t> inputAncestors;
+  // the q(ueue) contains transitive ancestors of i (initially just i) whose
+  // parent relationships have not been visited yet.
   std::vector<std::string> q{ostring(i)};
   std::unordered_set<std::string> visited{q.back()};
   while (q.size())
@@ -85,16 +95,19 @@ std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
     const std::string t = q.back();
     Trace("ff::trace") << "traceback: " << t << std::endl;
     q.pop_back();
+    // is the ancestor an input?
     if (d_inputNumbers.count(t))
     {
+      // yes? output it
       Trace("ff::trace") << " blame" << std::endl;
-      bs.push_back(d_inputNumbers.at(t));
+      inputAncestors.push_back(d_inputNumbers.at(t));
     }
     else
     {
-      AlwaysAssert(d_parents.count(t) > 0);
+      // no? enqueue its parents
+      AlwaysAssert(d_parents.count(t) > 0) << "Unexplained polynomial " << t;
       const auto& blames = d_parents.at(t);
-      AlwaysAssert(blames.size() > 0);
+      AlwaysAssert(blames.size() > 0) << "Unexplained polynomial " << t;
       for (const auto& b : blames)
       {
         if (!visited.count(b))
@@ -105,8 +118,9 @@ std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
       }
     }
   }
-  std::sort(bs.begin(), bs.end());
-  return bs;
+  // sort outputs by index in initial input sequence and return
+  std::sort(inputAncestors.begin(), inputAncestors.end());
+  return inputAncestors;
 }
 
 void Tracer::sPoly(CoCoA::ConstRefRingElem p,

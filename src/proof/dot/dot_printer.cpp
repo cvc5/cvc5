@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,9 @@ namespace proof {
 
 DotPrinter::DotPrinter(Env& env)
     : EnvObj(env),
-      d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1 : 0),
+      d_lbind(
+          "let",
+          options().printer.dagThresh ? options().printer.dagThresh + 1 : 0),
       d_ruleID(0)
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
@@ -186,7 +188,7 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
       }
       out << "\\\"let" << id << "\\\" : \\\"";
       std::ostringstream nStr;
-      nStr << d_lbind.convert(n, "let", false);
+      nStr << d_lbind.convert(n, false);
       std::string astring = nStr.str();
       // we double the scaping of quotes because "simple scape" is ambiguous
       // with the scape of the delimiter of the value in the key-value map
@@ -346,7 +348,7 @@ void DotPrinter::printProofNodeInfo(std::ostream& out, const ProofNode* pn)
 
   out << "\t" << d_ruleID << " [ label = \"{";
 
-  resultStr << d_lbind.convert(pn->getResult(), "let");
+  resultStr << d_lbind.convert(pn->getResult());
   std::string astring = resultStr.str();
   out << sanitizeString(astring);
 
@@ -495,13 +497,13 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   currentArguments << " :args [ ";
 
   // if cong, special process
-  if (r == ProofRule::CONG)
+  if (r == ProofRule::CONG || r == ProofRule::NARY_CONG)
   {
     AlwaysAssert(args.size() == 1 || args.size() == 2);
     // if two arguments, ignore first and print second
     if (args.size() == 2)
     {
-      currentArguments << d_lbind.convert(args[1], "let");
+      currentArguments << d_lbind.convert(args[1]);
     }
     else
     {
@@ -525,10 +527,10 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
   }
   else
   {
-    currentArguments << d_lbind.convert(args[0], "let");
+    currentArguments << d_lbind.convert(args[0]);
     for (size_t i = 1, size = args.size(); i < size; i++)
     {
-      currentArguments << ", " << d_lbind.convert(args[i], "let");
+      currentArguments << ", " << d_lbind.convert(args[i]);
     }
   }
   currentArguments << " ]";

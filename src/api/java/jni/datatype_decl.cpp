@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,22 @@ JNIEXPORT void JNICALL
 Java_io_github_cvc5_DatatypeDecl_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete ((DatatypeDecl*)pointer);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeDecl
+ * Method:    equals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_DatatypeDecl_equals(
+    JNIEnv* env, jobject, jlong pointer1, jlong pointer2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* decl1 = reinterpret_cast<DatatypeDecl*>(pointer1);
+  DatatypeDecl* decl2 = reinterpret_cast<DatatypeDecl*>(pointer2);
+  // We compare the actual terms, not their pointers.
+  return static_cast<jboolean>(*decl1 == *decl2);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -128,4 +144,19 @@ Java_io_github_cvc5_DatatypeDecl_getName(JNIEnv* env, jobject, jlong pointer)
   DatatypeDecl* current = (DatatypeDecl*)pointer;
   return env->NewStringUTF(current->getName().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeDecl
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_DatatypeDecl_hashCode(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* result = reinterpret_cast<DatatypeDecl*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::DatatypeDecl>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -205,26 +205,6 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
    * In (EX1), this is (4,6,1)
    */
   std::vector<Node> d_exo;
-};
-
-/** DivByZeroSygusInvarianceTest
- *
- * This class tests whether a sygus term involves
- * division by zero.
- *
- * For example the test for:
- *    ( x + ( y/0 )*2 )
- * is invariant on the contents of _ below:
- *    ( _ + ( _/0 )*_ )
- */
-class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
-{
- public:
-  DivByZeroSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r) {}
-
- protected:
-  /** checks whether nvn involves division by zero. */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 };
 
 /** NegContainsSygusInvarianceTest

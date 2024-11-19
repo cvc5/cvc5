@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli, Mathias Preiner
+#   Gereon Kremer, Andres Noetzli, Vinícius Camillo
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -163,7 +163,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA1=981ff0081bed0d1e604000a3092e7af8881b7a5e
+    URL_HASH SHA256=ca7092eeeced3dd8bd86cdd3410207802ef1752d7052d92eee3e9e6bb496763c
     PATCH_COMMAND
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
@@ -237,8 +237,16 @@ else()
 
   ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
   string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
-  install(FILES
-    ${BUILD_BYPRODUCTS}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+
+  # Static builds install the Poly static libraries.
+  # These libraries are required to compile a program that
+  # uses the cvc5 static library.
+  install(FILES ${BUILD_BYPRODUCTS} TYPE ${LIB_BUILD_TYPE})
+
+  if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
+    foreach(POLY_DYLIB ${BUILD_BYPRODUCTS})
+      get_filename_component(POLY_DYLIB_NAME ${POLY_DYLIB} NAME)
+      update_rpath_macos(${POLY_DYLIB_NAME})
+    endforeach()
+  endif()
 endif()

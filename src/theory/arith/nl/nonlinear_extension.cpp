@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +66,7 @@ NonlinearExtension::NonlinearExtension(Env& env, TheoryArith& containing)
   d_extTheory.addFunctionKind(Kind::PI);
   d_extTheory.addFunctionKind(Kind::IAND);
   d_extTheory.addFunctionKind(Kind::POW2);
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -273,6 +273,16 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // no non-linear constraints, we are done
     return;
   }
+  if (TraceIsOn("nl-model-final"))
+  {
+    Trace("nl-model-final") << "MODEL INPUT:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
+    }
+    Trace("nl-model-final") << "END" << std::endl;
+  }
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(arithModel);
   // run a last call effort check
@@ -288,6 +298,16 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // assign values for equivalence classes with transcendental function
   // applications
   d_trSlv.postProcessModel(arithModel, termSet);
+  if (TraceIsOn("nl-model-final"))
+  {
+    Trace("nl-model-final") << "MODEL OUTPUT:" << std::endl;
+    for (std::pair<const Node, Node>& m : arithModel)
+    {
+      Trace("nl-model-final")
+          << "  " << m.first << " -> " << m.second << std::endl;
+    }
+    Trace("nl-model-final") << "END" << std::endl;
+  }
 }
 
 Result::Status NonlinearExtension::modelBasedRefinement(

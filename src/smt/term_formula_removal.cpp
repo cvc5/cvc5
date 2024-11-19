@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Mudathir Mohamed
+ *   Andrew Reynolds, Dejan Jovanovic, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -270,6 +270,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             uint32_t cval,
                                             TConvProofGenerator* pg)
 {
+  AlwaysAssert (node.getKind()!=Kind::WITNESS) << "WITNESS should never appear in asserted terms";
   NodeManager *nodeManager = NodeManager::currentNM();
   SkolemManager* sm = nodeManager->getSkolemManager();
 
@@ -318,7 +319,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         Trace("rtf-proof-debug")
             << "RemoveTermFormulas::run: justify " << newAssertion
             << " with ITE axiom" << std::endl;
-        // ---------------------- REMOVE_TERM_FORMULA_AXIOM
+        // ---------------------- ITE_EQ
         // (ite node[0]
         //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
         //      (= node node[2]))           node = skolem
@@ -328,7 +329,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
         // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
         // of skolem into its witness form, which is node.
         Node axiom = getAxiomFor(node);
-        d_lp->addStep(axiom, ProofRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+        d_lp->addStep(axiom, ProofRule::ITE_EQ, {}, {node});
         Node eq = node.eqNode(skolem);
         d_lp->addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
         d_lp->addStep(newAssertion,
@@ -339,58 +340,14 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() == Kind::WITNESS)
+  else if (nodeType.isBoolean() && inTerm && !d_env.isBooleanTermSkolem(node))
   {
-    // If a witness choice
-    //   For details on this operator, see
-    //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!expr::hasFreeVar(node))
+    // if a purification skolem already, just use itself
+    if (sm->getId(node) == SkolemId::PURIFY)
     {
-      // NOTE: we can replace by t if body is of the form (and (= z t) ...)
-      skolem = getSkolemForNode(node);
-      if (skolem.isNull())
-      {
-        Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make WITNESS skolem" << std::endl;
-        // Make the skolem to witness the choice, which notice is handled
-        // as a special case within SkolemManager::mkPurifySkolem.
-        skolem = sm->mkPurifySkolem(node);
-        d_skolem_cache.insert(node, skolem);
-
-        Assert(node[0].getNumChildren() == 1);
-
-        // The new assertion is the assumption that the body
-        // of the witness operator holds for the Skolem
-        newAssertion = node[1].substitute(node[0][0], skolem);
-
-        // Get the proof generator, if one exists, which was responsible for
-        // constructing this witness term. This may not exist, in which case
-        // the witness term was trivial to justify. This is the case e.g. for
-        // purification witness terms.
-        if (isProofEnabled())
-        {
-          Node existsAssertion =
-              nodeManager->mkNode(Kind::EXISTS, node[0], node[1]);
-          // -------------------- from skolem manager
-          // (exists x. node[1])
-          // -------------------- SKOLEMIZE
-          // node[1] * { x -> skolem }
-          ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
-          d_lp->addLazyStep(existsAssertion,
-                            expg,
-                            TrustId::WITNESS_AXIOM,
-                            true,
-                            "RemoveTermFormulas::run:skolem_pf");
-          d_lp->addStep(
-              newAssertion, ProofRule::SKOLEMIZE, {existsAssertion}, {});
-          newAssertionPg = d_lp.get();
-        }
-      }
+      d_env.registerBooleanTermSkolem(node);
+      return Node::null();
     }
-  }
-  else if (nodeType.isBoolean() && inTerm
-           && sm->getId(node) != SkolemFunId::PURIFY)
-  {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
@@ -399,17 +356,19 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           << "RemoveTermFormulas::run: make Boolean skolem" << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms are
-      // purified here (SkolemFunId::PURIFY), which ensures they are handled
+      // purified here (SkolemId::PURIFY), which ensures they are handled
       // properly in theory combination.
       skolem = sm->mkPurifySkolem(node);
       d_skolem_cache.insert(node, skolem);
+      d_env.registerBooleanTermSkolem(skolem);
 
       // The new assertion
       newAssertion = skolem.eqNode(node);
 
-      // Boolean term removal is trivial to justify, hence we don't set a proof
-      // generator here. It is trivial to justify since it is an instance of
-      // purification, which is justified by conversion to witness forms.
+      // Boolean term removal is trivial to justify, hence we don't set a
+      // proof generator here. It is trivial to justify since it is an
+      // instance of purification, which is justified by conversion to witness
+      // forms.
     }
   }
 

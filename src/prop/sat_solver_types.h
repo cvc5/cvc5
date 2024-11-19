@@ -4,21 +4,13 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * This class transforms a sequence of formulas into clauses.
- *
- * This class takes a sequence of formulas.
- * It outputs a stream of clauses that is propositionally
- * equi-satisfiable with the conjunction of the formulas.
- * This stream is maintained in an online fashion.
- *
- * Unlike other parts of the system it is aware of the PropEngine's
- * internals such as the representation and translation of [??? -Chris]
+ * SAT solver types and type operations.
  */
 
 #pragma once

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,14 +83,16 @@ Node ExpandDefs::expandDefinitions(TNode n,
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
-      TrustNode trn = tr->expandDefinition(n);
+      // ensure rewritten
+      Node nr = rewrite(n);
+      TrustNode trn = tr->expandDefinition(nr);
       if (!trn.isNull())
       {
         node = trn.getNode();
       }
       else
       {
-        node = n;
+        node = nr;
       }
       // the partial functions can fall through, in which case we still
       // consider their children

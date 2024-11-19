@@ -1,5 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: sat
+; COMMAND-LINE: --ff-solver split
+; COMMAND-LINE: --ff-solver gb
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-logic QF_FF)

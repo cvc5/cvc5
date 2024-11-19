@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "context/cdhashset.h"
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
@@ -36,6 +37,7 @@ namespace cvc5::internal {
 
 class NodeManager;
 class StatisticsRegistry;
+class Plugin;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -52,6 +54,10 @@ namespace theory {
 class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
+
+namespace quantifiers {
+class OracleChecker;
+}
 }
 
 /**
@@ -69,17 +75,25 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(const Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
   /* Access to members------------------------------------------------------- */
+  /** Get a pointer to the node manager */
+  NodeManager* getNodeManager();
+
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
-
+  /**
+   * Get the underlying proof manager. Note since proofs depend on option
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
+   */
+  smt::PfManager* getProofManager();
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SolverEngine that owns
@@ -89,16 +103,15 @@ class Env
 
   /**
    * Check whether the SAT solver should produce proofs. Other than whether
-   * the proof node manager is set, SAT proofs are only generated when the
-   * unsat core mode is not ASSUMPTIONS.
+   * the proof node manager is set, SAT proofs are only generated if the proof
+   * mode is not PP_ONLY.
    */
   bool isSatProofProducing() const;
 
   /**
    * Check whether theories should produce proofs as well. Other than whether
-   * the proof node manager is set, theory engine proofs are conditioned on the
-   * relationship between proofs and unsat cores: the unsat cores are in
-   * FULL_PROOF mode, no proofs are generated on theory engine.
+   * the proof node manager is set, theory engine proofs are generated if the
+   * proof mode is FULL or FULL_STRICT.
    */
   bool isTheoryProofProducing() const;
 
@@ -259,11 +272,57 @@ class Env
   /** get the separation logic data type */
   TypeNode getSepDataType() const;
 
+  /**
+   * Add plugin to this environment. Any theory engine that uses this
+   * environment will use these plugins. These plugins should not be added
+   * after having fully initialized the solver engine for this environment.
+   */
+  void addPlugin(Plugin* p);
+  /** Get plugins */
+  const std::vector<Plugin*>& getPlugins() const;
+
+  /** get oracle checker */
+  theory::quantifiers::OracleChecker* getOracleChecker() const;
+
+  /**
+   * Register Boolean term skolem. This registers that k is a Boolean variable
+   * that should be treated as a theory atom. This impacts theoryOf, where
+   * Boolean term skolems belong to THEORY_UF, not THEORY_BOOL.
+   *
+   * This method is called by the "remove term formula" pass, which recognizes
+   * when Boolean terms occur in term positions, which are relevant for
+   * theory combination.
+   *
+   * @param k The node to register as a Boolean term skolem. This should be
+   * a variable of Boolean type.
+   */
+  void registerBooleanTermSkolem(const Node& k);
+  /**
+   * Is Boolean term skolem?
+   * @param k The node in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
+  /**
+   * Get sharable formula. This returns an equivalent version of the given
+   * lemma n that can be shared externally. In particular, if the option
+   * pluginShareSkolems is false, we require that the returned formula does not
+   * have any internally generated symbols, i.e. skolems. We additionally
+   * exclude terms that have internally generated symbols (e.g. DUMMY_SKOLEM
+   * or INST_CONSTANT). If n cannot be converted to a suitable formula, we
+   * return the null node.
+   *
+   * @param n The candidate formula to share.
+   * @return A tranformed version of n that is its represenation in a sharable
+   * form. If n cannot be tranformed, this returns null.
+   */
+  Node getSharableFormula(const Node& n) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
   /** Set proof node manager if it exists */
-  void finishInit(ProofNodeManager* pnm);
+  void finishInit(smt::PfManager* pm);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -273,10 +332,16 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
   /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
+  /**
+   * The proof manager of the solver engine.
+   */
+  smt::PfManager* d_pfManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SolverEngine that owns
@@ -326,6 +391,21 @@ class Env
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
+  /**
+   * List of plugins, to be used in any theory engine that uses this
+   * environment
+   */
+  std::vector<Plugin*> d_plugins;
+  /** oracle checker */
+  std::unique_ptr<theory::quantifiers::OracleChecker> d_ochecker;
+  /**
+   * The set of skolems introduced for Boolean term elimination. This is a set
+   * of purification skolems of Boolean type. These variables are important
+   * since unlike other Boolean variables, they must be treated as theory
+   * atoms to ensure that theory combination works when argument terms are
+   * Boolean type.
+   */
+  context::CDHashSet<Node> d_boolTermSkolems;
 }; /* class Env */
 
 }  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,12 +30,14 @@ namespace sets {
 
 TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
-      d_skCache(env.getRewriter()),
+      d_skCache(env.getNodeManager(), env.getRewriter()),
       d_state(env, valuation, d_skCache),
-      d_im(env, *this, d_state),
+      d_rewriter(nodeManager()),
+      d_im(env, *this, &d_rewriter, d_state),
       d_cpacb(*this),
       d_internal(
           new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
+      d_checker(nodeManager()),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -47,12 +49,9 @@ TheorySets::~TheorySets()
 {
 }
 
-TheoryRewriter* TheorySets::getTheoryRewriter()
-{
-  return d_internal->getTheoryRewriter();
-}
+TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheorySets::getProofChecker() { return nullptr; }
+ProofRuleChecker* TheorySets::getProofChecker() { return &d_checker; }
 
 bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -85,6 +84,7 @@ void TheorySets::finishInit()
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TRANSPOSE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
@@ -138,11 +138,11 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
       || nk == Kind::RELATION_JOIN_IMAGE || nk == Kind::SET_COMPREHENSION)
   {
-    if (!options().sets.setsExt)
+    if (!options().sets.setsExp)
     {
       std::stringstream ss;
       ss << "Extended set operators are not supported in default mode, try "
-            "--sets-ext.";
+            "--sets-exp.";
       throw LogicException(ss.str());
     }
   }
@@ -173,7 +173,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   {
     std::vector<Node> asserts;
     Node ret = SetReduction::reduceFoldOperator(n, asserts);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node andNode = nm->mkNode(Kind::AND, asserts);
     d_im.lemma(andNode, InferenceId::SETS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
@@ -181,12 +181,12 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == Kind::RELATION_AGGREGATE)
   {
     Node ret = SetReduction::reduceAggregateOperator(n);
-    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   if (nk == Kind::RELATION_PROJECT)
   {
     Node ret = SetReduction::reduceProjectOperator(n);
-    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   return d_internal->ppRewrite(n, lems);
 }
@@ -203,11 +203,11 @@ Theory::PPAssertStatus TheorySets::ppAssert(
   {
     if (in[0].isVar() && isLegalElimination(in[0], in[1]))
     {
-      // We cannot solve for sets if setsExt is enabled, since universe set
+      // We cannot solve for sets if setsExp is enabled, since universe set
       // may appear when this option is enabled, and solving for such a set
       // impacts the semantics of universe set, see
       // regress0/sets/pre-proc-univ.smt2
-      if (!in[0].getType().isSet() || !options().sets.setsExt)
+      if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
@@ -215,7 +215,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     }
     else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
-      if (!in[0].getType().isSet() || !options().sets.setsExt)
+      if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;

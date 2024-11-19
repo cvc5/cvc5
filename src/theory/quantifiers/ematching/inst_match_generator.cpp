@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -145,13 +145,13 @@ void InstMatchGenerator::initialize(Node q,
         {
           if (d_match_pattern.getKind() == Kind::GEQ)
           {
-            d_pattern = NodeManager::currentNM()->mkNode(Kind::GT, mp, mpo);
+            d_pattern = nodeManager()->mkNode(Kind::GT, mp, mpo);
             d_pattern = d_pattern.negate();
           }
           else
           {
-            d_pattern = NodeManager::currentNM()->mkNode(
-                d_match_pattern.getKind(), mp, mpo);
+            d_pattern =
+                nodeManager()->mkNode(d_match_pattern.getKind(), mp, mpo);
           }
         }
         d_eq_class_rel = mpo;
@@ -362,7 +362,7 @@ int InstMatchGenerator::getMatch(Node t, InstMatch& m)
   if (!d_eq_class_rel.isNull()
       && d_eq_class_rel.getKind() == Kind::INST_CONSTANT)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     int v = d_eq_class_rel.getAttribute(InstVarNumAttribute());
     // also must fit match to equivalence class
     bool pol = d_pattern.getKind() != Kind::NOT;

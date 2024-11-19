@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "expr/subs.h"
 #include "prop/learned_db.h"
 #include "smt/env_obj.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5::internal {
 
@@ -69,6 +70,13 @@ class ZeroLevelLearner : protected EnvObj
   /** compute type for learned literal */
   modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
 
+  /**
+   * Get inferred simplifications. This is a (term) substitution that can be
+   * applied to construct simpler terms that are equivalent based on
+   * literals learned at decision level zero.
+   */
+  theory::TrustSubstitutionMap& getSimplifications();
+
  private:
   static void getAtoms(TNode a,
                        std::unordered_set<TNode>& visited,
@@ -81,6 +89,13 @@ class ZeroLevelLearner : protected EnvObj
   bool getSolved(const Node& lit, Subs& subs);
   /** has learned literal */
   bool hasLearnedLiteralForRestart() const;
+  /** 
+   * Adds a substitution to d_tsmap. This occurs when we learn a literal at
+   * decision level zero that is equivalent to (= t s)
+   * @param t The term to substitute.
+   * @param s The value to substitute t to.
+   */
+  void addSimplification(const Node& t, const Node& s);
 
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;
@@ -109,6 +124,14 @@ class ZeroLevelLearner : protected EnvObj
   size_t d_deepRestartThreshold;
   /** learnable learned literal types (for deep restart), based on option */
   std::unordered_set<modes::LearnedLitType> d_learnedTypes;
+  /** Should we track the simplification map? */
+  bool d_trackSimplifications;
+  /**
+   * Simplification map. This is a substitution that is globally valid based
+   * on the literals learned at decision level zero.
+   */
+  theory::TrustSubstitutionMap d_tsmap;
+
 }; /* class ZeroLevelLearner */
 
 }  // namespace prop

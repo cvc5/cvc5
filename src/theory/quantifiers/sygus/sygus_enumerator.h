@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "expr/free_var_cache.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/sygus/enum_val_generator.h"
@@ -60,9 +61,8 @@ class SygusEnumerator : public EnumValGenerator
  public:
   /**
    * @param env Reference to the environment
-   * @param tds Pointer to the term database, required if enumShapes or
-   * enumAnyConstHoles is true, or if we want to include symmetry breaking from
-   * lemmas stored in the sygus term database,
+   * @param tds Pointer to the term database, required if we want to include
+   * symmetry breaking from lemmas stored in the sygus term database,
    * @param sec Pointer to the callback, required e.g. if we wish to do
    * conjecture-specific symmetry breaking
    * @param s Pointer to the statistics
@@ -75,7 +75,7 @@ class SygusEnumerator : public EnumValGenerator
    */
   SygusEnumerator(Env& env,
                   TermDbSygus* tds = nullptr,
-                  SygusEnumeratorCallback* sec = nullptr,
+                  SygusTermEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
                   bool enumAnyConstHoles = false,
@@ -96,9 +96,9 @@ class SygusEnumerator : public EnumValGenerator
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the enumerator callback we are using (if any) */
-  SygusEnumeratorCallback* d_sec;
+  SygusTermEnumeratorCallback* d_sec;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallback> d_secd;
+  std::unique_ptr<SygusTermEnumeratorCallback> d_secd;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
   /** Whether we are enumerating shapes */
@@ -148,7 +148,7 @@ class SygusEnumerator : public EnumValGenerator
     void initialize(SygusStatistics* s,
                     Node e,
                     TypeNode tn,
-                    SygusEnumeratorCallback* sec = nullptr);
+                    SygusTermEnumeratorCallback* sec = nullptr);
     /** get last constructor class index for weight
      *
      * This returns a minimal index n such that all constructor classes at
@@ -196,7 +196,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
     /** Pointer to the callback (used for symmetry breaking). */
-    SygusEnumeratorCallback* d_sec;
+    SygusTermEnumeratorCallback* d_sec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;
@@ -378,12 +378,12 @@ class SygusEnumerator : public EnumValGenerator
     bool increment() override;
 
    private:
-    /** pointer to term database sygus */
-    TermDbSygus* d_tds;
     /** are we enumerating shapes? */
     bool d_enumShapes;
     /** have we initialized the shape enumeration? */
     bool d_enumShapesInit;
+    /** A free variable cache */
+    FreeVarCache d_enumShapesFv;
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;
     /** cache for getCurrent() */
@@ -449,7 +449,7 @@ class SygusEnumerator : public EnumValGenerator
      * vcounter is { Int -> 7 }, then (+ x1 x2) is converted to (+ x7 x8) and
      * vouncter is updated to { Int -> 9 }.
      */
-    Node convertShape(Node n, std::map<TypeNode, int>& vcounter);
+    Node convertShape(Node n, std::map<TypeNode, size_t>& vcounter);
   };
   /** an interpreted value enumerator
    *
@@ -498,6 +498,10 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
+   private:
+    /** A free variable cache */
+    FreeVarCache d_fv;
   };
   /** the master enumerator for each sygus type */
   std::map<TypeNode, TermEnumMaster> d_masterEnum;

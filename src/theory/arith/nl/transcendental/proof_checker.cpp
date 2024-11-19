@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,25 +29,22 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-namespace {
-
-/**
- * Helper method to construct (t >= lb) AND (t <= up)
- */
-Node mkBounds(TNode t, TNode lb, TNode ub)
+TranscendentalProofRuleChecker::TranscendentalProofRuleChecker(NodeManager* nm)
+    : ProofRuleChecker(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
+}
+
+Node TranscendentalProofRuleChecker::mkBounds(TNode t, TNode lb, TNode ub)
+{
+  NodeManager* nm = nodeManager();
   return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, t, lb),
                                      nm->mkNode(Kind::LEQ, t, ub)});
 }
 
-/**
- * Helper method to construct a secant plane:
- * evall + ((evall - evalu) / (l - u)) * (t - l)
- */
-Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
+Node TranscendentalProofRuleChecker::mkSecant(
+    TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   return nm->mkNode(Kind::ADD,
                     evall,
                     nm->mkNode(Kind::MULT,
@@ -57,7 +54,6 @@ Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
                                nm->mkNode(Kind::SUB, t, l)));
 }
 
-}  // namespace
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -85,7 +81,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     const std::vector<Node>& children,
     const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   Node mone = nm->mkConstInt(Rational(-1));
@@ -231,11 +227,8 @@ Node TranscendentalProofRuleChecker::checkInternal(
   else if (id == ProofRule::ARITH_TRANS_SINE_SHIFT)
   {
     Assert(children.empty());
-    Assert(args.size() == 3);
-    const auto& x = args[0];
-    const auto& y = args[1];
-    const auto& s = args[2];
-    return SineSolver::getPhaseShiftLemma(x, y, s);
+    Assert(args.size() == 1);
+    return SineSolver::getPhaseShiftLemma(args[0]);
   }
   else if (id == ProofRule::ARITH_TRANS_SINE_SYMMETRY)
   {

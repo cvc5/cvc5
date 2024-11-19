@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,8 +22,10 @@
 
 namespace cvc5::internal {
 
-StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
-    : EnvObj(env)
+StatisticsRegistry::StatisticsRegistry(bool internal,
+                                       bool all,
+                                       bool registerPublic)
+    : d_internal(internal), d_all(all)
 {
   if (registerPublic)
   {
@@ -53,8 +55,8 @@ void StatisticsRegistry::storeSnapshot()
     d_lastSnapshot = std::make_unique<Snapshot>();
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsInternal && s.second->d_internal) continue;
-      if (!options().base.statisticsAll && s.second->isDefault()) continue;
+      if (!d_internal && s.second->d_internal) continue;
+      if (!d_all && s.second->isDefault()) continue;
       d_lastSnapshot->emplace(
           s.first,
           s.second->getViewer());
@@ -79,8 +81,8 @@ void StatisticsRegistry::print(std::ostream& os) const
   {
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsInternal && s.second->d_internal) continue;
-      if (!options().base.statisticsAll && s.second->isDefault()) continue;
+      if (!d_internal && s.second->d_internal) continue;
+      if (!d_all && s.second->isDefault()) continue;
       os << s.first << " = " << *s.second << std::endl;
     }
   }
@@ -92,8 +94,8 @@ void StatisticsRegistry::printSafe(int fd) const
   {
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsInternal && s.second->d_internal) continue;
-      if (!options().base.statisticsAll && s.second->isDefault()) continue;
+      if (!d_internal && s.second->d_internal) continue;
+      if (!d_all && s.second->isDefault()) continue;
 
       safe_print(fd, s.first);
       safe_print(fd, " = ");
@@ -114,8 +116,8 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
     }
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsInternal && s.second->d_internal) continue;
-      if (!options().base.statisticsAll && s.second->isDefault())
+      if (!d_internal && s.second->d_internal) continue;
+      if (!d_all && s.second->isDefault())
       {
         auto oldit = d_lastSnapshot->find(s.first);
         if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())

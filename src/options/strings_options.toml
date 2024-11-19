@@ -229,17 +229,9 @@ name   = "Strings Theory"
   help       = "The maximum size of string values in models"
 
 [[option]]
-  name       = "stringsCodeElim"
-  category   = "expert"
-  long       = "strings-code-elim"
-  type       = "bool"
-  default    = "false"
-  help       = "eliminate code points during preprocessing"
-
-[[option]]
   name       = "stringRegexpPosConcatEager"
   category   = "expert"
   long       = "strings-re-posc-eager"
   type       = "bool"
   default    = "false"
-  help       = "eager reduction of positive membership into concatentation"
+  help       = "eager reduction of positive membership into concatenation"

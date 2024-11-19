@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,10 +52,6 @@ class Smt2CmdParser
   Smt2TermParser& d_tparser;
   /** Map strings to tokens */
   std::map<std::string, Token> d_table;
-  /** is strict */
-  bool d_isStrict;
-  /** is sygus */
-  bool d_isSygus;
 };
 
 }  // namespace parser

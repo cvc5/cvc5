@@ -1,0 +1,10 @@
+; EXPECT: unsat
+; EXPECT: (y)
+(set-logic ALL)
+(set-option :produce-models true)
+(set-option :produce-unsat-assumptions true)
+(declare-const x Bool)
+(declare-const y Bool)
+(assert (and x (not y)))
+(check-sat-assuming (y))
+(get-unsat-assumptions)

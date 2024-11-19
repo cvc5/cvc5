@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Dejan Jovanovic, Liana Hadarean
+ *   Haniel Barbosa, Dejan Jovanovic, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,14 +26,12 @@
 #include "proof/proof_node_manager.h"
 #include "proof/theory_proof_step_buffer.h"
 #include "prop/cnf_stream.h"
-#include "prop/opt_clauses_manager.h"
-#include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace prop {
 
-class SatProofManager;
+class PropPfManager;
 
 /**
  * A proof generator for CNF transformation. It is a layer on top of CNF stream,
@@ -44,18 +42,10 @@ class SatProofManager;
  * that getting the proof of a clausified formula will also extend to its
  * registered proof generator.
  */
-class ProofCnfStream : protected EnvObj, public ProofGenerator
+class ProofCnfStream : protected EnvObj
 {
  public:
-  ProofCnfStream(Env& env, CnfStream& cnfStream, SatProofManager* satPM);
-
-  /** Invokes getProofFor of the underlying LazyCDProof */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Whether there is a concrete step or a generator associated with f in the
-   * underlying LazyCDProof. */
-  bool hasProofFor(Node f) override;
-  /** identify */
-  std::string identify() const override;
+  ProofCnfStream(Env& env, CnfStream& cnfStream, PropPfManager* ppm);
   /**
    * Converts a formula into CNF into CNF and asserts the generated clauses into
    * the underlying SAT solver of d_cnfStream. Every transformation the formula
@@ -73,18 +63,9 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
-  void convertAndAssert(TNode node,
-                        bool negated,
-                        bool removable,
-                        bool input,
-                        ProofGenerator* pg);
+  void convertAndAssert(
+      TNode node, bool negated, bool removable, bool input, ProofGenerator* pg);
 
-  /**
-   * Clausifies the given propagation lemma *without* registering the resoluting
-   * clause in the SAT solver, as this is handled internally by the SAT
-   * solver. The clausification steps and the generator within the trust node
-   * are saved in d_proof if we are producing proofs in the theory engine. */
-  void convertPropagation(TrustNode ttn);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -111,38 +92,17 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
 
   /**
-   * Blocks a proof, so that it is not further updated by a post processor of
-   * this class's proof. */
-  void addBlocked(std::shared_ptr<ProofNode> pfn);
-
+   * Dump dimacs of the given clauses to the given output stream.
+   * For details, see cnf_stream.h.
+   */
+  void dumpDimacs(std::ostream& out, const std::vector<Node>& clauses);
   /**
-   * Whether a given proof is blocked for further updates.  An example of a
-   * blocked proof node is one integrated into this class via an external proof
-   * generator. */
-  bool isBlocked(std::shared_ptr<ProofNode> pfn);
-
-  /** Notify that current propagation inserted at lower level than current.
-   *
-   * The proof of the current propagation (d_currPropagationProcessed) will be
-   * saved in d_optClausesPfs, so that it is not potentially lost when the user
-   * context is popped.
+   * Same as above, but also prints additional "auxiliary unit" clauses.
+   * For details, see cnf_stream.h.
    */
-  void notifyCurrPropagationInsertedAtLevel(uint32_t explLevel);
-  /** Notify that added clause was inserted at lower level than current.
-   *
-   * As above, the proof of this clause is saved in  d_optClausesPfs.
-   */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, uint32_t clLevel);
-
-  /** Retrieve the proofs for clauses derived from the input */
-  std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();
-  /** Retrieve the proofs for clauses derived from lemmas */
-  std::vector<std::shared_ptr<ProofNode>> getLemmaClausesProofs();
-
-  /** Retrieve the clauses derived from the input */
-  std::vector<Node> getInputClauses();
-  /** Retrieve the clauses derived from lemmas */
-  std::vector<Node> getLemmaClauses();
+  void dumpDimacs(std::ostream& out,
+                  const std::vector<Node>& clauses,
+                  const std::vector<Node>& auxUnits);
 
  private:
   /**
@@ -181,62 +141,16 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
-  /** Normalizes a clause node and registers it in the SAT proof manager.
-   *
-   * Normalization (factoring, reordering, double negation elimination) is done
-   * via the TheoryProofStepBuffer of this class, which will register the
-   * respective steps, if any. This normalization is necessary so that the
-   * resulting clauses of the clausification process are synchronized with the
-   * clauses used in the underlying SAT solver, which automatically performs the
-   * above normalizations on all added clauses.
-   *
-   * @param clauseNode The clause node to be normalized.
-   * @return The normalized clause node.
-   */
-  Node normalizeAndRegister(TNode clauseNode);
-
-  /** Gets node equivalent to SAT clause.
-   *
-   * To avoid generating different nodes for the same clause, modulo ordering,
-   * an invariant assumed throughout this class, the OR node generated by this
-   * method always has its children ordered.
-   */
-  Node getClauseNode(const SatClause& clause);
-
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
 
   /** Whether we are we asserting clauses derived from the input. */
   bool d_input;
-  /** Asserted clauses derived from the input */
-  context::CDHashSet<Node> d_inputClauses;
-  /** Asserted clauses derived from lemmas */
-  context::CDHashSet<Node> d_lemmaClauses;
 
-  /** The proof manager of underlying SAT solver associated with this stream. */
-  SatProofManager* d_satPM;
-  /** The user-context-dependent proof object. */
-  LazyCDProof d_proof;
-  /** An accumulator of steps that may be applied to normalize the clauses
-   * generated during clausification. */
-  TheoryProofStepBuffer d_psb;
-  /** Blocked proofs.
-   *
-   * These are proof nodes added to this class by external generators. */
-  context::CDHashSet<std::shared_ptr<ProofNode>, ProofNodeHashFunction>
-      d_blocked;
-
-  /** The current propagation being processed via this class. */
-  Node d_currPropagationProcessed;
-  /** User-context-dependent map assertion level to proof nodes.
-   *
-   * This map is used to update the internal proof of this class when the
-   * context pops.
-   */
-  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
-  /** Manager for optimized propagations and added clauses inserted at assertion
-   * levels below the current user level. */
-  OptimizedClausesManager d_optClausesManager;
+  /** Pointer to the prop proof manager. */
+  PropPfManager* d_ppm;
+  /** The proof of d_ppm */
+  LazyCDProof* d_proof;
 };
 
 }  // namespace prop

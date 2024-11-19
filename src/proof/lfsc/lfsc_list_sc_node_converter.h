@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
-#define CVC4__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
+#define CVC5__PROOF__LFSC__LFSC_LIST_SC_NODE_CONVERTER_H
 
 #include "expr/node_converter.h"
 #include "proof/lfsc/lfsc_node_converter.h"
@@ -61,7 +61,8 @@ namespace proof {
 class LfscListScNodeConverter : public NodeConverter
 {
  public:
-  LfscListScNodeConverter(LfscNodeConverter& conv,
+  LfscListScNodeConverter(NodeManager* nm,
+                          LfscNodeConverter& conv,
                           const std::unordered_set<Node>& listVars,
                           bool isPre = false);
   /** convert to internal */

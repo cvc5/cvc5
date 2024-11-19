@@ -1,0 +1,9 @@
+; DISABLE-TESTER: dump
+; REQUIRES: no-competition
+; EXPECT-ERROR: (error "ERROR: cannot process term x with free variables in grammar of c")
+; EXIT: 1
+(set-feature :fwd-decls true)
+(set-logic ALL)
+(declare-var x Int)
+(synth-fun c () Int ((Start Int)) ((Start Int (0 1 x))))
+(check-synth)

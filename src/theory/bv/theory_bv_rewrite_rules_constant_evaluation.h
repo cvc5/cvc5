@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -474,6 +475,25 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
     return utils::mkConst(1, 1);
   }
   return utils::mkConst(1, 0);
+}
+
+template <>
+inline bool RewriteRule<EvalConstBvSym>::applies(TNode node)
+{
+  // second argument must be positive and fit unsigned int
+  return (node.getKind() == Kind::CONST_BITVECTOR_SYMBOLIC && node[0].isConst()
+          && node[1].isConst() && node[1].getConst<Rational>().sgn() == 1
+          && node[1].getConst<Rational>().getNumerator().fitsUnsignedInt());
+}
+
+template <>
+inline Node RewriteRule<EvalConstBvSym>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<EvalConstBvSym>(" << node << ")"
+                      << std::endl;
+  Integer a = node[0].getConst<Rational>().getNumerator();
+  Integer b = node[1].getConst<Rational>().getNumerator();
+  return utils::mkConst(b.toUnsignedInt(), a);
 }
 
 template <>

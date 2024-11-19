@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,14 @@ class CVC5ParserApiExceptionStream
 /* SymbolManager                                                              */
 /* -------------------------------------------------------------------------- */
 
-SymbolManager::SymbolManager(cvc5::Solver* s) { d_sm.reset(new SymManager(s)); }
+SymbolManager::SymbolManager(cvc5::TermManager& tm)
+{
+  d_sm.reset(new SymManager(tm));
+}
+SymbolManager::SymbolManager(cvc5::Solver* slv)
+{
+  d_sm.reset(new SymManager(slv->getTermManager()));
+}
 
 SymbolManager::~SymbolManager() {}
 
@@ -79,9 +86,36 @@ const std::string& SymbolManager::getLogic() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_sm->isLogicSet())
-      << "Invalid call to 'getLogic', logic has not yet been set";
+      << "invalid call to 'getLogic', logic has not yet been set";
   //////// all checks before this line
   return d_sm->getLogic();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Sort> SymbolManager::getDeclaredSorts() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredSorts();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> SymbolManager::getDeclaredTerms() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getDeclaredTerms();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::map<Term, std::string> SymbolManager::getNamedTerms() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_sm->getExpressionNames();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -152,14 +186,18 @@ std::ostream& operator<<(std::ostream& out, const Command& c)
 /* -------------------------------------------------------------------------- */
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
+    : d_solver(solver),
+      d_allocSm(nullptr),
+      d_sm(sm),
+      d_usingIStringStream(false),
+      d_istringLang(modes::InputLanguage::SMT_LIB_2_6)
 {
   initialize();
 }
 
 InputParser::InputParser(Solver* solver)
     : d_solver(solver),
-      d_allocSm(new SymbolManager(solver)),
+      d_allocSm(new SymbolManager(solver->getTermManager())),
       d_sm(d_allocSm.get())
 {
   initialize();
@@ -197,6 +235,8 @@ void InputParser::initialize()
 
 void InputParser::initializeInternal()
 {
+  // reset to false
+  d_usingIStringStream = false;
   SymManager* sm = d_sm->toSymManager();
   bool slvLogicSet = d_solver->isLogicSet();
   bool smLogicSet = sm->isLogicSet();
@@ -293,6 +333,39 @@ void InputParser::setStreamInput(modes::InputLanguage lang,
   CVC5_API_TRY_CATCH_END;
 }
 
+void InputParser::setStringInput(modes::InputLanguage lang,
+                                 const std::string& input,
+                                 const std::string& name)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
+                  << std::endl;
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  setStringInputInternal(input, name);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+void InputParser::setStringInputInternal(const std::string& input,
+                                         const std::string& name)
+{
+  d_parser->setStringInput(input, name);
+}
+
+void InputParser::setIncrementalStringInputInternal(modes::InputLanguage lang,
+                                                    const std::string& name)
+{
+  // initialize the parser
+  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
+  initializeInternal();
+  d_istringStream.str("");
+  d_istringStream.clear();
+  d_parser->setStreamInput(d_istringStream, name);
+}
+
 void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
                                             const std::string& name)
 {
@@ -300,22 +373,32 @@ void InputParser::setIncrementalStringInput(modes::InputLanguage lang,
   //////// all checks before this line
   Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
                   << ")" << std::endl;
+  setIncrementalStringInputInternal(lang, name);
+  // remember that we are using d_istringStream
+  d_usingIStringStream = true;
   d_istringLang = lang;
   d_istringName = name;
-  // initialize the parser
-  d_parser = Parser::mkParser(lang, d_solver, d_sm->toSymManager());
-  initializeInternal();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_PARSER_API_CHECK(d_parser != nullptr)
       << "Input to parser not initialized";
+  CVC5_PARSER_API_CHECK(d_usingIStringStream)
+      << "Must call setIncrementalStringInput prior to using "
+         "appendIncrementalStringInput";
   //////// all checks before this line
+  // If the parser was done, we have to reinitialize it. See issue #11069.
+  if (d_parser->done())
+  {
+    setIncrementalStringInputInternal(d_istringLang, d_istringName);
+  }
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_parser->setStringInput(input, d_istringName);
+  // append it to the input
+  d_istringStream << input;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -327,6 +410,71 @@ bool InputParser::done() const
   return d_parser == nullptr || d_parser->done();
   ////////
   CVC5_API_TRY_CATCH_END;
+}
+
+ParserException::ParserException()
+    : CVC5ApiException(""), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const char* msg)
+    : CVC5ApiException(msg), d_filename(), d_line(0), d_column(0)
+{
+}
+
+ParserException::ParserException(const std::string& msg,
+                                 const std::string& filename,
+                                 unsigned long line,
+                                 unsigned long column)
+    : CVC5ApiException(msg),
+      d_filename(filename),
+      d_line(line),
+      d_column(column)
+{
+}
+
+void ParserException::toStream(std::ostream& os) const
+{
+  if (d_line > 0)
+  {
+    os << "Parse Error: " << d_filename << ":" << d_line << "." << d_column
+       << ": " << getMessage();
+  }
+  else
+  {
+    os << "Parse Error: " << getMessage();
+  }
+}
+
+std::string ParserException::getFilename() const { return d_filename; }
+
+unsigned long ParserException::getLine() const { return d_line; }
+
+unsigned long ParserException::getColumn() const { return d_column; }
+
+ParserEndOfFileException::ParserEndOfFileException() : ParserException() {}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const char* msg)
+    : ParserException(msg)
+{
+}
+
+ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
+                                                   const std::string& filename,
+                                                   unsigned long line,
+                                                   unsigned long column)
+    : ParserException(msg, filename, line, column)
+{
 }
 
 }  // namespace parser

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +67,7 @@ void BBProof::bbAtom(TNode node)
   {
     std::vector<TNode> visit;
     std::unordered_set<TNode> visited;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     // post-rewrite atom
     Node rwNode = rewrite(node);
@@ -94,14 +94,14 @@ void BBProof::bbAtom(TNode node)
       }
       else
       {
-        /* Handle BV theory leafs as variables, i.e., apply the BITVECTOR_BITOF
+        /* Handle BV theory leafs as variables, i.e., apply the BITVECTOR_BIT
          * operator to each bit of `n`. */
         if (Theory::isLeafOf(n, theory::THEORY_BV) && !n.isConst())
         {
           Bits bits;
           d_bb->makeVariable(n, bits);
 
-          Node bbt = nm->mkNode(Kind::BITVECTOR_BB_TERM, bits);
+          Node bbt = nm->mkNode(Kind::BITVECTOR_FROM_BOOLS, bits);
           d_bbMap.emplace(n, bbt);
           d_tcpg->addRewriteStep(
               n, bbt, ProofRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
@@ -111,7 +111,7 @@ void BBProof::bbAtom(TNode node)
           Bits bits;
           d_bb->bbTerm(n, bits);
 
-          Node bbt = nm->mkNode(Kind::BITVECTOR_BB_TERM, bits);
+          Node bbt = nm->mkNode(Kind::BITVECTOR_FROM_BOOLS, bits);
           Node rbbt;
           if (n.isConst())
           {
@@ -142,7 +142,7 @@ void BBProof::bbAtom(TNode node)
 
     // Retrieve bit-blasted `rwNode` without post-rewrite.
     Node bbt = rwNode.getKind() == Kind::CONST_BOOLEAN
-                       || rwNode.getKind() == Kind::BITVECTOR_BITOF
+                       || rwNode.getKind() == Kind::BITVECTOR_BIT
                    ? rwNode
                    : d_bb->applyAtomBBStrategy(rwNode);
 
@@ -168,7 +168,7 @@ void BBProof::bbAtom(TNode node)
 
 Node BBProof::reconstruct(TNode t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   std::vector<Node> children;
   if (t.getMetaKind() == kind::metakind::PARAMETERIZED)

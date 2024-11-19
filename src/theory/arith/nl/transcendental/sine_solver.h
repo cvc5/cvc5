@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,12 +115,14 @@ class SineSolver : protected EnvObj
   bool hasExactModelValue(TNode n) const;
 
   /**
+   * In the following let y be (@transcendental_purify_arg x) and let s
+   * be (@transcendental_sine_phase_shift x).
    * Make the lemma for the phase shift of arguments to SINE x and y, where
    * s is the (integral) shift. The lemma conceptually says that y is
    * in the bounds [-pi, pi] and y is offset from x by an integral factor of
    * 2*pi.
    */
-  static Node getPhaseShiftLemma(const Node& x, const Node& y, const Node& s);
+  static Node getPhaseShiftLemma(const Node& x);
 
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep=agg --no-new-prop --nl-ext-tplanes
+; COMMAND-LINE: --ext-rew-prep=agg --nl-ext-tplanes
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NIA)

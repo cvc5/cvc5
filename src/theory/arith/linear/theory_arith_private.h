@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,14 +29,14 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "proof/trust_node.h"
-#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/branch_and_bound.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/attempt_solution_simplex.h"
-#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/dual_simplex.h"
 #include "theory/arith/linear/error_set.h"
@@ -47,7 +47,7 @@
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/soi_simplex.h"
-#include "theory/arith/theory_arith.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -65,6 +65,7 @@ class TheoryModel;
 
 namespace arith::linear {
 
+class LinearSolver;
 class BranchCutInfo;
 class TreeLog;
 class ApproximateStatistics;
@@ -86,7 +87,7 @@ class TheoryArithPrivate : protected EnvObj
  private:
   static constexpr uint32_t RESET_START = 2;
 
-  TheoryArith& d_containing;
+  LinearSolver& d_containing;
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
@@ -96,6 +97,10 @@ class TheoryArithPrivate : protected EnvObj
   BoundInfoMap d_rowTracking;
   /** Branch and bound utility */
   BranchAndBound& d_bab;
+  /** Theory state */
+  TheoryState& d_state;
+  /** Valuation */
+  Valuation& d_valuation;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
@@ -159,7 +164,8 @@ private:
   //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
 
 private:
- static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
+ static bool decomposeTerm(
+     NodeManager* nm, Node t, Rational& m, Node& p, Rational& c);
  bool decomposeLiteral(Node lit,
                        Kind& k,
                        int& dir,
@@ -425,12 +431,15 @@ private:
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
  public:
-  TheoryArithPrivate(TheoryArith& containing, Env& env, BranchAndBound& bab);
+  TheoryArithPrivate(Env& env,
+                     LinearSolver& containing,
+                     TheoryState& ts,
+                     BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
   /** finish initialize */
-  void finishInit();
+  void finishInit(eq::EqualityEngine* ee);
   //--------------------------------- end initialization
 
   /**
@@ -443,7 +452,6 @@ private:
 
   Rational deltaValueForTotalOrder() const;
 
-  bool collectModelInfo(TheoryModel* m);
   /**
    * Collect model values. This is the main method for extracting information
    * about how to construct the model. This method relies on the caller for
@@ -461,14 +469,11 @@ private:
   void collectModelValues(const std::set<Node>& termSet,
                           std::map<Node, Node>& arithModel,
                           std::map<Node, Node>& arithModelIllTyped);
-
-  void shutdown(){ }
-
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
@@ -483,9 +488,9 @@ private:
 
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
-  bool preCheck(Theory::Effort level);
+  bool preCheck(Theory::Effort level, bool newFacts);
   /** Pre-notify fact. */
-  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  void preNotifyFact(TNode fact);
   /**
    * Post-check, called after the fact queue of the theory is processed. Returns
    * true if a conflict or lemma was emitted.
@@ -685,24 +690,16 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  bool done() const { return d_containing.done(); }
-  bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
-  TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
-  void debugPrintFacts() const { d_containing.debugPrintFacts(); }
+  bool isLeaf(TNode x) const;
+  TheoryId theoryOf(TNode x) const;
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);
   void outputRestart();
-
-  inline bool isSatLiteral(TNode l) const {
-    return (d_containing.d_valuation).isSatLiteral(l);
-  }
-  inline Node getSatValue(TNode n) const {
-    return (d_containing.d_valuation).getSatValue(n);
-  }
-
+  bool isSatLiteral(TNode l) const;
+  Node getSatValue(TNode n) const;
   /** Used for replaying approximate simplex */
   context::CDQueue<TrustNode> d_approxCuts;
   /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */

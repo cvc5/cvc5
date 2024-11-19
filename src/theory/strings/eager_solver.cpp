@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -192,8 +192,8 @@ void EagerSolver::notifyFact(TNode atom,
           {
             if (blenEqc == nullptr)
             {
-              Node lenTerm = NodeManager::currentNM()->mkNode(
-                  Kind::STRING_LENGTH, atom[0]);
+              Node lenTerm =
+                  nodeManager()->mkNode(Kind::STRING_LENGTH, atom[0]);
               if (!ee->hasTerm(lenTerm))
               {
                 break;

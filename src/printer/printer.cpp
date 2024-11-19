@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
+#include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -38,19 +39,34 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
   switch(lang) {
     case Language::LANG_SMTLIB_V2_6:
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
       // a normal smt2 variant here.
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_AST:
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
     default: Unhandled() << lang;
+  }
+}
+
+void Printer::toStream(std::ostream& out,
+                       TNode n,
+                       const LetBinding* lbind,
+                       bool lbindTop) const
+{
+  // no special implementation, just convert and print with default prefix
+  if (lbind != nullptr)
+  {
+    Node nc = lbind->convert(n, lbindTop);
+    toStream(out, nc);
+  }
+  else
+  {
+    toStream(out, n);
   }
 }
 
@@ -149,7 +165,7 @@ void Printer::printUnknownCommandStatus(std::ostream& out,
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+  out << "ERROR: don't know how to print " << name << " command";
 }
 
 void Printer::toStreamCmdSuccess(std::ostream& out) const
@@ -505,6 +521,12 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetTimeoutCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-timeout-core");
+}
+
+void Printer::toStreamCmdGetTimeoutCoreAssuming(
+    std::ostream& out, const std::vector<Node>& assumptions) const
+{
+  printUnknownCommand(out, "get-timeout-core-assuming");
 }
 
 void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,

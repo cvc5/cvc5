@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,13 +21,13 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "expr/node_trie.h"
 #include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "util/cardinality.h"
 
 namespace cvc5::internal {
 
@@ -209,11 +209,11 @@ class TheoryModel : protected EnvObj
    * itself.
    *
    * [3] "Semi-evaluated"
-   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV and others, typically
-   * those that correspond to abstractions. Like unevaluated kinds, these
-   * kinds do not have an evaluator. In contrast to unevaluated kinds, we
-   * interpret a term <k>( t1...tn ) not appearing in the equality engine as an
-   * arbitrary value instead of the term itself.
+   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV, APPLY_SELECTOR and.
+   * SEQ_NTH. Like unevaluated kinds, these kinds do not have an evaluator for
+   * (some) inputs. In contrast to unevaluated kinds, we interpret a term
+   * <k>( t1...tn ) not appearing in the equality engine as an arbitrary value
+   * instead of the term itself.
    *
    * [4] APPLY_UF, where getting the model value depends on an internally
    * constructed representation of a lambda model value (d_uf_models).
@@ -294,9 +294,6 @@ class TheoryModel : protected EnvObj
   bool isModelCoreSymbol(Node sym) const;
   //---------------------------- end model cores
 
-  /** get cardinality for sort */
-  Cardinality getCardinality(TypeNode t) const;
-
   //---------------------------- function values
   /** Does this model have terms for the given uninterpreted function? */
   bool hasUfTerms(Node f) const;
@@ -337,6 +334,22 @@ class TheoryModel : protected EnvObj
   bool isValue(TNode node) const;
 
  protected:
+  /**
+   * Get cardinality for sort, where t is an uninterpreted sort.
+   * @param t The sort.
+   * @return the cardinality of the sort, which is the number of representatives
+   * for that sort, or 1 if none exist.
+   */
+  size_t getCardinality(const TypeNode& t) const;
+  /**
+   * Assign that n is the representative of the equivalence class r.
+   * @param r The equivalence class
+   * @param n Its assigned representative
+   * @param isFinal Whether the assignment is final, which impacts whether
+   * we additionally assign function definitions if we are higher-order and
+   * r is a function.
+   */
+  void assignRepresentative(const Node& r, const Node& n, bool isFinal = true);
   /** Unique name of this model */
   std::string d_name;
   /** equality engine containing all known equalities/disequalities */
@@ -390,10 +403,29 @@ class TheoryModel : protected EnvObj
    * if n is a base model value.
    */
   bool isBaseModelValue(TNode n) const;
+  /** Is assignable function. This returns true if n is not a lambda. */
+  bool isAssignableUf(const Node& n) const;
+  /**
+   * Evaluate semi-evaluated term. This determines if there is a term n' that is
+   * in the equality engine of this model that is congruent to n, if so, it
+   * returns the model value of n', otherwise this returns the null term.
+   * @param n The term to evaluate. We assume it is in rewritten form and
+   * has a semi-evaluated kind (e.g. APPLY_SELECTOR).
+   * @return The entailed model value for n, if it exists.
+   */
+  Node evaluateSemiEvalTerm(TNode n) const;
+  /**
+   * @return The model values of the arguments of n.
+   */
+  std::vector<Node> getModelValueArgs(TNode n) const;
 
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node> d_modelCache;
+  /** whether we have computed d_semiEvalCache yet */
+  mutable bool d_semiEvalCacheSet;
+  /** cache used for evaluateSemiEvalTerm */
+  mutable std::unordered_map<Node, NodeTrie> d_semiEvalCache;
 
   //---------------------------- separation logic
   /** the value of the heap */
@@ -410,10 +442,11 @@ class TheoryModel : protected EnvObj
   std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
-  /** map from function terms to the (lambda) definitions
-  * After the model is built, the domain of this map is all terms of function
-  * type that appear as terms in d_equalityEngine.
-  */
+  /**
+   * Map from function terms to the (lambda) definitions
+   * After the model is built, the domain of this map is all terms of function
+   * type that appear as terms in d_equalityEngine.
+   */
   std::map<Node, Node> d_uf_models;
   //---------------------------- end function values
 };/* class TheoryModel */

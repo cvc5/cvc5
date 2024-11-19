@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Clark Barrett
+ *   Andres Noetzli, Aina Niemetz, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,14 +58,12 @@ bool childrenTypesChanged(Node n, NodeMap& cache) {
   return false;
 }
 
-
-Node intToBVMakeBinary(TNode n, NodeMap& cache)
+Node intToBVMakeBinary(NodeManager* nm, TNode n, NodeMap& cache)
 {
   for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
     Node result;
-    NodeManager* nm = NodeManager::currentNM();
     if (current.getNumChildren() == 0)
     {
       result = current;
@@ -112,10 +110,10 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(size > 0);
   AlwaysAssert(!options().base.incrementalSolving);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   NodeMap binaryCache;
-  Node n_binary = intToBVMakeBinary(n, binaryCache);
+  Node n_binary = intToBVMakeBinary(nm, n, binaryCache);
 
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))

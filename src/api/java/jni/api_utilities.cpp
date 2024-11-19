@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,8 @@
 
 #include <string>
 #include <vector>
+
+#include "api_plugin.h"
 
 jobjectArray getStringArrayFromStringVector(
     JNIEnv* env, const std::vector<std::string>& cStrings)
@@ -76,4 +78,41 @@ cvc5::Term applyOracle(JNIEnv* env,
   jlong termPointer = env->GetLongField(jTerm, pointer);
   cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
   return *term;
+}
+
+ApiManager* ApiManager::currentAM()
+{
+  static ApiManager am;
+  return &am;
+}
+
+jobject ApiManager::addGlobalReference(JNIEnv* env,
+                                       jlong pointer,
+                                       jobject object)
+{
+  jobject reference = env->NewGlobalRef(object);
+  d_globalReferences[pointer].push_back(reference);
+  return reference;
+}
+
+void ApiManager::addPluginPointer(jlong pointer, jlong pluginPointer)
+{
+  d_pluginPointers[pointer].push_back(pluginPointer);
+}
+
+void ApiManager::deletePointer(JNIEnv* env, jlong pointer)
+{
+  const std::vector<jobject>& refs = d_globalReferences[pointer];
+  for (jobject ref : refs)
+  {
+    env->DeleteGlobalRef(ref);
+  }
+  const std::vector<jlong>& pointers = d_pluginPointers[pointer];
+  for (jlong p : pointers)
+  {
+    ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
+    delete plugin;
+  }
+  d_globalReferences.erase(pointer);
+  d_pluginPointers.erase(pointer);
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Tim King
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,11 @@ enum class LemmaProperty : uint32_t
   // whether the processing of the lemma should send atoms to the caller
   SEND_ATOMS = 2,
   // whether the lemma is part of the justification for answering "sat"
-  NEEDS_JUSTIFY = 4
+  NEEDS_JUSTIFY = 4,
+  // the lemma can be inprocessed
+  INPROCESS = 8,
+  // the lemma is local to the SAT context
+  LOCAL = 16
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -49,6 +53,10 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertySendAtoms(LemmaProperty p);
 /** is the needs justify bit set on p? */
 bool isLemmaPropertyNeedsJustify(LemmaProperty p);
+/** is the inprocess bit set on p? */
+bool isLemmaPropertyInprocess(LemmaProperty p);
+/** is the local bit set on p? */
+bool isLemmaPropertyLocal(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

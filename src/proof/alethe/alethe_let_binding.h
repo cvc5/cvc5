@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ class AletheLetBinding : public LetBinding
    * @param prefix The prefix of variables to convert
    * @return the converted node.
    */
-  Node convert(Node n, const std::string& prefix);
+  Node convert(NodeManager* nm, Node n, const std::string& prefix);
 
  private:
   /** The set of terms that have already been "decleared", i.e., already had

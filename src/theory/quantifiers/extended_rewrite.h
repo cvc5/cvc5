@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,12 +52,14 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter(Rewriter& rew, bool aggr = true);
+  ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n) const;
 
  private:
+  /** Pointer to the underlying node manager */
+  NodeManager* d_nm;
   /** The underlying rewriter that we are extending  */
   Rewriter& d_rew;
   /** cache that the extended rewritten form of n is ret */

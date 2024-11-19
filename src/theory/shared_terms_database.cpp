@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -295,7 +295,7 @@ void SharedTermsDatabase::checkForConflict()
     std::vector<TNode> assumptions;
     d_equalityEngine->explainEquality(
         d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
-    Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
+    Node conflictNode = nodeManager()->mkAnd(assumptions);
     trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
   }
   d_theoryEngine->conflict(

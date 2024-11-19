@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -373,11 +373,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
     if( d_fullEffortCount%optFullCheckFrequency()==0 ){
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
-      double clSet = 0;
-      if( TraceIsOn("sg-engine") ){
-        clSet = double(clock())/double(CLOCKS_PER_SEC);
-        Trace("sg-engine") << "---Conjecture Engine Round, effort = " << e << "---" << std::endl;
-      }
+      beginCallDebug();
       eq::EqualityEngine * ee = getEqualityEngine();
       d_conj_count = 0;
 
@@ -886,13 +882,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         Trace("thm-ee") << std::endl;
       }
-      if( TraceIsOn("sg-engine") ){
-        double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-        Trace("sg-engine") << "Finished conjecture generator, time = " << (clSet2-clSet) << std::endl;
-      }
+      endCallDebug();
     }
   }
 }
+
+std::string ConjectureGenerator::identify() const { return "induction-cg"; }
 
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){
@@ -1411,7 +1406,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
   if( TraceIsOn("sg-cconj-debug") ){
-    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
+    Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substitution: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
       Assert(getRepresentative(it->second) == it->second);
       Trace("sg-cconj-debug") << "  " << it->first << " -> " << it->second << std::endl;

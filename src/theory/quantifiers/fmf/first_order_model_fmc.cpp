@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +92,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
   Node st =
       sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;
@@ -103,7 +103,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
 {
   Trace("fmc-model") << "Get function value for " << op << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode type = op.getType();
   std::vector<Node> vars;
   for (size_t i = 0, nargs = type.getNumChildren() - 1; i < nargs; i++)

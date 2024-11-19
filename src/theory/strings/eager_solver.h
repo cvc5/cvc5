@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +52,7 @@ class EagerSolver : protected EnvObj
   /** add endpoints to eqc info
    *
    * This method is called when term t is the explanation for why equivalence
-   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * class eqc may have a constant endpoint due to a concatenation term concat.
    * For example, we may call this method on:
    *   t := (str.++ x y), concat := (str.++ x y), eqc
    * for some eqc that is currently equal to t. Another example is:

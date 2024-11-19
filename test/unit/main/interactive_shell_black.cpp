@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,7 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_sin = std::make_unique<std::stringstream>();
     d_sout = std::make_unique<std::stringstream>();
 
-    d_solver.reset(new cvc5::Solver());
+    d_solver.reset(new cvc5::Solver(d_tm));
     d_solver->setOption("input-language", "smt2");
     d_cexec.reset(new main::CommandExecutor(d_solver));
   }
@@ -60,9 +60,9 @@ class TestMainBlackInteractiveShell : public TestInternal
    * Read up to maxIterations+1 from the shell and throw an assertion error if
    * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
-   * not NULL (subsequent calls to readAndExecCommands() should return NULL).
-   * E.g., "CHECKSAT;\n" may return two commands: the CHECKSAT, followed by an
-   * empty command, followed by NULL.
+   * not NULL (subsequent calls to readAndExecCommands() should return nullptr).
+   * E.g., "(check-sat)\n" may return two commands: the check-sat, followed by
+   * an empty command, followed by nullptr.
    */
   void countCommands(InteractiveShell& shell,
                      uint32_t minIterations,
@@ -84,6 +84,7 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<main::CommandExecutor> d_cexec;
+  cvc5::TermManager d_tm;
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 

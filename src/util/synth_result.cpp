@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +36,18 @@ SynthResult::Status SynthResult::getStatus() const { return d_status; }
 UnknownExplanation SynthResult::getUnknownExplanation() const
 {
   return d_unknownExplanation;
+}
+
+bool SynthResult::operator==(const SynthResult& r) const
+{
+  return d_status == r.d_status
+         && (d_status != UNKNOWN
+             || d_unknownExplanation == r.d_unknownExplanation);
+}
+
+bool SynthResult::operator!=(const SynthResult& r) const
+{
+  return !(*this == r);
 }
 
 std::string SynthResult::toString() const

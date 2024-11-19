@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -150,4 +150,19 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Result_toString(JNIEnv* env,
   Result* current = (Result*)pointer;
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Result
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Result_hashCode(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Result* result = reinterpret_cast<Result*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::Result>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

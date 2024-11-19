@@ -14,7 +14,7 @@ name   = "Printing"
 
 [[option]]
   name       = "nodeDepth"
-  category   = "expert"
+  category   = "common"
   long       = "expr-depth=N"
   type       = "int64_t"
   default    = "-1"
@@ -52,6 +52,9 @@ name   = "Printing"
 [[option.mode.DeclFun]]
   name = "decl-fun"
   help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.Datatype]]
+  name = "dt"
+  help = "print uninterpreted elements as a declare-datatype"
 [[option.mode.None]]
   name = "none"
   help = "(default) do not print declarations of uninterpreted elements in models."
@@ -63,3 +66,19 @@ name   = "Printing"
   type       = "bool"
   default    = "false"
   help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
+
+[[option]]
+  name       = "printArithLitToken"
+  category   = "expert"
+  long       = "print-arith-lit-token"
+  type       = "bool"
+  default    = "false"
+  help       = "print rationals and negative arithmetic literals as lexed tokens, e.g. 1/4, -1.5"
+
+[[option]]
+  name       = "printSkolemDefinitions"
+  category   = "expert"
+  long       = "print-skolem-definitions"
+  type       = "bool"
+  default    = "false"
+  help       = "print skolems based on their definitions e.g. @ARRAY_DIFF_N prints instead as (@array.diff A B)"

@@ -1,0 +1,118 @@
+(include "../theories/Ints.eo")
+(include "../theories/Arith.eo")
+(include "../programs/Utils.eo")
+
+; define: $arith_eval_add
+; args:
+; - x T: The first arithmetic term to add.
+; - y U: The second arithmetic term to add.
+; return: >
+;   The addition of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
+(define $arith_eval_add ((T Type :implicit) (U Type :implicit) (x T) (y U))
+  (eo::define ((xq (eo::to_q x)))
+  (eo::define ((yq (eo::to_q y)))
+    (eo::ite (eo::is_eq x xq)
+      (eo::add xq yq)
+      (eo::ite (eo::is_eq y yq)
+        (eo::add xq yq)
+        (eo::add x y)))))
+)
+
+; define: $arith_eval_sub
+; args:
+; - x T: The first arithmetic term to subtract.
+; - y U: The second arithmetic term to subtract.
+; return: >
+;   The subtraction of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
+(define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
+  ($arith_eval_add x (eo::neg y))
+)
+
+; define: $arith_eval_mul
+; args:
+; - x T: The first arithmetic term to multiply.
+; - y U: The second arithmetic term to multiply.
+; return: >
+;   The multiplication of x and y, for mixed arithmetic. Note that x and y
+;   can each be integer or real. This method returns an integer value if x and y
+;   are both integer, or a rational value otherwise.
+(define $arith_eval_mul ((T Type :implicit) (U Type :implicit) (x T) (y U))
+  (eo::define ((xq (eo::to_q x)))
+  (eo::define ((yq (eo::to_q y)))
+    (eo::ite (eo::is_eq x xq)
+      (eo::mul xq yq)
+      (eo::ite (eo::is_eq y yq)
+        (eo::mul xq yq)
+        (eo::mul x y)))))
+)
+
+; define: $arith_eval_qsub
+; args:
+; - x T: The first arithmetic term to subtract.
+; - y U: The second arithmetic term to subtract.
+; return: The subtraction of x and y as a rational.
+; note: This returns a rational value even if x and y are numeral values.
+(define $arith_eval_qsub ((U Type :implicit) (T Type :implicit) (x U) (y T))
+  (eo::add (eo::to_q x) (eo::neg (eo::to_q y)))
+)
+; define: $arith_mk_binary_minus
+; args:
+; - x T: the first term
+; - y U: the second term
+; return: The subtraction of x and y.
+; note: >
+;   This macro is necessary to use in contexts where the types of the
+;   arguments cannot be statically computed.
+(define $arith_mk_binary_minus ((T Type :implicit) (U Type :implicit) (x T) (y U)) (- x y))
+
+; program: $arith_eval_int_log_2_rec
+; args:
+; - x  Int: The term to compute the log (base 2) of, assumed to be a positive numeral value.
+; return: The log base 2 of x.
+; note: Helper method for $arith_eval_int_log_2 below.
+(program $arith_eval_int_log_2_rec ((x Int))
+  (Int) Int
+  (
+  (($arith_eval_int_log_2_rec 1) 0)
+  (($arith_eval_int_log_2_rec x) (eo::add 1 ($arith_eval_int_log_2_rec (eo::zdiv x 2))))
+  )
+)
+
+; define: $arith_eval_int_log_2
+; args:
+; - x Int: The term to compute the log (base 2) of.
+; return: >
+;   the log base 2 of x. If x is not strictly positive, we return
+;   the term (int.log2 x).
+(define $arith_eval_int_log_2 ((x Int))
+  (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
+
+; program: $arith_eval_is_pow_2_rec
+; args:
+; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
+; return: true iff x is a power of two.
+; note: Helper method for $arith_eval_is_pow_2 below.
+(program $arith_eval_is_pow_2_rec ((x Int))
+  (Int) Bool
+  (
+  (($arith_eval_is_pow_2_rec 1) true)
+  (($arith_eval_is_pow_2_rec x) (eo::ite (eo::is_eq (eo::zmod x 2) 0) 
+                                  ($arith_eval_is_pow_2_rec (eo::zdiv x 2))
+                                  false))
+  )
+)
+
+; define: $arith_eval_is_pow_2
+; args:
+; - x Int: The term to compute whether it is a power of two.
+; return: >
+;   true iff x is a power of two. If x is not a numeral value, we return
+;   the term (int.ispow2 x).
+(define $arith_eval_is_pow_2 ((x Int))
+  (eo::ite (eo::is_z x) 
+    (eo::ite (eo::is_neg x) false ($arith_eval_is_pow_2_rec x))
+    (int.ispow2 x)))

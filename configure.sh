@@ -27,6 +27,7 @@ General options;
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
   --docs                   build Api documentation
+  --docs-ga                build API documentation with Google Analytics
 
 
 Features:
@@ -45,6 +46,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --python-bindings        build Python bindings based on new C++ API
+  --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
@@ -66,6 +68,7 @@ The following flags enable optional packages (disable with --no-<option name>).
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
+  --pythonic-path=PATH     path to the Pythonic API's repository
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -91,7 +94,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 
@@ -113,6 +116,7 @@ cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
 docs=default
+docs_ga=default
 glpk=default
 gpl=default
 kissat=default
@@ -122,6 +126,8 @@ muzzle=default
 ninja=default
 profiling=default
 python_bindings=default
+python_only_src=default
+pyvenv=default
 java_bindings=default
 editline=default
 build_shared=ON
@@ -145,7 +151,19 @@ wasm_flags=""
 
 #--------------------------------------------------------------------------#
 
+uname_output=$(uname)
+
+if [[ $uname_output =~ ^MSYS || $uname_output =~ ^MINGW ]]; then
+  win64_native=ON
+fi
+
 cmake_opts=""
+
+# Set python3 interpreter executable to make sure that CMake picks up the
+# correct Python version.
+if command -v python3 &> /dev/null; then
+  cmake_opts="$cmake_opts -DPython_EXECUTABLE=$(command -v python3)"
+fi
 
 while [ $# -gt 0 ]
 do
@@ -228,6 +246,9 @@ do
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
 
+    --docs-ga) docs_ga=ON;;
+    --no-docs-ga) docs_ga=OFF;;
+
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
 
@@ -249,6 +270,9 @@ do
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
 
+    --pyvenv) pyvenv=ON;;
+    --no-pyvenv) pyvenv=OFF;;
+
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
 
@@ -260,6 +284,8 @@ do
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
+    --python-only-src) python_only_src=ON;;
+    --no-python-only-src) python_only_src=OFF;;
 
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
@@ -282,6 +308,17 @@ do
 
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
+
+    --pythonic-path) die "missing argument to $1 (try -h)" ;;
+    --pythonic-path=*)
+        pythonic_path="${1##*=}"
+        # Check if pythonic is an absolute path and if not, make it
+        # absolute.
+        case $pythonic_path in
+          /*) ;;                                    # absolute path
+          *) pythonic_path=$(pwd)/$pythonic_path ;; # make absolute path
+        esac
+        ;;
 
     --wasm) wasm=WASM ;;
     --wasm=*) wasm="${1##*=}" ;;
@@ -320,6 +357,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $auto_download != default ] \
   && cmake_opts="$cmake_opts -DENABLE_AUTO_DOWNLOAD=$auto_download"
+[ $pyvenv != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON_VENV=$pyvenv"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
@@ -360,8 +399,12 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
+[ $docs_ga != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_DOCS_GA=$docs_ga"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $python_only_src != default ] \
+  && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \
@@ -386,6 +429,8 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
+[ "$pythonic_path" != default ] \
+  && cmake_opts="$cmake_opts -DPYTHONIC_PATH=$pythonic_path"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

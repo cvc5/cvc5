@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -19,7 +19,8 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -30,27 +31,27 @@ if __name__ == "__main__":
     slv.setOption("output-language", "smt2")
 
     # Sequence sort
-    int_seq = slv.mkSequenceSort(slv.getIntegerSort())
+    int_seq = tm.mkSequenceSort(tm.getIntegerSort())
 
     # Sequence variables
-    x = slv.mkConst(int_seq, "x")
-    y = slv.mkConst(int_seq, "y")
+    x = tm.mkConst(int_seq, "x")
+    y = tm.mkConst(int_seq, "y")
 
     # Empty sequence
-    empty = slv.mkEmptySequence(slv.getIntegerSort())
+    empty = tm.mkEmptySequence(tm.getIntegerSort())
     # Sequence concatenation: x.y.empty
-    concat = slv.mkTerm(Kind.SEQ_CONCAT, x, y, empty)
+    concat = tm.mkTerm(Kind.SEQ_CONCAT, x, y, empty)
     # Sequence length: |x.y.empty|
-    concat_len = slv.mkTerm(Kind.SEQ_LENGTH, concat)
+    concat_len = tm.mkTerm(Kind.SEQ_LENGTH, concat)
     # |x.y.empty| > 1
-    formula1 = slv.mkTerm(Kind.GT, concat_len, slv.mkInteger(1))
+    formula1 = tm.mkTerm(Kind.GT, concat_len, tm.mkInteger(1))
     # Sequence unit: seq(1)
-    unit = slv.mkTerm(Kind.SEQ_UNIT, slv.mkInteger(1))
+    unit = tm.mkTerm(Kind.SEQ_UNIT, tm.mkInteger(1))
     # x = seq(1)
-    formula2 = slv.mkTerm(Kind.EQUAL, x, unit)
+    formula2 = tm.mkTerm(Kind.EQUAL, x, unit)
 
     # Make a query
-    q = slv.mkTerm(Kind.AND, formula1, formula2)
+    q = tm.mkTerm(Kind.AND, formula1, formula2)
 
     # Check satisfiability
     result = slv.checkSatAssuming(q)

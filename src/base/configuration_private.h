@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -113,6 +113,12 @@ namespace cvc5::internal {
 #else /* HAVE_LIBEDITLINE */
 #define IS_EDITLINE_BUILD false
 #endif /* HAVE_LIBEDITLINE */
+
+#if HAVE_SYS_WAIT_H
+#define IS_PORTFOLIO_BUILD true
+#else /* HAVE_SYS_WAIT_H */
+#define IS_PORTFOLIO_BUILD false
+#endif /* HAVE_SYS_WAIT_H */
 
 #if CVC5_GPL_DEPS
 #  define IS_GPL_BUILD true

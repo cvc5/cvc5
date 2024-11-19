@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Tim King
+ *   Andrew Reynolds, Mathias Preiner, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,6 +33,7 @@
 
 namespace cvc5 {
 
+class TermManager;
 class Solver;
 class Term;
 
@@ -180,9 +181,8 @@ class CVC5_EXPORT EchoCommand : public Cmd
   std::string getOutput() const;
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
-  void invoke(cvc5::Solver* solver,
-              parser::SymManager* sm,
-              std::ostream& out) override;
+  /** The result is the printed string */
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
 
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;

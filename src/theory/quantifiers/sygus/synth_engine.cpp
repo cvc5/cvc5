@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -207,14 +207,17 @@ bool SynthEngine::getSynthSolutions(
   return ret;
 }
 
-void SynthEngine::ppNotifyAssertion(Node n)
+void SynthEngine::ppNotifyAssertions(const std::vector<Node>& assertions)
 {
-  // check if it sygus conjecture
-  if (QuantAttributes::checkSygusConjecture(n))
+  for (const Node& n : assertions)
   {
-    // this is a sygus conjecture
-    Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->ppNotifyConjecture(n);
+    // check if it sygus conjecture
+    if (QuantAttributes::checkSygusConjecture(n))
+    {
+      // this is a sygus conjecture
+      Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
+      d_conj->ppNotifyConjecture(n);
+    }
   }
 }
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Makai Mann, Yoni Zohar
+ *   Andrew Reynolds, Makai Mann, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ IAndSolver::IAndSolver(Env& env,
       d_model(model),
       d_initRefine(userContext())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
   d_zero = nm->mkConstInt(Rational(0));
@@ -75,7 +75,7 @@ void IAndSolver::initLastCall(const std::vector<Node>& assertions,
 void IAndSolver::checkInitialRefine()
 {
   Trace("iand-check") << "IAndSolver::checkInitialRefine" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const std::pair<const unsigned, std::vector<Node> >& is : d_iands)
   {
     // the reference bitwidth
@@ -196,7 +196,7 @@ void IAndSolver::checkFullRefine()
 Node IAndSolver::convertToBvK(unsigned k, Node n) const
 {
   Assert(n.isConst() && n.getType().isInteger());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node iToBvOp = nm->mkConst(IntToBitVector(k));
   Node bn = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvOp, n);
   return rewrite(bn);
@@ -204,7 +204,7 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
 
 Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node iAndOp = nm->mkConst(IntAnd(k));
   Node ret = nm->mkNode(Kind::IAND, iAndOp, x, y);
   ret = rewrite(ret);
@@ -220,7 +220,7 @@ Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 
 Node IAndSolver::mkINot(unsigned k, Node x) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node ret = nm->mkNode(Kind::SUB, d_iandUtils.twoToKMinusOne(k), x);
   ret = rewrite(ret);
   return ret;
@@ -228,7 +228,7 @@ Node IAndSolver::mkINot(unsigned k, Node x) const
 
 Node IAndSolver::valueBasedLemma(Node i)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Assert(i.getKind() == Kind::IAND);
   Node x = i[0];
   Node y = i[1];
@@ -265,7 +265,7 @@ Node IAndSolver::sumBasedLemma(Node i)
   uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Assert(options().smt.BVAndIntegerGranularity <= 8);
   uint32_t granularity = static_cast<uint32_t>(options().smt.BVAndIntegerGranularity);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node lem = nm->mkNode(
       Kind::EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
   return lem;
@@ -290,7 +290,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   BitVector bvAbsI = BitVector(bvsize, absI.getNumerator());
   BitVector bvConcI = BitVector(bvsize, concI.getNumerator());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node lem = d_true;
 
   // compare each bit to bvI

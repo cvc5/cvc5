@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference
+; COMMAND-LINE: --sygus-inference=try
 (set-logic ALL)
 (declare-fun a () Real) 
 (assert (= (* a a) 1.0))

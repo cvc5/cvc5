@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +110,7 @@ QuantInfo::QuantInfo(Env& env,
       << "QCF register : " << (d_mg->isValid() ? "VALID " : "INVALID") << " : "
       << q << std::endl;
 
-  if (d_mg->isValid() && options().quantifiers.cbqiEagerCheckRd)
+  if (d_mg->isValid())
   {
     //optimization : record variable argument positions for terms that must be matched
     std::vector< TNode > vars;
@@ -707,73 +707,77 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
     // is spurious.
     return false;
   }
-  if (options().quantifiers.cbqiEagerTest)
+  EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
+  // check whether the instantiation evaluates as expected
+  std::map<TNode, TNode> subs;
+  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
   {
-    EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
-    //check whether the instantiation evaluates as expected
-    std::map<TNode, TNode> subs;
-    for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+    Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
+    subs[d_q[0][i]] = terms[i];
+  }
+  for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
+  {
+    Node n = getCurrentExpValue(d_extra_var[i]);
+    Trace("qcf-instance-check")
+        << "  " << d_extra_var[i] << " -> " << n << std::endl;
+    subs[d_extra_var[i]] = n;
+  }
+  if (d_parent->atConflictEffort())
+  {
+    Trace("qcf-instance-check")
+        << "Possible conflict instance for " << d_q << " : " << std::endl;
+    if (!echeck->isEntailed(d_q[1], subs, false, false))
     {
-      Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-      subs[d_q[0][i]] = terms[i];
+      Trace("qcf-instance-check")
+          << "...not entailed to be false." << std::endl;
+      return true;
     }
-    for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
+  }
+  else
+  {
+    // see if the body of the quantified formula evaluates to a Boolean
+    // combination of known terms under the current substitution. We use
+    // the helper method evaluateTerm from the entailment check utility.
+    Node inst_eval = echeck->evaluateTerm(
+        d_q[1], subs, false, options().quantifiers.cbqiTConstraint, true);
+    if (TraceIsOn("qcf-instance-check"))
     {
-      Node n = getCurrentExpValue(d_extra_var[i]);
       Trace("qcf-instance-check")
-          << "  " << d_extra_var[i] << " -> " << n << std::endl;
-      subs[d_extra_var[i]] = n;
+          << "Possible propagating instance for " << d_q << " : " << std::endl;
+      Trace("qcf-instance-check") << "  " << terms << std::endl;
+      Trace("qcf-instance-check")
+          << "...evaluates to " << inst_eval << std::endl;
     }
-    if (d_parent->atConflictEffort()) {
-      Trace("qcf-instance-check")
-          << "Possible conflict instance for " << d_q << " : " << std::endl;
-      if (!echeck->isEntailed(d_q[1], subs, false, false))
+    // If it is the case that instantiation can be rewritten to a Boolean
+    // combination of terms that exist in the current context, then inst_eval
+    // is non-null. Moreover, we insist that inst_eval is not true, or else
+    // the instantiation is trivially entailed and hence is spurious.
+    if (inst_eval.isNull()
+        || (inst_eval.isConst() && inst_eval.getConst<bool>()))
+    {
+      Trace("qcf-instance-check") << "...spurious." << std::endl;
+      return true;
+    }
+    else
+    {
+      if (Configuration::isDebugBuild())
       {
-        Trace("qcf-instance-check")
-            << "...not entailed to be false." << std::endl;
-        return true;
-      }
-    }else{
-      // see if the body of the quantified formula evaluates to a Boolean
-      // combination of known terms under the current substitution. We use
-      // the helper method evaluateTerm from the entailment check utility.
-      Node inst_eval = echeck->evaluateTerm(
-          d_q[1], subs, false, options().quantifiers.cbqiTConstraint, true);
-      if( TraceIsOn("qcf-instance-check") ){
-        Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
-        Trace("qcf-instance-check") << "  " << terms << std::endl;
-        Trace("qcf-instance-check")
-            << "...evaluates to " << inst_eval << std::endl;
-      }
-      // If it is the case that instantiation can be rewritten to a Boolean
-      // combination of terms that exist in the current context, then inst_eval
-      // is non-null. Moreover, we insist that inst_eval is not true, or else
-      // the instantiation is trivially entailed and hence is spurious.
-      if (inst_eval.isNull()
-          || (inst_eval.isConst() && inst_eval.getConst<bool>()))
-      {
-        Trace("qcf-instance-check") << "...spurious." << std::endl;
-        return true;
-      }else{
-        if (Configuration::isDebugBuild())
+        if (!d_parent->isPropagatingInstance(inst_eval))
         {
-          if (!d_parent->isPropagatingInstance(inst_eval))
-          {
-            // Notice that this can happen in cases where:
-            // (1) x = -1*y is rewritten to y = -1*x, and
-            // (2) -1*y is a term in the master equality engine but -1*x is not.
-            // In other words, we determined that x = -1*y is a relevant
-            // equality to propagate since it involves two known terms, but
-            // after rewriting, the equality y = -1*x involves an unknown term
-            // -1*x. In this case, the equality is still relevant to propagate,
-            // despite the above function not being precise enough to realize
-            // it. We output a warning in debug for this. See #2993.
-            Trace("qcf-instance-check")
-                << "WARNING: not propagating." << std::endl;
-          }
+          // Notice that this can happen in cases where:
+          // (1) x = -1*y is rewritten to y = -1*x, and
+          // (2) -1*y is a term in the master equality engine but -1*x is not.
+          // In other words, we determined that x = -1*y is a relevant
+          // equality to propagate since it involves two known terms, but
+          // after rewriting, the equality y = -1*x involves an unknown term
+          // -1*x. In this case, the equality is still relevant to propagate,
+          // despite the above function not being precise enough to realize
+          // it. We output a warning in debug for this. See #2993.
+          Trace("qcf-instance-check")
+              << "WARNING: not propagating." << std::endl;
         }
-        Trace("qcf-instance-check") << "...not spurious." << std::endl;
       }
+      Trace("qcf-instance-check") << "...not spurious." << std::endl;
     }
   }
   if( !d_tconstraints.empty() ){
@@ -836,7 +840,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
     doFail = true;
     success = false;
   }else{
-    if (isBaseMatchComplete() && options().quantifiers.cbqiEagerTest)
+    if (isBaseMatchComplete())
     {
       return true;
     }
@@ -903,7 +907,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }else if( children.size()==1 ){
               lhs = children[0];
             }else{
-              lhs = NodeManager::currentNM()->mkNode( k, children );
+              lhs = nodeManager()->mkNode(k, children);
             }
             Node sum;
             if( v==d_vars[index] ){
@@ -917,7 +921,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
                   kn = Kind::SUB;
                 }
                 if( kn!=k ){
-                  sum = NodeManager::currentNM()->mkNode( kn, v, lhs );
+                  sum = nodeManager()->mkNode(kn, v, lhs);
                 }
               }
             }
@@ -933,7 +937,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
             }
           }else{
             //must show that constraint is met
-            Node sum = NodeManager::currentNM()->mkNode( k, children );
+            Node sum = nodeManager()->mkNode(k, children);
             Node eq = sum.eqNode( v );
             if (!entailmentTest(eq))
             {
@@ -1457,7 +1461,7 @@ bool MatchGen::reset_round()
     {
       if (echeck->isEntailed(d_n, i == 0))
       {
-        d_ground_eval[0] = NodeManager::currentNM()->mkConst(i == 0);
+        d_ground_eval[0] = nodeManager()->mkConst(i == 0);
       }
       if (qs.isInConflict())
       {
@@ -1517,7 +1521,7 @@ void MatchGen::reset(bool tgt)
       d_child_counter = 0;
     }
   }
-  else if (d_qi->isBaseMatchComplete() && options().quantifiers.cbqiEagerTest)
+  else if (d_qi->isBaseMatchComplete())
   {
     d_use_children = false;
     d_child_counter = 0;
@@ -1542,7 +1546,7 @@ void MatchGen::reset(bool tgt)
       size_t vn = d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
       //unassigned, set match to true/false
       d_qni_bound[0] = vn;
-      d_qi->setMatch(vn, NodeManager::currentNM()->mkConst(d_tgt), false, true);
+      d_qi->setMatch(vn, nodeManager()->mkConst(d_tgt), false, true);
       d_child_counter = 0;
     }
     if( d_child_counter==0 ){
@@ -1591,7 +1595,7 @@ void MatchGen::reset(bool tgt)
       int vnn = d_qi->getVarNum(nn[0]);
       vn[0] =
           vnn == -1 ? vnn : d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
-      nn[1] = NodeManager::currentNM()->mkConst(d_tgt);
+      nn[1] = nodeManager()->mkConst(d_tgt);
       vn[1] = -1;
       d_tgt = true;
     }else{
@@ -2205,7 +2209,6 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_statistics(statisticsRegistry()),
-      d_conflict(context(), false),
       d_effort(EFFORT_INVALID)
 {
 }
@@ -2258,7 +2261,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
 //-------------------------------------------------- check function
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
-  return !d_conflict && (level == Theory::EFFORT_FULL);
+  return !d_qstate.isConflictingInst() && (level == Theory::EFFORT_FULL);
 }
 
 void QuantConflictFind::reset_round( Theory::Effort level ) {
@@ -2274,7 +2277,8 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options().quantifiers.cegqi || !TermUtil::hasInstConstAttr(r))
+      // check regardless of options
+      if (!TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }
@@ -2322,7 +2326,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     return;
   }
   Trace("qcf-check") << "QCF : check : " << level << std::endl;
-  if (d_conflict)
+  if (d_qstate.isConflictingInst())
   {
     Trace("qcf-check2") << "QCF : finished check : already in conflict."
                         << std::endl;
@@ -2334,12 +2338,11 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   unsigned addedLemmas = 0;
   ++(d_statistics.d_inst_rounds);
-  double clSet = 0;
+  beginCallDebug();
   int prevEt = 0;
   if (TraceIsOn("qcf-engine"))
   {
     prevEt = d_statistics.d_entailment_checks.get();
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
                         << "---" << std::endl;
   }
@@ -2375,7 +2378,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
       {
         // check this quantified formula
         checkQuantifiedFormula(q, isConflict, addedLemmas);
-        if (d_conflict || d_qstate.isInConflict())
+        if (d_qstate.isConflictingInst() || d_qstate.isInConflict())
         {
           break;
         }
@@ -2391,13 +2394,11 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   if (isConflict)
   {
-    d_conflict.set(true);
+    d_qstate.notifyConflictingInst();
   }
   if (TraceIsOn("qcf-engine"))
   {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qcf-engine") << "Finished conflict find engine, time = "
-                        << (clSet2 - clSet);
+    Trace("qcf-engine") << "Finished conflict find engine";
     if (addedLemmas > 0)
     {
       Trace("qcf-engine") << ", effort = "
@@ -2416,7 +2417,10 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     }
   }
   Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
+  endCallDebug();
 }
+
+std::string QuantConflictFind::identify() const { return "cbqi"; }
 
 void QuantConflictFind::checkQuantifiedFormula(Node q,
                                                bool& isConflict,
@@ -2514,6 +2518,14 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         return;
       }
       Trace("qcf-check") << "   ... Added instantiation" << std::endl;
+      if (TraceIsOn("qcf-instantiate"))
+      {
+        Trace("qcf-instantiate") << "QCF instantiation: " << q << std::endl;
+        for (const Node& t : terms)
+        {
+          Trace("qcf-instantiate") << "  " << t << std::endl;
+        }
+      }
       if (TraceIsOn("qcf-inst"))
       {
         Trace("qcf-inst") << "*** Was from effort " << d_effort << " : "
@@ -2535,7 +2547,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         }
         else
         {
-          d_conflict.set(true);
+          d_qstate.notifyConflictingInst();
         }
         return;
       }
@@ -2548,7 +2560,8 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     qi->revertMatch(assigned);
     d_tempCache.clear();
   }
-  Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
+  Trace("qcf-check") << "Done, conflict = " << d_qstate.isConflictingInst()
+                     << std::endl;
 }
 
 //-------------------------------------------------- debugging
@@ -2643,7 +2656,7 @@ TNode QuantConflictFind::getZero(TypeNode tn, Kind k)
     Node nn;
     if (k == Kind::ADD)
     {
-      nn = NodeManager::currentNM()->mkConstRealOrInt(tn, Rational(0));
+      nn = nodeManager()->mkConstRealOrInt(tn, Rational(0));
     }
     d_zero[key] = nn;
     return nn;

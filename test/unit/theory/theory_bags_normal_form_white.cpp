@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ class TestTheoryWhiteBagsNormalForm : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_rewriter.reset(new BagsRewriter(nullptr));
+    d_rewriter.reset(new BagsRewriter(d_nodeManager, nullptr));
   }
 
   std::vector<Node> getNStrings(size_t n)
@@ -137,19 +137,19 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_count)
   ASSERT_EQ(output4, rewrite(input4));
 }
 
-TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
+TEST_F(TestTheoryWhiteBagsNormalForm, setof)
 {
   // Examples
   // --------
-  // - (bag.duplicate_removal (as bag.empty (Bag String))) = (as bag.empty (Bag
+  // - (bag.setof (as bag.empty (Bag String))) = (as bag.empty (Bag
   // String))
-  // - (bag.duplicate_removal (bag "x" 4)) = (bag.empty"x" 1)
-  // - (bag.duplicate_removal (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
+  // - (bag.setof (bag "x" 4)) = (bag.empty"x" 1)
+  // - (bag.setof (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
   //     (bag.union_disjoint(bag "x" 1) (bag "y" 1)
 
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node input1 = d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, emptybag);
+  Node input1 = d_nodeManager->mkNode(Kind::BAG_SETOF, emptybag);
   Node output1 = emptybag;
   ASSERT_EQ(output1, rewrite(input1));
 
@@ -166,12 +166,12 @@ TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
   Node y_5 = d_nodeManager->mkNode(
       Kind::BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(5)));
 
-  Node input2 = d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, x_4);
+  Node input2 = d_nodeManager->mkNode(Kind::BAG_SETOF, x_4);
   Node output2 = x_1;
   ASSERT_EQ(output2, rewrite(input2));
 
   Node normalBag = d_nodeManager->mkNode(Kind::BAG_UNION_DISJOINT, x_4, y_5);
-  Node input3 = d_nodeManager->mkNode(Kind::BAG_DUPLICATE_REMOVAL, normalBag);
+  Node input3 = d_nodeManager->mkNode(Kind::BAG_SETOF, normalBag);
   Node output3 = d_nodeManager->mkNode(Kind::BAG_UNION_DISJOINT, x_1, y_1);
   ASSERT_EQ(output3, rewrite(input3));
 }
@@ -438,125 +438,5 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
   ASSERT_EQ(output3, rewrite(input3));
 }
 
-TEST_F(TestTheoryWhiteBagsNormalForm, is_singleton)
-{
-  // Examples
-  // --------
-  //  - (bag.is_singleton (as bag.empty (Bag String))) = false
-  //  - (bag.is_singleton (bag "x" 1)) = true
-  //  - (bag.is_singleton (bag "x" 4)) = false
-  //  - (bag.is_singleton (bag.union_disjoint (bag "x" 1) (bag "y" 1))) =
-  //     false
-  Node falseNode = d_nodeManager->mkConst(false);
-  Node trueNode = d_nodeManager->mkConst(true);
-  Node empty = d_nodeManager->mkConst(
-      EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node x = d_nodeManager->mkConst(String("x"));
-  Node y = d_nodeManager->mkConst(String("y"));
-  Node z = d_nodeManager->mkConst(String("z"));
-  Node x_1 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
-  Node x_4 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_1 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
-
-  Node input1 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, empty);
-  Node output1 = falseNode;
-  ASSERT_EQ(output1, rewrite(input1));
-
-  Node input2 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, x_1);
-  Node output2 = trueNode;
-  ASSERT_EQ(output2, rewrite(input2));
-
-  Node input3 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, x_4);
-  Node output3 = falseNode;
-  ASSERT_EQ(output2, rewrite(input2));
-
-  Node union_disjoint =
-      d_nodeManager->mkNode(Kind::BAG_UNION_DISJOINT, x_1, y_1);
-  Node input4 = d_nodeManager->mkNode(Kind::BAG_IS_SINGLETON, union_disjoint);
-  Node output4 = falseNode;
-  ASSERT_EQ(output3, rewrite(input3));
-}
-
-TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
-{
-  // Examples
-  // --------
-  //  - (bag.from_set (as set.empty (Bag String))) = (as bag.empty (Bag String))
-  //  - (bag.from_set (set.singleton "x")) = (bag "x" 1)
-  //  - (bag.from_set (set.union (set.singleton "x") (set.singleton "y"))) =
-  //     (bag.union_disjoint (bag "x" 1) (bag "y" 1))
-
-  Node emptyset = d_nodeManager->mkConst(
-      EmptySet(d_nodeManager->mkSetType(d_nodeManager->stringType())));
-  Node emptybag = d_nodeManager->mkConst(
-      EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node input1 = d_nodeManager->mkNode(Kind::BAG_FROM_SET, emptyset);
-  Node output1 = emptybag;
-  ASSERT_EQ(output1, rewrite(input1));
-
-  Node x = d_nodeManager->mkConst(String("x"));
-  Node y = d_nodeManager->mkConst(String("y"));
-
-  Node xSingleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, x);
-  Node ySingleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, y);
-
-  Node x_1 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(1)));
-  Node y_1 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(1)));
-
-  Node input2 = d_nodeManager->mkNode(Kind::BAG_FROM_SET, xSingleton);
-  Node output2 = x_1;
-  ASSERT_EQ(output2, rewrite(input2));
-
-  // for normal sets, the first node is the largest, not smallest
-  Node normalSet =
-      d_nodeManager->mkNode(Kind::SET_UNION, ySingleton, xSingleton);
-  Node input3 = d_nodeManager->mkNode(Kind::BAG_FROM_SET, normalSet);
-  Node output3 = d_nodeManager->mkNode(Kind::BAG_UNION_DISJOINT, x_1, y_1);
-  ASSERT_EQ(output3, rewrite(input3));
-}
-
-TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
-{
-  // Examples
-  // --------
-  //  - (bag.to_set (as bag.empty (Bag String))) = (as set.empty (Bag String))
-  //  - (bag.to_set (bag "x" 4)) = (set.singleton "x")
-  //  - (bag.to_set (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
-  //     (set.union (set.singleton "x") (set.singleton "y")))
-
-  Node emptyset = d_nodeManager->mkConst(
-      EmptySet(d_nodeManager->mkSetType(d_nodeManager->stringType())));
-  Node emptybag = d_nodeManager->mkConst(
-      EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node input1 = d_nodeManager->mkNode(Kind::BAG_TO_SET, emptybag);
-  Node output1 = emptyset;
-  ASSERT_EQ(output1, rewrite(input1));
-
-  Node x = d_nodeManager->mkConst(String("x"));
-  Node y = d_nodeManager->mkConst(String("y"));
-
-  Node xSingleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, x);
-  Node ySingleton = d_nodeManager->mkNode(Kind::SET_SINGLETON, y);
-
-  Node x_4 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, x, d_nodeManager->mkConstInt(Rational(4)));
-  Node y_5 = d_nodeManager->mkNode(
-      Kind::BAG_MAKE, y, d_nodeManager->mkConstInt(Rational(5)));
-
-  Node input2 = d_nodeManager->mkNode(Kind::BAG_TO_SET, x_4);
-  Node output2 = xSingleton;
-  ASSERT_EQ(output2, rewrite(input2));
-
-  // for normal sets, the first node is the largest, not smallest
-  Node normalBag = d_nodeManager->mkNode(Kind::BAG_UNION_DISJOINT, x_4, y_5);
-  Node input3 = d_nodeManager->mkNode(Kind::BAG_TO_SET, normalBag);
-  Node output3 = d_nodeManager->mkNode(Kind::SET_UNION, ySingleton, xSingleton);
-  ASSERT_EQ(output3, rewrite(input3));
-}
 }  // namespace test
 }  // namespace cvc5::internal

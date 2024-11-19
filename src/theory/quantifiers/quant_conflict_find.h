@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -240,7 +240,7 @@ class QuantConflictFind : public QuantifiersModule
   };
   Statistics d_statistics;
   /** Identify this module */
-  std::string identify() const override { return "QcfEngine"; }
+  std::string identify() const override;
   /** is n a propagating instance?
    *
    * A propagating instance is any formula that consists of Boolean connectives,
@@ -300,9 +300,7 @@ class QuantConflictFind : public QuantifiersModule
   /** Map from quantified formulas to their info class to compute instances */
   std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
-  std::map<TypeNode, std::vector<TNode> > d_eqcs;
-  /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
+  std::map<TypeNode, std::vector<TNode>> d_eqcs;
   /** Zeros for (type, kind) pairs */
   std::map<std::pair<TypeNode, Kind>, Node> d_zero;
   // for storing nodes created during t-constraint solving (prevents memory

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,8 +33,8 @@ JustificationStrategy::JustificationStrategy(Env& env,
           context(),
           options()
               .decision.jhRlvOrder),  // assertions are user-context dependent
-      d_skolemAssertions(
-          context(), context()),  // skolem assertions are SAT-context dependent
+      d_localAssertions(
+          context(), context()),  // local assertions are SAT-context dependent
       d_jcache(context(), ss, cs),
       d_stack(context()),
       d_lastDecisionLit(context()),
@@ -55,7 +55,7 @@ void JustificationStrategy::presolve()
   d_currStatusDec = false;
   // reset the dynamic assertion list data
   d_assertions.presolve();
-  d_skolemAssertions.presolve();
+  d_localAssertions.presolve();
   // clear the stack
   d_stack.clear();
 }
@@ -449,47 +449,25 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
+void JustificationStrategy::addAssertions(const std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
-  if (skolem.isNull())
-  {
-    std::vector<TNode> toProcess{lem};
-    insertToAssertionList(toProcess, false);
-  }
-  else if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
-  {
-    // just add to main assertions list
-    std::vector<TNode> toProcess;
-    toProcess.push_back(lem);
-    insertToAssertionList(toProcess, false);
-  }
-}
-bool JustificationStrategy::needsActiveSkolemDefs() const
-{
-  return d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT;
+  Trace("jh-assert") << "addAssertions " << lems << std::endl;
+  insertToAssertionList(lems, false);
 }
 
-void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
-  {
-    // assertion processed makes all skolems in assertion active,
-    // which triggers their definitions to becoming relevant
-    insertToAssertionList(defs, true);
-    // NOTE: if we had a notifyAsserted callback, we could update tracking
-    // triggers, pop stack to where a child implied that a node on the current
-    // stack is justified.
-  }
+  Trace("jh-assert") << "addLocalAssertions: " << lems << std::endl;
+  insertToAssertionList(lems, true);
 }
 
-void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
-                                                  bool useSkolemList)
+void JustificationStrategy::insertToAssertionList(const std::vector<TNode>& lems,
+                                                  bool local)
 {
-  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
+  std::vector<TNode> toProcess(lems.begin(), lems.end());
+  AssertionList& al = local ? d_localAssertions : d_assertions;
   IntStat& sizeStat =
-      useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
+      local ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
   // always miniscope AND and negated OR immediately
   size_t index = 0;
   // must keep some intermediate nodes below around for ref counting
@@ -565,10 +543,10 @@ bool JustificationStrategy::refreshCurrentAssertion()
   return refreshCurrentAssertionFromList(!skFirst);
 }
 
-bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
+bool JustificationStrategy::refreshCurrentAssertionFromList(bool local)
 {
-  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
-  bool doWatchStatus = !useSkolemList;
+  AssertionList& al = local ? d_localAssertions : d_assertions;
+  bool doWatchStatus = !local;
   d_currUnderStatus = Node::null();
   TNode curr = al.getNextAssertion();
   SatValue currValue;

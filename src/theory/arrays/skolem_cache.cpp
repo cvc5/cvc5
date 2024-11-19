@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ typedef expr::Attribute<EqRangeVarAttributeId, Node> EqRangeVarAttribute;
 
 SkolemCache::SkolemCache() {}
 
-Node SkolemCache::getExtIndexSkolem(Node deq)
+Node SkolemCache::getExtIndexSkolem(NodeManager* nm, Node deq)
 {
   Assert(deq.getKind() == Kind::NOT && deq[0].getKind() == Kind::EQUAL);
   Node a = deq[0][0];
@@ -45,15 +45,14 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
   Assert(b.getType() == a.getType());
 
   // make the skolem, which is deterministic for a,b.
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  return sm->mkSkolemFunction(
-      SkolemFunId::ARRAY_DEQ_DIFF, a.getType().getArrayIndexType(), {a, b});
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkSkolemFunction(SkolemId::ARRAY_DEQ_DIFF, {a, b});
 }
 
-Node SkolemCache::getEqRangeVar(TNode eqr)
+Node SkolemCache::getEqRangeVar(NodeManager* nm, TNode eqr)
 {
   Assert(eqr.getKind() == Kind::EQ_RANGE);
-  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<EqRangeVarAttribute>(eqr, eqr[2].getType());
 }
 

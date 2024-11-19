@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tianyi Liang
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +36,8 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflict(InferenceId::UNKNOWN),
       d_modelCons(nullptr)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_false = nodeManager()->mkConst(false);
 }
 
 SolverState::~SolverState()
@@ -85,7 +85,7 @@ Node SolverState::getLengthExp(Node t,
   // if we are minimizing explanations
   if (minExp)
   {
-    Node lt = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, te);
+    Node lt = nodeManager()->mkNode(Kind::STRING_LENGTH, te);
     lt = rewrite(lt);
     if (hasTerm(lt))
     {
@@ -111,8 +111,7 @@ Node SolverState::getLengthExp(Node t,
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return rewrite(
-      NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, lengthTerm));
+  return rewrite(nodeManager()->mkNode(Kind::STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
@@ -128,7 +127,7 @@ Node SolverState::explainNonEmpty(Node s)
   {
     return s.eqNode(emp).negate();
   }
-  Node sLen = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, s);
+  Node sLen = nodeManager()->mkNode(Kind::STRING_LENGTH, s);
   sLen = rewrite(sLen);
   if (areDisequal(sLen, d_zero))
   {

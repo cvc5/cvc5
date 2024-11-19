@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,7 +114,9 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     // failed to rewrite, we add a trust step which assumes eq is provable
     // from proven, and proceed as normal.
     Trace("trust-subs") << "...failed to rewrite " << proven << std::endl;
-    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {proven}, {}, eq);
+    Node seq = proven.eqNode(eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_EQ, {}, {}, seq);
+    d_tspb->addStep(ProofRule::EQ_RESOLVE, {proven, seq}, {}, eq);
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -276,7 +278,7 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
     csubsChildren.push_back(d_tsubs[i].getProven());
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
-  Node cs = NodeManager::currentNM()->mkAnd(csubsChildren);
+  Node cs = nodeManager()->mkAnd(csubsChildren);
   if (cs.getKind() == Kind::AND)
   {
     d_subsPg->addStep(cs, ProofRule::AND_INTRO, csubsChildren, {});

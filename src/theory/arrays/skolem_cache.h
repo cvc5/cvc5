@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,14 +41,14 @@ class SkolemCache
    * This skolem is unique for deq, calling this method will always return the
    * same skolem over the lifetime of deq.
    */
-  static Node getExtIndexSkolem(Node deq);
+  static Node getExtIndexSkolem(NodeManager* nm, Node deq);
 
   /**
    * Get the bound variable for given EQ_RANGE operator. This bound variable
    * is unique for `eqr`. Calling this method will always return the same bound
    * variable over the lifetime of `eqr`.
    */
-  static Node getEqRangeVar(TNode eqr);
+  static Node getEqRangeVar(NodeManager* nm, TNode eqr);
 };
 
 }  // namespace arrays

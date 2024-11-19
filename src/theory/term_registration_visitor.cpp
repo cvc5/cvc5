@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,11 +87,9 @@ PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Trace("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
-
-  if ((parent.isClosure() || parent.getKind() == Kind::SEP_STAR
-       || parent.getKind() == Kind::SEP_WAND
-       || (parent.getKind() == Kind::SEP_LABEL
-           && current.getType().isBoolean()))
+  Kind k = parent.getKind();
+  if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
+       || (k == Kind::SEP_LABEL && current.getType().isBoolean()))
       && current != parent)
   {
     Trace("register::internal") << "quantifier:true" << std::endl;
@@ -229,11 +227,9 @@ std::string SharedTermsVisitor::toString() const {
 bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   Trace("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
-
-  if ((parent.isClosure() || parent.getKind() == Kind::SEP_STAR
-       || parent.getKind() == Kind::SEP_WAND
-       || (parent.getKind() == Kind::SEP_LABEL
-           && current.getType().isBoolean()))
+  Kind k = parent.getKind();
+  if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
+       || (k == Kind::SEP_LABEL && current.getType().isBoolean()))
       && current != parent)
   {
     Trace("register::internal") << "quantifier:true" << std::endl;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,16 @@ DTypeSelector::DTypeSelector(std::string name, Node selector, Node updater)
   Assert(name != "");
 }
 
-const std::string& DTypeSelector::getName() const { return d_name; }
+std::string DTypeSelector::getName() const
+{
+  // may have a null byte at the end for self selectors, cut off
+  size_t pos = d_name.find('\0');
+  if (pos != std::string::npos)
+  {
+    return d_name.substr(0, pos);
+  }
+  return d_name;
+}
 
 Node DTypeSelector::getSelector() const
 {
@@ -90,3 +99,11 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
 }
 
 }  // namespace cvc5::internal
+
+namespace std {
+size_t hash<cvc5::internal::DTypeSelector>::operator()(
+    const cvc5::internal::DTypeSelector& sel) const
+{
+  return std::hash<std::string>()(sel.getName());
+}
+}  // namespace std

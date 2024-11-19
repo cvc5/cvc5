@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Alex Ozdemir
+#   Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,21 +18,22 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     slv.setOption("produce-models", "true")
-    F = slv.mkFiniteFieldSort("5")
-    a = slv.mkConst(F, "a")
-    b = slv.mkConst(F, "b")
+    F = tm.mkFiniteFieldSort("5")
+    a = tm.mkConst(F, "a")
+    b = tm.mkConst(F, "b")
 
-    inv = slv.mkTerm(
+    inv = tm.mkTerm(
         Kind.EQUAL,
-        slv.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
-        slv.mkFiniteFieldElem("1", F),
+        tm.mkTerm(Kind.FINITE_FIELD_MULT, a, b),
+        tm.mkFiniteFieldElem("1", F),
     )
-    aIsTwo = slv.mkTerm(
+    aIsTwo = tm.mkTerm(
         Kind.EQUAL,
         a,
-        slv.mkFiniteFieldElem("2", F),
+        tm.mkFiniteFieldElem("2", F),
     )
     # ab - 1 = 0
     slv.assertFormula(inv)
@@ -45,10 +46,10 @@ if __name__ == "__main__":
     print(slv.getValue(a).toPythonObj())
     assert slv.getValue(b).toPythonObj() == -2
 
-    bIsTwo = slv.mkTerm(
+    bIsTwo = tm.mkTerm(
         Kind.EQUAL,
         b,
-        slv.mkFiniteFieldElem("2", F),
+        tm.mkFiniteFieldElem("2", F),
     )
 
     # b = 2

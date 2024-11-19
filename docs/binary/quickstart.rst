@@ -2,7 +2,7 @@ Quickstart Guide
 ================
 
 The primary input language for cvc5 is
-`SMT-LIB v2 <http://smtlib.cs.uiowa.edu/language.shtml>`_.
+`SMT-LIB v2 <http://smt-lib.org/language.shtml>`_.
 We give a short explanation of the SMT-LIB v2 quickstart
 example here.
 

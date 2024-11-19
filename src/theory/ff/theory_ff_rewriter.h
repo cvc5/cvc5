@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@ namespace ff {
 class TheoryFiniteFieldsRewriter : public TheoryRewriter
 {
  public:
+  TheoryFiniteFieldsRewriter(NodeManager* nm);
   /**
    * Rewrite a node into the normal form for the theory of ff.
    * Called in post-order (really reverse-topological order) when
@@ -73,6 +74,27 @@ class TheoryFiniteFieldsRewriter : public TheoryRewriter
    * implementation here can do nothing.
    */
   RewriteResponse preRewrite(TNode node) override;
+
+ private:
+  /** Make n-ary node */
+  Node mkNary(Kind k, std::vector<Node>&& children);
+  /** Parse as a product with a constant scalar
+   *
+   *  If there is no constant scalar, returns a 1.
+   */
+  std::pair<Node, FiniteFieldValue> parseScalar(TNode t);
+  /** preRewrite negation */
+  Node preRewriteFfNeg(TNode t);
+  /** preRewrite addition */
+  Node preRewriteFfAdd(TNode t);
+  /** postRewrite addition */
+  Node postRewriteFfAdd(TNode t);
+  /** preRewrite multiplication */
+  Node preRewriteFfMult(TNode t);
+  /** postRewrite multiplication */
+  Node postRewriteFfMult(TNode t);
+  /** postRewrite equality */
+  Node postRewriteFfEq(TNode t);
 }; /* class TheoryFiniteFieldsRewriter */
 
 }  // namespace ff

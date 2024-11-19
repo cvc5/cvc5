@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,6 +102,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::POP_TOK: o << "POP_TOK"; break;
     case Token::PUSH_TOK: o << "PUSH_TOK"; break;
     case Token::QUOTED_SYMBOL: o << "QUOTED_SYMBOL"; break;
+    case Token::RATIONAL_LITERAL: o << "RATIONAL_LITERAL"; break;
     case Token::RESET_ASSERTIONS_TOK: o << "RESET_ASSERTIONS_TOK"; break;
     case Token::RESET_TOK: o << "RESET_TOK"; break;
     case Token::RPAREN_TOK: o << "RPAREN_TOK"; break;

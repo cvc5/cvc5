@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -102,14 +102,24 @@ class Trigger : protected EnvObj
   friend class IMGenerator;
 
  public:
-  /** trigger constructor */
+  /** trigger constructor
+   *
+   * @param env Reference to the environment.
+   * @param qs Reference to quantifiers state.
+   * @param qr Reference to quantifiers registry.
+   * @param tr Reference to term registry.
+   * @param q The quantified formula this is a trigger for.
+   * @param node The nodes comprising the trigger.
+   * @param isUser Whether this was a user trigger (for output trace).
+   */
   Trigger(Env& env,
           QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
           QuantifiersRegistry& qr,
           TermRegistry& tr,
           Node q,
-          std::vector<Node>& nodes);
+          std::vector<Node>& nodes,
+          bool isUser = false);
   virtual ~Trigger();
   /** get the generator associated with this trigger */
   IMGenerator* getGenerator() { return d_mg; }

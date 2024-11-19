@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,6 +139,31 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
   std::string d_name;
   /** the literal to decide on */
   Node d_literal;
+};
+
+/**
+ * Special case of above where we only wish to allocate a (dynamic) vector
+ * of literals.
+ */
+class DecisionStrategyVector : public DecisionStrategyFmf
+{
+ public:
+  DecisionStrategyVector(Env& env, const char* name, Valuation valuation);
+  /**
+   * Make the n^th literal of this strategy. This method returns d_literal if
+   * n=0, null otherwise.
+   */
+  Node mkLiteral(unsigned n) override;
+  /** identify */
+  std::string identify() const override { return d_name; }
+  /** Add that literal n should be decided after the current list of literals */
+  void addLiteral(const Node& n);
+
+ private:
+  /** the name of this strategy */
+  std::string d_name;
+  /** the literal to decide on */
+  std::vector<Node> d_literals;
 };
 
 }  // namespace theory

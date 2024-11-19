@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,11 +33,11 @@ class TheoryEngine;
 
 namespace theory {
 
-class QuantifiersModule;
 class RepSetIterator;
 
 namespace quantifiers {
 
+class QuantifiersModule;
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -185,7 +185,7 @@ class QuantifiersEngine : protected EnvObj
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
-  std::vector<QuantifiersModule*> d_modules;
+  std::vector<quantifiers::QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& d_qreg;

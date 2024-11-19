@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -464,12 +464,7 @@ AttributeManager::setAttribute(NodeValue* nv,
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
                                               NodeValue* nv) {
-  // This cannot use nv as anything other than a pointer!
-  const uint64_t last = attr::LastAttributeId<T>::getId();
-  for (uint64_t id = 0; id < last; ++id)
-  {
-    table.erase(std::make_pair(id, nv));
-  }
+    table.eraseBy(nv);
 }
 
 /** Remove all attributes from the table. */
@@ -506,9 +501,7 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
     uint64_t id = (*it).first.first;
 
     if(std::binary_search(begin_ids, end_ids, id)){
-      tmp = it;
-      ++it;
-      table.erase(tmp);
+      it = table.erase(it);
     }else{
       ++it;
     }

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -28,7 +28,7 @@ ExternalProject_Add(
   EXCLUDE_FROM_ALL ON
   ${COMMON_EP_CONFIG}
   URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
-  URL_HASH SHA1=176e325344a94250c4f4f6df3a9d2d01d6529a26
+  URL_HASH SHA256=b3ae1042ff9887d91db1eee990c32be5cbebe809e0350f8b3b3e334a4c6bd0d9
   SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
   CMAKE_ARGS
     -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/

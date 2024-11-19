@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 #include "expr/nary_term_util.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -36,7 +38,7 @@ using IsListAttr = expr::Attribute<IsListTag, bool>;
 
 void markListVar(TNode fv)
 {
-  Assert(fv.getKind() == Kind::BOUND_VARIABLE);
+  Assert(fv.isVar());
   fv.setAttribute(IsListAttr(), true);
 }
 
@@ -68,11 +70,11 @@ bool hasListVar(TNode n)
   return false;
 }
 
-bool getListVarContext(TNode n, std::map<Node, Kind>& context)
+bool getListVarContext(TNode n, std::map<Node, Node>& context)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
-  std::map<Node, Kind>::iterator itc;
+  std::map<Node, Node>::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -96,9 +98,9 @@ bool getListVarContext(TNode n, std::map<Node, Kind>& context)
           itc = context.find(cn);
           if (itc == context.end())
           {
-            context[cn] = cur.getKind();
+            context[cn] = cur;
           }
-          else if (itc->second != cur.getKind())
+          else if (itc->second.getKind() != cur.getKind())
           {
             return false;
           }
@@ -172,6 +174,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
         nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       }
       break;
+    case Kind::BITVECTOR_CONCAT:
+    {
+      nullTerm = nm->getSkolemManager()->mkSkolemFunction(SkolemId::BV_EMPTY);
+    }
+    break;
     case Kind::FINITE_FIELD_ADD:
       if (tn.isFiniteField())
       {
@@ -195,9 +202,17 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs)
 {
+  std::unordered_map<TNode, Node> visited;
+  return narySubstitute(src, vars, subs, visited);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited)
+{
   // assumes all variables are list variables
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   std::vector<Node>::const_iterator itv;
@@ -209,6 +224,12 @@ Node narySubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!expr::hasBoundVar(cur))
+      {
+        visited[cur] = cur;
+        visit.pop_back();
+        continue;
+      }
       // if it is a non-list variable, do the replacement
       itv = std::find(vars.begin(), vars.end(), cur);
       if (itv != vars.end())
@@ -295,6 +316,127 @@ Node narySubstitute(Node src,
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
+}
+
+bool isAssocCommIdem(Kind k)
+{
+  switch (k)
+  {
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::SEP_STAR:
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::FINITE_FIELD_ADD:
+    case Kind::FINITE_FIELD_MULT: return true;
+    default: break;
+  }
+  return false;
+}
+
+bool isAssoc(Kind k)
+{
+  switch (k)
+  {
+    case Kind::STRING_CONCAT:
+    case Kind::REGEXP_CONCAT: return true;
+    default: break;
+  }
+  // also return true for the operators listed above
+  return isAssocCommIdem(k);
+}
+
+struct NormalFormTag
+{
+};
+using NormalFormAttr = expr::Attribute<NormalFormTag, Node>;
+
+Node getACINormalForm(Node a)
+{
+  NormalFormAttr nfa;
+  Node an = a.getAttribute(nfa);
+  if (!an.isNull())
+  {
+    // already computed
+    return an;
+  }
+  Kind k = a.getKind();
+  bool aci = isAssocCommIdem(k);
+  if (!aci && !isAssoc(k))
+  {
+    // not associative, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  TypeNode atn = a.getType();
+  Node nt = getNullTerminator(k, atn);
+  if (nt.isNull())
+  {
+    // no null terminator, likely abstract type, return self
+    a.setAttribute(nfa, a);
+    return a;
+  }
+  std::vector<Node> toProcess;
+  toProcess.insert(toProcess.end(), a.rbegin(), a.rend());
+  std::vector<Node> children;
+  Node cur;
+  do
+  {
+    cur = toProcess.back();
+    toProcess.pop_back();
+    if (cur == nt)
+    {
+      // ignore null terminator (which is the neutral element)
+      continue;
+    }
+    else if (cur.getKind() == k)
+    {
+      // flatten
+      toProcess.insert(toProcess.end(), cur.rbegin(), cur.rend());
+    }
+    else if (!aci
+             || std::find(children.begin(), children.end(), cur)
+                    == children.end())
+    {
+      // add to final children if not idempotent or if not a duplicate
+      children.push_back(cur);
+    }
+  } while (!toProcess.empty());
+  if (aci)
+  {
+    // sort if commutative
+    std::sort(children.begin(), children.end());
+  }
+  an = children.empty() ? nt
+                        : (children.size() == 1
+                               ? children[0]
+                               : NodeManager::currentNM()->mkNode(k, children));
+  a.setAttribute(nfa, an);
+  return an;
+}
+
+bool isACINorm(Node a, Node b)
+{
+  Node an = getACINormalForm(a);
+  Node bn = getACINormalForm(b);
+  if (a.getKind() == b.getKind())
+  {
+    // if the kinds are equal, we compare their normal forms only, as the checks
+    // below are spurious.
+    return (an == bn);
+  }
+  // note we compare three possibilities, to handle cases like
+  //   (or (and A B) false) == (and A B).
+  //
+  // Note that we do *not* succeed if an==bn here, since this depends on the
+  // chosen ordering. For example, if (or (and A B) false) == (and B A),
+  // we get a normal form of (and A B) for the LHS. The normal form of the
+  // RHS is either (and A B) or (and B A). If we succeeded when an==bn,
+  // then this would only be the case if the former was chosen as a normal
+  // form. Instead, both fail.
+  return (a == bn) || (an == b);
 }
 
 }  // namespace expr

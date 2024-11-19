@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,10 +34,21 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics);
+  SequencesRewriter(NodeManager* nm,
+                    Rewriter* r,
+                    HistogramStat<Rewrite>* statistics);
   /** The underlying entailment utilities */
   ArithEntail& getArithEntail();
   StringsEntail& getStringsEntail();
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
  protected:
   /** rewrite regular expression all
@@ -128,6 +139,25 @@ class SequencesRewriter : public TheoryRewriter
    * by this function for debugging.
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
+  //-------------------- ProofRewriteRule
+  /** Rewrite based on RE_LOOP_ELIM */
+  Node rewriteViaReLoopElim(const Node& n);
+  /** Rewrite based on RE_INTER_UNION_INCLUSION */
+  Node rewriteViaReInterUnionInclusion(const Node& n);
+  /** Rewrite based on STR_IN_RE_EVAL */
+  Node rewriteViaStrInReEval(const Node& n);
+  /** Rewrite based on STR_IN_RE_CONSUME */
+  Node rewriteViaStrInReConsume(const Node& n);
+  /** Rewrite based on STR_IN_RE_CONCAT_STAR_CHAR */
+  Node rewriteViaStrInReConcatStarChar(const Node& n);
+  /** Rewrite based on STR_IN_RE_SIGMA */
+  Node rewriteViaStrInReSigma(const Node& n);
+  /** Rewrite based on STR_IN_RE_SIGMA_STAR */
+  Node rewriteViaStrInReSigmaStar(const Node& n);
+  /** Rewrite based on MACRO_SUBSTR_STRIP_SYM_LENGTH */
+  Node rewriteViaMacroSubstrStripSymLength(const Node& n,
+                                           Rewrite& rule,
+                                           StringsEntail& sent);
 
  public:
   RewriteResponse postRewrite(TNode node) override;
@@ -296,7 +326,7 @@ class SequencesRewriter : public TheoryRewriter
    * string consisting of "A" repeated n times. Returns the null node if no such
    * string exists.
    */
-  static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
+  Node canonicalStrForSymbolicLength(Node n, TypeNode stype) const;
 
   /**
    * post-process rewrite

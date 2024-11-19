@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,9 @@ namespace theory {
 namespace booleans {
 
 TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
-    : Theory(THEORY_BOOL, env, out, valuation)
+    : Theory(THEORY_BOOL, env, out, valuation),
+      d_rewriter(nodeManager()),
+      d_checker(nodeManager())
 {
 }
 
@@ -55,7 +57,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     if (in[0].isVar())
     {
       outSubstitutions.addSubstitutionSolved(
-          in[0], NodeManager::currentNM()->mkConst<bool>(false), tin);
+          in[0], nodeManager()->mkConst<bool>(false), tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
     else if (in[0].getKind() == Kind::EQUAL && in[0][0].getType().isBoolean())
@@ -76,7 +78,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   else if (in.isVar())
   {
     outSubstitutions.addSubstitutionSolved(
-        in, NodeManager::currentNM()->mkConst<bool>(true), tin);
+        in, nodeManager()->mkConst<bool>(true), tin);
     return PP_ASSERT_STATUS_SOLVED;
   }
 

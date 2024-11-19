@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_rewriter(env.getRewriter(),
+      d_rewriter(env.getNodeManager(),
+                 env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
@@ -67,7 +68,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
       // the checker depends on the cardinality of the alphabet
-      d_checker(d_termReg.getAlphabetCardinality()),
+      d_checker(nodeManager(), d_termReg.getAlphabetCardinality()),
       d_bsolver(env, d_state, d_im, d_termReg),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(env,
@@ -103,11 +104,11 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_termReg.finishInit(&d_im);
 
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_neg_one = nodeManager()->mkConstInt(Rational(-1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
@@ -175,7 +176,7 @@ void TheoryStrings::finishInit()
   d_valuation.setIrrelevantKind(Kind::STRING_IN_REGEXP);
   d_valuation.setIrrelevantKind(Kind::STRING_LEQ);
   // seq nth doesn't always evaluate
-  d_valuation.setUnevaluatedKind(Kind::SEQ_NTH);
+  d_valuation.setSemiEvaluatedKind(Kind::SEQ_NTH);
 }
 
 std::string TheoryStrings::identify() const
@@ -323,7 +324,7 @@ bool TheoryStrings::collectModelInfoType(
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
@@ -787,7 +788,7 @@ bool TheoryStrings::collectModelInfoType(
 
 Node TheoryStrings::mkSkeletonFor(Node c)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   TypeNode tn = c.getType();
@@ -814,7 +815,7 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
 {
   Assert(nextIndex > currIndex);
   Assert(!r.isNull());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode tn = r.getType();
   std::vector<Node> skChildren;
@@ -826,8 +827,8 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
     for (size_t i = currIndex; i < nextIndex; i++)
     {
       cacheVals[1] = nm->mkConstInt(Rational(i));
-      Node kv = sm->mkSkolemFunction(
-          SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+      Node kv = sm->mkInternalSkolemFunction(
+          InternalSkolemId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
       skChildren.push_back(utils::mkUnit(tn, kv));
     }
   }
@@ -1122,53 +1123,15 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   Kind ak = atom.getKind();
   if (ak == Kind::STRING_FROM_CODE)
   {
-    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemCache* sc = d_termReg.getSkolemCache();
-    Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
-    Node t = atom[0];
-    Node card = nm->mkConstInt(Rational(d_termReg.getAlphabetCardinality()));
-    Node cond = nm->mkNode(Kind::AND,
-                           nm->mkNode(Kind::LEQ, d_zero, t),
-                           nm->mkNode(Kind::LT, t, card));
-    Node emp = Word::mkEmptyWord(atom.getType());
-    Node pred = nm->mkNode(Kind::ITE,
-                           cond,
-                           t.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
-                           k.eqNode(emp));
-    TrustNode tnk = TrustNode::mkTrustLemma(pred);
-    lems.push_back(SkolemLemma(tnk, k));
+    // for the sake of proofs, we use the eager reduction utility
+    Node k = nodeManager()->getSkolemManager()->mkPurifySkolem(atom);
+    TrustNode lemma = d_termReg.eagerReduceTrusted(atom);
+    lems.push_back(SkolemLemma(lemma, k));
+    // We rewrite the term to its purify variable, which can be justified
+    // trivially.
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
-  if (options().strings.stringsCodeElim)
-  {
-    if (ak == Kind::STRING_TO_CODE)
-    {
-      // If we are eliminating code, convert it to nth.
-      // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
-      NodeManager* nm = NodeManager::currentNM();
-      Node t = atom[0];
-      Node cond =
-          nm->mkNode(Kind::EQUAL, nm->mkNode(Kind::STRING_LENGTH, t), d_one);
-      Node ret = nm->mkNode(
-          Kind::ITE, cond, nm->mkNode(Kind::SEQ_NTH, t, d_zero), d_neg_one);
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-    }
-  }
-  else if (ak == Kind::SEQ_NTH && atom[0].getType().isString())
-  {
-    // If we are not eliminating code, we are eliminating nth (over strings);
-    // convert it to code.
-    // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
-    NodeManager* nm = NodeManager::currentNM();
-    Node ret = nm->mkNode(Kind::STRING_TO_CODE,
-                          nm->mkNode(Kind::STRING_SUBSTR,
-                                     atom[0],
-                                     atom[1],
-                                     nm->mkConstInt(Rational(1))));
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-  }
-  else if (ak == Kind::REGEXP_RANGE)
+  if (ak == Kind::REGEXP_RANGE)
   {
     for (const Node& nc : atom)
     {

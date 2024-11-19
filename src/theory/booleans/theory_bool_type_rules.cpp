@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace boolean {
 
+bool isMaybeBoolean(const TypeNode& tn)
+{
+  return tn.isBoolean() || tn.isFullyAbstract();
+}
+
 TypeNode BooleanTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return nm->booleanType();
@@ -35,14 +40,14 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   {
     for (const auto& child : n)
     {
-      if (!child.getType(check).isBoolean())
+      TypeNode tc = child.getTypeOrNull();
+      if (!isMaybeBoolean(tc))
       {
-        Trace("pb") << "failed type checking: " << child << std::endl;
-        Trace("pb") << "  integer: " << child.getType(check).isInteger()
-                    << std::endl;
-        Trace("pb") << "  real: " << child.getType(check).isReal() << std::endl;
-        throw TypeCheckingExceptionPrivate(n,
-                                           "expecting a Boolean subexpression");
+        if (errOut)
+        {
+          (*errOut) << "expecting a Boolean subexpression";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -58,26 +63,35 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
                                   bool check,
                                   std::ostream* errOut)
 {
-  TypeNode thenType = n[1].getType(check);
+  TypeNode thenType = n[1].getTypeOrNull();
+  TypeNode elseType = n[2].getTypeOrNull();
+  TypeNode resType = thenType.leastUpperBound(elseType);
+  if (resType.isNull())
+  {
+    if (errOut)
+    {
+      (*errOut) << "Branches of the ITE must have comparable type." << std::endl
+                << "then branch: " << n[1] << std::endl
+                << "its type   : " << thenType << std::endl
+                << "else branch: " << n[2] << std::endl
+                << "its type   : " << elseType << std::endl;
+    }
+    return TypeNode::null();
+  }
   if (check)
   {
-    TypeNode elseType = n[2].getType(check);
-    if (thenType != elseType)
+    TypeNode condType = n[0].getTypeOrNull();
+    TypeNode booleanType = nodeManager->booleanType();
+    if (!isMaybeBoolean(condType))
     {
-      std::stringstream ss;
-      ss << "Branches of the ITE must have the same type." << std::endl
-         << "then branch: " << n[1] << std::endl
-         << "its type   : " << thenType << std::endl
-         << "else branch: " << n[2] << std::endl
-         << "its type   : " << elseType << std::endl;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-    if (!n[0].getType(check).isBoolean())
-    {
-      throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
+      if (errOut)
+      {
+        (*errOut) << "condition of ITE is not Boolean";
+      }
+      return TypeNode::null();
     }
   }
-  return thenType;
+  return resType;
 }
 
 }  // namespace boolean

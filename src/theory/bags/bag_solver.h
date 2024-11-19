@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ class BagSolver : protected EnvObj
   /**
    * apply inference rules for basic bag operators without quantifiers:
    * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
-   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_SETOF
    */
   void checkBasicOperations();
 
@@ -95,7 +95,7 @@ class BagSolver : protected EnvObj
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const Node& n);
   /** apply inference rules for duplicate removal operator */
-  void checkDuplicateRemoval(Node n);
+  void checkSetof(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
   /** apply inference rules for disequal bag terms */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 std::vector<Node>& var_eq,
                                 bool beneathMult)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   if (beneathMult)
   {
@@ -125,16 +125,19 @@ PreprocessingPassResult NlExtPurify::applyInternal(
     Node ap = purifyNlTerms(a, cache, bcache, var_eq);
     if (a != ap)
     {
-      assertionsToPreprocess->replace(i, ap);
+      assertionsToPreprocess->replace(
+          i, ap, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY);
       Trace("nl-ext-purify")
           << "Purify : " << a << " -> " << (*assertionsToPreprocess)[i] << "\n";
     }
   }
   if (!var_eq.empty())
   {
-    unsigned lastIndex = size - 1;
-    Node veq = NodeManager::currentNM()->mkAnd(var_eq);
-    assertionsToPreprocess->conjoin(lastIndex, veq);
+    for (const Node& ve : var_eq)
+    {
+      assertionsToPreprocess->push_back(
+          ve, false, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY_LEMMA);
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

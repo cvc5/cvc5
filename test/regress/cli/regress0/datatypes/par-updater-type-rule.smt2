@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alf
+; DISABLE-TESTER: cpc
 (set-option :global-declarations true)
 (set-logic ALL)
 (set-info :status unsat)

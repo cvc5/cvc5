@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -322,8 +322,8 @@ Node buildRealEquality(Sum&& sum)
   lhs = ensureReal(lhs);
   Node rhs = collectSum(sum);
   rhs = ensureReal(rhs);
-  Assert(lhs.getType().isReal() && !lhs.getType().isInteger());
-  Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
+  Assert(lhs.getType().isReal() || lhs.getType().isFullyAbstract());
+  Assert(rhs.getType().isReal() || rhs.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 

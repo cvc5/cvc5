@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ void SynthConjectureProcessFun::init(Node f)
     TypeNode atn = argTypes[j];
     std::stringstream ss;
     ss << "a" << j;
-    Node k = NodeManager::currentNM()->mkBoundVar(ss.str(), atn);
+    Node k = nodeManager()->mkBoundVar(ss.str(), atn);
     d_arg_vars.push_back(k);
     d_arg_var_num[k] = j;
     d_arg_props.push_back(SynthConjectureProcessArg());
@@ -154,7 +154,7 @@ Node SynthConjectureProcessFun::inferDefinition(
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        ret = nodeManager()->mkNode(cur.getKind(), children);
       }
       visited[cur] = ret;
     }
@@ -710,13 +710,13 @@ Node SynthConjectureProcess::SynthConjectureProcess::flatten(
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        ret = nodeManager()->mkNode(cur.getKind(), children);
       }
       // is it the function to synthesize?
       if (cur.getKind() == Kind::APPLY_UF && cur.getOperator() == f)
       {
         // if so, flatten
-        Node k = NodeManager::currentNM()->mkBoundVar("vf", cur.getType());
+        Node k = nodeManager()->mkBoundVar("vf", cur.getType());
         defs[k] = ret;
         ret = k;
         synth_fv.insert(k);

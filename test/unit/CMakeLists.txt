@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -38,7 +38,7 @@ add_custom_target(units
   DEPENDS build-units)
 
 set(CVC5_UNIT_TEST_FLAGS_BLACK
-  -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST)
+  -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST -Dcvc5_obj_EXPORTS)
 
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)
@@ -82,7 +82,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     else()
       set(test_name unit/${output_dir}/${name})
     endif()
-    add_test(${test_name} ${test_bin_dir}/${name})
+    add_test(${test_name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
     set_tests_properties(${test_name} PROPERTIES LABELS "unit")
     # set_tests_properties(${test_name} PROPERTIES FIXTURES_REQUIRED build_units_fixture)
   endif()

@@ -3,49 +3,154 @@ on:
     types: [published]
   schedule:
     - cron: '0 1 * * *'
+  workflow_dispatch:
 
 name: PyPi packaging
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
-
+  build_wheels:
+    name: ${{ matrix.name }}${{ matrix.gpl && ' (GPL)' || '' }}
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
+    strategy:
+      matrix:
+        name:
+          - manylinux-x86_64
+          - manylinux-aarch64
+          - macos-x86_64
+          - macos-arm64
+          - windows-x86_64
+        gpl: [false, true]
+        include:
+          - name: manylinux-x86_64
+            os: ubuntu-latest
+            arch: x86_64
+            shell: bash
+          - name: manylinux-aarch64
+            os: ubuntu-latest
+            arch: aarch64
+            shell: bash
+          - name: macos-x86_64
+            os: macos-13
+            macos-target: 10.13
+            shell: bash
+          - name: macos-arm64
+            os: macos-14
+            macos-target: 11
+            shell: bash
+          - name: windows-x86_64
+            os: windows-latest
+            shell: 'msys2 {0}'
+        exclude:
+          - name: windows-x86_64
+            gpl: true
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
-      if: runner.os == 'Linux'
-      with:
-        with-documentation: false
-        with-python-bindings: false
-        with-python-packaging: true
-
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
+    # Required by PEP-668
+    - name: Set up Python virtual environment
       if: runner.os == 'macOS'
-      with:
-        with-documentation: false
-        with-python-bindings: true
-        with-python-packaging: true
+      run: |
+        python3 -m venv ~/.venv
+        echo "$HOME/.venv/bin" >> $GITHUB_PATH
 
-    - name: Setup caches
-      uses: ./.github/actions/setup-cache
+    # cibuildwheel only supports arm64 Linux wheels through emulation.
+    # It works fine, but it is slow. Cross-compilation is not supported yet,
+    # see: https://github.com/pypa/cibuildwheel/issues/598
+    - name: Set up QEMU for arm64 Linux builds
+      if: runner.os == 'Linux' && matrix.arch == 'aarch64'
+      uses: docker/setup-qemu-action@v3
       with:
-        cache-key: cvc5-pypi
+        platforms: "linux/arm64"
 
-    - name: Package PyPi wheel packages
-      uses: ./.github/actions/package-python-wheel
+    - uses: msys2/setup-msys2@v2
+      if: runner.os == 'Windows'
       with:
-        upload-to-pypi: ${{ github.event_name == 'release' }}
-        upload-to-test-pypi: false
-        test-pypi-token: ${{ secrets.PYPI_TOKEN }}
-        pypi-token: ${{ secrets.PYPI_TOKEN }}
+        msystem: mingw64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-gmp
 
+    # cibuildwheel requires pyproject.toml to be present from the beginning
+    - name: Create pyproject.toml
+      run: |
+        echo "::group::Create pyproject.toml"
+        mkdir -p build/src/api/python
+        if [ "${{ matrix.gpl }}" == "true" ]; then
+          sed -e 's/^name="cvc5"$/name="cvc5-gpl"/' \
+              -e 's/^license = {text = "/license = {text = "GPL-2.0-or-later AND GPL-3.0-or-later AND /' \
+              ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
+        else
+          cp src/api/python/pyproject.toml build/src/api/python/
+        fi
+        echo "::endgroup::"
+
+    - name: Store MinGW64 path
+      if: runner.os == 'Windows'
+      id: mingw64-path
+      shell: msys2 {0}
+      run: echo "bin=$(cygpath -m $(dirname $(which gcc)))" >> $GITHUB_OUTPUT
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.17.0
+      with:
+        package-dir: ./build/src/api/python/
+      env:
+        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
+        CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
+        CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
+        CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}
+        CIBW_BEFORE_ALL_WINDOWS: msys2 -c "./contrib/cibw/before_all_windows.sh ${{ matrix.gpl }}"
+        # Use delvewheel on windows
+        CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
+        CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+          delvewheel repair -w {dest_dir} {wheel} --add-path "${{ github.workspace }}\install\bin;${{ steps.mingw64-path.outputs.bin }}"
+        CIBW_ENVIRONMENT_LINUX: >
+          LD_LIBRARY_PATH="$(pwd)/install/lib64:$LD_LIBRARY_PATH"
+        CIBW_ENVIRONMENT_MACOS: >
+          DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
+          MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: wheels-${{ matrix.name }}
+    #     path: ./wheelhouse/*.whl
+
+    - name: Install software for publishing the wheels
+      run: |
+        python3 -m pip install twine
+
+    - name: Upload wheels to pypi.org
+      if: ${{ github.event_name == 'release' }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        echo "::group::Upload to pypi.org"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine upload $wheel
+        done
+        echo "::endgroup::"
+
+    - name: Upload wheels to test.pypi.org
+      if: false
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        echo "::group::Upload to test.pypi.org"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine upload --repository testpypi $wheel
+        done
+        echo "::endgroup::"

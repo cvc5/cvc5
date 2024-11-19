@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Liana Hadarean, Clark Barrett
+ *   Dejan Jovanovic, Aina Niemetz, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -305,7 +305,7 @@ Node RewriteRule<SimplifyEq>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ReflexivityEq>::applies(TNode node) {
-  return (node.getKind() == Kind::EQUAL && node[0] < node[1]);
+  return (node.getKind() == Kind::EQUAL && node[0] > node[1]);
 }
 
 template<> inline

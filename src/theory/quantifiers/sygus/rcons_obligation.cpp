@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,9 +86,9 @@ void RConsObligation::printCandSols(
       Trace("sygus-rcons") << "    "
                            << datatypes::utils::sygusToBuiltin(candSol)
                            << std::endl;
-      std::unordered_set<TNode> vars;
+      std::unordered_set<Node> vars;
       expr::getVariables(candSol, vars);
-      for (TNode var : vars)
+      for (const Node& var : vars)
       {
         if (visited.find(var) == visited.cend())
           for (const std::unique_ptr<RConsObligation>& ob : obs)

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,6 +17,20 @@
 # > unit tests
 # > regression tests of levels 0 and 1
 # > api tests
+
+set(ENV_PATH_CMD )
+if(WIN32)
+  # Set up a command to add DLL library paths to PATH
+  set(ENV_PATH )
+  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src)
+  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src\\parser)
+  list(APPEND ENV_PATH ${DEPS_BASE}\\bin)
+  list(APPEND ENV_PATH $ENV{PATH})
+  # Escape semicolons and backslashes
+  string(REPLACE "\\" "\\\\" ENV_PATH "${ENV_PATH}")
+  list(JOIN ENV_PATH "\;" ENV_PATH)
+  set(ENV_PATH_CMD ${CMAKE_COMMAND} -E env "PATH=${ENV_PATH}")
+endif()
 
 add_custom_target(build-tests)
 

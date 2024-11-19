@@ -5,4 +5,4 @@
 (set-option :incremental false)
 (declare-fun x () Int)
 (assert (= (^ 3 x) 27))
-(check-sat-assuming ( (= x 3) ))
+(check-sat-assuming ( (> x 3) ))

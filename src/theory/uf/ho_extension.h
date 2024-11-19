@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -231,6 +231,8 @@ class HoExtension : protected EnvObj
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
+  /** Equalities between lambads we have already processed */
+  NodeSet d_lamEqProcessed;
 };
 
 }  // namespace uf

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,33 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   protected native void deletePointer(long pointer);
 
   // endregion
+
+  /**
+   * Syntactic equality operator.
+   *
+   * @param c The datatype constructor to compare to for equality.
+   * @return True if the datatype constructors are equal.
+   */
+  @Override
+  public boolean equals(Object c)
+  {
+    if (this == c)
+    {
+      return true;
+    }
+    if (c == null || getClass() != c.getClass())
+    {
+      return false;
+    }
+    DatatypeConstructor cons = (DatatypeConstructor) c;
+    if (this.pointer == cons.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, cons.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
 
   /** @return The name of this Datatype constructor. */
   public String getName()
@@ -203,4 +230,16 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   {
     return new ConstIterator();
   }
+
+  /**
+   * Get the hash value of a datatype constructor.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

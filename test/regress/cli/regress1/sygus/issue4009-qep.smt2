@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inference --sygus-qe-preproc -q
+; COMMAND-LINE: --sygus-inference=try --sygus-qe-preproc -q
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)

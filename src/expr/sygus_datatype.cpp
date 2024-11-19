@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,8 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // add an "any constant" proxy variable
-  Node av = sm->mkSkolemFunction(SkolemFunId::SYGUS_ANY_CONSTANT, tn);
+  Node av =
+      sm->mkInternalSkolemFunction(InternalSkolemId::SYGUS_ANY_CONSTANT, tn);
   std::stringstream ss;
   ss << getName() << "_any_constant";
   std::string cname(ss.str());

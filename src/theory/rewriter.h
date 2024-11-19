@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 #include "cvc5_private.h"
 
 #pragma once
+
+#include <cvc5/cvc5_proof_rule.h>
 
 #include "expr/node.h"
 #include "theory/theory_rewriter.h"
@@ -37,7 +39,7 @@ class Evaluator;
 class Rewriter {
   friend class cvc5::internal::Env;  // to set the resource manager
  public:
-  Rewriter();
+  Rewriter(NodeManager* nm);
 
   /**
    * Rewrites the node using theoryOf() to determine which rewriter to
@@ -99,6 +101,26 @@ class Rewriter {
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
 
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n);
+  /**
+   * Find the rewrite that proves a == b, if one exists.
+   * If none can be found, return ProofRewriteRule::NONE.
+   * @param a The left hand side of the rewrite.
+   * @param b The right hand side of the rewrite.
+   * @param ctx The context for which we are finding the rule.
+   * @return An identifier, if one exists, that rewrites a to b. In particular,
+   * the returned rule is either ProofRewriteRule::NONE or is a rule id such
+   * that rewriteViaRule(id, a) returns b.
+   */
+  ProofRewriteRule findRule(const Node& a, const Node& b, TheoryRewriteCtx ctx);
+
  private:
 
   /** Returns the appropriate cache for a node */
@@ -145,6 +167,9 @@ class Rewriter {
    * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
    */
   bool hasRewrittenWithProofs(TNode n) const;
+
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
 
   /** The resource manager, for tracking resource usage */
   ResourceManager* d_resourceManager;

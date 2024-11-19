@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -90,9 +90,9 @@ class SygusInst : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
 
   /* For collecting global terms from all available assertions. */
-  void ppNotifyAssertions(const std::vector<Node>& assertions);
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
 
-  std::string identify() const override { return "SygusInst"; }
+  std::string identify() const override;
 
  private:
   /* Lookup counterexample literal or create a new one for quantifier 'q'. */

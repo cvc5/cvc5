@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,6 +49,7 @@ class ProofNode;
 class Env;
 class UnsatCore;
 class StatisticsRegistry;
+class Plugin;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
@@ -126,7 +127,9 @@ class CVC5_EXPORT SolverEngine
    */
   bool isFullyInited() const;
   /**
-   * Return true if a checkSatisfiability() has been made.
+   * @return True if a call to check-sat or check-synth has been made and
+   * completed. Other calls (e.g., get-interpolant, get-abduct, get-qe) do not
+   * impact this, since they are handled independently via subsolvers.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
@@ -180,9 +183,15 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Set an aspect of the current SMT execution environment.
+   * @param key The option to set
+   * @param value The value to set
+   * @param fromUser Whether this option was set by the user. This impacts
+   * whether we enable checks e.g. when --safe-options is enabled.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const std::string& value);
+  void setOption(const std::string& key,
+                 const std::string& value,
+                 bool fromUser = false);
 
   /** Set is internal subsolver.
    *
@@ -476,17 +485,23 @@ class CVC5_EXPORT SolverEngine
   void declareOracleFun(
       Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn);
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Adds plugin to the theory engine of this solver engine.
    *
-   * @throw TypeCheckingException, LogicException
-   *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * @param p The plugin to add.
    */
-  Node simplify(const Node& e);
+  void addPlugin(Plugin* p);
+  /**
+   * Simplify a term or formula based on rewriting and (optionally) applying
+   * substitutions for solved variables.
+   *
+   * If applySubs is true, then for example, if `(= x 0)` was asserted to this
+   * solver, this method may replace occurrences of `x` with `0`.
+   *
+   * @param t The term to simplify.
+   * @param applySubs Whether to apply substitutions for solved variables.
+   * @return The simplified term.
+   */
+  Node simplify(const Node& e, bool applySubs);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -957,6 +972,12 @@ class CVC5_EXPORT SolverEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
+   * Get the available proof, which is that of the prop engine if SAT
+   * proof producing, or else a dummy proof SAT_REFUTATION whose assumptions
+   * are the preprocessed input formulas.
+   */
+  std::shared_ptr<ProofNode> getAvailableSatProof();
+  /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
    * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
@@ -1012,6 +1033,14 @@ class CVC5_EXPORT SolverEngine
   const Options& options() const;
 
   /**
+   * Return true if the given term is a valid closed term, which can be used as
+   * an argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @return true if n is a well formed term.
+   */
+  bool isWellFormedTerm(const Node& n) const;
+  /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
@@ -1023,25 +1052,14 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-  /**
-   * Convert preprocessed assertions to the input formulas that imply them. In
-   * detail, this converts a set of preprocessed assertions to a set of input
-   * assertions based on the proof of preprocessing. It is used for unsat cores
-   * and timeout cores.
-   *
-   * @param ppa The preprocessed assertions to convert
-   * @param isInternal Used for debug printing unsat cores, i.e. when isInternal
-   * is false, we print debug information.
-   */
-  std::vector<Node> convertPreprocessedToInput(const std::vector<Node>& ppa,
-                                               bool isInternal);
 
   /**
    * Prints a proof node using a proof format of choice.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
-                  modes::ProofFormat proofFormat);
+                  modes::ProofFormat proofFormat,
+                  const std::map<Node, std::string>& assertionNames);
 
   /* Members -------------------------------------------------------------- */
 
@@ -1107,6 +1125,15 @@ class CVC5_EXPORT SolverEngine
   LogicInfo d_userLogic;
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
+
+  /** Have we set a regular option yet? (for --safe-options) */
+  bool d_safeOptsSetRegularOption;
+  /** The regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOption;
+  /** The value of the regular option we set (for --safe-options) */
+  std::string d_safeOptsRegularOptionValue;
+  /** Was the option already the default setting */
+  bool d_safeOptsSetRegularOptionToDefault;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

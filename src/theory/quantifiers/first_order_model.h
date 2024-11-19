@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -160,6 +160,8 @@ class FirstOrderModel : protected EnvObj
  protected:
   /** Pointer to the underyling theory model */
   TheoryModel* d_model;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-SkolemCache::SkolemCache(Rewriter* rr) : d_rewriter(rr) {}
+SkolemCache::SkolemCache(NodeManager* nm, Rewriter* rr)
+    : d_nm(nm), d_rewriter(rr)
+{
+}
 
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
@@ -37,7 +40,7 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* sm = d_nm->getSkolemManager();
     Node sk;
     if (id == SkolemId::SK_PURIFY)
     {
@@ -64,7 +67,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = d_nm->getSkolemManager();
   Node n = sm->mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;

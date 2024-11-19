@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,12 +24,14 @@ import org.junit.jupiter.api.Test;
 
 class SynthResultTest
 {
+  private TermManager d_tm;
   private Solver d_solver;
 
   @BeforeEach
   void setUp()
   {
-    d_solver = new Solver();
+    d_tm = new TermManager();
+    d_solver = new Solver(d_tm);
   }
 
   @AfterEach
@@ -52,8 +54,8 @@ class SynthResultTest
   void hasSolution()
   {
     d_solver.setOption("sygus", "true");
-    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
-    Term boolTerm = d_solver.mkTrue();
+    Term f = d_solver.synthFun("f", new Term[] {}, d_tm.getBooleanSort());
+    Term boolTerm = d_tm.mkTrue();
     d_solver.addSygusConstraint(boolTerm);
     SynthResult res = d_solver.checkSynth();
     assertFalse(res.isNull());
@@ -74,13 +76,30 @@ class SynthResultTest
   void isUnknown()
   {
     d_solver.setOption("sygus", "true");
-    Term f = d_solver.synthFun("f", new Term[] {}, d_solver.getBooleanSort());
-    Term boolTerm = d_solver.mkTrue();
+    Term f = d_solver.synthFun("f", new Term[] {}, d_tm.getBooleanSort());
+    Term boolTerm = d_tm.mkTrue();
     d_solver.addSygusConstraint(boolTerm);
     SynthResult res = d_solver.checkSynth();
     assertFalse(res.isNull());
     assertTrue(res.hasSolution());
     assertFalse(res.hasNoSolution());
     assertFalse(res.isUnknown());
+  }
+
+  @Test
+  void equalHash()
+  {
+    d_solver.setOption("sygus", "true");
+    d_solver.synthFun("f", new Term[] {}, d_tm.getBooleanSort());
+    Term tfalse = d_tm.mkFalse();
+    Term ttrue = d_tm.mkTrue();
+    d_solver.addSygusConstraint(ttrue);
+    SynthResult res1 = d_solver.checkSynth();
+    d_solver.addSygusConstraint(tfalse);
+    SynthResult res2 = d_solver.checkSynth();
+    assertTrue(res1.equals(res1));
+    assertFalse(res1.equals(res2));
+    assertEquals(res1.hashCode(), res1.hashCode());
+    assertNotEquals(res1.hashCode(), res2.hashCode());
   }
 }

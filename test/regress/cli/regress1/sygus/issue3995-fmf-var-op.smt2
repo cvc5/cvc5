@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inference --fmf-bound
+; COMMAND-LINE: --sygus-inference=try --fmf-bound
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic HO_ALL)

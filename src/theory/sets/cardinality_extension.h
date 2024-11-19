@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,7 @@ namespace sets {
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
  * forms" are generated for String terms by recursively expanding
- * concatentations modulo equality. This procedure similarly maintains
+ * concatenations modulo equality. This procedure similarly maintains
  * normal forms, where the normal form for Set terms is a set of (equivalence
  * class representatives of) Venn regions that do not contain the empty set.
  */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,7 +69,7 @@ InstantiationEngine::InstantiationEngine(Env& env,
 
 InstantiationEngine::~InstantiationEngine() {}
 
-std::string InstantiationEngine::identify() const { return "InstEngine"; }
+std::string InstantiationEngine::identify() const { return "ematching"; }
 
 void InstantiationEngine::presolve() {
   for( unsigned i=0; i<d_instStrategies.size(); ++i ){
@@ -144,13 +144,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  double clSet = 0;
-  if (TraceIsOn("inst-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e
-                         << "---" << std::endl;
-  }
+  beginCallDebug();
   // collect all active quantified formulas belonging to this
   bool quantActive = false;
   d_quants.clear();
@@ -170,32 +164,13 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   Trace("inst-engine-debug") << nquant << " " << quantActive << std::endl;
   if (quantActive)
   {
-    size_t lastWaiting = d_qim.numPendingLemmas();
     doInstantiationRound(e);
-    if (d_qstate.isInConflict())
-    {
-      Assert(d_qim.numPendingLemmas() > lastWaiting);
-      Trace("inst-engine") << "Conflict, added lemmas = "
-                           << (d_qim.numPendingLemmas() - lastWaiting)
-                           << std::endl;
-    }
-    else if (d_qim.hasPendingLemma())
-    {
-      Trace("inst-engine") << "Added lemmas = "
-                           << (d_qim.numPendingLemmas() - lastWaiting)
-                           << std::endl;
-    }
   }
   else
   {
     d_quants.clear();
   }
-  if (TraceIsOn("inst-engine"))
-  {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("inst-engine") << "Finished instantiation engine, time = "
-                         << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
 }
 
 bool InstantiationEngine::checkCompleteFor( Node q ) {

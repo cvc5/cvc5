@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
+#include "prop/lemma_inprocess.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "prop/theory_preregistrar.h"
@@ -100,29 +101,18 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
-                       bool isLemma = false);
+                       bool isLemma = false,
+                       bool local = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
-  /** Notify that current propagation inserted at lower level than current.
-   *
-   * This method should be called by the SAT solver when the explanation of the
-   * current propagation is added at lower level than the current user level.
-   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
-   * this propagation should be saved in case it's needed after this user
-   * context is popped.
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause. It notifies user plugins of the added clauses.
    */
-  void notifyCurrPropagationInsertedAtLevel(int explLevel);
-  /** Notify that added clause was inserted at lower level than current.
-   *
-   * As above, but for clauses asserted into the SAT solver. This cannot be done
-   * in terms of "current added clause" because the clause added at a lower
-   * level could be for example a lemma derived at a prior moment whose
-   * assertion the SAT solver delayed.
-   */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+  void notifySatClause(const SatClause& clause);
 
   void theoryPropagate(SatClause& output);
 
@@ -215,6 +205,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get literal type using ZLL utility */
   modes::LearnedLitType getLiteralType(const Node& lit) const;
 
+  /** Inprocess lemma */
+  TrustNode inprocessLemma(TrustNode& trn);
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -226,10 +219,21 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
-   * Whether the decision engine needs notification of active skolem
-   * definitions, see DecisionEngine::needsActiveSkolemDefs.
+   * True if we need to track active skolem definitions for the preregistrar,
+   * false to track for the decision engine.
    */
   bool d_trackActiveSkDefs;
+  /**
+   * Whether the decision engine needs to track active skolem definitions as
+   * local assertions.
+   */
+  bool d_dmTrackActiveSkDefs;
+  /**
+   * Are we in solve?
+   * This is true if there was a call to presolve() after the last call to
+   * postsolve(), if any.
+   */
+  bool d_inSolve;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
@@ -245,6 +249,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+
+  /** The inprocess utility */
+  std::unique_ptr<LemmaInprocess> d_lemip;
 
   /** Preregister policy */
   std::unique_ptr<TheoryPreregistrar> d_prr;

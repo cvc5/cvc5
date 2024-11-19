@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,16 +86,20 @@ public class Result extends AbstractPointer
 
   /**
    * Operator overloading for equality of two results.
-   * @param r the result to compare to for equality
-   * @return True if the results are equal
+   * @param r The result to compare to for equality.
+   * @return True if the results are equal.
    */
   @Override
   public boolean equals(Object r)
   {
     if (this == r)
+    {
       return true;
+    }
     if (r == null || getClass() != r.getClass())
+    {
       return false;
+    }
     Result result = (Result) r;
     if (this.pointer == result.pointer)
     {
@@ -107,7 +111,8 @@ public class Result extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
-   * @return An explanation for an unknown query result.
+   * Get an explanation for an unknown query result.
+   * @return The explanation.
    */
   public UnknownExplanation getUnknownExplanation()
   {
@@ -129,4 +134,16 @@ public class Result extends AbstractPointer
    * @return A string representation of this result.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a result.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

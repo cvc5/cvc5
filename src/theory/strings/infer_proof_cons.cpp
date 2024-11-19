@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -216,6 +216,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
     case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
+    case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
     {
       if (!ps.d_children.empty())
       {
@@ -226,6 +227,23 @@ void InferProofCons::convert(InferenceId infer,
         if (psb.applyPredTransform(psrc, conc, exps))
         {
           useBuffer = true;
+        }
+        else
+        {
+          // More aggressive: lift to original form and use extended rewriting.
+          // A common case that this covers is arithmetic bound conflicts like
+          // (= (str.len @purifyN) 5) where @purifyN is the purification skolem
+          // for (str.++ "ABCDEF" x).
+          Node psrco = SkolemManager::getOriginalForm(psrc);
+          if (psb.applyPredTransform(psrco,
+                                     conc,
+                                     exps,
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_EXT_REWRITE))
+          {
+            useBuffer = psb.applyPredTransform(psrc, psrco, {});
+          }
         }
       }
       else
@@ -280,6 +298,12 @@ void InferProofCons::convert(InferenceId infer,
       // rewrite again with default rewriter
       Node mainEqSRew3 = psb.applyPredElim(mainEqSRew2, {});
       useBuffer = (mainEqSRew3 == conc);
+    }
+    break;
+    // ========================== extensionality
+    case InferenceId::STRINGS_DEQ_EXTENSIONALITY:
+    {
+      ps.d_rule = ProofRule::STRING_EXT;
     }
     break;
     // ========================== substitution+rewriting, CONCAT_EQ, ...
@@ -434,6 +458,7 @@ void InferProofCons::convert(InferenceId infer,
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
         // if it is between sequences, we require the explicit disequality
+        ProofRule r = ProofRule::CONCAT_CONFLICT;
         if (mainEqCeq[0].getType().isSequence())
         {
           Assert(t0.isConst() && s0.isConst());
@@ -442,11 +467,11 @@ void InferProofCons::convert(InferenceId infer,
           psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
           Assert(!deq.isNull());
           childrenC.push_back(deq);
+          r = ProofRule::CONCAT_CONFLICT_DEQ;
         }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node conflict =
-            psb.tryStep(ProofRule::CONCAT_CONFLICT, childrenC, argsC);
+        Node conflict = psb.tryStep(r, childrenC, argsC);
         if (conflict == conc)
         {
           useBuffer = true;
@@ -646,11 +671,20 @@ void InferProofCons::convert(InferenceId infer,
           Trace("strings-ipc-deq")
               << "...main conclusion is " << mainConc << std::endl;
           useBuffer = (mainConc == conc);
+          if (!useBuffer)
+          {
+            // Should be made equal by transformation. This step is necessary
+            // if rewriting was used to change the skolem introduced in the
+            // conclusion.
+            useBuffer = psb.applyPredTransform(mainConc, conc, {});
+          }
           Trace("strings-ipc-deq")
               << "...success is " << useBuffer << std::endl;
         }
         else
         {
+          Assert(false)
+              << "Failed to convert length " << lenReq << " " << ps.d_children;
           Trace("strings-ipc-deq") << "...fail length" << std::endl;
         }
       }
@@ -699,6 +733,7 @@ void InferProofCons::convert(InferenceId infer,
         useBuffer = true;
       }
       ProofRule r = ProofRule::UNKNOWN;
+      std::vector<Node> args;
       if (mem.isNull())
       {
         // failed to eliminate above
@@ -717,25 +752,27 @@ void InferProofCons::convert(InferenceId infer,
                && mem[0].getKind() == Kind::STRING_IN_REGEXP);
         if (mem[0][1].getKind() == Kind::REGEXP_CONCAT)
         {
-          size_t index;
-          Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], index);
+          bool isCRev;
+          Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], isCRev);
           // if we can find a fixed length for a component, use the optimized
           // version
           if (!reLen.isNull())
           {
             r = ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+            args.push_back(nm->mkConst(isCRev));
           }
         }
       }
       if (useBuffer)
       {
-        mem = psb.tryStep(r, {mem}, {});
+        mem = psb.tryStep(r, {mem}, args);
         // should match the conclusion
         useBuffer = (mem==conc);
       }
       else
       {
         ps.d_rule = r;
+        ps.d_args = args;
       }
     }
     break;
@@ -836,6 +873,7 @@ void InferProofCons::convert(InferenceId infer,
     break;
     // ========================== prefix conflict
     case InferenceId::STRINGS_PREFIX_CONFLICT:
+    case InferenceId::STRINGS_PREFIX_CONFLICT_MIN:
     {
       Trace("strings-ipc-prefix") << "Prefix conflict..." << std::endl;
       std::vector<Node> eqs;
@@ -898,13 +936,28 @@ void InferProofCons::convert(InferenceId infer,
       }
       // connect via transitivity
       Node curr = eqs[0];
+      std::vector<Node> subs;
       for (size_t i = 1, esize = eqs.size(); i < esize; i++)
       {
         Node prev = curr;
-        curr = convertTrans(curr, eqs[1], psb);
+        curr = convertTrans(curr, eqs[i], psb);
+        // if it is not a transitive step, it corresponds to a substitution
         if (curr.isNull())
         {
-          break;
+          curr = prev;
+          // This is an equality between a variable and a concatention or
+          // constant term (for example see below).
+          // orient the substitution properly
+          if (!eqs[i][1].isConst()
+              && eqs[i][1].getKind() != Kind::STRING_CONCAT)
+          {
+            subs.push_back(eqs[i][1].eqNode(eqs[i][0]));
+          }
+          else
+          {
+            subs.push_back(eqs[i]);
+          }
+          continue;
         }
         Trace("strings-ipc-prefix") << "- Via trans: " << curr << std::endl;
       }
@@ -912,14 +965,21 @@ void InferProofCons::convert(InferenceId infer,
       {
         break;
       }
+      // Substitution is applied in reverse order
+      // An example of this inference that uses a substituion is the conflict:
+      //  (str.in_re w (re.++ (re.* re.allchar) (str.to_re "ABC")))
+      //  (= w (str.++ z y x))
+      //  (= x "D")
+      // where we apply w -> (str.++ z y x), then x -> "D" to the first
+      // predicate to obtain a conflict by rewriting (predicate elim).
+      std::reverse(subs.begin(), subs.end());
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
-      std::vector<Node> emp;
       Node concE = psb.applyPredElim(curr,
-                                     emp,
+                                     subs,
                                      MethodId::SB_DEFAULT,
                                      MethodId::SBA_SEQUENTIAL,
-                                     MethodId::RW_REWRITE_EQ_EXT);
+                                     MethodId::RW_EXT_REWRITE);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)
@@ -1144,7 +1204,7 @@ Node InferProofCons::convertTrans(Node eqa,
     Node eqaSym = i == 0 ? eqa[1].eqNode(eqa[0]) : eqa;
     for (uint32_t j = 0; j < 2; j++)
     {
-      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[1]);
+      Node eqbSym = j == 0 ? eqb : eqb[1].eqNode(eqb[0]);
       if (eqa[i] == eqb[j])
       {
         std::vector<Node> children;
@@ -1207,7 +1267,7 @@ bool InferProofCons::purifyCoreSubstitutionAndTarget(
   {
     return false;
   }
-  // no need to purify, e.g. if all LHS of substituion are variables
+  // no need to purify, e.g. if all LHS of substitution are variables
   if (termsToPurify.empty())
   {
     return true;
@@ -1236,6 +1296,21 @@ bool InferProofCons::purifyCoreSubstitution(
       termsToPurify.insert(nc[0]);
     }
   }
+  // To avoid rare issues where purification variables introduced by this method
+  // already appear in the inference, we also purify them here.
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemId id;
+  Node cval;
+  for (const Node& nc : children)
+  {
+    // if this is a purification skolem of a term that is being purified,
+    // we purify this.
+    if (sm->isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
+        && termsToPurify.find(cval) != termsToPurify.end())
+    {
+      termsToPurify.insert(nc[0]);
+    }
+  }
   // now, purify each of the children of the substitution
   for (size_t i = 0, nchild = children.size(); i < nchild; i++)
   {
@@ -1259,11 +1334,12 @@ bool InferProofCons::purifyCoreSubstitution(
   return true;
 }
 
-Node InferProofCons::purifyPredicate(PurifyType pt,
-                                     Node lit,
-                                     bool concludeNew,
-                                     TheoryProofStepBuffer& psb,
-                                     std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyPredicate(
+    PurifyType pt,
+    Node lit,
+    bool concludeNew,
+    TheoryProofStepBuffer& psb,
+    const std::unordered_set<Node>& termsToPurify)
 {
   bool pol = lit.getKind() != Kind::NOT;
   Node atom = pol ? lit : lit[0];
@@ -1333,8 +1409,8 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
   return newLit;
 }
 
-Node InferProofCons::purifyCoreTerm(Node n,
-                                    std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyCoreTerm(
+    Node n, const std::unordered_set<Node>& termsToPurify)
 {
   if (n.getKind() == Kind::STRING_CONCAT)
   {
@@ -1348,7 +1424,8 @@ Node InferProofCons::purifyCoreTerm(Node n,
   return maybePurifyTerm(n, termsToPurify);
 }
 
-Node InferProofCons::purifyApp(Node n, std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::purifyApp(Node n,
+                               const std::unordered_set<Node>& termsToPurify)
 {
   if (n.getNumChildren() == 0)
   {
@@ -1362,8 +1439,8 @@ Node InferProofCons::purifyApp(Node n, std::unordered_set<Node>& termsToPurify)
   return NodeManager::currentNM()->mkNode(n.getKind(), pcs);
 }
 
-Node InferProofCons::maybePurifyTerm(Node n,
-                                     std::unordered_set<Node>& termsToPurify)
+Node InferProofCons::maybePurifyTerm(
+    Node n, const std::unordered_set<Node>& termsToPurify)
 {
   if (termsToPurify.find(n) == termsToPurify.end())
   {

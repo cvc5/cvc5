@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
     return;
   }
   Assert(q.getKind() == Kind::FORALL);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("quantifiers-engine")
       << "Instantiation constants for " << q << " : " << std::endl;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)

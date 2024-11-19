@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,6 +43,32 @@ public class SynthResult extends AbstractPointer
   }
 
   protected native void deletePointer(long pointer);
+
+  /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  @Override
+  public boolean equals(Object r)
+  {
+    if (this == r)
+    {
+      return true;
+    }
+    if (r == null || getClass() != r.getClass())
+    {
+      return false;
+    }
+    SynthResult result = (SynthResult) r;
+    if (this.pointer == result.pointer)
+    {
+      return true;
+    }
+    return equals(pointer, result.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
 
   /**
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not
@@ -90,4 +116,16 @@ public class SynthResult extends AbstractPointer
    * @return A string representation of this result.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a synthesis result.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return hashCode(pointer);
+  }
+
+  private native int hashCode(long pointer);
 }

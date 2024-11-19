@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -127,6 +127,12 @@ bool InstMatch::set(size_t i, TNode n)
   {
     // if applicable, check if the instantiation evaluator is ok
     if (!d_ieval->push(d_quant[0][i], n))
+    {
+      return false;
+    }
+    // The above checks may also have triggered a conflict due to term
+    // indexing, we fail in this case as well.
+    if (d_qs.isInConflict())
     {
       return false;
     }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +55,7 @@ class CVC5_EXPORT SymManager
   friend class cvc5::parser::Command;
 
  public:
-  SymManager(cvc5::Solver* s);
+  SymManager(cvc5::TermManager& tm);
   ~SymManager();
   /** Get the underlying symbol table */
   cvc5::internal::parser::SymbolTable* getSymbolTable();
@@ -172,11 +172,11 @@ class CVC5_EXPORT SymManager
   /**
    * @return The sorts we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Sort> getModelDeclareSorts() const;
+  std::vector<cvc5::Sort> getDeclaredSorts() const;
   /**
    * @return The terms we have declared that should be printed in the model.
    */
-  std::vector<cvc5::Term> getModelDeclareTerms() const;
+  std::vector<cvc5::Term> getDeclaredTerms() const;
   /**
    * @return The functions we have declared that should be printed in a response
    * to check-synth.
@@ -259,7 +259,7 @@ class CVC5_EXPORT SymManager
 
  private:
   /** The API Solver object. */
-  cvc5::Solver* d_solver;
+  cvc5::TermManager& d_tm;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;

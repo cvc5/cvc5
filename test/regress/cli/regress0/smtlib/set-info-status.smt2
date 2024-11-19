@@ -1,10 +1,9 @@
-; EXPECT: (error "Cannot get unsat core unless in unsat mode.")
+; EXPECT: (error "cannot get unsat core unless in unsat mode.")
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
-; EXPECT-ERROR: Expected result unsat but got sat
-; ERROR-SCRUBBER: sed -e '/Fatal failure within.*/d'
-; EXIT: -6
+; EXPECT: (error "Expected result unsat but got sat")
+; EXIT: 1
 (set-option :incremental true)
 (set-option :produce-unsat-cores true)
 (set-logic QF_BV)

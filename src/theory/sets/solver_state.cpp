@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "theory/sets/solver_state.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -35,8 +36,8 @@ SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
       d_members(env.getContext()),
       d_partElementSkolems(env.getUserContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void SolverState::reset()
@@ -70,20 +71,22 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
+  int polarityIndex = r == d_true ? 0 : (r == d_false ? 1 : -1);
   if (nk == Kind::SET_MEMBER)
   {
     if (r.isConst())
     {
       Node s = d_ee->getRepresentative(n[1]);
       Node x = d_ee->getRepresentative(n[0]);
-      int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
-      if (pindex != -1)
+      if (polarityIndex != -1)
       {
-        if (d_pol_mems[pindex][s].find(x) == d_pol_mems[pindex][s].end())
+        if (d_pol_mems[polarityIndex][s].find(x)
+            == d_pol_mems[polarityIndex][s].end())
         {
-          d_pol_mems[pindex][s][x] = n;
-          Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n
-                               << ", pindex = " << pindex << std::endl;
+          d_pol_mems[polarityIndex][s][x] = n;
+          Trace("sets-debug2")
+              << "Membership[" << x << "][" << s << "] : " << n
+              << ", polarityIndex = " << polarityIndex << std::endl;
         }
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
@@ -121,7 +124,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     else if (nk == Kind::SET_UNIVERSE)
     {
-      Assert(options().sets.setsExt);
+      Assert(options().sets.setsExp);
       d_eqc_univset[tnn] = r;
     }
     else
@@ -602,7 +605,7 @@ bool SolverState::merge(TNode t1,
       // if there is a concrete set in t1, propagate new facts or conflicts
       if (!cset.isNull())
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Assert(areEqual(m2[1], cset));
         Node exp = nm->mkNode(Kind::AND, m2[1].eqNode(cset), m2);
         if (cset.getKind() == Kind::SET_SINGLETON)

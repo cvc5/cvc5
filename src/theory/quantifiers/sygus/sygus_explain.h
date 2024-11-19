@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -207,7 +207,7 @@ class SygusExplain : protected EnvObj
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
                          Node vnr,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          unsigned& sz);
   void getExplanationFor(Node n,
                          Node vn,
@@ -218,7 +218,7 @@ class SygusExplain : protected EnvObj
                          Node vn,
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          bool strict = true);
 
  private:
@@ -234,7 +234,7 @@ class SygusExplain : protected EnvObj
                          Node n,
                          Node vn,
                          std::vector<Node>& exp,
-                         std::map<TypeNode, int>& var_count,
+                         std::map<TypeNode, size_t>& var_count,
                          SygusInvarianceTest& et,
                          Node vnr,
                          Node& vnr_exp,

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,23 +47,18 @@ class DecisionEngine : protected EnvObj
   /** Is the DecisionEngine in a state where it has solved everything? */
   virtual bool isDone() = 0;
   /**
-   * If skolem is null, notify this class that assertion is an (input)
-   * assertion, not corresponding to a skolem definition.
-   *
-   * If skolem is non-null, notify this class that lem is the skolem definition
-   * for skolem, which is a part of the current assertions.
+   * Adds assertions lems to satisfy that persist in the user context.
+   * All input assertions and relevant lemmas are added via this call.
+   * @param lems The lemmas to add.
    */
-  virtual void addAssertion(TNode lem, TNode skolem, bool isLemma) = 0;
+  virtual void addAssertions(const std::vector<TNode>& lems) = 0;
   /**
-   * Notify this class that the list of lemmas defs are now active in the
-   * current SAT context.
+   * Adds assertions lems to satisfy that persist in the SAT context.
+   * By default, only skolem definitions from input and lemmas are added via
+   * this call.
+   * @param lems The lemmas to add.
    */
-  virtual void notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
-  /**
-   * Track active skolem defs, whether we need to call the above method
-   * when appropriate.
-   */
-  virtual bool needsActiveSkolemDefs() const { return false; }
+  virtual void addLocalAssertions(const std::vector<TNode>& lems) {}
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
@@ -83,7 +78,7 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertion(TNode lem, TNode skolem, bool isLemma) override;
+  void addAssertions(const std::vector<TNode>& lems) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;

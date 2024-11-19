@@ -1,14 +1,15 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Haniel Barbosa, Andrew Reynolds, Vinícius Camillo
+#   Haniel Barbosa, Leni Aniva, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
 # #############################################################################
+
 #
 # The DSL rewrite rule compiler
 ##
@@ -18,73 +19,15 @@ import logging
 import os
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from rw_parser import Parser
 from node import *
 from util import *
 
 
 def gen_kind(op):
-    op_to_kind = {
-        Op.ITE: 'ITE',
-        Op.NOT: 'NOT',
-        Op.AND: 'AND',
-        Op.OR: 'OR',
-        Op.IMPLIES: 'IMPLIES',
-        Op.EQ: 'EQUAL',
-        Op.NEG: 'NEG',
-        Op.ADD: 'ADD',
-        Op.SUB: 'SUB',
-        Op.LAMBDA: 'LAMBDA',
-        Op.BOUND_VARS: 'BOUND_VAR_LIST',
-        Op.MULT: 'MULT',
-        Op.INT_DIV: 'INTS_DIVISION',
-        Op.DIV: 'DIVISION',
-        Op.MOD: 'INTS_MODULUS',
-        Op.ABS: 'ABS',
-        Op.LT: 'LT',
-        Op.GT: 'GT',
-        Op.LEQ: 'LEQ',
-        Op.GEQ: 'GEQ',
-        Op.STRING_CONCAT: 'STRING_CONCAT',
-        Op.STRING_IN_REGEXP: 'STRING_IN_REGEXP',
-        Op.STRING_LENGTH: 'STRING_LENGTH',
-        Op.STRING_SUBSTR: 'STRING_SUBSTR',
-        Op.STRING_UPDATE: 'STRING_UPDATE',
-        Op.STRING_AT: 'STRING_CHARAT',
-        Op.STRING_CONTAINS: 'STRING_CONTAINS',
-        Op.STRING_LT: 'STRING_LT',
-        Op.STRING_LEQ: 'STRING_LEQ',
-        Op.STRING_INDEXOF: 'STRING_INDEXOF',
-        Op.STRING_INDEXOF_RE: 'STRING_INDEXOF_RE',
-        Op.STRING_REPLACE: 'STRING_REPLACE',
-        Op.STRING_REPLACE_ALL: 'STRING_REPLACE_ALL',
-        Op.STRING_REPLACE_RE: 'STRING_REPLACE_RE',
-        Op.STRING_REPLACE_RE_ALL: 'STRING_REPLACE_RE_ALL',
-        Op.STRING_PREFIX: 'STRING_PREFIX',
-        Op.STRING_SUFFIX: 'STRING_SUFFIX',
-        Op.STRING_IS_DIGIT: 'STRING_IS_DIGIT',
-        Op.STRING_ITOS: 'STRING_ITOS',
-        Op.STRING_STOI: 'STRING_STOI',
-        Op.STRING_TO_CODE: 'STRING_TO_CODE',
-        Op.STRING_FROM_CODE: 'STRING_FROM_CODE',
-        Op.STRING_TOLOWER: 'STRING_TOLOWER',
-        Op.STRING_TOUPPER: 'STRING_TOUPPER',
-        Op.STRING_REV: 'STRING_REV',
-        Op.STRING_TO_REGEXP: 'STRING_TO_REGEXP',
-        Op.REGEXP_CONCAT: 'REGEXP_CONCAT',
-        Op.REGEXP_UNION: 'REGEXP_UNION',
-        Op.REGEXP_INTER: 'REGEXP_INTER',
-        Op.REGEXP_DIFF: 'REGEXP_DIFF',
-        Op.REGEXP_STAR: 'REGEXP_STAR',
-        Op.REGEXP_PLUS: 'REGEXP_PLUS',
-        Op.REGEXP_OPT: 'REGEXP_OPT',
-        Op.REGEXP_RANGE: 'REGEXP_RANGE',
-        Op.REGEXP_COMPLEMENT: 'REGEXP_COMPLEMENT',
-        Op.REGEXP_NONE: 'REGEXP_NONE',
-        Op.REGEXP_ALLCHAR: 'REGEXP_ALLCHAR',
-    }
-    return f'Kind::{op_to_kind[op]}'
-
+    return op.kind
 
 def gen_mk_skolem(name, sort):
     sort_code = None
@@ -96,10 +39,24 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->realType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
-    elif sort.base == BaseSort.String:
-        sort_code = 'nm->stringType()'
     elif sort.base == BaseSort.RegLan:
         sort_code = 'nm->regExpType()'
+    elif sort.base == BaseSort.String:
+        sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.AbsArray:
+        sort_code = 'nm->mkAbstractType(Kind::ARRAY_TYPE)'
+    elif sort.base == BaseSort.AbsBitVec:
+        sort_code = 'nm->mkAbstractType(Kind::BITVECTOR_TYPE)'
+    elif sort.base == BaseSort.AbsSeq:
+        sort_code = 'nm->mkAbstractType(Kind::SEQUENCE_TYPE)'
+    elif sort.base == BaseSort.AbsSet:
+        sort_code = 'nm->mkAbstractType(Kind::SET_TYPE)'
+    elif sort.base == BaseSort.AbsAbs:
+        sort_code = 'nm->mkAbstractType(Kind::ABSTRACT_TYPE)'
+    elif sort.base == BaseSort.BitVec:
+        assert len(sort.children) == 1, \
+            "BitVec parser generated an incorrect number of children"
+        sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
@@ -115,6 +72,8 @@ def gen_mk_const(expr):
         return f'String("{expr.val}")'
     elif isinstance(expr, CInt):
         return f'Rational({expr.val})'
+    elif isinstance(expr, CRational):
+        return f'internal::Rational("{expr.val}")'
     elif isinstance(expr, App):
         args = [gen_mk_const(child) for child in expr.children]
         if expr.op == Op.NEG:
@@ -126,23 +85,44 @@ def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
     elif expr.sort and expr.sort.is_const:
-        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.NEG):
-          return f'nm->mkConstRealOrInt({gen_mk_const(expr)})'
+        if isinstance(expr, CInt):
+          return f'nm->mkConstInt({gen_mk_const(expr)})'
+        elif isinstance(expr, CRational):
+          return f'nm->mkConstReal({gen_mk_const(expr)})'
+        elif isinstance(expr, App) and expr.op == Op.NEG:
+          if isinstance(expr.children[0], CInt):
+            return f'nm->mkConstInt({gen_mk_const(expr)})'
+          else:
+            return f'nm->mkConstReal({gen_mk_const(expr)})'
         else:
           return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
+        if expr.op in {Op.EXTRACT, Op.REPEAT, Op.ZERO_EXTEND,  Op.SIGN_EXTEND,
+                       Op.ROTATE_LEFT, Op.ROTATE_RIGHT, Op.INT_TO_BV, Op.REGEXP_LOOP}:
+          args = f'nm->mkConst(GenericOp(Kind::{gen_kind(expr.op)})),' + args
+          return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
+        elif expr.op in {Op.REAL_PI}:
+          return f'nm->mkNullaryOperator(nm->realType(), Kind::PI)'
+        return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
 
 def gen_rewrite_db_rule(defns, rule):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
-    fixed_point_arg = gen_mk_node(defns, rule.rhs_context) if rule.rhs_context else 'Node::null()'
-    return f'db.addRule(DslProofRule::{rule.get_enum()}, {{ {fvs_list} }}, {gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, {gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+
+    if rule.rhs_context:
+        assert rule.is_fixed_point
+        fixed_point_arg = gen_mk_node(defns, rule.rhs_context)
+    else:
+        assert not rule.is_fixed_point
+        fixed_point_arg = 'Node::null()'
+    return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+           f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
+           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
 
 
 class Rewrites:
@@ -152,27 +132,37 @@ class Rewrites:
         self.rules = rules
 
 
-def type_check(expr):
-    for child in expr.children:
-        type_check(child)
+def type_check(expr) -> bool:
+    """
+    Returns true if a const subexpression exists
+    """
+    hasConst = any([type_check(child) for child in expr.children])
 
     if isinstance(expr, CBool):
         expr.sort = Sort(BaseSort.Bool, is_const=True)
+        hasConst = True
     elif isinstance(expr, CString):
         expr.sort = Sort(BaseSort.String, is_const=True)
+        hasConst = True
     elif isinstance(expr, CInt):
         expr.sort = Sort(BaseSort.Int, is_const=True)
+        hasConst = True
+    elif isinstance(expr, CRational):
+        expr.sort = Sort(BaseSort.Real, is_const=True)
+        hasConst = True
     elif isinstance(expr, App):
         sort = None
         if expr.op == Op.NEG:
             sort = Sort(BaseSort.Int)
         elif expr.op == Op.STRING_LENGTH:
             sort = Sort(BaseSort.Int)
-
         if sort:
             sort.is_const = all(child.sort and child.sort.is_const
                                 for child in expr.children)
             expr.sort = sort
+            hasConst = sort.is_const
+
+    return hasConst
 
 
 def validate_rule(rule):
@@ -185,10 +175,6 @@ def validate_rule(rule):
             used_vars.add(curr)
         to_visit.extend(curr.children)
 
-    unused_vars = set(rule.bvars) - used_vars
-    if unused_vars:
-        die(f'Variables {unused_vars} are not matched in {rule.name}')
-
     # Check that list variables are always used within the same operators
     var_to_op = dict()
     to_visit = [rule.cond, rule.lhs, rule.rhs]
@@ -198,13 +184,18 @@ def validate_rule(rule):
             for child in curr.children:
                 if isinstance(child, Var) and child.sort.is_list:
                     if child in var_to_op and curr.op != var_to_op[child]:
-                        die(f'List variable {child.name} cannot be used in {curr.op} and {var_to_op[child]} simultaneously'
-                            )
+                        die(f'List variable {child.name} cannot be used in '
+                            f'{curr.op} and {var_to_op[child]} simultaneously')
                     var_to_op[child] = curr.op
+        elif isinstance(curr, str):
+            print(f"Unparsed string detected {curr}")
         to_visit.extend(curr.children)
 
     # Perform type checking
-    type_check(rule.lhs)
+    lhsHasConst = type_check(rule.lhs)
+    if os.getenv('CVC5_RARE_CHECK_CONST', None) is not None and lhsHasConst:
+        print(f"Warning: Rule {rule.name} has constants in its match",
+              file=sys.stderr)
     type_check(rule.rhs)
     type_check(rule.cond)
 
@@ -214,7 +205,7 @@ def preprocess_rule(rule, decls):
         return
 
     # Resolve placeholders
-    bvar = Var(fresh_name('t'), rule.rhs.sort)
+    bvar = Var(fresh_name('t'), Sort(BaseSort.AbsAbs, []))
     decls.append(bvar)
     result = dict()
     to_visit = [rule.rhs_context]
@@ -242,38 +233,54 @@ def preprocess_rule(rule, decls):
 
         to_visit.extend(curr.children)
 
-    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]), result[rule.rhs_context]])
+    rule.rhs_context = App(Op.LAMBDA, [App(Op.BOUND_VARS, [bvar]),
+                                       result[rule.rhs_context]])
     type_check(rule.rhs_context)
 
+@dataclass
+class RewriteDb:
+    name: str
+    filename: str
+    ids: list
+    printer_code: list
 
-def gen_rewrite_db(args):
+    @property
+    def function_name(self):
+        return f"addRewrites_{self.name}"
+
+
+def gen_individual_rewrite_db(rewrites_file: Path, template):
+    """
+    Create rewrite rules from one file only.
+    """
     block_tpl = '''
         {{
             // from {filename}
             {block_code}
         }}
     '''
+    # calculate the output file name
+    output_name = f"{rewrites_file.parent.name}-{rewrites_file.name}"
+    assert output_name.replace('-', '_').isidentifier(), f"{output_name} must be an identifier"
+    output_file = f"rewrites-{output_name}.cpp"
+
+    parser = Parser()
+    with open(rewrites_file, 'r') as f:
+        rules = parser.parse_rules(f.read())
+    symbols = parser.get_symbols()
 
     decls = []
-    rewrites = []
-    for rewrites_file in args.rewrites_files:
-        parser = Parser()
-        rules = parser.parse_rules(rewrites_file.read())
-        symbols = parser.get_symbols()
+    for rule in rules:
+        decls.extend(rule.bvars)
+        validate_rule(rule)
+        preprocess_rule(rule, decls)
 
-        file_decls = []
-        for rule in rules:
-            file_decls.extend(rule.bvars)
-            validate_rule(rule)
-            preprocess_rule(rule, file_decls)
-
-        rewrites.append(Rewrites(rewrites_file.name, file_decls, rules))
-        decls.extend(file_decls)
+    rewrites = Rewrites(rewrites_file, decls, rules)
 
     defns = {}
     expr_counts = defaultdict(lambda: 0)
     to_visit = [
-        expr for rewrite in rewrites for rule in rewrite.rules
+        expr for rule in rewrites.rules
         for expr in [rule.cond, rule.lhs, rule.rhs, rule.rhs_context]
     ]
     while to_visit:
@@ -300,32 +307,91 @@ def gen_rewrite_db(args):
     ids = []
     printer_code = []
     rules_code = []
-    for rewrite_file in rewrites:
-        block = []
-        for rule in rewrite_file.rules:
-            block.append(gen_rewrite_db_rule(defns, rule))
 
-            enum = rule.get_enum()
-            ids.append(enum)
-            printer_code.append(
-                f'case DslProofRule::{enum}: return "{rule.name}";')
+    block = []
+    for rule in rewrites.rules:
+        block.append(gen_rewrite_db_rule(defns, rule))
 
-        rules_code.append(
-            block_tpl.format(filename=rewrite_file.filename,
-                             block_code='\n'.join(block)))
+        enum = rule.get_enum()
+        ids.append(enum)
+        printer_code.append(
+            f'case ProofRewriteRule::{enum}: return "{rule.name}";')
 
-    rewrites_h = read_tpl(args.src_dir, 'rewrites_template.h')
-    with open('rewrites.h', 'w') as f:
-        f.write(format_cpp(rewrites_h.format(rule_ids=','.join(ids))))
+    rules_code.append(
+        block_tpl.format(filename=output_file,
+                         block_code='\n'.join(block)))
 
-    rewrites_cpp = read_tpl(args.src_dir, 'rewrites_template.cpp')
+    db = RewriteDb(
+        name=output_name.replace('-', '_'),
+        filename=output_file,
+        ids=ids,
+        printer_code=printer_code,
+    )
+    with open(output_file, 'w') as f:
+        f.write(
+            format_cpp(
+                template.format(rewrite_name=db.function_name,
+                                decls='\n'.join(decls_code),
+                                defns='\n'.join(defns_code),
+                                rules='\n'.join(rules_code))))
+    return db
+
+def gen_rewrite_db(args):
+    block_tpl = '''
+        {{
+            // from {filename}
+            {block_code}
+        }}
+    '''
+    rewriter_dir = os.path.join(args.src_dir, 'src', 'rewriter')
+    src_include_dir = os.path.join(args.src_dir, 'include', 'cvc5')
+    src_api_dir = os.path.join(args.src_dir, 'src', 'api', 'cpp')
+    bin_include_dir = os.path.join(args.bin_dir, 'include', 'cvc5')
+    bin_api_dir = os.path.join(args.bin_dir, 'src', 'api', 'cpp')
+    decls = []
+    rewrites = []
+    individual_rewrites_cpp = read_tpl(rewriter_dir, 'theory_rewrites_template.cpp')
+
+    printer_code = []
+    ids = []
+    printer_code = []
+
+    decl_individual_rewrites = []
+    call_individual_rewrites = []
+    for rewrites_file in args.rewrites_files:
+        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp)
+        ids += db.ids
+        printer_code += db.printer_code
+        decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
+        call_individual_rewrites.append(f"{db.function_name}(db);")
+
+    # Note that we manually indent by two spaces, since we do not clang-format
+    # the include file automatically.
+    def doc(rule: str):
+        rule = rule.lower().replace('_', '-')
+        return f'  /** Auto-generated from RARE rule {rule} */'
+
+    # Note that we do not automatically clang-format the API include file,
+    # since this breaks the documentation for latex formulas which require
+    # being more than 80 lines currently.
+    # The indendentation on EVALUE lines is manually set to two spaces below.
+    cvc5_proof_rule_h = read_tpl_enclosed(src_include_dir, 'cvc5_proof_rule.h')
+    with open(os.path.join(bin_include_dir, 'cvc5_proof_rule.h'), 'w') as f:
+        f.write(cvc5_proof_rule_h.format(
+            rules='\n'.join([f'{doc(id)}\n  EVALUE({id}),' for id in ids])))
+
+    cvc5_proof_rule_cpp = read_tpl(src_api_dir, 'cvc5_proof_rule_template.cpp')
+    os.makedirs(bin_api_dir, exist_ok=True)
+    with open(os.path.join(bin_api_dir, 'cvc5_proof_rule.cpp'), 'w') as f:
+        f.write(format_cpp(cvc5_proof_rule_cpp.format(
+            printer='\n'.join(printer_code))))
+
+    rewrites_cpp = read_tpl(rewriter_dir, 'rewrites_template.cpp')
     with open('rewrites.cpp', 'w') as f:
         f.write(
             format_cpp(
-                rewrites_cpp.format(decls='\n'.join(decls_code),
-                                    defns='\n'.join(defns_code),
-                                    rules='\n'.join(rules_code),
-                                    printer='\n'.join(printer_code))))
+                rewrites_cpp.format(decl_individual_rewrites='\n'.join(decl_individual_rewrites),
+                                    call_individual_rewrites='\n'.join(call_individual_rewrites))))
 
 
 def main():
@@ -334,9 +400,10 @@ def main():
 
     parser_compile = subparsers.add_parser("rewrite-db")
     parser_compile.add_argument("src_dir", help="Source directory")
+    parser_compile.add_argument("bin_dir", help="Binary directory")
     parser_compile.add_argument("rewrites_files",
                                 nargs='+',
-                                type=argparse.FileType("r"),
+                                type=str,
                                 help="Rule files")
     parser_compile.set_defaults(func=gen_rewrite_db)
 

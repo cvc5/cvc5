@@ -1,0 +1,79 @@
+; Basic rules
+
+; Note that ? is used for rules that can be used where Int/Real are
+; interchangable. This is because Int and Real are not comparable in our
+; type system.
+
+(define-rule arith-plus-zero ((t ? :list) (s ? :list)) (+ t 0 s) (+ t s))
+
+(define-rule arith-mul-one ((t ? :list) (s ? :list)) (* t 1 s) (* t s))
+(define-rule arith-mul-zero ((t ? :list) (s ? :list)) (* t 0 s) 0)
+
+(define-cond-rule arith-div-total ((t ?) (s ?)) (not (= s 0)) (/ t s) (/_total t s))
+(define-rule arith-div-total-zero ((x Real)) (/_total x 0/1) 0/1)
+
+(define-cond-rule arith-int-div-total ((t Int) (s Int)) (not (= s 0)) (div t s) (div_total t s))
+(define-rule arith-int-div-total-one ((t Int)) (div_total t 1) t)
+(define-rule arith-int-div-total-zero ((t Int)) (div_total t 0) 0)
+
+(define-cond-rule arith-int-mod-total ((t Int) (s Int)) (not (= s 0)) (mod t s) (mod_total t s))
+(define-rule arith-int-mod-total-one ((t Int)) (mod_total t 1) 0)
+(define-rule arith-int-mod-total-zero ((t Int)) (mod_total t 0) t)
+
+; Eliminations
+(define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
+(define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
+(define-rule arith-elim-int-gt ((t Int) (s Int)) (> t s) (>= t (+ s 1)))
+(define-rule arith-elim-int-lt ((t Int) (s Int)) (< t s) (>= s (+ t 1)))
+(define-rule arith-elim-leq ((t ?) (s ?)) (<= t s) (>= s t))
+
+(define-rule arith-leq-norm ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
+
+(define-rule arith-geq-tighten ((t Int) (s Int)) (not (>= t s)) (>= s (+ t 1)))
+
+(define-rule arith-geq-norm1 ((t ?) (s ?)) (>= t s) (>= (- t s) 0))
+
+(define-rule arith-geq-norm2 ((t ?) (s ?)) (>= t s) (<= (- t) (- s)))
+
+(define-rule arith-refl-leq ((t ?)) (<= t t) true)
+(define-rule arith-refl-lt ((t ?)) (< t t) false)
+(define-rule arith-refl-geq ((t ?)) (>= t t) true)
+(define-rule arith-refl-gt ((t ?)) (> t t) false)
+
+(define-rule arith-real-eq-elim ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
+(define-rule arith-int-eq-elim ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
+
+;(define-cond-rule arith-geq-contra ((t ?) (s ?)) (not (>= (- t s) 0)) (>= t s) false)
+;(define-cond-rule arith-eq-contra ((t ?) (s ?)) (not (= (- t s) 0)) (= t s) false)
+
+(define-rule* arith-plus-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
+  (+ xs (+ w ys) zs)
+  (+ xs w ys zs))
+
+(define-rule* arith-mult-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
+  (* xs (* w ys) zs)
+  (* xs w ys zs))
+
+(define-rule* arith-mult-dist ((x ?) (y ?) (z ?) (w ? :list))
+  (* x (+ y z w))
+  (+ (* x y) (* x (+ z w))))
+
+(define-rule arith-abs-elim ((x ?)) (abs x) (ite (< x 0) (- x) x))
+
+(define-rule arith-to-real-elim ((x Real)) (to_real x) x)
+(define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))
+(define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
+(define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
+
+
+; trancendentals
+
+(define-rule arith-sine-zero () (sin 0/1) 0/1)
+(define-rule arith-sine-pi2 () (sin (* 1/2 real.pi)) 1/1)
+(define-rule arith-cosine-elim ((x Real)) (cos x) (sin (- (* 1/2 real.pi) x)))
+(define-rule arith-tangent-elim ((x Real)) (tan x) (/ (sin x) (cos x)))
+(define-rule arith-secent-elim ((x Real)) (sec x) (/ 1/1 (sin x)))
+(define-rule arith-cosecent-elim ((x Real)) (csc x) (/ 1/1 (cos x)))
+(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
+
+(define-rule arith-pi-not-int () (is_int real.pi) false)

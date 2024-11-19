@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -19,7 +19,8 @@ import cvc5
 from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = cvc5.Solver()
+    tm = cvc5.TermManager()
+    slv = cvc5.Solver(tm)
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -30,58 +31,55 @@ if __name__ == "__main__":
     slv.setOption("output-language", "smt2")
 
     # String type
-    string = slv.getStringSort()
+    string = tm.getStringSort()
 
     # std::string
     str_ab = "ab"
     # String constants
-    ab  = slv.mkString(str_ab)
-    abc = slv.mkString("abc")
+    ab  = tm.mkString(str_ab)
+    abc = tm.mkString("abc")
     # String variables
-    x = slv.mkConst(string, "x")
-    y = slv.mkConst(string, "y")
-    z = slv.mkConst(string, "z")
+    x = tm.mkConst(string, "x")
+    y = tm.mkConst(string, "y")
+    z = tm.mkConst(string, "z")
 
     # String concatenation: x.ab.y
-    lhs = slv.mkTerm(Kind.STRING_CONCAT, x, ab, y)
+    lhs = tm.mkTerm(Kind.STRING_CONCAT, x, ab, y)
     # String concatenation: abc.z
-    rhs = slv.mkTerm(Kind.STRING_CONCAT, abc, z)
+    rhs = tm.mkTerm(Kind.STRING_CONCAT, abc, z)
     # x.ab.y = abc.z
-    formula1 = slv.mkTerm(Kind.EQUAL, lhs, rhs)
+    formula1 = tm.mkTerm(Kind.EQUAL, lhs, rhs)
 
     # Length of y: |y|
-    leny = slv.mkTerm(Kind.STRING_LENGTH, y)
+    leny = tm.mkTerm(Kind.STRING_LENGTH, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(Kind.GEQ, leny, slv.mkInteger(0))
+    formula2 = tm.mkTerm(Kind.GEQ, leny, tm.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
-    r = slv.mkTerm(Kind.REGEXP_UNION,
-                   slv.mkTerm(Kind.REGEXP_CONCAT,
-                              slv.mkTerm(Kind.STRING_TO_REGEXP,
-                                         slv.mkString("ab")),
-                              slv.mkTerm(Kind.REGEXP_STAR,
-                                         slv.mkTerm(Kind.REGEXP_RANGE,
-                                         slv.mkString("c"),
-                                         slv.mkString("e"))),
-                            slv.mkTerm(Kind.STRING_TO_REGEXP,
-                                       slv.mkString("f"))),
-                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("g")),
-                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("h")))
+    r = tm.mkTerm(Kind.REGEXP_UNION,
+                   tm.mkTerm(Kind.REGEXP_CONCAT,
+                              tm.mkTerm(Kind.STRING_TO_REGEXP,
+                                         tm.mkString("ab")),
+                              tm.mkTerm(Kind.REGEXP_STAR,
+                                         tm.mkTerm(Kind.REGEXP_RANGE,
+                                         tm.mkString("c"),
+                                         tm.mkString("e"))),
+                            tm.mkTerm(Kind.STRING_TO_REGEXP,
+                                       tm.mkString("f"))),
+                 tm.mkTerm(Kind.STRING_TO_REGEXP, tm.mkString("g")),
+                 tm.mkTerm(Kind.STRING_TO_REGEXP, tm.mkString("h")))
 
     # String variables
-    s1 = slv.mkConst(string, "s1")
-    s2 = slv.mkConst(string, "s2")
+    s1 = tm.mkConst(string, "s1")
+    s2 = tm.mkConst(string, "s2")
     # String concatenation: s1.s2
-    s = slv.mkTerm(Kind.STRING_CONCAT, s1, s2)
+    s = tm.mkTerm(Kind.STRING_CONCAT, s1, s2)
 
     # s1.s2 in (ab[c-e]*f)|g|h
-    formula3 = slv.mkTerm(Kind.STRING_IN_REGEXP, s, r)
+    formula3 = tm.mkTerm(Kind.STRING_IN_REGEXP, s, r)
 
     # Make a query
-    q = slv.mkTerm(Kind.AND,
-                   formula1,
-                   formula2,
-                   formula3)
+    q = tm.mkTerm(Kind.AND, formula1, formula2, formula3)
 
     # check sat
     result = slv.checkSatAssuming(q)

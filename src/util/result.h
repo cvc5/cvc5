@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,7 +72,17 @@ class Result
 
   UnknownExplanation getUnknownExplanation() const;
 
+  /**
+   * Operator overloading for equality of two results.
+   * @param r The result to compare to for equality.
+   * @return True if the results are equal.
+   */
   bool operator==(const Result& r) const;
+  /**
+   * Operator overloading for disequality of two results.
+   * @param r The result to compare to for disequality.
+   * @return True if the results are disequal.
+   */
   bool operator!=(const Result& r) const;
 
   std::string toString() const;

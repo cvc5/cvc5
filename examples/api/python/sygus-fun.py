@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,6 +21,7 @@ import utils
 from cvc5 import Kind
 
 if __name__ == "__main__":
+  tm = cvc5.TermManager()
   slv = cvc5.Solver()
 
   # required options
@@ -30,28 +31,28 @@ if __name__ == "__main__":
   # set the logic
   slv.setLogic("LIA")
 
-  integer = slv.getIntegerSort()
-  boolean = slv.getBooleanSort()
+  integer = tm.getIntegerSort()
+  boolean = tm.getBooleanSort()
 
   # declare input variables for the functions-to-synthesize
-  x = slv.mkVar(integer, "x")
-  y = slv.mkVar(integer, "y")
+  x = tm.mkVar(integer, "x")
+  y = tm.mkVar(integer, "y")
 
   # declare the grammar non-terminals
-  start = slv.mkVar(integer, "Start")
-  start_bool = slv.mkVar(boolean, "StartBool")
+  start = tm.mkVar(integer, "Start")
+  start_bool = tm.mkVar(boolean, "StartBool")
 
   # define the rules
-  zero = slv.mkInteger(0)
-  one = slv.mkInteger(1)
+  zero = tm.mkInteger(0)
+  one = tm.mkInteger(1)
 
-  plus = slv.mkTerm(Kind.ADD, start, start)
-  minus = slv.mkTerm(Kind.SUB, start, start)
-  ite = slv.mkTerm(Kind.ITE, start_bool, start, start)
+  plus = tm.mkTerm(Kind.ADD, start, start)
+  minus = tm.mkTerm(Kind.SUB, start, start)
+  ite = tm.mkTerm(Kind.ITE, start_bool, start, start)
 
-  And = slv.mkTerm(Kind.AND, start_bool, start_bool)
-  Not = slv.mkTerm(Kind.NOT, start_bool)
-  leq = slv.mkTerm(Kind.LEQ, start, start)
+  And = tm.mkTerm(Kind.AND, start_bool, start_bool)
+  Not = tm.mkTerm(Kind.NOT, start_bool)
+  leq = tm.mkTerm(Kind.LEQ, start, start)
 
   # create the grammar object
   g = slv.mkGrammar([x, y], [start, start_bool])
@@ -69,29 +70,29 @@ if __name__ == "__main__":
   varX = slv.declareSygusVar("x", integer)
   varY = slv.declareSygusVar("y", integer)
 
-  max_x_y = slv.mkTerm(Kind.APPLY_UF, max, varX, varY)
-  min_x_y = slv.mkTerm(Kind.APPLY_UF, min, varX, varY)
+  max_x_y = tm.mkTerm(Kind.APPLY_UF, max, varX, varY)
+  min_x_y = tm.mkTerm(Kind.APPLY_UF, min, varX, varY)
 
   # add semantic constraints
   # (constraint (>= (max x y) x))
-  slv.addSygusConstraint(slv.mkTerm(Kind.GEQ, max_x_y, varX))
+  slv.addSygusConstraint(tm.mkTerm(Kind.GEQ, max_x_y, varX))
 
   # (constraint (>= (max x y) y))
-  slv.addSygusConstraint(slv.mkTerm(Kind.GEQ, max_x_y, varY))
+  slv.addSygusConstraint(tm.mkTerm(Kind.GEQ, max_x_y, varY))
 
   # (constraint (or (= x (max x y))
   #                 (= y (max x y))))
-  slv.addSygusConstraint(slv.mkTerm(
+  slv.addSygusConstraint(tm.mkTerm(
       Kind.OR,
-      slv.mkTerm(Kind.EQUAL, max_x_y, varX),
-      slv.mkTerm(Kind.EQUAL, max_x_y, varY)))
+      tm.mkTerm(Kind.EQUAL, max_x_y, varX),
+      tm.mkTerm(Kind.EQUAL, max_x_y, varY)))
 
   # (constraint (= (+ (max x y) (min x y))
   #                (+ x y)))
-  slv.addSygusConstraint(slv.mkTerm(
+  slv.addSygusConstraint(tm.mkTerm(
       Kind.EQUAL,
-      slv.mkTerm(Kind.ADD, max_x_y, min_x_y),
-      slv.mkTerm(Kind.ADD, varX, varY)))
+      tm.mkTerm(Kind.ADD, max_x_y, min_x_y),
+      tm.mkTerm(Kind.ADD, varX, varY)))
 
   # print solutions if available
   if (slv.checkSynth().hasSolution()):

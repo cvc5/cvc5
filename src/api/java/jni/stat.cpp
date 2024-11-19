@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,9 +44,8 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Stat_toString(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
   Stat* current = reinterpret_cast<Stat*>(pointer);
-  std::stringstream ss;
-  ss << *current;
-  return env->NewStringUTF(ss.str().c_str());
+  std::string str = current->toString();
+  return env->NewStringUTF(str.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

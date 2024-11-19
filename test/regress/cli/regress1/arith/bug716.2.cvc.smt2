@@ -5,4 +5,4 @@
 (set-option :incremental false)
 (declare-fun x () Int)
 (assert (= (^ x 67108864) 8))
-(check-sat-assuming ( (= x 3) ))
+(check-sat-assuming ( (> x 3) ))

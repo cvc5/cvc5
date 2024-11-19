@@ -135,7 +135,7 @@ Solver::Solver(Env& env,
                cvc5::internal::prop::TheoryProxy* proxy,
                context::Context* context,
                context::UserContext* userContext,
-               ProofNodeManager* pnm,
+               PropPfManager* ppm,
                bool enableIncremental)
     : EnvObj(env),
       d_proxy(proxy),
@@ -208,9 +208,10 @@ Solver::Solver(Env& env,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-  if (pnm)
+  if (ppm)
   {
-    d_pfManager.reset(new SatProofManager(env, this, proxy->getCnfStream()));
+    d_pfManager.reset(
+        new SatProofManager(env, this, proxy->getCnfStream(), ppm));
   }
 
   // Create the constant variables
@@ -387,7 +388,7 @@ CRef Solver::reason(Var x) {
     Trace("pf::sat") << "..user level is " << userContext()->getLevel() << "\n";
     Assert(userContext()->getLevel()
            == static_cast<uint32_t>(assertionLevel + 1));
-    d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
+    d_pfManager->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
   CRef real_reason = ca.alloc(explLevel, explanation, true);
@@ -517,7 +518,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           SatClause satClause;
           MinisatSatSolver::toSatClause(ca[cr], satClause);
-          d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+          d_pfManager->notifyClauseInsertedAtLevel(satClause, clauseLevel);
         }
         if (options().smt.produceUnsatCores || needProof())
         {
@@ -556,6 +557,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           {
             d_pfManager->registerSatLitAssumption(ps[0]);
           }
+          // Call notifySatClause. This call site handles unit clauses not
+          // learned in the standard way.
+          SatClause satClause;
+          satClause.push_back(MinisatSatSolver::toSatLiteral(ps[0]));
+          d_proxy->notifySatClause(satClause);
         }
         CRef confl = propagate(CHECK_WITHOUT_THEORY);
         if (!(ok = (confl == CRef_Undef)))
@@ -1526,12 +1532,20 @@ lbool Solver::search(int nof_conflicts)
         {
           d_pfManager->endResChain(learnt_clause[0]);
         }
+        // Call notifySatClause here.
+        SatClause satClause;
+        satClause.push_back(MinisatSatSolver::toSatLiteral(learnt_clause[0]));
+        d_proxy->notifySatClause(satClause);
       }
       else
       {
         CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
                            learnt_clause,
                            true);
+        // Call notifySatClause here.
+        SatClause satClause;
+        MinisatSatSolver::toSatClause(ca[cr], satClause);
+        d_proxy->notifySatClause(satClause);
         clauses_removable.push(cr);
         attachClause(cr);
         claBumpActivity(ca[cr]);
@@ -2080,7 +2094,7 @@ CRef Solver::updateLemmas() {
         }
         SatClause satClause;
         MinisatSatSolver::toSatClause(ca[lemma_ref], satClause);
-        d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+        d_pfManager->notifyClauseInsertedAtLevel(satClause, clauseLevel);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);

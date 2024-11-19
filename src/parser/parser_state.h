@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +26,7 @@
 #include <string>
 
 #include "parser/parse_op.h"
-#include "parser/parser_exception.h"
+#include <cvc5/cvc5_parser.h>
 #include "parser/parser_utils.h"
 #include "parser/sym_manager.h"
 #include "parser/symbol_table.h"
@@ -35,6 +35,17 @@ namespace cvc5 {
 namespace parser {
 
 class Command;
+
+/**
+ * The parsing mode, defines how strict we are on accepting non-conforming
+ * inputs.
+ */
+enum class ParsingMode
+{
+  DEFAULT,  // reasonably strict
+  STRICT,   // more strict
+  LENIENT,  // less strict
+};
 
 /**
  * Callback from the parser state to the parser, for command preemption
@@ -67,16 +78,16 @@ class CVC5_EXPORT ParserState
    * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
-   * @param psc The callback for implementing parser-specific methods
-   * @param solver solver API object
-   * @param symm reference to the symbol manager
-   * @param input the parser input
-   * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param psc The callback for implementing parser-specific methods.
+   * @param solver The solver API object.
+   * @param symm The symbol manager.
+   * @param input The parser input.
+   * @param parsingMode The parsing mode.
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
               SymManager* sm,
-              bool strictMode = false);
+              ParsingMode parsingMode = ParsingMode::DEFAULT);
 
   virtual ~ParserState();
 
@@ -91,13 +102,15 @@ class CVC5_EXPORT ParserState
   void disableChecks() { d_checksEnabled = false; }
 
   /** Enable strict parsing, according to the language standards. */
-  void enableStrictMode() { d_strictMode = true; }
+  void enableStrictMode() { d_parsingMode = ParsingMode::STRICT; }
 
   /** Disable strict parsing. Allows certain syntactic infelicities to
       pass without comment. */
-  void disableStrictMode() { d_strictMode = false; }
+  void disableStrictMode() { d_parsingMode = ParsingMode::DEFAULT; }
 
-  bool strictModeEnabled() { return d_strictMode; }
+  bool strictModeEnabled() { return d_parsingMode == ParsingMode::STRICT; }
+
+  bool lenientModeEnabled() { return d_parsingMode == ParsingMode::LENIENT; }
 
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
@@ -209,17 +222,43 @@ class CVC5_EXPORT ParserState
                bool doOverload = false);
 
   /**
-   * Create a new cvc5 bound variable expression of the given type. This binds
-   * the symbol name to that variable in the current scope.
+   * Create a (possibly) new cvc5 bound variable expression of the given type.
+   * This binds the symbol name to that variable in the current scope.
+   *
+   * @param name The name of the variable
+   * @param type The type of the variable
+   * @param fresh If true, the variable is always new. If false, we lookup the
+   * variable in a cache and return a.
    */
-  Term bindBoundVar(const std::string& name, const Sort& type);
+  Term bindBoundVar(const std::string& name,
+                    const Sort& type,
+                    bool fresh = true);
   /**
-   * Create a new cvc5 bound variable expressions of the given names and types.
+   * Create new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
+   *
+   * @param sortedVarNames The names and types of the variables.
+   * @param fresh If true, the variables are always new. If false, we lookup
+   * each variable in the cache.
    */
   std::vector<Term> bindBoundVars(
-      std::vector<std::pair<std::string, Sort> >& sortedVarNames);
+      std::vector<std::pair<std::string, Sort> >& sortedVarNames,
+      bool fresh = true);
+  /**
+   * Same as above, but ensure that the shadowing is compatible with current
+   * let bindings.
+   *
+   * @param sortedVarNames The names and types of the variables.
+   * @param letBinders The current let binders in scope that may contain
+   * the shadowed variables we bind in this call.
+   * @param fresh If true, the variables are always new. If false, we lookup
+   * each variable in the cache.
+   */
+  std::vector<Term> bindBoundVarsCtx(
+      std::vector<std::pair<std::string, Sort>>& sortedVarNames,
+      std::vector<std::vector<std::pair<std::string, Term>>>& letBinders,
+      bool fresh = true);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
@@ -530,6 +569,8 @@ class CVC5_EXPORT ParserState
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /** The term manager associated to the associated solver instance. */
+  TermManager& d_tm;
 
  private:
   /** The callback */
@@ -549,7 +590,7 @@ class CVC5_EXPORT ParserState
   bool d_checksEnabled;
 
   /** Are we parsing in strict mode? */
-  bool d_strictMode;
+  ParsingMode d_parsingMode;
 
   /** Are we in parse-only mode? */
   bool d_parseOnly;
@@ -568,6 +609,8 @@ class CVC5_EXPORT ParserState
    * Owns the memory of the Commands in the queue.
    */
   std::list<Command*> d_commandQueue;
+  /** A cache of variables, for implementing bindBoundVar when fresh is false */
+  std::map<std::pair<std::string, Sort>, Term> d_varCache;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

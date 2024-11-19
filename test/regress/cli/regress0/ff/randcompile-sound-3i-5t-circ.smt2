@@ -1,5 +1,7 @@
 ; REQUIRES: cocoa
 ; EXPECT: unsat
+; COMMAND-LINE: --ff-solver split
+; COMMAND-LINE: --ff-solver gb
 (set-info :smt-lib-version 2.6)
 (set-logic QF_FF)
 

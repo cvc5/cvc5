@@ -1,0 +1,145 @@
+name: Add package
+description: Create a package and store it to the latest tag or the current release
+inputs:
+  build-dir:
+    description: path to the build directory
+  package-name:
+    description: target name of the package
+  github-token-latest:
+    description: token to upload package to latest
+  github-token-release:
+    description: token to upload package to release
+  shell:
+    default: bash
+runs:
+  using: composite
+  steps:
+    - name: Create ZIP file
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Create ZIP file"
+        # Run 'make install' on build directory
+        pushd ${{ inputs.build-dir }}
+        make install
+        popd
+
+        # Remove Python bindings (if any).
+        # They are built for testing purposes, but
+        # only work for the specific CI Python version.
+        rm -rf ${{ inputs.build-dir }}/install/lib/python*
+        rm -rf ${{ inputs.build-dir }}/install/lib/site-packages
+
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
+            cp /mingw64/bin/libgcc_s_seh-1.dll ${{ inputs.build-dir }}/install/bin/
+            cp /mingw64/bin/libstdc++-6.dll ${{ inputs.build-dir }}/install/bin/
+            cp /mingw64/bin/libwinpthread-1.dll ${{ inputs.build-dir }}/install/bin/
+          else
+            cp /mingw64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
+          fi
+        fi
+
+        # Copy COPYING file and licenses directory to install directory
+        cp COPYING ${{ inputs.build-dir }}/install/
+        cp -r licenses ${{ inputs.build-dir }}/install/
+
+        # Create ZIP file
+        pushd ${{ inputs.build-dir }}
+        mv install ${{ inputs.package-name }}
+        zip -r ${{ inputs.package-name }} ${{ inputs.package-name }}
+        popd
+
+        # Move package to root directory
+        mv ${{ inputs.build-dir }}/${{ inputs.package-name }}.zip .
+        echo "::endgroup::"
+
+    - name: install pyGithub
+      shell: ${{ inputs.shell }}
+      run: |
+        # Upgrading pyopenssl resolves the following error:
+        # AttributeError:
+        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
+        python3 -m pip install -U pyopenssl
+        python3 -m pip install pyGithub
+
+    - name: Store to latest
+      if: github.ref == 'refs/heads/main'
+      shell: 'python3 {0}'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token-latest }}
+        PACKAGE: ${{ inputs.package-name }}.zip
+      run: |
+        import datetime
+        import os
+        from github import Github
+
+        sha = os.getenv('GITHUB_SHA')
+
+        gh = Github(os.getenv('GITHUB_TOKEN'))
+        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
+
+        try:
+          ref = repo.get_git_ref('tags/latest')
+          # update "latest" to current commit if sha changed
+          if ref.object.sha != sha:
+            ref.edit(sha)
+        except:
+          print('tag `latest` does not exist.')
+          exit
+
+        try:
+          rel = repo.get_release('latest')
+        except:
+          print('New `latest` release')
+          rel = repo.create_git_release('latest', 'latest', 'Latest builds')
+
+        # generate new filename
+        package = os.getenv('PACKAGE')
+        name,ext = os.path.splitext(package)
+        curtime = repo.get_git_commit(sha).committer.date.strftime('%Y-%m-%d')
+        samedayprefix = '{}-{}-'.format(name, curtime)
+        filename = '{}-{}-{}{}'.format(name, curtime, sha[:7], ext)
+
+        # prune old commits
+        assets = list(rel.get_assets())
+        assets.sort(key=lambda x: x.created_at, reverse=True)
+
+        for cnt,asset in enumerate(assets):
+          delete = False
+          # We generate 10 artifacts per build:
+          # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
+          if cnt >= 20: # Keep at most 2 builds
+            delete = True
+          if asset.name.startswith(samedayprefix):
+            delete = True
+          # convert to timezone-aware datetime
+          age = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) - asset.created_at
+          if age.days > 7:
+            delete = True
+          if delete:
+            asset.delete_asset()
+
+        # upload as asset with proper name
+        rel.upload_asset(package, name=filename)
+
+    - name: Store to release
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: 'python3 {0}'
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token-release }}
+        PACKAGE: ${{ inputs.package-name }}.zip
+      run: |
+        import os
+        from github import Github
+
+        refname = os.getenv('GITHUB_REF_NAME')
+        gh = Github(os.getenv('GITHUB_TOKEN'))
+        repo = gh.get_repo(os.getenv('GITHUB_REPOSITORY'))
+        try:
+          rel = repo.get_release(refname)
+        except:
+          print("New release from " + refname)
+          ref = repo.get_git_ref('tags/' + refname)
+          commit = repo.get_git_commit(ref.object.sha)
+          rel = repo.create_git_release(refname, refname, commit.message)
+        rel.upload_asset(os.getenv('PACKAGE'))

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +25,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
+#include "proof/trust_node.h"
 
 namespace cvc5::context {
 class Context;
@@ -47,15 +48,17 @@ private:
 public:
  ArithStaticLearner(StatisticsRegistry& sr, context::Context* userContext);
  ~ArithStaticLearner();
- void staticLearning(TNode n, NodeBuilder& learned);
+ void staticLearning(TNode n, std::vector<TrustNode>& learned);
 
  void addBound(TNode n);
 
 private:
- void process(TNode n, NodeBuilder& learned, const TNodeSet& defTrue);
+ void process(TNode n, std::vector<TrustNode>& learned, const TNodeSet& defTrue);
 
- void iteMinMax(TNode n, NodeBuilder& learned);
- void iteConstant(TNode n, NodeBuilder& learned);
+ void iteMinMax(TNode n, std::vector<TrustNode>& learned);
+ void iteConstant(TNode n, std::vector<TrustNode>& learned);
+ /** Add learned lemma n to learned, no proofs currently */
+ void addLearnedLemma(TNode n, std::vector<TrustNode>& learned);
 
  /**
   * These fields are designed to be accessible to ArithStaticLearner methods.

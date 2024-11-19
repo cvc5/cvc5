@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
+ *   Dejan Jovanovic, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
-#include "proof/proof_node_manager.h"
+#include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
@@ -125,7 +125,7 @@ class CDCLTSatSolver : public SatSolver
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
                           context::UserContext* userContext,
-                          ProofNodeManager* pnm) = 0;
+                          PropPfManager* ppm) = 0;
 
   virtual void push() = 0;
 
@@ -170,10 +170,11 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
+  /**
+   * Get proof, which is used if option prop-proof-mode is PROOF.
+   * @return a complete proof computed by this SAT solver.
+   */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
-
-  /** This is temporary until SAT DRAT proofs are integrated. */
-  virtual SatProofManager* getProofManager() = 0;
 
 }; /* class CDCLTSatSolver */
 

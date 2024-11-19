@@ -1,0 +1,18 @@
+(set-logic HO_ALL)
+(set-info :status unsat)
+(set-option :finite-model-find true)
+(set-option :fmf-bound true)
+(set-option :uf-lazy-ll false)
+(declare-fun B () (Set (Tuple Int)))
+(declare-fun A () (Set (Tuple Int)))
+(assert (set.all (lambda ((t1 (Tuple Int))) (set.some (lambda ((t3 (Tuple Int))) (= t3 t1)) B)) A))
+(assert (forall ((x Int)) 
+         (=> 
+           (set.member (tuple x) B) 
+           (forall ((y Int)) 
+            (=> 
+              (set.member (tuple y) B)
+              (<= y x) )))))
+(assert (= A (set.insert (tuple 1) (set.singleton (tuple 0)))))
+(assert (set.member (tuple 0) B))
+(check-sat)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -286,7 +286,8 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
                                    patTermsSingle[i],
                                    false,
                                    TriggerDatabase::TR_RETURN_NULL,
-                                   d_num_trigger_vars[q]);
+                                   d_num_trigger_vars[q],
+                                   false);
       addTrigger(tr, q);
     }
     if (!options().quantifiers.multiTriggerWhenSingle)
@@ -318,7 +319,8 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
                                patTermsMulti,
                                false,
                                TriggerDatabase::TR_GET_OLD,
-                               d_num_trigger_vars[q]);
+                               d_num_trigger_vars[q],
+                               false);
   addTrigger(tr, q);
   // we only add a single multi-trigger
 }
@@ -337,7 +339,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   bool ntrivTriggers = options().quantifiers.relationalTriggers;
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // well-defined function: can assume LHS is only pattern
   if (options().quantifiers.quantFunWellDefined)
   {
@@ -570,7 +572,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
   }
   if (d_num_trigger_vars[q] < q[0].getNumChildren())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // partial trigger : generate implication to mark user pattern
     Node pat =
         d_qreg.substituteInstConstantsToBoundVariables(tr->getInstPattern(), q);

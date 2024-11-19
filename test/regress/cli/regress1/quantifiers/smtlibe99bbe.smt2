@@ -1,5 +1,8 @@
 ; COMMAND-LINE: --relevant-triggers
 ; EXPECT: unsat
+;; slow conversion
+; DISABLE-TESTER: alethe
+; DISABLE-TESTER: dsl-proof
 (set-logic AUFLIRA)
 (set-info :status unsat)
 (declare-sort Unit 0)

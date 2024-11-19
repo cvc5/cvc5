@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@ namespace quantifiers {
 SygusReconstruct::SygusReconstruct(Env& env,
                                    TermDbSygus* tds,
                                    SygusStatistics& s)
-    : EnvObj(env), d_tds(tds), d_stats(s)
+    : NodeConverter(env.getNodeManager()), EnvObj(env), d_tds(tds), d_stats(s)
 {
 }
 
@@ -217,7 +217,7 @@ void SygusReconstruct::main(Node sol,
 
 void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Assert(stn.isDatatype());
   Assert(stn.getDType().isSygus());
@@ -225,7 +225,7 @@ void SygusReconstruct::fast(Node sol, TypeNode stn, int8_t& reconstructed)
   sti.initialize(d_tds, stn);
   std::vector<TypeNode> stns;
   sti.getSubfieldTypes(stns);
-  std::map<cvc5::internal::TypeNode, int> varCount;
+  std::map<TypeNode, size_t> varCount;
 
   // add the constructors for each sygus datatype to the pool
   for (const TypeNode& cstn : stns)
@@ -553,14 +553,14 @@ void SygusReconstruct::removeReconstructedTerms(
 Node SygusReconstruct::mkGround(Node n) const
 {
   // get the set of bound variables in n
-  std::unordered_set<TNode> vars;
+  std::unordered_set<Node> vars;
   expr::getVariables(n, vars);
 
   std::unordered_map<TNode, TNode> subs;
 
   // generate a ground value for each one of those variables
-  NodeManager* nm = NodeManager::currentNM();
-  for (const TNode& var : vars)
+  NodeManager* nm = nodeManager();
+  for (const Node& var : vars)
   {
     subs.emplace(var, nm->mkGroundValue(var.getType()));
   }
@@ -586,7 +586,7 @@ Node SygusReconstruct::postConvert(Node n)
   {
     if (n.getNumChildren() > 2)
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node np = n[0];
       for (size_t i = 1, num = n.getNumChildren(); i < num; ++i)
       {

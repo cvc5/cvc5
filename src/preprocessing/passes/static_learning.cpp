@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Yoni Zohar, Gereon Kremer
+ *   Mathias Preiner, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,24 +48,20 @@ PreprocessingPassResult StaticLearning::applyInternal(
       continue;
     }
 
-    NodeBuilder learned(Kind::AND);
-    learned << n;
-
     /* Process all assertions in nested AND terms. */
     std::vector<TNode> assertions;
     flattenAnd(n, assertions);
+    std::vector<TrustNode> tlems;
     for (TNode a : assertions)
     {
-      d_preprocContext->getTheoryEngine()->ppStaticLearn(a, learned);
+      d_preprocContext->getTheoryEngine()->ppStaticLearn(a, tlems);
     }
 
-    if (learned.getNumChildren() == 1)
+    // add the lemmas to the end
+    for (const TrustNode& trn : tlems)
     {
-      learned.clear();
-    }
-    else
-    {
-      assertionsToPreprocess->replace(i, rewrite(learned.constructNode()));
+      assertionsToPreprocess->pushBackTrusted(
+          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
