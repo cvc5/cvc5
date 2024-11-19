@@ -1238,6 +1238,10 @@ Node ArithRewriter::expandDefinition(Node node)
   std::vector<SkolemLemma> lems;
   TrustNode ret = d_opElim.eliminate(node, lems, true);
   Assert(lems.empty());
+  if (ret.isNull())
+  {
+    return Node::null();
+  }
   return ret.getNode();
 }
 
