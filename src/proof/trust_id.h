@@ -42,6 +42,9 @@ enum class TrustId : uint32_t
   /** A expanding of definitions of the input formula made without a proof */
   THEORY_EXPAND_DEF,
   /** Specific preprocessing passes */
+  /** BvGauss */
+  PREPROCESS_BV_GUASS,
+  PREPROCESS_BV_GUASS_LEMMA,
   /** BvToBool preprocessing pass */
   PREPROCESS_BV_TO_BOOL,
   /** BvToInt preprocessing pass */
@@ -65,15 +68,28 @@ enum class TrustId : uint32_t
   PREPROCESS_FF_DISJUNCTIVE_BIT,
   /** FunDefFmf preprocessing pass */
   PREPROCESS_FUN_DEF_FMF,
+  /** ITESimp preprocessing pass */
+  PREPROCESS_ITE_SIMP,
   /** LearnedRewrite preprocessing pass */
   PREPROCESS_LEARNED_REWRITE,
   PREPROCESS_LEARNED_REWRITE_LEMMA,
+  /** MipLibTrick preprocessing pass */
+  PREPROCESS_MIPLIB_TRICK,
+  PREPROCESS_MIPLIB_TRICK_LEMMA,
+  /** NlExtPurify preprocessing pass */
+  PREPROCESS_NL_EXT_PURIFY,
+  PREPROCESS_NL_EXT_PURIFY_LEMMA,
   /** BvIntroPow2 preprocessing pass */
   PREPROCESS_BV_INTRO_POW2,
   /** ForeignTheoryRewrite preprocessing pass */
   PREPROCESS_FOREIGN_THEORY_REWRITE,
   /** UnconstrainedSimp preprocessing pass */
   PREPROCESS_UNCONSTRAINED_SIMP,
+  /** QuantifiersPreprocess preprocessing pass */
+  PREPROCESS_QUANTIFIERS_PP,
+  /** SortInferencePass preprocessing pass */
+  PREPROCESS_SORT_INFER,
+  PREPROCESS_SORT_INFER_LEMMA,
   /** StringsEagerPp preprocessing pass */
   PREPROCESS_STRINGS_EAGER_PP,
   /**
