@@ -3133,6 +3133,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_EXTRACT_CONCAT_3),
   /** Auto-generated from RARE rule bv-extract-concat-4 */
   EVALUE(BV_EXTRACT_CONCAT_4),
+  /** Auto-generated from RARE rule bv-eq-extract-elim1 */
+  EVALUE(BV_EQ_EXTRACT_ELIM1),
+  /** Auto-generated from RARE rule bv-eq-extract-elim2 */
+  EVALUE(BV_EQ_EXTRACT_ELIM2),
+  /** Auto-generated from RARE rule bv-eq-extract-elim3 */
+  EVALUE(BV_EQ_EXTRACT_ELIM3),
   /** Auto-generated from RARE rule bv-extract-bitwise-and */
   EVALUE(BV_EXTRACT_BITWISE_AND),
   /** Auto-generated from RARE rule bv-extract-bitwise-or */
