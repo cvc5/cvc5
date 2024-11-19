@@ -199,7 +199,7 @@ void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
     d_andElimEpg.reset(
         new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
   }
-  if (d_rewpg==nullptr)
+  if (d_rewpg == nullptr)
   {
     d_rewpg.reset(new RewriteProofGenerator(d_env));
   }

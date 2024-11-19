@@ -51,7 +51,8 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
-        assertionsToPreprocess->replace(i, next, nullptr, TrustId::PREPROCESS_SORT_INFER);
+        assertionsToPreprocess->replace(
+            i, next, nullptr, TrustId::PREPROCESS_SORT_INFER);
         assertionsToPreprocess->ensureRewritten(i);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
@@ -67,7 +68,8 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Trace("sort-infer-preprocess")
           << "*** Preprocess SortInferencePass : new constraint " << nar
           << endl;
-      assertionsToPreprocess->push_back(nar, false, nullptr, TrustId::PREPROCESS_SORT_INFER_LEMMA);
+      assertionsToPreprocess->push_back(
+          nar, false, nullptr, TrustId::PREPROCESS_SORT_INFER_LEMMA);
     }
     // could indicate correspondence between the functions
     // for (f1, f2) in model_replace_f, f1's model should be based on f2.
