@@ -63,8 +63,7 @@ void setMostFrequentValueCount(TNode store, uint64_t count)
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
-                                           Rewriter* r)
+TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
     : TheoryRewriter(nm), d_rewriter(r)
 {
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,

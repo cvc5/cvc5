@@ -185,7 +185,7 @@ class TheoryRewriter
    * Where possible rewrite rules should be used, definitions should only be
    * used when rewrites are not possible, for example in handling
    * under-specified operations using partially defined functions.
-   * 
+   *
    * @param node The node to expand.
    * @return the expanded form of node.
    */
