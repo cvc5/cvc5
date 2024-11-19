@@ -62,6 +62,10 @@ class AssertionPipeline : protected EnvObj
   /**
    * Adds an assertion/assumption to be preprocessed.
    *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
+   *
    * @param n The assertion/assumption
    * @param isInput If true, n is an input formula (an assumption in the main
    * body of the overall proof).
@@ -90,6 +94,10 @@ class AssertionPipeline : protected EnvObj
   /*
    * Replaces assertion i with node n and records the dependency between the
    * original assertion and its replacement.
+   *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
    *
    * @param i The position of the assertion to replace.
    * @param n The replacement assertion.
