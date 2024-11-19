@@ -135,7 +135,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
           continue;
         }
         // conflict, we are done
-        assertionsToPreprocess->push_back(e);
+        assertionsToPreprocess->push_back(
+            e, false, nullptr, TrustId::PREPROCESS_LEARNED_REWRITE_LEMMA);
         return PreprocessingPassResult::CONFLICT;
       }
       llrw.insert(e);
@@ -154,7 +155,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       e = rewrite(e);
       Trace("learned-rewrite-assert")
           << ".......................: " << e << std::endl;
-      assertionsToPreprocess->replace(i, e);
+      assertionsToPreprocess->replace(
+          i, e, nullptr, TrustId::PREPROCESS_LEARNED_REWRITE);
       if (assertionsToPreprocess->isInConflict())
       {
         return PreprocessingPassResult::CONFLICT;
@@ -171,7 +173,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Trace("learned-rewrite-assert")
         << "Re-add rewritten learned conjunction: " << llc << std::endl;
     llc = rewrite(llc);
-    assertionsToPreprocess->push_back(llc);
+    assertionsToPreprocess->push_back(
+        llc, false, nullptr, TrustId::PREPROCESS_LEARNED_REWRITE_LEMMA);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

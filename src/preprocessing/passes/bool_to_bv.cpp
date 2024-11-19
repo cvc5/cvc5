@@ -58,7 +58,9 @@ PreprocessingPassResult BoolToBV::applyInternal(
     {
       newAssertion = lowerIte((*assertionsToPreprocess)[i]);
     }
-    assertionsToPreprocess->replace(i, rewrite(newAssertion));
+    assertionsToPreprocess->replace(
+        i, newAssertion, nullptr, TrustId::PREPROCESS_BOOL_TO_BV);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

@@ -125,7 +125,8 @@ PreprocessingPassResult NlExtPurify::applyInternal(
     Node ap = purifyNlTerms(a, cache, bcache, var_eq);
     if (a != ap)
     {
-      assertionsToPreprocess->replace(i, ap);
+      assertionsToPreprocess->replace(
+          i, ap, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY);
       Trace("nl-ext-purify")
           << "Purify : " << a << " -> " << (*assertionsToPreprocess)[i] << "\n";
     }
@@ -134,7 +135,8 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   {
     for (const Node& ve : var_eq)
     {
-      assertionsToPreprocess->push_back(ve);
+      assertionsToPreprocess->push_back(
+          ve, false, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY_LEMMA);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
