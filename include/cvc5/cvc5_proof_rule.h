@@ -2679,6 +2679,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_CONS_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- cycle**
+   *
+   * .. math::
+   *   (x = t[x]) = \bot
+   *
+   * where all terms on the path to :math:`x` in :math:`t[x]` are applications
+   * of constructors, and this path is non-empty.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CYCLE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- collapse tester**
    *
    * .. math::
