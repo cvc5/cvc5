@@ -714,7 +714,6 @@ ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
       d_itesMade(0),
       d_instance(0),
       d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
-
 {
 }
 
