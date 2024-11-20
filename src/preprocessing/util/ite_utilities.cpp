@@ -1064,13 +1064,13 @@ Node ITESimplifier::transformAtom(TNode atom)
   }
 }
 
-static unsigned numBranches = 0;
-static unsigned numFalseBranches = 0;
-static unsigned itesMade = 0;
+static thread_local unsigned numBranches = 0;
+static thread_local unsigned numFalseBranches = 0;
+static thread_local unsigned itesMade = 0;
 
 Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
 {
-  static int instance = 0;
+  static thread_local int instance = 0;
   ++instance;
   Trace("ite::constantIteEqualsConstant")
       << instance << "constantIteEqualsConstant(" << cite << ", " << constant

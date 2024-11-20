@@ -343,7 +343,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -379,7 +379,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 
           Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }
