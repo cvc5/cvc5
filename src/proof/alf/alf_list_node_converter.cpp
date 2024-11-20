@@ -15,17 +15,18 @@
 
 #include "proof/alf/alf_list_node_converter.h"
 
+#include "expr/emptyset.h"
 #include "expr/nary_term_util.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
-#include "expr/emptyset.h"
 #include "theory/strings/word.h"
 
 namespace cvc5::internal {
 namespace proof {
 
 AlfListNodeConverter::AlfListNodeConverter(NodeManager* nm,
-                                           BaseAlfNodeConverter& tproc, const std::map<Node, Node>& adtcMap)
+                                           BaseAlfNodeConverter& tproc,
+                                           const std::map<Node, Node>& adtcMap)
     : NodeConverter(nm), d_tproc(tproc), d_adtcMap(adtcMap)
 {
 }
@@ -33,18 +34,18 @@ AlfListNodeConverter::AlfListNodeConverter(NodeManager* nm,
 Node AlfListNodeConverter::preConvert(Node n)
 {
   Kind k = n.getKind();
-  if (k==Kind::SET_EMPTY_OF_TYPE || k==Kind::SEQ_EMPTY_OF_TYPE)
+  if (k == Kind::SET_EMPTY_OF_TYPE || k == Kind::SEQ_EMPTY_OF_TYPE)
   {
-    if (n[0].getKind()==Kind::TYPE_OF)
+    if (n[0].getKind() == Kind::TYPE_OF)
     {
       Node t = n[0][0];
       std::map<Node, Node>::const_iterator it = d_adtcMap.find(t);
-      if (it!=d_adtcMap.end())
+      if (it != d_adtcMap.end())
       {
         std::stringstream ss;
         ss << it->second[0];
         TypeNode tn = d_nm->mkSort(ss.str());
-        if (k==Kind::SET_EMPTY_OF_TYPE)
+        if (k == Kind::SET_EMPTY_OF_TYPE)
         {
           tn = d_nm->mkSetType(tn);
           return d_tproc.convert(d_nm->mkConst(EmptySet(tn)));
@@ -56,11 +57,11 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
       }
     }
-    Assert (false) << "AlfListNodeConverter: unhandled term " << n;
+    Assert(false) << "AlfListNodeConverter: unhandled term " << n;
   }
   else
   {
-    Assert (k!=Kind::TYPE_OF) << "AlfListNodeConverter: unhandled term " << n;
+    Assert(k != Kind::TYPE_OF) << "AlfListNodeConverter: unhandled term " << n;
   }
   return n;
 }
