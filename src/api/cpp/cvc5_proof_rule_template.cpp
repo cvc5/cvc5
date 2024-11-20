@@ -242,6 +242,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE: return "macro-quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";

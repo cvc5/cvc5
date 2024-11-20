@@ -2526,6 +2526,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
+   *   G_1 \wedge \ldots \wedge G_n
+   *
+   * where each :math:`G_i` is semantically equivalent to
+   * :math:`\forall X.\> F_i`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Miniscoping**
    *
    * .. math::

@@ -206,6 +206,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
+      if (ensureProofMacroQuantMiniscope(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -775,6 +781,52 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   finalTransEq.push_back(eqq);
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp, const Node& eq)
+{
+  Node q = eq[0];
+  Assert(q.getKind() == Kind::FORALL);
+  Node mq = rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE, q);
+  Node equiv = q.eqNode(mq);
+  cdp->addTheoryRewriteStep(equiv,
+                            ProofRewriteRule::QUANT_MINISCOPE);
+  if (mq==eq[1])
+  {
+    return true;
+  }
+  if (mq.getNumChildren()!=eq[1].getNumChildren())
+  {
+    return false;
+  }
+  Node equiv2 = mq.eqNode(eq[1]);
+  for (size_t i=0, nconj = mq.getNumChildren(); i<nconj; i++)
+  {
+    Node eqc = mq[i].eqNode(eq[1][i]);
+    if (mq[i]==eq[1][i])
+    {
+      cdp->addStep(eqc, ProofRule::REFL, {}, {mq[i]});
+      continue;
+    }
+    Assert (mq[i].getKind()==Kind::FORALL);
+    if (mq[i][1]==eq[1][i])
+    {
+      Node mqc = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, mq[i]);
+      if (mqc==eq[1][i])
+      {
+        cdp->addTheoryRewriteStep(eqc,
+                                  ProofRewriteRule::QUANT_UNUSED_VARS);
+        continue;
+      }
+    }
+    else
+    {
+      
+    }
+    return false;
+  }
+  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
   return true;
 }
 
