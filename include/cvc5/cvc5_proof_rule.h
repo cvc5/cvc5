@@ -2548,10 +2548,10 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Datatypes Split**
    *
    * .. math::
-   *   \forall x Y.\> F = (\forall X_1 Y. F_1) \vee \ldots \vee (\forall X_n Y. F_n)
+   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n Y. F_n)
    * 
    * where :math:`x` is of a datatype type with constructors
-   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots n`,
+   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
    * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`.
    * 
    * \endverbatim
