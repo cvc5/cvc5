@@ -235,10 +235,10 @@ class ITESimplifier : protected EnvObj
     IntStat d_binaryPredFold;
     IntStat d_specialEqualityFolds;
     IntStat d_simpITEVisits;
-    IntStat d_numBranches;
-    IntStat d_numFalseBranches;
-    IntStat d_itesMade;
-    IntStat d_instance;
+    unsigned d_numBranches;
+    unsigned d_numFalseBranches;
+    unsigned d_itesMade;
+    unsigned d_instance;
 
     HistogramStat<uint32_t> d_inSmaller;
 
