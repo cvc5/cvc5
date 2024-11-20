@@ -107,7 +107,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MINISCOPE is handled as part of the reconstruction for MACRO_QUANT_MINISCOPE
+  // QUANT_MINISCOPE is handled as part of the reconstruction for
+  // MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
   // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
