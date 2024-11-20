@@ -56,6 +56,7 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
     CDProof cdp(d_env);
+    // find the index of the variable that was split for this lemma
     context::CDHashMap<Node, size_t>::iterator it = d_index.find(fact);
     if (it == d_index.end())
     {
@@ -97,11 +98,14 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   }
   /** identify */
   std::string identify() const override { return "QuantDSplitProofGenerator"; }
-  /** */
+  /**
+   * Notify that the given lemma used the given variable index to split. We
+   * store this in d_index and use it to guide proof reconstruction above.
+   */
   void notifyLemma(const Node& lem, size_t index) { d_index[lem] = index; }
 
  private:
-  /** */
+  /** Mapping from lemmas to their notified index */
   context::CDHashMap<Node, size_t> d_index;
 };
 
