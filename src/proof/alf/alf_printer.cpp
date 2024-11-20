@@ -48,7 +48,6 @@ AlfPrinter::AlfPrinter(Env& env,
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
-      d_ltproc(nodeManager(), atp),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders
       // due to the way we print global declare-var, since terms beneath
@@ -495,6 +494,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   std::stringstream ssExplicit;
   std::map<std::string, size_t> nameCount;
   std::vector<Node> uviList;
+  std::map<Node, Node> adtcConvMap;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -523,6 +523,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
     Node uvtp = adtc.process(uvt);
+    adtcConvMap[uvi] = uvtp;
     ssExplicit << uvtp;
     if (expr::isListVar(uv))
     {
@@ -538,6 +539,9 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   {
     out << "(" << p << " " << p.getType() << ") ";
   }
+  // carry the mapping from symbols to their types, which is used when
+  // eliminating internal-only operators for representing empty set and sequence
+  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
   // now print variables of the proof rule
   out << ssExplicit.str();
   out << ")" << std::endl;
@@ -557,7 +561,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
       }
       // note we apply list conversion to premises as well.
       Node cc = d_tproc.convert(su.apply(c));
-      cc = d_ltproc.convert(cc);
+      cc = ltproc.convert(cc);
       out << cc;
     }
     out << ")" << std::endl;
@@ -573,7 +577,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = d_ltproc.convert(sconc);
+  sconc = ltproc.convert(sconc);
   Assert(sconc.getKind() == Kind::EQUAL);
   out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
   out << ")" << std::endl;

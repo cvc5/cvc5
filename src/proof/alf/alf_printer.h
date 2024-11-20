@@ -186,8 +186,6 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
-  /** List node converter */
-  AlfListNodeConverter d_ltproc;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /** The empty vector */

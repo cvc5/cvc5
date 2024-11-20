@@ -6,14 +6,6 @@
 (define $compare_geq ((T Type :implicit) (x T) (y T))
   (eo::ite (eo::is_eq x y) true (eo::gt x y)))
 
-
-; define: @type_of
-; args:
-; - x T: The term to get the type of.
-; return: the type of x.
-; note: Used in RARE rules
-(define @type_of ((T Type :implicit) (x T)) (eo::typeof x))
-
 ; define: $sgn
 ; args:
 ; - x T: The term to inspect. Assumed to be an arithmetic value.

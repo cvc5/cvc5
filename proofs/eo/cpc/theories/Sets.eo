@@ -13,10 +13,6 @@
 (declare-const set.empty (-> (! Type :var T) T))
 (declare-const set.universe (-> (! Type :var T) T))
 
-; define: @set.empty_of_type
-; note: used by RARE rules
-(define @set.empty_of_type () set.empty)
-
 ; Operators for the theory of sets.
 (declare-const set.singleton (-> (! Type :var T :implicit) T (Set T)))
 (declare-const set.union (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))

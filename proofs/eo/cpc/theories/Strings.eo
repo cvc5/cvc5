@@ -47,10 +47,6 @@
   )
 )
 
-; define: @seq.empty_of_type
-; note: used by RARE rules
-(define @seq.empty_of_type ((U Type)) ($mk_emptystr U))
-
 ; Core functions of strings.
 (declare-const str.len 
   (-> (! Type :var T :implicit)
