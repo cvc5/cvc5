@@ -1152,14 +1152,14 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     TNode cite = lIsConst ? rcite : lcite;
 
     (d_statistics.d_inSmaller) << 1;
-    unsigned preItesMade = d_statistics.d_itesMade;
-    unsigned preNumBranches = d_statistics.d_numBranches;
-    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches;
+    unsigned preItesMade = d_statistics.d_itesMade.getValue();
+    unsigned preNumBranches = d_statistics.d_numBranches.getValue();
+    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches.getValue();
     Node bterm = constantIteEqualsConstant(cite, constant);
     Trace("intersectConstantIte")
-        << ((d_statistics.d_numBranches) - preNumBranches) << " "
-        << ((d_statistics.d_numFalseBranches) - preNumFalseBranches) << " "
-        << ((d_statistics.d_itesMade) - preItesMade) << endl;
+        << ((d_statistics.d_numBranches).getValue() - preNumBranches) << " "
+        << ((d_statistics.d_numFalseBranches).getValue() - preNumFalseBranches)
+        << " " << ((d_statistics.d_itesMade).getValue() - preItesMade) << endl;
     return bterm;
   }
   Assert(lcite.getKind() == Kind::ITE);
