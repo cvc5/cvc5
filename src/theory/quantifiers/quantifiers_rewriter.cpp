@@ -29,6 +29,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
@@ -108,6 +109,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
+  // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
+  // manual proof generation thus not registered here.
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
@@ -258,6 +261,16 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       return ret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_DT_SPLIT:
+    {
+      // always runs split utility on the first variable
+      if (n.getKind() != Kind::FORALL || !n[0][0].getType().isDatatype())
+      {
+        return Node::null();
+      }
+      return QuantDSplit::split(nodeManager(), n, 0);
     }
     break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:

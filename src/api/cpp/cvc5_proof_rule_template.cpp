@@ -244,6 +244,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
+    case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
