@@ -709,6 +709,10 @@ ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
       d_binaryPredFold(reg.registerInt("ite-simp::binaryPredFold")),
       d_specialEqualityFolds(reg.registerInt("ite-simp::specialEqualityFolds")),
       d_simpITEVisits(reg.registerInt("ite-simp::simpITE.visits")),
+      d_numBranches(0),
+      d_numFalseBranches(0),
+      d_itesMade(0),
+      d_instance(0),
       d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
 {
 }
@@ -1064,13 +1068,9 @@ Node ITESimplifier::transformAtom(TNode atom)
   }
 }
 
-static thread_local unsigned numBranches = 0;
-static thread_local unsigned numFalseBranches = 0;
-static thread_local unsigned itesMade = 0;
-
 Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
 {
-  static thread_local int instance = 0;
+  d_instance = 0;
   ++instance;
   Trace("ite::constantIteEqualsConstant")
       << instance << "constantIteEqualsConstant(" << cite << ", " << constant
@@ -1117,13 +1117,13 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       Node boolIte = cnd.iteNode(tEqs, fEqs);
       if (!(tEqs.isConst() || fEqs.isConst()))
       {
-        ++numBranches;
+        ++d_numBranches;
       }
       if (!(tEqs == d_false || fEqs == d_false))
       {
-        ++numFalseBranches;
+        ++d_numFalseBranches;
       }
-      ++itesMade;
+      ++d_itesMade;
       d_constantIteEqualsConstantCache[pair] = boolIte;
       // Trace("ite::constantIteEqualsConstant") << instance << "->" << boolIte
       // << endl;
@@ -1150,13 +1150,13 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     TNode cite = lIsConst ? rcite : lcite;
 
     (d_statistics.d_inSmaller) << 1;
-    unsigned preItesMade = itesMade;
-    unsigned preNumBranches = numBranches;
-    unsigned preNumFalseBranches = numFalseBranches;
+    unsigned preItesMade = d_itesMade;
+    unsigned preNumBranches = d_numBranches;
+    unsigned preNumFalseBranches = d_numFalseBranches;
     Node bterm = constantIteEqualsConstant(cite, constant);
-    Trace("intersectConstantIte") << (numBranches - preNumBranches) << " "
-                                  << (numFalseBranches - preNumFalseBranches)
-                                  << " " << (itesMade - preItesMade) << endl;
+    Trace("intersectConstantIte") << (d_numBranches - preNumBranches) << " "
+                                  << (d_numFalseBranches - preNumFalseBranches)
+                                  << " " << (d_itesMade - preItesMade) << endl;
     return bterm;
   }
   Assert(lcite.getKind() == Kind::ITE);
