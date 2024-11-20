@@ -280,6 +280,8 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::BITVECTOR_EAGER_ATOM)
   {
     // For now, we explicity remove the application.
+    // https://github.com/cvc5/cvc5-wishues/issues/156: if the smt2 printer
+    // is refactored to silently ignore this kind, this case can be deleted.
     return n[0];
   }
   else if (GenericOp::isIndexedOperatorKind(k))
