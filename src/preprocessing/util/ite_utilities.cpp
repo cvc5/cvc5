@@ -709,10 +709,10 @@ ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
       d_binaryPredFold(reg.registerInt("ite-simp::binaryPredFold")),
       d_specialEqualityFolds(reg.registerInt("ite-simp::specialEqualityFolds")),
       d_simpITEVisits(reg.registerInt("ite-simp::simpITE.visits")),
-      d_numBranches(reg.registerInt("ite-simp::simpITE.numBranches")),
-      d_numFalseBranches(reg.registerInt("ite-simp::simpITE.numFalseBranches")),
-      d_itesMade(reg.registerInt("ite-simp::simpITE.itesMade")),
-      d_instance(reg.registerInt("ite-simp::simpITE.instance")),
+      d_numBranches(0),
+      d_numFalseBranches(0),
+      d_itesMade(0),
+      d_instance(0),
       d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
 
 {
@@ -1152,14 +1152,14 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     TNode cite = lIsConst ? rcite : lcite;
 
     (d_statistics.d_inSmaller) << 1;
-    unsigned preItesMade = d_statistics.d_itesMade.getValue();
-    unsigned preNumBranches = d_statistics.d_numBranches.getValue();
-    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches.getValue();
+    unsigned preItesMade = d_statistics.d_itesMade;
+    unsigned preNumBranches = d_statistics.d_numBranches;
+    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches;
     Node bterm = constantIteEqualsConstant(cite, constant);
     Trace("intersectConstantIte")
-        << ((d_statistics.d_numBranches).getValue() - preNumBranches) << " "
-        << ((d_statistics.d_numFalseBranches).getValue() - preNumFalseBranches)
-        << " " << ((d_statistics.d_itesMade).getValue() - preItesMade) << endl;
+        << ((d_statistics.d_numBranches) - preNumBranches) << " "
+        << ((d_statistics.d_numFalseBranches) - preNumFalseBranches) << " "
+        << ((d_statistics.d_itesMade) - preItesMade) << endl;
     return bterm;
   }
   Assert(lcite.getKind() == Kind::ITE);
