@@ -277,6 +277,11 @@ Node AlfNodeConverter::postConvert(Node n)
       return mkInternalApp("to_fp_bv", children, tn);
     }
   }
+  else if (k == Kind::BITVECTOR_EAGER_ATOM)
+  {
+    // For now, we explicity remove the application.
+    return n[0];
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     // return app of?
