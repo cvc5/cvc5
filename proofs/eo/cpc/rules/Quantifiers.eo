@@ -152,7 +152,7 @@
 (program $mk_quant_miniscope ((x @List) (f Bool) (fs Bool :list))
   (@List Bool) Bool
   (
-  (($mk_quant_miniscope x (and f fs)) (and (forall x f) ($mk_quant_miniscope x fs)))
+  (($mk_quant_miniscope x (and f fs)) (eo::cons and (forall x f) ($mk_quant_miniscope x fs)))
   (($mk_quant_miniscope x true)       true)
   )
 )
