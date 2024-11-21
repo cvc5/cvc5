@@ -82,7 +82,6 @@
 (define $arith_eval_int_log_2 ((x Int))
   (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
 
-
 ; program: $arith_eval_int_pow_2_rec
 ; args:
 ; - x  Int: The term to compute 2 to the power of, assumed to be a positive numeral value.
@@ -95,6 +94,7 @@
   (($arith_eval_int_pow_2_rec x) (eo::mul 2 ($arith_eval_int_pow_2_rec (eo::add x -1))))
   )
 )
+
 ; define: $arith_eval_int_pow_2
 ; args:
 ; - x Int: The term to compute whether it is a power of two.
