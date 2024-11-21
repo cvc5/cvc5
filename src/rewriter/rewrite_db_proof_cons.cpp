@@ -713,7 +713,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       // the missing transitivity link is a subgoal to prove
       transEq = stgt.eqNode(target[1]);
-      vcs.push_back(transEq);
       Trace("rpc-debug2") << "  Try transitive with " << transEq << std::endl;
     }
     // do its conditions hold?
@@ -737,6 +736,14 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
       return false;
+    }
+    // Prove transitive equality last. We choose this order since the
+    // transitive equality is expected to be the hardest to prove. Also, the
+    // conditions may guard instances where the RHS is not well typed (e.g.
+    // bv-eq-extract-elim1,2,3).
+    if (!transEq.isNull())
+    {
+      vcs.push_back(transEq);
     }
   }
   // First, check which premises are non-trivial, and if there is a trivial
