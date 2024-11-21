@@ -242,14 +242,14 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     Assert(eq.getKind() == Kind::EQUAL);
     Node sret = eq[1];
     transEq.emplace_back(eq);
-    Assert (sret.getKind()==Kind::FORALL);
-    if (sret[0]!=q[0])
+    Assert(sret.getKind() == Kind::FORALL);
+    if (sret[0] != q[0])
     {
       // variable reorder?
       std::vector<Node> children;
       children.push_back(q[0]);
       children.push_back(sret[1]);
-      if (sret.getNumChildren()==3)
+      if (sret.getNumChildren() == 3)
       {
         children.push_back(sret[2]);
       }
