@@ -1426,6 +1426,7 @@ set(regress_0_tests
   regress0/push-pop/units.cvc.smt2
   regress0/quantifiers/agg-rew-test-cf.smt2
   regress0/quantifiers/agg-rew-test.smt2
+  regress0/quantifiers/alpha-eq-var-reorder.smt2
   regress0/quantifiers/ari056.smt2
   regress0/quantifiers/ari-syqi.smt2
   regress0/quantifiers/ARI176e1.smt2
