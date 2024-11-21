@@ -2948,16 +2948,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-plus-zero */
-  EVALUE(ARITH_PLUS_ZERO),
   /** Auto-generated from RARE rule arith-mul-one */
   EVALUE(ARITH_MUL_ONE),
   /** Auto-generated from RARE rule arith-mul-zero */
   EVALUE(ARITH_MUL_ZERO),
-  /** Auto-generated from RARE rule arith-div-total */
-  EVALUE(ARITH_DIV_TOTAL),
-  /** Auto-generated from RARE rule arith-div-total-zero */
-  EVALUE(ARITH_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-div-total-real */
+  EVALUE(ARITH_DIV_TOTAL_REAL),
+  /** Auto-generated from RARE rule arith-div-total-int */
+  EVALUE(ARITH_DIV_TOTAL_INT),
+  /** Auto-generated from RARE rule arith-div-total-zero-real */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_REAL),
+  /** Auto-generated from RARE rule arith-div-total-zero-int */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_INT),
   /** Auto-generated from RARE rule arith-int-div-total */
   EVALUE(ARITH_INT_DIV_TOTAL),
   /** Auto-generated from RARE rule arith-int-div-total-one */
@@ -2984,8 +2986,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_LEQ_NORM),
   /** Auto-generated from RARE rule arith-geq-tighten */
   EVALUE(ARITH_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-geq-norm1 */
-  EVALUE(ARITH_GEQ_NORM1),
+  /** Auto-generated from RARE rule arith-geq-norm1-int */
+  EVALUE(ARITH_GEQ_NORM1_INT),
+  /** Auto-generated from RARE rule arith-geq-norm1-real */
+  EVALUE(ARITH_GEQ_NORM1_REAL),
   /** Auto-generated from RARE rule arith-geq-norm2 */
   EVALUE(ARITH_GEQ_NORM2),
   /** Auto-generated from RARE rule arith-refl-leq */
@@ -2996,18 +3000,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_REFL_GEQ),
   /** Auto-generated from RARE rule arith-refl-gt */
   EVALUE(ARITH_REFL_GT),
-  /** Auto-generated from RARE rule arith-real-eq-elim */
-  EVALUE(ARITH_REAL_EQ_ELIM),
-  /** Auto-generated from RARE rule arith-int-eq-elim */
-  EVALUE(ARITH_INT_EQ_ELIM),
+  /** Auto-generated from RARE rule arith-eq-elim-real */
+  EVALUE(ARITH_EQ_ELIM_REAL),
+  /** Auto-generated from RARE rule arith-eq-elim-int */
+  EVALUE(ARITH_EQ_ELIM_INT),
   /** Auto-generated from RARE rule arith-plus-flatten */
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
   EVALUE(ARITH_MULT_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-dist */
   EVALUE(ARITH_MULT_DIST),
-  /** Auto-generated from RARE rule arith-abs-elim */
-  EVALUE(ARITH_ABS_ELIM),
+  /** Auto-generated from RARE rule arith-abs-elim-int */
+  EVALUE(ARITH_ABS_ELIM_INT),
+  /** Auto-generated from RARE rule arith-abs-elim-real */
+  EVALUE(ARITH_ABS_ELIM_REAL),
   /** Auto-generated from RARE rule arith-to-real-elim */
   EVALUE(ARITH_TO_REAL_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
