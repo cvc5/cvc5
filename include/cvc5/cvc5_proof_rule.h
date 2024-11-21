@@ -2529,8 +2529,8 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Macro miniscoping**
    *
    * .. math::
-   *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
-   *   G_1 \wedge \ldots \wedge G_n
+   *   \forall X.\> F_1 \wedge \cdots \wedge F_n =
+   *   G_1 \wedge \cdots \wedge G_n
    *
    * where each :math:`G_i` is semantically equivalent to
    * :math:`\forall X.\> F_i`.
