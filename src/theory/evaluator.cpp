@@ -605,7 +605,7 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           bool valid = false;
-          if (x.sgn()<0)
+          if (x.sgn() < 0)
           {
             results[currNode] = EvalResult(Rational(0));
             valid = true;
