@@ -92,7 +92,7 @@ class TheoryBV : public Theory
 
   TrustNode ppStaticRewrite(TNode atom) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) override;
 
   void presolve() override;
 
