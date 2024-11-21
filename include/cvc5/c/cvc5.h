@@ -4833,9 +4833,9 @@ CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
 /**
  * Get an interpolant.
  *
- * Given that @f$A->B@f$ is valid,
+ * Given that @f$A \rightarrow B@f$ is valid,
  * this function determines a term @f$I@f$ 
- * over the shared variables of @f$A@f$ and @f$B$,
+ * over the shared variables of @f$A@f$ and @f$B@f$,
  * such that @f$A \rightarrow I@f$ and
  * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
  * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
