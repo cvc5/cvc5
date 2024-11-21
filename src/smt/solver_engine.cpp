@@ -180,7 +180,6 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
@@ -190,7 +189,6 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
-    pnm = d_pfManager->getProofNodeManager();
   }
   if (d_env->isOutputOn(OutputTag::RARE_DB))
   {
@@ -203,7 +201,7 @@ void SolverEngine::finishInit()
     }
   }
   // enable proof support in the environment/rewriter
-  d_env->finishInit(pnm);
+  d_env->finishInit(d_pfManager.get());
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit();
@@ -713,6 +711,39 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   }
 
   return m;
+}
+
+std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
+{
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    std::stringstream ss;
+    ss << "Cannot get proof unless immediately preceded by UNSAT response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  std::shared_ptr<ProofNode> pePfn;
+  if (d_env->isSatProofProducing())
+  {
+    // get the proof from the prop engine
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe != nullptr);
+    pePfn = pe->getProof();
+    Assert(pePfn != nullptr);
+  }
+  else
+  {
+    const context::CDList<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
+    // if not SAT proof producing, we construct a trusted step here
+    std::vector<std::shared_ptr<ProofNode>> ps;
+    ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
+    for (const Node& a : assertions)
+    {
+      ps.push_back(pnm->mkAssume(a));
+    }
+    pePfn = pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+  }
+  return pePfn;
 }
 
 QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
@@ -1307,10 +1338,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
 void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-  for (const Node& e : exprs)
-  {
-    ensureWellFormedTerm(e, "block model values");
-  }
+  ensureWellFormedTerms(exprs, "block model values");
 
   TheoryModel* m = getAvailableModel("block model values");
 
@@ -1364,21 +1392,27 @@ std::vector<Node> SolverEngine::getAssertionsInternal() const
 
 const Options& SolverEngine::options() const { return d_env->getOptions(); }
 
+bool SolverEngine::isWellFormedTerm(const Node& n) const
+{
+  // Well formed if it does not have free variables. Note that n may have
+  // variable shadowing.
+  return !expr::hasFreeVar(n);
+}
+
 void SolverEngine::ensureWellFormedTerm(const Node& n,
                                         const std::string& src) const
 {
   if (Configuration::isAssertionBuild())
   {
-    // Must rewrite before checking for free variables
-    Node nr = d_env->getRewriter()->rewrite(n);
     // Don't check for shadowing here, since shadowing may occur from API
-    // users, including the smt2 parser.
+    // users, including the smt2 parser. We don't need to rewrite since
+    // getFreeVariables is robust to variable shadowing.
     std::unordered_set<internal::Node> fvs;
-    expr::getFreeVariables(nr, fvs);
+    expr::getFreeVariables(n, fvs);
     if (!fvs.empty())
     {
       std::stringstream se;
-      se << "Cannot process term " << nr << " with ";
+      se << "Cannot process term " << n << " with ";
       se << "free variables: " << fvs << std::endl;
       throw ModalException(se.str().c_str());
     }
@@ -1418,7 +1452,11 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::LFSC: mode = options::ProofFormatMode::LFSC; break;
   }
 
-  d_pfManager->printProof(out, fp, mode, assertionNames);
+  d_pfManager->printProof(out,
+                          fp,
+                          mode,
+                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
+                          assertionNames);
   out << std::endl;
 }
 
@@ -1487,20 +1525,22 @@ std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
 void SolverEngine::checkProof()
 {
   Assert(d_env->getOptions().smt.produceProofs);
-  // internal check the proof
-  PropEngine* pe = d_smtSolver->getPropEngine();
-  Assert(pe != nullptr);
-  if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
+  if (d_env->isSatProofProducing())
   {
-    pe->checkProof(d_smtSolver->getAssertions().getAssertionList());
+    // internal check the proof
+    PropEngine* pe = d_smtSolver->getPropEngine();
+    Assert(pe != nullptr);
+    if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
+    {
+      pe->checkProof(d_smtSolver->getAssertions().getAssertionList());
+    }
   }
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pePfn = pe->getProof();
+  std::shared_ptr<ProofNode> pePfn = getAvailableSatProof();
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
     d_pfManager->connectProofToAssertions(
-        pePfn, *d_smtSolver.get(), ProofScopeMode::UNIFIED);
+        pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
   }
 }
 
@@ -1656,8 +1696,7 @@ void SolverEngine::getRelevantQuantTermVectors(
     bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
-  Assert(d_env->getOptions().smt.produceProofs
-         && d_env->getOptions().smt.proofMode == options::ProofMode::FULL);
+  Assert(d_env->isTheoryProofProducing());
   // note that we don't have to connect the SAT proof to the input assertions,
   // and preprocessing proofs don't impact what instantiations are used
   d_ucManager->getRelevantQuantTermVectors(insts, sks, getDebugInfo);
@@ -1668,9 +1707,20 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
 {
   Trace("smt") << "SMT getProof()\n";
   const Options& opts = d_env->getOptions();
-  if (!opts.smt.produceProofs || opts.smt.proofMode != options::ProofMode::FULL)
+  if (!opts.smt.produceProofs)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
+  }
+  if (c == modes::ProofComponent::SAT
+      || c == modes::ProofComponent::THEORY_LEMMAS
+      || c == modes::ProofComponent::PREPROCESS)
+  {
+    if (!d_env->isSatProofProducing())
+    {
+      throw ModalException(
+          "Cannot get a proof for this component when SAT solver is not proof "
+          "producing.");
+    }
   }
   // The component modes::ProofComponent::PREPROCESS returns
   // the proof of all preprocessed assertions. It does not require being in an
@@ -1715,7 +1765,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
   }
   else if (c == modes::ProofComponent::FULL)
   {
-    ps.push_back(pe->getProof(true));
+    ps.push_back(getAvailableSatProof());
     connectToPreprocess = true;
     connectMkOuterScope = true;
   }
@@ -1737,7 +1787,7 @@ std::vector<std::shared_ptr<ProofNode>> SolverEngine::getProof(
     {
       Assert(p != nullptr);
       p = d_pfManager->connectProofToAssertions(
-          p, *d_smtSolver.get(), scopeMode);
+          p, d_smtSolver->getAssertions(), scopeMode);
     }
   }
   return ps;
@@ -1748,7 +1798,8 @@ void SolverEngine::proofToString(std::ostream& out,
 {
   options::ProofFormatMode format_mode =
       getOptions().proof.proofFormatMode;
-  d_pfManager->printProof(out, fp, format_mode);
+  d_pfManager->printProof(
+      out, fp, format_mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)
@@ -1762,8 +1813,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
   // Extract the skolemizations and instantiations
   std::map<Node, std::vector<Node>> sks;
   std::map<Node, InstantiationList> rinsts;
-  if ((d_env->getOptions().smt.produceProofs
-       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
+  if ((d_env->getOptions().smt.produceProofs && d_env->isTheoryProofProducing())
       && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize skolemizations and instantiations based on proof manager
@@ -1892,12 +1942,10 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
-  // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
+  std::vector<Node> axioms = getAssertions();
   Node interpol;
   bool success =
-      d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1930,11 +1978,10 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
+  std::vector<Node> axioms = getAssertions();
   // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
   Node abd;
-  bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
@@ -1999,7 +2046,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   // do not include lemmas
   te->getDifficultyMap(dmap, false);
   // then ask proof manager to translate dmap in terms of the input
-  d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
+  d_pfManager->translateDifficultyMap(dmap, d_smtSolver->getAssertions());
 }
 
 void SolverEngine::push()
@@ -2101,6 +2148,10 @@ void SolverEngine::setOption(const std::string& key,
 {
   if (fromUser && options().base.safeOptions)
   {
+    if (key == "trace")
+    {
+      throw OptionException("cannot use trace messages with safe-options");
+    }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
     if (oinfo.category == options::OptionInfo::Category::EXPERT)

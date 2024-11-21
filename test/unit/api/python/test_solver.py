@@ -584,7 +584,7 @@ def test_get_unsat_core_and_proof(tm, solver):
 
 
 def test_get_unsat_core_and_proof_to_string(tm, solver):
-    solver.setOption("produce-proofs", "true");
+    solver.setOption("produce-proofs", "true")
 
     uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
@@ -620,6 +620,31 @@ def test_get_unsat_core_and_proof_to_string(tm, solver):
     proofs = solver.getProof(ProofComponent.SAT)
     printedProof = solver.proofToString(proofs[0], ProofFormat.NONE)
     assert len(printedProof) > 0
+
+
+def test_proof_to_string_assertion_names(tm, solver):
+    solver.setOption("produce-proofs", "true")
+    uSort = tm.mkUninterpretedSort("u")
+    x = tm.mkConst(uSort, "x")
+    y = tm.mkConst(uSort, "y")
+
+    x_eq_y = tm.mkTerm(Kind.EQUAL, x, y)
+    not_x_eq_y = tm.mkTerm(Kind.NOT, x_eq_y)
+
+    names = {x_eq_y: "as1", not_x_eq_y: "as2"}
+
+    solver.assertFormula(x_eq_y)
+    solver.assertFormula(not_x_eq_y)
+
+    assert solver.checkSat().isUnsat()
+
+    proofs = solver.getProof()
+    assert len(proofs) > 0
+    printedProof = solver.proofToString(proofs[0], ProofFormat.ALETHE, names)
+    assert len(printedProof) > 0
+    assert b"as1" in printedProof
+    assert b"as2" in printedProof
+
 
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")

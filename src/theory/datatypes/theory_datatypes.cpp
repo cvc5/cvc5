@@ -325,6 +325,16 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       }
       Trace("dt-expand") << "...nested recursion ok" << std::endl;
     }
+    if (dt.isCodatatype())
+    {
+      if (!options().datatypes.datatypesExp)
+      {
+        std::stringstream ss;
+        ss << "Codatatypes not available in this configuration, try "
+              "--datatypes-exp.";
+        throw LogicException(ss.str());
+      }
+    }
   }
   switch (n.getKind()) {
     case Kind::EQUAL:

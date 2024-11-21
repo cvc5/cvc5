@@ -446,7 +446,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     // Ensure that rAdd has the same type as the variable. This is necessary
     // since GEQ may mix Int and Real, as well as the equality solving above
     // may introduce mixed Int and Real.
-    rAdd = Instantiate::ensureType(rAdd, rVar.getType());
+    rAdd = TermUtil::ensureType(rAdd, rVar.getType());
   }
   if (!rAdd.isNull() && !TermUtil::hasInstConstAttr(rAdd))
   {

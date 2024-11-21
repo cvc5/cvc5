@@ -24,7 +24,8 @@ public class SygusInv
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
+    TermManager tm = new TermManager();
+    Solver slv = new Solver(tm);
     {
       // required options
       slv.setOption("sygus", "true");
@@ -33,27 +34,27 @@ public class SygusInv
       // set the logic
       slv.setLogic("LIA");
 
-      Sort integer = slv.getIntegerSort();
-      Sort bool = slv.getBooleanSort();
+      Sort integer = tm.getIntegerSort();
+      Sort bool = tm.getBooleanSort();
 
-      Term zero = slv.mkInteger(0);
-      Term one = slv.mkInteger(1);
-      Term ten = slv.mkInteger(10);
+      Term zero = tm.mkInteger(0);
+      Term one = tm.mkInteger(1);
+      Term ten = tm.mkInteger(10);
 
       // declare input variables for functions
-      Term x = slv.mkVar(integer, "x");
-      Term xp = slv.mkVar(integer, "xp");
+      Term x = tm.mkVar(integer, "x");
+      Term xp = tm.mkVar(integer, "xp");
 
       // (ite (< x 10) (= xp (+ x 1)) (= xp x))
-      Term ite = slv.mkTerm(ITE,
-          slv.mkTerm(LT, x, ten),
-          slv.mkTerm(EQUAL, xp, slv.mkTerm(ADD, x, one)),
-          slv.mkTerm(EQUAL, xp, x));
+      Term ite = tm.mkTerm(ITE,
+          tm.mkTerm(LT, x, ten),
+          tm.mkTerm(EQUAL, xp, tm.mkTerm(ADD, x, one)),
+          tm.mkTerm(EQUAL, xp, x));
 
       // define the pre-conditions, transition relations, and post-conditions
-      Term pre_f = slv.defineFun("pre-f", new Term[] {x}, bool, slv.mkTerm(EQUAL, x, zero));
+      Term pre_f = slv.defineFun("pre-f", new Term[] {x}, bool, tm.mkTerm(EQUAL, x, zero));
       Term trans_f = slv.defineFun("trans-f", new Term[] {x, xp}, bool, ite);
-      Term post_f = slv.defineFun("post-f", new Term[] {x}, bool, slv.mkTerm(LEQ, x, ten));
+      Term post_f = slv.defineFun("post-f", new Term[] {x}, bool, tm.mkTerm(LEQ, x, ten));
 
       // declare the invariant-to-synthesize
       Term inv_f = slv.synthFun("inv-f", new Term[] {x}, bool);

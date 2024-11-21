@@ -44,6 +44,24 @@ The match expression is purely syntactic and only syntactically identical terms
 can be matched.  For example `(= (str.++ x1 x2) x2)`matches `a ++ b = b` but not
 `a ++ b = c`.
 
+### Indexed operators
+
+In RARE, it is possible to define rewrites over indexed operators. For example:
+
+``` lisp
+(define-cond-rule bv-extract-whole
+  ((x ?BitVec) (n Int))
+  (>= n (- (@bvsize x) 1))
+  (extract n 0 x)
+  x)
+```
+
+Note that we use the syntax e.g. `(extract n m x)` to denote the result of
+extracting the bits `n` to `m` (inclusive) of `x`, whereas in SMT-LIB version
+2.6, this must be written `((_ extract n m) x)`.
+We require that terms that appear in index positions, e.g. the first and second
+argument positions of an extract must either be variables or values.
+
 ### Definition List
 
 An optional *definition list* may appear immediately after the parameter list to
@@ -56,18 +74,29 @@ expression which only exists in the outermost layer.
 
 All used variables in match and target must show up in the parameters list and
 `def` list, variables in the parameter list must be covered by the variables in
-match. Any unmatched variable will lead to an error.
+match. We also permit unmatched variables `x` to occur if they also occur in a
+condition of the form `(= x t)` where the free variables of `t` are each
+matched. For example:
 
 ``` lisp
-(define-rule bv-sign-extend-eliminate
-	((x ?BitVec) (n Int))
+(define-cond-rule bv-sign-extend-eliminate
+	((x ?BitVec) (n Int) (sn Int))
 	(def (s (bvsize x)))
+	(= sn (- s 1))
 	(sign_extend n x)
-	(concat (repeat n (extract (- s 1) (- s 1) x)) x))
+	(concat (repeat n (extract sn sn x)) x))
 ```
 
 In the above example, every instance of `s` will be replaced by `bvsize x` when
 the rewrite rule is compiled.
+
+Although `sn` does not occur on the left hand side of the rewrite rule, it
+does occur in the condition `(= sn (- s 1))`, which after compiling away `s`
+contains only the variable `x` on the right hand side, which is contained in
+the term to match.
+
+Otherwise, any unmatched variable not appearing in a condition of this form
+ will lead to an error.
 
 ### Conditional Rules
 
@@ -77,10 +106,10 @@ evaluable at the time of rule application.
 
 ``` lisp
 (define-cond-rule bv-repeat-eliminate-1
-	((x ?BitVec) (n Int))
-	(> n 1)
+	((x ?BitVec) (n Int) (nm1 Int))
+	(and (> n 1) (= nm1 (- n 1)))
 	(repeat n x)
-	(concat x (repeat (- n 1) x)))
+	(concat x (repeat nm1 x)))
 ```
 
 This rule is applied on `(repeat 3 ...)` but not `(repeat 1 ...)`.
@@ -95,10 +124,11 @@ The type checker will automatically ensure the expressions entering the
 reconstruction algorithms have sound types.
 
 ``` lisp
-(define-rule bv-extract-extract
-  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+(define-cond-rule bv-extract-extract
+  ((x ?BitVec) (i Int) (j Int) (k Int) (l Int) (il Int) (ik Int))
+  (and (= il (+ i l)) (= ik (+ i k)))
   (extract l k (extract j i x))
-  (extract (+ i l) (+ i k) x))
+  (extract il ik x))
 ```
 
 ### List Modifier
@@ -190,11 +220,11 @@ shared across the condition, match, and target terms.
 
 ``` lisp
 (define-cond-rule bv-udiv-pow2-1p
-  ((x ?BitVec) (v Int) (n Int))
+  ((x ?BitVec) (v Int) (n Int) (nm1 Int))
   (def (power (int.log2 v)))
-  (and (int.ispow2 v) (> v 1))
+  (and (int.ispow2 v) (> v 1) (= nm1 (- n 1)))
   (bvudiv x (bv v n))
-  (concat (bv 0 power) (extract (- n 1) power x)))
+  (concat (bv 0 power) (extract nm1 power x)))
 ```
 
 ### Gradual Types
@@ -227,3 +257,22 @@ a bit-vector is implicit albeit it can be recovered using `bvsize`. For example:
 
 In this case, the bit-vectors in the list `xs`, `ys`, `zs` do not have to have
 the same bit-width.
+
+## Updating RARE rules in the cvc5 repository
+
+RARE rules are contained in the cvc5 repository via files named
+`src/theory/*/rewrites*`. These can be modified by cvc5 developers when new
+rewrites are deemed necessary. It is recommended that the entire cvc5 team is
+notified when a change, addition or deletion is made to these files.
+
+Moreover, whenever these files change, the author of this change is required
+to update files that depend on these files that are not automatically triggered
+by our build system. We provide a script for this purpose, also in the cvc5
+repository at `./contrib/install-rare-rewrites`.
+
+In particular, this script updates the `ProofRewriteRule` identifiers in
+cvc5's API, as well as the CPC proof signature.
+
+Furthermore, if RARE rules are added for a new theory, the script
+`./contrib/install-rare-rewrites` must be updated to include references to
+the CPC formalization of the new theory.

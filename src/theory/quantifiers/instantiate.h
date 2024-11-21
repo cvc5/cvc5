@@ -294,12 +294,6 @@ class Instantiate : public QuantifiersUtil
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 
-  /**
-   * Ensure that n has type tn, return a term equivalent to it for that type
-   * if possible.
-   */
-  static Node ensureType(Node n, TypeNode tn);
-
  private:
   /** Add instantiation internal */
   bool addInstantiationInternal(Node q,

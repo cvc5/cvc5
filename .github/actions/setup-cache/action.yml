@@ -3,6 +3,10 @@ description: Setup caches (ccache, contribs and dependencies)
 inputs:
   cache-key:
     default: "none"
+  install-ethos:
+    default: false
+  install-carcara:
+    default: false
   shell:
     default: bash
 
@@ -60,7 +64,14 @@ runs:
     - name: Install contrib dependencies
       if: steps.contrib-cache.outputs.cache-hit != 'true'
       shell: ${{ inputs.shell }}
-      run: ./contrib/get-ethos-checker
+      run: |
+        mkdir -p ./deps/bin
+        if [ "${{ inputs.install-carcara }}" = "true" ]; then
+          ./contrib/get-carcara-checker
+        fi
+        if [ "${{ inputs.install-ethos }}" = "true" ]; then
+          ./contrib/get-ethos-checker
+        fi
 
     - name: Setup dependencies cache
       uses: actions/cache@v4
@@ -69,4 +80,3 @@ runs:
           build-shared/deps
           build-static/deps
         key: ${{ inputs.cache-key }}-${{ runner.os }}-deps-${{ hashFiles('cmake/**') }}-${{ hashFiles('.github/**') }}
-

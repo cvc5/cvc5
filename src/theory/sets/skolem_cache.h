@@ -38,7 +38,7 @@ namespace sets {
 class SkolemCache
 {
  public:
-  SkolemCache(Rewriter* rr);
+  SkolemCache(NodeManager* nm, Rewriter* rr);
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
@@ -78,6 +78,8 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node> d_allSkolems;
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** the optional rewriter */
   Rewriter* d_rewriter;
 };

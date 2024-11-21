@@ -143,3 +143,4 @@
 (declare-const @fp.ZERO (-> (! Type :var T) T))
 (declare-const @fp.INF (-> (! Type :var T) T))
 (declare-const @fp.NAN (-> (! Type :var T) T))
+(declare-const @fp.RMBITBLAST (-> RoundingMode (BitVec 5)))

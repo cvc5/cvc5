@@ -2766,6 +2766,27 @@ public class Solver extends AbstractPointer
   private native String proofToString(long pointer, long proofs, int format);
 
   /**
+   * Prints a proof into a string with a slected proof format mode.
+   * Other aspects of printing are taken from the solver options.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param proof A proof.
+   * @param format The proof format used to print the proof. Must be
+   * `PROOF_FORMAT_NONE` if the proof is from a component other than
+   * `PROOF_COMPONENT_FULL`.
+   * @param assertionNames Mapping between assertions and names, if they were
+   * given by the user.  This is used by the Alethe proof format.
+   * @return The proof printed in the current format.
+   */
+  public String proofToString(Proof proof, ProofFormat format, Map assertionNames)
+  {
+    return proofToString(pointer, proof.getPointer(), format.getValue(), assertionNames);
+  }
+
+  private native String proofToString(long pointer, long proofs, int format, Map assertionNames);
+
+  /**
    * Get the value of the given term in the current model.
    *
    * SMT-LIB:
@@ -3098,23 +3119,28 @@ public class Solver extends AbstractPointer
   private native void pop(long pointer, int nscopes);
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   * <p>
+   * This determines a term {@code I} such that {@code A->I} and {@code I->B}
+   * are valid, if such a term exits. {@code A} is the current set of
+   * assertions and {@code B} is the conjecture, given as {@code conj}.
+   * </p>
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <conj> )
+   * ( get-interpolant <symbol> <conj> )
    * }
    *
-   * Requires option {@code produce-interpolants} to be set to a mode different
-   * from {@code none}.
+   * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
+   *
+   * @api.note Requires option {@code produce-interpolants} to be set to a mode
+   * different from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
-   *         {@code A} is the current set of assertions and {@code B} is given
-   *         in the input by {@code conj}, or the null term if such a term
-   *         cannot be found.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   public Term getInterpolant(Term conj)
   {
@@ -3125,24 +3151,30 @@ public class Solver extends AbstractPointer
   private native long getInterpolant(long pointer, long conjPointer);
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   * <p>
+   * This determines a term {@code I}, with respect to a given grammar, such
+   * that {@code A->I} and {@code I->B} are valid, if such a term exits.
+   * {@code A} is the current set of assertions and {@code B} is the
+   * conjecture, given as {@code conj}.
+   * </p>
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <conj> <g> )
+   * ( get-interpolant <symbol> <conj> <g> )
    * }
    *
-   * Requires option {@code produce-interpolants} to be set to a mode different
-   * from {@code none}.
+   * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
+   *
+   * @api.note Requires option {@code produce-interpolants} to be set to a mode
+   * different from {@code none}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @param grammar The grammar for the interpolant I.
-   * @return A Term I such that {@code A->I} and {@code I->B} are valid, where
-   *         {@code A} is the current set of assertions and {@code B} is given
-   *         in the input by {@code conj}, or the null term if such a term
-   *         cannot be found.
+   * @param grammar The grammar for the interpolant {@code I}.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {

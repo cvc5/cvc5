@@ -329,9 +329,10 @@ PreprocessingPassResult HoElim::applyInternal(
       Node res = eliminateLambdaComplete(prev, newLambda);
       if (res != prev)
       {
-        res = rewrite(res);
-        Assert(!expr::hasFreeVar(res));
-        assertionsToPreprocess->replace(i, res);
+        assertionsToPreprocess->replace(
+            i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+        assertionsToPreprocess->ensureRewritten(i);
+        Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
       }
     }
     // do lambda lifting on new lambda definitions
@@ -378,7 +379,8 @@ PreprocessingPassResult HoElim::applyInternal(
       {
         Node axr = rewrite(ax);
         Assert(!expr::hasFreeVar(axr));
-        assertionsToPreprocess->push_back(axr);
+        assertionsToPreprocess->push_back(
+            axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
       }
     }
     axioms.clear();
@@ -391,9 +393,10 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateHo(prev);
     if (res != prev)
     {
-      res = rewrite(res);
-      Assert(!expr::hasFreeVar(res));
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+      assertionsToPreprocess->ensureRewritten(i);
+      Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
     }
   }
   // extensionality: process all function types
@@ -477,7 +480,8 @@ PreprocessingPassResult HoElim::applyInternal(
     {
       Node axr = rewrite(ax);
       Assert(!expr::hasFreeVar(axr));
-      assertionsToPreprocess->push_back(axr);
+      assertionsToPreprocess->push_back(
+          axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
     }
   }
 

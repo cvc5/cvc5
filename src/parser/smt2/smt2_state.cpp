@@ -27,9 +27,9 @@ namespace parser {
 Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
                      SymManager* sm,
-                     bool strictMode,
+                     ParsingMode parsingMode,
                      bool isSygus)
-    : ParserState(psc, solver, sm, strictMode),
+    : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
@@ -1387,7 +1387,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         }
         else if (p.d_name == "nullable.some")
         {
-          return d_tm.mkNullableSome(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableSome(args[0]);
+          }
+          parseError("nullable.some requires exactly one argument.");
         }
         else
         {
@@ -1400,7 +1404,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.val")
         {
-          return d_tm.mkNullableVal(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableVal(args[0]);
+          }
+          parseError("nullable.val requires exactly one argument.");
         }
         else
         {
@@ -1413,11 +1421,19 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.is_null")
         {
-          return d_tm.mkNullableIsNull(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableIsNull(args[0]);
+          }
+          parseError("nullable.is_null requires exactly one argument.");
         }
         else if (p.d_name == "nullable.is_some")
         {
-          return d_tm.mkNullableIsSome(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableIsSome(args[0]);
+          }
+          parseError("nullable.is_some requires exactly one argument.");
         }
         else
         {

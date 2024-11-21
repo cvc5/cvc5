@@ -129,6 +129,15 @@ class Op(Enum):
     POW2 = ('int.pow2', 'POW2')
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
+    IS_INT = ('is_int', 'IS_INTEGER')
+    
+    SINE = ('sin', 'SINE')
+    COSINE = ('cos', 'COSINE')
+    TANGENT = ('tan', 'TANGENT')
+    SECANT = ('sec', 'SECANT')
+    COSECANT = ('csc', 'COSECANT')
+    COTANGENT = ('cot', 'COTANGENT')
+    REAL_PI = (None, 'PI')  # Handled as constant
 
     INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
     INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
@@ -161,7 +170,7 @@ class Op(Enum):
     STRING_AT = ('str.at', 'STRING_CHARAT')
     STRING_CONTAINS = ('str.contains', 'STRING_CONTAINS')
     STRING_LT = ('str.<', 'STRING_LT')
-    STRING_LEQ = ('str.<=', 'STRING.LEQ')
+    STRING_LEQ = ('str.<=', 'STRING_LEQ')
     STRING_INDEXOF = ('str.indexof', 'STRING_INDEXOF')
     STRING_INDEXOF_RE = ('str.indexof_re', 'STRING_INDEXOF_RE')
     STRING_REPLACE = ('str.replace', 'STRING_REPLACE')
@@ -337,6 +346,19 @@ class CInt(Node):
     def __repr__(self):
         return str(self.val)
 
+class CRational(Node):
+    def __init__(self, val):
+        super().__init__([])
+        self.val = val
+
+    def __eq__(self, other):
+        return isinstance(other, CRational) and self.val == other.val
+
+    def __hash__(self):
+        return hash(self.val)
+
+    def __repr__(self):
+        return str(self.val)
 
 class CString(Node):
     def __init__(self, val):

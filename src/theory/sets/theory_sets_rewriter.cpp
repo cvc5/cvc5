@@ -40,6 +40,8 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm) : TheoryRewriter(nm)
   // as a premise to test emptiness of a set.
   registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -51,6 +53,23 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
       {
         return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
+      }
+    }
+    break;
+    case ProofRewriteRule::SETS_INSERT_ELIM:
+    {
+      if (n.getKind() == Kind::SET_INSERT)
+      {
+        NodeManager* nm = nodeManager();
+        size_t setNodeIndex = n.getNumChildren() - 1;
+        Node elems = nm->mkNode(Kind::SET_SINGLETON, n[0]);
+
+        for (size_t i = 1; i < setNodeIndex; ++i)
+        {
+          Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[i]);
+          elems = nm->mkNode(Kind::SET_UNION, elems, singleton);
+        }
+        return nm->mkNode(Kind::SET_UNION, elems, n[setNodeIndex]);
       }
     }
     break;
@@ -679,18 +698,8 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   }
   else if (k == Kind::SET_INSERT)
   {
-    size_t setNodeIndex =  node.getNumChildren()-1;
-    Node insertedElements = nm->mkNode(Kind::SET_SINGLETON, node[0]);
-
-    for (size_t i = 1; i < setNodeIndex; ++i)
-    {
-      Node singleton = nm->mkNode(Kind::SET_SINGLETON, node[i]);
-      insertedElements =
-          nm->mkNode(Kind::SET_UNION, insertedElements, singleton);
-    }
-    return RewriteResponse(
-        REWRITE_AGAIN,
-        nm->mkNode(Kind::SET_UNION, insertedElements, node[setNodeIndex]));
+    Node ret = rewriteViaRule(ProofRewriteRule::SETS_INSERT_ELIM, node);
+    return RewriteResponse(REWRITE_AGAIN, ret);
   }
   else if (k == Kind::SET_SUBSET)
   {
@@ -863,7 +872,7 @@ RewriteResponse TheorySetsRewriter::postRewriteAll(TNode n)
       // (set.all p A) is rewritten as (set.filter p A) = A
       Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
       Node all = filter.eqNode(n[1]);
-      return RewriteResponse(REWRITE_DONE, all);
+      return RewriteResponse(REWRITE_AGAIN_FULL, all);
     }
   }
 }
@@ -901,7 +910,7 @@ RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
       Node filter = nm->mkNode(Kind::SET_FILTER, n[0], n[1]);
       Node empty = nm->mkConst(EmptySet(n[1].getType()));
       Node some = filter.eqNode(empty).notNode();
-      return RewriteResponse(REWRITE_DONE, some);
+      return RewriteResponse(REWRITE_AGAIN_FULL, some);
     }
   }
 }

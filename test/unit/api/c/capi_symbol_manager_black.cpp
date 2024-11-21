@@ -41,10 +41,14 @@ class TestCApiBlackSymbolManager : public ::testing::Test
 
   void parse_and_set_logic(const char* logic)
   {
-    const char* error_msg;
     std::stringstream ss;
     ss << "(set-logic " << logic << ")" << std::endl;
-    std::string str = ss.str();
+    parse_command(ss.str().c_str());
+  }
+  void parse_command(const char* cmds)
+  {
+    const char* error_msg;
+    std::string str(cmds);
     Cvc5InputParser* parser = cvc5_parser_new(d_solver, d_sm);
     cvc5_parser_set_str_input(
         parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, str.c_str(), "parser_black");
@@ -94,4 +98,18 @@ TEST_F(TestCApiBlackSymbolManager, get_declared_terms)
                "unexpected NULL argument");
   ASSERT_DEATH(cvc5_sm_get_declared_terms(d_sm, nullptr), "NULL argument");
 }
+
+TEST_F(TestCApiBlackSymbolManager, getNamedTerms)
+{
+  parse_and_set_logic("QF_LIA");
+  size_t size;
+  Cvc5Term *terms;
+  const char** names;
+  (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
+  ASSERT_EQ(size, 0);
+  parse_command("(assert (! false :named a0))");
+  (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
+  ASSERT_EQ(size, 1);
+}
+
 }  // namespace cvc5::internal::test

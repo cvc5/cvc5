@@ -152,7 +152,10 @@ class SkolemManager
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemId. The user of this
    * method is responsible for providing a proper type for the identifier that
-   * matches the description of id. Skolem functions are useful for modelling
+   * matches the description of id.
+   * This can be done from the function
+   * `SkolemManager::getTypeFor`.
+   * Skolem functions are useful for modelling
    * the behavior of partial functions, or for theory-specific inferences that
    * introduce fresh variables.
    *
@@ -177,8 +180,14 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemId id, Node cacheVal = Node::null());
-  /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
+  /**
+   * Same as above, with multiple cache values.
+   * @param id The identifier of the skolem function
+   * @param cacheVals A vector of cache values.
+   * @return The skolem function.
+   */
+  Node mkSkolemFunction(SkolemId id,
+                        const std::vector<Node>& cacheVals);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
@@ -255,7 +264,12 @@ class SkolemManager
    * @return The number of indices for the skolem id.
    */
   size_t getNumIndicesForSkolemId(SkolemId id) const;
-
+  /**
+   * Is the given skolem identifier commutative, in the sense that its
+   * arguments can be reordered? If this method returns true, then
+   * we sort the arguments to the skolem upon construction via the API.
+   */
+  static bool isCommutativeSkolemId(SkolemId id);
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemId, TypeNode, Node>, Node> d_skolemFuns;
@@ -270,12 +284,6 @@ class SkolemManager
    * by this node manager.
    */
   size_t d_skolemCounter;
-  /**
-   * Is the given skolem identifier commutative, in the sense that its
-   * arguments can be reordered? If this method returns true, then
-   * we always sort the arguments to the skolem upon construction.
-   */
-  static bool isCommutativeSkolemId(SkolemId id);
   /** Same as mkSkolemFunction, with explicit type */
   Node mkSkolemFunctionTyped(SkolemId id,
                              TypeNode tn,

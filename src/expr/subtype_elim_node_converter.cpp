@@ -35,9 +35,16 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
   bool convertToRealChildren = false;
-  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT)
+  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+      || k == Kind::SUB)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
+  }
+  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+           || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
+  {
+    // always ensure that the arguments of these operators are Real
+    convertToRealChildren = true;
   }
   else if (k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
   {
@@ -49,10 +56,12 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
+    bool childChanged = false;
     for (const Node& nc : n)
     {
       if (nc.getType().isInteger())
       {
+        childChanged = true;
         if (nc.isConst())
         {
           // we convert constant integers to constant reals
@@ -68,6 +77,10 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
       {
         children.push_back(nc);
       }
+    }
+    if (!childChanged)
+    {
+      return n;
     }
     return nm->mkNode(k, children);
   }

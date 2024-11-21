@@ -57,7 +57,9 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
+      d_hasEnabledRels(false),
       d_rels_enabled(false),
+      d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb)
@@ -195,6 +197,44 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     return eqc_i->second;
   }
 }
+void TheorySetsPrivate::ensureCardinalityEnabled()
+{
+  if (d_card_enabled)
+  {
+    return;
+  }
+  d_card_enabled = true;
+  if (!d_hasEnabledCard)
+  {
+    if (!options().sets.setsCardExp)
+    {
+      std::stringstream ss;
+      ss << "Set cardinality is not supported in this configuration, try "
+            "--sets-card-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledCard = true;
+  }
+}
+void TheorySetsPrivate::ensureRelationsEnabled()
+{
+  if (d_rels_enabled)
+  {
+    return;
+  }
+  d_rels_enabled = true;
+  if (!d_hasEnabledRels)
+  {
+    if (!options().sets.relsExp)
+    {
+      std::stringstream ss;
+      ss << "Relations are not supported in this configuration, try "
+            "--rels-exp.";
+      throw LogicException(ss.str());
+    }
+    d_hasEnabledRels = true;
+  }
+}
 
 void TheorySetsPrivate::fullEffortReset()
 {
@@ -262,7 +302,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (nk == Kind::SET_CARD)
         {
-          d_card_enabled = true;
+          ensureCardinalityEnabled();
           // register it with the cardinality solver
           d_cardSolver->registerTerm(n);
           if (d_im.hasSent())
@@ -291,7 +331,7 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         else if (d_rels->isRelationKind(nk))
         {
-          d_rels_enabled = true;
+          ensureRelationsEnabled();
         }
         else if(isHigherOrderKind(nk))
         {
@@ -650,7 +690,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options().sets.setsExt)
+    if (options().sets.setsExp)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
@@ -722,7 +762,7 @@ void TheorySetsPrivate::checkFilterUp()
         d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       std::vector<Node> exp;
       exp.push_back(pair.second);
       Node B = pair.second[1];
@@ -730,11 +770,11 @@ void TheorySetsPrivate::checkFilterUp()
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node skolem = d_treg.getProxy(term);
       Node memberFilter = nm->mkNode(Kind::SET_MEMBER, x, skolem);
-      Node not_p_x = p_x.notNode();
-      Node not_memberFilter = memberFilter.notNode();
-      Node orNode =
-          p_x.andNode(memberFilter).orNode(not_p_x.andNode(not_memberFilter));
-      d_im.assertInference(orNode, InferenceId::SETS_FILTER_UP, exp);
+      // (set.member x A)
+      // ---------------------------------------
+      // (set.member x (set.filter P A)) = (P x)
+      Node conclusion = memberFilter.eqNode(p_x);
+      d_im.assertInference(conclusion, InferenceId::SETS_FILTER_UP, exp);
       if (d_state.isInConflict())
       {
         return;
@@ -759,7 +799,7 @@ void TheorySetsPrivate::checkFilterDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node x = pair.first;
+      Node x = pair.second[0];
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
       Node p_x = nm->mkNode(Kind::APPLY_UF, p, x);
       Node fact = memberA.andNode(p_x);
@@ -787,7 +827,7 @@ void TheorySetsPrivate::checkMapUp()
         d_state.getMapSkolemElements(term);
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
-      Node x = pair.first;
+      Node x = pair.second[0];
       if (skolemElements->contains(x))
       {
         // Break this cycle between inferences SETS_MAP_DOWN_POSITIVE
@@ -840,7 +880,7 @@ void TheorySetsPrivate::checkMapDown()
       Node B = pair.second[1];
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
-      Node y = pair.first;
+      Node y = pair.second[0];
 
       // general case
       // (=>
