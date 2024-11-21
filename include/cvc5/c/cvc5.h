@@ -4867,7 +4867,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  *
  * Given that @f$A->B@f$ is valid,
  * this function determines a term @f$I@f$ 
- * over the shared variables of @f$A@f$ and @f$B$, 
+ * over the shared variables of @f$A@f$ and @f$B@f$, 
  * with respect to a given grammar, such that
  * @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a term
  * exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
