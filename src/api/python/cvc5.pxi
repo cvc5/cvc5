@@ -4316,7 +4316,7 @@ cdef class Solver:
 	    this function
             determines a term :math:`I`
 	    over the shared variables of 
-            :math`A` and :math`B`,
+            :math:`A` and :math:`B`,
 	    optionally with respect to a
             a given grammar, such that :math:`A \\rightarrow I` and
             :math:`I \\rightarrow B` are valid, if such a term exits.
