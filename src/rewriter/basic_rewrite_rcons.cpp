@@ -206,6 +206,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
+      if (ensureProofMacroQuantMiniscope(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -775,6 +781,77 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   finalTransEq.push_back(eqq);
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
+                                                       const Node& eq)
+{
+  Node q = eq[0];
+  Assert(q.getKind() == Kind::FORALL);
+  NodeManager* nm = nodeManager();
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node mq = rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE, q);
+  Node equiv = q.eqNode(mq);
+  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MINISCOPE);
+  if (mq == eq[1])
+  {
+    return true;
+  }
+  if (mq.getNumChildren() != eq[1].getNumChildren())
+  {
+    Assert(false) << "Unexpected input ensureProofMacroQuantMiniscope " << eq;
+    return false;
+  }
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node equiv2 = mq.eqNode(eq[1]);
+  std::vector<Node> premises;
+  // each conjunct is either equal to the corresponding conjunct, the
+  // result of dropping all variables from the corresponding conjunct, or
+  // is alpha equivalent to the corresponding conjunct.
+  for (size_t i = 0, nconj = mq.getNumChildren(); i < nconj; i++)
+  {
+    Node eqc = mq[i].eqNode(eq[1][i]);
+    premises.emplace_back(eqc);
+    if (mq[i] == eq[1][i])
+    {
+      cdp->addStep(eqc, ProofRule::REFL, {}, {mq[i]});
+      continue;
+    }
+    Assert(mq[i].getKind() == Kind::FORALL);
+    if (mq[i][1] == eq[1][i])
+    {
+      Node mqc = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, mq[i]);
+      if (mqc == eq[1][i])
+      {
+        cdp->addTheoryRewriteStep(eqc, ProofRewriteRule::QUANT_UNUSED_VARS);
+        continue;
+      }
+    }
+    else if (eq[1][i].getKind() == Kind::FORALL)
+    {
+      std::vector<Node> v1(mq[i][0].begin(), mq[i][0].end());
+      std::vector<Node> v2(eq[1][i][0].begin(), eq[1][i][0].end());
+      std::vector<Node> aeArgs;
+      aeArgs.push_back(mq[i]);
+      aeArgs.push_back(nm->mkNode(Kind::SEXPR, v1));
+      aeArgs.push_back(nm->mkNode(Kind::SEXPR, v2));
+      Node res = pc->checkDebug(ProofRule::ALPHA_EQUIV, {}, aeArgs);
+      if (!res.isNull() && res[1] == eq[1][i])
+      {
+        cdp->addStep(res, ProofRule::ALPHA_EQUIV, {}, aeArgs);
+        continue;
+      }
+    }
+    Assert(false) << "Failed ensureProofMacroQuantMiniscope " << eq;
+    return false;
+  }
+  // add the CONG step to conclude AND terms are equal
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(mq, cargs);
+  cdp->addStep(equiv2, cr, premises, cargs);
+  // transitive
+  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
   return true;
 }
 
