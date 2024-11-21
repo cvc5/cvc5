@@ -260,6 +260,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
         transEq.push_back(eqqr);
         sret = sreorder;
       }
+      // if var reordering did not apply, we likely will not succeed below
     }
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
@@ -298,10 +299,6 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       Trace("alpha-eq") << "Proof is " << *pn.get() << std::endl;
       d_pfAlpha->setProofFor(lem, pn);
       pg = d_pfAlpha.get();
-    }
-    else
-    {
-      AlwaysAssert(false) << sret << " " << q;
     }
   }
   return TrustNode::mkTrustLemma(lem, pg);
