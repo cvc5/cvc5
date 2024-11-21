@@ -26,7 +26,7 @@
 )
 ; program: $poly_mod_coeffs
 ; args:
-; - p @Polynomial: The polynomial to negate.
+; - p @Polynomial: The polynomial to modify.
 ; - w Int: The modulus to consider
 ; return: the given polynomial where all coefficient are taken mod w.
 (program $poly_mod_coeffs ((T Type) (c Real) (a T) (p @Polynomial :list) (w Int))

@@ -108,8 +108,8 @@
 ; args:
 ; - x Int: The term to compute whether it is a power of two.
 ; return: >
-;   true iff x is a power of two. If x is not a numeral value, we return
-;   the term (int.ispow2 x).
+;   two raised to the power of x. If x is not a numeral value, we return
+;   the term (int.pow2 x).
 (define $arith_eval_int_pow_2 ((x Int))
   (eo::ite (eo::is_z x)
     (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
