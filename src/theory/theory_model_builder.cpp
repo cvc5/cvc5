@@ -1177,8 +1177,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      static int repCheckInstance = 0;
-      ++repCheckInstance;
       AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
@@ -1188,7 +1186,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       {
         std::stringstream err;
         err << "Failed representative check:" << std::endl
-            << "( " << repCheckInstance << ") "
             << "n: " << n << std::endl
             << "getValue(n): " << val << std::endl
             << "rep: " << rep << std::endl;
