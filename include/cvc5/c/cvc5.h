@@ -4865,7 +4865,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
 /**
  * Get an interpolant
  *
- * Given that @f$A->B@f$ is valid,
+ * Given that @f$A \rightarrow B@f$ is valid,
  * this function determines a term @f$I@f$ 
  * over the shared variables of @f$A@f$ and @f$B@f$, 
  * with respect to a given grammar, such that
