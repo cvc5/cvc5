@@ -172,6 +172,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::STRING_DECOMPOSE:
     case ProofRule::STRING_EXT:
+    case ProofRule::DT_SPLIT:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
@@ -274,6 +275,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
+    case ProofRewriteRule::DT_INST:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
