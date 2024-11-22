@@ -28,7 +28,7 @@ namespace theory {
 namespace quantifiers {
 
 // the number of d_drewrite objects we have allocated (to avoid name conflicts)
-static unsigned drewrite_counter = 0;
+static thread_local unsigned drewrite_counter = 0;
 
 CandidateRewriteFilter::CandidateRewriteFilter(Env& env)
     : EnvObj(env),
