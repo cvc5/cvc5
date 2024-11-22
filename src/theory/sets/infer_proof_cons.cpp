@@ -381,9 +381,19 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(success);
     }
     break;
-    case InferenceId::SETS_EQ_CONFLICT:
     case InferenceId::SETS_EQ_MEM_CONFLICT:
     case InferenceId::SETS_EQ_MEM:
+    {
+      // Handles cases:
+      // (and (= S set.empty) (set.member x S)) => false
+      // (and (= S (set.singleton y)) (set.member x S)) => (= x y)
+      Assert(assumps.size()==2);
+      Assert(assumps[0].getKind() == Kind::EQUAL);
+      Assert(assumps[1].getKind() == Kind::SET_MEMBER);
+      success = psb.applyPredTransform(assumps[1], conc, {assumps[0]});
+    }
+      break;
+    case InferenceId::SETS_EQ_CONFLICT:
     default: Trace("sets-ipc") << "Unhandled " << id; break;
   }
   if (success)

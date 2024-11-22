@@ -120,7 +120,6 @@ const char* toString(ProofRule rule)
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
-    case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -155,6 +154,7 @@ const char* toString(ProofRule rule)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case ProofRule::STRING_EXT: return "STRING_EXT";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
@@ -242,20 +242,26 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
+      return "macro-quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
+    case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
       return "macro-quant-var-elim-eq";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
       return "macro-quant-var-elim-ineq";
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ: return "quant-var-elim-eq";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_CYCLE: return "dt-cycle";
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
@@ -264,6 +270,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "bv-add-combine-like-terms";
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
+    case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";

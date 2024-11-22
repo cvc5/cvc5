@@ -42,6 +42,16 @@ std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions() const
   return subs;
 }
 
+Node SubstitutionMap::toFormula(NodeManager* nm) const
+{
+  std::vector<Node> conj;
+  for (const auto& sub : d_substitutions)
+  {
+    conj.emplace_back(nm->mkNode(Kind::EQUAL, sub.first, sub.second));
+  }
+  return nm->mkAnd(conj);
+}
+
 struct substitution_stack_element {
   TNode d_node;
   bool d_children_added;

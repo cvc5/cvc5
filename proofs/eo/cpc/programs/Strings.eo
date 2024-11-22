@@ -1,9 +1,9 @@
-
-(include "../theories/Builtin.eo")
-(include "../programs/Nary.eo")
-
 (include "../theories/Arith.eo")
+(include "../theories/Builtin.eo")
 (include "../theories/Strings.eo")
+(include "../programs/Nary.eo")
+(include "../programs/PolyNorm.eo")
+
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -37,6 +37,23 @@
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (eo::list_concat str.++ x y)
+)
+
+; define: $str_mk_nth
+; args:
+; - x (Seq T): The string-like term
+; - n Int: The index
+; return: >
+;   A term corresponding to extracting the n^th position of x, which as a
+;   special case is a string of length one if x is a string. This is used
+;   by ProofRule::STRING_EXT.
+(define $str_mk_nth ((T Type :implicit) (x (Seq T)) (n Int))
+  (eo::match ((U Type))
+  (eo::typeof x)
+  (
+    (String   (str.substr x n 1))
+    ((Seq U)  (seq.nth x n))
+  ))
 )
 
 ; define: $str_cons

@@ -3,6 +3,10 @@ description: Setup caches (ccache, contribs and dependencies)
 inputs:
   cache-key:
     default: "none"
+  install-ethos:
+    default: false
+  install-carcara:
+    default: false
   shell:
     default: bash
 
@@ -61,8 +65,13 @@ runs:
       if: steps.contrib-cache.outputs.cache-hit != 'true'
       shell: ${{ inputs.shell }}
       run: |
-        ./contrib/get-carcara-checker
-        ./contrib/get-ethos-checker
+        mkdir -p ./deps/bin
+        if [ "${{ inputs.install-carcara }}" = "true" ]; then
+          ./contrib/get-carcara-checker
+        fi
+        if [ "${{ inputs.install-ethos }}" = "true" ]; then
+          ./contrib/get-ethos-checker
+        fi
 
     - name: Setup dependencies cache
       uses: actions/cache@v4
