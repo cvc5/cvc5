@@ -380,6 +380,7 @@ Node StringsPreprocess::reduce(Node t,
     Node g2 = nm->mkNode(Kind::LT, x, leni);
     Node ux = nm->mkNode(Kind::APPLY_UF, u, x);
     Node ux1 = nm->mkNode(Kind::APPLY_UF, u, xPlusOne);
+    // the code point of "0", "1" ... is 48, 49 ....
     Node c0 = nm->mkConstInt(Rational(48));
     Node c = nm->mkNode(Kind::SUB, mkCodePointAtIndex(itost, x), c0);
 
@@ -453,6 +454,7 @@ Node StringsPreprocess::reduce(Node t,
     Node k = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_NON_DIGIT, t[0]);
     Node kc1 = nm->mkNode(Kind::GEQ, k, zero);
     Node kc2 = nm->mkNode(Kind::LT, k, lens);
+    // the code point of "0", "1" ... is 48, 49 ....
     Node c0 = nm->mkConstInt(Rational(48));
     Node codeSk = nm->mkNode(Kind::SUB, mkCodePointAtIndex(s, k), c0);
     Node ten = nm->mkConstInt(Rational(10));
