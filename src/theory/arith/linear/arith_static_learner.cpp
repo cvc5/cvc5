@@ -23,9 +23,9 @@
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "util/statistics_registry.h"
-#include "proof/proof.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -35,7 +35,10 @@ namespace theory {
 namespace arith::linear {
 
 ArithStaticLearner::ArithStaticLearner(Env& env)
-    : EnvObj(env), d_minMap(userContext()), d_maxMap(userContext()), d_statistics(statisticsRegistry())
+    : EnvObj(env),
+      d_minMap(userContext()),
+      d_maxMap(userContext()),
+      d_statistics(statisticsRegistry())
 {
 }
 
