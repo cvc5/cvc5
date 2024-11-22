@@ -22,6 +22,7 @@
 #define CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include "context/cdhashmap.h"
+#include "smt/env_obj.h"
 #include "proof/trust_node.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
@@ -29,15 +30,11 @@
 #include "proof/trust_node.h"
 #include "proof/proof_generator.h"
 
-namespace cvc5::context {
-class Context;
-}
-
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class ArithStaticLearner : public ProofGenerator {
+class ArithStaticLearner : protected EnvObj, public ProofGenerator {
 private:
 
   /**
@@ -48,7 +45,7 @@ private:
  CDNodeToMinMaxMap d_maxMap;
 
 public:
- ArithStaticLearner(StatisticsRegistry& sr, context::Context* userContext);
+ ArithStaticLearner(Env& env);
  ~ArithStaticLearner();
  void staticLearning(TNode n, std::vector<TrustNode>& learned);
 
