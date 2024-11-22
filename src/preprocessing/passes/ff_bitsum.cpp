@@ -121,7 +121,8 @@ PreprocessingPassResult FfBitsum::applyInternal(
     Node newFact = cache[fact];
     if (newFact != fact)
     {
-      assertionsToPreprocess->replace(i, newFact);
+      assertionsToPreprocess->replace(
+          i, newFact, nullptr, TrustId::PREPROCESS_FF_BITSUM);
     }
   }
 

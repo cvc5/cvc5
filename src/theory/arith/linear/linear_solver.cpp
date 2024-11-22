@@ -55,7 +55,7 @@ Theory::PPAssertStatus LinearSolver::ppAssert(
 {
   return d_internal.ppAssert(tin, outSubstitutions);
 }
-void LinearSolver::ppStaticLearn(TNode in, NodeBuilder& learned)
+void LinearSolver::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   d_internal.ppStaticLearn(in, learned);
 }

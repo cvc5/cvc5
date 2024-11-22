@@ -218,7 +218,7 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
   return d_internal.ppAssert(tin, outSubstitutions);
 }
 
-void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryArith::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   if (options().arith.arithStaticLearning)
   {

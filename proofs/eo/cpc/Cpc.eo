@@ -141,8 +141,8 @@
       (($run_evaluate (is_int x))          (eo::define ((ex ($run_evaluate x))) (eo::is_eq (eo::to_q (eo::to_z ex)) (eo::to_q ex))))
       (($run_evaluate (abs x))             (eo::define ((ex ($run_evaluate x))) (eo::ite (eo::is_neg ex) (eo::neg ex) ex)))
       (($run_evaluate (int.log2 x))        ($arith_eval_int_log_2 ($run_evaluate x)))
-      (($run_evaluate (int.ispow2 x))      ($arith_eval_is_pow_2 ($run_evaluate x)))
       (($run_evaluate (int.pow2 x))        ($arith_eval_int_pow_2 ($run_evaluate x)))
+      (($run_evaluate (int.ispow2 x))      ($arith_eval_int_is_pow_2 ($run_evaluate x)))
 
       ; strings
       (($run_evaluate (str.++ xs yss))     (eo::concat ($run_evaluate xs) ($run_evaluate yss)))
@@ -245,10 +245,6 @@
 ; requires: >
 ;   That the arithmetic/bitvector terms a and b are equal up polynomial
 ;   normalization.
-; note: >
-;   The current implementation of $is_poly_norm does not support bitvectors.
-;   Therefore, cvc5 will not output this rule for bitvector proofs; instead, it
-;   will output a trust rule.
 ; conclusion: The given equality.
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))
