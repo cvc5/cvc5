@@ -355,13 +355,13 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
 {
   // If we have a buffered lemma (from the non-linear extension), then we
   // do not assert model values, since those values are likely incorrect.
-  // We send the lemmas now, as the model construction will otherwise fail.
+  // Moreover, the model does not need to satisfy the assertions, so
+  // arbitrary values can be used for arithmetic terms. Hence, we do
+  // nothing here. The buffered lemmas will be sent immediately
+  // at LAST_CALL effort (see postCheck).
   if (d_im.hasPendingLemma())
   {
-    d_im.doPendingFacts();
-    d_im.doPendingLemmas();
-    d_im.doPendingPhaseRequirements();
-    return false;
+    return true;
   }
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);

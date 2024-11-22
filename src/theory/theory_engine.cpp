@@ -537,10 +537,7 @@ void TheoryEngine::check(Theory::Effort effort) {
           {
             if (theory->needsCheckLastEffort())
             {
-              if (!d_tc->buildModel())
-              {
-                break;
-              }
+              d_tc->buildModel();
               theory->check(Theory::EFFORT_LAST_CALL);
             }
           }
