@@ -4,13 +4,13 @@
 ; interchangable. This is because Int and Real are not comparable in our
 ; type system.
 
-(define-rule arith-plus-zero ((t ? :list) (s ? :list)) (+ t 0 s) (+ t s))
-
 (define-rule arith-mul-one ((t ? :list) (s ? :list)) (* t 1 s) (* t s))
 (define-rule arith-mul-zero ((t ? :list) (s ? :list)) (* t 0 s) 0)
 
-(define-cond-rule arith-div-total ((t ?) (s ?)) (not (= s 0)) (/ t s) (/_total t s))
-(define-rule arith-div-total-zero ((x Real)) (/_total x 0/1) 0/1)
+(define-cond-rule arith-div-total-real ((t ?) (s Real)) (not (= s 0/1)) (/ t s) (/_total t s))
+(define-cond-rule arith-div-total-int ((t ?) (s Int)) (not (= s 0)) (/ t s) (/_total t s))
+(define-rule arith-div-total-zero-real ((t ?)) (/_total t 0/1) 0/1)
+(define-rule arith-div-total-zero-int ((t ?)) (/_total t 0) 0/1)
 
 (define-cond-rule arith-int-div-total ((t Int) (s Int)) (not (= s 0)) (div t s) (div_total t s))
 (define-rule arith-int-div-total-one ((t Int)) (div_total t 1) t)
@@ -31,7 +31,8 @@
 
 (define-rule arith-geq-tighten ((t Int) (s Int)) (not (>= t s)) (>= s (+ t 1)))
 
-(define-rule arith-geq-norm1 ((t ?) (s ?)) (>= t s) (>= (- t s) 0))
+(define-rule arith-geq-norm1-int ((t Int) (s Int)) (>= t s) (>= (- t s) 0))
+(define-rule arith-geq-norm1-real ((t Real) (s Real)) (>= t s) (>= (- t s) 0/1))
 
 (define-rule arith-geq-norm2 ((t ?) (s ?)) (>= t s) (<= (- t) (- s)))
 
@@ -40,8 +41,8 @@
 (define-rule arith-refl-geq ((t ?)) (>= t t) true)
 (define-rule arith-refl-gt ((t ?)) (> t t) false)
 
-(define-rule arith-real-eq-elim ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
-(define-rule arith-int-eq-elim ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
+(define-rule arith-eq-elim-real ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
+(define-rule arith-eq-elim-int ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
 
 ;(define-cond-rule arith-geq-contra ((t ?) (s ?)) (not (>= (- t s) 0)) (>= t s) false)
 ;(define-cond-rule arith-eq-contra ((t ?) (s ?)) (not (= (- t s) 0)) (= t s) false)
@@ -58,7 +59,8 @@
   (* x (+ y z w))
   (+ (* x y) (* x (+ z w))))
 
-(define-rule arith-abs-elim ((x ?)) (abs x) (ite (< x 0) (- x) x))
+(define-rule arith-abs-elim-int ((x Int)) (abs x) (ite (< x 0) (- x) x))
+(define-rule arith-abs-elim-real ((x Real)) (abs x) (ite (< x 0/1) (- x) x))
 
 (define-rule arith-to-real-elim ((x Real)) (to_real x) x)
 (define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))

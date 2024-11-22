@@ -60,8 +60,8 @@ PreprocessingPassResult StaticLearning::applyInternal(
     // add the lemmas to the end
     for (const TrustNode& trn : tlems)
     {
-      Trace("ajr-temp") << "static learn: " << trn.getProven() << std::endl;
-      assertionsToPreprocess->pushBackTrusted(trn);
+      assertionsToPreprocess->pushBackTrusted(
+          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

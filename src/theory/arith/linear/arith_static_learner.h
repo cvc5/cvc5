@@ -26,6 +26,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
+#include "proof/trust_node.h"
 
 namespace cvc5::context {
 class Context;

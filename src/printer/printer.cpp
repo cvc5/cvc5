@@ -32,7 +32,7 @@ using namespace std;
 
 namespace cvc5::internal {
 
-unique_ptr<Printer>
+thread_local unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 unique_ptr<Printer> Printer::makePrinter(Language lang)
