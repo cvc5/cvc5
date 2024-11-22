@@ -537,7 +537,10 @@ void TheoryEngine::check(Theory::Effort effort) {
           {
             if (theory->needsCheckLastEffort())
             {
+              // ensure we have (attempted to) build the model
               d_tc->buildModel();
+              // check with the theory, independently if model construction
+              // succeeded.
               theory->check(Theory::EFFORT_LAST_CALL);
             }
           }
