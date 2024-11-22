@@ -515,9 +515,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // Furthermore, we only permit the value if it is constant, since the model
     // may contain internal-only expressions, e.g. RANs.
     bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
-    if (isQElim || ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
-        && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
-        && vinst->allowModelValue(this, sf, pv, d_effort)))
+    if (isQElim
+        || ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
+            && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
+            && vinst->allowModelValue(this, sf, pv, d_effort)))
     {
       Node mv = getModelValue( pv );
       if (mv.isConst())
