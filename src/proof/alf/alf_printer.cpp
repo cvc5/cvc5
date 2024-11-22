@@ -216,7 +216,20 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_SUBSTR || k == Kind::STRING_INDEXOF;
+      switch (k)
+      {
+        case Kind::STRING_SUBSTR:
+        case Kind::STRING_INDEXOF:
+        case Kind::STRING_REPLACE:
+        case Kind::STRING_STOI:
+        case Kind::STRING_ITOS:
+        case Kind::SEQ_NTH:
+          return true;
+        default:
+          break;
+      }
+      Trace("alf-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
+      return false;
     }
     break;
     case ProofRule::STRING_EAGER_REDUCTION:

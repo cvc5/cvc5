@@ -422,15 +422,75 @@
 ; return: the reduction predicate for term t of sort s.
 ; note: >
 ;   The operators listed in comments are missing from the signature currently.
-(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (n Int) (m Int))
-  ((Seq U)) Bool
+(program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int) (s String))
+  (T) Bool
   (
     (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
     (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    (($str_reduction_pred (str.replace x y z)) 
+        (eo::define ((k (@purify (str.replace x y z))))
+        (ite (= y ($mk_emptystr (eo::typeof y)))
+          (= k (str.++ z x))
+          (ite (str.contains x y)
+            (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
+            (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
+            (and
+              (= x (str.++ k1 y k2))
+              (= k (str.++ k1 z k2))
+              (not (str.contains (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y)))))
+            (= k x)))))
+    (($str_reduction_pred (str.from_int n))
+        (eo::define ((k (@purify (str.from_int n))))
+        (eo::define ((R (@strings_itos_result n)))
+        (ite (>= n 0)
+          (and (>= (str.len k) 1)
+               (= n (R (str.len k)))
+               (= 0 (R 0))
+               (forall ((@var.str_index Int))
+                  (eo::define ((cd (- (str.to_code (str.substr k @var.str_index 1)) 48)))
+                  (eo::define ((ux1 (R (+ @var.str_index 1))))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index (str.len k)))
+                    (and
+                      (= ux1 (+ cd (* 10 (R @var.str_index))))
+                      (and (>= cd (ite (and (= @var.str_index 0) (> (str.len k) 1)) 1 0))
+                           (< cd 10))
+                      (>= n ux1)))))))
+          (= k "")))))
+    (($str_reduction_pred (str.to_int s))
+        (eo::define ((k (@purify (str.to_int s))))
+        (eo::define ((xlen (str.len s)))
+        (eo::define ((R (@strings_stoi_result s)))
+        (eo::define ((ndi (@strings_stoi_non_digit s)))
+        (ite (< k 0)
+          (eo::define ((ndc (- (str.to_code (str.substr s ndi 1)) 48)))
+          (and (= k -1) 
+               (or (= s "") (and (>= ndi 0) (< ndi xlen) (or (< ndc 0) (>= ndc 10))))))
+          (and (= k (R xlen))
+               (= 0 (R 0))
+               (> (str.len s) 0)
+               (forall ((@var.str_index Int))
+                  (eo::define ((cd (- (str.to_code (str.substr s @var.str_index 1)) 48)))
+                  (eo::define ((ux1 (R (+ @var.str_index 1))))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index (str.len s)))
+                    (and
+                      (= ux1 (+ cd (* 10 (R @var.str_index))))
+                      (and (>= cd 0) (< cd 10))
+                      (>= k ux1)))))))))))))
+    (($str_reduction_pred (seq.nth x n))
+        (eo::define ((k (@purify (seq.nth x n))))
+        (eo::define ((k1 (@purify ($str_prefix x n))))
+        (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
+          (=> (and (>= n 0) (> (str.len x) n))
+              (and (= x (str.++ k1 (seq.unit k) k2))
+                   (= (str.len k1) n)
+                   (= (str.len k2) (- (str.len x) (+ n 1)))))))))
+
     ; str.update
-    ; str.from_int
     ; str.to_int
-    ; seq.nth
     ; str.replaceall
     ; str.replace_re
     ; str.replace_re_all
