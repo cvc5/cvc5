@@ -1091,6 +1091,7 @@ set(regress_0_tests
   regress0/nl/nta/issue10655-sqrt-semantics.smt2
   regress0/nl/nta/issue4693-inc-purify.smt2
   regress0/nl/nta/issue4693-4-inc-purify-sat.smt2
+  regress0/nl/nta/issue4693-5-inc-purify.smt2
   regress0/nl/nta/issue7938-tf-model.smt2
   regress0/nl/nta/issue8147-unc-model.smt2
   regress0/nl/nta/issue8160-model-purify.smt2
@@ -3489,6 +3490,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2
   regress1/sygus/proj-issue222-any-const.sy
+  regress1/sygus/proj-issue264.smt2
   regress1/sygus/proj-issue541.smt2
   regress1/sygus/proj-issue548-srr.smt2
   regress1/sygus/proj-issue549-srr.smt2
@@ -3890,9 +3892,6 @@ set(regression_disabled_tests
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/parity-si-rcons.sy
-  # times out after change to buffered lemmas in arith collectModelValues
-  regress0/nl/nta/issue4693-5-inc-purify.smt2
-  regress1/sygus/proj-issue264.smt2
   # should print a better error message to indicate that a term is not in the
   # provided grammar
   regress1/sygus/simple-not-in-grammar.sy
