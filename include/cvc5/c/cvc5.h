@@ -4831,53 +4831,68 @@ CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
 CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
 
 /**
- * Get an interpolant
+ * Get an interpolant.
+ *
+ * Given that @f$A \rightarrow B@f$ is valid,
+ * this function determines a term @f$I@f$ 
+ * over the shared variables of @f$A@f$ and @f$B@f$,
+ * such that @f$A \rightarrow I@f$ and
+ * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
+ * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
  *
  * SMT-LIB:
  *
  * \verbatim embed:rst:leading-asterisk
  * .. code:: smtlib
  *
- *     (get-interpolant <conj>)
+ *     (get-interpolant <symbol> <conj>)
  *
- * Requires option
- * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
- * a mode different from `none`. \endverbatim
+ * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+ *
+ * .. note:: Requires option
+ *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
+ *          be set to a mode different from `none`.
+ * \endverbatim
  *
  * @warning This function is experimental and may change in future versions.
  *
  * @param cvc5 The solver instance.
  * @param conj The conjecture term.
- * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
- *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
- *         current set of assertions and @f$B@f$ is given in the input by
- *         `conj`, or the null term if such a term cannot be found.
+ * @return The interpolant, if an interpolant exists, else the null term.
  */
 CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
 
 /**
  * Get an interpolant
  *
+ * Given that @f$A \rightarrow B@f$ is valid,
+ * this function determines a term @f$I@f$ 
+ * over the shared variables of @f$A@f$ and @f$B@f$, 
+ * with respect to a given grammar, such that
+ * @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a term
+ * exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
+ * conjecture, given as `conj`.
+ *
  * SMT-LIB:
  *
  * \verbatim embed:rst:leading-asterisk
  * .. code:: smtlib
  *
- *     (get-interpolant <conj> <grammar>)
+ *     (get-interpolant <symbol> <conj> <grammar>)
  *
- * Requires option
- * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
- * a mode different from `none`. \endverbatim
+ * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+ *
+ * .. note:: Requires option
+ *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
+ *          be set to a mode different from `none`.
+ * \endverbatim
  *
  * @warning This function is experimental and may change in future versions.
  *
  * @param cvc5 The solver instance.
  * @param conj The conjecture term.
  * @param grammar The grammar for the interpolant I.
- * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
- *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
- *         current set of assertions and @f$B@f$ is given in the input by
- *         `conj`, or the null term if such a term cannot be found.
+ * @return The interpolant, if an interpolant exists, else the null term.
  */
 CVC5_EXPORT Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
                                                        Cvc5Term conj,

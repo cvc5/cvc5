@@ -195,7 +195,7 @@
                   (= tc
                     (eo::ite rev
                       (eo::define ((oc ($str_suffix s1 v)))
-                      (str.++ (@purify ($str_prefix tc (- (str.len tc) (str.len oc)))) oc))
+                      (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
                       (eo::define ((oc ($str_prefix s1 v)))
                       (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
                 )))))))))
@@ -413,6 +413,22 @@
                 (not (str.in_re ($str_prefix t @var.str_index) r1))
                 (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
     ))
+)
+
+;;;;; ProofRule::STRING_EXT
+
+; rule: string_ext
+; implements: ProofRule::STRING_EXT
+; premises:
+; - deq: A disequality between strings or sequences.
+; conclusion: The strings have different length or are disequal for a witness index, as given by the skolem (@strings_deq_diff s t).
+(declare-rule string_ext ((T Type)  (s (Seq T)) (t (Seq T)))
+  :premises ((not (= s t)))
+  :conclusion (eo::define ((k (@strings_deq_diff s t)))
+              (or (not (= (str.len s) (str.len t))) 
+                  (and (not (= ($str_mk_nth s k) ($str_mk_nth t k)))
+                       (<= 0 k)
+                       (< k (str.len s)))))
 )
 
 ;;-------------------- Extended functions 

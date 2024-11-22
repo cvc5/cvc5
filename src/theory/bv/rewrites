@@ -58,6 +58,25 @@
   (extract j i (concat x xs y))
   (extract j i (concat xs y)))
 
+; Motivated by TheoryBv::ppAssert, which turns an equality involving
+; extract into a solved form for the variable we are extracting from.
+(define-cond-rule bv-eq-extract-elim1
+  ((x ?BitVec) (y ?BitVec) (i Int) (j Int) (wm1 Int) (jp1 Int) (im1 Int))
+  (and (= wm1 (- (@bvsize x) 1)) (= jp1 (+ j 1)) (= im1 (- i 1)) (> wm1 j) (> i 0))
+  (= (extract j i x) y)
+  (= x (concat (extract wm1 jp1 x) y (extract im1 0 x))))
+
+(define-cond-rule bv-eq-extract-elim2
+  ((x ?BitVec) (y ?BitVec) (j Int) (wm1 Int) (jp1 Int))
+  (and (= wm1 (- (@bvsize x) 1)) (= jp1 (+ j 1)) (> wm1 j))
+  (= (extract j 0 x) y)
+  (= x (concat (extract wm1 jp1 x) y)))
+
+(define-cond-rule bv-eq-extract-elim3
+  ((x ?BitVec) (y ?BitVec) (i Int) (j Int) (im1 Int))
+  (and (= j (- (@bvsize x) 1)) (= im1 (- i 1)) (> i 0))
+  (= (extract j i x) y)
+  (= x (concat y (extract im1 0 x))))
 
 ; -- Normalization Rules --
 (define-rule bv-extract-bitwise-and
@@ -179,8 +198,8 @@
   (and (= c1 (@bv 1 w)) (= w (@bvsize y)))
   (bvult x (bvadd y c1))
   (and
-    (not (bvult y x))
-    (not (= y (bvnot (@bv 0 w))))))
+    (not (= y (bvnot (@bv 0 w))))
+    (not (bvult y x))))
 (define-cond-rule bv-concat-to-mult
   ((x ?BitVec) (i Int) (m Int) (n0 Int) (w Int))
   (and (= (+ 1 i m) (@bvsize x)) (= n0 0) (= w (@bvsize x)))

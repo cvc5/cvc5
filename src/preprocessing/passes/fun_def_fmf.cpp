@@ -162,8 +162,9 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
             << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
         Node new_q = nm->mkNode(Kind::FORALL, bvl, bd);
-        new_q = rewrite(new_q);
-        assertionsToPreprocess->replace(i, new_q);
+        assertionsToPreprocess->replace(
+            i, new_q, nullptr, TrustId::PREPROCESS_FUN_DEF_FMF);
+        assertionsToPreprocess->ensureRewritten(i);
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back(i);
       }
@@ -201,7 +202,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           << "FMF fun def : rewrite " << assertions[i] << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
       Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      assertionsToPreprocess->replace(i, n);
+      assertionsToPreprocess->replace(
+          i, n, nullptr, TrustId::PREPROCESS_FUN_DEF_FMF);
     }
   }
 }

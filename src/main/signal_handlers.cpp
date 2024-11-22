@@ -213,7 +213,7 @@ void ill_handler(int sig, siginfo_t* info, void*)
 
 #endif /* __WIN32__ */
 
-static terminate_handler default_terminator;
+static thread_local terminate_handler default_terminator;
 
 void cvc5terminate()
 {
