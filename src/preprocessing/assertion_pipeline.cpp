@@ -52,7 +52,8 @@ void AssertionPipeline::clear()
 
 void AssertionPipeline::push_back(Node n,
                                   bool isInput,
-                                  ProofGenerator* pgen)
+                                  ProofGenerator* pgen,
+                                  TrustId trustId)
 {
   if (d_conflict)
   {
@@ -74,7 +75,8 @@ void AssertionPipeline::push_back(Node n,
     {
       if (!isInput)
       {
-        d_andElimEpg->addLazyStep(n, pgen, TrustId::PREPROCESS_LEMMA);
+        Assert(pgen != nullptr || trustId != TrustId::UNKNOWN_PREPROCESS_LEMMA);
+        d_andElimEpg->addLazyStep(n, pgen, trustId);
       }
     }
     std::vector<Node> toProcess;
@@ -124,7 +126,7 @@ void AssertionPipeline::push_back(Node n,
     if (!isInput)
     {
       // notice this is always called, regardless of whether pgen is nullptr
-      d_pppg->notifyNewAssert(n, pgen);
+      d_pppg->notifyNewAssert(n, pgen, trustId);
     }
     else
     {
@@ -135,14 +137,17 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(TrustNode trn)
+void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, trn.getGenerator());
+  push_back(trn.getProven(), false, trn.getGenerator(), trustId);
 }
 
-void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
+void AssertionPipeline::replace(size_t i,
+                                Node n,
+                                ProofGenerator* pgen,
+                                TrustId trustId)
 {
   Assert(i < d_nodes.size());
   if (n == d_nodes[i])
@@ -154,7 +159,8 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
                            << n << std::endl;
   if (isProofEnabled())
   {
-    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+    Assert(pgen != nullptr || trustId != TrustId::UNKNOWN_PREPROCESS);
+    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen, trustId);
   }
   if (n == d_false)
   {
@@ -166,7 +172,7 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   }
 }
 
-void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
+void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn, TrustId trustId)
 {
   Assert(i < d_nodes.size());
   if (trn.isNull())
@@ -176,7 +182,13 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
   }
   Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Assert(trn.getProven()[0] == d_nodes[i]);
-  replace(i, trn.getNode(), trn.getGenerator());
+  replace(i, trn.getNode(), trn.getGenerator(), trustId);
+}
+
+void AssertionPipeline::ensureRewritten(size_t i)
+{
+  Assert(i < d_nodes.size());
+  replace(i, rewrite(d_nodes[i]), d_rewpg.get());
 }
 
 void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
@@ -186,6 +198,10 @@ void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
   {
     d_andElimEpg.reset(
         new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
+  }
+  if (d_rewpg == nullptr)
+  {
+    d_rewpg.reset(new RewriteProofGenerator(d_env));
   }
 }
 
@@ -202,17 +218,19 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
   d_storeSubstsInAsserts = false;
 }
 
-void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
+void AssertionPipeline::addSubstitutionNode(Node n,
+                                            ProofGenerator* pg,
+                                            TrustId trustId)
 {
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == Kind::EQUAL);
   size_t prevNodeSize = d_nodes.size();
-  push_back(n, false, pg);
+  push_back(n, false, pg, trustId);
   // remember this is a substitution index
   for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
     // ensure rewritten
-    replace(i, rewrite(d_nodes[i]));
+    replace(i, rewrite(d_nodes[i]), d_rewpg.get());
     d_substsIndices.insert(i);
   }
 }

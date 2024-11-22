@@ -148,8 +148,15 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
        ++i)
   {
+    const Node& a = (*assertionsToPreprocess)[i];
+    Node ar = d_ftr.simplify(a);
+    if (a == ar)
+    {
+      continue;
+    }
     assertionsToPreprocess->replace(
-        i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
+        i, ar, nullptr, TrustId::PREPROCESS_FOREIGN_THEORY_REWRITE);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

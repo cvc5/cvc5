@@ -179,6 +179,8 @@ jobs:
       uses: ./.github/actions/setup-cache
       with:
         cache-key: ${{ matrix.build.cache-key }}
+        install-ethos: ${{ contains(matrix.build.run_regression_args, '--tester cpc') }}
+        install-carcara: ${{ contains(matrix.build.run_regression_args, '--tester alethe') }}
         shell: ${{ matrix.build.shell }}
 
     - name: Configure and build
