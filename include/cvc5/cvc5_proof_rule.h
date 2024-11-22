@@ -3036,14 +3036,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
-  /** Auto-generated from RARE rule arith-ite-lb-1 */
-  EVALUE(ARITH_ITE_LB_1),
-  /** Auto-generated from RARE rule arith-ite-lb-2 */
-  EVALUE(ARITH_ITE_LB_2),
-  /** Auto-generated from RARE rule arith-ite-ub-1 */
-  EVALUE(ARITH_ITE_UB_1),
-  /** Auto-generated from RARE rule arith-ite-ub-2 */
-  EVALUE(ARITH_ITE_UB_2),
   /** Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
   /** Auto-generated from RARE rule arith-sine-pi2 */
