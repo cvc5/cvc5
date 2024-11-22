@@ -215,6 +215,15 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
           min.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
           n,
           nm->mkConstRealOrInt(n.getType(), min.getNoninfinitesimalPart()));
+      // To ensure that proofs and unsat cores can be used with this class,
+      // we require the assertions added by this class are valid. Thus, if
+      // c > 5 is a top-level assertion, instead of adding:
+      //   (ite A c 4) >= 4
+      // noting that c is entailed greater than 4, we add the valid fact:
+      //   (c > 5) => (ite A c 4) >= 4
+      // The latter is slightly less efficient since it requires e.g.
+      // resolving the disjunction with c > 5, but is preferred to make this
+      // compatible with proofs and unsat cores.
       std::vector<Node> conj;
       if (!n[1].isConst())
       {
@@ -251,6 +260,8 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
           max.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
           n,
           nm->mkConstRealOrInt(n.getType(), max.getNoninfinitesimalPart()));
+      // Similar to above, we ensure the assertion we are adding is valid for
+      // the purposes of proofs and unsat cores.
       std::vector<Node> conj;
       if (!n[1].isConst())
       {
