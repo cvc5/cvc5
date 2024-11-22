@@ -316,8 +316,21 @@ void ArithStaticLearner::addBound(TNode n) {
 void ArithStaticLearner::addLearnedLemma(TNode n,
                                          std::vector<TrustNode>& learned)
 {
-  TrustNode trn = TrustNode::mkTrustLemma(n, nullptr);
+  TrustNode trn = TrustNode::mkTrustLemma(n, this);
   learned.emplace_back(trn);
+}
+
+std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
+{
+  // proofs not yet supported
+  CDProof cdp(d_env);
+  cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
+  return cdp.getProofFor(fact);
+}
+
+std::string ArithStaticLearner::identify() const
+{
+  return "ArithStaticLearner";
 }
 
 }  // namespace arith

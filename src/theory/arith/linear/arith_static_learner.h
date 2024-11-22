@@ -27,6 +27,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
 #include "proof/trust_node.h"
+#include "proof/proof_generator.h"
 
 namespace cvc5::context {
 class Context;
@@ -36,7 +37,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class ArithStaticLearner {
+class ArithStaticLearner : public ProofGenerator {
 private:
 
   /**
@@ -52,7 +53,12 @@ public:
  void staticLearning(TNode n, std::vector<TrustNode>& learned);
 
  void addBound(TNode n);
-
+  /**
+   * Get proof for fact
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+  /** identify this proof generator */
+  std::string identify() const override;
 private:
  void process(TNode n,
               std::vector<TrustNode>& learned,
