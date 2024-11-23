@@ -1151,6 +1151,7 @@ set(regress_0_tests
   regress0/options/version.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
+  regress0/parser/bang-lex.smt2
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
   regress0/parser/constraint.smt2
