@@ -36,7 +36,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
                             Node context)
 {
   // not initialized yet
-  Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
+  Assert(d_cond.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
   std::map<Node, Node> condDef;
