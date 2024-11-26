@@ -53,7 +53,10 @@ Node AlfListNodeConverter::preConvert(Node n)
         else
         {
           tn = d_nm->mkSequenceType(tn);
-          return d_tproc.convert(theory::strings::Word::mkEmptyWord(tn));
+          Node ntn = d_tproc.typeAsNode(tn);
+          // must use $mk_emptystr side condition, since string and sequence
+          // have different representations in the Eunoia signature
+          return d_tproc.mkInternalApp("$mk_emptystr", {ntn}, n.getType());
         }
       }
     }

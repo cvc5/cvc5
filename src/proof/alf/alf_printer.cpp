@@ -518,6 +518,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   const std::vector<Node>& uvarList = rpr.getUserVarList();
   const std::vector<Node>& conds = rpr.getConditions();
   Node conc = rpr.getConclusion(true);
+  std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
   // We must map variables of the rule to internal symbols (via
   // mkInternalSymbol) so that the ALF node converter will not treat the
   // BOUND_VARIABLE of this rule as user provided variables. The substitution
