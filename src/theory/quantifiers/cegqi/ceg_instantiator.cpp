@@ -505,6 +505,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       }
     }
     // If the above call fails, resort to using value in model. We do so if:
+    // (A) we are doing quantifier elimination for this quantified formula, or
+    // (B) all of the following hold:
     // - we have yet to try an instantiation this round (or we are trying
     //   multiple instantiations, indicated by options::cegqiMultiInst),
     // - the instantiator uses model values at this effort or
@@ -512,9 +514,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator allows model values.
     // Furthermore, we only permit the value if it is constant, since the model
     // may contain internal-only expressions, e.g. RANs.
-    if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
-        && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
-        && vinst->allowModelValue(this, sf, pv, d_effort))
+    bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
+    if (isQElim
+        || ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
+            && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
+            && vinst->allowModelValue(this, sf, pv, d_effort)))
     {
       Node mv = getModelValue( pv );
       if (mv.isConst())
@@ -1005,12 +1009,19 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
 
   // construct the final instantiation by eliminating witness terms
+  bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
   std::vector<Node> svec;
   std::vector<Node> exists;
   for (const Node& s : subs)
   {
     if (expr::hasSubtermKind(Kind::WITNESS, s))
     {
+      if (isQElim)
+      {
+        Trace("cegqi-inst-debug") << "...no witness if QE" << std::endl;
+        // not allowed to use witness if doing quantifier elimination
+        return false;
+      }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
       const std::vector<Node>& wexists = ewc.getExistentials();

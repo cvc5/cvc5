@@ -91,6 +91,16 @@ void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
   // combined cardinality constraints are not evaluated in getModelValue
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
+  if (logicInfo().hasCardinalityConstraints())
+  {
+    if (!options().uf.ufCardExp)
+    {
+      std::stringstream ss;
+      ss << "Logic with cardinality constraints not available in this "
+            "configuration, try --uf-card-exp.";
+      throw LogicException(ss.str());
+    }
+  }
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // the ufssMode option.
@@ -104,11 +114,11 @@ void TheoryUF::finishInit() {
   d_equalityEngine->addFunctionKind(Kind::APPLY_UF, false, isHo);
   if (isHo)
   {
-    if (!options().uf.hoExp)
+    if (!options().uf.ufHoExp)
     {
       std::stringstream ss;
       ss << "Higher-order logic not available in this configuration, try "
-            "--ho-exp.";
+            "--uf-ho-exp.";
       throw LogicException(ss.str());
     }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
@@ -420,7 +430,7 @@ void TheoryUF::presolve() {
   Trace("uf") << "uf: end presolve()" << endl;
 }
 
-void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryUF::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
 
@@ -531,7 +541,9 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
         Trace("diamonds") << "+ C holds" << endl;
         Node newEquality = a.eqNode(d);
         Trace("diamonds") << "  ==> " << newEquality << endl;
-        learned << n.impNode(newEquality);
+        Node lem = n.impNode(newEquality);
+        TrustNode trn = TrustNode::mkTrustLemma(lem, nullptr);
+        learned.emplace_back(trn);
       } else {
         Trace("diamonds") << "+ C fails" << endl;
       }

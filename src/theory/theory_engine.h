@@ -286,10 +286,12 @@ class TheoryEngine : protected EnvObj
   void check(theory::Theory::Effort effort);
 
   /**
-   * Calls ppStaticLearn() on all theories, accumulating their
-   * combined contributions in the "learned" builder.
+   * Calls ppStaticLearn() on all theories.
+   * Adds any new lemmas learned to the learned vector.
+   * @param in The formula that holds.
+   * @param learned The vector storing the new lemmas learned.
    */
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   /**
    * Calls presolve() on all theories and returns true

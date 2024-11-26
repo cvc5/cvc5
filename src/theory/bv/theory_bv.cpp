@@ -43,7 +43,8 @@ TheoryBV::TheoryBV(Env& env,
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats(statisticsRegistry(), "theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::"),
+      d_checker(nodeManager())
 {
   switch (options().bv.bvSolver)
   {
@@ -63,15 +64,7 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryBV::getProofChecker()
-{
-  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
-  {
-    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
-        ->getProofChecker();
-  }
-  return nullptr;
-}
+ProofRuleChecker* TheoryBV::getProofChecker() { return &d_checker; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -350,7 +343,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -386,7 +379,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 
           Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }

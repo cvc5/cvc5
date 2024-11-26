@@ -1,7 +1,7 @@
 (set-logic ALL)
 (set-info :status unsat)
 (declare-const x8 Bool)
-(set-option :strings-exp true)
+
 (declare-fun s () (Seq Int))
 (declare-fun x () Int)
 (declare-fun i () Int)

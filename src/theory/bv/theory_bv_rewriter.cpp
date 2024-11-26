@@ -41,6 +41,8 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_BITWISE_SLICING,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::BV_REPEAT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 RewriteResponse TheoryBVRewriter::preRewrite(TNode node)
@@ -92,6 +94,8 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: BV_PROOF_REWRITE_CASE(MultSimplify)
     case ProofRewriteRule::BV_BITWISE_SLICING:
       BV_PROOF_REWRITE_CASE(BitwiseSlicing)
+    case ProofRewriteRule::BV_REPEAT_ELIM:
+      BV_PROOF_REWRITE_CASE(RepeatEliminate)
     default: break;
   }
   return Node::null();

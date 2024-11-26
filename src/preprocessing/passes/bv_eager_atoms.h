@@ -27,6 +27,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
+class BVEagerAtomProofGenerator;
+
 class BvEagerAtoms : public PreprocessingPass
 {
  public:
@@ -35,6 +37,8 @@ class BvEagerAtoms : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  /** A proof generator */
+  std::shared_ptr<BVEagerAtomProofGenerator> d_proof;
 };
 
 }  // namespace passes
