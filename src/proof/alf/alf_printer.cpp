@@ -618,12 +618,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   std::map<Node, Node>::iterator itet;
   for (const Node& et : explictTypeOf)
   {
-    out << (printedArg  ? " " : "");
+    out << (printedArg ? " " : "");
     printedArg = true;
-    Assert (et.getKind()==Kind::TYPE_OF);
+    Assert(et.getKind() == Kind::TYPE_OF);
     Node v = su.apply(et[0]);
     itet = adtcConvMap.find(v);
-    Assert (itet!=adtcConvMap.end());
+    Assert(itet != adtcConvMap.end());
     out << itet->second;
   }
   out << ")" << std::endl;
@@ -950,8 +950,9 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
         }
       }
       // special case: explicit type variables
-      std::map<ProofRewriteRule, std::vector<Node>>::iterator it = d_explicitTypeOf.find(dr);
-      if (it==d_explicitTypeOf.end())
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator it =
+          d_explicitTypeOf.find(dr);
+      if (it == d_explicitTypeOf.end())
       {
         d_explicitTypeOf[dr] = rpr.getExplicitTypeOfList();
         it = d_explicitTypeOf.find(dr);
@@ -959,11 +960,12 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       if (!it->second.empty())
       {
         const std::vector<Node>& fvs = rpr.getVarList();
-        AlwaysAssert(fvs.size()==ss.size());
+        AlwaysAssert(fvs.size() == ss.size());
         for (const Node& t : it->second)
         {
-          Assert (t.getKind()==Kind::TYPE_OF);
-          Node tts = t[0].substitute(fvs.begin(), fvs.end(), ss.begin(), ss.end());
+          Assert(t.getKind() == Kind::TYPE_OF);
+          Node tts =
+              t[0].substitute(fvs.begin(), fvs.end(), ss.begin(), ss.end());
           args.push_back(d_tproc.typeAsNode(tts.getType()));
         }
       }

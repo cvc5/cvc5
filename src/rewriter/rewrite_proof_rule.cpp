@@ -149,7 +149,7 @@ std::vector<Node> RewriteProofRule::getExplicitTypeOfList() const
   }
   return ret;
 }
-  
+
 bool RewriteProofRule::isExplicitVar(Node v) const
 {
   Assert(std::find(d_fvs.begin(), d_fvs.end(), v) != d_fvs.end());
