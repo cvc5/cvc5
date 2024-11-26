@@ -3142,6 +3142,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-not-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-expand */
+  EVALUE(ITE_EXPAND),
   /** Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
