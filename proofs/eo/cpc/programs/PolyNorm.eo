@@ -242,7 +242,7 @@
 ; program: $remove_to_real
 ; args:
 ; - t U: The term to process.
-; return: The result of remove an application of to_real from t, if applicable.
+; return: The result of removing an application of to_real from t, if applicable.
 (program $remove_to_real ((U Type) (x U) (T Type))
   (U) T
   (
