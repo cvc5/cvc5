@@ -255,6 +255,12 @@
     (($mk_poly_norm_rel (* cx (- x1 x2)) (* cy (- y1 y2)) r) 
         (eo::requires ($is_poly_norm_rel_consts (r cx cy)) true
           (= (r x1 x2) (r y1 y2))))
+    (($mk_poly_norm_rel (* cx (to_real (- x1 x2))) (* cy (- y1 y2)) r) 
+        (eo::requires ($is_poly_norm_rel_consts (r cx cy)) true
+          (= (r x1 x2) (r y1 y2))))
+    (($mk_poly_norm_rel (* cx (- x1 x2)) (* cy (to_real (- y1 y2))) r) 
+        (eo::requires ($is_poly_norm_rel_consts (r cx cy)) true
+          (= (r x1 x2) (r y1 y2))))
     (($mk_poly_norm_rel (bvmul c (bvsub xb1 xb2) nil) (bvmul c (bvsub yb1 yb2) nil) =)
         (eo::requires (eo::to_z c) 1
         (eo::requires (eo::to_z nil) 1
