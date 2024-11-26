@@ -622,7 +622,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   }
   else if (id==RewriteProofStatus::ALPHA_EQUIV)
   {
-    if (target[0].getKind()!=target[1].getKind() || !target.isClosure())
+    if (target[0].getKind()!=target[1].getKind() || !target[0].isClosure())
     {
       return false;
     }
@@ -641,7 +641,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
         asubs.emplace_back(target[1][0][i]);
       }
     }
-    if (vars.empty())
+    if (avars.empty())
     {
       return false;
     }
@@ -651,7 +651,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       return false;
     }
     pic.d_id = id;
-    AlwaysAssert(false);
   }
   else if (id == RewriteProofStatus::ARITH_POLY_NORM)
   {
