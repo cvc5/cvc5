@@ -139,21 +139,13 @@ std::vector<Node> RewriteProofRule::getExplicitTypeOfList() const
   Node conc = getConclusion(true);
   std::unordered_set<Node> ccts;
   expr::getKindSubterms(conc, Kind::TYPE_OF, true, ccts);
-  if (ccts.empty())
-  {
-    return ret;
-  }
-  std::unordered_set<Node> cdts;
   for (const Node& c : d_cond)
   {
-    expr::getKindSubterms(c, Kind::TYPE_OF, true, cdts);
+    expr::getKindSubterms(c, Kind::TYPE_OF, true, ccts);
   }
   for (const Node& t : ccts)
   {
-    if (cdts.find(t)==cdts.end())
-    {
-      ret.emplace_back(t);
-    }
+    ret.emplace_back(t);
   }
   return ret;
 }

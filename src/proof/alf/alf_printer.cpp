@@ -60,6 +60,7 @@ AlfPrinter::AlfPrinter(Env& env,
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
+  d_absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 
 bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
@@ -927,7 +928,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       std::vector<Node> ss(pargs.begin() + 1, pargs.end());
       std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
       rpr.getConclusionFor(ss, witnessTerms);
-      TypeNode absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
       // the arguments are the computed witness terms
       for (const std::pair<Kind, std::vector<Node>>& w : witnessTerms)
       {
@@ -946,7 +946,25 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
           args.push_back(d_tproc.mkInternalApp(
               printer::smt2::Smt2Printer::smtKindString(w.first),
               wargs,
-              absType));
+              d_absType));
+        }
+      }
+      // special case: explicit type variables
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator it = d_explicitTypeOf.find(dr);
+      if (it==d_explicitTypeOf.end())
+      {
+        d_explicitTypeOf[dr] = rpr.getExplicitTypeOfList();
+        it = d_explicitTypeOf.find(dr);
+      }
+      if (!it->second.empty())
+      {
+        const std::vector<Node>& fvs = rpr.getVarList();
+        AlwaysAssert(fvs.size()==ss.size());
+        for (const Node& t : it->second)
+        {
+          Assert (t.getKind()==Kind::TYPE_OF);
+          Node tts = t[0].substitute(fvs.begin(), fvs.end(), ss.begin(), ss.end());
+          args.push_back(d_tproc.typeAsNode(tts.getType()));
         }
       }
       return;

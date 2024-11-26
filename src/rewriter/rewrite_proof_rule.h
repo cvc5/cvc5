@@ -130,7 +130,7 @@ class RewriteProofRule
       std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const;
   /**
    * @return the list of applications of Kind::TYPE_OF that appear in the
-   * conclusion but not in a premise. These require special handling by the
+   * conclusion or a premise. These require special handling by the
    * printer.
    */
   std::vector<Node> getExplicitTypeOfList() const;
