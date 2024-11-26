@@ -1934,7 +1934,7 @@ TrustNode TheoryEngine::getExplanation(
   }
   else
   {
-    NodeBuilder conjunction(Kind::AND);
+    NodeBuilder conjunction(nodeManager(), Kind::AND);
     std::set<TNode>::const_iterator it = exp.begin();
     std::set<TNode>::const_iterator it_end = exp.end();
     while (it != it_end)

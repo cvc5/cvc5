@@ -382,7 +382,7 @@ Node mkConcat(TNode node, unsigned repeat)
   {
     return node;
   }
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(node.getNodeManager(), Kind::BITVECTOR_CONCAT);
   for (unsigned i = 0; i < repeat; ++i)
   {
     result << node;

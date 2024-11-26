@@ -161,8 +161,6 @@ class NodeBuilder {
   constexpr static size_t default_nchild_thresh = 10;
 
  public:
-  NodeBuilder();
-  NodeBuilder(Kind k);
   NodeBuilder(NodeManager* nm);
   NodeBuilder(NodeManager* nm, Kind k);
   NodeBuilder(const NodeBuilder& nb);

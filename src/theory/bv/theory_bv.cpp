@@ -440,7 +440,7 @@ Node TheoryBV::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder nb(cur.getKind());
+      NodeBuilder nb(nodeManager(), cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

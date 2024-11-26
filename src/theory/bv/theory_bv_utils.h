@@ -141,7 +141,7 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder conjunction(Kind::AND);
+  NodeBuilder conjunction(NodeManager::currentNM(), Kind::AND);
   for (TNode n : all) { conjunction << n; }
   return conjunction;
 }

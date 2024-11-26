@@ -1291,7 +1291,7 @@ Node NodeTemplate<ref_count>::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
+  NodeBuilder nb(NodeManager::currentNM(), getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1361,7 +1361,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(NodeManager::currentNM(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1425,7 +1425,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(NodeManager::currentNM(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);

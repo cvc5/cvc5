@@ -140,7 +140,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      Trace("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
+     NodeBuilder b(NodeManager::currentNM(), Kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
        b << ctor.getInstantiatedConstructor(d_type);

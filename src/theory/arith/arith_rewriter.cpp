@@ -1383,7 +1383,7 @@ Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
         }
         else
         {
-          NodeBuilder nb(Kind::MULT);
+          NodeBuilder nb(nm, Kind::MULT);
           for (unsigned i = 0; i < num; ++i)
           {
             nb << base;

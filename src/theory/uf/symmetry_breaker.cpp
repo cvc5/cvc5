@@ -54,10 +54,9 @@ namespace uf {
 
 using namespace cvc5::context;
 
-SymmetryBreaker::Template::Template() :
-  d_template(),
-  d_sets(),
-  d_reps() {
+SymmetryBreaker::Template::Template()
+    : d_template(), d_assertions(NodeManager::currentNM()), d_sets(), d_reps()
+{
 }
 
 TNode SymmetryBreaker::Template::find(TNode n) {
@@ -574,8 +573,8 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
           Trace("ufsymm") << "UFSYMM p == " << p << endl;
           if(i != p.end() || p.size() != cts.size()) {
             Trace("ufsymm") << "UFSYMM cts != p" << endl;
-            NodeBuilder disj(Kind::OR);
             NodeManager* nm = nodeManager();
+            NodeBuilder disj(nm, Kind::OR);
             for (const Node& nn : cts)
             {
               if (t != nn)
