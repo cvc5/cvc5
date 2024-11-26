@@ -1673,8 +1673,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
 
 Node QuantifiersRewriter::computePrenex(Node q,
                                         Node body,
-                                        std::vector<Node>& args,
-                                        std::vector<Node>& nargs,
+                                        std::unordered_set<Node>& args,
+                                        std::unordered_set<Node>& nargs,
                                         bool pol,
                                         bool prenexAgg) const
 {
@@ -1715,11 +1715,11 @@ Node QuantifiersRewriter::computePrenex(Node q,
       }
       if (pol)
       {
-        args.insert(args.end(), subs.begin(), subs.end());
+        args.insert(subs.begin(), subs.end());
       }
       else
       {
-        nargs.insert(nargs.end(), subs.begin(), subs.end());
+        nargs.insert(subs.begin(), subs.end());
       }
       Node newBody = body[1];
       newBody = newBody.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
@@ -2315,7 +2315,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
     }
     else
     {
-      std::vector<Node> argsSet, nargsSet;
+      std::unordered_set<Node> argsSet, nargsSet;
       n = computePrenex(f, n, argsSet, nargsSet, true, false);
       Assert(nargsSet.empty());
       args.insert(args.end(), argsSet.begin(), argsSet.end());
