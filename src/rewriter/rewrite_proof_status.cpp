@@ -27,6 +27,7 @@ const char* toString(RewriteProofStatus s)
     case RewriteProofStatus::EVAL: return "EVAL";
     case RewriteProofStatus::TRANS: return "TRANS";
     case RewriteProofStatus::CONG: return "CONG";
+    case RewriteProofStatus::CONG_FLATTEN: return "CONG_FLATTEN";
     case RewriteProofStatus::CONG_EVAL: return "CONG_EVAL";
     case RewriteProofStatus::TRUE_ELIM: return "TRUE_ELIM";
     case RewriteProofStatus::TRUE_INTRO: return "TRUE_INTRO";

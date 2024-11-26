@@ -36,6 +36,25 @@
 namespace cvc5::internal {
 namespace rewriter {
 
+/** A data structure recording a match */
+class RdbMatch
+{
+ public:
+  RdbMatch(const Node& s,
+           const Node& n,
+           const std::vector<Node>& vars,
+           const std::vector<Node>& subs)
+      : d_s(s), d_n(n), d_vars(vars), d_subs(subs)
+  {
+  }
+  /** The substituted node */
+  Node d_s;
+  /** The original node */
+  Node d_n;
+  /** The substitution such that d_n { d_vars -> d_subs } = d_s */
+  std::vector<Node> d_vars;
+  std::vector<Node> d_subs;
+};
 /**
  * This class is used to reconstruct proofs of theory rewrites. It is described
  * in detail in the paper "Reconstructing Fine-Grained Proofs of Rewrites Using
@@ -50,7 +69,8 @@ class RewriteDbProofCons : protected EnvObj
    * If cdp is provided, we add a proof for this fact on it.
    *
    * More specifically, the strategy used by this method is:
-   * 1. Try to prove a=b via THEORY_REWRITE in context TheoryRewriteCtx::PRE_DSL,
+   * 1. Try to prove a=b via THEORY_REWRITE in context
+   * TheoryRewriteCtx::PRE_DSL,
    * 2. Try to prove a=b via a proof involving RARE rewrites,
    * 3. Try to prove a'=b' via a proof involving RARE rewrites, where a' and b'
    * are obtained by transforming a and b via RewriteDbNodeConverter.
@@ -237,6 +257,11 @@ class RewriteDbProofCons : protected EnvObj
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
+   * Return the flattening of n. For example, this returns (+ a b c) for
+   * (+ (+ a b) c). This method is used in the CONG_FLATTEN tactic.
+   */
+  Node doFlatten(const Node& n);
+  /**
    * A notification that s is equal to n * { vars -> subs }. In this context,
    * s is the current left hand side of a term we are trying to prove and n is
    * the head of a rewrite rule.
@@ -249,8 +274,24 @@ class RewriteDbProofCons : protected EnvObj
    */
   bool notifyMatch(const Node& s,
                    const Node& n,
-                   std::vector<Node>& vars,
-                   std::vector<Node>& subs);
+                   const std::vector<Node>& vars,
+                   const std::vector<Node>& subs);
+  /**
+   * Called when we are ready to process a match encounted by the above method.
+   * @param s The substituted form of n.
+   * @param n The term that was matched.
+   * @param vars The lhs of the substitution.
+   * @param subs The rhs of the substitution.
+   * @param isBasic Whether we will try to prove the target using non-basic
+   * techniques that require recursion (doTrans and doFixedPoint below).
+   * @return true if we successfully proved the current target with this match,
+   * where s is the left hand side of our current target (d_target).
+   */
+  bool processMatch(const Node& s,
+                    const Node& n,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    bool isBasic);
   /**
    * Prove with rule, which attempts to prove the equality target using the
    * DSL proof rule id, which may be a builtin rule or a user-provided rule.
@@ -309,6 +350,8 @@ class RewriteDbProofCons : protected EnvObj
   Node rewriteConcrete(const Node& n);
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
+  /** The current buffer of matches */
+  std::vector<std::vector<RdbMatch>> d_mbuffer;
   /**
    * Basic utility for (user-independent) rewrite rule reconstruction. Handles
    * cases that should always be reconstructed, e.g. EVALUATE, REFL,
@@ -338,12 +381,6 @@ class RewriteDbProofCons : protected EnvObj
   uint64_t d_currStepLimit;
   /** The mode for if/when to try theory rewrites */
   rewriter::TheoryRewriteMode d_tmode;
-  /** current rule we are applying to fixed point */
-  ProofRewriteRule d_currFixedPointId;
-  /** current substitution from fixed point */
-  std::vector<Node> d_currFixedPointSubs;
-  /** current conclusion from fixed point */
-  Node d_currFixedPointConc;
   /** Total number of rewrites we were asked to prove */
   IntStat d_statTotalInputs;
   /** Total number of rewrites we tried to prove internally */
