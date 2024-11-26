@@ -2526,6 +2526,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \cdots \wedge F_n =
+   *   G_1 \wedge \cdots \wedge G_n
+   *
+   * where each :math:`G_i` is semantically equivalent to
+   * :math:`\forall X.\> F_i`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Miniscoping**
    *
    * .. math::
@@ -2548,6 +2562,20 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(QUANT_MINISCOPE_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Datatypes Split**
+   *
+   * .. math::
+   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n Y. F_n)
+   * 
+   * where :math:`x` is of a datatype type with constructors
+   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
+   * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`.
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_DT_SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro connected free variable partitioning**
@@ -2934,16 +2962,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-plus-zero */
-  EVALUE(ARITH_PLUS_ZERO),
   /** Auto-generated from RARE rule arith-mul-one */
   EVALUE(ARITH_MUL_ONE),
   /** Auto-generated from RARE rule arith-mul-zero */
   EVALUE(ARITH_MUL_ZERO),
-  /** Auto-generated from RARE rule arith-div-total */
-  EVALUE(ARITH_DIV_TOTAL),
-  /** Auto-generated from RARE rule arith-div-total-zero */
-  EVALUE(ARITH_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-div-total-real */
+  EVALUE(ARITH_DIV_TOTAL_REAL),
+  /** Auto-generated from RARE rule arith-div-total-int */
+  EVALUE(ARITH_DIV_TOTAL_INT),
+  /** Auto-generated from RARE rule arith-div-total-zero-real */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_REAL),
+  /** Auto-generated from RARE rule arith-div-total-zero-int */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_INT),
   /** Auto-generated from RARE rule arith-int-div-total */
   EVALUE(ARITH_INT_DIV_TOTAL),
   /** Auto-generated from RARE rule arith-int-div-total-one */
@@ -2970,8 +3000,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_LEQ_NORM),
   /** Auto-generated from RARE rule arith-geq-tighten */
   EVALUE(ARITH_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-geq-norm1 */
-  EVALUE(ARITH_GEQ_NORM1),
+  /** Auto-generated from RARE rule arith-geq-norm1-int */
+  EVALUE(ARITH_GEQ_NORM1_INT),
+  /** Auto-generated from RARE rule arith-geq-norm1-real */
+  EVALUE(ARITH_GEQ_NORM1_REAL),
   /** Auto-generated from RARE rule arith-geq-norm2 */
   EVALUE(ARITH_GEQ_NORM2),
   /** Auto-generated from RARE rule arith-refl-leq */
@@ -2982,18 +3014,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_REFL_GEQ),
   /** Auto-generated from RARE rule arith-refl-gt */
   EVALUE(ARITH_REFL_GT),
-  /** Auto-generated from RARE rule arith-real-eq-elim */
-  EVALUE(ARITH_REAL_EQ_ELIM),
-  /** Auto-generated from RARE rule arith-int-eq-elim */
-  EVALUE(ARITH_INT_EQ_ELIM),
+  /** Auto-generated from RARE rule arith-eq-elim-real */
+  EVALUE(ARITH_EQ_ELIM_REAL),
+  /** Auto-generated from RARE rule arith-eq-elim-int */
+  EVALUE(ARITH_EQ_ELIM_INT),
   /** Auto-generated from RARE rule arith-plus-flatten */
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
   EVALUE(ARITH_MULT_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-dist */
   EVALUE(ARITH_MULT_DIST),
-  /** Auto-generated from RARE rule arith-abs-elim */
-  EVALUE(ARITH_ABS_ELIM),
+  /** Auto-generated from RARE rule arith-abs-elim-int */
+  EVALUE(ARITH_ABS_ELIM_INT),
+  /** Auto-generated from RARE rule arith-abs-elim-real */
+  EVALUE(ARITH_ABS_ELIM_REAL),
   /** Auto-generated from RARE rule arith-to-real-elim */
   EVALUE(ARITH_TO_REAL_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
@@ -3146,6 +3180,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_EXTRACT_CONCAT_3),
   /** Auto-generated from RARE rule bv-extract-concat-4 */
   EVALUE(BV_EXTRACT_CONCAT_4),
+  /** Auto-generated from RARE rule bv-eq-extract-elim1 */
+  EVALUE(BV_EQ_EXTRACT_ELIM1),
+  /** Auto-generated from RARE rule bv-eq-extract-elim2 */
+  EVALUE(BV_EQ_EXTRACT_ELIM2),
+  /** Auto-generated from RARE rule bv-eq-extract-elim3 */
+  EVALUE(BV_EQ_EXTRACT_ELIM3),
   /** Auto-generated from RARE rule bv-extract-bitwise-and */
   EVALUE(BV_EXTRACT_BITWISE_AND),
   /** Auto-generated from RARE rule bv-extract-bitwise-or */

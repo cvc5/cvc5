@@ -1,5 +1,53 @@
 (include "../theories/BitVectors.eo")
 
+; define: $bv_sign_bit
+; args:
+; - b (BitVec m): The bitvector term.
+; return: The sign bit of b.
+(define $bv_sign_bit ((m Int :implicit) (b (BitVec m)))
+  (eo::define ((T (eo::typeof b)))
+  (eo::define ((w ($bv_bitwidth T)))
+  (eo::define ((wm1 (eo::add w -1)))
+    (eo::extract b wm1 wm1)))))
+
+; define: $bv_to_signed_int
+; args:
+; - b (BitVec m): The bitvector term.
+; return: The result of converting b to a signed integer.
+(define $bv_to_signed_int ((m Int :implicit) (b (BitVec m)))
+  (eo::define ((T (eo::typeof b)))
+  (eo::define ((w ($bv_bitwidth T)))
+  (eo::define ((wm1 (eo::add w -1)))
+  (eo::define ((z (eo::to_z (eo::extract b 0 (eo::add w -2)))))
+    (eo::ite (eo::is_eq ($bv_sign_bit b) #b1)
+      (eo::add (eo::neg ($arith_eval_int_pow_2 wm1)) z)
+      z))))))
+
+; define: $bv_eval_repeat_rec
+; args:
+; - n Int: The number of times to repeat, expected to be a non-negative numeral.
+; - b (BitVec m): The bitvector term, expected to be a binary constant.
+; return: The result of repeating b n times.
+(program $bv_eval_repeat_rec ((m Int) (n Int) (b (BitVec m)))
+  (Int (BitVec m)) (BitVec (eo::mul n m))
+  (
+    (($bv_eval_repeat_rec 0 b)  (eo::to_bin 0 0))
+    (($bv_eval_repeat_rec n b)  (eo::concat b ($bv_eval_repeat_rec (eo::add n -1) b)))
+  )
+)
+
+; define: $bv_eval_repeat
+; args:
+; - n Int: The number of times to repeat, expected to be a non-negative numeral.
+; - b (BitVec m): The bitvector term, expected to be a binary constant.
+; return: >
+;   The result of repeating b n times. If n is not a numeral or is negative,
+;   this returns the term (repeat n b).
+(define $bv_eval_repeat ((m Int :implicit) (n Int) (b (BitVec m)))
+  (eo::ite (eo::and (eo::is_z n) (eo::not (eo::is_neg n)))
+    ($bv_eval_repeat_rec n b)
+    (repeat n b)))
+
 ; program: $bv_get_first_const_child
 ; args:
 ; - a (BitVec n): The term to find a constant child in.

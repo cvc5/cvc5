@@ -457,28 +457,20 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       if (k == Kind::APPLY_TESTER)
       {
+        indices.clear();
         size_t cindex = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
+        opName << "is";
         if (dt.isTuple())
         {
-          opName << "is-tuple";
-        }
-        else if (dt.isNullable())
-        {
-          if (cindex == 0)
-          {
-            opName << "nullable.is_null";
-          }
-          else
-          {
-            opName << "nullable.is_some";
-          }
+          std::string tname = dt[0].getNumArgs() == 0 ? "tuple.unit" : "tuple";
+          Node tsym = mkInternalSymbol(tname, dt[0].getConstructor().getType());
+          indices.push_back(tsym);
         }
         else
         {
-          opName << "is-" << dt[cindex].getConstructor();
+          indices.push_back(dt[cindex].getConstructor());
         }
-        indices.clear();
       }
       else if (k == Kind::APPLY_UPDATER)
       {
@@ -486,14 +478,18 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         size_t index = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
         size_t cindex = DType::cindexOf(op);
+        opName << "update";
         if (dt.isTuple())
         {
-          opName << "tuple.update";
-          indices.push_back(d_nm->mkConstInt(cindex));
+          std::vector<Node> args;
+          args.push_back(d_nm->mkConstInt(cindex));
+          Node ssym = mkInternalApp(
+              "tuple.select", args, dt[cindex][index].getSelector().getType());
+          indices.push_back(ssym);
         }
         else
         {
-          opName << "update-" << dt[cindex][index].getSelector();
+          indices.push_back(dt[cindex][index].getSelector());
         }
       }
       else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
