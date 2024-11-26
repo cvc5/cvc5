@@ -76,7 +76,7 @@ class LinearSolver : protected EnvObj
   Theory::PPAssertStatus ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
   /** Preprocess static learn */
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 

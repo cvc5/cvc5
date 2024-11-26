@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 int32_t gcd(int32_t a, int32_t b)
 {
@@ -184,9 +185,9 @@ int main()
   uint64_t x_minus_y_den;
   cvc5_term_get_real64_value(x_minus_y_val, &x_minus_y_num, &x_minus_y_den);
 
-  printf("value for x: %lld/%llu\n", x_num, x_den);
-  printf("value for y: %lld/%llu\n", y_num, y_den);
-  printf("value for x - y: %lld/%llu\n", x_minus_y_num, x_minus_y_den);
+  printf("value for x: %" PRId64 "/%" PRIu64 "\n", x_num, x_den);
+  printf("value for y: %" PRId64 "/%" PRIu64 "\n", y_num, y_den);
+  printf("value for x - y: %" PRId64 "/%" PRIu64 "\n", x_minus_y_num, x_minus_y_den);
   //! [docs-c-quickstart-12 end]
 
   // Another way to independently compute the value of x - y would be

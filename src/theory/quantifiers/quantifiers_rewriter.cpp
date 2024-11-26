@@ -29,6 +29,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
@@ -104,10 +105,14 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_MINISCOPE,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
+  // QUANT_MINISCOPE is handled as part of the reconstruction for
+  // MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
+  // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
+  // manual proof generation thus not registered here.
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
@@ -126,7 +131,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       std::vector<Node> fchildren;
       fchildren.push_back(n[0]);
-      fchildren.push_back(n[1].negate());
+      fchildren.push_back(n[1].notNode());
       if (n.getNumChildren() == 3)
       {
         fchildren.push_back(n[2]);
@@ -168,7 +173,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::QUANT_MINISCOPE:
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
     {
       if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
       {
@@ -181,6 +186,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Node nret = computeMiniscoping(n, qa, true, false);
       Assert(nret != n);
       return nret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_MINISCOPE:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
+      {
+        return Node::null();
+      }
+      std::vector<Node> conj;
+      for (const Node& nc : n[1])
+      {
+        conj.push_back(d_nm->mkNode(Kind::FORALL, n[0], nc));
+      }
+      return d_nm->mkAnd(conj);
     }
     break;
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
@@ -260,19 +279,63 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return ret;
     }
     break;
+    case ProofRewriteRule::QUANT_DT_SPLIT:
+    {
+      // always runs split utility on the first variable
+      if (n.getKind() != Kind::FORALL || !n[0][0].getType().isDatatype())
+      {
+        return Node::null();
+      }
+      return QuantDSplit::split(nodeManager(), n, 0);
+    }
+    break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
     {
-      if (n.getKind() != Kind::FORALL)
+      if (n.getKind() != Kind::FORALL || n.getNumChildren() != 2)
       {
         return Node::null();
       }
       std::vector<Node> args(n[0].begin(), n[0].end());
       std::vector<Node> vars;
       std::vector<Node> subs;
+      Node body = n[1];
       if (id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ)
       {
-        getVarElim(n[1], args, vars, subs);
+        std::vector<Node> lits;
+        getVarElim(body, args, vars, subs, lits);
+      }
+      else if (id == ProofRewriteRule::QUANT_VAR_ELIM_EQ)
+      {
+        if (args.size() != 1)
+        {
+          return Node::null();
+        }
+        std::vector<Node> lits;
+        if (body.getKind() == Kind::OR)
+        {
+          lits.insert(lits.end(), body.begin(), body.end());
+        }
+        else
+        {
+          lits.push_back(body);
+        }
+        if (lits[0].getKind() != Kind::NOT
+            || lits[0][0].getKind() != Kind::EQUAL)
+        {
+          return Node::null();
+        }
+        Node eq = lits[0][0];
+        if (eq[0] != args[0] || expr::hasSubterm(eq[1], eq[0]))
+        {
+          return Node::null();
+        }
+        vars.push_back(eq[0]);
+        subs.push_back(eq[1]);
+        args.clear();
+        std::vector<Node> remLits(lits.begin() + 1, lits.end());
+        body = d_nm->mkOr(remLits);
       }
       else
       {
@@ -286,7 +349,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         Assert(vars.size() == subs.size());
         std::vector<Node> qc(n.begin(), n.end());
         qc[1] =
-            n[1].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+            body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         if (args.empty())
         {
           return qc[1];
@@ -436,7 +499,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   {
     std::vector<Node> children;
     children.push_back(in[0]);
-    children.push_back(in[1].negate());
+    children.push_back(in[1].notNode());
     if (in.getNumChildren() == 3)
     {
       children.push_back(in[2]);
@@ -1264,9 +1327,10 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
 bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
-                                     std::vector<Node>& subs) const
+                                     std::vector<Node>& subs,
+                                     std::vector<Node>& lits) const
 {
-  return getVarElimInternal(body, body, false, args, vars, subs);
+  return getVarElimInternal(body, body, false, args, vars, subs, lits);
 }
 
 bool QuantifiersRewriter::getVarElimInternal(Node body,
@@ -1274,7 +1338,8 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              bool pol,
                                              std::vector<Node>& args,
                                              std::vector<Node>& vars,
-                                             std::vector<Node>& subs) const
+                                             std::vector<Node>& subs,
+                                             std::vector<Node>& lits) const
 {
   Kind nk = n.getKind();
   while (nk == Kind::NOT)
@@ -1287,14 +1352,19 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
   {
     for (const Node& cn : n)
     {
-      if (getVarElimInternal(body, cn, pol, args, vars, subs))
+      if (getVarElimInternal(body, cn, pol, args, vars, subs, lits))
       {
         return true;
       }
     }
     return false;
   }
-  return getVarElimLit(body, n, pol, args, vars, subs);
+  if (getVarElimLit(body, n, pol, args, vars, subs))
+  {
+    lits.emplace_back(pol ? n : n.notNode());
+    return true;
+  }
+  return false;
 }
 
 bool QuantifiersRewriter::hasVarElim(Node n,
@@ -1303,7 +1373,8 @@ bool QuantifiersRewriter::hasVarElim(Node n,
 {
   std::vector< Node > vars;
   std::vector< Node > subs;
-  return getVarElimInternal(n, n, pol, args, vars, subs);
+  std::vector<Node> lits;
+  return getVarElimInternal(n, n, pol, args, vars, subs, lits);
 }
 
 bool QuantifiersRewriter::getVarElimIneq(Node body,
@@ -1553,7 +1624,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   // standard variable elimination
   if (d_opts.quantifiers.varElimQuant)
   {
-    getVarElim(body, args, vars, subs);
+    std::vector<Node> lits;
+    getVarElim(body, args, vars, subs, lits);
   }
   // variable elimination based on one-direction inequalities
   if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)

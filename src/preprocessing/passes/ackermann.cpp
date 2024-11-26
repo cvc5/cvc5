@@ -88,7 +88,8 @@ void addLemmaForPair(TNode args1,
   }
   Node func_eq = nm->mkNode(Kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(Kind::IMPLIES, args_eq, func_eq);
-  assertionsToPreprocess->push_back(lemma);
+  assertionsToPreprocess->push_back(
+      lemma, false, nullptr, TrustId::PREPROCESS_ACKERMANN_LEMMA);
 }
 
 void storeFunctionAndAddLemmas(TNode func,
@@ -286,7 +287,7 @@ void usortsToBitVectors(NodeManager* nm,
       Node newA = usVarsToBVVars.apply((*assertions)[i]);
       if (newA != old)
       {
-        assertions->replace(i, newA);
+        assertions->replace(i, newA, nullptr, TrustId::PREPROCESS_ACKERMANN);
         Trace("uninterpretedSorts-to-bv")
             << "  " << old << " => " << (*assertions)[i] << "\n";
       }
@@ -327,7 +328,10 @@ PreprocessingPassResult Ackermann::applyInternal(
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
+        i,
+        d_funcToSkolem.apply((*assertionsToPreprocess)[i]),
+        nullptr,
+        TrustId::PREPROCESS_ACKERMANN);
   }
 
   /* replace uninterpreted sorts with bit-vectors */

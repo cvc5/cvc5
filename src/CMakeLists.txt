@@ -222,6 +222,8 @@ libcvc5_add_sources(
   proof/proof_step_buffer.h
   proof/resolution_proofs_util.cpp
   proof/resolution_proofs_util.h
+  proof/rewrite_proof_generator.cpp
+  proof/rewrite_proof_generator.h
   proof/subtype_elim_proof_converter.cpp
   proof/subtype_elim_proof_converter.h
   proof/trust_id.cpp

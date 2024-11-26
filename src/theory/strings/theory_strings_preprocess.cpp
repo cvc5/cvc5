@@ -376,12 +376,12 @@ Node StringsPreprocess::reduce(Node t,
     Node x = SkolemCache::mkIndexVar(nm, t);
     Node xPlusOne = nm->mkNode(Kind::ADD, x, one);
     Node xbv = nm->mkNode(Kind::BOUND_VAR_LIST, x);
-    Node g = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::GEQ, x, zero),
-                        nm->mkNode(Kind::LT, x, leni));
+    Node g1 = nm->mkNode(Kind::GEQ, x, zero);
+    Node g2 = nm->mkNode(Kind::LT, x, leni);
     Node ux = nm->mkNode(Kind::APPLY_UF, u, x);
     Node ux1 = nm->mkNode(Kind::APPLY_UF, u, xPlusOne);
-    Node c0 = nm->mkNode(Kind::STRING_TO_CODE, nm->mkConst(String("0")));
+    // the code point of "0", "1" ... is 48, 49 ....
+    Node c0 = nm->mkConstInt(Rational(48));
     Node c = nm->mkNode(Kind::SUB, mkCodePointAtIndex(itost, x), c0);
 
     Node ten = nm->mkConstInt(Rational(10));
@@ -397,8 +397,11 @@ Node StringsPreprocess::reduce(Node t,
 
     Node ux1lem = nm->mkNode(Kind::GEQ, n, ux1);
 
-    lem =
-        nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
+    std::vector<Node> disj;
+    disj.push_back(g1.notNode());
+    disj.push_back(g2.notNode());
+    disj.push_back(nm->mkNode(Kind::AND, eq, cb, ux1lem));
+    lem = nm->mkNode(Kind::OR, disj);
     lem = utils::mkForallInternal(nm, xbv, lem);
     conc.push_back(lem);
 
@@ -451,7 +454,8 @@ Node StringsPreprocess::reduce(Node t,
     Node k = sc->mkSkolemFun(nm, SkolemId::STRINGS_STOI_NON_DIGIT, t[0]);
     Node kc1 = nm->mkNode(Kind::GEQ, k, zero);
     Node kc2 = nm->mkNode(Kind::LT, k, lens);
-    Node c0 = nm->mkNode(Kind::STRING_TO_CODE, nm->mkConst(String("0")));
+    // the code point of "0", "1" ... is 48, 49 ....
+    Node c0 = nm->mkConstInt(Rational(48));
     Node codeSk = nm->mkNode(Kind::SUB, mkCodePointAtIndex(s, k), c0);
     Node ten = nm->mkConstInt(Rational(10));
     Node kc3 = nm->mkNode(Kind::OR,
@@ -476,9 +480,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node x = SkolemCache::mkIndexVar(nm, t);
     Node xbv = nm->mkNode(Kind::BOUND_VAR_LIST, x);
-    Node g = nm->mkNode(Kind::AND,
-                        nm->mkNode(Kind::GEQ, x, zero),
-                        nm->mkNode(Kind::LT, x, lens));
+    Node g1 = nm->mkNode(Kind::GEQ, x, zero);
+    Node g2 = nm->mkNode(Kind::LT, x, lens);
     Node ux = nm->mkNode(Kind::APPLY_UF, u, x);
     Node ux1 = nm->mkNode(Kind::APPLY_UF, u, nm->mkNode(Kind::ADD, x, one));
     Node c = nm->mkNode(Kind::SUB, mkCodePointAtIndex(s, x), c0);
@@ -491,8 +494,11 @@ Node StringsPreprocess::reduce(Node t,
 
     Node ux1lem = nm->mkNode(Kind::GEQ, stoit, ux1);
 
-    lem =
-        nm->mkNode(Kind::OR, g.negate(), nm->mkNode(Kind::AND, eq, cb, ux1lem));
+    std::vector<Node> disj;
+    disj.push_back(g1.notNode());
+    disj.push_back(g2.notNode());
+    disj.push_back(nm->mkNode(Kind::AND, eq, cb, ux1lem));
+    lem = nm->mkNode(Kind::OR, disj);
     lem = utils::mkForallInternal(nm, xbv, lem);
     conc2.push_back(lem);
 
