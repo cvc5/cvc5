@@ -56,7 +56,7 @@ class ProofLogger : protected EnvObj
    * inputs. The free assumptions of proofs in pfns are the preprocessed input
    * formulas. If preprocess proofs are avialable, this method connects pfn to
    * the original input formulas.
-   * @param pfns proofs of the preprocessed inputs.
+   * @param pfns Proofs of the preprocessed inputs.
    */
   virtual void logCnfPreprocessInputProofs(
       std::vector<std::shared_ptr<ProofNode>>& pfns) {}
