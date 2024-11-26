@@ -620,22 +620,22 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     pic.d_id = id;
   }
-  else if (id==RewriteProofStatus::ALPHA_EQUIV)
+  else if (id == RewriteProofStatus::ALPHA_EQUIV)
   {
-    if (target[0].getKind()!=target[1].getKind() || !target[0].isClosure())
+    if (target[0].getKind() != target[1].getKind() || !target[0].isClosure())
     {
       return false;
     }
     size_t nchild = target[0][0].getNumChildren();
-    if (nchild!=target[1][0].getNumChildren())
+    if (nchild != target[1][0].getNumChildren())
     {
       return false;
     }
     std::vector<Node> avars;
     std::vector<Node> asubs;
-    for (size_t i=0; i<nchild; i++)
+    for (size_t i = 0; i < nchild; i++)
     {
-      if (target[0][0][i]!=target[1][0][i])
+      if (target[0][0][i] != target[1][0][i])
       {
         avars.emplace_back(target[0][0][i]);
         asubs.emplace_back(target[1][0][i]);
@@ -645,8 +645,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     {
       return false;
     }
-    Node res = target[0].substitute(avars.begin(), avars.end(), asubs.begin(), asubs.end());
-    if (res!=target[1])
+    Node res = target[0].substitute(
+        avars.begin(), avars.end(), asubs.begin(), asubs.end());
+    if (res != target[1])
     {
       return false;
     }
@@ -1208,9 +1209,9 @@ bool RewriteDbProofCons::ensureProofInternal(
       {
         std::vector<Node> v1s;
         std::vector<Node> v2s;
-        for (size_t i=0, nvars=cur[0][0].getNumChildren(); i<nvars; i++)
+        for (size_t i = 0, nvars = cur[0][0].getNumChildren(); i < nvars; i++)
         {
-          if (cur[0][0][i]!=cur[1][0][i])
+          if (cur[0][0][i] != cur[1][0][i])
           {
             v1s.emplace_back(cur[0][0][i]);
             v2s.emplace_back(cur[1][0][i]);
