@@ -562,6 +562,7 @@ Node PolyNorm::getArithPolyNormRelPremise(TNode a,
     {
       cx = nm->mkConstReal(rx);
       cy = nm->mkConstReal(ry);
+      // add TO_REAL to avoid mixed arithmetic
       if (x.getType().isInteger())
       {
         x = nm->mkNode(Kind::TO_REAL, x);

@@ -1920,6 +1920,10 @@ enum ENUM(ProofRule)
    * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
    * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
    * same sign. For bitvectors, they are set to :math:`1`.
+   *
+   * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
+   * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
+   * `cvc5::Kind::TO_REAL`, similarly for :math:`(y_1 - y_2)`.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM_REL),
