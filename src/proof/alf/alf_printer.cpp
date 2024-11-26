@@ -518,7 +518,6 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   const std::vector<Node>& uvarList = rpr.getUserVarList();
   const std::vector<Node>& conds = rpr.getConditions();
   Node conc = rpr.getConclusion(true);
-  std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
   // We must map variables of the rule to internal symbols (via
   // mkInternalSymbol) so that the ALF node converter will not treat the
   // BOUND_VARIABLE of this rule as user provided variables. The substitution
@@ -602,13 +601,29 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     out << ")" << std::endl;
   }
   out << "  :args (";
-  for (size_t i = 0, nvars = uviList.size(); i < nvars; i++)
+  bool printedArg = false;
+  for (const Node& v : uviList)
   {
-    if (i > 0)
-    {
-      out << " ";
-    }
-    out << uviList[i];
+    out << (printedArg ? " " : "");
+    printedArg = true;
+    out << v;
+  }
+  // Special case: must print explicit types.
+  // This is to handle rules where Kind::TYPE_OF appears in the conclusion
+  // but not in the premises. Since RARE rules do not take types as arguments,
+  // we must add them here. The printer for proof steps will add them in
+  // a similar manner.
+  std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
+  std::map<Node, Node>::iterator itet;
+  for (const Node& et : explictTypeOf)
+  {
+    out << (printedArg  ? " " : "");
+    printedArg = true;
+    Assert (et.getKind()==Kind::TYPE_OF);
+    Node v = su.apply(et[0]);
+    itet = adtcConvMap.find(v);
+    Assert (itet!=adtcConvMap.end());
+    out << itet->second;
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
