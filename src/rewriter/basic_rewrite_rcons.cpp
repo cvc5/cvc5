@@ -65,8 +65,6 @@ bool BasicRewriteRCons::prove(CDProof* cdp,
 {
   Node eq = a.eqNode(b);
   Trace("trewrite-rcons") << "Reconstruct " << eq << std::endl;
-  Node lhs = eq[0];
-  Node rhs = eq[1];
   // this probably should never happen
   if (eq[0] == eq[1])
   {
@@ -208,6 +206,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
       break;
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
       if (ensureProofMacroQuantMiniscope(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
+      if (ensureProofMacroQuantRewriteBody(cdp, eq))
       {
         handledMacro = true;
       }
@@ -742,6 +746,14 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
     for (size_t i = 0, nchild = body1r.getNumChildren(); i < nchild; i++)
     {
       Node eql = body1r[i].eqNode(body1re[i]);
+      // must ensure that this is indeed an equivalence, otherwise this trust
+      // step will be unsound. this is the case e.g. when
+      // a != (str.++ b x) is turned into x != (str.substr a (str.len b) ...)
+      // where the latter implies the former, but they are not equivalent
+      if (rewrite(body1r[i]) != rewrite(body1re[i]))
+      {
+        return false;
+      }
       if (body1r[i] == body1re[i])
       {
         cdp->addStep(eql, ProofRule::REFL, {}, {eql[0]});
@@ -852,6 +864,28 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
   cdp->addStep(equiv2, cr, premises, cargs);
   // transitive
   cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
+                                                         const Node& eq)
+{
+  Trace("brc-macro") << "Expand quant rewrite body " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  // Call the utility again with proof tracking and construct the term
+  // conversion proof. This proof itself may have trust steps in it.
+  TConvProofGenerator tcpg(d_env, nullptr);
+  theory::quantifiers::QuantifiersRewriter qrew(
+      nodeManager(), d_env.getRewriter(), options());
+  Node qr = qrew.computeRewriteBody(eq[0], &tcpg);
+  if (qr != eq[1])
+  {
+    Assert(false) << "Failed to rewrite " << eq[0] << " to " << qr
+                  << " != " << eq[1];
+    return false;
+  }
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+  cdp->addProof(pfn);
   return true;
 }
 
