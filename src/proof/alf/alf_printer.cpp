@@ -611,7 +611,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   // Special case: must print explicit types.
   // This is to handle rules where Kind::TYPE_OF appears in the conclusion
-  // but not in the premises. Since RARE rules do not take types as arguments,
+  // or in the premises. Since RARE rules do not take types as arguments,
   // we must add them here. The printer for proof steps will add them in
   // a similar manner.
   std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
@@ -949,7 +949,8 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
               d_absType));
         }
       }
-      // special case: explicit type variables
+      // special case: explicit type-of terms, which require explicit type
+      // arguments
       std::map<ProofRewriteRule, std::vector<Node>>::iterator it =
           d_explicitTypeOf.find(dr);
       if (it == d_explicitTypeOf.end())
