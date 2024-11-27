@@ -155,7 +155,7 @@
   (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool)) (y @List) (G Bool))
                                          ($mk_quant_merge_prenex Q F)
                                          ; note that since this method returns Q terms only, R is Q
-                                         (((R y G) (Q (eo::list_concat @list x y) G)))))
+                                         (((R y G) (Q ($nary_concat_no_dup @list @list.nil x y) G)))))
   (($mk_quant_merge_prenex Q F)        (Q @list.nil F))
   )
 )
