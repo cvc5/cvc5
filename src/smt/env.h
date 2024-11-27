@@ -81,7 +81,7 @@ class Env
 
   /* Access to members------------------------------------------------------- */
   /** Get a pointer to the node manager */
-  NodeManager* getNodeManager();
+  NodeManager* getNodeManager() const;
 
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();

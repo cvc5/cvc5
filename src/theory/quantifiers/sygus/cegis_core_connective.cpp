@@ -38,10 +38,12 @@ CegisCoreConnective::CegisCoreConnective(Env& env,
                                          QuantifiersInferenceManager& qim,
                                          TermDbSygus* tds,
                                          SynthConjecture* p)
-    : Cegis(env, qs, qim, tds, p)
+    : Cegis(env, qs, qim, tds, p),
+      d_pre(env.getNodeManager()),
+      d_post(env.getNodeManager())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 bool CegisCoreConnective::processInitialize(Node conj,
@@ -108,7 +110,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   std::vector<Node> echildren;
   echildren.push_back(d_candidate);
   echildren.insert(echildren.end(), d_vars.begin(), d_vars.end());
-  d_eterm = NodeManager::currentNM()->mkNode(Kind::DT_SYGUS_EVAL, echildren);
+  d_eterm = nodeManager()->mkNode(Kind::DT_SYGUS_EVAL, echildren);
   Trace("sygus-ccore-init") << "  evaluation term: " << d_eterm << std::endl;
 
   Node prePost[2];
@@ -229,7 +231,7 @@ bool CegisCoreConnective::processConstructCandidates(
 
   // exclude in the basic way if passive
   Assert(enums.size() == 1);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned i = 0, esize = enums.size(); i < esize; i++)
   {
     Node e = enums[i];
@@ -285,7 +287,7 @@ bool CegisCoreConnective::constructSolution(
   Node ets = d_eterm.substitute(d_candidate, cval);
   Node etsr = rewrite(ets);
   Trace("sygus-ccore-debug") << "...predicate is: " << etsr << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned d = 0; d < 2; d++)
   {
     Component& ccheck = d == 0 ? d_pre : d_post;
@@ -379,7 +381,7 @@ Node CegisCoreConnective::Component::getSygusSolution(
   std::sort(conjs.begin(), conjs.end());
   Node sol;
   std::map<Node, Node>::const_iterator itu;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
   for (const Node& u : conjs)
   {
     itu = d_cpoolToSol.find(u);
@@ -565,7 +567,7 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   }
   else
   {
-    an = NodeManager::currentNM()->mkNode(Kind::AND, n, an);
+    an = d_nm->mkNode(Kind::AND, n, an);
   }
   return true;
 }
@@ -587,7 +589,7 @@ Node CegisCoreConnective::evaluatePt(Node n,
   Kind nk = n.getKind();
   if (nk == Kind::AND || nk == Kind::OR)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     bool expRes = nk == Kind::OR;
     bool success = true;
     // split AND/OR
@@ -634,7 +636,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
 {
   // In terms of Variant #2 from the header file, the set D is represented by
   // asserts. The available set of prediates pool(B) is represented by passerts.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("sygus-ccore") << "------ Get initial candidate..." << std::endl;
   Node an =
       asserts.empty()

@@ -149,7 +149,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
             typesFound[tn] = true;
             // add the standard constants for this type
             theory::quantifiers::SygusGrammarCons::mkSygusConstantsForType(
-                tn, consts[tn]);
+                nm, tn, consts[tn]);
             // We prepend them so that they come first in the grammar
             // construction. The motivation is we'd prefer seeing e.g. "true"
             // instead of (= x x) as a canonical term.

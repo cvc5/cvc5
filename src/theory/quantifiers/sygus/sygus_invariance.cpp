@@ -206,7 +206,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
-          NodeManager::currentNM()->mkNode(Kind::STRING_CONTAINS, out, nbvre);
+          nvn.getNodeManager()->mkNode(Kind::STRING_CONTAINS, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = d_rewriter->extendedRewrite(cont);
       if (!contr.isConst())
