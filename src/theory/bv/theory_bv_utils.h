@@ -160,7 +160,7 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder disjunction(Kind::OR);
+  NodeBuilder disjunction(NodeManager::currentNM(), Kind::OR);
   for (TNode n : all) { disjunction << n; }
   return disjunction;
 }
