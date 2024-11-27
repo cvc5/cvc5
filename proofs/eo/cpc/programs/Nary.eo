@@ -227,7 +227,7 @@
 ; - t1 L: The first term, assumed to be a cons-list.
 ; - t2 L: The second term, assumed to be a cons-list.
 ; return: >
-;   The result of concatentating each element of t1 to t2, dropping elements that
+;   The result of appending each element of t1 to t2, dropping elements that
 ;   already occur in the resulting list.
 (program $nary_concat_no_dup
     ((L Type) (cons (-> L L L)) (nil L) (t L) (x L) (xs L :list) (y L))
