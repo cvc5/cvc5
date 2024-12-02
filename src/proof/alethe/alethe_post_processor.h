@@ -51,18 +51,6 @@ class AletheProofPostprocessCallback : protected EnvObj,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
-   * This method updates applications of the `THEORY_REWRITE` rule that
-   * are explained by a specific `ProofRewriteRule` and translates them
-   * into a proof node in terms of the Alethe rules.
-   */
-  bool updateTheoryRewriteProofRewriteRule(Node res,
-                                           ProofRule id,
-                                           const std::vector<Node>& children,
-                                           const std::vector<Node>& args,
-                                           CDProof* cdp,
-                                           bool& continueUpdate,
-                                           ProofRewriteRule di);
-  /**
    * This method updates the proof rule application depending on the given
    * rule and translating it into a proof node in terms of the Alethe rules.
    */
@@ -162,7 +150,18 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * clause.
    */
   bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
-
+  /**
+   * This method updates applications of the `THEORY_REWRITE` rule that
+   * are explained by a specific `ProofRewriteRule` and translates them
+   * into a proof node in terms of the Alethe rules.
+   */
+  bool updateTheoryRewriteProofRewriteRule(Node res,
+                                           ProofRule id,
+                                           const std::vector<Node>& children,
+                                           const std::vector<Node>& args,
+                                           CDProof* cdp,
+                                           bool& continueUpdate,
+                                           ProofRewriteRule di);
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
