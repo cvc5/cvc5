@@ -31,6 +31,7 @@ namespace prop {
 
 class CadicalPropagator;
 class ClauseLearner;
+class ProofTracer;
 
 class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 {
@@ -56,6 +57,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
   bool setPropagateOnly() override;
   void getUnsatAssumptions(std::vector<SatLiteral>& assumptions) override;
+  void getUnsatCore(std::vector<SatClause>& unsat_core,
+                    bool includeTheoryLemmas = true) override;
 
   void interrupt() override;
 
@@ -129,6 +132,8 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::unique_ptr<CadicalPropagator> d_propagator;
   /** Clause learner instance for notifications about learned clauses. */
   std::unique_ptr<ClauseLearner> d_clause_learner;
+  /** Proof tracer instance for extracting unsat cores. */
+  std::unique_ptr<ProofTracer> d_proof_tracer;
 
   /**
    * Stores the current set of assumptions provided via solve() and is used to
