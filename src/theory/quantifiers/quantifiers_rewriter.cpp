@@ -550,7 +550,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   return RewriteResponse( status, ret );
 }
 
-Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
+Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd, bool rmDup)
 {
   Assert(q.getKind() == Kind::FORALL || q.getKind() == Kind::EXISTS);
   Kind k = q.getKind();
@@ -560,17 +560,24 @@ Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
   bool continueCombine = false;
   do
   {
-    for (const Node& v : body[0])
+    if (rmDup)
     {
-      if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+      for (const Node& v : body[0])
       {
-        boundVars.push_back(v);
+        if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+        {
+          boundVars.push_back(v);
+        }
+        else
+        {
+          // if duplicate variable due to shadowing, we must rewrite
+          combineQuantifiers = true;
+        }
       }
-      else
-      {
-        // if duplicate variable due to shadowing, we must rewrite
-        combineQuantifiers = true;
-      }
+    }
+    else
+    {
+      boundVars.insert(boundVars.end(), body[0].begin(), body[0].end());
     }
     continueCombine = false;
     if (body.getNumChildren() == 2 && body[1].getKind() == k)

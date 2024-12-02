@@ -546,7 +546,12 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   Trace("brc-macro") << "Expand macro quant merge prenex for " << eq
                      << std::endl;
   theory::Rewriter* rr = d_env.getRewriter();
-  Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, q[0]);
+  Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, eq[0]);
+  if (qm.isNull())
+  {
+    Assert (false);
+    return false;
+  }
   Node equiv = eq[0].eqNode(qm);
   cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
   if (qm==eq[1])
@@ -554,13 +559,33 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
     return true;
   }
   // if variables were duplicated, remove them with QUANT_UNUSED_VARS
-  Node equiv2 = qm.eqNode(eq[1]);
-  if (!cdp->addTheoryRewriteStep(equiv2, ProofRewriteRule::QUANT_UNUSED_VARS))
+  Node qmu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, qm);
+  if (qmu.isNull())
   {
     Assert (false);
     return false;
   }
-  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
+  Node equiv2 = qm.eqNode(qmu);
+  cdp->addTheoryRewriteStep(equiv2, ProofRewriteRule::QUANT_UNUSED_VARS);
+  std::vector<Node> transEq;
+  transEq.push_back(equiv);
+  transEq.push_back(equiv2);
+  if (qmu!=eq[1])
+  {
+    // may be we removed too many variables
+    Node qmu2 = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eq[1]);
+    if (qmu2!=qmu)
+    {
+      Assert (false);
+      return false;
+    }
+    Node equiv3 = eq[1].eqNode(qmu2);
+    cdp->addTheoryRewriteStep(equiv3, ProofRewriteRule::QUANT_UNUSED_VARS);
+    Node equiv3s = qmu2.eqNode(eq[1]);
+    cdp->addStep(equiv3s, ProofRule::SYMM, {equiv3}, {});
+    transEq.push_back(equiv3s);
+  }
+  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
   
