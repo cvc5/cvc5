@@ -572,7 +572,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   transEq.push_back(equiv2);
   if (qmu!=eq[1])
   {
-    // may be we removed too many variables
+    // May be we removed too many variables, in this case we do the same
+    // removal for the opposite side, which should give the same result.
     Node qmu2 = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eq[1]);
     if (qmu2!=qmu)
     {
