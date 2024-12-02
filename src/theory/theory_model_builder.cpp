@@ -1083,6 +1083,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // unsuccessfully here.
       if (assignOne)
       {
+        Assert (false) << "Reached a deadlock during model construction";
         Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
         return false;
       }
