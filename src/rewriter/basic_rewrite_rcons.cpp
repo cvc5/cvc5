@@ -541,7 +541,8 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
+                                                         const Node& eq)
 {
   Trace("brc-macro") << "Expand macro quant merge prenex for " << eq
                      << std::endl;
@@ -550,12 +551,12 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   Trace("brc-macro") << "...non-macro to " << qm << std::endl;
   if (qm.isNull())
   {
-    Assert (false);
+    Assert(false);
     return false;
   }
   Node equiv = eq[0].eqNode(qm);
   cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
-  if (qm==eq[1])
+  if (qm == eq[1])
   {
     return true;
   }
@@ -563,7 +564,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   Node qmu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, qm);
   if (qmu.isNull())
   {
-    Assert (false);
+    Assert(false);
     return false;
   }
   Node equiv2 = qm.eqNode(qmu);
@@ -571,14 +572,14 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   std::vector<Node> transEq;
   transEq.push_back(equiv);
   transEq.push_back(equiv2);
-  if (qmu!=eq[1])
+  if (qmu != eq[1])
   {
     // May be we removed too many variables, in this case we do the same
     // removal for the opposite side, which should give the same result.
     Node qmu2 = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eq[1]);
-    if (qmu2!=qmu)
+    if (qmu2 != qmu)
     {
-      Assert (false);
+      Assert(false);
       return false;
     }
     Node equiv3 = eq[1].eqNode(qmu2);
@@ -590,7 +591,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
   cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
-  
+
 bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     CDProof* cdp, const Node& eq)
 {

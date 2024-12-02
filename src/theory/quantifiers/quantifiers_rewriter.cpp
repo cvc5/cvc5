@@ -103,7 +103,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MERGE_PRENEX is part of the reconstruction for MACRO_QUANT_MERGE_PRENEX
+  // QUANT_MERGE_PRENEX is part of the reconstruction for
+  // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
@@ -168,7 +169,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // Don't check standard here, which can't be replicated in a proof checker
       // without modelling the patterns.
       // We remove duplicates if the macro version.
-      Node q = mergePrenex(n, false, id==ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX);
+      Node q = mergePrenex(
+          n, false, id == ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX);
       if (q != n)
       {
         return q;
@@ -424,7 +426,8 @@ void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
     for (const Node& v : args)
     {
       it = activeMap.find(v);
-      if( it!=activeMap.end() ){
+      if (it != activeMap.end())
+      {
         activeArgs.emplace_back(v);
         // no longer active, which accounts for deleting duplicates
         activeMap.erase(it);
