@@ -369,13 +369,22 @@ int64_t QuantAttributes::getQuantInstLevel(Node q)
   }
 }
 
-bool QuantAttributes::isQuantElimPartial( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+bool QuantAttributes::isQuantElim(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
+    return false;
+  }
+  return it->second.d_quant_elim;
+}
+bool QuantAttributes::isQuantElimPartial(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.d_quant_elim_partial;
   }
+  return it->second.d_quant_elim_partial;
 }
 
 bool QuantAttributes::isQuantBounded(Node q) const
