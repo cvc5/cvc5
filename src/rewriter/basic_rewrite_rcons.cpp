@@ -541,6 +541,29 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   return true;
 }
 
+bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro quant merge prenex for " << eq
+                     << std::endl;
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, q[0]);
+  Node equiv = eq[0].eqNode(qm);
+  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
+  if (qm==eq[1])
+  {
+    return true;
+  }
+  // if variables were duplicated, remove them with QUANT_UNUSED_VARS
+  Node equiv2 = qm.eqNode(eq[1]);
+  if (!cdp->addTheoryRewriteStep(equiv2, ProofRewriteRule::QUANT_UNUSED_VARS))
+  {
+    Assert (false);
+    return false;
+  }
+  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
+  return true;
+}
+  
 bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
     CDProof* cdp, const Node& eq)
 {
