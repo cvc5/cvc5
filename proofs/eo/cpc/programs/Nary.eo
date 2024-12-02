@@ -208,33 +208,3 @@
         (($nary_diff cons nil c1 nil)                       c1)
     )
 )
-
-; define: $nary_ctn
-; args:
-; - f (-> T T T): The operator, expected to be an n-ary operator.
-; - x T: The first term, expected to be an application of f.
-; - y T: The second term to find.
-; return: true if y is contained in x.
-(define $nary_ctn ((T Type :implicit) (f (-> T T T)) (x T) (y T))
-  (eo::not (eo::is_eq (eo::list_find f x y) -1)))
-
-; program: $nary_concat_no_dup
-; args:
-; - cons (-> L L L): >
-;   The function whose applications we are considering. It is assumed that
-;   cons is a function with attribute :right-assoc-nil.
-; - nil L: The nil terminator of cons.
-; - t1 L: The first term, assumed to be a cons-list.
-; - t2 L: The second term, assumed to be a cons-list.
-; return: >
-;   The result of appending each element of t1 to t2, dropping elements that
-;   already occur in the resulting list.
-(program $nary_concat_no_dup
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (x L) (xs L :list) (y L))
-    ((-> L L L) L L L) Bool
-    (
-        (($nary_concat_no_dup cons nil (cons x xs) y)  (eo::define ((r ($nary_concat_no_dup cons nil xs y)))
-                                                         (eo::ite ($nary_ctn cons r x) r (eo::cons cons x r))))
-        (($nary_concat_no_dup cons nil nil y)          y)
-    )
-)
