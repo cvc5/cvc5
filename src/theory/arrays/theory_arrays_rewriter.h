@@ -29,7 +29,6 @@
 
 namespace cvc5::internal {
 
-class EagerProofGenerator;
 class Env;
 
 namespace theory {
@@ -46,7 +45,7 @@ static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
+  TheoryArraysRewriter(NodeManager* nm, Rewriter* r);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(NodeManager* nm,
@@ -72,7 +71,7 @@ class TheoryArraysRewriter : public TheoryRewriter
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
 
   /**
    * Puts array constant node into normal form. This is so that array constants
@@ -89,8 +88,6 @@ class TheoryArraysRewriter : public TheoryRewriter
    * be removed.
    */
   Rewriter* d_rewriter;
-  /** Pointer to an eager proof generator, if proof are enabled */
-  EagerProofGenerator* d_epg;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays
