@@ -19,6 +19,7 @@ jobs:
             cache-key: production
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             build-documentation: true
             check-examples: true
             package-name: cvc5-Linux-x86_64
@@ -38,6 +39,7 @@ jobs:
             cache-key: production
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             check-examples: true
             package-name: cvc5-macOS-x86_64
             macos-target: 10.13
@@ -50,6 +52,7 @@ jobs:
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             check-examples: true
             package-name: cvc5-macOS-arm64
             macos-target: 11.0
@@ -69,6 +72,7 @@ jobs:
             cache-key: production-win64-native
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
@@ -225,6 +229,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Create and add shared package to latest and release
+      id: create-shared-package
       if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
@@ -242,6 +247,17 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.build.shell }}
+
+    - name: Create and add JAR to latest and release
+      if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-jar
+      with:
+        install-path: ${{ steps.create-shared-package.outputs.install-path }}
+        jar-libs-dir: cvc5-libs
+        jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
