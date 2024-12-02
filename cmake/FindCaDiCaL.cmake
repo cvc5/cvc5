@@ -149,6 +149,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
             <INSTALL_DIR>/include/cadical.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/tracer.hpp
+            <INSTALL_DIR>/include/cadical/tracer.hpp
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 

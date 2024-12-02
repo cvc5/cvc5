@@ -17,12 +17,15 @@
 
 #include "prop/cadical.h"
 
+#include <cadical.hpp>
+#include <cadical/tracer.hpp>
 #include <deque>
 
 #include "base/check.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/proof_options.h"
+#include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
@@ -842,7 +845,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   size_t current_user_level() const { return d_active_vars_control.size(); }
 
   /** Return the current list of activation literals. */
-  const std::vector<SatLiteral>& activation_literals()
+  const std::vector<SatLiteral>& activation_literals() const
   {
     return d_activation_literals;
   }
@@ -876,6 +879,9 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /** Set d_in_search flag to indicate whether solver is currently in search. */
   void in_search(bool flag) { d_in_search = flag; }
+
+  /** Is solver currently in search? */
+  bool in_search() const { return d_in_search; }
 
  private:
   /** Retrieve theory propagations and add them to the propagations list. */
@@ -1046,6 +1052,198 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   } d_stats;
 };
 
+/** Proof tracer implementation for computing unsat cores from CaDiCaL. */
+class ProofTracer : public CaDiCaL::Tracer
+{
+ public:
+  enum class ClauseType
+  {
+    ASSUMPTION,  // assumption clause
+    INPUT,       // input clause
+    THEORY,      // theory lemmas
+  };
+
+  ProofTracer(const CadicalPropagator& propagator) : d_propagator(propagator)
+  {
+    d_antecedents.emplace_back();  // clauses start with id 1
+  }
+
+  void add_original_clause(uint64_t clause_id,
+                           bool redundant,
+                           const std::vector<int>& clause,
+                           bool restored) override
+  {
+    Assert(d_antecedents.size() == clause_id);
+    d_antecedents.emplace_back();  // no antecedents
+    ClauseType ctype =
+        d_propagator.in_search() ? ClauseType::THEORY : ClauseType::INPUT;
+    d_orig_clauses.try_emplace(clause_id, clause, ctype);
+
+    if (TraceIsOn("cadical::prooftracer"))
+    {
+      Trace("cadical::prooftracer")
+          << (ctype == ProofTracer::ClauseType::INPUT ? "i: " : "t: ");
+      for (const auto lit : clause)
+      {
+        Trace("cadical::prooftracer") << lit << " ";
+      }
+      Trace("cadical::prooftracer") << "0" << std::endl;
+    }
+  }
+
+  void add_derived_clause(uint64_t clause_id,
+                          bool redundant,
+                          const std::vector<int>& clause,
+                          const std::vector<uint64_t>& antecedents) override
+  {
+    Assert(d_antecedents.size() == clause_id);
+    (void)clause;
+    (void)redundant;
+    // Only store antecedents for a derived clause, no need to store the
+    // literals.
+    d_antecedents.emplace_back(antecedents);
+  }
+
+  void add_assumption_clause(uint64_t clause_id,
+                             const std::vector<int>& clause,
+                             const std::vector<uint64_t>& antecedents) override
+  {
+    Assert(d_antecedents.size() == clause_id);
+    // Assumption clauses are the negation of the core of failed/unsat
+    // assumptions.
+    d_antecedents.emplace_back(antecedents);
+    // Assumptions are original clauses.
+    d_orig_clauses.try_emplace(clause_id, clause, ClauseType::ASSUMPTION);
+
+    if (TraceIsOn("cadical::prooftracer"))
+    {
+      Trace("cadical::prooftracer") << "a: ~(";
+      for (const auto lit : clause)
+      {
+        Trace("cadical::prooftracer") << lit << " ";
+      }
+      Trace("cadical::prooftracer") << "0)" << std::endl;
+    }
+  }
+
+  void conclude_unsat(CaDiCaL::ConclusionType type,
+                      const std::vector<uint64_t>& clause_ids) override
+  {
+    // Store final clause ids that concluded unsat.
+    d_final_clauses = clause_ids;
+  }
+
+  void compute_unsat_core(std::vector<SatClause>& unsat_core,
+                          bool include_theory_lemmas = true) const
+  {
+    std::vector<uint64_t> core;
+    std::vector<uint64_t> visit{d_final_clauses};
+    std::vector<bool> visited(d_antecedents.size() + 1, false);
+
+    // Trace back from final clause ids (empty clause) to original clauses.
+    while (!visit.empty())
+    {
+      const uint64_t clause_id = visit.back();
+      visit.pop_back();
+
+      if (!visited[clause_id])
+      {
+        visited[clause_id] = true;
+        if (d_orig_clauses.find(clause_id) != d_orig_clauses.end())
+        {
+          core.push_back(clause_id);
+        }
+        Assert(clause_id < d_antecedents.size());
+        const auto& antecedents = d_antecedents[clause_id];
+        visit.insert(visit.end(), antecedents.begin(), antecedents.end());
+      }
+    }
+
+    // Get activation literals, required for filtering below.
+    std::unordered_set<int64_t> alits;
+    for (const auto& lit : d_propagator.activation_literals())
+    {
+      Trace("cadical::prooftracer")
+          << "act. lit: " << lit.getSatVariable() << std::endl;
+      alits.insert(lit.getSatVariable());
+    }
+
+    Trace("cadical::prooftracer") << "unsat core:" << std::endl;
+
+    // Get the core in terms of SatClause/SatLiteral, filters out activation
+    // literals.
+    for (const uint64_t cid : core)
+    {
+      const auto& [clause, ctype] = d_orig_clauses.at(cid);
+
+      // Skip theory lemmas if not requested.
+      if (!include_theory_lemmas && ctype == ProofTracer::ClauseType::THEORY)
+      {
+        continue;
+      }
+
+      // Filter out activation literals
+      std::vector<int64_t> cl;
+      for (const auto& lit : clause)
+      {
+        if (alits.find(std::abs(lit)) == alits.end())
+        {
+          cl.push_back(lit);
+        }
+      }
+
+      if (cl.empty())
+      {
+        continue;
+      }
+
+      if (TraceIsOn("cadical::prooftracer"))
+      {
+        char ct;
+        switch (ctype)
+        {
+          case ProofTracer::ClauseType::ASSUMPTION: ct = 'a'; break;
+          case ProofTracer::ClauseType::INPUT: ct = 'i'; break;
+          case ProofTracer::ClauseType::THEORY: ct = 't'; break;
+        }
+        Trace("cadical::prooftracer") << ct << ": ";
+      }
+
+      // Assumption clauses are the negation of a core of failed/unsat
+      // assumptions. Add each assumption as a unit clause.
+      if (ctype == ProofTracer::ClauseType::ASSUMPTION)
+      {
+        for (const auto lit : cl)
+        {
+          auto& sat_clause = unsat_core.emplace_back();
+          sat_clause.emplace_back(toSatLiteral(-lit));
+          Trace("cadical::prooftracer") << -lit << " 0" << std::endl;
+        }
+      }
+      else
+      {
+        auto& sat_clause = unsat_core.emplace_back();
+        for (const auto& lit : cl)
+        {
+          Trace("cadical::prooftracer") << lit << " ";
+          sat_clause.emplace_back(toSatLiteral(lit));
+        }
+        Trace("cadical::prooftracer") << "0" << std::endl;
+      }
+    }
+  }
+
+ private:
+  const CadicalPropagator& d_propagator;
+  // Maps clause id to its antecedents.
+  std::vector<std::vector<uint64_t>> d_antecedents;
+  // Maps original clause ids to their literals and clause type.
+  std::unordered_map<uint64_t, std::pair<std::vector<int>, ClauseType>>
+      d_orig_clauses;
+  // Stores the final clause ids used to conclude unsat.
+  std::vector<uint64_t> d_final_clauses;
+};
+
 class ClauseLearner : public CaDiCaL::Learner
 {
  public:
@@ -1136,7 +1334,12 @@ void CadicalSolver::init()
   }
 }
 
-CadicalSolver::~CadicalSolver() {}
+CadicalSolver::~CadicalSolver() {
+  if (d_proof_tracer != nullptr)
+  {
+    d_solver->disconnect_proof_tracer(d_proof_tracer.get());
+  }
+}
 
 /**
  * Terminator class that notifies CaDiCaL to terminate when the resource limit
@@ -1203,6 +1406,25 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
     Trace("cadical::propagator") << "solve done: " << res << std::endl;
     d_propagator->in_search(false);
   }
+#ifndef NDEBUG
+  // Check unsat core
+  if (res == SAT_VALUE_FALSE && d_proof_tracer != nullptr)
+  {
+    std::vector<SatClause> unsat_core;
+    getUnsatCore(unsat_core, true);
+
+    std::unique_ptr<CaDiCaL::Solver> solver(new CaDiCaL::Solver());
+    for (const auto& clause : unsat_core)
+    {
+      for (const auto& lit : clause)
+      {
+        solver->add(toCadicalLit(lit));
+      }
+      solver->add(0);
+    }
+    Assert(solver->solve() == CaDiCaL::UNSATISFIABLE);
+  }
+#endif
   ++d_statistics.d_numSatCalls;
   d_inSatMode = (res == SAT_VALUE_TRUE);
   return res;
@@ -1226,7 +1448,6 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
     }
     Trace("cadical::propagator") << " 0" << std::endl;
   }
-  // If we are currently in search, add clauses through the propagator.
   if (d_propagator)
   {
     d_propagator->add_clause(clause);
@@ -1295,6 +1516,15 @@ void CadicalSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
   }
 }
 
+void CadicalSolver::getUnsatCore(std::vector<SatClause>& unsat_core,
+                                 bool includeTheoryLemmas)
+{
+  if (d_proof_tracer != nullptr)
+  {
+    d_proof_tracer->compute_unsat_core(unsat_core, includeTheoryLemmas);
+  }
+}
+
 void CadicalSolver::interrupt() { d_solver->terminate(); }
 
 SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
@@ -1335,6 +1565,12 @@ void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
     d_solver->connect_learner(d_clause_learner.get());
+  }
+
+  if (d_env.isSatProofProducing())
+  {
+    d_proof_tracer.reset(new ProofTracer(*d_propagator));
+    d_solver->connect_proof_tracer(d_proof_tracer.get(), true);
   }
 
   init();
