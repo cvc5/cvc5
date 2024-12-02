@@ -483,7 +483,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                              *cdp);
       }
       TrustId tid;
-      if (getTrustId(args[0], tid) && tid == TrustId::THEORY_LEMMA)
+      bool hasTrustId = getTrustId(args[0], tid);
+      if (hasTrustId && tid == TrustId::THEORY_LEMMA)
       {
         // if we are in the arithmetic case, we rather add a LIA_GENERIC step
         if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
@@ -514,7 +515,14 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       std::stringstream ss;
-      ss << "\"" << args[0] << "\"";
+      if (hasTrustId)
+      {
+        ss << "\"" << tid << "\"";
+      }
+      else
+      {
+        ss << "\"" << args[0] << "\"";
+      }
       std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
       return addAletheStep(AletheRule::HOLE,
