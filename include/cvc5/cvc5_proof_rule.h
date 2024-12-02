@@ -2519,7 +2519,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_UNUSED_VARS),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Merge prenex**
+   * **Quantifiers -- Macro merge prenex**
    *
    * .. math::
    *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
