@@ -91,13 +91,14 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
          || rule == AletheRule::CONTRACTION;
 }
 
-bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(Node res,
-                                            ProofRule id,
-                                            const std::vector<Node>& children,
-                                            const std::vector<Node>& args,
-                                            CDProof* cdp,
-                                            bool& continueUpdate,
-					    ProofRewriteRule di)
+bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
+    Node res,
+    ProofRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate,
+    ProofRewriteRule di)
 {
   NodeManager* nm = nodeManager();
   std::vector<Node> new_args = std::vector<Node>();
@@ -106,41 +107,40 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(Node re
     // ======== DISTINCT_ELIM
     // This rule is translated according to the clauses pattern. The only
     // exception to this is if there are more than two terms that are distinct
-    // and they are boolean.
-    // The Alethe distinct_elim rule has a special handling in these cases and
-    // rewrites the distinct term to False directly (as the DISTINCT_CARD_CONFLICT rule does
-    // in cvc5).
+    // and they are boolean. The Alethe distinct_elim rule has a special
+    // handling in these cases and rewrites the distinct term to False directly
+    // (as the DISTINCT_CARD_CONFLICT rule does in cvc5).
     case ProofRewriteRule::DISTINCT_ELIM:
       Assert(res.getNumChildren() == 2);
       Assert(res[0].getNumChildren() >= 2);
-      if (res[0][0].getType().isBoolean() && res[0].getNumChildren() == 2){
-	break;
+      if (res[0][0].getType().isBoolean() && res[0].getNumChildren() == 2)
+      {
+        break;
       }
-        return addAletheStep(AletheRule::DISTINCT_ELIM,
+      return addAletheStep(AletheRule::DISTINCT_ELIM,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-			   new_args,
-			   *cdp);
-     break;
+                           new_args,
+                           *cdp);
+      break;
     // ======== DISTINCT_CARD_CONFLICT
-    // This rule is translated according to the clauses pattern. 
+    // This rule is translated according to the clauses pattern.
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
       return addAletheStep(AletheRule::DISTINCT_ELIM,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-			   new_args,
-			   *cdp);
-    default:
-      break;
+                           new_args,
+                           *cdp);
+    default: break;
   }
   return addAletheStep(AletheRule::HOLE,
                        res,
                        nm->mkNode(Kind::SEXPR, d_cl, res),
                        children,
                        new_args,
-		       *cdp);
+                       *cdp);
 }
 
 bool AletheProofPostprocessCallback::update(Node res,
@@ -499,14 +499,15 @@ bool AletheProofPostprocessCallback::update(Node res,
       ProofRewriteRule di;
       if (rewriter::getRewriteRule(args[0], di))
       {
-        return updateTheoryRewriteProofRewriteRule(res, id, children, args, cdp, continueUpdate, di);
+        return updateTheoryRewriteProofRewriteRule(
+            res, id, children, args, cdp, continueUpdate, di);
       }
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
-			   new_args,
-			   *cdp);
+                           new_args,
+                           *cdp);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
