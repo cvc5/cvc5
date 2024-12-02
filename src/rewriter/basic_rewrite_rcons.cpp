@@ -547,6 +547,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp, const Nod
                      << std::endl;
   theory::Rewriter* rr = d_env.getRewriter();
   Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, eq[0]);
+  Trace("brc-macro") << "...non-macro to " << qm << std::endl;
   if (qm.isNull())
   {
     Assert (false);

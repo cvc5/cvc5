@@ -420,9 +420,14 @@ void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
   if( !activeMap.empty() ){
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+    std::map<Node, bool>::iterator it;
+    for (const Node& v : args)
+    {
+      it = activeMap.find(v);
+      if( it!=activeMap.end() ){
+        activeArgs.emplace_back(v);
+        // no longer active, which accounts for deleting duplicates
+        activeMap.erase(it);
       }
     }
   }

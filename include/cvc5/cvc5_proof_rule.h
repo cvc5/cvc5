@@ -2511,7 +2511,8 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F = \forall X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
