@@ -1083,6 +1083,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       // unsuccessfully here.
       if (assignOne)
       {
+        Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
         return false;
       }
       assignOne = true;
