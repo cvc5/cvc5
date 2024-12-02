@@ -103,12 +103,12 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
+  // QUANT_MERGE_PRENEX is part of the reconstruction for MACRO_QUANT_MERGE_PRENEX
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MINISCOPE is handled as part of the reconstruction for
-  // MACRO_QUANT_MINISCOPE
+  // QUANT_MINISCOPE is part of the reconstruction for MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
   // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
@@ -158,6 +158,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
       if (!n.isClosure())
@@ -166,7 +167,8 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       // Don't check standard here, which can't be replicated in a proof checker
       // without modelling the patterns.
-      Node q = mergePrenex(n, false);
+      // We remove duplicates if the macro version.
+      Node q = mergePrenex(n, false, id==ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX);
       if (q != n)
       {
         return q;
@@ -479,7 +481,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // eagerly here, where after we would drop y to obtain:
     //   (forall ((x Int)) (! (P x) :pattern ((f x))))
     // See issue #10303.
-    Node qm = mergePrenex(q, true);
+    Node qm = mergePrenex(q, true, true);
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
@@ -511,7 +513,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   else if (in.getKind() == Kind::FORALL)
   {
     // do prenex merging
-    ret = mergePrenex(in, true);
+    ret = mergePrenex(in, true, true);
     if (ret != in)
     {
       status = REWRITE_AGAIN_FULL;
