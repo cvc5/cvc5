@@ -142,7 +142,7 @@ Result checkWithSubsolver(Node query,
       NodeManager* nm = NodeManager::currentNM();
       for (const Node& v : vars)
       {
-        modelVals.push_back(nm->mkGroundTerm(v.getType()));
+        modelVals.push_back(NodeManager::mkGroundTerm(v.getType()));
       }
     }
     return r;

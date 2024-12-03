@@ -175,7 +175,7 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
               if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
-                val = nm->mkGroundTerm(v.getType());
+                val = NodeManager::mkGroundTerm(v.getType());
               }
               else
               {

@@ -689,7 +689,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       // if there are not constructors yet by this point, which can happen,
       // e.g. for unimplemented types that have no variables in the argument
       // list of the function-to-synthesize, create a fresh ground term
-      g.addRule(ntSym, nm->mkGroundTerm(tn));
+      g.addRule(ntSym, NodeManager::mkGroundTerm(tn));
     }
     // now, ITE which always comes last
     bool considerIte = true;
@@ -919,7 +919,7 @@ void SygusGrammarCons::mkSygusConstantsForType(const TypeNode& type,
   else if (type.isArray() || type.isSet())
   {
     // generate constant array over the first element of the constituent type
-    Node c = nm->mkGroundTerm(type);
+    Node c = NodeManager::mkGroundTerm(type);
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
     ops.push_back(c);

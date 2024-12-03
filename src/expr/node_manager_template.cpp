@@ -513,7 +513,8 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   TypeNode typeNode;
   TypeAttr ta;
   TypeCheckedAttr tca;
-  bool hasType = getAttribute(n, ta, typeNode);
+  NodeManager * nm = n.getNodeManager();
+  bool hasType = nm->getAttribute(n, ta, typeNode);
   bool needsCheck = check && !getAttribute(n, tca);
   if (hasType && !needsCheck)
   {
@@ -529,7 +530,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     cur = visit.back();
     visit.pop_back();
     // already computed (and checked, if necessary) this type
-    if (!getAttribute(cur, ta).isNull() && (!check || getAttribute(cur, tca)))
+    if (!nm->getAttribute(cur, ta).isNull() && (!check || nm->getAttribute(cur, tca)))
     {
       continue;
     }
@@ -542,7 +543,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
       // check the children types.
       if (!check)
       {
-        typeNode = TypeChecker::preComputeType(this, cur);
+        typeNode = TypeChecker::preComputeType(nm, cur);
         if (!typeNode.isNull())
         {
           visited[cur] = true;
@@ -567,14 +568,14 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
         return typeNode;
       }
       setAttribute(cur, ta, typeNode);
-      setAttribute(cur, tca, check || getAttribute(cur, tca));
+      setAttribute(cur, tca, check || nm->getAttribute(cur, tca));
     }
   } while (!visit.empty());
 
   /* The type should be have been computed and stored. */
   Assert(hasAttribute(n, ta));
   /* The check should have happened, if we asked for it. */
-  Assert(!check || getAttribute(n, tca));
+  Assert(!check || nm->getAttribute(n, tca));
   // should be the last type computed in the above loop
   return typeNode;
 }
@@ -1105,7 +1106,7 @@ Node NodeManager::mkVar(const std::string& name,
   {
     return it->second;
   }
-  Node n = NodeBuilder(this, Kind::VARIABLE);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
@@ -1233,7 +1234,7 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
 
 Node NodeManager::mkVar(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::VARIABLE);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   return n;
@@ -1241,7 +1242,7 @@ Node NodeManager::mkVar(const TypeNode& type)
 
 Node NodeManager::mkBoundVar(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::BOUND_VARIABLE);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::BOUND_VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   return n;
@@ -1249,7 +1250,7 @@ Node NodeManager::mkBoundVar(const TypeNode& type)
 
 Node NodeManager::mkInstConstant(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::INST_CONSTANT);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
@@ -1257,7 +1258,7 @@ Node NodeManager::mkInstConstant(const TypeNode& type)
 
 Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::RAW_SYMBOL);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::RAW_SYMBOL);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
@@ -1269,7 +1270,7 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   std::map<TypeNode, Node>::iterator it = d_unique_vars[k].find(type);
   if (it == d_unique_vars[k].end())
   {
-    Node n = NodeBuilder(this, k).constructNode();
+    Node n = NodeBuilder(type.getNodeManager(), k).constructNode();
     setAttribute(n, TypeAttr(), type);
     // setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;

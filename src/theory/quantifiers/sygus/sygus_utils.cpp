@@ -231,17 +231,17 @@ Node SygusUtils::mkSygusTermFor(const Node& f)
     if (f.getType().isFunction())
     {
       Assert(!bvl.isNull());
-      ret = nm->mkGroundValue(f.getType().getRangeType());
+      ret = NodeManager::mkGroundValue(f.getType().getRangeType());
       // give the appropriate variable list
       ret = nm->mkNode(Kind::LAMBDA, bvl, ret);
     }
     else
     {
-      ret = nm->mkGroundValue(f.getType());
+      ret = NodeManager::mkGroundValue(f.getType());
     }
     return ret;
   }
-  Node ret = nm->mkGroundValue(tn);
+  Node ret = NodeManager::mkGroundValue(tn);
   // use external=true
   ret = datatypes::utils::sygusToBuiltin(ret, true);
   if (!bvl.isNull())
