@@ -243,6 +243,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       // conflict. In this case, we notify the context of the learned
       // literal, which will process it with the learned literal manager.
       d_preprocContext->notifyLearnedLiteral(learnedLiteral);
+    }
   }
 
 #ifdef CVC5_ASSERTIONS

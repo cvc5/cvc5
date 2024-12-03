@@ -375,7 +375,7 @@ bool TheoryArrays::ppAssert(
       if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        return true
+        return true;
       }
       if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
       {
