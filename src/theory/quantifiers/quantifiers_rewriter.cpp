@@ -23,6 +23,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -117,6 +118,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_REWRITE_BODY,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -360,6 +363,19 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
         qc[0] = d_nm->mkNode(Kind::BOUND_VAR_LIST, args);
         return d_nm->mkNode(Kind::FORALL, qc);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
+    {
+      if (n.getKind() != Kind::FORALL)
+      {
+        return Node::null();
+      }
+      Node nr = computeRewriteBody(n);
+      if (nr != n)
+      {
+        return nr;
       }
     }
     break;
@@ -712,22 +728,16 @@ void QuantifiersRewriter::computeDtTesterIteSplit(
 Node QuantifiersRewriter::computeProcessTerms(const Node& q,
                                               const std::vector<Node>& args,
                                               Node body,
-                                              QAttributes& qa) const
+                                              QAttributes& qa,
+                                              TConvProofGenerator* pg) const
 {
   options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
   if (qa.isStandard())
   {
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
-  std::vector<Node> new_conds;
   std::map<Node, Node> cache;
-  Node n = computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
-  if (!new_conds.empty())
-  {
-    new_conds.push_back(n);
-    n = nodeManager()->mkNode(Kind::OR, new_conds);
-  }
-  return n;
+  return computeProcessTerms2(q, args, body, cache, iteLiftMode, pg);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
@@ -735,8 +745,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
     const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
-    std::vector<Node>& new_conds,
-    options::IteLiftQuantMode iteLiftMode) const
+    options::IteLiftQuantMode iteLiftMode,
+    TConvProofGenerator* pg) const
 {
   NodeManager* nm = nodeManager();
   Trace("quantifiers-rewrite-term-debug2")
@@ -745,40 +755,12 @@ Node QuantifiersRewriter::computeProcessTerms2(
   if( iti!=cache.end() ){
     return iti->second;
   }
-  if (body.isClosure())
-  {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = body[0].getNumChildren(); i < nvars; i++)
-    {
-      const Node& v = body[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
-      {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, i);
-        newVars.push_back(nv);
-      }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = body.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      cache[body] = sbody;
-      return sbody;
-    }
-  }
   bool changed = false;
   std::vector<Node> children;
   for (const Node& bc : body)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds, iteLiftMode);
+    Node nn = computeProcessTerms2(q, args, bc, cache, iteLiftMode, pg);
     children.push_back(nn);
     changed = changed || nn != bc;
   }
@@ -798,11 +780,39 @@ Node QuantifiersRewriter::computeProcessTerms2(
     ret = body;
   }
 
+  Node retOrig = ret;
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.getKind() == Kind::EQUAL
-      && iteLiftMode != options::IteLiftQuantMode::NONE)
+  if (ret.isClosure())
+  {
+    // Ensure no shadowing. If this term is a closure quantifying a variable
+    // in args, then we introduce fresh variable(s) and replace this closure
+    // to be over the fresh variables instead.
+    std::vector<Node> oldVars;
+    std::vector<Node> newVars;
+    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
+    {
+      const Node& v = ret[0][i];
+      if (std::find(args.begin(), args.end(), v) != args.end())
+      {
+        Trace("quantifiers-rewrite-unshadow")
+            << "Found shadowed variable " << v << " in " << q << std::endl;
+        oldVars.push_back(v);
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
+        newVars.push_back(nv);
+      }
+    }
+    if (!oldVars.empty())
+    {
+      Assert(oldVars.size() == newVars.size());
+      Node sbody = ret.substitute(
+          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      ret = sbody;
+    }
+  }
+  else if (ret.getKind() == Kind::EQUAL
+           && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -861,6 +871,17 @@ Node QuantifiersRewriter::computeProcessTerms2(
     if (!fullApp.isNull())
     {
       ret = fullApp;
+    }
+  }
+  if (pg != nullptr)
+  {
+    if (retOrig != ret)
+    {
+      pg->addRewriteStep(retOrig,
+                         ret,
+                         nullptr,
+                         false,
+                         TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
     }
   }
   cache[body] = ret;
@@ -2152,6 +2173,28 @@ bool QuantifiersRewriter::isStandard(QAttributes& qa, const Options& opts)
       qa.d_hasPattern
       && opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   return qa.isStandard() && !is_strict_trigger;
+}
+
+Node QuantifiersRewriter::computeRewriteBody(const Node& n,
+                                             TConvProofGenerator* pg) const
+{
+  Assert(n.getKind() == Kind::FORALL);
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(n, qa);
+  std::vector<Node> args(n[0].begin(), n[0].end());
+  Node body = computeProcessTerms(n, args, n[1], qa, pg);
+  if (body != n[1])
+  {
+    std::vector<Node> children;
+    children.push_back(n[0]);
+    children.push_back(body);
+    if (n.getNumChildren() == 3)
+    {
+      children.push_back(n[2]);
+    }
+    return d_nm->mkNode(Kind::FORALL, children);
+  }
+  return n;
 }
 
 bool QuantifiersRewriter::doOperation(Node q,
