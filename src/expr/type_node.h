@@ -102,10 +102,8 @@ class CVC5_EXPORT TypeNode
   /**
    * Returns the associated node manager
    */
-  NodeManager* getNodeManager() const
-  {
-    return d_nv->getNodeManager();
-  }
+  NodeManager* getNodeManager() const { return d_nv->getNodeManager(); }
+
  public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }

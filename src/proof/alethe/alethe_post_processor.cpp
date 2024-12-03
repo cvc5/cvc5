@@ -420,7 +420,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           if (args[i].toString() == "")
           {  // TODO: better way
-            new_args.push_back(NodeManager::mkBoundVar("rare-list", nm->sExprType()));
+            new_args.push_back(
+                NodeManager::mkBoundVar("rare-list", nm->sExprType()));
           }
           else if (args[i].getKind() == Kind::SEXPR)
           {
@@ -456,12 +457,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(AletheRule::RARE_REWRITE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
-                           *cdp);
+      return addAletheStep(
+          AletheRule::RARE_REWRITE,
+          res,
+          nm->mkNode(Kind::SEXPR, d_cl, res),
+          children,
+          {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
+          *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
@@ -523,7 +525,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         ss << "\"" << args[0] << "\"";
       }
-      std::vector<Node> newArgs{NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
@@ -2133,7 +2136,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           << children << " " << args << std::endl;
       std::stringstream ss;
       ss << "\"" << id << "\"";
-      std::vector<Node> newArgs{NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,

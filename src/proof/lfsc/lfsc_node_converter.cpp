@@ -838,8 +838,8 @@ Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
                                          bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? NodeManager::mkRawSymbol(name, tn) : NodeManager::mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }

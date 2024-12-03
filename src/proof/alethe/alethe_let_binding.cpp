@@ -216,7 +216,8 @@ Node AletheLetBinding::convert(NodeManager* nm,
         Node declaration = NodeManager::mkRawSymbol(ss.str(), ret.getType());
         declaredValue[cur] = declaration;
         visited[cur] =
-            cur == n ? declaration : NodeManager::mkBoundVar(ssVar.str(), cur.getType());
+            cur == n ? declaration
+                     : NodeManager::mkBoundVar(ssVar.str(), cur.getType());
         continue;
       }
       visited[cur] = ret;

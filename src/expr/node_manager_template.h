@@ -339,7 +339,9 @@ class NodeManager
    * (default: false)
    * @param errOut An (optional) output stream to print type checking errors
    */
-  static TypeNode getType(TNode n, bool check = false, std::ostream* errOut = nullptr);
+  static TypeNode getType(TNode n,
+                          bool check = false,
+                          std::ostream* errOut = nullptr);
 
   /** Get the (singleton) type for Booleans. */
   TypeNode booleanType();

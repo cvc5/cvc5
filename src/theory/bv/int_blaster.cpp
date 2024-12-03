@@ -789,7 +789,8 @@ Node IntBlaster::translateNoChildren(Node original,
         // they will be added once the quantifier itself is handled.
         std::stringstream ss;
         ss << original;
-        translation = NodeManager::mkBoundVar(ss.str() + "_int", d_nm->integerType());
+        translation =
+            NodeManager::mkBoundVar(ss.str() + "_int", d_nm->integerType());
       }
       else
       {

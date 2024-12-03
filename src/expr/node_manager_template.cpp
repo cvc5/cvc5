@@ -513,7 +513,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   TypeNode typeNode;
   TypeAttr ta;
   TypeCheckedAttr tca;
-  NodeManager * nm = n.getNodeManager();
+  NodeManager* nm = n.getNodeManager();
   bool hasType = nm->getAttribute(n, ta, typeNode);
   bool needsCheck = check && !nm->getAttribute(n, tca);
   if (hasType && !needsCheck)
@@ -530,7 +530,8 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     cur = visit.back();
     visit.pop_back();
     // already computed (and checked, if necessary) this type
-    if (!nm->getAttribute(cur, ta).isNull() && (!check || nm->getAttribute(cur, tca)))
+    if (!nm->getAttribute(cur, ta).isNull()
+        && (!check || nm->getAttribute(cur, tca)))
     {
       continue;
     }
