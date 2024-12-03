@@ -574,9 +574,9 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   } while (!visit.empty());
 
   /* The type should be have been computed and stored. */
-  Assert(hasAttribute(n, ta));
+  Assert(n.hasAttribute(ta));
   /* The check should have happened, if we asked for it. */
-  Assert(!check || nm->getAttribute(n, tca));
+  Assert(!check || n.getAttribute(tca));
   // should be the last type computed in the above loop
   return typeNode;
 }
