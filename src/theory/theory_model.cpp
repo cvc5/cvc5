@@ -121,7 +121,6 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     // Sorts are always interpreted as non-empty, thus we add a single element.
     // We use mkGroundValue here, since domain elements must all be
     // of UNINTERPRETED_SORT_VALUE kind.
-    NodeManager* nm = nodeManager();
     elements.push_back(NodeManager::mkGroundValue(tn));
     return elements;
   }

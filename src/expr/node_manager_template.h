@@ -648,7 +648,7 @@ class NodeManager
   static Node mkRawSymbol(const std::string& name, const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
-  static Node mkNullaryOperator(const TypeNode& type, Kind k);
+  Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -981,7 +981,7 @@ class NodeManager
    * @param fresh True to return a fresh variable. If false, it returns the
    *              same variable for the given type and name.
    */
-  static Node mkVar(const std::string& name, const TypeNode& type, bool fresh = true);
+  Node mkVar(const std::string& name, const TypeNode& type, bool fresh = true);
 
   /** Create a variable with the given type. */
   static Node mkVar(const TypeNode& type);

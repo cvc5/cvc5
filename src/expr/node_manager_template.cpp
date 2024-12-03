@@ -515,7 +515,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   TypeCheckedAttr tca;
   NodeManager * nm = n.getNodeManager();
   bool hasType = nm->getAttribute(n, ta, typeNode);
-  bool needsCheck = check && !getAttribute(n, tca);
+  bool needsCheck = check && !nm->getAttribute(n, tca);
   if (hasType && !needsCheck)
   {
     return typeNode;
@@ -547,7 +547,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
         if (!typeNode.isNull())
         {
           visited[cur] = true;
-          setAttribute(cur, ta, typeNode);
+          nm->setAttribute(cur, ta, typeNode);
           // note that the result of preComputeType is not cached
           continue;
         }
@@ -561,14 +561,14 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, errOut);
+      typeNode = TypeChecker::computeType(nm, cur, check, errOut);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
         return typeNode;
       }
-      setAttribute(cur, ta, typeNode);
-      setAttribute(cur, tca, check || nm->getAttribute(cur, tca));
+      nm->setAttribute(cur, ta, typeNode);
+      nm->setAttribute(cur, tca, check || nm->getAttribute(cur, tca));
     }
   } while (!visit.empty());
 
@@ -1106,7 +1106,7 @@ Node NodeManager::mkVar(const std::string& name,
   {
     return it->second;
   }
-  Node n = NodeBuilder(type.getNodeManager(), Kind::VARIABLE);
+  Node n = NodeBuilder(this, Kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
@@ -1118,7 +1118,7 @@ Node NodeManager::mkVar(const std::string& name,
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
 {
   Node n = mkBoundVar(type);
-  setAttribute(n, expr::VarNameAttr(), name);
+  n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1235,16 +1235,16 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
 Node NodeManager::mkVar(const TypeNode& type)
 {
   Node n = NodeBuilder(type.getNodeManager(), Kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
 Node NodeManager::mkBoundVar(const TypeNode& type)
 {
   Node n = NodeBuilder(type.getNodeManager(), Kind::BOUND_VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
@@ -1261,7 +1261,7 @@ Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
   Node n = NodeBuilder(type.getNodeManager(), Kind::RAW_SYMBOL);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
-  setAttribute(n, expr::VarNameAttr(), name);
+  n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1270,7 +1270,7 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   std::map<TypeNode, Node>::iterator it = d_unique_vars[k].find(type);
   if (it == d_unique_vars[k].end())
   {
-    Node n = NodeBuilder(type.getNodeManager(), k).constructNode();
+    Node n = NodeBuilder(this, k).constructNode();
     setAttribute(n, TypeAttr(), type);
     // setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
