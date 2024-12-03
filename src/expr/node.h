@@ -37,6 +37,7 @@
 #include "options/language.h"
 #include "util/hash.h"
 #include "util/utility.h"
+#include "expr/internal_skolem_id.h"
 
 namespace cvc5::internal {
 
@@ -563,6 +564,27 @@ public:
   template <class T>
   inline const T& getConst() const;
 
+  /**
+   * @return true if this is a skolem function.
+   */
+  bool isSkolem() const;
+  
+  /**
+   * @return the skolem identifier of this node.
+   */
+  SkolemId getSkolemId() const;
+  
+  /**
+   * @return the skolem indices of this node.
+   */
+  std::vector<Node> getSkolemIndices() const;
+  
+  /**
+   * @return the internal skolem function id, for skolems whose id is
+   * SkolemId::INTERNAL.
+   */
+  InternalSkolemId getInternalSkolemId() const;
+  
   /**
    * Returns the reference count of this node.
    * @return the refcount

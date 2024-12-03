@@ -23,50 +23,11 @@
 #include <string>
 
 #include "expr/node.h"
+#include "expr/internal_skolem_id.h"
 
 namespace cvc5::internal {
 
 class ProofGenerator;
-
-/**
- * Internal skolem function identifier, used for identifying internal skolems
- * that are not exported as part of the API.
- *
- * This is a subclassification of skolems whose SkolemId is INTERNAL. It is
- * used to generate canonical skolems but without exporting to the API. Skolems
- * can be created using mkInternalSkolemFunction below.
- */
-enum class InternalSkolemId
-{
-  NONE,
-  /** Sequence model construction, element for base */
-  SEQ_MODEL_BASE_ELEMENT,
-  /** the "none" term, for instantiation evaluation */
-  IEVAL_NONE,
-  /** the "some" term, for instantiation evaluation */
-  IEVAL_SOME,
-  /** sygus "any constant" placeholder */
-  SYGUS_ANY_CONSTANT,
-  /**
-   * Quantifiers synth fun embedding, for function-to-synthesize, this the
-   * first order datatype variable for f.
-   */
-  QUANTIFIERS_SYNTH_FUN_EMBED,
-  /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
-  /** Input variables for MBQI */
-  MBQI_INPUT,
-  /** abstract value for a term t */
-  ABSTRACT_VALUE,
-  /** Input variables for quantifier elimination of closed formulas */
-  QE_CLOSED_INPUT,
-  /** Skolem used for marking a quantified attribute */
-  QUANTIFIERS_ATTRIBUTE_INTERNAL
-};
-/** Converts an internal skolem function name to a string. */
-const char* toString(InternalSkolemId id);
-/** Writes an internal skolem function name to a stream. */
-std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be

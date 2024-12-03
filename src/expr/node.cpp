@@ -129,6 +129,42 @@ std::string NodeTemplate<ref_count>::getName() const
 template std::string NodeTemplate<true>::getName() const;
 template std::string NodeTemplate<false>::getName() const;
 
+bool NodeTemplate<ref_count>::isSkolem() const
+{
+  return getKind()==Kind::SKOLEM;
+}
+
+template bool NodeTemplate<true>::isSkolem() const;
+template bool NodeTemplate<false>::isSkolem() const;
+
+SkolemId NodeTemplate<ref_count>::getSkolemId() const
+{
+  Assert (isSkolem());
+  return d_nv->getNodeManager()->getSkolemManager()->getSkolemId(*this);
+}
+
+template SkolemId NodeTemplate<true>::getSkolemId() const;
+template SkolemId NodeTemplate<false>::getSkolemId() const;
+
+std::vector<Node> NodeTemplate<ref_count>::getSkolemIndices() const
+{
+  Assert (isSkolem());
+  return d_nv->getNodeManager()->getSkolemManager()->getSkolemIndices(*this);
+}
+
+template std::vector<Node> NodeTemplate<true>::getSkolemIndices() const;
+template std::vector<Node> NodeTemplate<false>::getSkolemIndices() const;
+
+InternalSkolemId NodeTemplate<ref_count>::getInternalSkolemId() const
+{
+  Assert (isSkolem());
+  Assert (getSkolemId()==SkolemId::INTERNAL);
+  return d_nv->getNodeManager()->getSkolemManager()->getInternalSkolemId(*this);
+}
+
+template InternalSkolemId NodeTemplate<true>::getInternalSkolemId() const;
+template InternalSkolemId NodeTemplate<false>::getInternalSkolemId() const;
+  
 }  // namespace cvc5::internal
 
 namespace std {
