@@ -62,6 +62,10 @@ class AssertionPipeline : protected EnvObj
   /**
    * Adds an assertion/assumption to be preprocessed.
    *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
+   *
    * @param n The assertion/assumption
    * @param isInput If true, n is an input formula (an assumption in the main
    * body of the overall proof).
@@ -91,10 +95,16 @@ class AssertionPipeline : protected EnvObj
    * Replaces assertion i with node n and records the dependency between the
    * original assertion and its replacement.
    *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
+   *
    * @param i The position of the assertion to replace.
    * @param n The replacement assertion.
    * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
    * where d_nodes[i] is the assertion at position i prior to this call.
+   * @param trustId The trust id to use if pg is not provided and proofs are
+   * enabled.
    */
   void replace(size_t i,
                Node n,
@@ -108,7 +118,9 @@ class AssertionPipeline : protected EnvObj
                       TrustNode trn,
                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
   /**
-   * Ensure assertion at index i is rewritten.
+   * Ensure assertion at index i is rewritten. If it is not already in
+   * rewritten form, the assertion is replaced by its rewritten form.
+   * @param i The index of the assertion.
    */
   void ensureRewritten(size_t i);
 

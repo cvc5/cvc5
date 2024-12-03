@@ -415,6 +415,22 @@
     ))
 )
 
+;;;;; ProofRule::STRING_EXT
+
+; rule: string_ext
+; implements: ProofRule::STRING_EXT
+; premises:
+; - deq: A disequality between strings or sequences.
+; conclusion: The strings have different length or are disequal for a witness index, as given by the skolem (@strings_deq_diff s t).
+(declare-rule string_ext ((T Type)  (s (Seq T)) (t (Seq T)))
+  :premises ((not (= s t)))
+  :conclusion (eo::define ((k (@strings_deq_diff s t)))
+              (or (not (= (str.len s) (str.len t))) 
+                  (and (not (= ($str_mk_nth s k) ($str_mk_nth t k)))
+                       (<= 0 k)
+                       (< k (str.len s)))))
+)
+
 ;;-------------------- Extended functions 
 
 ; rule: string_reduction

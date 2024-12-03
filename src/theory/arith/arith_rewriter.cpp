@@ -1232,13 +1232,17 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-TrustNode ArithRewriter::expandDefinition(Node node)
+Node ArithRewriter::expandDefinition(Node node)
 {
   // call eliminate operators, to eliminate partial operators only
   std::vector<SkolemLemma> lems;
   TrustNode ret = d_opElim.eliminate(node, lems, true);
   Assert(lems.empty());
-  return ret;
+  if (ret.isNull())
+  {
+    return Node::null();
+  }
+  return ret.getNode();
 }
 
 RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)

@@ -6405,8 +6405,10 @@ class CVC5_EXPORT Solver
   /**
    * Get an interpolant.
    *
-   * This determines a term @f$I@f$ such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
@@ -6433,10 +6435,15 @@ class CVC5_EXPORT Solver
   /**
    * Get an interpolant.
    *
-   * This determines a term @f$I@f$, with respect to a given grammar, such
-   * that @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a
-   * term exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
-   * conjecture, given as `conj`.
+   *
+   *
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I@f$ is constructed from the given grammar.
+   * @f$A@f$ is the
+   * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
    *

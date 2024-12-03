@@ -53,7 +53,8 @@ PreprocessingPassResult BVToBool::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
-        i, rewrite(new_assertions[i]), nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
+        i, new_assertions[i], nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

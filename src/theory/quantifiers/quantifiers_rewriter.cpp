@@ -29,6 +29,7 @@
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
@@ -104,10 +105,14 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_MINISCOPE,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
+  // QUANT_MINISCOPE is handled as part of the reconstruction for
+  // MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
+  // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
+  // manual proof generation thus not registered here.
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
@@ -168,7 +173,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::QUANT_MINISCOPE:
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
     {
       if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
       {
@@ -181,6 +186,20 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Node nret = computeMiniscoping(n, qa, true, false);
       Assert(nret != n);
       return nret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_MINISCOPE:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
+      {
+        return Node::null();
+      }
+      std::vector<Node> conj;
+      for (const Node& nc : n[1])
+      {
+        conj.push_back(d_nm->mkNode(Kind::FORALL, n[0], nc));
+      }
+      return d_nm->mkAnd(conj);
     }
     break;
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
@@ -258,6 +277,16 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       return ret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_DT_SPLIT:
+    {
+      // always runs split utility on the first variable
+      if (n.getKind() != Kind::FORALL || !n[0][0].getType().isDatatype())
+      {
+        return Node::null();
+      }
+      return QuantDSplit::split(nodeManager(), n, 0);
     }
     break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:

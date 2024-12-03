@@ -200,6 +200,10 @@ void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
         new LazyCDProof(d_env, nullptr, userContext(), "AssertionsAndElim"));
     d_rewpg.reset(new RewriteProofGenerator(d_env));
   }
+  if (d_rewpg == nullptr)
+  {
+    d_rewpg.reset(new RewriteProofGenerator(d_env));
+  }
 }
 
 bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }

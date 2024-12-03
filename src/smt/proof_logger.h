@@ -32,9 +32,9 @@ class ProofPostprocess;
 }
 
 /**
- * The purpose of this class is output proofs for all reasoning the solver
+ * The purpose of this class is to output proofs for all reasoning the solver
  * does on-the-fly. It is enabled when proof logging is enabled.
- * 
+ *
  * This class receives notifications for three things:
  * (1) When preprocessing has completed, determining the set of input clauses.
  * (2) When theory lemmas are learned
@@ -45,7 +45,7 @@ class ProofPostprocess;
  * or Node (if proofs are disabled for that component).
  * 
  * As with dumped proofs, the granularity of the proofs is subject to the
- * option proof-granularity.
+ * option `proof-granularity`.
  */
 class ProofLogger : protected EnvObj
 {
@@ -54,27 +54,30 @@ class ProofLogger : protected EnvObj
   ProofLogger(Env& env) : EnvObj(env){}
   ~ProofLogger(){}
   /**
-   * Called when preprocessing is complete.
-   * @param input The list of input clauses after preprocessing and conversion
-   * to CNF.
+   * Called when preprocessing is complete with the list of input clauses,
+   * after preprocessing and conversion to CNF.
+   * @param input The list of input clauses.
    */
   virtual void logCnfPreprocessInputs(const std::vector<Node>& inputs) {}
   /**
-   * Called when preprocessing is complete.
-   * @param pfns proofs of the preprocessed inputs. The free assumptions of
-   * proofs in pfns are the preprocessed input formulas. If preprocess proofs
-   * are avialable, this method connects pfn to the original input formulas.
+   * Called when preprocessing is complete with the proofs of the preprocessed
+   * inputs. The free assumptions of proofs in pfns are the preprocessed input
+   * formulas. If preprocess proofs are avialable, this method connects pfn to
+   * the original input formulas.
+   * @param pfns Proofs of the preprocessed inputs.
    */
   virtual void logCnfPreprocessInputProofs(
       std::vector<std::shared_ptr<ProofNode>>& pfns) {}
   /**
-   * @param n Called when the clause n is added to the SAT solver, where n is
+   * Called when clause `n` is added to the SAT solver, where `n` is
    * (the CNF conversion of) a theory lemma.
+   * @param n The theory lemma.
    */
   virtual void logTheoryLemma(const Node& n) {}
   /**
-   * @param n Called when the clause n is added to the SAT solver, where pfn
+   * Called when clause `pfn` is added to the SAT solver, where `pfn`
    * is a closed proof of (the CNF conversion of) a theory lemma.
+   * @param pfn The closed proof of a theory lemma.
    */
   virtual void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn) {}
   /**

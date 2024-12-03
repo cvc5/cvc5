@@ -94,6 +94,10 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
+   * @param n The original formula.
+   * @param np The preprocessed formula.
+   * @param pg The proof generator that may provide a proof of (= n np).
+   * @param id The trust id to use, if the proof generator is null.
    */
   void notifyPreprocessed(Node n,
                           Node np,
@@ -144,6 +148,8 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    */
   CDProof d_inputPf;
   /**
+   * A cd proof used for when preprocessing steps are not given justification.
+   * Stores only trust steps.
    */
   CDProof d_trustPf;
   /** Name for debugging */

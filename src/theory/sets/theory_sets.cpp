@@ -201,7 +201,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
   // this is based off of Theory::ppAssert
   if (in.getKind() == Kind::EQUAL)
   {
-    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
     {
       // We cannot solve for sets if setsExp is enabled, since universe set
       // may appear when this option is enabled, and solving for such a set
@@ -213,7 +213,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
-    else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+    else if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
     {
       if (!in[0].getType().isSet() || !options().sets.setsExp)
       {

@@ -92,7 +92,7 @@ class BVSolver : protected EnvObj
 
   virtual TrustNode ppRewrite(TNode t) { return TrustNode::null(); }
 
-  virtual void ppStaticLearn(TNode in, NodeBuilder& learned) {}
+  virtual void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) {}
 
   virtual void presolve() {}
 

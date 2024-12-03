@@ -51,9 +51,13 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_UPDATER_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_MATCH_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_CYCLE,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -153,11 +157,60 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER:
+    {
+      if (n.getKind() != Kind::APPLY_UPDATER
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      Node op = n.getOperator();
+      size_t cindex = utils::indexOf(n[0].getOperator());
+      size_t cuindex = utils::cindexOf(op);
+      if (cindex == cuindex)
+      {
+        size_t updateIndex = utils::indexOf(op);
+        std::vector<Node> children(n[0].begin(), n[0].end());
+        children[updateIndex] = n[1];
+        children.insert(children.begin(), n[0].getOperator());
+        return d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+      }
+      return n[0];
+    }
+    break;
     case ProofRewriteRule::DT_MATCH_ELIM:
     {
       if (n.getKind() == Kind::MATCH)
       {
         return expandMatch(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CYCLE:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0] != n[1])
+      {
+        std::unordered_set<TNode> visited;
+        std::vector<TNode> visit;
+        TNode cur;
+        visit.push_back(n[1]);
+        do
+        {
+          cur = visit.back();
+          visit.pop_back();
+          if (visited.find(cur) == visited.end())
+          {
+            visited.insert(cur);
+            if (cur == n[0])
+            {
+              return d_nm->mkConst(false);
+            }
+            if (cur.getKind() == Kind::APPLY_CONSTRUCTOR)
+            {
+              visit.insert(visit.end(), cur.begin(), cur.end());
+            }
+          }
+        } while (!visit.empty());
       }
     }
     break;
@@ -991,7 +1044,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
   return utils::applySelector(c, selectorIndex, true, n[0]);
 }
 
-TrustNode DatatypesRewriter::expandDefinition(Node n)
+Node DatatypesRewriter::expandDefinition(Node n)
 {
   Node ret;
   switch (n.getKind())
@@ -1016,9 +1069,9 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   }
   if (!ret.isNull() && n != ret)
   {
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+    return ret;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 Node DatatypesRewriter::expandUpdater(const Node& n)

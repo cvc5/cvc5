@@ -91,18 +91,42 @@
 (define $arith_eval_int_log_2 ((x Int))
   (eo::ite (eo::is_neg (eo::neg x)) ($arith_eval_int_log_2_rec x) (int.log2 x)))
 
-; program: $arith_eval_is_pow_2_rec
+; program: $arith_eval_int_pow_2_rec
+; args:
+; - x  Int: The term to compute 2 to the power of, assumed to be a positive numeral value.
+; return: 2 to the power of x.
+; note: Helper method for $arith_eval_int_pow_2 below.
+(program $arith_eval_int_pow_2_rec ((x Int))
+  (Int) Int
+  (
+  (($arith_eval_int_pow_2_rec 0) 1)
+  (($arith_eval_int_pow_2_rec x) (eo::mul 2 ($arith_eval_int_pow_2_rec (eo::add x -1))))
+  )
+)
+
+; define: $arith_eval_int_pow_2
+; args:
+; - x Int: The term to compute whether it is a power of two.
+; return: >
+;   two raised to the power of x. If x is not a numeral value, we return
+;   the term (int.pow2 x).
+(define $arith_eval_int_pow_2 ((x Int))
+  (eo::ite (eo::is_z x)
+    (eo::ite (eo::is_neg x) 0 ($arith_eval_int_pow_2_rec x))
+    (int.pow2 x)))
+
+; program: $arith_eval_int_is_pow_2_rec
 ; args:
 ; - x  Int: The term to compute whether it is a power of two, assumed to be a positive numeral value.
 ; return: true iff x is a power of two.
 ; note: Helper method for $arith_eval_is_pow_2 below.
-(program $arith_eval_is_pow_2_rec ((x Int))
+(program $arith_eval_int_is_pow_2_rec ((x Int))
   (Int) Bool
   (
-  (($arith_eval_is_pow_2_rec 1) true)
-  (($arith_eval_is_pow_2_rec x) (eo::ite (eo::is_eq (eo::zmod x 2) 0) 
-                                  ($arith_eval_is_pow_2_rec (eo::zdiv x 2))
-                                  false))
+  (($arith_eval_int_is_pow_2_rec 1) true)
+  (($arith_eval_int_is_pow_2_rec x) (eo::ite (eo::is_eq (eo::zmod x 2) 0)
+                                      ($arith_eval_int_is_pow_2_rec (eo::zdiv x 2))
+                                      false))
   )
 )
 
@@ -112,7 +136,7 @@
 ; return: >
 ;   true iff x is a power of two. If x is not a numeral value, we return
 ;   the term (int.ispow2 x).
-(define $arith_eval_is_pow_2 ((x Int))
+(define $arith_eval_int_is_pow_2 ((x Int))
   (eo::ite (eo::is_z x) 
-    (eo::ite (eo::is_neg x) false ($arith_eval_is_pow_2_rec x))
+    (eo::ite (eo::is_neg x) false ($arith_eval_int_is_pow_2_rec x))
     (int.ispow2 x)))
