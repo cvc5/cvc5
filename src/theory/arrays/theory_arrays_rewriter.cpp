@@ -403,7 +403,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          n = d_rewriter->rewrite(mkEqNode(store[1], index));
+          n = mkEqNode(store[1], index);
           if (n.getKind() != Kind::CONST_BOOLEAN)
           {
             break;
@@ -475,7 +475,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
+          Node eqRewritten = mkEqNode(store[1], index);
           if (eqRewritten.getKind() != Kind::CONST_BOOLEAN)
           {
             Trace("arrays-postrewrite")
@@ -515,7 +515,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             }
             else
             {
-              n = d_rewriter->rewrite(mkEqNode(store[1], index));
+              n = mkEqNode(store[1], index);
               if (n.getKind() != Kind::CONST_BOOLEAN)
               {
                 break;
@@ -607,6 +607,12 @@ Node TheoryArraysRewriter::expandDefinition(Node node)
   return Node::null();
 }
 
+Node TheoryArraysRewriter::mkEqNode(const Node& a, const Node& b) const
+{
+  Node eq = a.eqNode(b);
+  return d_rewriter->rewrite(eq);
+}
+  
 }  // namespace arrays
 }  // namespace theory
 }  // namespace cvc5::internal
