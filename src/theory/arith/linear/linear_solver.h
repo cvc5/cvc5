@@ -73,7 +73,7 @@ class LinearSolver : protected EnvObj
   /** Notify restart */
   void notifyRestart();
   /** Preprocess assert */
-  Theory::PPAssertStatus ppAssert(TrustNode tin,
+  bool ppAssert(TrustNode tin,
                                   TrustSubstitutionMap& outSubstitutions);
   /** Preprocess static learn */
   void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);

@@ -191,12 +191,12 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   return d_internal->ppRewrite(n, lems);
 }
 
-Theory::PPAssertStatus TheorySets::ppAssert(
+bool TheorySets::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   Trace("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+  bool status = false;
 
   // this is based off of Theory::ppAssert
   if (in.getKind() == Kind::EQUAL)
@@ -210,7 +210,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
+        status = true;
       }
     }
     else if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
@@ -218,7 +218,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       if (!in[0].getType().isSet() || !options().sets.setsExp)
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
+        status = true;
       }
     }
   }

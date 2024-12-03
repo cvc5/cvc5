@@ -50,7 +50,7 @@ void LinearSolver::presolve() { d_internal.presolve(); }
 
 void LinearSolver::notifyRestart() { d_internal.notifyRestart(); }
 
-Theory::PPAssertStatus LinearSolver::ppAssert(
+bool LinearSolver::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   return d_internal.ppAssert(tin, outSubstitutions);

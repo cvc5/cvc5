@@ -882,7 +882,7 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   return tm->isLegalElimination(x, val);
 }
 
-theory::Theory::PPAssertStatus TheoryEngine::solve(
+bool TheoryEngine::solve(
     TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
 {
   Assert(tliteral.getKind() == TrustNodeKind::LEMMA);
@@ -906,7 +906,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
     throw LogicException(ss.str());
   }
 
-  Theory::PPAssertStatus solveStatus =
+  bool solveStatus =
       d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;

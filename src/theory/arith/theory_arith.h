@@ -94,7 +94,7 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TrustNode tin,
+  bool ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
   /**
    * Preprocess rewrite terms, return the trust node encapsulating the
