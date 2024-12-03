@@ -22,8 +22,8 @@
 
 #include <string>
 
-#include "expr/node.h"
 #include "expr/internal_skolem_id.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 

@@ -228,7 +228,7 @@ std::vector<Node> SkolemManager::getIndices(TNode k) const
   {
     if (!cacheVal.isNull())
     {
-      if (cacheVal.getKind()==Kind::SEXPR)
+      if (cacheVal.getKind() == Kind::SEXPR)
       {
         vec.insert(vec.end(), cacheVal.begin(), cacheVal.end());
       }
