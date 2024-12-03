@@ -132,7 +132,7 @@
   )
 )
 
-; program: $mk_quant_unused_vars_rec
+; program: $mk_quant_unused_vars
 ; args:
 ; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
 ; - x @List: The list of variables of the quantified formula.
@@ -142,8 +142,9 @@
   (eo::match ((y @List))
     ($mk_quant_unused_vars_rec x F)
     (
-    (@list.nil F)
-    (y (Q y F)))))
+      (@list.nil F)
+      (y (Q y F))
+    )))
 
 ; rule: quant-unused-vars
 ; implements: ProofRewriteRule::QUANT_UNUSED_VARS
