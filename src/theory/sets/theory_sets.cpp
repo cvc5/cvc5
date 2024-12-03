@@ -191,8 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   return d_internal->ppRewrite(n, lems);
 }
 
-bool TheorySets::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   Trace("sets-proc") << "ppAssert : " << in << std::endl;

@@ -178,15 +178,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
     TrustNode tlearnedLiteral =
         TrustNode::mkTrustLemma(learnedLiteral, d_llpg.get());
-    bool solveStatus =
-        d_preprocContext->getTheoryEngine()->solve(tlearnedLiteral,
-                                                   *newSubstitutions.get());
+    bool solveStatus = d_preprocContext->getTheoryEngine()->solve(
+        tlearnedLiteral, *newSubstitutions.get());
 
     if (solveStatus)
     {
       // The literal should rewrite to true
-      Trace("non-clausal-simplify")
-          << "solved " << learnedLiteral << std::endl;
+      Trace("non-clausal-simplify") << "solved " << learnedLiteral << std::endl;
       Assert(rewrite(nss.apply(learnedLiteral)).isConst());
     }
     else
@@ -224,8 +222,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Assert(top_level_substs.apply(t) == t);
         Assert(nss.apply(t) == t);
         // also add to learned literal
-        ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
-            t, c, tlearnedLiteral);
+        ProofGenerator* cpg =
+            constantPropagations->addSubstitutionSolved(t, c, tlearnedLiteral);
         // We need to justify (= t c) as a literal, since it is reasserted
         // to the assertion pipeline below. We do this with the proof
         // generator returned by the above call.

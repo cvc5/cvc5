@@ -269,8 +269,7 @@ class TheoryEngine : protected EnvObj
    * @return true iff the literal can be removed from the input, e.g. when
    * the substitution it entails is added to outSubstitutions.
    */
-  bool solve(
-      TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
+  bool solve(TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

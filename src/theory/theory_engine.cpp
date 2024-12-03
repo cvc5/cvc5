@@ -882,8 +882,8 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   return tm->isLegalElimination(x, val);
 }
 
-bool TheoryEngine::solve(
-    TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
+bool TheoryEngine::solve(TrustNode tliteral,
+                         TrustSubstitutionMap& substitutionOut)
 {
   Assert(tliteral.getKind() == TrustNodeKind::LEMMA);
   // Reset the interrupt flag
@@ -906,8 +906,7 @@ bool TheoryEngine::solve(
     throw LogicException(ss.str());
   }
 
-  bool solveStatus =
-      d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
+  bool solveStatus = d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }

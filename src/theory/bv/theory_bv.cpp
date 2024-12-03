@@ -180,8 +180,7 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-bool TheoryBV::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
   if (k == Kind::EQUAL)

@@ -363,8 +363,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   return TrustNode::null();
 }
 
-bool TheoryArrays::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArrays::ppAssert(TrustNode tin,
+                            TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   switch(in.getKind()) {

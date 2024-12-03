@@ -40,8 +40,7 @@ TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
 {
 }
 
-bool TheoryBool::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBool::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
@@ -52,7 +51,7 @@ bool TheoryBool::ppAssert(
       return true;
     }
     // should not be a false literal, which should be caught by preprocessing
-    Assert (in.getConst<bool>());
+    Assert(in.getConst<bool>());
   }
 
   // Add the substitution from the variable to its value

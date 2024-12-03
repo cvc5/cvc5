@@ -107,8 +107,8 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
-bool TheoryQuantifiers::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryQuantifiers::ppAssert(TrustNode tin,
+                                 TrustSubstitutionMap& outSubstitutions)
 {
   if (d_qmacros != nullptr)
   {

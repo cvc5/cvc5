@@ -945,8 +945,8 @@ Node TheoryArithPrivate::getCandidateModelValue(TNode term)
   }
 }
 
-bool TheoryArithPrivate::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArithPrivate::ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   TNode in = tin.getNode();

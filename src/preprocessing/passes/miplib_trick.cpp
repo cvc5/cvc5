@@ -539,13 +539,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               bool status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
-              Assert(!status)
-                  << "unexpected solution from arith's ppAssert()";
+              Assert(!status) << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
               status = te->solve(tleq, tnullMap);
-              Assert(!status)
-                  << "unexpected solution from arith's ppAssert()";
+              Assert(!status) << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
               newVars.push_back(newVar);

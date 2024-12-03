@@ -390,8 +390,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-bool Theory::ppAssert(TrustNode tin,
-                                        TrustSubstitutionMap& outSubstitutions)
+bool Theory::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();

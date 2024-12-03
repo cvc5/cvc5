@@ -597,14 +597,13 @@ class Theory : protected EnvObj
    * Note that tin has trust node kind LEMMA. Its proof generator should be
    * taken into account when adding a substitution to outSubstitutions when
    * proofs are enabled.
-   * 
+   *
    * @param tin The literal and its proof generator.
    * @param outSubstitutions The substitution map to add to, if applicable.
    * @return true iff the literal can be removed from the input, e.g. when
    * the substitution it entails is added to outSubstitutions.
    */
-  virtual bool ppAssert(TrustNode tin,
-                                  TrustSubstitutionMap& outSubstitutions);
+  virtual bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given a term of the theory coming from the input formula or
