@@ -39,33 +39,6 @@ struct UnpurifiedFormAttributeId
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
 
-const char* toString(InternalSkolemId id)
-{
-  switch (id)
-  {
-    case InternalSkolemId::SEQ_MODEL_BASE_ELEMENT:
-      return "SEQ_MODEL_BASE_ELEMENT";
-    case InternalSkolemId::IEVAL_NONE: return "IEVAL_NONE";
-    case InternalSkolemId::IEVAL_SOME: return "IEVAL_SOME";
-    case InternalSkolemId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
-    case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
-      return "QUANTIFIERS_SYNTH_FUN_EMBED";
-    case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
-    case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
-    case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
-    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
-    case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
-      return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
-{
-  out << toString(id);
-  return out;
-}
-
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t)
