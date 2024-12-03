@@ -142,7 +142,6 @@ template bool NodeTemplate<false>::isSkolem() const;
 template <bool ref_count>
 SkolemId NodeTemplate<ref_count>::getSkolemId() const
 {
-  Assert(isSkolem());
   return d_nv->getNodeManager()->getSkolemManager()->getId(*this);
 }
 
@@ -152,7 +151,6 @@ template SkolemId NodeTemplate<false>::getSkolemId() const;
 template <bool ref_count>
 std::vector<Node> NodeTemplate<ref_count>::getSkolemIndices() const
 {
-  Assert(isSkolem());
   return d_nv->getNodeManager()->getSkolemManager()->getIndices(*this);
 }
 
@@ -162,7 +160,6 @@ template std::vector<Node> NodeTemplate<false>::getSkolemIndices() const;
 template <bool ref_count>
 InternalSkolemId NodeTemplate<ref_count>::getInternalSkolemId() const
 {
-  Assert(isSkolem());
   Assert(getSkolemId() == SkolemId::INTERNAL);
   return d_nv->getNodeManager()->getSkolemManager()->getInternalId(*this);
 }
