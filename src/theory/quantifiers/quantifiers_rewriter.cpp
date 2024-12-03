@@ -104,12 +104,13 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
+  // QUANT_MERGE_PRENEX is part of the reconstruction for
+  // MACRO_QUANT_MERGE_PRENEX
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MINISCOPE is handled as part of the reconstruction for
-  // MACRO_QUANT_MINISCOPE
+  // QUANT_MINISCOPE is part of the reconstruction for MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
   // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
@@ -161,6 +162,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
       if (!n.isClosure())
@@ -169,7 +171,9 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       // Don't check standard here, which can't be replicated in a proof checker
       // without modelling the patterns.
-      Node q = mergePrenex(n, false);
+      // We remove duplicates if the macro version.
+      Node q = mergePrenex(
+          n, false, id == ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX);
       if (q != n)
       {
         return q;
@@ -434,9 +438,15 @@ void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
   if( !activeMap.empty() ){
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+    std::map<Node, bool>::iterator it;
+    for (const Node& v : args)
+    {
+      it = activeMap.find(v);
+      if (it != activeMap.end())
+      {
+        activeArgs.emplace_back(v);
+        // no longer active, which accounts for deleting duplicates
+        activeMap.erase(it);
       }
     }
   }
@@ -495,7 +505,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // eagerly here, where after we would drop y to obtain:
     //   (forall ((x Int)) (! (P x) :pattern ((f x))))
     // See issue #10303.
-    Node qm = mergePrenex(q, true);
+    Node qm = mergePrenex(q, true, true);
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
@@ -527,7 +537,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   else if (in.getKind() == Kind::FORALL)
   {
     // do prenex merging
-    ret = mergePrenex(in, true);
+    ret = mergePrenex(in, true, true);
     if (ret != in)
     {
       status = REWRITE_AGAIN_FULL;
@@ -564,7 +574,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   return RewriteResponse( status, ret );
 }
 
-Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
+Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd, bool rmDup)
 {
   Assert(q.getKind() == Kind::FORALL || q.getKind() == Kind::EXISTS);
   Kind k = q.getKind();
@@ -574,17 +584,24 @@ Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
   bool continueCombine = false;
   do
   {
-    for (const Node& v : body[0])
+    if (rmDup)
     {
-      if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+      for (const Node& v : body[0])
       {
-        boundVars.push_back(v);
+        if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+        {
+          boundVars.push_back(v);
+        }
+        else
+        {
+          // if duplicate variable due to shadowing, we must rewrite
+          combineQuantifiers = true;
+        }
       }
-      else
-      {
-        // if duplicate variable due to shadowing, we must rewrite
-        combineQuantifiers = true;
-      }
+    }
+    else
+    {
+      boundVars.insert(boundVars.end(), body[0].begin(), body[0].end());
     }
     continueCombine = false;
     if (body.getNumChildren() == 2 && body[1].getKind() == k)

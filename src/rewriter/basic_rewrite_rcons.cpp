@@ -192,6 +192,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
+      if (ensureProofMacroQuantMergePrenex(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       if (ensureProofMacroQuantPartitionConnectedFv(cdp, eq))
       {
@@ -536,6 +542,57 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
+                                                         const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro quant merge prenex for " << eq
+                     << std::endl;
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, eq[0]);
+  Trace("brc-macro") << "...non-macro to " << qm << std::endl;
+  if (qm.isNull())
+  {
+    Assert(false);
+    return false;
+  }
+  Node equiv = eq[0].eqNode(qm);
+  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
+  if (qm == eq[1])
+  {
+    return true;
+  }
+  // if variables were duplicated, remove them with QUANT_UNUSED_VARS
+  Node qmu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, qm);
+  if (qmu.isNull())
+  {
+    Assert(false);
+    return false;
+  }
+  Node equiv2 = qm.eqNode(qmu);
+  cdp->addTheoryRewriteStep(equiv2, ProofRewriteRule::QUANT_UNUSED_VARS);
+  std::vector<Node> transEq;
+  transEq.push_back(equiv);
+  transEq.push_back(equiv2);
+  if (qmu != eq[1])
+  {
+    // May be we removed too many variables, in this case we do the same
+    // removal for the opposite side, which should give the same result.
+    Node qmu2 = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eq[1]);
+    if (qmu2 != qmu)
+    {
+      Assert(false);
+      return false;
+    }
+    Node equiv3 = eq[1].eqNode(qmu2);
+    cdp->addTheoryRewriteStep(equiv3, ProofRewriteRule::QUANT_UNUSED_VARS);
+    Node equiv3s = qmu2.eqNode(eq[1]);
+    cdp->addStep(equiv3s, ProofRule::SYMM, {equiv3}, {});
+    transEq.push_back(equiv3s);
+  }
+  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
 

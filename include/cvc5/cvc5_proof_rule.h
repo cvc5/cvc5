@@ -1917,9 +1917,13 @@ enum ENUM(ProofRule)
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
-   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:`c_y` are
    * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
    * same sign. For bitvectors, they are set to :math:`1`.
+   *
+   * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
+   * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
+   * `to_real`, similarly for :math:`(y_1 - y_2)`.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM_REL),
@@ -2310,7 +2314,14 @@ enum ENUM(ProofRewriteRule)
    * **Builtin -- Distinct elimination**
    *
    * .. math::
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i \neq j} t_i \neq t_j
+   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
+   *
+   * if :math:`n = 2`, or
+   * 
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *
+   * if :math:`n > 2`
    *
    * \endverbatim
    */
@@ -2437,7 +2448,7 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic -- power elimination**
    *
    * .. math::
-   *   (^ x c) = (x \cdot \ldots \cdot x)
+   *   (x ^ c) = (x \cdot \ldots \cdot x)
    *
    * where :math:`c` is a non-negative integer.
    *
@@ -2507,11 +2518,25 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F = \forall X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
   EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
+   * result of removing duplicates from :math:`X_1 \ldots X_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Merge prenex**

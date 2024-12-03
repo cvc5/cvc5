@@ -377,10 +377,10 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     return TrustNode::mkTrustRewrite(in, k);
   }
   // first, see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(in);
+  Node texp = d_rewriter.expandDefinition(in);
   if (!texp.isNull())
   {
-    return texp;
+    return TrustNode::mkTrustRewrite(in, texp);
   }
   // nothing to do
   return TrustNode::null();

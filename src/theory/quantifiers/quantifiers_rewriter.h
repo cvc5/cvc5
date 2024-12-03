@@ -246,9 +246,10 @@ class QuantifiersRewriter : public TheoryRewriter
    * @param q The quantified formula to prenex.
    * @param checkStd If true, we do not merge prenex for any non-standard
    * quantified formula
+   * @param rmDup If true, we remove duplicate variables.
    * @return The result of merging prenex in q.
    */
-  Node mergePrenex(const Node& q, bool checkStd);
+  Node mergePrenex(const Node& q, bool checkStd, bool rmDup);
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */

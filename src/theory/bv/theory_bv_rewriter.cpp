@@ -101,10 +101,9 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   return Node::null();
 }
 
-TrustNode TheoryBVRewriter::expandDefinition(Node node)
+Node TheoryBVRewriter::expandDefinition(Node node)
 {
-  Node expanded = eliminateOverflows(node);
-  return TrustNode::mkTrustRewrite(node, expanded, nullptr);
+  return eliminateOverflows(node);
 }
 
 Node TheoryBVRewriter::eliminateOverflows(Node node)
