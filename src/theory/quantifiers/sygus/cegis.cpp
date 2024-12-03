@@ -89,7 +89,7 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       std::vector<Node> vs;
       for (const Node& v : vars)
       {
-        vs.push_back(nm->mkBoundVar(v.getType()));
+        vs.push_back(NodeManager::mkBoundVar(v.getType()));
       }
       std::vector<Node> eargs;
       eargs.push_back(candidates[i]);

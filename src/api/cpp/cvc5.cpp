@@ -5425,8 +5425,8 @@ bool TermManager::isValidInteger(const std::string& s) const
 internal::Node TermManager::mkVarHelper(
     const internal::TypeNode& type, const std::optional<std::string>& symbol)
 {
-  internal::Node res =
-      symbol ? d_nm->mkBoundVar(*symbol, type) : d_nm->mkBoundVar(type);
+  internal::Node res = symbol ? internal::NodeManager::mkBoundVar(*symbol, type)
+                              : internal::NodeManager::mkBoundVar(type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(type, true);
   return res;

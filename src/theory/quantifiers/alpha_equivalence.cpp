@@ -224,10 +224,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     if (expr::hasSubterm(ret, subs))
     {
       std::vector<Node> isubs;
-      NodeManager* nm = nodeManager();
       for (const Node& v : subs)
       {
-        isubs.emplace_back(nm->mkBoundVar(v.getType()));
+        isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
       // ---------- ALPHA_EQUIV
       // ret = iret

@@ -150,7 +150,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node A = node[0];
   TypeNode bagType = A.getType();
   // use canonical constant to ensure it can be typed
-  Node mkElem = nm->mkGroundValue(bagType);
+  Node mkElem = NodeManager::mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemId::BAGS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);

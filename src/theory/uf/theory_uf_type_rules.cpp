@@ -280,7 +280,7 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->getBoundVarListForFunctionType(type);
-  Node ret = nm->mkGroundTerm(type.getRangeType());
+  Node ret = NodeManager::mkGroundTerm(type.getRangeType());
   return nm->mkNode(Kind::LAMBDA, bvl, ret);
 }
 

@@ -190,7 +190,7 @@ void SynthConjecture::assign(Node q)
         std::vector<Node> lvars;
         for (const TypeNode& tn : atypes)
         {
-          lvars.push_back(nm->mkBoundVar(tn));
+          lvars.push_back(NodeManager::mkBoundVar(tn));
         }
         s = nm->mkNode(
             Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, lvars), s);
