@@ -23,7 +23,7 @@ TNode FreeVarCache::getFreeVar(const TypeNode& tn, size_t i)
   NodeManager* nm = NodeManager::currentNM();
   while (i >= d_fv[tn].size())
   {
-    Node v = nm->mkBoundVar(tn);
+    Node v = NodeManager::mkBoundVar(tn);
     d_allVars.push_back(v);
     // store its id
     d_fvId[v] = d_fv[tn].size();

@@ -170,7 +170,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
         else
         {
           Assert(vnum == qtvars[tnv].size());
-          Node bv = nm->mkBoundVar(tnv);
+          Node bv = NodeManager::mkBoundVar(tnv);
           qtvars[tnv].push_back(bv);
           qvars.push_back(bv);
           subs.push_back(bv);
@@ -257,7 +257,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   std::map<Node, Node> ff_var_to_ff;
   for (const Node& ff : free_functions)
   {
-    Node ffv = nm->mkBoundVar(ff.getType());
+    Node ffv = NodeManager::mkBoundVar(ff.getType());
     ff_vars.push_back(ffv);
     Trace("sygus-infer") << "  synth-fun: " << ff << " as " << ffv << std::endl;
     ff_var_to_ff[ffv] = ff;

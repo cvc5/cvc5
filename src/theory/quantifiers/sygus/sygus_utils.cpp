@@ -172,7 +172,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
     {
       std::stringstream ss;
       ss << "arg" << j;
-      bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
+      bvs.push_back(NodeManager::mkBoundVar(ss.str(), argTypes[j]));
     }
     sfvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
     f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);

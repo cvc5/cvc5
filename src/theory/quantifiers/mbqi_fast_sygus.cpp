@@ -47,7 +47,7 @@ void MVarInfo::initialize(Env& env,
     std::vector<Node> vs;
     for (const TypeNode& tnc : argTypes)
     {
-      Node vc = nm->mkBoundVar(tnc);
+      Node vc = NodeManager::mkBoundVar(tnc);
       vs.push_back(vc);
     }
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);

@@ -162,11 +162,11 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   std::vector<TypeNode> argTypes = inv.getType().getArgTypes();
   for (const TypeNode& tn : argTypes)
   {
-    vars.push_back(nm->mkBoundVar(tn));
+    vars.push_back(NodeManager::mkBoundVar(tn));
     d_sygusVars.push_back(vars.back());
     std::stringstream ss;
     ss << vars.back() << "'";
-    primed_vars.push_back(nm->mkBoundVar(ss.str(), tn));
+    primed_vars.push_back(NodeManager::mkBoundVar(ss.str(), tn));
     d_sygusVars.push_back(primed_vars.back());
   }
 

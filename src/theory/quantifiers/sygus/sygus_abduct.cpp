@@ -71,10 +71,10 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     // with UF.
     std::stringstream ss;
     ss << s;
-    Node var = nm->mkBoundVar(tn);
+    Node var = NodeManager::mkBoundVar(tn);
     syms.push_back(s);
     vars.push_back(var);
-    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    Node vlv = NodeManager::mkBoundVar(ss.str(), tn);
     varlist.push_back(vlv);
     varlistTypes.push_back(tn);
     // set that this variable encodes the term s
@@ -87,7 +87,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // make the abduction predicate to synthesize
   TypeNode abdType = varlistTypes.empty() ? nm->booleanType()
                                           : nm->mkPredicateType(varlistTypes);
-  Node abd = nm->mkBoundVar(name.c_str(), abdType);
+  Node abd = NodeManager::mkBoundVar(name.c_str(), abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // the sygus variable list

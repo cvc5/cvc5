@@ -349,7 +349,7 @@ Node TheoryModel::getModelValue(TNode n) const
         vector<Node> args;
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
-          args.push_back(nm->mkBoundVar(argTypes[i]));
+          args.push_back(NodeManager::mkBoundVar(argTypes[i]));
         }
         Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, args);
         TypeEnumerator te(t.getRangeType());

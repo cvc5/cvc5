@@ -537,7 +537,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
 
 Node LfscProofPostprocessCallback::mkDummyPredicate(NodeManager* nm)
 {
-  return nm->mkBoundVar(nm->booleanType());
+  return NodeManager::mkBoundVar(nm->booleanType());
 }
 
 LfscProofPostprocess::LfscProofPostprocess(Env& env, LfscNodeConverter& ltp)

@@ -121,7 +121,7 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
       }
       os << typ_name[0] << i;
     }
-    Node x = nm->mkBoundVar(os.str().c_str(), tn);
+    Node x = NodeManager::mkBoundVar(os.str().c_str(), tn);
     d_fvIndex[x] = tvars.size();
     tvars.push_back(x);
   }

@@ -629,7 +629,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   {
     std::stringstream ss;
     ss << "b_" << old;
-    return nm->mkBoundVar(ss.str(), tn);
+    return NodeManager::mkBoundVar(ss.str(), tn);
   }
   std::stringstream ss;
   ss << "i_" << old;
@@ -820,8 +820,8 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Node f =
       sm->mkDummySkolem("inj", typ, "injection for monotonicity constraint");
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
-  Node v1 = nm->mkBoundVar("?x", tn1);
-  Node v2 = nm->mkBoundVar("?y", tn1);
+  Node v1 = NodeManager::mkBoundVar("?x", tn1);
+  Node v2 = NodeManager::mkBoundVar("?y", tn1);
   Node ret =
       nm->mkNode(Kind::FORALL,
                  nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),

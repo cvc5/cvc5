@@ -102,7 +102,7 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     std::vector<TypeNode> argTypes = range.getArgTypes();
     for (const TypeNode& tn : argTypes)
     {
-      Node v = nm->mkBoundVar(tn);
+      Node v = NodeManager::mkBoundVar(tn);
       vars.push_back(v);
       // add variable as a terminal
       trulesAll.push_back(v);
@@ -228,13 +228,13 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
     {
       ss << t;
     }
-    Node a = nm->mkBoundVar(ss.str(), t);
+    Node a = NodeManager::mkBoundVar(ss.str(), t);
     ntSyms.push_back(a);
     // Some types require more than one non-terminal. Handle these cases here.
     if (t.isReal())
     {
       // the positive real constant grammar, for denominators
-      Node apc = nm->mkBoundVar("A_Real_PosC", t);
+      Node apc = NodeManager::mkBoundVar("A_Real_PosC", t);
       ntSyms.push_back(apc);
     }
     if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
@@ -246,7 +246,7 @@ SygusGrammar SygusGrammarCons::mkEmptyGrammar(const Env& env,
         // "any constant".
         std::stringstream ssc;
         ssc << "A_" << t << "_AnyC";
-        Node aac = nm->mkBoundVar(ssc.str(), t);
+        Node aac = NodeManager::mkBoundVar(ssc.str(), t);
         ntSyms.push_back(aac);
       }
     }

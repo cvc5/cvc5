@@ -54,7 +54,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
     const DType& dt = tn.getDType();
     std::stringstream ss;
     ss << dt.getName();
-    Node v = nm->mkBoundVar(ss.str(), dt.getSygusType());
+    Node v = NodeManager::mkBoundVar(ss.str(), dt.getSygusType());
     ntsyms[tn] = v;
     d_ntSyms.push_back(v);
     d_rules.emplace(v, std::vector<Node>{});
@@ -183,7 +183,7 @@ Node purifySygusGNode(const Node& n,
   // if n is non-terminal
   if (std::find(nts.begin(), nts.end(), n) != nts.end())
   {
-    Node ret = nm->mkBoundVar(n.getType());
+    Node ret = NodeManager::mkBoundVar(n.getType());
     ntSymMap[ret] = n;
     args.push_back(ret);
     return ret;

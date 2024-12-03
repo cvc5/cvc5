@@ -1338,7 +1338,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
       continue;
     }
     d_termProcessed.insert(n);
-    Node v = nm->mkBoundVar(n[2].getType());
+    Node v = NodeManager::mkBoundVar(n[2].getType());
     Node body = nm->mkNode(Kind::AND, n[1], v.eqNode(n[2]));
     // must do substitution
     std::vector<Node> vars;
@@ -1346,7 +1346,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
     for (const Node& cv : n[0])
     {
       vars.push_back(cv);
-      Node cvs = nm->mkBoundVar(cv.getType());
+      Node cvs = NodeManager::mkBoundVar(cv.getType());
       subs.push_back(cvs);
     }
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());

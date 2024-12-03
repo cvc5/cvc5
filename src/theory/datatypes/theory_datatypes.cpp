@@ -1127,8 +1127,8 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   if( it==d_singleton_lemma[index].end() ){
     Node a;
     if( pol ){
-      Node v1 = nm->mkBoundVar(tn);
-      Node v2 = nm->mkBoundVar(tn);
+      Node v1 = NodeManager::mkBoundVar(tn);
+      Node v2 = NodeManager::mkBoundVar(tn);
       a = nm->mkNode(Kind::FORALL,
                      nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
                      v1.eqNode(v2));

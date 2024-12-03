@@ -401,7 +401,7 @@ Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
 {
   // use raw symbol so that it is never quoted
   Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+      useRawSym ? NodeManager::mkRawSymbol(name, tn) : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
