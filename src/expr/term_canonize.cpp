@@ -100,7 +100,6 @@ bool TermCanonize::getTermOrder(Node a, Node b)
 Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
 {
   Assert(!tn.isNull());
-  NodeManager* nm = NodeManager::currentNM();
   std::pair<TypeNode, uint32_t> key(tn, tc);
   std::vector<Node>& tvars = d_cn_free_var[key];
   while (tvars.size() <= i)
