@@ -19,10 +19,10 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "expr/skolem_manager.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
@@ -235,10 +235,9 @@ void addSygusConstructor(DType& dt,
                          const std::unordered_map<Node, TypeNode>& ntsToUnres)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   std::stringstream ss;
   if (rule.getKind() == Kind::SKOLEM
-      && sm->getInternalId(rule) == InternalSkolemId::SYGUS_ANY_CONSTANT)
+      && rule.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
   {
     ss << dt.getName() << "_any_constant";
     dt.addSygusConstructor(rule, ss.str(), {rule.getType()}, 0);
@@ -299,7 +298,6 @@ TypeNode SygusGrammar::resolve(bool allowAny)
   if (!isResolved())
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
     Node bvl;
     if (!d_sygusVars.empty())
     {
@@ -324,7 +322,7 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && sm->getInternalId(rule) == InternalSkolemId::SYGUS_ANY_CONSTANT)
+            && rule.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

@@ -112,9 +112,7 @@ void DTypeConstructor::setSygus(Node op)
   if (op.getKind() == Kind::SKOLEM)
   {
     // check if stands for the "any constant" constructor
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    if (sm->getInternalId(op) == InternalSkolemId::SYGUS_ANY_CONSTANT)
+    if (op.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
     {
       // mark with attribute, which is a faster lookup
       SygusAnyConstAttribute saca;
