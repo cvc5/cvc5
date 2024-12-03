@@ -160,7 +160,6 @@ template std::vector<Node> NodeTemplate<false>::getSkolemIndices() const;
 template <bool ref_count>
 InternalSkolemId NodeTemplate<ref_count>::getInternalSkolemId() const
 {
-  Assert(getSkolemId() == SkolemId::INTERNAL);
   return d_nv->getNodeManager()->getSkolemManager()->getInternalId(*this);
 }
 
