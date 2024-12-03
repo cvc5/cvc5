@@ -46,7 +46,6 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
   // ensure that sdt is first
   tnlist.push_back(sdt);
   std::map<TypeNode, Node> ntsyms;
-  NodeManager* nm = NodeManager::currentNM();
   for (size_t i = 0; i < tnlist.size(); i++)
   {
     TypeNode tn = tnlist[i];
