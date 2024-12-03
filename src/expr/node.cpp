@@ -23,6 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_checker.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 
@@ -129,6 +130,7 @@ std::string NodeTemplate<ref_count>::getName() const
 template std::string NodeTemplate<true>::getName() const;
 template std::string NodeTemplate<false>::getName() const;
 
+template <bool ref_count>
 bool NodeTemplate<ref_count>::isSkolem() const
 {
   return getKind()==Kind::SKOLEM;
@@ -137,29 +139,32 @@ bool NodeTemplate<ref_count>::isSkolem() const
 template bool NodeTemplate<true>::isSkolem() const;
 template bool NodeTemplate<false>::isSkolem() const;
 
+template <bool ref_count>
 SkolemId NodeTemplate<ref_count>::getSkolemId() const
 {
   Assert (isSkolem());
-  return d_nv->getNodeManager()->getSkolemManager()->getSkolemId(*this);
+  return d_nv->getNodeManager()->getSkolemManager()->getId(*this);
 }
 
 template SkolemId NodeTemplate<true>::getSkolemId() const;
 template SkolemId NodeTemplate<false>::getSkolemId() const;
 
+template <bool ref_count>
 std::vector<Node> NodeTemplate<ref_count>::getSkolemIndices() const
 {
   Assert (isSkolem());
-  return d_nv->getNodeManager()->getSkolemManager()->getSkolemIndices(*this);
+  return d_nv->getNodeManager()->getSkolemManager()->getIndices(*this);
 }
 
 template std::vector<Node> NodeTemplate<true>::getSkolemIndices() const;
 template std::vector<Node> NodeTemplate<false>::getSkolemIndices() const;
 
+template <bool ref_count>
 InternalSkolemId NodeTemplate<ref_count>::getInternalSkolemId() const
 {
   Assert (isSkolem());
   Assert (getSkolemId()==SkolemId::INTERNAL);
-  return d_nv->getNodeManager()->getSkolemManager()->getInternalSkolemId(*this);
+  return d_nv->getNodeManager()->getSkolemManager()->getInternalId(*this);
 }
 
 template InternalSkolemId NodeTemplate<true>::getInternalSkolemId() const;

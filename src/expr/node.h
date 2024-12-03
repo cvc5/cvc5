@@ -26,6 +26,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <cvc5/cvc5_skolem_id.h>
 
 #include "base/check.h"
 #include "base/exception.h"

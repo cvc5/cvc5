@@ -168,11 +168,18 @@ class SkolemManager
    */
   bool isSkolemFunction(TNode k, SkolemId& id, Node& cacheVal) const;
   /**
-   * Get skolem function id
+   * @param k The skolem.
+   * @return skolem function id for k.
    */
   SkolemId getId(TNode k) const;
   /**
-   * Get the internal skolem function id, for skolems whose id is
+   * @param k The skolem.
+   * @return The list of skolem indices for k.
+   */
+  std::vector<Node> getIndices(TNode k) const;
+  /**
+   * @param k The skolem.
+   * @return the internal skolem function id, for skolem k whose id is
    * SkolemId::INTERNAL.
    */
   InternalSkolemId getInternalId(TNode k) const;

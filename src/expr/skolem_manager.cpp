@@ -219,6 +219,28 @@ SkolemId SkolemManager::getId(TNode k) const
   return SkolemId::NONE;
 }
 
+std::vector<Node> SkolemManager::getIndices(TNode k) const
+{
+  std::vector<Node> vec;
+  SkolemId id;
+  Node cacheVal;
+  if (isSkolemFunction(k, id, cacheVal))
+  {
+    if (!cacheVal.isNull())
+    {
+      if (cacheVal.getKind()==Kind::SEXPR)
+      {
+        vec.insert(vec.end(), cacheVal.begin(), cacheVal.end());
+      }
+      else
+      {
+        vec.push_back(cacheVal);
+      }
+    }
+  }
+  return vec;
+}
+
 InternalSkolemId SkolemManager::getInternalId(TNode k) const
 {
   SkolemId id;
