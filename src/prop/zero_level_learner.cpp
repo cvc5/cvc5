@@ -246,7 +246,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   Node lit = d_tsmap.apply(input, d_env.getRewriter());
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
-  if (internal || d_trackSimplifications)
+  // we don't try to solve for literals that simplify to constants
+  if ((internal || d_trackSimplifications) && !lit.isConst())
   {
     Subs ss;
     bool processed = false;
