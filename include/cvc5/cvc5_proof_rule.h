@@ -2518,11 +2518,25 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F = \forall X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
   EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
+   * result of removing duplicates from :math:`X_1 \ldots X_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Merge prenex**
