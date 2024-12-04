@@ -937,7 +937,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         "any theory other than UF. ");
   }
 
-  // Note that if nlCov is set to false, we do not reenable it.
+  // Note that if nlCov is already set to false, we do not reenable it.
   if (opts.arith.nlCov)
   {
 #ifdef CVC5_USE_POLY
@@ -964,6 +964,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
           "logic without reals, or involving integers or quantifiers");
     }
 #else
+    // must set to false if libpoly is not enabled
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "configuring without --poly");
     SET_AND_NOTIFY(arith, nlCov, false, "no support for libpoly");
     SET_AND_NOTIFY_VAL_SYM(
