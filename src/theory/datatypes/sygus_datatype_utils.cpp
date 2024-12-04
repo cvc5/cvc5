@@ -20,7 +20,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "smt/env.h"
 #include "theory/evaluator.h"
@@ -153,8 +152,7 @@ Node mkSygusTerm(const Node& op,
                  bool doBetaReduction)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(nm->getSkolemManager()->getInternalId(op)
-         != InternalSkolemId::SYGUS_ANY_CONSTANT);
+  Assert(op.getInternalSkolemId() != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
