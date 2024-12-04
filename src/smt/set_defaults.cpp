@@ -185,6 +185,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
         options::ProofGranularityMode::DSL_REWRITE,
         "check-proof-steps");
   }
+  if (opts.driver.dumpProofs)
+  {
+    // should not combine this with proof logging
+  }
   // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
   // then proofs being fully enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
