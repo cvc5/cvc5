@@ -18,6 +18,7 @@
 
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
+#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -34,7 +35,6 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
-#include "expr/term_context.h"
 
 using namespace cvc5::internal::kind;
 
@@ -249,9 +249,12 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   // conversion proof. This proof itself may have trust steps in it.
   // We don't traverse into terms in the proof generator.
   BoolSkeletonTermContext bstc;
-  TConvProofGenerator tcpg(d_env, nullptr, TConvPolicy::FIXPOINT,
-                      TConvCachePolicy::NEVER,
-                      "MacroNnfNormTConv", &bstc);
+  TConvProofGenerator tcpg(d_env,
+                           nullptr,
+                           TConvPolicy::FIXPOINT,
+                           TConvCachePolicy::NEVER,
+                           "MacroNnfNormTConv",
+                           &bstc);
   Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
       nodeManager(), eq[0], &tcpg);
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);

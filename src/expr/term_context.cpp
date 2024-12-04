@@ -144,16 +144,13 @@ uint32_t TheoryLeafTermContext::computeValue(TNode t,
 {
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
-uint32_t BoolSkeletonTermContext::initialValue() const
-{
-  return 0;
-}
+uint32_t BoolSkeletonTermContext::initialValue() const { return 0; }
 
 uint32_t BoolSkeletonTermContext::computeValue(TNode t,
-                                      uint32_t tval,
-                                      size_t child) const
+                                               uint32_t tval,
+                                               size_t child) const
 {
-  if (tval==0)
+  if (tval == 0)
   {
     if (!expr::isBooleanConnective(t))
     {
