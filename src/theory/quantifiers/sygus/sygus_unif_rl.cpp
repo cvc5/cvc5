@@ -226,7 +226,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // Add equality between purified fapp and model value
   if (ensureConst && fapp)
   {
-    model_guards.push_back(nodeManager()->mkNode(Kind::EQUAL, nv, nb).negate());
+    model_guards.push_back(NodeManager::mkNode(Kind::EQUAL, nv, nb).negate());
     nb = nv;
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : adding model eq " << model_guards.back() << "\n";

@@ -194,7 +194,7 @@ class CegisCoreConnective : public Cegis
   class Component
   {
    public:
-    Component(NodeManager* nm) : d_nm(nm), d_numFalseCores(0), d_numRefPoints(0)
+    Component() : d_numFalseCores(0), d_numRefPoints(0)
     {
     }
     /** initialize
@@ -254,8 +254,6 @@ class CegisCoreConnective : public Cegis
     void debugPrintSummary(std::ostream& os) const;
 
    private:
-    /* The associated node manager */
-    NodeManager* d_nm;
     /** The original formula for the pre/post condition A/B. */
     Node d_this;
     /**

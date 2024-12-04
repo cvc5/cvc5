@@ -194,7 +194,7 @@ Node SygusUtils::wrapSolution(Node f, Node sol)
   Node al = getOrMkSygusArgumentList(f);
   if (!al.isNull())
   {
-    sol = sol.getNodeManager()->mkNode(Kind::LAMBDA, al, sol);
+    sol = NodeManager::mkNode(Kind::LAMBDA, al, sol);
   }
   Assert(!expr::hasFreeVar(sol));
   return sol;
@@ -204,7 +204,7 @@ void SygusUtils::setSygusType(Node f, const TypeNode& tn)
 {
   Assert(!tn.isNull());
   Assert(getSygusType(f).isNull());
-  Node sym = f.getNodeManager()->mkBoundVar("sfproxy", tn);
+  Node sym = NodeManager::mkBoundVar("sfproxy", tn);
   // use an attribute to mark its grammar
   SygusSynthGrammarAttribute ssfga;
   f.setAttribute(ssfga, sym);
@@ -222,7 +222,6 @@ TypeNode SygusUtils::getSygusType(const Node& f)
 
 Node SygusUtils::mkSygusTermFor(const Node& f)
 {
-  NodeManager* nm = f.getNodeManager();
   TypeNode tn = getSygusType(f);
   Node bvl = getOrMkSygusArgumentList(f);
   if (tn.isNull())
@@ -233,7 +232,7 @@ Node SygusUtils::mkSygusTermFor(const Node& f)
       Assert(!bvl.isNull());
       ret = NodeManager::mkGroundValue(f.getType().getRangeType());
       // give the appropriate variable list
-      ret = nm->mkNode(Kind::LAMBDA, bvl, ret);
+      ret = NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
     }
     else
     {
@@ -246,7 +245,7 @@ Node SygusUtils::mkSygusTermFor(const Node& f)
   ret = datatypes::utils::sygusToBuiltin(ret, true);
   if (!bvl.isNull())
   {
-    ret = nm->mkNode(Kind::LAMBDA, bvl, ret);
+    ret = NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
   }
   return ret;
 }
