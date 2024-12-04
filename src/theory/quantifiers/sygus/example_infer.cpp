@@ -24,7 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-ExampleInfer::ExampleInfer(NodeManager *nm, TermDbSygus* tds) : d_nm(nm), d_tds(tds)
+ExampleInfer::ExampleInfer(NodeManager* nm, TermDbSygus* tds)
+    : d_nm(nm), d_tds(tds)
 {
   d_isExamples = false;
 }

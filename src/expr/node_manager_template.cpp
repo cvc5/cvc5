@@ -1383,11 +1383,11 @@ Node NodeManager::mkGroundValue(const TypeNode& tn)
 }
 
 Node NodeManager::mkDummySkolem(const std::string& prefix,
-                     const TypeNode& type,
-                     const std::string& comment,
-                     SkolemFlags flags)
+                                const TypeNode& type,
+                                const std::string& comment,
+                                SkolemFlags flags)
 {
-  NodeManager * nm = type.getNodeManager();
+  NodeManager* nm = type.getNodeManager();
   return nm->getSkolemManager()->mkDummySkolem(prefix, type, comment, flags);
 }
 

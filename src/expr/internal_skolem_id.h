@@ -65,9 +65,9 @@ const char* toString(InternalSkolemId id);
 std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
 /**
-  * Optional flags used to control behavior of skolem creation.
-  * They should be composed with a bitwise OR.
-  */
+ * Optional flags used to control behavior of skolem creation.
+ * They should be composed with a bitwise OR.
+ */
 enum class SkolemFlags
 {
   /** default behavior */

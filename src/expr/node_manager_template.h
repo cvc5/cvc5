@@ -27,11 +27,11 @@
 #include <vector>
 
 #include "base/check.h"
+#include "expr/internal_skolem_id.h"
 #include "expr/kind.h"
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
-#include "expr/internal_skolem_id.h"
 
 namespace cvc5 {
 
@@ -627,9 +627,9 @@ class NodeManager
    * skolem behavior
    */
   static Node mkDummySkolem(const std::string& prefix,
-                     const TypeNode& type,
-                     const std::string& comment = "",
-                     SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
+                            const TypeNode& type,
+                            const std::string& comment = "",
+                            SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
   /**
    * Create an Node by applying an associative operator to the children.
    * If <code>children.size()</code> is greater than the max arity for
