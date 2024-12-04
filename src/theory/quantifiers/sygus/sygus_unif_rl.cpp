@@ -908,7 +908,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
   }
   if (exp_conflict)
   {
-    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
+    Node lemma = nm->mkAnd(exp);
     lemma = lemma.negate();
     Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
     lemmas.push_back(lemma);
