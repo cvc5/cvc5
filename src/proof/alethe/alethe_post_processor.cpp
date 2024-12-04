@@ -61,7 +61,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = nodeManager();
-  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+  d_cl = NodeManager::mkBoundVar("cl", nm->sExprType());
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -407,7 +407,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         std::stringstream ss;
         ss << "\"" << di << "\"";
-        rule = nm->mkRawSymbol(ss.str(), nm->sExprType());
+        rule = NodeManager::mkRawSymbol(ss.str(), nm->sExprType());
       }
       else
       {
@@ -420,12 +420,13 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           if (args[i].toString() == "")
           {  // TODO: better way
-            new_args.push_back(nm->mkBoundVar("rare-list", nm->sExprType()));
+            new_args.push_back(
+                NodeManager::mkBoundVar("rare-list", nm->sExprType()));
           }
           else if (args[i].getKind() == Kind::SEXPR)
           {
             std::vector<Node> list_arg{
-                nm->mkBoundVar("rare-list", nm->sExprType())};
+                NodeManager::mkBoundVar("rare-list", nm->sExprType())};
             list_arg.insert(list_arg.end(), args[i].begin(), args[i].end());
             new_args.push_back(nm->mkNode(Kind::SEXPR, list_arg));
           }
@@ -451,17 +452,18 @@ bool AletheProofPostprocessCallback::update(Node res,
           res,
           nm->mkNode(Kind::SEXPR, d_cl, res),
           children,
-          {nm->mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
+          {NodeManager::mkRawSymbol("\"arith-poly-norm\"", nm->sExprType())},
           *cdp);
     }
     case ProofRule::EVALUATE:
     {
-      return addAletheStep(AletheRule::RARE_REWRITE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           {nm->mkRawSymbol("\"evaluate\"", nm->sExprType())},
-                           *cdp);
+      return addAletheStep(
+          AletheRule::RARE_REWRITE,
+          res,
+          nm->mkNode(Kind::SEXPR, d_cl, res),
+          children,
+          {NodeManager::mkRawSymbol("\"evaluate\"", nm->sExprType())},
+          *cdp);
     }
     // If the trusted rule is a theory lemma from arithmetic, we try to phrase
     // it with "lia_generic".
@@ -523,7 +525,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         ss << "\"" << args[0] << "\"";
       }
-      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,
@@ -2133,7 +2136,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           << children << " " << args << std::endl;
       std::stringstream ss;
       ss << "\"" << id << "\"";
-      std::vector<Node> newArgs{nm->mkRawSymbol(ss.str(), nm->sExprType())};
+      std::vector<Node> newArgs{
+          NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::HOLE,
                            res,

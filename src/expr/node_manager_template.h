@@ -339,7 +339,9 @@ class NodeManager
    * (default: false)
    * @param errOut An (optional) output stream to print type checking errors
    */
-  TypeNode getType(TNode n, bool check = false, std::ostream* errOut = nullptr);
+  static TypeNode getType(TNode n,
+                          bool check = false,
+                          std::ostream* errOut = nullptr);
 
   /** Get the (singleton) type for Booleans. */
   TypeNode booleanType();
@@ -507,13 +509,13 @@ class NodeManager
   Node mkNode(Kind kind);
 
   /** Create a node with one child. */
-  Node mkNode(Kind kind, TNode child1);
+  static Node mkNode(Kind kind, TNode child1);
 
   /** Create a node with two children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2);
+  static Node mkNode(Kind kind, TNode child1, TNode child2);
 
   /** Create a node with three children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
+  static Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
 
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
@@ -575,9 +577,17 @@ class NodeManager
    */
   Node mkNode(TNode opNode, std::initializer_list<TNode> children);
 
-  Node mkBoundVar(const std::string& name, const TypeNode& type);
-
-  Node mkBoundVar(const TypeNode& type);
+  /**
+   * @param name The name.
+   * @param tn The type.
+   * @return a bound variable of that type and name.
+   */
+  static Node mkBoundVar(const std::string& name, const TypeNode& type);
+  /**
+   * @param tn The type.
+   * @return a bound variable of that type and a default name.
+   */
+  static Node mkBoundVar(const TypeNode& type);
 
   /**
    * Construct and return a ground term of a given type. If the type is not
@@ -586,7 +596,7 @@ class NodeManager
    * @param tn The type
    * @return a ground term of the type
    */
-  Node mkGroundTerm(const TypeNode& tn);
+  static Node mkGroundTerm(const TypeNode& tn);
 
   /**
    * Construct and return a ground value of a given type. If the type is not
@@ -595,7 +605,7 @@ class NodeManager
    * @param tn The type
    * @return a ground value of the type
    */
-  Node mkGroundValue(const TypeNode& tn);
+  static Node mkGroundValue(const TypeNode& tn);
 
   /**
    * Create an Node by applying an associative operator to the children.
@@ -634,10 +644,10 @@ class NodeManager
   Node mkChain(Kind kind, const std::vector<Node>& children);
 
   /** Create a instantiation constant with the given type. */
-  Node mkInstConstant(const TypeNode& type);
+  static Node mkInstConstant(const TypeNode& type);
 
   /** Create a raw symbol with the given type. */
-  Node mkRawSymbol(const std::string& name, const TypeNode& type);
+  static Node mkRawSymbol(const std::string& name, const TypeNode& type);
 
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
@@ -976,7 +986,7 @@ class NodeManager
   Node mkVar(const std::string& name, const TypeNode& type, bool fresh = true);
 
   /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type);
+  static Node mkVar(const TypeNode& type);
 
   /** Make a new sort with the given name and arity. */
   TypeNode mkSortConstructorInternal(const std::string& name, size_t arity);
@@ -1105,20 +1115,20 @@ inline Node NodeManager::mkNode(Kind kind)
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
-  NodeBuilder nb(this, kind);
+  NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1;
   return nb.constructNode();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
-  NodeBuilder nb(this, kind);
+  NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1 << child2;
   return nb.constructNode();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
-  NodeBuilder nb(this, kind);
+  NodeBuilder nb(child1.getNodeManager(), kind);
   nb << child1 << child2 << child3;
   return nb.constructNode();
 }
@@ -1163,7 +1173,7 @@ Node NodeManager::mkOr(const std::vector<NodeTemplate<ref_count> >& children)
 
 // for operators
 inline Node NodeManager::mkNode(TNode opNode) {
-  NodeBuilder nb(this, operatorToKind(opNode));
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
     nb << opNode;
@@ -1172,7 +1182,7 @@ inline Node NodeManager::mkNode(TNode opNode) {
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
-  NodeBuilder nb(this, operatorToKind(opNode));
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
     nb << opNode;
@@ -1182,7 +1192,7 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
-  NodeBuilder nb(this, operatorToKind(opNode));
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
     nb << opNode;
@@ -1193,7 +1203,7 @@ inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3) {
-  NodeBuilder nb(this, operatorToKind(opNode));
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
     nb << opNode;
@@ -1207,7 +1217,7 @@ template <bool ref_count>
 inline Node NodeManager::mkNode(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
-  NodeBuilder nb(this, operatorToKind(opNode));
+  NodeBuilder nb(opNode.getNodeManager(), operatorToKind(opNode));
   if (opNode.getKind() != Kind::BUILTIN)
   {
     nb << opNode;

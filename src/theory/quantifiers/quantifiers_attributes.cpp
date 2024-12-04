@@ -236,7 +236,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         if (q[2][i][0].getKind() == Kind::CONST_STRING)
         {
           // make a dummy variable to be used below
-          avar = nm->mkBoundVar(nm->booleanType());
+          avar = NodeManager::mkBoundVar(nm->booleanType());
           std::vector<Node> nodeValues(q[2][i].begin() + 1, q[2][i].end());
           // set user attribute on the dummy variable
           setUserAttribute(
@@ -288,7 +288,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(name, nm->booleanType());
+            qa.d_name = NodeManager::mkBoundVar(name, nm->booleanType());
           }
           else
           {

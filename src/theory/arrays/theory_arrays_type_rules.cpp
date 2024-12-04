@@ -268,9 +268,8 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.getKind() == Kind::ARRAY_TYPE);
-  NodeManager* nm = NodeManager::currentNM();
   TypeNode elemType = type.getArrayConstituentType();
-  Node elem = nm->mkGroundTerm(elemType);
+  Node elem = NodeManager::mkGroundTerm(elemType);
   if (elem.isConst())
   {
     return NodeManager::currentNM()->mkConst(ArrayStoreAll(type, elem));

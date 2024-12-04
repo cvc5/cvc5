@@ -66,7 +66,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   asserts.push_back(conjn);
   std::string name("__internal_abduct");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axiomsn, grammarType);
+      nodeManager(), name, asserts, axiomsn, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == Kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize

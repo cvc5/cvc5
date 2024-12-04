@@ -18,6 +18,8 @@
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
 
+#include <cvc5/cvc5_skolem_id.h>
+
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -30,6 +32,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
+#include "expr/internal_skolem_id.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -562,6 +565,27 @@ public:
    */
   template <class T>
   inline const T& getConst() const;
+
+  /**
+   * @return true if this is a skolem function.
+   */
+  bool isSkolem() const;
+
+  /**
+   * @return the skolem identifier of this node.
+   */
+  SkolemId getSkolemId() const;
+
+  /**
+   * @return the skolem indices of this node.
+   */
+  std::vector<Node> getSkolemIndices() const;
+
+  /**
+   * @return the internal skolem function id, for skolems whose id is
+   * SkolemId::INTERNAL.
+   */
+  InternalSkolemId getInternalSkolemId() const;
 
   /**
    * Returns the reference count of this node.
