@@ -685,7 +685,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
-  if (!opts.uf.ufSymmetryBreakerWasSetByUser && opts.uf.ufSymmetryBreaker)
+  if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
     // Only applies to non-incremental QF_UF.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
@@ -938,7 +938,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 #ifdef CVC5_USE_POLY
   if (logic == LogicInfo("QF_UFNRA"))
   {
-    if (opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       SET_AND_NOTIFY(arith, nlCov, true, "QF_UFNRA");
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
@@ -949,7 +949,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
            && logic.areRealsUsed() && !logic.areIntegersUsed()
            && !logic.areTranscendentalsUsed())
   {
-    if (opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
+    if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
       SET_AND_NOTIFY(arith, nlCov, true, "logic with reals");
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
