@@ -684,7 +684,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
-  // by default, symmetry breaker is on only for non-incremental QF_UF
+  // By default, symmetry breaker is on only for non-incremental QF_UF.
+  // Note that if ufSymmetryBreaker is already set to false, we do not reenable it.
   if (!opts.uf.ufSymmetryBreakerWasSetByUser && opts.uf.ufSymmetryBreaker)
   {
     // Only applies to non-incremental QF_UF.
@@ -935,38 +936,36 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         "any theory other than UF. ");
   }
 
-#ifdef CVC5_USE_POLY
-  if (logic == LogicInfo("QF_UFNRA"))
+  // Note that if nlCov is set to false, we do not reenable it.
+  if (opts.arith.nlCov)
   {
-    if (opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
+#ifdef CVC5_USE_POLY
+    if (logic == LogicInfo("QF_UFNRA"))
     {
+      // use only light nlExt techniques if we are using nlCov
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
           arith, nlExt, options::NlExtMode::LIGHT, "QF_UFNRA");
     }
-  }
-  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
-           && logic.areRealsUsed() && !logic.areIntegersUsed()
-           && !logic.areTranscendentalsUsed())
-  {
-    if (opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
+    else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+            && logic.areRealsUsed() && !logic.areIntegersUsed()
+            && !logic.areTranscendentalsUsed())
     {
+      // use only light nlExt techniques if we are using nlCov
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
-          arith, nlExt, options::NlExtMode::LIGHT, "logic with reals");
+            arith, nlExt, options::NlExtMode::LIGHT, "logic with reals");
+      
     }
-  }
-  else
-  {
-    SET_AND_NOTIFY_IF_NOT_USER(arith, nlCov, false, "logic without reals");
-  }
+    else
+    {
+      SET_AND_NOTIFY_IF_NOT_USER(arith, nlCov, false, "logic without reals, or involving integers or quantifiers");
+    }
 #else
-  if (opts.arith.nlCov)
-  {
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "configuring without --poly");
     SET_AND_NOTIFY(arith, nlCov, false, "no support for libpoly");
     SET_AND_NOTIFY_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "no support for libpoly");
-  }
 #endif
+  }
   if (logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
