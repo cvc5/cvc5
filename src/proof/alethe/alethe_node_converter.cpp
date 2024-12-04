@@ -496,8 +496,8 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
   {
     return it->second;
   }
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbolsMap[key] = sym;
   return sym;
 }

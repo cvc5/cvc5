@@ -110,7 +110,7 @@ Node LetBinding::convert(Node n, bool letTop) const
         // make the let variable
         std::stringstream ss;
         ss << d_prefix << id;
-        visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+        visited[cur] = NodeManager::mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
       {

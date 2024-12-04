@@ -84,10 +84,10 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryRewriter::expandDefinition(Node node)
+Node TheoryRewriter::expandDefinition(Node node)
 {
   // no expansion
-  return TrustNode::null();
+  return Node::null();
 }
 
 Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)

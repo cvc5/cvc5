@@ -75,7 +75,7 @@ Node FpExpandDefs::toRealUF(TNode node)
       node[0]);
 }
 
-TrustNode FpExpandDefs::expandDefinition(Node node)
+Node FpExpandDefs::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition")
       << "FpExpandDefs::expandDefinition(): " << node << std::endl;
@@ -120,9 +120,9 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   {
     Trace("fp-expandDefinition") << "FpExpandDefs::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
+    return res;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace fp

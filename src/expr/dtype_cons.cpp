@@ -112,9 +112,7 @@ void DTypeConstructor::setSygus(Node op)
   if (op.getKind() == Kind::SKOLEM)
   {
     // check if stands for the "any constant" constructor
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    if (sm->getInternalId(op) == InternalSkolemId::SYGUS_ANY_CONSTANT)
+    if (op.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
     {
       // mark with attribute, which is a faster lookup
       SygusAnyConstAttribute saca;
@@ -451,7 +449,8 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     else
     {
       // call mkGroundValue or mkGroundTerm based on isValue
-      arg = isValue ? nm->mkGroundValue(selType) : nm->mkGroundTerm(selType);
+      arg = isValue ? NodeManager::mkGroundValue(selType)
+                    : NodeManager::mkGroundTerm(selType);
     }
     if (arg.isNull())
     {

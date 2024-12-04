@@ -134,8 +134,9 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == Kind::SELECT || n.getKind() == Kind::APPLY_SELECTOR
-      || n.getKind() == Kind::SEQ_NTH)
+  Kind k = n.getKind();
+  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR
+      || k == Kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -150,12 +151,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (n.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGN)
+  else if (k == Kind::FLOATINGPOINT_COMPONENT_SIGN || k==Kind::SEP_NIL)
   {
-    // Extracting the sign of a floating-point number acts similar to a
+    // - Extracting the sign of a floating-point number acts similar to a
     // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
     // can pick an arbitrary one. Note that the other components of a
     // floating-point number should always be assigned a value.
+    // - sep.nil is a nullary constant that acts like a variable and thus is
+    // assignable.
     return true;
   }
   else
@@ -164,16 +167,15 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
-      Assert(n.getKind() != Kind::HO_APPLY);
+      Assert(k != Kind::HO_APPLY);
       Assert(!n.getType().isFunction());
-      return n.isVar() || n.getKind() == Kind::APPLY_UF;
+      return n.isVar() || k == Kind::APPLY_UF;
     }
     else
     {
-      // Assert( n.getKind() != Kind::APPLY_UF );
       return (n.isVar() && !n.getType().isFunction())
-             || n.getKind() == Kind::APPLY_UF
-             || (n.getKind() == Kind::HO_APPLY
+             || k == Kind::APPLY_UF
+             || (k == Kind::HO_APPLY
                  && n[0].getType().getNumChildren() == 2);
     }
   }
@@ -935,6 +937,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         i2 = i;
         ++i;
+        if (evaluableEqc.find(*i2) != evaluableEqc.end())
+        {
+          // we never assign to evaluable equivalence classes
+          continue;
+        }
         // check whether it has an assigner object
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
@@ -956,13 +963,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         {
           assignable = assignableEqc.find(*i2) != assignableEqc.end();
         }
-        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
-            << ", evaluable=" << evaluable << std::endl;
+            << std::endl;
         if (assignable)
         {
-          Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
           // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
@@ -1073,7 +1078,15 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // that has both assignable and evaluable expressions will get assigned.
     if (!changed)
     {
-      Assert(!assignOne);  // check for infinite loop!
+      Trace("model-builder-debug") << "...must assign one" << std::endl;
+      // Avoid infinite loops: if we are in a deadlock, we abort model building
+      // unsuccessfully here.
+      if (assignOne)
+      {
+        Assert (false) << "Reached a deadlock during model construction";
+        Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
+        return false;
+      }
       assignOne = true;
     }
   }

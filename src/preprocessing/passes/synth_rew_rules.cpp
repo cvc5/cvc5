@@ -201,7 +201,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
         ssv << "x" << (varCounter - 26);
       }
       varCounter++;
-      Node v = nm->mkBoundVar(ssv.str(), tn);
+      Node v = NodeManager::mkBoundVar(ssv.str(), tn);
       Trace("srs-input") << "Make variable " << v << " of type " << tn
                          << std::endl;
       tvars[tn].push_back(v);
@@ -225,7 +225,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
   for (const Node& v : vars)
   {
     TypeNode tnv = v.getType();
-    Node vs = nm->mkBoundVar(tnv);
+    Node vs = NodeManager::mkBoundVar(tnv);
     vsubs.push_back(vs);
   }
   if (!vars.empty())
@@ -344,7 +344,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
 
         // we make one type per child
         // the operator of each constructor is a no-op
-        Node tbv = nm->mkBoundVar(ctt);
+        Node tbv = NodeManager::mkBoundVar(ctt);
         Node lambdaOp = nm->mkNode(
             Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, tbv), tbv);
         std::vector<TypeNode> argListc;
@@ -422,7 +422,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
     std::stringstream ss;
     ss << "T_" << t;
     SygusDatatype sdttl(ss.str());
-    Node tbv = nm->mkBoundVar(t);
+    Node tbv = NodeManager::mkBoundVar(t);
     // the operator of each constructor is a no-op
     Node lambdaOp =
         nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, tbv), tbv);

@@ -470,7 +470,8 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     {
       // we construct the default integer grammar with no variables, e.g.:
       //   A -> 1 | A + A
-      Node a = nm->mkBoundVar("_virtual_enum_grammar", nm->integerType());
+      Node a =
+          NodeManager::mkBoundVar("_virtual_enum_grammar", nm->integerType());
       SygusGrammar g({}, {a});
       g.addRules(a, {nm->mkConstInt(Rational(1)), nm->mkNode(Kind::ADD, a, a)});
       d_virtual_enum = sm->mkDummySkolem("_ve", g.resolve());

@@ -2314,7 +2314,14 @@ enum ENUM(ProofRewriteRule)
    * **Builtin -- Distinct elimination**
    *
    * .. math::
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i \neq j} t_i \neq t_j
+   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
+   *
+   * if :math:`n = 2`, or
+   * 
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *
+   * if :math:`n > 2`
    *
    * \endverbatim
    */
@@ -2441,7 +2448,7 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic -- power elimination**
    *
    * .. math::
-   *   (^ x c) = (x \cdot \ldots \cdot x)
+   *   (x ^ c) = (x \cdot \ldots \cdot x)
    *
    * where :math:`c` is a non-negative integer.
    *
@@ -2511,11 +2518,25 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F = \forall X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
   EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
+   * result of removing duplicates from :math:`X_1 \ldots X_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Merge prenex**
@@ -2637,6 +2658,18 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro quantifiers rewrite body**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X.\> G
+   *
+   * where :math:`G` is semantically equivalent to :math:`F`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_REWRITE_BODY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
@@ -3064,6 +3097,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAY_STORE_OVERWRITE),
   /** Auto-generated from RARE rule array-store-self */
   EVALUE(ARRAY_STORE_SELF),
+  /** Auto-generated from RARE rule array-read-over-write-split */
+  EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
   /** Auto-generated from RARE rule bool-not-true */
@@ -3832,6 +3867,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(EQ_SYMM),
   /** Auto-generated from RARE rule eq-cond-deq */
   EVALUE(EQ_COND_DEQ),
+  /** Auto-generated from RARE rule eq-ite-lift */
+  EVALUE(EQ_ITE_LIFT),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
   /** Auto-generated from RARE rule uf-bv2nat-int2bv */

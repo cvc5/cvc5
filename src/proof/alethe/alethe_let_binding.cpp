@@ -68,7 +68,7 @@ Node AletheLetBinding::convert(NodeManager* nm,
           // create the let variable for cur
           std::stringstream ss;
           ss << prefix << id;
-          visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+          visited[cur] = NodeManager::mkBoundVar(ss.str(), cur.getType());
           Trace("alethe-printer-share")
               << "\tdeclared, use var " << visited[cur] << "\n";
           continue;
@@ -119,7 +119,7 @@ Node AletheLetBinding::convert(NodeManager* nm,
         options::ioutils::applyFlattenHOChains(ss, true);
         cur.toStream(ss);
         ss << " :named " << prefix << id << ")";
-        Node letVar = nm->mkRawSymbol(ss.str(), cur.getType());
+        Node letVar = NodeManager::mkRawSymbol(ss.str(), cur.getType());
         visited[cur] = letVar;
         declaredValue[cur] = letVar;
         continue;
@@ -213,10 +213,11 @@ Node AletheLetBinding::convert(NodeManager* nm,
         ret.toStream(ss);
         ssVar << prefix << id;
         ss << " :named " << ssVar.str() << ")";
-        Node declaration = nm->mkRawSymbol(ss.str(), ret.getType());
+        Node declaration = NodeManager::mkRawSymbol(ss.str(), ret.getType());
         declaredValue[cur] = declaration;
         visited[cur] =
-            cur == n ? declaration : nm->mkBoundVar(ssVar.str(), cur.getType());
+            cur == n ? declaration
+                     : NodeManager::mkBoundVar(ssVar.str(), cur.getType());
         continue;
       }
       visited[cur] = ret;
