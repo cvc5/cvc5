@@ -144,10 +144,13 @@ class PfManager : protected EnvObj
       std::shared_ptr<ProofNode> pfn,
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
-  /** */
+  /** 
+   * Start proof logging. This is called when the SMT solver is initialized
+   * with and --proof-log is enabled.
+   * @param out The output stream to log proofs on.
+   * @param as Reference to the assertions.
+   */
   void startProofLogging(std::ostream& out, Assertions& as);
-  /** */
-  void endProofLogging();
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

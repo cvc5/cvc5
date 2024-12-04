@@ -89,8 +89,8 @@ void SmtSolver::finishInit()
     smt::PfManager* pm = d_env.getProofManager();
     if (pm != nullptr)
     {
-      // FIXME: proper output
-      pm->startProofLogging(std::cout, d_asserts);
+      // Logs proofs on the base output stream of the solver
+      pm->startProofLogging(options().base.out, d_asserts);
     }
   }
 }
