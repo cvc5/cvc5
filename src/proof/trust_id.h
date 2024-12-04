@@ -143,6 +143,8 @@ enum class TrustId : uint32_t
   ARITH_NL_COVERING_RECURSIVE,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
+  /** Diamonds preprocessing in TheoryUf::ppAssert */
+  DIAMONDS,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
