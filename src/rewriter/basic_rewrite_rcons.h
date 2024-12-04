@@ -172,6 +172,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantMergePrenex(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV.
    *
    * @param cdp The proof to add to.
@@ -200,6 +210,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroQuantMiniscope(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_REWRITE_BODY.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_REWRITE_BODY.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantRewriteBody(CDProof* cdp, const Node& eq);
   /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.

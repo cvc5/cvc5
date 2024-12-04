@@ -23,6 +23,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "proof/conv_proof_generator.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -103,12 +104,13 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::QUANT_UNUSED_VARS,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::QUANT_MERGE_PRENEX,
+  // QUANT_MERGE_PRENEX is part of the reconstruction for
+  // MACRO_QUANT_MERGE_PRENEX
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MINISCOPE is handled as part of the reconstruction for
-  // MACRO_QUANT_MINISCOPE
+  // QUANT_MINISCOPE is part of the reconstruction for MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
   // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
@@ -116,6 +118,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_REWRITE_BODY,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -158,6 +162,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     {
       if (!n.isClosure())
@@ -166,7 +171,9 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       // Don't check standard here, which can't be replicated in a proof checker
       // without modelling the patterns.
-      Node q = mergePrenex(n, false);
+      // We remove duplicates if the macro version.
+      Node q = mergePrenex(
+          n, false, id == ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX);
       if (q != n)
       {
         return q;
@@ -359,6 +366,19 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
+    {
+      if (n.getKind() != Kind::FORALL)
+      {
+        return Node::null();
+      }
+      Node nr = computeRewriteBody(n);
+      if (nr != n)
+      {
+        return nr;
+      }
+    }
+    break;
     default: break;
   }
   return Node::null();
@@ -418,9 +438,15 @@ void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
   if( !activeMap.empty() ){
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+    std::map<Node, bool>::iterator it;
+    for (const Node& v : args)
+    {
+      it = activeMap.find(v);
+      if (it != activeMap.end())
+      {
+        activeArgs.emplace_back(v);
+        // no longer active, which accounts for deleting duplicates
+        activeMap.erase(it);
       }
     }
   }
@@ -479,7 +505,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode q)
     // eagerly here, where after we would drop y to obtain:
     //   (forall ((x Int)) (! (P x) :pattern ((f x))))
     // See issue #10303.
-    Node qm = mergePrenex(q, true);
+    Node qm = mergePrenex(q, true, true);
     if (q != qm)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, qm);
@@ -511,7 +537,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   else if (in.getKind() == Kind::FORALL)
   {
     // do prenex merging
-    ret = mergePrenex(in, true);
+    ret = mergePrenex(in, true, true);
     if (ret != in)
     {
       status = REWRITE_AGAIN_FULL;
@@ -548,7 +574,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   return RewriteResponse( status, ret );
 }
 
-Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
+Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd, bool rmDup)
 {
   Assert(q.getKind() == Kind::FORALL || q.getKind() == Kind::EXISTS);
   Kind k = q.getKind();
@@ -558,17 +584,24 @@ Node QuantifiersRewriter::mergePrenex(const Node& q, bool checkStd)
   bool continueCombine = false;
   do
   {
-    for (const Node& v : body[0])
+    if (rmDup)
     {
-      if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+      for (const Node& v : body[0])
       {
-        boundVars.push_back(v);
+        if (std::find(boundVars.begin(), boundVars.end(), v) == boundVars.end())
+        {
+          boundVars.push_back(v);
+        }
+        else
+        {
+          // if duplicate variable due to shadowing, we must rewrite
+          combineQuantifiers = true;
+        }
       }
-      else
-      {
-        // if duplicate variable due to shadowing, we must rewrite
-        combineQuantifiers = true;
-      }
+    }
+    else
+    {
+      boundVars.insert(boundVars.end(), body[0].begin(), body[0].end());
     }
     continueCombine = false;
     if (body.getNumChildren() == 2 && body[1].getKind() == k)
@@ -695,22 +728,16 @@ void QuantifiersRewriter::computeDtTesterIteSplit(
 Node QuantifiersRewriter::computeProcessTerms(const Node& q,
                                               const std::vector<Node>& args,
                                               Node body,
-                                              QAttributes& qa) const
+                                              QAttributes& qa,
+                                              TConvProofGenerator* pg) const
 {
   options::IteLiftQuantMode iteLiftMode = options::IteLiftQuantMode::NONE;
   if (qa.isStandard())
   {
     iteLiftMode = d_opts.quantifiers.iteLiftQuant;
   }
-  std::vector<Node> new_conds;
   std::map<Node, Node> cache;
-  Node n = computeProcessTerms2(q, args, body, cache, new_conds, iteLiftMode);
-  if (!new_conds.empty())
-  {
-    new_conds.push_back(n);
-    n = nodeManager()->mkNode(Kind::OR, new_conds);
-  }
-  return n;
+  return computeProcessTerms2(q, args, body, cache, iteLiftMode, pg);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(
@@ -718,8 +745,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
     const std::vector<Node>& args,
     Node body,
     std::map<Node, Node>& cache,
-    std::vector<Node>& new_conds,
-    options::IteLiftQuantMode iteLiftMode) const
+    options::IteLiftQuantMode iteLiftMode,
+    TConvProofGenerator* pg) const
 {
   NodeManager* nm = nodeManager();
   Trace("quantifiers-rewrite-term-debug2")
@@ -728,40 +755,12 @@ Node QuantifiersRewriter::computeProcessTerms2(
   if( iti!=cache.end() ){
     return iti->second;
   }
-  if (body.isClosure())
-  {
-    // Ensure no shadowing. If this term is a closure quantifying a variable
-    // in args, then we introduce fresh variable(s) and replace this closure
-    // to be over the fresh variables instead.
-    std::vector<Node> oldVars;
-    std::vector<Node> newVars;
-    for (size_t i = 0, nvars = body[0].getNumChildren(); i < nvars; i++)
-    {
-      const Node& v = body[0][i];
-      if (std::find(args.begin(), args.end(), v) != args.end())
-      {
-        Trace("quantifiers-rewrite-unshadow")
-            << "Found shadowed variable " << v << " in " << q << std::endl;
-        oldVars.push_back(v);
-        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, i);
-        newVars.push_back(nv);
-      }
-    }
-    if (!oldVars.empty())
-    {
-      Assert(oldVars.size() == newVars.size());
-      Node sbody = body.substitute(
-          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
-      cache[body] = sbody;
-      return sbody;
-    }
-  }
   bool changed = false;
   std::vector<Node> children;
   for (const Node& bc : body)
   {
     // do the recursive call on children
-    Node nn = computeProcessTerms2(q, args, bc, cache, new_conds, iteLiftMode);
+    Node nn = computeProcessTerms2(q, args, bc, cache, iteLiftMode, pg);
     children.push_back(nn);
     changed = changed || nn != bc;
   }
@@ -781,11 +780,39 @@ Node QuantifiersRewriter::computeProcessTerms2(
     ret = body;
   }
 
+  Node retOrig = ret;
   Trace("quantifiers-rewrite-term-debug2")
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
-  if (ret.getKind() == Kind::EQUAL
-      && iteLiftMode != options::IteLiftQuantMode::NONE)
+  if (ret.isClosure())
+  {
+    // Ensure no shadowing. If this term is a closure quantifying a variable
+    // in args, then we introduce fresh variable(s) and replace this closure
+    // to be over the fresh variables instead.
+    std::vector<Node> oldVars;
+    std::vector<Node> newVars;
+    for (size_t i = 0, nvars = ret[0].getNumChildren(); i < nvars; i++)
+    {
+      const Node& v = ret[0][i];
+      if (std::find(args.begin(), args.end(), v) != args.end())
+      {
+        Trace("quantifiers-rewrite-unshadow")
+            << "Found shadowed variable " << v << " in " << q << std::endl;
+        oldVars.push_back(v);
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, ret, i);
+        newVars.push_back(nv);
+      }
+    }
+    if (!oldVars.empty())
+    {
+      Assert(oldVars.size() == newVars.size());
+      Node sbody = ret.substitute(
+          oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+      ret = sbody;
+    }
+  }
+  else if (ret.getKind() == Kind::EQUAL
+           && iteLiftMode != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -844,6 +871,17 @@ Node QuantifiersRewriter::computeProcessTerms2(
     if (!fullApp.isNull())
     {
       ret = fullApp;
+    }
+  }
+  if (pg != nullptr)
+  {
+    if (retOrig != ret)
+    {
+      pg->addRewriteStep(retOrig,
+                         ret,
+                         nullptr,
+                         false,
+                         TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
     }
   }
   cache[body] = ret;
@@ -1688,7 +1726,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
         else
         {
           // not specific to a quantified formula, use normal
-          vv = nm->mkBoundVar(vt);
+          vv = NodeManager::mkBoundVar(vt);
         }
         subs.push_back(vv);
       }
@@ -2135,6 +2173,28 @@ bool QuantifiersRewriter::isStandard(QAttributes& qa, const Options& opts)
       qa.d_hasPattern
       && opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   return qa.isStandard() && !is_strict_trigger;
+}
+
+Node QuantifiersRewriter::computeRewriteBody(const Node& n,
+                                             TConvProofGenerator* pg) const
+{
+  Assert(n.getKind() == Kind::FORALL);
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(n, qa);
+  std::vector<Node> args(n[0].begin(), n[0].end());
+  Node body = computeProcessTerms(n, args, n[1], qa, pg);
+  if (body != n[1])
+  {
+    std::vector<Node> children;
+    children.push_back(n[0]);
+    children.push_back(body);
+    if (n.getNumChildren() == 3)
+    {
+      children.push_back(n[2]);
+    }
+    return d_nm->mkNode(Kind::FORALL, children);
+  }
+  return n;
 }
 
 bool QuantifiersRewriter::doOperation(Node q,

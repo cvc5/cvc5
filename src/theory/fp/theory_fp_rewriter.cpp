@@ -1697,7 +1697,7 @@ RewriteResponse TheoryFpRewriter::postRewrite(TNode node)
 
   return res;
 }
-TrustNode TheoryFpRewriter::expandDefinition(Node node)
+Node TheoryFpRewriter::expandDefinition(Node node)
 {
   return d_fpExpDef.expandDefinition(node);
 }

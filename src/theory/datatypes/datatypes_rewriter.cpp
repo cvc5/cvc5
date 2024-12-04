@@ -1044,7 +1044,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
   return utils::applySelector(c, selectorIndex, true, n[0]);
 }
 
-TrustNode DatatypesRewriter::expandDefinition(Node n)
+Node DatatypesRewriter::expandDefinition(Node n)
 {
   Node ret;
   switch (n.getKind())
@@ -1069,9 +1069,9 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   }
   if (!ret.isNull() && n != ret)
   {
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+    return ret;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 Node DatatypesRewriter::expandUpdater(const Node& n)

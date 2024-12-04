@@ -99,6 +99,11 @@ class CVC5_EXPORT TypeNode
                       Iterator2 replacementsEnd,
                       std::unordered_map<TypeNode, TypeNode>& cache) const;
 
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return d_nv->getNodeManager(); }
+
  public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }

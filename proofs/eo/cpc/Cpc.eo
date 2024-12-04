@@ -37,8 +37,8 @@
 ; is prefixed by MACRO_ are not formalized in this signature and will not
 ; appear in final proofs.
 ;
-; The cases of ProofRule::DSL_REWRITE are by default provided on demand in
-; the preamble of the proof that is output by cvc5.
+; The cases of ProofRule::DSL_REWRITE are each formalized as individual
+; proof rules in ./rules/Rewrites.eo.
 ;
 ; The rules ProofRule::TRUST and ProofRule::TRUST_THEORY_REWRITE are output in
 ; proofs using a catch-all rule trust defined at the end of this file. This

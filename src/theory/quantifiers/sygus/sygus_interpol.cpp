@@ -81,9 +81,9 @@ void SygusInterpol::createVariables(bool needsShared)
     // Notice that we allow for non-first class (e.g. function) variables here.
     std::stringstream ss;
     ss << s;
-    Node var = nm->mkBoundVar(tn);
+    Node var = NodeManager::mkBoundVar(tn);
     d_vars.push_back(var);
-    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    Node vlv = NodeManager::mkBoundVar(ss.str(), tn);
     // set that this variable encodes the term s
     SygusVarToTermAttribute sta;
     vlv.setAttribute(sta, s);
@@ -232,7 +232,7 @@ Node SygusInterpol::mkPredicate(const std::string& name)
   TypeNode itpType = d_varTypesShared.empty()
                          ? nm->booleanType()
                          : nm->mkPredicateType(d_varTypesShared);
-  Node itp = nm->mkBoundVar(name.c_str(), itpType);
+  Node itp = NodeManager::mkBoundVar(name.c_str(), itpType);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
   return itp;
 }

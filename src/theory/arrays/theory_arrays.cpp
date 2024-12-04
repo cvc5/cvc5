@@ -78,9 +78,7 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rrEpg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
-                                           : nullptr),
-      d_rewriter(env.getNodeManager(), env.getRewriter(), d_rrEpg.get()),
+      d_rewriter(env.getNodeManager(), env.getRewriter()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
@@ -312,10 +310,11 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     }
   }
   // see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(term);
+  Node texp = d_rewriter.expandDefinition(term);
   if (!texp.isNull())
   {
-    return texp;
+    // do not track proofs here
+    return TrustNode::mkTrustRewrite(term, texp, nullptr);
   }
   if (!d_preprocess)
   {
@@ -373,12 +372,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+      if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+      if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         return PP_ASSERT_STATUS_SOLVED;

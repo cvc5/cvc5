@@ -265,7 +265,7 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
   for (const Node& nc : n)
   {
     vars.push_back(nc);
-    Node v = nm->mkBoundVar(nc.getType());
+    Node v = NodeManager::mkBoundVar(nc.getType());
     fvars.push_back(v);
   }
   Node fdef =
