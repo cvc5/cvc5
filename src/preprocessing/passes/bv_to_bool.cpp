@@ -257,7 +257,7 @@ Node BVToBool::liftNode(TNode current)
     }
     else
     {
-      NodeBuilder builder(current.getNodeManager(), current.getKind());
+      NodeBuilder builder(nodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
