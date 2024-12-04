@@ -56,14 +56,14 @@ namespace smt {
  * given value. Give an error message where reason is given.
  * Note this macro should be used if the value is concrete.
  */
-#define OPTION_EXCEPTION_IF_NOT(domain, optName, value, reason)             \
-  if (opts.write_##domain().optName##WasSetByUser                           \
-      && opts.write_##domain().optName != value)                            \
-  {                                                                         \
-    std::stringstream ss;                                                   \
-    ss << "Cannot use --" << options::domain::longName::optName             \
-         << " due to " << reason << ".";                                    \
-    throw OptionException(ss.str());                                        \
+#define OPTION_EXCEPTION_IF_NOT(domain, optName, value, reason)               \
+  if (opts.write_##domain().optName##WasSetByUser                             \
+      && opts.write_##domain().optName != value)                              \
+  {                                                                           \
+    std::stringstream ss;                                                     \
+    ss << "Cannot use --" << options::domain::longName::optName << " due to " \
+       << reason << ".";                                                      \
+    throw OptionException(ss.str());                                          \
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
@@ -685,7 +685,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   }
 
   // By default, symmetry breaker is on only for non-incremental QF_UF.
-  // Note that if ufSymmetryBreaker is already set to false, we do not reenable it.
+  // Note that if ufSymmetryBreaker is already set to false, we do not reenable
+  // it.
   if (!opts.uf.ufSymmetryBreakerWasSetByUser && opts.uf.ufSymmetryBreaker)
   {
     // Only applies to non-incremental QF_UF.
@@ -947,17 +948,20 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
           arith, nlExt, options::NlExtMode::LIGHT, "QF_UFNRA");
     }
     else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
-            && logic.areRealsUsed() && !logic.areIntegersUsed()
-            && !logic.areTranscendentalsUsed())
+             && logic.areRealsUsed() && !logic.areIntegersUsed()
+             && !logic.areTranscendentalsUsed())
     {
       // use only light nlExt techniques if we are using nlCov
       SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
-            arith, nlExt, options::NlExtMode::LIGHT, "logic with reals");
-      
+          arith, nlExt, options::NlExtMode::LIGHT, "logic with reals");
     }
     else
     {
-      SET_AND_NOTIFY_IF_NOT_USER(arith, nlCov, false, "logic without reals, or involving integers or quantifiers");
+      SET_AND_NOTIFY_IF_NOT_USER(
+          arith,
+          nlCov,
+          false,
+          "logic without reals, or involving integers or quantifiers");
     }
 #else
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "configuring without --poly");
