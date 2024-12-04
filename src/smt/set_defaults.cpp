@@ -1111,12 +1111,9 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // symmetry breaking does not have proof support
     SET_AND_NOTIFY_VAL_SYM(uf, ufSymmetryBreaker, false, "full strict proofs");
     // CEGQI with deltas and infinities is not supported
-    SET_AND_NOTIFY(
-        quantifiers, cegqiMidpoint, true, "full strict proofs");
-    SET_AND_NOTIFY(
-        quantifiers, cegqiUseInfInt, false, "full strict proofs");
-    SET_AND_NOTIFY(
-        quantifiers, cegqiUseInfReal, false, "full strict proofs");
+    SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "full strict proofs");
+    SET_AND_NOTIFY(quantifiers, cegqiUseInfInt, false, "full strict proofs");
+    SET_AND_NOTIFY(quantifiers, cegqiUseInfReal, false, "full strict proofs");
   }
   return false;
 }
