@@ -1206,6 +1206,11 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "compute partitions";
     return true;
   }
+  if (opts.proof.proofLog)
+  {
+    reason << "proof logging";
+    return true;
+  }
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
