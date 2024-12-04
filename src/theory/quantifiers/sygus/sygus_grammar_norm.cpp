@@ -148,8 +148,7 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
   /* Checks whether operator occurs chainable for its type */
-  if (tn.isInteger()
-      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD)
+  if (tn.isInteger() && op.getNodeManager()->operatorToKind(op) == Kind::ADD)
   {
     return true;
   }
@@ -161,8 +160,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
    function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  if (tn.isInteger()
-      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD
+  if (tn.isInteger() && op.getNodeManager()->operatorToKind(op) == Kind::ADD
       && n == TermUtil::mkTypeValue(tn, 0))
   {
     return true;

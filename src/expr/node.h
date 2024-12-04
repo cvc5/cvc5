@@ -223,14 +223,6 @@ class NodeTemplate {
       Assert(d_nv->d_rc > 0) << "TNode pointing to an expired NodeValue";
     }
   }
-  /**
-   * Returns the associated node manager
-   */
-  NodeManager* getNodeManager() const
-  {
-    assertTNodeNotExpired();
-    return d_nv->getNodeManager();
-  }
 
 public:
 
@@ -448,6 +440,15 @@ public:
   {
     assertTNodeNotExpired();
     return d_nv->getId();
+  }
+
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const
+  {
+    assertTNodeNotExpired();
+    return d_nv->getNodeManager();
   }
 
   /**
