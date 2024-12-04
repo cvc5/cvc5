@@ -967,7 +967,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     // must set to false if libpoly is not enabled
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "configuring without --poly");
     SET_AND_NOTIFY(arith, nlCov, false, "no support for libpoly");
-    SET_AND_NOTIFY_VAL_SYM(
+    SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         arith, nlExt, options::NlExtMode::FULL, "no support for libpoly");
 #endif
   }
