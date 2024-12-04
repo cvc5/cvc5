@@ -29,7 +29,7 @@ class ProofNode;
 class ProofNodeManager;
 
 /**
- * Proof generator implementing the "diamonds" preprocessing step, performed 
+ * Proof generator implementing the "diamonds" preprocessing step, performed
  * by TheoryUF.
  */
 class DiamondsProofGenerator : protected EnvObj, public ProofGenerator
