@@ -248,10 +248,10 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   // Call the utility again with proof tracking and construct the term
   // conversion proof. This proof itself may have trust steps in it.
   // We don't traverse into terms in the proof generator.
-  RtfTermContext rtfc;
+  BoolSkeletonTermContext bstc;
   TConvProofGenerator tcpg(d_env, nullptr, TConvPolicy::FIXPOINT,
                       TConvCachePolicy::NEVER,
-                      "MacroNnfNormTConv", &rtfc);
+                      "MacroNnfNormTConv", &bstc);
   Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
       nodeManager(), eq[0], &tcpg);
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
