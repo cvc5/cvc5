@@ -205,6 +205,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.driver.dumpProofs)
   {
     // should not combine this with proof logging
+    OPTION_EXCEPTION_IF_NOT(proof, proofLog, false, "dump proofs");
   }
   // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
   // then proofs being fully enabled is implied
