@@ -18,6 +18,7 @@
 
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
+#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"

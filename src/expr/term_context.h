@@ -190,7 +190,7 @@ class BoolSkeletonTermContext : public TermContext
 {
  public:
   BoolSkeletonTermContext() {}
-  /** The initial value: assumed to be in . */
+  /** The initial value: assumed to be 0, i.e. in the Boolean skeleton. */
   uint32_t initialValue() const override;
   /** Compute the value of the index^th child of t whose hash is tval */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
