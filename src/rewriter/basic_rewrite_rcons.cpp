@@ -247,7 +247,8 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
                      << std::endl;
   // Call the utility again with proof tracking and construct the term
   // conversion proof. This proof itself may have trust steps in it.
-  // We don't traverse into terms in the proof generator.
+  // Rewrites should only be applied for terms in the Boolean skeleton, hence
+  // we use BoolSkeletonTermContext here.
   BoolSkeletonTermContext bstc;
   TConvProofGenerator tcpg(d_env,
                            nullptr,
