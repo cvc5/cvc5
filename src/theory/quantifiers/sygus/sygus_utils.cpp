@@ -58,7 +58,7 @@ struct SygusSynthFunVarListAttributeId
 typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
     SygusSynthFunVarListAttribute;
 
-Node SygusUtils::mkSygusConjecture(NodeManager * nm,
+Node SygusUtils::mkSygusConjecture(NodeManager* nm,
                                    const std::vector<Node>& fs,
                                    Node conj,
                                    const std::vector<Node>& iattrs)
@@ -75,14 +75,16 @@ Node SygusUtils::mkSygusConjecture(NodeManager * nm,
   return nm->mkNode(Kind::FORALL, bvl, conj, ipl);
 }
 
-Node SygusUtils::mkSygusConjecture(NodeManager * nm,
-                                   const std::vector<Node>& fs, Node conj)
+Node SygusUtils::mkSygusConjecture(NodeManager* nm,
+                                   const std::vector<Node>& fs,
+                                   Node conj)
 {
   std::vector<Node> iattrs;
   return mkSygusConjecture(nm, fs, conj, iattrs);
 }
 
-Node SygusUtils::mkSygusConjecture(NodeManager * nm, const std::vector<Node>& fs,
+Node SygusUtils::mkSygusConjecture(NodeManager* nm,
+                                   const std::vector<Node>& fs,
                                    Node conj,
                                    const Subs& solvedf)
 {
