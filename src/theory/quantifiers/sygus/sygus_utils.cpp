@@ -58,49 +58,50 @@ struct SygusSynthFunVarListAttributeId
 typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
     SygusSynthFunVarListAttribute;
 
-Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
+Node SygusUtils::mkSygusConjecture(NodeManager * nm,
+                                   const std::vector<Node>& fs,
                                    Node conj,
                                    const std::vector<Node>& iattrs)
 {
   Assert(!fs.empty());
-  Assert(conj.getType().isBoolean());
   SygusAttribute ca;
   Node sygusVar = NodeManager::mkDummySkolem("sygus", conj.getType());
   sygusVar.setAttribute(ca, true);
-  std::vector<Node> ipls{NodeManager::mkNode(Kind::INST_ATTRIBUTE, sygusVar)};
+  std::vector<Node> ipls{nm->mkNode(Kind::INST_ATTRIBUTE, sygusVar)};
   // insert the remaining instantiation attributes
   ipls.insert(ipls.end(), iattrs.begin(), iattrs.end());
-  Node ipl = NodeManager::mkNode(Kind::INST_PATTERN_LIST, ipls);
-  Node bvl = NodeManager::mkNode(Kind::BOUND_VAR_LIST, fs);
-  return NodeManager::mkNode(Kind::FORALL, bvl, conj, ipl);
+  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ipls);
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, fs);
+  return nm->mkNode(Kind::FORALL, bvl, conj, ipl);
 }
 
-Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs, Node conj)
+Node SygusUtils::mkSygusConjecture(NodeManager * nm,
+                                   const std::vector<Node>& fs, Node conj)
 {
   std::vector<Node> iattrs;
-  return mkSygusConjecture(fs, conj, iattrs);
+  return mkSygusConjecture(nm, fs, conj, iattrs);
 }
 
-Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
+Node SygusUtils::mkSygusConjecture(NodeManager * nm, const std::vector<Node>& fs,
                                    Node conj,
                                    const Subs& solvedf)
 {
   Assert(!fs.empty());
   Assert(conj.getType().isBoolean());
-  TypeNode btn = conj.getType();
   std::vector<Node> iattrs;
   // take existing properties, without the previous solves
   SygusSolutionAttribute ssa;
+  TypeNode btn = nm->booleanType();
   // add the current solves, which should be a superset of the previous ones
   for (size_t i = 0, nsolved = solvedf.size(); i < nsolved; i++)
   {
     Node eq = solvedf.getEquality(i);
     Node var = NodeManager::mkDummySkolem("solved", btn);
     var.setAttribute(ssa, eq);
-    Node ipv = NodeManager::mkNode(Kind::INST_ATTRIBUTE, var);
+    Node ipv = nm->mkNode(Kind::INST_ATTRIBUTE, var);
     iattrs.push_back(ipv);
   }
-  return mkSygusConjecture(fs, conj, iattrs);
+  return mkSygusConjecture(nm, fs, conj, iattrs);
 }
 
 void SygusUtils::decomposeSygusConjecture(Node q,
@@ -172,7 +173,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
       ss << "arg" << j;
       bvs.push_back(NodeManager::mkBoundVar(ss.str(), argTypes[j]));
     }
-    sfvl = NodeManager::mkNode(Kind::BOUND_VAR_LIST, bvs);
+    sfvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
     f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
   }
   return sfvl;
