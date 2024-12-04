@@ -36,12 +36,12 @@ namespace quantifiers {
 
 SygusAbduct::SygusAbduct() {}
 
-Node SygusAbduct::mkAbductionConjecture(const std::string& name,
+Node SygusAbduct::mkAbductionConjecture(NodeManager* nm,
+                                        const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType)
 {
-  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)

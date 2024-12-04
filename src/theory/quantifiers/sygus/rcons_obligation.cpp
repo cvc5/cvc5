@@ -27,7 +27,7 @@ namespace quantifiers {
 
 RConsObligation::RConsObligation(TypeNode stn, Node t) : d_ts({t})
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = t.getNodeManager()->getSkolemManager();
   d_k = sm->mkDummySkolem("sygus_rcons", stn);
 }
 

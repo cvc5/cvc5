@@ -96,7 +96,7 @@ bool ExampleInfer::collectExamples(
     return true;
   }
   visited[cacheIndex].insert(n);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
