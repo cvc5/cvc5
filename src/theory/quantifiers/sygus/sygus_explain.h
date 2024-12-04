@@ -44,7 +44,7 @@ class TermDbSygus;
 class TermRecBuild
 {
  public:
-  TermRecBuild(NodeManager * nm) : d_nm(nm) {}
+  TermRecBuild(NodeManager* nm) : d_nm(nm) {}
   /** set the initial term to n
    *
    * The context initially empty, that is,
@@ -75,7 +75,7 @@ class TermRecBuild
 
  private:
   /** Pointer to the node manager */
-  NodeManager * d_nm;
+  NodeManager* d_nm;
   /** stack of active terms */
   std::vector<Node> d_term;
   /** stack of children of active terms

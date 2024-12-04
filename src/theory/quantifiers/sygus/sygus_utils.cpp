@@ -63,7 +63,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
                                    const std::vector<Node>& iattrs)
 {
   Assert(!fs.empty());
-  Assert (conj.getType().isBoolean());
+  Assert(conj.getType().isBoolean());
   SygusAttribute ca;
   Node sygusVar = NodeManager::mkDummySkolem("sygus", conj.getType());
   sygusVar.setAttribute(ca, true);
@@ -86,7 +86,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
                                    const Subs& solvedf)
 {
   Assert(!fs.empty());
-  Assert (conj.getType().isBoolean());
+  Assert(conj.getType().isBoolean());
   TypeNode btn = conj.getType();
   std::vector<Node> iattrs;
   // take existing properties, without the previous solves

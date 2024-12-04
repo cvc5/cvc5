@@ -501,12 +501,13 @@ void SygusUnifRl::registerConditionalEnumerator(Node f,
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_stratpt_to_dt[e].initialize(nodeManager(), cond, this, &d_strategy.at(f), strategy_index);
+  d_stratpt_to_dt[e].initialize(
+      nodeManager(), cond, this, &d_strategy.at(f), strategy_index);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }
 
-void SygusUnifRl::DecisionTreeInfo::initialize(NodeManager * nm,
+void SygusUnifRl::DecisionTreeInfo::initialize(NodeManager* nm,
                                                Node cond_enum,
                                                SygusUnifRl* unif,
                                                SygusUnifStrategy* strategy,
@@ -932,7 +933,7 @@ Node SygusUnifRl::DecisionTreeInfo::extractSol(Node cons,
 }
 
 Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
-    NodeManager * nm, Node cons, std::map<Node, Node>& hd_mv)
+    NodeManager* nm, Node cons, std::map<Node, Node>& hd_mv)
 {
   // Traverse trie and build ITE with cons
   std::map<IndTriePair, Node> cache;
