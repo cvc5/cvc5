@@ -381,7 +381,6 @@ Node CegisCoreConnective::Component::getSygusSolution(
   std::sort(conjs.begin(), conjs.end());
   Node sol;
   std::map<Node, Node>::const_iterator itu;
-  NodeManager* nm = d_nm;
   for (const Node& u : conjs)
   {
     itu = d_cpoolToSol.find(u);
@@ -394,7 +393,7 @@ Node CegisCoreConnective::Component::getSygusSolution(
     }
     else
     {
-      sol = nm->mkNode(Kind::APPLY_CONSTRUCTOR, d_scons, s, sol);
+      sol = d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, d_scons, s, sol);
     }
   }
   return sol;
