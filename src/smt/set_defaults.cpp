@@ -1206,6 +1206,8 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "compute partitions";
     return true;
   }
+  // proof logging not yet supported in incremental mode, which requires
+  // managing how new assertions are printed.
   if (opts.proof.proofLog)
   {
     reason << "proof logging";
