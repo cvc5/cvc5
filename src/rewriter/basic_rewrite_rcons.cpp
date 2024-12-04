@@ -34,6 +34,7 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
+#include "expr/term_context.h"
 
 using namespace cvc5::internal::kind;
 
@@ -244,9 +245,18 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
 {
   Trace("brc-macro") << "Expand Bool NNF norm " << eq[0] << " == " << eq[1]
                      << std::endl;
+
   // Call the utility again with proof tracking and construct the term
   // conversion proof. This proof itself may have trust steps in it.
-  TConvProofGenerator tcpg(d_env, nullptr);
+  // Rewrites should only be applied for terms in the Boolean skeleton, hence
+  // we use BoolSkeletonTermContext here.
+  BoolSkeletonTermContext bstc;
+  TConvProofGenerator tcpg(d_env,
+                           nullptr,
+                           TConvPolicy::FIXPOINT,
+                           TConvCachePolicy::NEVER,
+                           "MacroNnfNormTConv",
+                           &bstc);
   Node nr = theory::booleans::TheoryBoolRewriter::computeNnfNorm(
       nodeManager(), eq[0], &tcpg);
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
