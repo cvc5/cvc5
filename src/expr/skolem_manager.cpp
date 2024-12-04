@@ -347,11 +347,11 @@ Node SkolemManager::getUnpurifiedForm(Node k)
 Node SkolemManager::mkSkolemNode(Kind k,
                                  const std::string& prefix,
                                  const TypeNode& type,
-                                 int flags)
+                                 SkolemFlags flags)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n = NodeBuilder(nm, k);
-  if ((flags & SKOLEM_EXACT_NAME) == 0)
+  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME) == 0)
   {
     std::stringstream name;
     name << prefix << '_' << ++d_skolemCounter;

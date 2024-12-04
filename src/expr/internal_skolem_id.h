@@ -64,6 +64,17 @@ const char* toString(InternalSkolemId id);
 /** Writes an internal skolem function name to a stream. */
 std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
+/**
+  * Optional flags used to control behavior of skolem creation.
+  * They should be composed with a bitwise OR.
+  */
+enum class SkolemFlags
+{
+  /** default behavior */
+  SKOLEM_DEFAULT = 0,
+  /** do not make the name unique by adding the id */
+  SKOLEM_EXACT_NAME = 1,
+};
 
 }  // namespace cvc5::internal
 
