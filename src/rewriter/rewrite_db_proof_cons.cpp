@@ -123,10 +123,17 @@ bool RewriteDbProofCons::prove(
   }
   if (!success)
   {
-    // now try the "post-prove" method as a last resort
+    // Now try the "post-prove" method as a last resort. We try the unconverted
+    // then the converted form of eq, if applicable.
     if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      success = true;
+    }
+    else if (eqi!=eq && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
+    {
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
       success = true;
     }
     else
