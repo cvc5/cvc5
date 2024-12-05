@@ -76,8 +76,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
       size_t i = utils::indexOf(n.getOperator());
-      bool sharedSel = d_opts.datatypes.dtSharedSelectors;
-      Node ticons = utils::getInstCons(t, dt, i, sharedSel);
+      Node ticons = utils::getInstCons(t, dt, i, false);
       return t.eqNode(ticons);
     }
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
