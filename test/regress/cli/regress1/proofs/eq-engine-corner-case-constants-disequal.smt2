@@ -1,3 +1,4 @@
+; COMMAND-LINE: --produce-proofs
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-const x Bool)

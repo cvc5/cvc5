@@ -1,5 +1,6 @@
 ; EXPECT: sat
 (set-logic ALL)
+(set-option :produce-proofs true)
 (set-option :proof-check eager)
 (declare-const x Real)
 (assert

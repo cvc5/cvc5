@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-;; Unsat core checking with proofsh at one point had issues for
+;; Unsat core checking with proofs at one point had issues for
 ;; this benchmark due to cycle detection in LazyCDProofChain
 (set-logic ALL)
 (set-option :incremental false)

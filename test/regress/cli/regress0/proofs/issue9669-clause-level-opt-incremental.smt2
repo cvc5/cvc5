@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i
+; COMMAND-LINE: -i --produce-proofs
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
