@@ -199,9 +199,7 @@ class RewriteDbProofCons : protected EnvObj
    * return true if successful. Tries a single recursion depth.
    *
    * @param cdp The object to add the proof of eq to.
-   * @param eq The equality we are trying to prove.
-   * @param eqi The internal version of the equality that may have been
-   * converted from eq using d_rdnc.
+   * @param eqi The equality we are trying to prove.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
    * @param subgoals The list of proofs introduced when proving eq that
@@ -209,7 +207,6 @@ class RewriteDbProofCons : protected EnvObj
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool proveEq(CDProof* cdp,
-               const Node& eq,
                const Node& eqi,
                int64_t recLimit,
                int64_t stepLimit,

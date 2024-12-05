@@ -157,21 +157,35 @@ bool RewriteDbProofCons::proveStratified(
     std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
+  bool success = false;
   // first, try the basic utility
   if (d_trrc.prove(cdp, eqi[0], eqi[1], subgoals, tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
-    return true;
+    success = true;
   }
-  // prove the equality
-  for (int64_t i = 0; i <= recLimit; i++)
+  else
   {
-    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-    if (proveEq(cdp, eq, eqi, i, stepLimit, subgoals))
+    // prove the equality
+    for (int64_t i = 0; i <= recLimit; i++)
     {
-      Trace("rpc") << "...success" << std::endl;
-      return true;
+      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+      if (proveEq(cdp, eqi, i, stepLimit, subgoals))
+      {
+        Trace("rpc") << "...success" << std::endl;
+        success = true;
+        break;
+      }
     }
+  }
+  if (success)
+  {
+    // if eqi was converted, update the proof to account for this
+    if (eq != eqi)
+    {
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
+    }
+    return true;
   }
   return false;
 }
@@ -297,7 +311,6 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
 
 bool RewriteDbProofCons::proveEq(
     CDProof* cdp,
-    const Node& eq,
     const Node& eqi,
     int64_t recLimit,
     int64_t stepLimit,
@@ -321,11 +334,6 @@ bool RewriteDbProofCons::proveEq(
   {
     ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    // if it changed encoding, account for this
-    if (eq != eqi)
-    {
-      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
-    }
     ensureProofInternal(cdp, eqi, subgoals);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
