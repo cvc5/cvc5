@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
  * Optional flags used to control behavior of skolem creation.
  * They should be composed with a bitwise OR.
  */
-enum class SkolemFlags
+enum class SkolemFlags : uint32_t
 {
   /** default behavior */
   SKOLEM_DEFAULT = 0,
