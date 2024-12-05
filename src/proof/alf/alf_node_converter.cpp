@@ -41,6 +41,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "expr/sort_to_term.h"
 
 using namespace cvc5::internal::kind;
 
@@ -527,22 +528,28 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else if (k == Kind::APPLY_SELECTOR)
     {
       // maybe a shared selector
-      ret = maybeMkSkolemFun(op);
-      if (!ret.isNull())
+      if (op.getSkolemId()==SkolemId::SHARED_SELECTOR)
       {
-        return ret;
-      }
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      if (dt.isTuple())
-      {
-        indices.push_back(d_nm->mkConstInt(index));
-        opName << "tuple.select";
+        std::vector<Node> kindices = op.getSkolemIndices();
+        opName << "@shared_selector";
+        indices.push_back(typeAsNode(kindices[0].getConst<SortToTerm>().getType()));
+        indices.push_back(typeAsNode(kindices[1].getConst<SortToTerm>().getType()));
+        indices.push_back(kindices[2]);
       }
       else
       {
-        unsigned cindex = DType::cindexOf(op);
-        opName << dt[cindex][index].getSelector();
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        if (dt.isTuple())
+        {
+          indices.push_back(d_nm->mkConstInt(index));
+          opName << "tuple.select";
+        }
+        else
+        {
+          unsigned cindex = DType::cindexOf(op);
+          opName << dt[cindex][index].getSelector();
+        }
       }
     }
     else

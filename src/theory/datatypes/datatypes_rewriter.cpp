@@ -87,6 +87,11 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       Node selector = n.getOperator();
+      // shared selectors are not supported
+      if (selector.getSkolemId()==SkolemId::SHARED_SELECTOR)
+      {
+        return Node::null();
+      }
       size_t constructorIndex = utils::indexOf(n[0].getOperator());
       const DType& dt = utils::datatypeOf(selector);
       const DTypeConstructor& c = dt[constructorIndex];
