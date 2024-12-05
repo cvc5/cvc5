@@ -358,15 +358,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
                            sygusInference,
                            options::SygusInferenceMode::OFF,
                            "internal subsolver");
-    // proofs/unsat cores not yet supported with CaDiCaL
-    //if (opts.quantifiers.quantSubCbqi
-    //    && opts.prop.satSolver == options::SatSolverMode::CADICAL)
-    //{
-    //  SET_AND_NOTIFY(prop,
-    //                 satSolver,
-    //                 options::SatSolverMode::MINISAT,
-    //                 "proofs and unsat cores not supported with CaDiCaL");
-    //}
     // deep restart does not work with internal subsolvers?
     SET_AND_NOTIFY_VAL_SYM(smt,
                            deepRestartMode,
