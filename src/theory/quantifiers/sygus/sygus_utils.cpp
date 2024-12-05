@@ -163,7 +163,7 @@ void SygusUtils::setSygusArgumentList(Node f, const Node& bvl)
 
 Node SygusUtils::getOrMkSygusArgumentList(Node f)
 {
-  NodeManager * nm = f.getNodeManager();
+  NodeManager* nm = f.getNodeManager();
   Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
   if (sfvl.isNull() && f.getType().isFunction())
   {

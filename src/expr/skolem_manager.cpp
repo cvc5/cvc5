@@ -351,7 +351,8 @@ Node SkolemManager::mkSkolemNode(Kind k,
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n = NodeBuilder(nm, k);
-  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME) == SkolemFlags::SKOLEM_EXACT_NAME)
+  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME)
+      == SkolemFlags::SKOLEM_EXACT_NAME)
   {
     n.setAttribute(expr::VarNameAttr(), prefix);
   }
