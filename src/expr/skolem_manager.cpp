@@ -351,15 +351,15 @@ Node SkolemManager::mkSkolemNode(Kind k,
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n = NodeBuilder(nm, k);
-  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME) == 0)
+  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME) == SkolemFlags::SKOLEM_EXACT_NAME)
+  {
+    n.setAttribute(expr::VarNameAttr(), prefix);
+  }
+  else
   {
     std::stringstream name;
     name << prefix << '_' << ++d_skolemCounter;
     n.setAttribute(expr::VarNameAttr(), name.str());
-  }
-  else
-  {
-    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);
