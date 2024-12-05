@@ -47,8 +47,9 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygusVars)
   SygusGrammar sg(svars, tn);
   return normalizeSygusType(sg);
 }
-TypeNodeSygusGrammarNorm::normalizeSygusType(SygusGrammar g)
+TypeNode SygusGrammarNorm::normalizeSygusType(SygusGrammar sg)
 {
+  const std::vector<Node>& svars = sg.getSygusVars();
   const std::vector<Node>& nts = sg.getNtSyms();
   Trace("sygus-grammar-norm") << "Reconstructed grammar " << nts << std::endl;
   bool changed = false;
@@ -129,15 +130,10 @@ TypeNodeSygusGrammarNorm::normalizeSygusType(SygusGrammar g)
     }
     tnn = sgu.resolve();
   }
-  else if (changed)
+  else
   {
     // otherwise recompute the type if we modified
     tnn = sg.resolve();
-  }
-  else
-  {
-    // no change, just return original
-    return tn;
   }
   return tnn;
 }
