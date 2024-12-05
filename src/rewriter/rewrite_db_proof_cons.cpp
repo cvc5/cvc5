@@ -95,44 +95,30 @@ bool RewriteDbProofCons::prove(
       }
     } while (!eqp.isNull() && eqp[0].isClosure());
   }
-  Trace("rpc-debug") << "- prove basic" << std::endl;
-  // first, try with the basic utility
+  ++d_statTotalInputs;
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], subgoals, tmode))
+  // first try unconverted
+  Node eqi;
+  if (proveStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
   {
-    Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
   }
   else
   {
-    ++d_statTotalInputs;
-    Trace("rpc-debug") << "- convert to internal" << std::endl;
-    // prove the equality
-    for (int64_t i = 0; i <= recLimit; i++)
+    eqi = d_rdnc.convert(eq);
+    // if converter didn't make a difference, don't try to prove again
+    if (eqi != eq)
     {
-      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-      if (proveEq(cdp, eq, eq, i, stepLimit, subgoals))
+      Trace("rpc-debug") << "...now try converted" << std::endl;
+      if (proveStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
       {
         success = true;
-        break;
       }
     }
-    if (!success)
+    else
     {
-      Node eqi = d_rdnc.convert(eq);
-      // if converter didn't make a difference, don't try to prove again
-      if (eqi != eq)
-      {
-        for (int64_t i = 0; i <= recLimit; i++)
-        {
-          Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-          if (proveEq(cdp, eq, eqi, i, stepLimit, subgoals))
-          {
-            success = true;
-            break;
-          }
-        }
-      }
+      Trace("rpc-debug") << "...do not try converted, did not change"
+                         << std::endl;
     }
   }
   if (!success)
@@ -153,6 +139,34 @@ bool RewriteDbProofCons::prove(
     Trace("rpc") << "...success" << std::endl;
   }
   return success;
+}
+
+bool RewriteDbProofCons::proveStratified(
+    CDProof* cdp,
+    const Node& eq,
+    const Node& eqi,
+    int64_t recLimit,
+    int64_t stepLimit,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
+{
+  // first, try the basic utility
+  if (d_trrc.prove(cdp, eqi[0], eqi[1], subgoals, tmode))
+  {
+    Trace("rpc") << "...success (basic)" << std::endl;
+    return true;
+  }
+  // prove the equality
+  for (int64_t i = 0; i <= recLimit; i++)
+  {
+    Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+    if (proveEq(cdp, eq, eqi, i, stepLimit, subgoals))
+    {
+      Trace("rpc") << "...success" << std::endl;
+      return true;
+    }
+  }
+  return false;
 }
 
 Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
@@ -356,6 +370,12 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
           RewriteProofStatus::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
   {
     return RewriteProofStatus::ARITH_POLY_NORM;
+  }
+  // alpha equivalence
+  if (proveWithRule(
+          RewriteProofStatus::ALPHA_EQUIV, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::ALPHA_EQUIV;
   }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
@@ -616,6 +636,39 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   else if (id == RewriteProofStatus::ACI_NORM)
   {
     if (!expr::isACINorm(target[0], target[1]))
+    {
+      return false;
+    }
+    pic.d_id = id;
+  }
+  else if (id == RewriteProofStatus::ALPHA_EQUIV)
+  {
+    if (target[0].getKind() != target[1].getKind() || !target[0].isClosure())
+    {
+      return false;
+    }
+    size_t nchild = target[0][0].getNumChildren();
+    if (nchild != target[1][0].getNumChildren())
+    {
+      return false;
+    }
+    std::vector<Node> avars;
+    std::vector<Node> asubs;
+    for (size_t i = 0; i < nchild; i++)
+    {
+      if (target[0][0][i] != target[1][0][i])
+      {
+        avars.emplace_back(target[0][0][i]);
+        asubs.emplace_back(target[1][0][i]);
+      }
+    }
+    if (avars.empty())
+    {
+      return false;
+    }
+    Node res = target[0].substitute(
+        avars.begin(), avars.end(), asubs.begin(), asubs.end());
+    if (res != target[1])
     {
       return false;
     }
@@ -1172,6 +1225,22 @@ bool RewriteDbProofCons::ensureProofInternal(
       else if (pcur.d_id == RewriteProofStatus::ACI_NORM)
       {
         cdp->addStep(cur, ProofRule::ACI_NORM, {}, {cur});
+      }
+      else if (pcur.d_id == RewriteProofStatus::ALPHA_EQUIV)
+      {
+        std::vector<Node> v1s;
+        std::vector<Node> v2s;
+        for (size_t i = 0, nvars = cur[0][0].getNumChildren(); i < nvars; i++)
+        {
+          if (cur[0][0][i] != cur[1][0][i])
+          {
+            v1s.emplace_back(cur[0][0][i]);
+            v2s.emplace_back(cur[1][0][i]);
+          }
+        }
+        Node v1 = nm->mkNode(Kind::SEXPR, v1s);
+        Node v2 = nm->mkNode(Kind::SEXPR, v2s);
+        cdp->addStep(cur, ProofRule::ALPHA_EQUIV, {}, {cur, v1, v2});
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
