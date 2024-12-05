@@ -1115,8 +1115,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     SET_AND_NOTIFY(quantifiers, cegqiUseInfInt, false, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfReal, false, "full strict proofs");
     // shared selectors are not supported
-    SET_AND_NOTIFY(
-        datatypes, dtSharedSelectors, false, "full strict proofs");
+    SET_AND_NOTIFY(datatypes, dtSharedSelectors, false, "full strict proofs");
   }
   return false;
 }

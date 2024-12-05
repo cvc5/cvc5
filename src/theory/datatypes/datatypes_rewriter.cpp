@@ -88,7 +88,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       Node selector = n.getOperator();
       // shared selectors are not supported
-      if (selector.getSkolemId()==SkolemId::SHARED_SELECTOR)
+      if (selector.getSkolemId() == SkolemId::SHARED_SELECTOR)
       {
         return Node::null();
       }
