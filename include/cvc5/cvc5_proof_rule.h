@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Haniel Barbosa, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
     || (defined(CVC5_API_USE_C_ENUMS)               \
         && !defined(CVC5__API__CVC5_C_PROOF_RULE_H))
 
-#include <cstdint>
+#include <stdint.h>
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef ENUM
@@ -60,7 +60,7 @@ namespace cvc5 {
  *
  * where we call :math:`\varphi_i` its premises or children, :math:`t_i` its
  * arguments, :math:`\psi` its conclusion, and :math:`C` its side condition.
- * Alternatively, we can write the application of a proof rule as 
+ * Alternatively, we can write the application of a proof rule as
  * ``(RULENAME F1 ... Fn :args t1 ... tm)``, omitting the conclusion
  * (since it can be uniquely determined from premises and arguments).
  * Note that premises are sometimes given as proofs, i.e., application of
@@ -77,18 +77,19 @@ namespace cvc5 {
  * theory, including the theory of equality.
  *
  * The "core rules" include two distinguished rules which have special status:
- * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an open
- * leaf in a proof; and (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which
- * encloses a scope (a subproof) with a set of scoped assumptions. The core rules
- * additionally correspond to generic operations that are done internally on nodes,
- * e.g., calling Rewriter::rewrite.
+ * (1) :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`, which represents an
+ * open leaf in a proof; and
+ * (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which encloses a scope
+ * (a subproof) with a set of scoped assumptions.
+ * The core rules additionally correspond to generic operations that are done
+ * internally on nodes, e.g., calling `Rewriter::rewrite()`.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience and can be replaced by their definition
  * in post-processing.
  * \endverbatim
  */
-enum ENUM(ProofRule) : uint32_t
+enum ENUM(ProofRule)
 {
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -116,11 +117,12 @@ enum ENUM(ProofRule) : uint32_t
    *   \Rightarrow F}{if $F\neq\bot$} \textrm{ or } \inferruleSC{F \mid F_1
    *   \dots F_n}{\neg (F_1 \land \dots \land F_n)}{if $F=\bot$}
    *
-   * This rule has a dual purpose with :cpp:enumerator:`ASSUME
-   * <cvc5::ProofRule::ASSUME>`. It is a way to close assumptions in a proof. We
-   * require that :math:`F_1 \dots F_n` are free assumptions in P and say that
-   * :math:`F_1 \dots F_n` are not free in ``(SCOPE P)``. In other words, they
-   * are bound by this application. For example, the proof node:
+   * This rule has a dual purpose with
+   * :cpp:enumerator:`ASSUME <cvc5::ProofRule::ASSUME>`. It is a way to close
+   * assumptions in a proof. We require that :math:`F_1 \dots F_n` are free
+   * assumptions in P and say that :math:`F_1 \dots F_n` are not free in
+   * ``(SCOPE P)``. In other words, they are bound by this application. For
+   * example, the proof node:
    * ``(SCOPE (ASSUME F) :args F)``
    * has the conclusion :math:`F \Rightarrow F` and has no free assumptions.
    * More generally, a proof with no free assumptions always concludes a valid
@@ -150,7 +152,7 @@ enum ENUM(ProofRule) : uint32_t
    * **Builtin theory -- Rewrite**
    *
    * .. math::
-   *   \inferrule{- \mid t, idr}{t = \texttt{Rewriter}_{idr}(t)}
+   *   \inferrule{- \mid t, idr}{t = \texttt{rewrite}_{idr}(t)}
    *
    * where :math:`idr` is a MethodId identifier, which determines the kind of
    * rewriter to apply, e.g. Rewriter::rewrite. \endverbatim
@@ -161,8 +163,11 @@ enum ENUM(ProofRule) : uint32_t
    * **Builtin theory -- Evaluate**
    *
    * .. math::
-   *   \inferrule{- \mid t}{t = \texttt{Evaluator::evaluate}(t)}
+   *   \inferrule{- \mid t}{t = \texttt{evaluate}(t)}
    *
+   * where :math:`\texttt{evaluate}` is implemented by calling the method
+   * :math:`\texttt{Evalutor::evaluate}` in :cvc5src:`theory/evaluator.h` with an
+   * empty substitution.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
    * \endverbatim
    */
@@ -174,8 +179,9 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. This
-   * method normalizes currently based on two kinds of operators:
+   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. For details, see
+   * :cvc5src:`expr/nary_term_util.h`.
+   * This method normalizes currently based on two kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
    * (2) those that are associative and have an identity element (examples
@@ -192,7 +198,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid t, (ids (ida (idr)?)?)?}{t =
-   *   \texttt{Rewriter}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
+   *   \texttt{rewrite}_{idr}(t \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ
    *   \sigma_{ids, ida}(F_1))}
    *
    * In other words, from the point of view of Skolem forms, this rule
@@ -214,7 +220,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid F, (ids (ida (idr)?)?)?}{F}
    *
-   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   * where :math:`\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
    * \cdots \circ \sigma_{ids, ida}(F_1)) = \top` and :math:`ids` and
    * :math:`idr` are method identifiers.
    *
@@ -240,7 +246,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid (ids (ida
-   *   (idr)?)?)?}{\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
+   *   (idr)?)?)?}{\texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
    *   \cdots \circ \sigma_{ids, ida}(F_1))}
    *
    * where :math:`ids` and :math:`idr` are method identifiers.
@@ -257,76 +263,91 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *   \inferrule{F, F_1 \dots F_n \mid G, (ids (ida (idr)?)?)?}{G}
    *
-   * where :math:`\texttt{Rewriter}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ
-   * \cdots \circ \sigma_{ids, ida}(F_1)) = \texttt{Rewriter}_{idr}(G \circ
-   * \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))`.
+   * where
+   *
+   * .. math::
+   *   \texttt{rewrite}_{idr}(F \circ \sigma_{ids, ida}(F_n) \circ\cdots \circ \sigma_{ids, ida}(F_1)) =\\ \texttt{rewrite}_{idr}(G \circ \sigma_{ids, ida}(F_n) \circ \cdots \circ \sigma_{ids, ida}(F_1))
    *
    * More generally, this rule also holds when:
-   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) =
-   * \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))` where :math:`F'` and
-   * :math:`G'` are the result of each side of the equation above. Here,
-   * original forms are used in a similar manner to
+   * :math:`\texttt{Rewriter::rewrite}(\texttt{toOriginal}(F')) = \texttt{Rewriter::rewrite}(\texttt{toOriginal}(G'))`
+   * where :math:`F'` and :math:`G'` are the result of each side of the equation
+   * above. Here, original forms are used in a similar manner to
    * :cpp:enumerator:`MACRO_SR_PRED_INTRO <cvc5::ProofRule::MACRO_SR_PRED_INTRO>`
    * above. \endverbatim
    */
   EVALUE(MACRO_SR_PRED_TRANSFORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Encode predicate transformation**
+   * **Builtin theory -- Encode equality introduction**
+   *
    * .. math::
-   *   \inferrule{F \mid G}{G}
-   * 
-   * where :math:`F` and :math:`G` are equivalent up to their encoding in an
-   * external proof format. This is currently verified by
-   *   :math:`\texttt{RewriteDbNodeConverter::convert}(F) = 
-   * \texttt{RewriteDbNodeConverter::convert}(G)`.
-   * This rule can be treated as a no-op when appropriate in external proof
-   * formats.
+   *   \inferrule{- \mid t}{t=t'}
+   *
+   * where :math:`t` and :math:`t'` are equivalent up to their encoding in an
+   * external proof format.
+   *
+   * More specifically, it is the case that
+   * :math:`\texttt{RewriteDbNodeConverter::postConvert}(t) = t;`.
+   * This conversion method for instance may drop user patterns from quantified
+   * formulas or change the representation of :math:`t` in a way that is a
+   * no-op in external proof formats.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    * \endverbatim
    */
-  EVALUE(ENCODE_PRED_TRANSFORM),
+  EVALUE(ENCODE_EQ_INTRO),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- DSL rewrite**
+   *
    * .. math::
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
-   * 
-   * where the DSL rewrite rule with the given identifier is
-   * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
+   *
+   * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
+   * RARE DSL is :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
-   * 
+   *
    * Notice that the application of the substitution takes into account the
    * possible list semantics of variables :math:`x_1 \ldots x_n`. If
    * :math:`x_i` is a variable with list semantics, then :math:`t_i` denotes a
-   * list of terms. The substitution implemented by expr::narySubstitute
-   * replaces each :math:`x_i` with the list :math:`t_i` in its place.
+   * list of terms. The substitution implemented by
+   * :math:`\texttt{expr::narySubstitute}` (for details, see
+   * :cvc5src:`expr/nary_term_util.h`) which replaces each :math:`x_i` with the
+   * list :math:`t_i` in its place.
    * \endverbatim
    */
   EVALUE(DSL_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- Annotation**
+   * **Other theory rewrite rules**
    *
    * .. math::
-   *   \inferrule{F \mid a_1 \dots a_n}{F}
+   *   \inferrule{- \mid id, t = t'}{t = t'}
    *
-   * The terms :math:`a_1 \dots a_n` can be anything used to annotate the proof
-   * node, one example is where :math:`a_1` is a theory::InferenceId.
+   * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
+   * rule which transforms :math:`t` to :math:`t'`.
+   *
+   * In contrast to :cpp:enumerator:`DSL_REWRITE`, theory rewrite rules used by
+   * this proof rule are not necessarily expressible in RARE. Each rule that can
+   * be used in this proof rule are documented explicitly in cases within the
+   * :cpp:enum:`ProofRewriteRule` enum.
    * \endverbatim
    */
-  EVALUE(ANNOTATION),
+  EVALUE(THEORY_REWRITE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Processing rules -- Remove Term Formulas Axiom**
+   * **Processing rules -- If-then-else equivalence**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{RemoveTermFormulas::getAxiomFor}(t)}
+   *   \inferrule{- \mid \ite{C}{t_1}{t_2}}{\ite{C}{((\ite{C}{t_1}{t_2}) = t_1)}{((\ite{C}{t_1}{t_2}) = t_2)}}
    *
    * \endverbatim
    */
-  EVALUE(REMOVE_TERM_FORMULA_AXIOM),
+  EVALUE(ITE_EQ),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -436,12 +457,11 @@ enum ENUM(ProofRule) : uint32_t
    * where
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined above
-   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond_{L,pol} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined above
    * - let :math:`C_1' = C_1`,
-   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond{L_{i-1},
-   *   \mathit{pol}_{i-1}} C_i'`
+   * - for each :math:`i > 1`, let :math:`C_i' = C_{i-1} \diamond_{L_{i-1}, pol_{i-1}} C_i'`
    *
    * Note the list of polarities and pivots are provided as s-expressions.
    *
@@ -469,8 +489,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{C_1 \mid C_2}{C_2}
    *
    * where
-   * the set representations of :math:`C_1` and :math:`C_2` are the same and the
-   * number of literals in :math:`C_2` is the same of that of :math:`C_1`.
+   * the multiset representations of :math:`C_1` and :math:`C_2` are the same.
    * \endverbatim
    */
   EVALUE(REORDERING),
@@ -485,13 +504,13 @@ enum ENUM(ProofRule) : uint32_t
    *
    * - let :math:`C_1 \dots C_n` be nodes viewed as clauses, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
-   * - let :math:`C_1 \diamond{L,\mathit{pol}} C_2` represent the resolution of
+   * - let :math:`C_1 \diamond_{L,\mathit{pol}} C_2` represent the resolution of
    *   :math:`C_1` with :math:`C_2` with pivot :math:`L` and polarity
    *   :math:`pol`, as defined in
    *   :cpp:enumerator:`RESOLUTION <cvc5::ProofRule::RESOLUTION>`
    * - let :math:`C_1'` be equal, in its set representation, to :math:`C_1`,
    * - for each :math:`i > 1`, let :math:`C_i'` be equal, in its set
-   *   representation, to :math:`C_{i-1} \diamond{L_{i-1},\mathit{pol}_{i-1}}
+   *   representation, to :math:`C_{i-1} \diamond_{L_{i-1},\mathit{pol}_{i-1}}
    *   C_i'`
    *
    * The result of the chain resolution is :math:`C`, which is equal, in its set
@@ -503,9 +522,10 @@ enum ENUM(ProofRule) : uint32_t
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- N-ary Resolution + Factoring + Reordering unchecked**
    *
-   * Same as :cpp:enumerator:`MACRO_RESOLUTION
-   * <cvc5::ProofRule::MACRO_RESOLUTION>`, but not checked by the internal proof
-   * checker. \endverbatim
+   * Same as
+   * :cpp:enumerator:`MACRO_RESOLUTION <cvc5::ProofRule::MACRO_RESOLUTION>`, but
+   * not checked by the internal proof checker.
+   * \endverbatim
    */
   EVALUE(MACRO_RESOLUTION_TRUST),
 
@@ -1023,11 +1043,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?)(t_1,\dots, t_n) =
-   *   k(f?)(s_1,\dots, s_n)}
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?, t_1,\dots, t_n) =
+   *   k(f?, s_1,\dots, s_n)}
    *
    * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g. 
+   * provided iff :math:`k` is a parameterized kind, e.g.
    * `cvc5::Kind::APPLY_UF`. The actual node for
    * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
    * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
@@ -1104,10 +1124,18 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{t= \texttt{TheoryUfRewriter::getHoApplyForApplyUf}(t)}
+   *   \inferrule{-\mid t}{t=t'}
    *
-   * For example, this rule concludes :math:`f(x,y) = @(@(f,x),y)`, where
-   * :math:`@` isthe ``HO_APPLY`` kind.
+   * where `t'` is the higher-order application that is equivalent to `t`,
+   * as implemented by ``uf::TheoryUfRewriter::getHoApplyForApplyUf``.
+   * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
+   *
+   * For example, this rule concludes :math:`f(x,y) = @( @(f,x), y)`, where
+   * :math:`@` is the ``HO_APPLY`` kind.
+   *
+   * Note this rule can be treated as a
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>` when appropriate in
+   * external proof formats.
    *  \endverbatim
    */
   EVALUE(HO_APP_ENCODE),
@@ -1125,21 +1153,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(HO_CONG),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Beta reduction**
-   *
-   * .. math::
-   *
-   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
-   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
-   *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via Node::substitute.
-   * \endverbatim
-   */
-  EVALUE(BETA_REDUCE),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
@@ -1182,24 +1195,10 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
    *
-   * where :math:`k` is
-   * :math:`\texttt{arrays::SkolemCache::getExtIndexSkolem}(a\neq b)`.
+   * where :math:`k` is the :math:`\texttt{ARRAY_DEQ_DIFF}` skolem for `(a, b)`.
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Expansion of array range equality**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{eqrange}(a,b,i,j)}
-   *   {\mathit{eqrange}(a,b,i,j)=
-   *   \forall x.\> i \leq x \leq j \rightarrow
-   *   \mathit{select}(a,x)=\mathit{select}(b,x)}
-   * \endverbatim
-   */
-  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1209,10 +1208,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    *   \inferrule{-\mid t}{t = \texttt{bitblast}(t)}
    *
-   * where ``bitblast()`` represents the result of the bit-blasted term as a
-   * bit-vector consisting of the output bits of the bit-blasted circuit
+   * where :math:`\texttt{bitblast}` represents the result of the bit-blasted term as
+   * a bit-vector consisting of the output bits of the bit-blasted circuit
    * representation of the term. Terms are bit-blasted according to the
-   * strategies defined in ``theory/bv/bitblast/bitblast_strategies_template.h``.
+   * strategies defined in :cvc5src:`theory/bv/bitblast/bitblast_strategies_template.h`.
    * \endverbatim
    */
   EVALUE(MACRO_BV_BITBLAST),
@@ -1250,50 +1249,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(BV_EAGER_ATOM),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Unification**
-   *
-   * .. math::
-   *
-   *   \inferrule{C(t_1,\dots,t_n)= C(s_1,\dots,s_n)\mid i}{t_1 = s_i}
-   *
-   * where :math:`C` is a constructor.
-   * \endverbatim
-   */
-  EVALUE(DT_UNIF),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Instantiation**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid t,n}{\mathit{is}_C(t) =
-   *   (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))}
-   *
-   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
-   * t, and :math:`\mathit{is}_C` is the discriminator (tester) for :math:`C`.
-   * \endverbatim
-   */
-  EVALUE(DT_INST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Collapse**
-   *
-   * .. math::
-   *
-   *   \inferrule{-\mid \mathit{sel}_i(C_j(t_1,\dots,t_n))}{
-   *   \mathit{sel}_i(C_j(t_1,\dots,t_n)) = r}
-   *
-   * where :math:`C_j` is a constructor, :math:`r` is :math:`t_i` if
-   * :math:`\mathit{sel}_i` is a correctly applied selector, or
-   * ``TypeNode::mkGroundTerm()`` of the proper type otherwise. Notice that the
-   * use of ``mkGroundTerm`` differs from the rewriter which uses
-   * ``mkGroundValue`` in this case.
-   * \endverbatim
-   */
-  EVALUE(DT_COLLAPSE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
@@ -1337,18 +1292,12 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{\exists x_1\dots x_n.\> F\mid -}{F\sigma}
-   *
-   * or
-   *
-   * .. math::
-   *
    *   \inferrule{\neg (\forall x_1\dots x_n.\> F)\mid -}{\neg F\sigma}
    *
    * where :math:`\sigma` maps :math:`x_1,\dots,x_n` to their representative
-   * skolems obtained by ``SkolemManager::mkSkolemize``, returned in the skolems
-   * argument of that method. The witness terms for the returned skolems can be
-   * obtained by ``SkolemManager::getWitnessForm``.
+   * skolems, which are skolems :math:`k_1,\dots,k_n`. For each :math:`k_i`,
+   * its skolem identifier is :cpp:enumerator:`QUANTIFIERS_SKOLEMIZE <cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE>`,
+   * and its indices are :math:`(\forall x_1\dots x_n.\> F)` and :math:`x_i`.
    * \endverbatim
    */
   EVALUE(SKOLEMIZE),
@@ -1390,6 +1339,66 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ALPHA_EQUIV),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Variable reordering**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid (\forall X.\> F) = (\forall Y.\> F)}
+   *   {(\forall X.\> F) = (\forall Y.\> F)}
+   * 
+   * where :math:`Y` is a reordering of :math:`X`.
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_REORDERING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Singleton injectivity**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.singleton}(t) = \mathit{set.singleton}(s)\mid -}{t=s}
+   * \endverbatim
+   */
+  EVALUE(SETS_SINGLETON_INJ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{a \neq b\mid -}
+   *   {\mathit{set.member}(k,a)\neq\mathit{set.member}(k,b)}
+   *
+   * where :math:`k` is the :math:`\texttt{SETS_DEQ_DIFF}` skolem for `(a, b)`.
+   * \endverbatim
+   */
+  EVALUE(SETS_EXT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter up**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,a)\mid P}
+   *   {\mathit{set.member}(x, \mathit{set.filter}(P, a)) = P(x)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_UP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets filter down**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mathit{set.member}(x,\mathit{set.filter}(P, a))\mid -}
+   *   {\mathit{set.member}(x,a) \wedge P(x)}
+   * \endverbatim
+   */
+  EVALUE(SETS_FILTER_DOWN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation equality**
    *
    * .. math::
@@ -1403,7 +1412,7 @@ enum ENUM(ProofRule) : uint32_t
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
    * implicit in the concatenation above. For example, if the premise is
    * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
-   * :math:`z = ''`.
+   * :math:`z = \epsilon`.
    *
    * Also note that constants are split, such that for :math:`(\mathsf{'abc'}
    * \cdot x) = (\mathsf{'a'} \cdot y)`, this rule, with argument :math:`\bot`,
@@ -1419,9 +1428,15 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_1) =
-   *   \mathit{len}(s_1)\mid b}{t_1 = s_1}
+   *   \mathit{len}(s_1)\mid \bot}{t_1 = s_1}
    *
-   * where :math:`b` indicates if the direction is reversed.
+   * Alternatively for the reverse:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_2) =
+   *   \mathit{len}(s_2)\mid \top}{t_2 = s_2}
+   *
    * \endverbatim
    */
   EVALUE(CONCAT_UNIFY),
@@ -1438,7 +1453,7 @@ enum ENUM(ProofRule) : uint32_t
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
    * other. Note it may be the case that one side of the equality denotes the
    * empty string.
-   * 
+   *
    * This rule is used exclusively for strings.
    *
    * \endverbatim
@@ -1450,12 +1465,12 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
+   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid b}{\bot}
    *
-   * where $t_1$ and $s_1$ are constants of length one, or otherwise one side
-   * of the equality is the empty sequence and $t_1$ or $s_1$ corresponding to
+   * where :math:`t_1` and :math:`s_1` are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and :math:`t_1` or :math:`s_1` corresponding to
    * that side is the empty sequence.
-   * 
+   *
    * This rule is used exclusively for sequences.
    *
    * \endverbatim
@@ -1468,24 +1483,28 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\bot$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_1 = s_1\cdot r)
+   *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\bot$}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))` and
-   * :math:`r_s` is :math:`\mathit{skolem}(\mathit{suf}(s_1,\mathit{len}(t_1)))`.
+   * where :math:`r` is the purification skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_1) >= \mathit{len}(s_1),
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1)))`
+   * and :math:`\epsilon` is the empty string (or sequence).
    *
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{(t_1 = s_1\cdot r_t)
-   *   \vee (s_1 = t_1\cdot r_s)}{if $b=\top$}
+   *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid b}{((t_2 = r \cdot s_2)
+   *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\top$}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
-   * \mathit{len}(s_2)))` and :math:`r_s` is
-   * :math:`\mathit{skolem}(\mathit{pre}(s_2,\mathit{len}(s_2) -
-   * \mathit{len}(t_2)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_2) >= \mathit{len}(s_2),
+   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
+   * and :math:`\epsilon` is the empty string (or sequence).
    *
    * Above, :math:`\mathit{suf}(x,n)` is shorthand for
    * :math:`\mathit{substr}(x,n, \mathit{len}(x) - n)` and
@@ -1502,7 +1521,7 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{(t_1\cdot t_2) = (c \cdot s_2),\,
    *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
    *
-   * where :math:`r` is :math:`\mathit{skolem}(\mathit{suf}(t_1,1))`.
+   * where :math:`r` is the purification skolem for :math:`\mathit{suf}(t_1,1)`.
    *
    * Alternatively for the reverse:
    *
@@ -1511,8 +1530,8 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot c),\,
    *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot c)}
    *
-   * where :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) - 1))`.
+   * where :math:`r` is the purification skolem for
+   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - 1)`.
    * \endverbatim
    */
   EVALUE(CONCAT_CSPLIT),
@@ -1523,21 +1542,26 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r_t)}
+   *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(s_1)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_1) >= \mathit{len}(s_1),
+   * \mathit{suf}(t_1,\mathit{len}(s_1)),
+   * \mathit{suf}(s_1,\mathit{len}(t_1)))`.
    *
    * Alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r_t\cdot s_2)}
+   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r \cdot s_2)}
    *
-   * where :math:`r_t` is
-   * :math:`\mathit{skolem}(\mathit{pre}(t_2,\mathit{len}(t_2) -
-   * \mathit{len}(s_2)))`.
+   * where :math:`r` is the purification Skolem for
+   * :math:`\mathit{ite}(
+   * \mathit{len}(t_2) >= \mathit{len}(s_2),
+   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
+   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
    * \endverbatim
    */
   EVALUE(CONCAT_LPROP),
@@ -1548,12 +1572,13 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_3\cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
    * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
-   * :math:`\mathit{skolem}(\mathit{suf}(t_1,\mathit{len}(w_3)))`.  Note that
+   * the purification skolem for
+   * :math:`\mathit{suf}(t_1,\mathit{len}(w_3))`.  Note that
    * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
    * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
    * :math:`t_1` is non-empty, :math:`w_3` must therefore be contained in
@@ -1564,13 +1589,13 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_3)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2,\,w_3` are words, :math:`w_3` is
-   * :math:`\mathit{suf}(w_2, \mathit{len}(w_2) - p)`, :math:`p` is
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
-   * w_1)`, and :math:`r` is :math:`\mathit{skolem}(\mathit{pre}(t_2,
-   * \mathit{len}(t_2) - \mathit{len}(w_3)))`.  Note that
+   * w_1)`, and :math:`r` is the purification skolem for
+   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(w_3))`.  Note that
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
    * of :math:`w_1`; since :math:`t_2` is non-empty, :math:`w_3` must therefore
@@ -1587,15 +1612,17 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{\mathit{len}(t) \geq n\mid \bot}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_1) = n}
    *
-   * or alternatively for the reverse:
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)`
+   * and :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
+   * Or alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{\mathit{len}(t) \geq n\mid \top}{t = w_1\cdot w_2 \wedge
    *   \mathit{len}(w_2) = n}
    *
-   * where :math:`w_1` is :math:`\mathit{skolem}(\mathit{pre}(t,n)` and
-   * :math:`w_2` is :math:`\mathit{skolem}(\mathit{suf}(t,n)`.
+   * where :math:`w_1` is the purification skolem for :math:`\mathit{pre}(t,n)` and
+   * :math:`w_2` is the purification skolem for :math:`\mathit{suf}(t,n)`.
    * \endverbatim
    */
   EVALUE(STRING_DECOMPOSE),
@@ -1605,7 +1632,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{-\mid t}{(\mathit{len}(t) = 0\wedge t= '')\vee \mathit{len}(t)
+   *   \inferrule{-\mid t}{(\mathit{len}(t) = 0\wedge t= \epsilon)\vee \mathit{len}(t)
    *   > 0}
    * \endverbatim
    */
@@ -1616,7 +1643,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\neq ''\mid -}{\mathit{len}(t) \neq 0}
+   *   \inferrule{t\neq \epsilon\mid -}{\mathit{len}(t) \neq 0}
    * \endverbatim
    */
   EVALUE(STRING_LENGTH_NON_EMPTY),
@@ -1628,9 +1655,11 @@ enum ENUM(ProofRule) : uint32_t
    *
    *   \inferrule{-\mid t}{R\wedge t = w}
    *
-   * where :math:`w` is :math:`\texttt{strings::StringsPreprocess::reduce}(t, R,
-   * \dots)`.  In other words, :math:`R` is the reduction predicate for extended
-   * term :math:`t`, and :math:`w` is :math:`skolem(t)`.
+   * where :math:`w` is :math:`\texttt{StringsPreprocess::reduce}(t, R,
+   * \dots)`. For details, see
+   * :cvc5src:`theory/strings/theory_strings_preprocess.h`.
+   * In other words, :math:`R` is the reduction predicate for extended
+   * term :math:`t`, and :math:`w` is the purification skolem for :math:`t`.
    *
    * Notice that the free variables of :math:`R` are :math:`w` and the free
    * variables of :math:`t`.
@@ -1645,7 +1674,8 @@ enum ENUM(ProofRule) : uint32_t
    *
    *   \inferrule{-\mid t}{R}
    *
-   * where :math:`R` is :math:`\texttt{strings::TermRegistry::eagerReduce}(t)`.
+   * where :math:`R` is :math:`\texttt{TermRegistry::eagerReduce}(t)`.
+   * For details, see :cvc5src:`theory/strings/term_registry.h`.
    * \endverbatim
    */
   EVALUE(STRING_EAGER_REDUCTION),
@@ -1655,7 +1685,7 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{inter}(R_1,R_2)}
+   *   \inferrule{t\in R_1,\,t\in R_2\mid -}{t\in \mathit{re.inter}(R_1,R_2)}
    * \endverbatim
    */
   EVALUE(RE_INTER),
@@ -1665,9 +1695,10 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\in R\mid -}{\texttt{RegExpOpr::reduceRegExpPos}(t\in R)}
+   *   \inferrule{t\in R\mid -}{F}
    *
-   * corresponding to the one-step unfolding of the premise.
+   * where :math:`F` corresponds to the one-step unfolding of the premise.
+   * This is implemented by :math:`\texttt{RegExpOpr::reduceRegExpPos}(t\in R)`.
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_POS),
@@ -1677,9 +1708,17 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid -}{\texttt{RegExpOpr::reduceRegExpNeg}(t\not\in R)}
+   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ \epsilon \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
    *
-   * corresponding to the one-step unfolding of the premise.
+   * Or alternatively for regular expression concatenation:
+   *
+   * .. math::
+   *
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
+   *
+   * Note that in either case the varaible :math:`L` has type :math:`Int` and
+   * name `"@var.str_index"`.
+   *
    * \endverbatim
    */
   EVALUE(RE_UNFOLD_NEG),
@@ -1689,31 +1728,25 @@ enum ENUM(ProofRule) : uint32_t
    *
    * .. math::
    *
-   *   \inferrule{t\not\in R\mid
-   *   -}{\texttt{RegExpOpr::reduceRegExpNegConcatFixed}(t\not\in R,L,i)}
+   *   \inferrule{t\not\in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \bot}{
+   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{re.++}(r_2, \ldots, r_n)}
    *
-   * where :math:`\texttt{RegExpOpr::getRegExpConcatFixed}(t\not\in R, i) = L`,
-   * corresponding to the one-step unfolding of the premise, optimized for fixed
-   * length of component :math:`i` of the regular expression concatenation
-   * :math:`R`.
-   * \endverbatim
-   */
-  EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Regular expressions -- Elimination**
+   * where :math:`r_1` has fixed length :math:`L`.
+   *
+   * or alternatively for the reverse:
+   *
    *
    * .. math::
    *
-   *   \inferrule{-\mid F,b}{F =
-   *   \texttt{strings::RegExpElimination::eliminate}(F, b)}
+   *   \inferrule{t \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_n) \mid \top}{
+   *   \mathit{suf}(t, str.len(t) - L) \not \in r_n \vee
+   *   \mathit{pre}(t, str.len(t) - L) \not \in \mathit{re}.\text{re.++}(r_1, \ldots, r_{n-1})}
    *
-   * where :math:`b` is a Boolean indicating whether we are using aggressive
-   * eliminations. Notice this rule concludes :math:`F = F` if no eliminations
-   * are performed for :math:`F`.
+   * where :math:`r_n` has fixed length :math:`L`.
+   *
    * \endverbatim
    */
-  EVALUE(RE_ELIM),
+  EVALUE(RE_UNFOLD_NEG_CONCAT_FIXED),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Code points**
@@ -1721,7 +1754,7 @@ enum ENUM(ProofRule) : uint32_t
    * .. math::
    *
    *   \inferrule{-\mid t,s}{\mathit{to\_code}(t) = -1 \vee \mathit{to\_code}(t) \neq
-   *   \mathit{to\_code}(s) \vee t\neq s}
+   *   \mathit{to\_code}(s) \vee t = s}
    * \endverbatim
    */
   EVALUE(STRING_CODE_INJ),
@@ -1740,6 +1773,24 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(STRING_SEQ_UNIT_INJ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Extensionality**
+   *
+   * .. math::
+   *
+   *   \inferrule{s \neq t\mid -}
+   *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{set.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
+   *
+   * where :math:`s,t` are terms of sequence type, :math:`k` is the
+   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. Alternatively,
+   * if :math:`s,t` are terms of string type, we use 
+   * :math:`\mathit{seq.substr}(s,k,1)` instead of :math:`\mathit{seq.nth}(s,k)`
+   * and similarly for :math:`t`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STRING_EXT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- (Macro) String inference**
    *
    * .. math::
@@ -1751,7 +1802,6 @@ enum ENUM(ProofRule) : uint32_t
    * \endverbatim
    */
   EVALUE(MACRO_STRING_INFERENCE),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Adding inequalities**
@@ -1828,13 +1878,23 @@ enum ENUM(ProofRule) : uint32_t
   EVALUE(ARITH_TRICHOTOMY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Operator elimination**
+   * **Arithmetic -- Reduction**
    *
    * .. math::
-   *   \inferrule{- \mid t}{\texttt{arith::OperatorElim::getAxiomFor(t)}}
+   *   \inferrule{- \mid t}{F}
+   * 
+   * where :math:`t` is an application of an extended arithmetic operator (e.g.
+   * division, modulus, cosine, sqrt, is_int, to_int) and :math:`F` is the
+   * reduction predicate for :math:`t`. In other words, :math:`F` is a
+   * predicate that is used to reduce reasoning about :math:`t` to reasoning
+   * about the core operators of arithmetic.
+   *
+   * In detail, :math:`F` is implemented by
+   * :math:`\texttt{arith::OperatorElim::getAxiomFor(t)}`, see
+   * :cvc5src:`theory/arith/operator_elim.h`.
    * \endverbatim
    */
-  EVALUE(ARITH_OP_ELIM_AXIOM),
+  EVALUE(ARITH_REDUCTION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Polynomial normalization**
@@ -1843,11 +1903,30 @@ enum ENUM(ProofRule) : uint32_t
    *   \inferrule{- \mid t = s}{t = s}
    *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
-   * method normalizes polynomials over arithmetic or bitvectors.
+   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic or
+   * bitvectors.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Polynomial normalization for relations**
+   *
+   * .. math::
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
+   *
+   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:`c_y` are
+   * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
+   * same sign. For bitvectors, they are set to :math:`1`.
+   *
+   * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
+   * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
+   * `to_real`, similarly for :math:`(y_1 - y_2)`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POLY_NORM_REL),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sign inference**
@@ -1892,13 +1971,13 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Multiplication tangent plane**
    *
    * .. math::
-   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) \leftrightarrow ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = -1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \leq tplane) = ((x \leq a \land y \geq b) \lor (x \geq a \land y \leq b))}{if $\sigma = \bot$}
    *
-   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) \leftrightarrow ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = 1$}
+   *   \inferruleSC{- \mid x, y, a, b, \sigma}{(t \geq tplane) = ((x \leq a \land y \leq b) \lor (x \geq a \land y \geq b))}{if $\sigma = \top$}
    *
    * where :math:`x,y` are real terms (variables or extended terms),
    * :math:`t = x \cdot y`, :math:`a,b` are real
-   * constants, :math:`\sigma \in \{ 1, -1\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
+   * constants, :math:`\sigma \in \{ \top, \bot\}` and :math:`tplane := b \cdot x + a \cdot y - a \cdot b` is the tangent plane of :math:`x \cdot y` at :math:`(a,b)`.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_TANGENT),
@@ -2038,12 +2117,17 @@ enum ENUM(ProofRule) : uint32_t
    * **Arithmetic -- Transcendentals -- Sine is shifted to -pi...pi**
    *
    * .. math::
-   *   \inferrule{- \mid x, y, s}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
+   *   \inferrule{- \mid x}{-\pi \leq y \leq \pi \land \sin(y) = \sin(x)
    *   \land (\ite{-\pi \leq x \leq \pi}{x = y}{x = y + 2 \pi s})}
    *
    * where :math:`x` is the argument to sine, :math:`y` is a new real skolem
    * that is :math:`x` shifted into :math:`-\pi \dots \pi` and :math:`s` is a
-   * new integer slolem that is the number of phases :math:`y` is shifted.
+   * new integer skolem that is the number of phases :math:`y` is shifted.
+   * In particular, :math:`y` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_PURIFY_ARG <cvc5::SkolemId::TRANSCENDENTAL_PURIFY_ARG>`
+   * skolem for :math:`\sin(x)` and :math:`s` is the
+   * :cpp:enumerator:`TRANSCENDENTAL_SINE_PHASE_SHIFT <cvc5::SkolemId::TRANSCENDENTAL_SINE_PHASE_SHIFT>`
+   * skolem for :math:`x`.
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_SHIFT),
@@ -2166,66 +2250,6 @@ enum ENUM(ProofRule) : uint32_t
    * :math:`u`. \endverbatim
    */
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
-
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Direct conflict**
-   *
-   * We use :math:`\texttt{IRP}_k(poly)` for an IndexedRootPredicate that is
-   * defined as the :math:`k`'th root of the polynomial :math:`poly`. Note that
-   * :math:`poly` may not be univariate; in this case, the value of
-   * :math:`\texttt{IRP}_k(poly)` can only be calculated with respect to a
-   * (partial) model for all but one variable of :math:`poly`.
-   *
-   * A formula :math:`\texttt{Interval}(x_i)` describes that a variable
-   * :math:`x_i` is within a particular interval whose bounds are given as IRPs.
-   * It is either an open interval or a point interval:
-   *
-   * .. math::
-   *   \texttt{IRP}_k(poly) < x_i < \texttt{IRP}_k(poly)
-   *
-   *   x_i = \texttt{IRP}_k(poly)
-   *
-   * A formula :math:`\texttt{Cell}(x_1 \dots x_i)` describes a portion
-   * of the real space in the following form:
-   *
-   * .. math::
-   *   \texttt{Interval}(x_1) \land \dots \land \texttt{Interval}(x_i)
-   *
-   * A cell can also be empty (for :math:`i = 0`).
-   *
-   * A formula :math:`\texttt{Covering}(x_i)` is a set of intervals, implying
-   * that :math:`x_i` can be in neither of these intervals. To be a covering (of
-   * the real line), the union of these intervals should be the real numbers.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, A \mid -}{\bot}
-   *
-   * A direct interval is generated from an assumption :math:`A` (in variables
-   * :math:`x_1 \dots x_i`) over a :math:`\texttt{Cell}(x_1 \dots x_i)`. It
-   * derives that :math:`A` evaluates to false over the cell. In the actual
-   * algorithm, it means that :math:`x_i` can not be in the topmost interval of
-   * the cell. \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_DIRECT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Coverings -- Recursive interval**
-   *
-   * See
-   * :cpp:enumerator:`ARITH_NL_COVERING_DIRECT <cvc5::ProofRule::ARITH_NL_COVERING_DIRECT>`
-   * for the necessary definitions.
-   *
-   * .. math::
-   *   \inferrule{\texttt{Cell}, \texttt{Covering} \mid -}{\bot}
-   *
-   * A recursive interval is generated from :math:`\texttt{Covering}(x_i)` over
-   * :math:`\texttt{Cell}(x_1 \dots x_{i-1})`. It generates the conclusion that
-   * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
-   * \endverbatim
-   */
-  EVALUE(ARITH_NL_COVERING_RECURSIVE),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- LFSC**
@@ -2267,8 +2291,1611 @@ enum ENUM(ProofRule) : uint32_t
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_PROOF_REWRITE_RULE_##name
+#endif
+
+/**
+ * \verbatim embed:rst:leading-asterisk
+ * This enumeration represents the rewrite rules used in a rewrite proof. Some
+ * of the rules are internal ad-hoc rewrites, while others are rewrites
+ * specified by the RARE DSL. This enumeration is used as the first argument to
+ * the :cpp:enumerator:`DSL_REWRITE <cvc5::ProofRule::DSL_REWRITE>` proof rule
+ * and the :cpp:enumerator:`THEORY_REWRITE <cvc5::ProofRule::THEORY_REWRITE>`
+ * proof rule.
+ * \endverbatim
+ */
+enum ENUM(ProofRewriteRule)
+{
+  EVALUE(NONE),
+  // Custom theory rewrites.
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin -- Distinct elimination**
+   *
+   * .. math::
+   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
+   *
+   * if :math:`n = 2`, or
+   * 
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *
+   * if :math:`n > 2`
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin -- Distinct cardinality conflict**
+   *
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bot
+   *
+   * where :math:`n` is greater than the cardinality of the type of
+   * :math:`t_1, \ldots, t_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_CARD_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **UF -- Bitvector to natural elimination**
+   *
+   * .. math::
+   *   \texttt{bv2nat}(t) = t_1 + \ldots + t_n
+   *
+   * where for :math:`i=1, \ldots, n`, :math:`t_i` is
+   * :math:`\texttt{ite}(x[i-1, i-1] = 1, 2^i, 0)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_TO_NAT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **UF -- Integer to bitvector elimination**
+   *
+   * .. math::
+   *   \texttt{int2bv}_n(t) = (bvconcat t_1 \ldots t_n)
+   *
+   * where for :math:`i=1, \ldots, n`, :math:`t_i` is
+   * :math:`\texttt{ite}(\texttt{mod}(t,2^n) \geq 2^{n-1}, 1, 0)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(INT_TO_BV_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Negation Normal Form with normalization**
+   *
+   * .. math::
+   *   F = G
+   *
+   * where :math:`G` is the result of applying negation normal form to
+   * :math:`F` with additional normalizations, see
+   * TheoryBoolRewriter::computeNnfNorm.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_NNF_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arith -- Division by constant elimination**
+   *
+   * .. math::
+   *   t / c = t * 1/c
+   *
+   * where :math:`c` is a constant.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_DIV_BY_CONST_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- strings predicate entailment**
+   *
+   * .. math::
+   *   (= s t) = c
+   *
+   * .. math::
+   *   (>= s t) = c
+   *
+   * where :math:`c` is a Boolean constant.
+   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`,
+   * as well as other rewrites for normalizing arithmetic predicates.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- strings predicate entailment**
+   *
+   * .. math::
+   *   (>= n 0) = true
+   *
+   * Where :math:`n` can be shown to be greater than or equal to :math:`0` by
+   * reasoning about string length being positive and basic properties of
+   * addition and multiplication.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_STRING_PRED_ENTAIL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- strings predicate entailment**
+   *
+   * .. math::
+   *   (>= n 0) = (>= m 0)
+   *
+   * Where :math:`m` is a safe under-approximation of :math:`n`, namely
+   * we have that :math:`(>= n m)` and :math:`(>= m 0)`.
+   *
+   * In detail, subterms of :math:`n` may be replaced with other terms to
+   * obtain :math:`m` based on the reasoning described in the paper
+   * Reynolds et al, CAV 2019, "High-Level Abstractions for Simplifying
+   * Extended String Constraints in SMT".
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_STRING_PRED_SAFE_APPROX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- power elimination**
+   *
+   * .. math::
+   *   (x ^ c) = (x \cdot \ldots \cdot x)
+   *
+   * where :math:`c` is a non-negative integer.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
+   *   \ldots, x_n \mapsto t_n\}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution via ``Node::substitute``.
+   * \endverbatim
+   */
+  EVALUE(BETA_REDUCE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Lambda elimination**
+   *
+   * .. math::
+   *   (\lambda x_1 \ldots x_n.\> f(x_1 \ldots x_n)) = f
+   *
+   * \endverbatim
+   */
+  EVALUE(LAMBDA_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Constant array select**
+   *
+   * .. math::
+   *   (select A x) = c
+   *
+   * where :math:`A` is a constant array storing element :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_SELECT_CONST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Expansion of array range equality**
+   *
+   * .. math::
+   *   \mathit{eqrange}(a,b,i,j)=
+   *   \forall x.\> i \leq x \leq j \rightarrow
+   *   \mathit{select}(a,x)=\mathit{select}(b,x)
+   * \endverbatim
+   */
+  EVALUE(ARRAYS_EQ_RANGE_EXPAND),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists elimination**
+   *
+   * .. math::
+   *   \exists x_1\dots x_n.\> F = \neg \forall x_1\dots x_n.\> \neg F
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Unused variables**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X_1.\> F
+   *
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
+   * result of removing duplicates from :math:`X_1 \ldots X_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MERGE_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X_1 \ldots X_n.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MERGE_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \cdots \wedge F_n =
+   *   G_1 \wedge \cdots \wedge G_n
+   *
+   * where each :math:`G_i` is semantically equivalent to
+   * :math:`\forall X.\> F_i`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
+   *   (\forall X.\> F_1) \wedge \ldots \wedge (\forall X.\> F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping free variables**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
+   * 
+   * where :math:`X = X_1 \ldots X_n`, and the right hand side does not have any
+   * free variable in :math:`X`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Datatypes Split**
+   *
+   * .. math::
+   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n Y. F_n)
+   * 
+   * where :math:`x` is of a datatype type with constructors
+   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
+   * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`.
+   * 
+   * \endverbatim
+   */
+  EVALUE(QUANT_DT_SPLIT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro connected free variable partitioning**
+   *
+   * .. math::
+   *   \forall X.\> F_1 \vee \ldots \vee F_n =
+   *   (\forall X_1.\> F_{1,1} \vee \ldots \vee F_{1,k_1}) \vee \ldots \vee
+   *   (\forall X_m.\> F_{m,1} \vee \ldots \vee F_{m,k_m})
+   *
+   * where :math:`X_1, \ldots, X_m` is a partition of :math:`X`. This is
+   * determined by computing the connected components when considering two
+   * variables in :math:`X` to be connected if they occur in the same
+   * :math:`F_i`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_PARTITION_CONNECTED_FV),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> F \{ x \mapsto t \}
+   *
+   * where :math:`\neg F` entails :math:`x = t`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination equality**
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
+   *
+   * or alternatively
+   *
+   * .. math::
+   *  (\forall x.\> x \neq t) = \bot
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_VAR_ELIM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro variable elimination inequality**
+   *
+   * .. math::
+   *   \forall x Y.\> F = \forall Y.\> G
+   *
+   * where :math:`G` is the result of replacing all literals containing
+   * :math:`x` with a constant. This is applied only when all such literals
+   * are lower (resp. upper) bounds for :math:`x`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro quantifiers rewrite body**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X.\> G
+   *
+   * where :math:`G` is semantically equivalent to :math:`F`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_REWRITE_BODY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Instantiation**
+   *
+   * .. math::
+   *    \mathit{is}_C(t) = (t = C(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
+   *
+   * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
+   * :math:`t`, and :math:`\mathit{is}_C` is the discriminator (tester) for
+   * :math:`C`.
+   * \endverbatim
+   */
+  EVALUE(DT_INST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse selector**
+   *
+   * .. math::
+   *   s_i(c(t_1, \ldots, t_n)) = t_i
+   *
+   * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_SELECTOR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse tester**
+   *
+   * .. math::
+   *   \mathit{is}_c(c(t_1, \ldots, t_n)) = true
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   \mathit{is}_c(d(t_1, \ldots, t_n)) = false
+   *
+   * where :math:`c` and :math:`d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse tester**
+   *
+   * .. math::
+   *   \mathit{is}_c(t) = true
+   *
+   * where :math:`c` is the only constructor of its associated datatype.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- constructor equality**
+   *
+   * .. math::
+   *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
+   *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   (c(t_1, \ldots, t_n) = d(s_1, \ldots, s_m)) = false
+   *
+   * where :math:`c` and :math:`d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- cycle**
+   *
+   * .. math::
+   *   (x = t[x]) = \bot
+   *
+   * where all terms on the path to :math:`x` in :math:`t[x]` are applications
+   * of constructors, and this path is non-empty.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CYCLE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- collapse tester**
+   *
+   * .. math::
+   *   u_{c,i}(c(t_1, \ldots, t_i, \ldots, t_n), s) = c(t_1, \ldots, s, \ldots, t_n)
+   *
+   * or alternatively
+   *
+   * .. math::
+   *   u_{c,i}(d(t_1, \ldots, t_n), s) = d(t_1, \ldots, t_n)
+   *
+   * where :math:`c` and :math:`d` are distinct constructors.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_COLLAPSE_UPDATER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes - updater elimination**
+   *
+   * .. math::
+   *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots s_n(t)), t)
+   *
+   * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_UPDATER_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- match elimination**
+   *
+   * .. math::
+   *   \texttt{match}(t ((p_1 c_1) \ldots (p_n c_n))) = \texttt{ite}(F_1, r_1, \texttt{ite}( \ldots, r_n))
+   * 
+   * where for :math:`i=1, \ldots, n`, :math:`F_1` is a formula that holds iff
+   * :math:`t` matches :math:`p_i` and :math:`r_i` is the result of a
+   * substitution on :math:`c_i` based on this match.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_MATCH_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_UMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Unsigned multiplication overflow detection elimination**
+   *
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767
+   * \endverbatim
+   */
+  EVALUE(BV_SMULO_ELIMINATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Combine like terms during addition by counting terms**
+   * \endverbatim
+   */
+  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract negations from multiplicands**
+   *
+   * .. math::
+   *    bvmul(bvneg(a),\ b,\ c) = bvneg(bvmul(a,\ b,\ c))
+   *
+   * \endverbatim
+   */
+  EVALUE(BV_MULT_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
+   *
+   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
+   * constant c \endverbatim
+   */
+  EVALUE(BV_BITWISE_SLICING),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Extract continuous substrings of bitvectors**
+   *
+   * .. math::
+   *    repeat(n,\ t) = concat(t ... t)
+   *
+   * where :math:`t` is repeated :math:`n` times.
+   * \endverbatim
+   */
+  EVALUE(BV_REPEAT_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression loop elimination**
+   *
+   * .. math::
+   *   re.loop_{l,u}(R) = re.union(R^l, \ldots, R^u)
+   *
+   * where :math:`u \geq l`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_LOOP_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression intersection/union inclusion**
+   *
+   * .. math::
+   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
+   * `r_1`.
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
+   *
+   * where :math:`R` is a list of regular expressions containing `r_1`,
+   * `re.comp(r_2)` and the list :math:`R_0`, where `r_1` is a superset of
+   * `r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_UNION_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression membership evaluation**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(s, R) = c
+   *
+   * where :math:`s` is a constant string, :math:`R` is a constant regular
+   * expression and :math:`c` is true or false.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression membership consume**
+   *
+   * .. math::
+   *   \mathit{str.in_re}(s, R) = b
+   *
+   * where :math:`b` is either :math:`false` or the result of stripping
+   * entailed prefixes and suffixes off of :math:`s` and :math:`R`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONSUME),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string in regular expression concatenation star character**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(\mathit{str}.\text{++}(s_1, \ldots, s_n), \mathit{re}.\text{*}(R)) =\\ \mathit{str.in\_re}(s_1, \mathit{re}.\text{*}(R)) \wedge \ldots \wedge \mathit{str.in\_re}(s_n, \mathit{re}.\text{*}(R))
+   *
+   * where all strings in :math:`R` have length one.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_CONCAT_STAR_CHAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string in regular expression sigma**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar})) = (\mathit{str.len}(s) = n)
+   *
+   * or alternatively:
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}, \mathit{re}.\text{*}(\mathit{re.allchar}))) = (\mathit{str.len}(s) \ge n)
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_SIGMA),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string in regular expression sigma star**
+   *
+   * .. math::
+   *   \mathit{str.in\_re}(s, \mathit{re}.\text{*}(\mathit{re}.\text{++}(\mathit{re.allchar}, \ldots, \mathit{re.allchar}))) = (\mathit{str.len}(s) \ \% \ n = 0)
+   *
+   * where :math:`n` is the number of :math:`\mathit{re.allchar}` arguments to
+   * :math:`\mathit{re}.\text{++}`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_SIGMA_STAR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings substring strip symbolic length**
+   *
+   * .. math::
+   *   str.substr(s, n, m) = t
+   *
+   * where :math:`t` is obtained by fully or partially stripping components of
+   * :math:`s` based on :math:`n` and :math:`m`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- empty tester evaluation**
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(\epsilon) = \top
+   *
+   * where :math:`\epsilon` is the empty set, or alternatively:
+   *
+   * .. math::
+   *   \mathit{sets.is\_empty}(c) = \bot
+   *
+   * where :math:`c` is a constant set that is not the empty set.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_IS_EMPTY_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets insert elimination**
+   *
+   * .. math::
+   *   \mathit{sets.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_INSERT_ELIM),
+  // RARE rules
+  // ${rules}$
+  /** Auto-generated from RARE rule arith-mul-one */
+  EVALUE(ARITH_MUL_ONE),
+  /** Auto-generated from RARE rule arith-mul-zero */
+  EVALUE(ARITH_MUL_ZERO),
+  /** Auto-generated from RARE rule arith-div-total-real */
+  EVALUE(ARITH_DIV_TOTAL_REAL),
+  /** Auto-generated from RARE rule arith-div-total-int */
+  EVALUE(ARITH_DIV_TOTAL_INT),
+  /** Auto-generated from RARE rule arith-div-total-zero-real */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_REAL),
+  /** Auto-generated from RARE rule arith-div-total-zero-int */
+  EVALUE(ARITH_DIV_TOTAL_ZERO_INT),
+  /** Auto-generated from RARE rule arith-int-div-total */
+  EVALUE(ARITH_INT_DIV_TOTAL),
+  /** Auto-generated from RARE rule arith-int-div-total-one */
+  EVALUE(ARITH_INT_DIV_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-div-total-zero */
+  EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-mod-total */
+  EVALUE(ARITH_INT_MOD_TOTAL),
+  /** Auto-generated from RARE rule arith-int-mod-total-one */
+  EVALUE(ARITH_INT_MOD_TOTAL_ONE),
+  /** Auto-generated from RARE rule arith-int-mod-total-zero */
+  EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-elim-gt */
+  EVALUE(ARITH_ELIM_GT),
+  /** Auto-generated from RARE rule arith-elim-lt */
+  EVALUE(ARITH_ELIM_LT),
+  /** Auto-generated from RARE rule arith-elim-int-gt */
+  EVALUE(ARITH_ELIM_INT_GT),
+  /** Auto-generated from RARE rule arith-elim-int-lt */
+  EVALUE(ARITH_ELIM_INT_LT),
+  /** Auto-generated from RARE rule arith-elim-leq */
+  EVALUE(ARITH_ELIM_LEQ),
+  /** Auto-generated from RARE rule arith-leq-norm */
+  EVALUE(ARITH_LEQ_NORM),
+  /** Auto-generated from RARE rule arith-geq-tighten */
+  EVALUE(ARITH_GEQ_TIGHTEN),
+  /** Auto-generated from RARE rule arith-geq-norm1-int */
+  EVALUE(ARITH_GEQ_NORM1_INT),
+  /** Auto-generated from RARE rule arith-geq-norm1-real */
+  EVALUE(ARITH_GEQ_NORM1_REAL),
+  /** Auto-generated from RARE rule arith-geq-norm2 */
+  EVALUE(ARITH_GEQ_NORM2),
+  /** Auto-generated from RARE rule arith-refl-leq */
+  EVALUE(ARITH_REFL_LEQ),
+  /** Auto-generated from RARE rule arith-refl-lt */
+  EVALUE(ARITH_REFL_LT),
+  /** Auto-generated from RARE rule arith-refl-geq */
+  EVALUE(ARITH_REFL_GEQ),
+  /** Auto-generated from RARE rule arith-refl-gt */
+  EVALUE(ARITH_REFL_GT),
+  /** Auto-generated from RARE rule arith-eq-elim-real */
+  EVALUE(ARITH_EQ_ELIM_REAL),
+  /** Auto-generated from RARE rule arith-eq-elim-int */
+  EVALUE(ARITH_EQ_ELIM_INT),
+  /** Auto-generated from RARE rule arith-plus-flatten */
+  EVALUE(ARITH_PLUS_FLATTEN),
+  /** Auto-generated from RARE rule arith-mult-flatten */
+  EVALUE(ARITH_MULT_FLATTEN),
+  /** Auto-generated from RARE rule arith-mult-dist */
+  EVALUE(ARITH_MULT_DIST),
+  /** Auto-generated from RARE rule arith-abs-elim-int */
+  EVALUE(ARITH_ABS_ELIM_INT),
+  /** Auto-generated from RARE rule arith-abs-elim-real */
+  EVALUE(ARITH_ABS_ELIM_REAL),
+  /** Auto-generated from RARE rule arith-to-real-elim */
+  EVALUE(ARITH_TO_REAL_ELIM),
+  /** Auto-generated from RARE rule arith-to-int-elim-to-real */
+  EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
+  /** Auto-generated from RARE rule arith-div-elim-to-real1 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL1),
+  /** Auto-generated from RARE rule arith-div-elim-to-real2 */
+  EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-sine-zero */
+  EVALUE(ARITH_SINE_ZERO),
+  /** Auto-generated from RARE rule arith-sine-pi2 */
+  EVALUE(ARITH_SINE_PI2),
+  /** Auto-generated from RARE rule arith-cosine-elim */
+  EVALUE(ARITH_COSINE_ELIM),
+  /** Auto-generated from RARE rule arith-tangent-elim */
+  EVALUE(ARITH_TANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-secent-elim */
+  EVALUE(ARITH_SECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cosecent-elim */
+  EVALUE(ARITH_COSECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cotangent-elim */
+  EVALUE(ARITH_COTANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-pi-not-int */
+  EVALUE(ARITH_PI_NOT_INT),
+  /** Auto-generated from RARE rule array-read-over-write */
+  EVALUE(ARRAY_READ_OVER_WRITE),
+  /** Auto-generated from RARE rule array-read-over-write2 */
+  EVALUE(ARRAY_READ_OVER_WRITE2),
+  /** Auto-generated from RARE rule array-store-overwrite */
+  EVALUE(ARRAY_STORE_OVERWRITE),
+  /** Auto-generated from RARE rule array-store-self */
+  EVALUE(ARRAY_STORE_SELF),
+  /** Auto-generated from RARE rule array-read-over-write-split */
+  EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
+  /** Auto-generated from RARE rule bool-double-not-elim */
+  EVALUE(BOOL_DOUBLE_NOT_ELIM),
+  /** Auto-generated from RARE rule bool-not-true */
+  EVALUE(BOOL_NOT_TRUE),
+  /** Auto-generated from RARE rule bool-not-false */
+  EVALUE(BOOL_NOT_FALSE),
+  /** Auto-generated from RARE rule bool-eq-true */
+  EVALUE(BOOL_EQ_TRUE),
+  /** Auto-generated from RARE rule bool-eq-false */
+  EVALUE(BOOL_EQ_FALSE),
+  /** Auto-generated from RARE rule bool-eq-nrefl */
+  EVALUE(BOOL_EQ_NREFL),
+  /** Auto-generated from RARE rule bool-impl-false1 */
+  EVALUE(BOOL_IMPL_FALSE1),
+  /** Auto-generated from RARE rule bool-impl-false2 */
+  EVALUE(BOOL_IMPL_FALSE2),
+  /** Auto-generated from RARE rule bool-impl-true1 */
+  EVALUE(BOOL_IMPL_TRUE1),
+  /** Auto-generated from RARE rule bool-impl-true2 */
+  EVALUE(BOOL_IMPL_TRUE2),
+  /** Auto-generated from RARE rule bool-impl-elim */
+  EVALUE(BOOL_IMPL_ELIM),
+  /** Auto-generated from RARE rule bool-or-true */
+  EVALUE(BOOL_OR_TRUE),
+  /** Auto-generated from RARE rule bool-or-false */
+  EVALUE(BOOL_OR_FALSE),
+  /** Auto-generated from RARE rule bool-or-flatten */
+  EVALUE(BOOL_OR_FLATTEN),
+  /** Auto-generated from RARE rule bool-or-dup */
+  EVALUE(BOOL_OR_DUP),
+  /** Auto-generated from RARE rule bool-and-true */
+  EVALUE(BOOL_AND_TRUE),
+  /** Auto-generated from RARE rule bool-and-false */
+  EVALUE(BOOL_AND_FALSE),
+  /** Auto-generated from RARE rule bool-and-flatten */
+  EVALUE(BOOL_AND_FLATTEN),
+  /** Auto-generated from RARE rule bool-and-dup */
+  EVALUE(BOOL_AND_DUP),
+  /** Auto-generated from RARE rule bool-and-conf */
+  EVALUE(BOOL_AND_CONF),
+  /** Auto-generated from RARE rule bool-and-conf2 */
+  EVALUE(BOOL_AND_CONF2),
+  /** Auto-generated from RARE rule bool-or-taut */
+  EVALUE(BOOL_OR_TAUT),
+  /** Auto-generated from RARE rule bool-or-taut2 */
+  EVALUE(BOOL_OR_TAUT2),
+  /** Auto-generated from RARE rule bool-or-de-morgan */
+  EVALUE(BOOL_OR_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-implies-de-morgan */
+  EVALUE(BOOL_IMPLIES_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-and-de-morgan */
+  EVALUE(BOOL_AND_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-xor-refl */
+  EVALUE(BOOL_XOR_REFL),
+  /** Auto-generated from RARE rule bool-xor-nrefl */
+  EVALUE(BOOL_XOR_NREFL),
+  /** Auto-generated from RARE rule bool-xor-false */
+  EVALUE(BOOL_XOR_FALSE),
+  /** Auto-generated from RARE rule bool-xor-true */
+  EVALUE(BOOL_XOR_TRUE),
+  /** Auto-generated from RARE rule bool-xor-comm */
+  EVALUE(BOOL_XOR_COMM),
+  /** Auto-generated from RARE rule bool-xor-elim */
+  EVALUE(BOOL_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-xor-elim */
+  EVALUE(BOOL_NOT_XOR_ELIM),
+  /** Auto-generated from RARE rule bool-not-eq-elim */
+  EVALUE(BOOL_NOT_EQ_ELIM),
+  /** Auto-generated from RARE rule ite-neg-branch */
+  EVALUE(ITE_NEG_BRANCH),
+  /** Auto-generated from RARE rule ite-then-true */
+  EVALUE(ITE_THEN_TRUE),
+  /** Auto-generated from RARE rule ite-else-false */
+  EVALUE(ITE_ELSE_FALSE),
+  /** Auto-generated from RARE rule ite-then-false */
+  EVALUE(ITE_THEN_FALSE),
+  /** Auto-generated from RARE rule ite-else-true */
+  EVALUE(ITE_ELSE_TRUE),
+  /** Auto-generated from RARE rule ite-then-lookahead-self */
+  EVALUE(ITE_THEN_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule ite-else-lookahead-self */
+  EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
+  /** Auto-generated from RARE rule ite-then-lookahead-not-self */
+  EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-else-lookahead-not-self */
+  EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule bool-not-ite-elim */
+  EVALUE(BOOL_NOT_ITE_ELIM),
+  /** Auto-generated from RARE rule ite-true-cond */
+  EVALUE(ITE_TRUE_COND),
+  /** Auto-generated from RARE rule ite-false-cond */
+  EVALUE(ITE_FALSE_COND),
+  /** Auto-generated from RARE rule ite-not-cond */
+  EVALUE(ITE_NOT_COND),
+  /** Auto-generated from RARE rule ite-eq-branch */
+  EVALUE(ITE_EQ_BRANCH),
+  /** Auto-generated from RARE rule ite-then-lookahead */
+  EVALUE(ITE_THEN_LOOKAHEAD),
+  /** Auto-generated from RARE rule ite-else-lookahead */
+  EVALUE(ITE_ELSE_LOOKAHEAD),
+  /** Auto-generated from RARE rule ite-then-neg-lookahead */
+  EVALUE(ITE_THEN_NEG_LOOKAHEAD),
+  /** Auto-generated from RARE rule ite-else-neg-lookahead */
+  EVALUE(ITE_ELSE_NEG_LOOKAHEAD),
+  /** Auto-generated from RARE rule bv-concat-flatten */
+  EVALUE(BV_CONCAT_FLATTEN),
+  /** Auto-generated from RARE rule bv-concat-extract-merge */
+  EVALUE(BV_CONCAT_EXTRACT_MERGE),
+  /** Auto-generated from RARE rule bv-extract-extract */
+  EVALUE(BV_EXTRACT_EXTRACT),
+  /** Auto-generated from RARE rule bv-extract-whole */
+  EVALUE(BV_EXTRACT_WHOLE),
+  /** Auto-generated from RARE rule bv-extract-concat-1 */
+  EVALUE(BV_EXTRACT_CONCAT_1),
+  /** Auto-generated from RARE rule bv-extract-concat-2 */
+  EVALUE(BV_EXTRACT_CONCAT_2),
+  /** Auto-generated from RARE rule bv-extract-concat-3 */
+  EVALUE(BV_EXTRACT_CONCAT_3),
+  /** Auto-generated from RARE rule bv-extract-concat-4 */
+  EVALUE(BV_EXTRACT_CONCAT_4),
+  /** Auto-generated from RARE rule bv-eq-extract-elim1 */
+  EVALUE(BV_EQ_EXTRACT_ELIM1),
+  /** Auto-generated from RARE rule bv-eq-extract-elim2 */
+  EVALUE(BV_EQ_EXTRACT_ELIM2),
+  /** Auto-generated from RARE rule bv-eq-extract-elim3 */
+  EVALUE(BV_EQ_EXTRACT_ELIM3),
+  /** Auto-generated from RARE rule bv-extract-bitwise-and */
+  EVALUE(BV_EXTRACT_BITWISE_AND),
+  /** Auto-generated from RARE rule bv-extract-bitwise-or */
+  EVALUE(BV_EXTRACT_BITWISE_OR),
+  /** Auto-generated from RARE rule bv-extract-bitwise-xor */
+  EVALUE(BV_EXTRACT_BITWISE_XOR),
+  /** Auto-generated from RARE rule bv-extract-not */
+  EVALUE(BV_EXTRACT_NOT),
+  /** Auto-generated from RARE rule bv-extract-sign-extend-1 */
+  EVALUE(BV_EXTRACT_SIGN_EXTEND_1),
+  /** Auto-generated from RARE rule bv-extract-sign-extend-2 */
+  EVALUE(BV_EXTRACT_SIGN_EXTEND_2),
+  /** Auto-generated from RARE rule bv-extract-sign-extend-3 */
+  EVALUE(BV_EXTRACT_SIGN_EXTEND_3),
+  /** Auto-generated from RARE rule bv-neg-mult */
+  EVALUE(BV_NEG_MULT),
+  /** Auto-generated from RARE rule bv-neg-add */
+  EVALUE(BV_NEG_ADD),
+  /** Auto-generated from RARE rule bv-mult-distrib-const-neg */
+  EVALUE(BV_MULT_DISTRIB_CONST_NEG),
+  /** Auto-generated from RARE rule bv-mult-distrib-const-add */
+  EVALUE(BV_MULT_DISTRIB_CONST_ADD),
+  /** Auto-generated from RARE rule bv-mult-distrib-const-sub */
+  EVALUE(BV_MULT_DISTRIB_CONST_SUB),
+  /** Auto-generated from RARE rule bv-mult-distrib-1 */
+  EVALUE(BV_MULT_DISTRIB_1),
+  /** Auto-generated from RARE rule bv-mult-distrib-2 */
+  EVALUE(BV_MULT_DISTRIB_2),
+  /** Auto-generated from RARE rule bv-not-xor */
+  EVALUE(BV_NOT_XOR),
+  /** Auto-generated from RARE rule bv-and-simplify-1 */
+  EVALUE(BV_AND_SIMPLIFY_1),
+  /** Auto-generated from RARE rule bv-and-simplify-2 */
+  EVALUE(BV_AND_SIMPLIFY_2),
+  /** Auto-generated from RARE rule bv-or-simplify-1 */
+  EVALUE(BV_OR_SIMPLIFY_1),
+  /** Auto-generated from RARE rule bv-or-simplify-2 */
+  EVALUE(BV_OR_SIMPLIFY_2),
+  /** Auto-generated from RARE rule bv-xor-simplify-1 */
+  EVALUE(BV_XOR_SIMPLIFY_1),
+  /** Auto-generated from RARE rule bv-xor-simplify-2 */
+  EVALUE(BV_XOR_SIMPLIFY_2),
+  /** Auto-generated from RARE rule bv-xor-simplify-3 */
+  EVALUE(BV_XOR_SIMPLIFY_3),
+  /** Auto-generated from RARE rule bv-ult-add-one */
+  EVALUE(BV_ULT_ADD_ONE),
+  /** Auto-generated from RARE rule bv-concat-to-mult */
+  EVALUE(BV_CONCAT_TO_MULT),
+  /** Auto-generated from RARE rule bv-mult-slt-mult-1 */
+  EVALUE(BV_MULT_SLT_MULT_1),
+  /** Auto-generated from RARE rule bv-mult-slt-mult-2 */
+  EVALUE(BV_MULT_SLT_MULT_2),
+  /** Auto-generated from RARE rule bv-commutative-and */
+  EVALUE(BV_COMMUTATIVE_AND),
+  /** Auto-generated from RARE rule bv-commutative-or */
+  EVALUE(BV_COMMUTATIVE_OR),
+  /** Auto-generated from RARE rule bv-commutative-xor */
+  EVALUE(BV_COMMUTATIVE_XOR),
+  /** Auto-generated from RARE rule bv-commutative-mul */
+  EVALUE(BV_COMMUTATIVE_MUL),
+  /** Auto-generated from RARE rule bv-or-zero */
+  EVALUE(BV_OR_ZERO),
+  /** Auto-generated from RARE rule bv-mul-one */
+  EVALUE(BV_MUL_ONE),
+  /** Auto-generated from RARE rule bv-mul-zero */
+  EVALUE(BV_MUL_ZERO),
+  /** Auto-generated from RARE rule bv-add-zero */
+  EVALUE(BV_ADD_ZERO),
+  /** Auto-generated from RARE rule bv-add-two */
+  EVALUE(BV_ADD_TWO),
+  /** Auto-generated from RARE rule bv-zero-extend-eliminate-0 */
+  EVALUE(BV_ZERO_EXTEND_ELIMINATE_0),
+  /** Auto-generated from RARE rule bv-sign-extend-eliminate-0 */
+  EVALUE(BV_SIGN_EXTEND_ELIMINATE_0),
+  /** Auto-generated from RARE rule bv-not-neq */
+  EVALUE(BV_NOT_NEQ),
+  /** Auto-generated from RARE rule bv-ult-ones */
+  EVALUE(BV_ULT_ONES),
+  /** Auto-generated from RARE rule bv-or-flatten */
+  EVALUE(BV_OR_FLATTEN),
+  /** Auto-generated from RARE rule bv-xor-flatten */
+  EVALUE(BV_XOR_FLATTEN),
+  /** Auto-generated from RARE rule bv-and-flatten */
+  EVALUE(BV_AND_FLATTEN),
+  /** Auto-generated from RARE rule bv-mul-flatten */
+  EVALUE(BV_MUL_FLATTEN),
+  /** Auto-generated from RARE rule bv-concat-merge-const */
+  EVALUE(BV_CONCAT_MERGE_CONST),
+  /** Auto-generated from RARE rule bv-commutative-add */
+  EVALUE(BV_COMMUTATIVE_ADD),
+  /** Auto-generated from RARE rule bv-neg-sub */
+  EVALUE(BV_NEG_SUB),
+  /** Auto-generated from RARE rule bv-neg-idemp */
+  EVALUE(BV_NEG_IDEMP),
+  /** Auto-generated from RARE rule bv-sub-eliminate */
+  EVALUE(BV_SUB_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ugt-eliminate */
+  EVALUE(BV_UGT_ELIMINATE),
+  /** Auto-generated from RARE rule bv-uge-eliminate */
+  EVALUE(BV_UGE_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sgt-eliminate */
+  EVALUE(BV_SGT_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sge-eliminate */
+  EVALUE(BV_SGE_ELIMINATE),
+  /** Auto-generated from RARE rule bv-slt-eliminate */
+  EVALUE(BV_SLT_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sle-eliminate */
+  EVALUE(BV_SLE_ELIMINATE),
+  /** Auto-generated from RARE rule bv-redor-eliminate */
+  EVALUE(BV_REDOR_ELIMINATE),
+  /** Auto-generated from RARE rule bv-redand-eliminate */
+  EVALUE(BV_REDAND_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ule-eliminate */
+  EVALUE(BV_ULE_ELIMINATE),
+  /** Auto-generated from RARE rule bv-comp-eliminate */
+  EVALUE(BV_COMP_ELIMINATE),
+  /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
+  EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
+  /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */
+  EVALUE(BV_ROTATE_LEFT_ELIMINATE_2),
+  /** Auto-generated from RARE rule bv-rotate-right-eliminate-1 */
+  EVALUE(BV_ROTATE_RIGHT_ELIMINATE_1),
+  /** Auto-generated from RARE rule bv-rotate-right-eliminate-2 */
+  EVALUE(BV_ROTATE_RIGHT_ELIMINATE_2),
+  /** Auto-generated from RARE rule bv-nand-eliminate */
+  EVALUE(BV_NAND_ELIMINATE),
+  /** Auto-generated from RARE rule bv-nor-eliminate */
+  EVALUE(BV_NOR_ELIMINATE),
+  /** Auto-generated from RARE rule bv-xnor-eliminate */
+  EVALUE(BV_XNOR_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sdiv-eliminate */
+  EVALUE(BV_SDIV_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sdiv-eliminate-fewer-bitwise-ops */
+  EVALUE(BV_SDIV_ELIMINATE_FEWER_BITWISE_OPS),
+  /** Auto-generated from RARE rule bv-zero-extend-eliminate */
+  EVALUE(BV_ZERO_EXTEND_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sign-extend-eliminate */
+  EVALUE(BV_SIGN_EXTEND_ELIMINATE),
+  /** Auto-generated from RARE rule bv-uaddo-eliminate */
+  EVALUE(BV_UADDO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-saddo-eliminate */
+  EVALUE(BV_SADDO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-sdivo-eliminate */
+  EVALUE(BV_SDIVO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-smod-eliminate */
+  EVALUE(BV_SMOD_ELIMINATE),
+  /** Auto-generated from RARE rule bv-smod-eliminate-fewer-bitwise-ops */
+  EVALUE(BV_SMOD_ELIMINATE_FEWER_BITWISE_OPS),
+  /** Auto-generated from RARE rule bv-srem-eliminate */
+  EVALUE(BV_SREM_ELIMINATE),
+  /** Auto-generated from RARE rule bv-srem-eliminate-fewer-bitwise-ops */
+  EVALUE(BV_SREM_ELIMINATE_FEWER_BITWISE_OPS),
+  /** Auto-generated from RARE rule bv-usubo-eliminate */
+  EVALUE(BV_USUBO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ssubo-eliminate */
+  EVALUE(BV_SSUBO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ite-equal-children */
+  EVALUE(BV_ITE_EQUAL_CHILDREN),
+  /** Auto-generated from RARE rule bv-ite-const-children-1 */
+  EVALUE(BV_ITE_CONST_CHILDREN_1),
+  /** Auto-generated from RARE rule bv-ite-const-children-2 */
+  EVALUE(BV_ITE_CONST_CHILDREN_2),
+  /** Auto-generated from RARE rule bv-ite-equal-cond-1 */
+  EVALUE(BV_ITE_EQUAL_COND_1),
+  /** Auto-generated from RARE rule bv-ite-equal-cond-2 */
+  EVALUE(BV_ITE_EQUAL_COND_2),
+  /** Auto-generated from RARE rule bv-ite-equal-cond-3 */
+  EVALUE(BV_ITE_EQUAL_COND_3),
+  /** Auto-generated from RARE rule bv-ite-merge-then-if */
+  EVALUE(BV_ITE_MERGE_THEN_IF),
+  /** Auto-generated from RARE rule bv-ite-merge-else-if */
+  EVALUE(BV_ITE_MERGE_ELSE_IF),
+  /** Auto-generated from RARE rule bv-ite-merge-then-else */
+  EVALUE(BV_ITE_MERGE_THEN_ELSE),
+  /** Auto-generated from RARE rule bv-ite-merge-else-else */
+  EVALUE(BV_ITE_MERGE_ELSE_ELSE),
+  /** Auto-generated from RARE rule bv-shl-by-const-0 */
+  EVALUE(BV_SHL_BY_CONST_0),
+  /** Auto-generated from RARE rule bv-shl-by-const-1 */
+  EVALUE(BV_SHL_BY_CONST_1),
+  /** Auto-generated from RARE rule bv-shl-by-const-2 */
+  EVALUE(BV_SHL_BY_CONST_2),
+  /** Auto-generated from RARE rule bv-lshr-by-const-0 */
+  EVALUE(BV_LSHR_BY_CONST_0),
+  /** Auto-generated from RARE rule bv-lshr-by-const-1 */
+  EVALUE(BV_LSHR_BY_CONST_1),
+  /** Auto-generated from RARE rule bv-lshr-by-const-2 */
+  EVALUE(BV_LSHR_BY_CONST_2),
+  /** Auto-generated from RARE rule bv-ashr-by-const-0 */
+  EVALUE(BV_ASHR_BY_CONST_0),
+  /** Auto-generated from RARE rule bv-ashr-by-const-1 */
+  EVALUE(BV_ASHR_BY_CONST_1),
+  /** Auto-generated from RARE rule bv-ashr-by-const-2 */
+  EVALUE(BV_ASHR_BY_CONST_2),
+  /** Auto-generated from RARE rule bv-and-concat-pullup */
+  EVALUE(BV_AND_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-or-concat-pullup */
+  EVALUE(BV_OR_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup */
+  EVALUE(BV_XOR_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-bitwise-idemp-1 */
+  EVALUE(BV_BITWISE_IDEMP_1),
+  /** Auto-generated from RARE rule bv-bitwise-idemp-2 */
+  EVALUE(BV_BITWISE_IDEMP_2),
+  /** Auto-generated from RARE rule bv-and-zero */
+  EVALUE(BV_AND_ZERO),
+  /** Auto-generated from RARE rule bv-and-one */
+  EVALUE(BV_AND_ONE),
+  /** Auto-generated from RARE rule bv-or-one */
+  EVALUE(BV_OR_ONE),
+  /** Auto-generated from RARE rule bv-xor-duplicate */
+  EVALUE(BV_XOR_DUPLICATE),
+  /** Auto-generated from RARE rule bv-xor-ones */
+  EVALUE(BV_XOR_ONES),
+  /** Auto-generated from RARE rule bv-xor-zero */
+  EVALUE(BV_XOR_ZERO),
+  /** Auto-generated from RARE rule bv-bitwise-not-and */
+  EVALUE(BV_BITWISE_NOT_AND),
+  /** Auto-generated from RARE rule bv-bitwise-not-or */
+  EVALUE(BV_BITWISE_NOT_OR),
+  /** Auto-generated from RARE rule bv-xor-not */
+  EVALUE(BV_XOR_NOT),
+  /** Auto-generated from RARE rule bv-not-idemp */
+  EVALUE(BV_NOT_IDEMP),
+  /** Auto-generated from RARE rule bv-ult-zero-1 */
+  EVALUE(BV_ULT_ZERO_1),
+  /** Auto-generated from RARE rule bv-ult-zero-2 */
+  EVALUE(BV_ULT_ZERO_2),
+  /** Auto-generated from RARE rule bv-ult-self */
+  EVALUE(BV_ULT_SELF),
+  /** Auto-generated from RARE rule bv-lt-self */
+  EVALUE(BV_LT_SELF),
+  /** Auto-generated from RARE rule bv-ule-self */
+  EVALUE(BV_ULE_SELF),
+  /** Auto-generated from RARE rule bv-ule-zero */
+  EVALUE(BV_ULE_ZERO),
+  /** Auto-generated from RARE rule bv-zero-ule */
+  EVALUE(BV_ZERO_ULE),
+  /** Auto-generated from RARE rule bv-sle-self */
+  EVALUE(BV_SLE_SELF),
+  /** Auto-generated from RARE rule bv-ule-max */
+  EVALUE(BV_ULE_MAX),
+  /** Auto-generated from RARE rule bv-not-ult */
+  EVALUE(BV_NOT_ULT),
+  /** Auto-generated from RARE rule bv-not-ule */
+  EVALUE(BV_NOT_ULE),
+  /** Auto-generated from RARE rule bv-not-sle */
+  EVALUE(BV_NOT_SLE),
+  /** Auto-generated from RARE rule bv-mult-pow2-1 */
+  EVALUE(BV_MULT_POW2_1),
+  /** Auto-generated from RARE rule bv-mult-pow2-2 */
+  EVALUE(BV_MULT_POW2_2),
+  /** Auto-generated from RARE rule bv-mult-pow2-2b */
+  EVALUE(BV_MULT_POW2_2B),
+  /** Auto-generated from RARE rule bv-extract-mult-leading-bit */
+  EVALUE(BV_EXTRACT_MULT_LEADING_BIT),
+  /** Auto-generated from RARE rule bv-udiv-pow2-not-one */
+  EVALUE(BV_UDIV_POW2_NOT_ONE),
+  /** Auto-generated from RARE rule bv-udiv-zero */
+  EVALUE(BV_UDIV_ZERO),
+  /** Auto-generated from RARE rule bv-udiv-one */
+  EVALUE(BV_UDIV_ONE),
+  /** Auto-generated from RARE rule bv-urem-pow2-not-one */
+  EVALUE(BV_UREM_POW2_NOT_ONE),
+  /** Auto-generated from RARE rule bv-urem-one */
+  EVALUE(BV_UREM_ONE),
+  /** Auto-generated from RARE rule bv-urem-self */
+  EVALUE(BV_UREM_SELF),
+  /** Auto-generated from RARE rule bv-shl-zero */
+  EVALUE(BV_SHL_ZERO),
+  /** Auto-generated from RARE rule bv-lshr-zero */
+  EVALUE(BV_LSHR_ZERO),
+  /** Auto-generated from RARE rule bv-ashr-zero */
+  EVALUE(BV_ASHR_ZERO),
+  /** Auto-generated from RARE rule bv-ugt-urem */
+  EVALUE(BV_UGT_UREM),
+  /** Auto-generated from RARE rule bv-ult-one */
+  EVALUE(BV_ULT_ONE),
+  /** Auto-generated from RARE rule bv-slt-zero */
+  EVALUE(BV_SLT_ZERO),
+  /** Auto-generated from RARE rule bv-merge-sign-extend-1 */
+  EVALUE(BV_MERGE_SIGN_EXTEND_1),
+  /** Auto-generated from RARE rule bv-merge-sign-extend-2 */
+  EVALUE(BV_MERGE_SIGN_EXTEND_2),
+  /** Auto-generated from RARE rule bv-merge-sign-extend-3 */
+  EVALUE(BV_MERGE_SIGN_EXTEND_3),
+  /** Auto-generated from RARE rule bv-sign-extend-eq-const-1 */
+  EVALUE(BV_SIGN_EXTEND_EQ_CONST_1),
+  /** Auto-generated from RARE rule bv-sign-extend-eq-const-2 */
+  EVALUE(BV_SIGN_EXTEND_EQ_CONST_2),
+  /** Auto-generated from RARE rule bv-zero-extend-eq-const-1 */
+  EVALUE(BV_ZERO_EXTEND_EQ_CONST_1),
+  /** Auto-generated from RARE rule bv-zero-extend-eq-const-2 */
+  EVALUE(BV_ZERO_EXTEND_EQ_CONST_2),
+  /** Auto-generated from RARE rule bv-sign-extend-ult-const-1 */
+  EVALUE(BV_SIGN_EXTEND_ULT_CONST_1),
+  /** Auto-generated from RARE rule bv-sign-extend-ult-const-2 */
+  EVALUE(BV_SIGN_EXTEND_ULT_CONST_2),
+  /** Auto-generated from RARE rule bv-sign-extend-ult-const-3 */
+  EVALUE(BV_SIGN_EXTEND_ULT_CONST_3),
+  /** Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
+  EVALUE(BV_SIGN_EXTEND_ULT_CONST_4),
+  /** Auto-generated from RARE rule sets-eq-singleton-emp */
+  EVALUE(SETS_EQ_SINGLETON_EMP),
+  /** Auto-generated from RARE rule sets-member-singleton */
+  EVALUE(SETS_MEMBER_SINGLETON),
+  /** Auto-generated from RARE rule sets-member-emp */
+  EVALUE(SETS_MEMBER_EMP),
+  /** Auto-generated from RARE rule sets-subset-elim */
+  EVALUE(SETS_SUBSET_ELIM),
+  /** Auto-generated from RARE rule sets-union-comm */
+  EVALUE(SETS_UNION_COMM),
+  /** Auto-generated from RARE rule sets-inter-comm */
+  EVALUE(SETS_INTER_COMM),
+  /** Auto-generated from RARE rule sets-inter-emp1 */
+  EVALUE(SETS_INTER_EMP1),
+  /** Auto-generated from RARE rule sets-inter-emp2 */
+  EVALUE(SETS_INTER_EMP2),
+  /** Auto-generated from RARE rule sets-minus-emp1 */
+  EVALUE(SETS_MINUS_EMP1),
+  /** Auto-generated from RARE rule sets-minus-emp2 */
+  EVALUE(SETS_MINUS_EMP2),
+  /** Auto-generated from RARE rule sets-union-emp1 */
+  EVALUE(SETS_UNION_EMP1),
+  /** Auto-generated from RARE rule sets-union-emp2 */
+  EVALUE(SETS_UNION_EMP2),
+  /** Auto-generated from RARE rule sets-inter-member */
+  EVALUE(SETS_INTER_MEMBER),
+  /** Auto-generated from RARE rule sets-minus-member */
+  EVALUE(SETS_MINUS_MEMBER),
+  /** Auto-generated from RARE rule sets-union-member */
+  EVALUE(SETS_UNION_MEMBER),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-singleton */
+  EVALUE(SETS_CARD_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-union */
+  EVALUE(SETS_CARD_UNION),
+  /** Auto-generated from RARE rule sets-card-minus */
+  EVALUE(SETS_CARD_MINUS),
+  /** Auto-generated from RARE rule sets-card-emp */
+  EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule str-eq-ctn-false */
+  EVALUE(STR_EQ_CTN_FALSE),
+  /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
+  EVALUE(STR_EQ_CTN_FULL_FALSE1),
+  /** Auto-generated from RARE rule str-eq-ctn-full-false2 */
+  EVALUE(STR_EQ_CTN_FULL_FALSE2),
+  /** Auto-generated from RARE rule str-concat-flatten */
+  EVALUE(STR_CONCAT_FLATTEN),
+  /** Auto-generated from RARE rule str-concat-flatten-eq */
+  EVALUE(STR_CONCAT_FLATTEN_EQ),
+  /** Auto-generated from RARE rule str-concat-flatten-eq-rev */
+  EVALUE(STR_CONCAT_FLATTEN_EQ_REV),
+  /** Auto-generated from RARE rule str-substr-empty-str */
+  EVALUE(STR_SUBSTR_EMPTY_STR),
+  /** Auto-generated from RARE rule str-substr-empty-range */
+  EVALUE(STR_SUBSTR_EMPTY_RANGE),
+  /** Auto-generated from RARE rule str-substr-empty-start */
+  EVALUE(STR_SUBSTR_EMPTY_START),
+  /** Auto-generated from RARE rule str-substr-empty-start-neg */
+  EVALUE(STR_SUBSTR_EMPTY_START_NEG),
+  /** Auto-generated from RARE rule str-substr-eq-empty */
+  EVALUE(STR_SUBSTR_EQ_EMPTY),
+  /** Auto-generated from RARE rule str-len-replace-inv */
+  EVALUE(STR_LEN_REPLACE_INV),
+  /** Auto-generated from RARE rule str-len-update-inv */
+  EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-len-substr-in-range */
+  EVALUE(STR_LEN_SUBSTR_IN_RANGE),
+  /** Auto-generated from RARE rule str-len-substr-ub1 */
+  EVALUE(STR_LEN_SUBSTR_UB1),
+  /** Auto-generated from RARE rule str-len-substr-ub2 */
+  EVALUE(STR_LEN_SUBSTR_UB2),
+  /** Auto-generated from RARE rule str-concat-clash */
+  EVALUE(STR_CONCAT_CLASH),
+  /** Auto-generated from RARE rule str-concat-clash-rev */
+  EVALUE(STR_CONCAT_CLASH_REV),
+  /** Auto-generated from RARE rule str-concat-clash2 */
+  EVALUE(STR_CONCAT_CLASH2),
+  /** Auto-generated from RARE rule str-concat-clash2-rev */
+  EVALUE(STR_CONCAT_CLASH2_REV),
+  /** Auto-generated from RARE rule str-concat-unify */
+  EVALUE(STR_CONCAT_UNIFY),
+  /** Auto-generated from RARE rule str-concat-unify-rev */
+  EVALUE(STR_CONCAT_UNIFY_REV),
+  /** Auto-generated from RARE rule str-concat-unify-base */
+  EVALUE(STR_CONCAT_UNIFY_BASE),
+  /** Auto-generated from RARE rule str-concat-unify-base-rev */
+  EVALUE(STR_CONCAT_UNIFY_BASE_REV),
+  /** Auto-generated from RARE rule str-concat-clash-char */
+  EVALUE(STR_CONCAT_CLASH_CHAR),
+  /** Auto-generated from RARE rule str-concat-clash-char-rev */
+  EVALUE(STR_CONCAT_CLASH_CHAR_REV),
+  /** Auto-generated from RARE rule str-prefixof-elim */
+  EVALUE(STR_PREFIXOF_ELIM),
+  /** Auto-generated from RARE rule str-suffixof-elim */
+  EVALUE(STR_SUFFIXOF_ELIM),
+  /** Auto-generated from RARE rule str-prefixof-one */
+  EVALUE(STR_PREFIXOF_ONE),
+  /** Auto-generated from RARE rule str-suffixof-one */
+  EVALUE(STR_SUFFIXOF_ONE),
+  /** Auto-generated from RARE rule str-substr-combine1 */
+  EVALUE(STR_SUBSTR_COMBINE1),
+  /** Auto-generated from RARE rule str-substr-combine2 */
+  EVALUE(STR_SUBSTR_COMBINE2),
+  /** Auto-generated from RARE rule str-substr-combine3 */
+  EVALUE(STR_SUBSTR_COMBINE3),
+  /** Auto-generated from RARE rule str-substr-combine4 */
+  EVALUE(STR_SUBSTR_COMBINE4),
+  /** Auto-generated from RARE rule str-substr-concat1 */
+  EVALUE(STR_SUBSTR_CONCAT1),
+  /** Auto-generated from RARE rule str-substr-concat2 */
+  EVALUE(STR_SUBSTR_CONCAT2),
+  /** Auto-generated from RARE rule str-substr-full */
+  EVALUE(STR_SUBSTR_FULL),
+  /** Auto-generated from RARE rule str-substr-full-eq */
+  EVALUE(STR_SUBSTR_FULL_EQ),
+  /** Auto-generated from RARE rule str-contains-refl */
+  EVALUE(STR_CONTAINS_REFL),
+  /** Auto-generated from RARE rule str-contains-concat-find */
+  EVALUE(STR_CONTAINS_CONCAT_FIND),
+  /** Auto-generated from RARE rule str-contains-split-char */
+  EVALUE(STR_CONTAINS_SPLIT_CHAR),
+  /** Auto-generated from RARE rule str-contains-lt-len */
+  EVALUE(STR_CONTAINS_LT_LEN),
+  /** Auto-generated from RARE rule str-contains-leq-len-eq */
+  EVALUE(STR_CONTAINS_LEQ_LEN_EQ),
+  /** Auto-generated from RARE rule str-contains-emp */
+  EVALUE(STR_CONTAINS_EMP),
+  /** Auto-generated from RARE rule str-contains-is-emp */
+  EVALUE(STR_CONTAINS_IS_EMP),
+  /** Auto-generated from RARE rule str-concat-emp */
+  EVALUE(STR_CONCAT_EMP),
+  /** Auto-generated from RARE rule str-at-elim */
+  EVALUE(STR_AT_ELIM),
+  /** Auto-generated from RARE rule str-replace-self */
+  EVALUE(STR_REPLACE_SELF),
+  /** Auto-generated from RARE rule str-replace-prefix */
+  EVALUE(STR_REPLACE_PREFIX),
+  /** Auto-generated from RARE rule str-replace-no-contains */
+  EVALUE(STR_REPLACE_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-empty */
+  EVALUE(STR_REPLACE_EMPTY),
+  /** Auto-generated from RARE rule str-replace-contains-pre */
+  EVALUE(STR_REPLACE_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-replace-all-no-contains */
+  EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-re-none */
+  EVALUE(STR_REPLACE_RE_NONE),
+  /** Auto-generated from RARE rule str-replace-re-all-none */
+  EVALUE(STR_REPLACE_RE_ALL_NONE),
+  /** Auto-generated from RARE rule str-len-concat-rec */
+  EVALUE(STR_LEN_CONCAT_REC),
+  /** Auto-generated from RARE rule str-indexof-self */
+  EVALUE(STR_INDEXOF_SELF),
+  /** Auto-generated from RARE rule str-indexof-no-contains */
+  EVALUE(STR_INDEXOF_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-indexof-contains-pre */
+  EVALUE(STR_INDEXOF_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-indexof-re-none */
+  EVALUE(STR_INDEXOF_RE_NONE),
+  /** Auto-generated from RARE rule str-to-lower-concat */
+  EVALUE(STR_TO_LOWER_CONCAT),
+  /** Auto-generated from RARE rule str-to-upper-concat */
+  EVALUE(STR_TO_UPPER_CONCAT),
+  /** Auto-generated from RARE rule str-to-lower-upper */
+  EVALUE(STR_TO_LOWER_UPPER),
+  /** Auto-generated from RARE rule str-to-upper-lower */
+  EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-lower-len */
+  EVALUE(STR_TO_LOWER_LEN),
+  /** Auto-generated from RARE rule str-to-upper-len */
+  EVALUE(STR_TO_UPPER_LEN),
+  /** Auto-generated from RARE rule str-to-lower-from-int */
+  EVALUE(STR_TO_LOWER_FROM_INT),
+  /** Auto-generated from RARE rule str-to-upper-from-int */
+  EVALUE(STR_TO_UPPER_FROM_INT),
+  /** Auto-generated from RARE rule str-to-int-concat-neg-one */
+  EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
+  /** Auto-generated from RARE rule str-leq-empty */
+  EVALUE(STR_LEQ_EMPTY),
+  /** Auto-generated from RARE rule str-leq-empty-eq */
+  EVALUE(STR_LEQ_EMPTY_EQ),
+  /** Auto-generated from RARE rule str-leq-concat-false */
+  EVALUE(STR_LEQ_CONCAT_FALSE),
+  /** Auto-generated from RARE rule str-leq-concat-true */
+  EVALUE(STR_LEQ_CONCAT_TRUE),
+  /** Auto-generated from RARE rule str-lt-elim */
+  EVALUE(STR_LT_ELIM),
+  /** Auto-generated from RARE rule re-all-elim */
+  EVALUE(RE_ALL_ELIM),
+  /** Auto-generated from RARE rule re-opt-elim */
+  EVALUE(RE_OPT_ELIM),
+  /** Auto-generated from RARE rule re-diff-elim */
+  EVALUE(RE_DIFF_ELIM),
+  /** Auto-generated from RARE rule re-concat-emp */
+  EVALUE(RE_CONCAT_EMP),
+  /** Auto-generated from RARE rule re-concat-none */
+  EVALUE(RE_CONCAT_NONE),
+  /** Auto-generated from RARE rule re-concat-flatten */
+  EVALUE(RE_CONCAT_FLATTEN),
+  /** Auto-generated from RARE rule re-concat-star-swap */
+  EVALUE(RE_CONCAT_STAR_SWAP),
+  /** Auto-generated from RARE rule re-concat-star-repeat */
+  EVALUE(RE_CONCAT_STAR_REPEAT),
+  /** Auto-generated from RARE rule re-concat-merge */
+  EVALUE(RE_CONCAT_MERGE),
+  /** Auto-generated from RARE rule re-union-all */
+  EVALUE(RE_UNION_ALL),
+  /** Auto-generated from RARE rule re-union-none */
+  EVALUE(RE_UNION_NONE),
+  /** Auto-generated from RARE rule re-union-flatten */
+  EVALUE(RE_UNION_FLATTEN),
+  /** Auto-generated from RARE rule re-union-dup */
+  EVALUE(RE_UNION_DUP),
+  /** Auto-generated from RARE rule re-inter-all */
+  EVALUE(RE_INTER_ALL),
+  /** Auto-generated from RARE rule re-inter-none */
+  EVALUE(RE_INTER_NONE),
+  /** Auto-generated from RARE rule re-inter-flatten */
+  EVALUE(RE_INTER_FLATTEN),
+  /** Auto-generated from RARE rule re-inter-dup */
+  EVALUE(RE_INTER_DUP),
+  /** Auto-generated from RARE rule re-star-none */
+  EVALUE(RE_STAR_NONE),
+  /** Auto-generated from RARE rule re-loop-neg */
+  EVALUE(RE_LOOP_NEG),
+  /** Auto-generated from RARE rule re-inter-cstring */
+  EVALUE(RE_INTER_CSTRING),
+  /** Auto-generated from RARE rule re-inter-cstring-neg */
+  EVALUE(RE_INTER_CSTRING_NEG),
+  /** Auto-generated from RARE rule str-substr-len-include */
+  EVALUE(STR_SUBSTR_LEN_INCLUDE),
+  /** Auto-generated from RARE rule str-substr-len-include-pre */
+  EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
+  /** Auto-generated from RARE rule str-substr-len-skip */
+  EVALUE(STR_SUBSTR_LEN_SKIP),
+  /** Auto-generated from RARE rule seq-len-rev */
+  EVALUE(SEQ_LEN_REV),
+  /** Auto-generated from RARE rule seq-rev-rev */
+  EVALUE(SEQ_REV_REV),
+  /** Auto-generated from RARE rule seq-rev-concat */
+  EVALUE(SEQ_REV_CONCAT),
+  /** Auto-generated from RARE rule seq-len-unit */
+  EVALUE(SEQ_LEN_UNIT),
+  /** Auto-generated from RARE rule seq-nth-unit */
+  EVALUE(SEQ_NTH_UNIT),
+  /** Auto-generated from RARE rule seq-rev-unit */
+  EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule re-in-empty */
+  EVALUE(RE_IN_EMPTY),
+  /** Auto-generated from RARE rule re-in-sigma */
+  EVALUE(RE_IN_SIGMA),
+  /** Auto-generated from RARE rule re-in-sigma-star */
+  EVALUE(RE_IN_SIGMA_STAR),
+  /** Auto-generated from RARE rule re-in-cstring */
+  EVALUE(RE_IN_CSTRING),
+  /** Auto-generated from RARE rule re-in-comp */
+  EVALUE(RE_IN_COMP),
+  /** Auto-generated from RARE rule str-in-re-union-elim */
+  EVALUE(STR_IN_RE_UNION_ELIM),
+  /** Auto-generated from RARE rule str-in-re-inter-elim */
+  EVALUE(STR_IN_RE_INTER_ELIM),
+  /** Auto-generated from RARE rule str-in-re-range-elim */
+  EVALUE(STR_IN_RE_RANGE_ELIM),
+  /** Auto-generated from RARE rule str-in-re-contains */
+  EVALUE(STR_IN_RE_CONTAINS),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix */
+  EVALUE(STR_IN_RE_STRIP_PREFIX),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG),
+  /** Auto-generated from RARE rule str-in-re-strip-char */
+  EVALUE(STR_IN_RE_STRIP_CHAR),
+  /** Auto-generated from RARE rule str-in-re-strip-char-s-single */
+  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev */
+  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-char-rev */
+  EVALUE(STR_IN_RE_STRIP_CHAR_REV),
+  /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
+  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
+  /** Auto-generated from RARE rule str-in-re-req-unfold */
+  EVALUE(STR_IN_RE_REQ_UNFOLD),
+  /** Auto-generated from RARE rule str-in-re-req-unfold-rev */
+  EVALUE(STR_IN_RE_REQ_UNFOLD_REV),
+  /** Auto-generated from RARE rule str-in-re-skip-unfold */
+  EVALUE(STR_IN_RE_SKIP_UNFOLD),
+  /** Auto-generated from RARE rule str-in-re-skip-unfold-rev */
+  EVALUE(STR_IN_RE_SKIP_UNFOLD_REV),
+  /** Auto-generated from RARE rule str-in-re-test-unfold */
+  EVALUE(STR_IN_RE_TEST_UNFOLD),
+  /** Auto-generated from RARE rule str-in-re-test-unfold-rev */
+  EVALUE(STR_IN_RE_TEST_UNFOLD_REV),
+  /** Auto-generated from RARE rule eq-refl */
+  EVALUE(EQ_REFL),
+  /** Auto-generated from RARE rule eq-symm */
+  EVALUE(EQ_SYMM),
+  /** Auto-generated from RARE rule eq-cond-deq */
+  EVALUE(EQ_COND_DEQ),
+  /** Auto-generated from RARE rule eq-ite-lift */
+  EVALUE(EQ_ITE_LIFT),
+  /** Auto-generated from RARE rule distinct-binary-elim */
+  EVALUE(DISTINCT_BINARY_ELIM),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv */
+  EVALUE(UF_BV2NAT_INT2BV),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extend */
+  EVALUE(UF_BV2NAT_INT2BV_EXTEND),
+  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extract */
+  EVALUE(UF_BV2NAT_INT2BV_EXTRACT),
+  /** Auto-generated from RARE rule uf-int2bv-bv2nat */
+  EVALUE(UF_INT2BV_BV2NAT),
+  /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
+  EVALUE(UF_BV2NAT_GEQ_ELIM),
+  /** Auto-generated from RARE rule uf-int2bv-bvult-equiv */
+  EVALUE(UF_INT2BV_BVULT_EQUIV),
+  /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
+  EVALUE(UF_INT2BV_BVULE_EQUIV),
+// ${rules}$
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST)
+#endif
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
 typedef enum ENUM(ProofRule) ENUM(ProofRule);
+typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
 #endif
 #endif
 
@@ -2279,38 +3906,76 @@ typedef enum ENUM(ProofRule) ENUM(ProofRule);
  * @param rule The proof rule.
  * @return The string representation.
  */
-const char* cvc5_proof_rule_to_string(Cvc5ProofRule kind);
+CVC5_EXPORT const char* cvc5_proof_rule_to_string(Cvc5ProofRule rule);
 
 /**
  * Hash function for Cvc5ProofRule.
  * @param rule The proof rule.
  * @return The hash value.
  */
-size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
+CVC5_EXPORT size_t cvc5_proof_rule_hash(Cvc5ProofRule rule);
+
+/**
+ * Get a string representation of a Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
+ * @return The string representation.
+ */
+CVC5_EXPORT const char* cvc5_proof_rewrite_rule_to_string(
+    Cvc5ProofRewriteRule rule);
+
+/**
+ * Hash function for Cvc5ProofRewriteRule.
+ * @param rule The proof rewrite rule.
+ * @return The hash value.
+ */
+CVC5_EXPORT size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
 
 #else
+
 /**
  * Converts a proof rule to a string. Note: This function is also used in
  * `safe_print()`. Changing this function name or signature will result in
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
- * @param id The proof rule
+ * @param rule The proof rule
  * @return The name of the proof rule
  */
-const char* toString(ProofRule id);
+CVC5_EXPORT const char* toString(ProofRule rule);
 
 /**
  * Writes a proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The proof rule to write to the stream
+ * @param rule The proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, ProofRule id);
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRule rule);
+
+/**
+ * Converts a proof rewrite rule to a string. Note: This function is also
+ * used in `safe_print()`. Changing this function name or signature will result
+ * in `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param rule The proof rewrite rule
+ * @return The name of the proof rewrite rule
+ */
+CVC5_EXPORT const char* toString(ProofRewriteRule rule);
+
+/**
+ * Writes a proof rewrite rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param rule The proof rewrite rule to write to the stream
+ * @return The stream
+ */
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
+
 }  // namespace cvc5
 
 namespace std {
+
 /**
  * Hash function for ProofRules.
  */
@@ -2324,6 +3989,37 @@ struct CVC5_EXPORT hash<cvc5::ProofRule>
    */
   size_t operator()(cvc5::ProofRule rule) const;
 };
+
+/**
+ * Converts a proof rule to a string.
+ *
+ * @param rule The proof rule
+ * @return The name of the proof rule
+ */
+CVC5_EXPORT std::string to_string(cvc5::ProofRule rule);
+
+/**
+ * Hash function for ProofRewriteRules.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
+{
+  /**
+   * Hashes a ProofRewriteRule to a size_t.
+   * @param rule The proof rewrite rule.
+   * @return The hash value.
+   */
+  size_t operator()(cvc5::ProofRewriteRule rule) const;
+};
+
+/**
+ * Converts a proof rewrite rule to a string.
+ *
+ * @param rule The proof rewrite rule
+ * @return The name of the proof rewrite rule
+ */
+CVC5_EXPORT std::string to_string(cvc5::ProofRewriteRule rule);
+
 }  // namespace std
 
 #endif

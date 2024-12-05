@@ -116,14 +116,28 @@ class Op(Enum):
     SUB = ('-', 'SUB')
     MULT = ('*', 'MULT')
     INT_DIV = ('div', 'INTS_DIVISION')
+    INT_DIV_TOTAL = ('div_total', 'INTS_DIVISION_TOTAL')
     DIV = ('/', 'DIVISION')
+    DIV_TOTAL = ('/_total', 'DIVISION_TOTAL')
     MOD = ('mod', 'INTS_MODULUS')
+    MOD_TOTAL = ('mod_total', 'INTS_MODULUS_TOTAL')
     ABS = ('abs', 'ABS')
     LT = ('<', 'LT')
     GT = ('>', 'GT')
     LEQ = ('<=', 'LEQ')
     GEQ = ('>=', 'GEQ')
     POW2 = ('int.pow2', 'POW2')
+    TO_INT = ('to_int', 'TO_INTEGER')
+    TO_REAL = ('to_real', 'TO_REAL')
+    IS_INT = ('is_int', 'IS_INTEGER')
+    
+    SINE = ('sin', 'SINE')
+    COSINE = ('cos', 'COSINE')
+    TANGENT = ('tan', 'TANGENT')
+    SECANT = ('sec', 'SECANT')
+    COSECANT = ('csc', 'COSECANT')
+    COTANGENT = ('cot', 'COTANGENT')
+    REAL_PI = (None, 'PI')  # Handled as constant
 
     INT_ISPOW2 = ('int.ispow2', 'INTS_ISPOW2')  # Backdoor for some bv rewrites
     INT_LENGTH = ('int.log2', 'INTS_LOG2')  # Backdoor for some bv rewrites
@@ -156,7 +170,7 @@ class Op(Enum):
     STRING_AT = ('str.at', 'STRING_CHARAT')
     STRING_CONTAINS = ('str.contains', 'STRING_CONTAINS')
     STRING_LT = ('str.<', 'STRING_LT')
-    STRING_LEQ = ('str.<=', 'STRING.LEQ')
+    STRING_LEQ = ('str.<=', 'STRING_LEQ')
     STRING_INDEXOF = ('str.indexof', 'STRING_INDEXOF')
     STRING_INDEXOF_RE = ('str.indexof_re', 'STRING_INDEXOF_RE')
     STRING_REPLACE = ('str.replace', 'STRING_REPLACE')
@@ -170,8 +184,8 @@ class Op(Enum):
     STRING_STOI = ('str.to_int', 'STRING_STOI')
     STRING_TO_CODE = ('str.to_code', 'STRING_TO_CODE')
     STRING_FROM_CODE = ('str.from_code', 'STRING_FROM_CODE')
-    STRING_TOLOWER = ('str.tolower', 'STRING_TOLOWER')
-    STRING_TOUPPER = ('str.toupper', 'STRING_TOUPPER')
+    STRING_TO_LOWER = ('str.to_lower', 'STRING_TO_LOWER')
+    STRING_TO_UPPER = ('str.to_upper', 'STRING_TO_UPPER')
     STRING_REV = ('str.rev', 'STRING_REV')
 
     SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
@@ -187,6 +201,7 @@ class Op(Enum):
     REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
     REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')
+    REGEXP_LOOP = ('re.loop', 'REGEXP_LOOP')
 
     REGEXP_NONE = (None, 'REGEXP_NONE')  # Handled as constants
     REGEXP_ALL = (None, 'REGEXP_ALL')
@@ -202,6 +217,11 @@ class Op(Enum):
     SET_SUBSET = ('set.subset', 'SET_SUBSET')
     SET_MEMBER = ('set.member', 'SET_MEMBER')
     SET_SINGLETON = ('set.singleton', 'SET_SINGLETON')
+    SET_CHOOSE = ('set.choose', 'SET_CHOOSE')
+    SET_CARD = ('set.card', 'SET_CARD')
+    SET_IS_EMPTY = ('set.is_empty', 'SET_IS_EMPTY')
+    SET_IS_SINGLETON = ('set.is_singleton', 'SET_IS_SINGLETON')
+
 
 class BaseSort(Enum):
     Bool = auto()
@@ -326,6 +346,19 @@ class CInt(Node):
     def __repr__(self):
         return str(self.val)
 
+class CRational(Node):
+    def __init__(self, val):
+        super().__init__([])
+        self.val = val
+
+    def __eq__(self, other):
+        return isinstance(other, CRational) and self.val == other.val
+
+    def __hash__(self):
+        return hash(self.val)
+
+    def __repr__(self):
+        return str(self.val)
 
 class CString(Node):
     def __init__(self, val):

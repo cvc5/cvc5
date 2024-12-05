@@ -93,7 +93,7 @@ Node TermRecBuild::getChild(unsigned i)
   return d_children[curr][i + o];
 }
 
-Node TermRecBuild::build(unsigned d)
+Node TermRecBuild::build(NodeManager* nm, unsigned d)
 {
   Assert(d_pos.size() + 1 == d_term.size());
   Assert(d < d_term.size());
@@ -105,7 +105,7 @@ Node TermRecBuild::build(unsigned d)
     Node nc;
     if (p + o == i)
     {
-      nc = build(d + 1);
+      nc = build(nm, d + 1);
     }
     else
     {
@@ -113,7 +113,7 @@ Node TermRecBuild::build(unsigned d)
     }
     children.push_back(nc);
   }
-  return NodeManager::currentNM()->mkNode(d_kind[d], children);
+  return nm->mkNode(d_kind[d], children);
 }
 
 SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb)
@@ -176,8 +176,7 @@ Node SygusExplain::getExplanationForEquality(Node n,
   std::vector<Node> exp;
   getExplanationForEquality(n, vn, exp, cexc);
   Assert(!exp.empty());
-  return exp.size() == 1 ? exp[0]
-                         : NodeManager::currentNM()->mkNode(Kind::AND, exp);
+  return exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
 }
 
 // we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp
@@ -217,7 +216,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     TypeNode xtn = vn[i].getType();
     Node x = d_tdb->getFreeVarInc(xtn, var_count);
     trb.replaceChild(i, x);
-    Node nvn = trb.build();
+    Node nvn = trb.build(n.getNodeManager());
     Assert(nvn.getKind() == Kind::APPLY_CONSTRUCTOR);
     if (et.is_invariant(d_tdb, nvn, x))
     {
@@ -247,7 +246,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     if (vnr.getOperator() != vn.getOperator())
     {
       vnr = Node::null();
-      vnr_exp = NodeManager::currentNM()->mkConst(true);
+      vnr_exp = nodeManager()->mkConst(true);
     }
   }
   bool shareSel = options().datatypes.dtSharedSelectors;

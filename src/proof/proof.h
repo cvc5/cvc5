@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -210,6 +210,14 @@ class CDProof : protected EnvObj, public ProofGenerator
                       const std::vector<Node>& args,
                       bool ensureChildren = false,
                       CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
+  /**
+   * Version with ProofRewriteRule. This adds a THEORY_REWRITE step with the
+   * expected arguments.
+   */
+  bool addTheoryRewriteStep(Node expected,
+                            ProofRewriteRule id,
+                            bool ensureChildren = false,
+                            CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY);
   /** Version with ProofStep */
   bool addStep(Node expected,
                const ProofStep& step,

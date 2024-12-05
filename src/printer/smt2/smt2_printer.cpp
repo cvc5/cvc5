@@ -91,7 +91,7 @@ static void toStreamRational(std::ostream& out,
       }
       if (isReal)
       {
-        out << ".0";
+        out << "/1";
       }
     }
     else
@@ -187,10 +187,11 @@ void Smt2Printer::toStream(std::ostream& out,
 
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,
-                           const LetBinding* lbind) const
+                           const LetBinding* lbind,
+                           bool lbindTop) const
 {
   int toDepth = options::ioutils::getNodeDepth(out);
-  toStream(out, n, lbind, toDepth);
+  toStream(out, n, lbind, toDepth, lbindTop);
 }
 
 void Smt2Printer::toStream(std::ostream& out, TNode n) const
@@ -389,6 +390,21 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << ss.str();
       break;
     }
+    case Kind::CARDINALITY_CONSTRAINT_OP:
+    {
+      const CardinalityConstraint& cc =
+          n.getConst<CardinalityConstraint>();
+      TypeNode tn = cc.getType();
+      out << "(_ fmf.card " << tn << " " << cc.getUpperBound() << ")";
+    }
+      break;
+    case Kind::COMBINED_CARDINALITY_CONSTRAINT_OP:
+    {
+      const CombinedCardinalityConstraint& cc =
+          n.getConst<CombinedCardinalityConstraint>();
+      out << "(_ fmf.combined_card " << cc.getUpperBound() << ")";
+    }
+      break;
     case Kind::DIVISIBLE_OP:
       out << "(_ divisible " << n.getConst<Divisible>().k << ")";
       break;
@@ -514,6 +530,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::RELATION_GROUP_OP:
     case Kind::RELATION_AGGREGATE_OP:
     case Kind::RELATION_PROJECT_OP:
+    case Kind::RELATION_TABLE_JOIN_OP:
     {
       ProjectOp op = n.getConst<ProjectOp>();
       const std::vector<uint32_t>& indices = op.getIndices();
@@ -608,23 +625,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         }
         else if (options::ioutils::getPrintSkolemDefinitions(out))
         {
-          if (!cacheVal.isNull())
-          {
-            out << "(";
-          }
-          out << "@" << id;
-          if (cacheVal.getKind() == Kind::SEXPR)
-          {
-            for (const Node& cv : cacheVal)
-            {
-              out << " " << cv;
-            }
-            out << ")";
-          }
-          else if (!cacheVal.isNull())
-          {
-            out << " " << cacheVal << ")";
-          }
+          toStreamSkolem(
+              out, cacheVal, id, /*isApplied=*/false, toDepth, lbind);
           printed = true;
         }
       }
@@ -669,6 +671,24 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
       toStream(out, hoa, lbind, toDepth);
       return true;
+    }
+    else if (n.getOperator().getKind() == Kind::SKOLEM)
+    {
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemId id;
+      Node cacheVal;
+      if (sm->isSkolemFunction(n.getOperator(), id, cacheVal))
+      {
+        if (options::ioutils::getPrintSkolemDefinitions(out))
+        {
+          if (n.getNumChildren() != 0)
+          {
+            out << '(';
+          }
+          toStreamSkolem(out, cacheVal, id, /*isApplied=*/true, toDepth, lbind);
+          return false;
+        }
+      }
     }
   }
   else if (k == Kind::CONSTRUCTOR_TYPE)
@@ -892,9 +912,9 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       stillNeedToPrintParams = false;
       break;
     }
-    case Kind::BITVECTOR_BITOF:
-      out << "(_ @bitOf "
-          << n.getOperator().getConst<BitVectorBitOf>().d_bitIndex << ")";
+    case Kind::BITVECTOR_BIT:
+      out << "(_ @bit " << n.getOperator().getConst<BitVectorBit>().d_bitIndex
+          << ")";
       stillNeedToPrintParams = false;
       break;
     case Kind::APPLY_CONSTRUCTOR:
@@ -1169,12 +1189,12 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::LEQ: return "<=";
     case Kind::GT: return ">";
     case Kind::GEQ: return ">=";
-    case Kind::DIVISION:
-    case Kind::DIVISION_TOTAL: return "/";
-    case Kind::INTS_DIVISION_TOTAL:
+    case Kind::DIVISION: return "/";
+    case Kind::DIVISION_TOTAL: return "/_total";
     case Kind::INTS_DIVISION: return "div";
-    case Kind::INTS_MODULUS_TOTAL:
+    case Kind::INTS_DIVISION_TOTAL: return "div_total";
     case Kind::INTS_MODULUS: return "mod";
+    case Kind::INTS_MODULUS_TOTAL: return "mod_total";
     case Kind::INTS_LOG2: return "int.log2";
     case Kind::INTS_ISPOW2: return "int.ispow2";
     case Kind::ABS: return "abs";
@@ -1248,8 +1268,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
 
-    case Kind::BITVECTOR_BB_TERM: return "@bbT";
-    case Kind::BITVECTOR_BITOF: return "@bitOf";
+    case Kind::BITVECTOR_FROM_BOOLS: return "@from_bools";
+    case Kind::BITVECTOR_BIT: return "@bit";
     case Kind::BITVECTOR_SIZE: return "@bvsize";
     case Kind::CONST_BITVECTOR_SYMBOLIC: return "@bv";
 
@@ -1276,11 +1296,15 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_CARD: return "set.card";
     case Kind::SET_COMPREHENSION: return "set.comprehension";
     case Kind::SET_CHOOSE: return "set.choose";
+    case Kind::SET_IS_EMPTY: return "set.is_empty";
     case Kind::SET_IS_SINGLETON: return "set.is_singleton";
     case Kind::SET_MAP: return "set.map";
     case Kind::SET_FILTER: return "set.filter";
+    case Kind::SET_ALL: return "set.all";
+    case Kind::SET_SOME: return "set.some";
     case Kind::SET_FOLD: return "set.fold";
     case Kind::RELATION_JOIN: return "rel.join";
+    case Kind::RELATION_TABLE_JOIN: return "rel.table_join";
     case Kind::RELATION_PRODUCT: return "rel.product";
     case Kind::RELATION_TRANSPOSE: return "rel.transpose";
     case Kind::RELATION_TCLOSURE: return "rel.tclosure";
@@ -1359,13 +1383,13 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
     case Kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
-    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
-    case Kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
-    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
-    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
-    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
-    case Kind::ROUNDINGMODE_BITBLAST: return "RMBITBLAST";
+    case Kind::FLOATINGPOINT_COMPONENT_NAN: return "@fp.NAN";
+    case Kind::FLOATINGPOINT_COMPONENT_INF: return "@fp.INF";
+    case Kind::FLOATINGPOINT_COMPONENT_ZERO: return "@fp.ZERO";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGN: return "@fp.SIGN";
+    case Kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "@fp.EXPONENT";
+    case Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "@fp.SIGNIFICAND";
+    case Kind::ROUNDINGMODE_BITBLAST: return "@fp.RMBITBLAST";
 
     // string theory
     case Kind::STRING_CONCAT: return "str.++";
@@ -1419,6 +1443,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SEP_WAND: return "wand";
     case Kind::SEP_EMP: return "sep.emp";
     case Kind::SEP_NIL: return "sep.nil";
+    case Kind::SEP_LABEL: return "@sep_label";
 
     // quantifiers
     case Kind::FORALL: return "forall";
@@ -1541,6 +1566,25 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
     return;
   }
   auto modelUninterpPrint = options::ioutils::getModelUninterpPrint(out);
+  if (modelUninterpPrint == options::ModelUninterpPrintMode::Datatype)
+  {
+    out << "(declare-datatype " << tn << " (";
+    for (size_t i=0, nelements=elements.size(); i<nelements; i++)
+    {
+      Node trn = elements[i];
+      if (i>0)
+      {
+        out << " ";
+      }
+      Assert (trn.getKind() == Kind::UNINTERPRETED_SORT_VALUE);
+      // prints as raw symbol
+      const UninterpretedSortValue& av =
+          trn.getConst<UninterpretedSortValue>();
+      out << "(" << av << ")";
+    }
+    out << "))" << std::endl;
+    return;
+  }
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (modelUninterpPrint == options::ModelUninterpPrintMode::DeclSortAndFun)
@@ -1694,6 +1738,25 @@ void Smt2Printer::toStreamCmdDeclareFunction(
     const std::vector<TypeNode>& argTypes,
     TypeNode type) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(declare-const " << cvc5::internal::quoteSymbol(id);
+    if (!argTypes.empty())
+    {
+      out << " (->";
+      for (const TypeNode& tn : argTypes)
+      {
+        out << " " << tn;
+      }
+    }
+    out << " " << type;
+    if (!argTypes.empty())
+    {
+      out << ')';
+    }
+    out << ')';
+    return;
+  }
   out << "(declare-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamDeclareType(out, argTypes, type);
   out << ')';
@@ -1734,6 +1797,13 @@ void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             TypeNode range,
                                             Node formula) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(define " << cvc5::internal::quoteSymbol(id) << " ";
+    toStreamSortedVarList(out, formals);
+    out << " " << formula << ')';
+    return;
+  }
   out << "(define-fun " << cvc5::internal::quoteSymbol(id) << " ";
   toStreamSortedVarList(out, formals);
   out << " " << range << ' ' << formula << ')';
@@ -1821,6 +1891,20 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          const std::string& id,
                                          size_t arity) const
 {
+  if (d_variant == Variant::alf_variant)
+  {
+    out << "(declare-type " << cvc5::internal::quoteSymbol(id) << " (";
+    for (size_t i = 0; i < arity; i++)
+    {
+      if (i > 0)
+      {
+        out << " ";
+      }
+      out << "Type";
+    }
+    out << "))";
+    return;
+  }
   out << "(declare-sort " << cvc5::internal::quoteSymbol(id) << " " << arity
       << ")";
 }
@@ -2079,6 +2163,44 @@ void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,
   out << "(declare-heap (" << locType << " " << dataType << "))";
 }
 
+void Smt2Printer::toStreamSkolem(std::ostream& out,
+                                 Node cacheVal,
+                                 SkolemId id,
+                                 bool isApplied,
+                                 int toDepth,
+                                 const LetBinding* lbind) const
+{
+  // true if this is a standalone skolem that requires printing with arguments
+  bool unappliedApp = (!isApplied && !cacheVal.isNull());
+  if (unappliedApp)
+  {
+    out << "(";
+  }
+  out << "@" << id;
+  if (cacheVal.getKind() == Kind::SEXPR)
+  {
+    for (const Node& cv : cacheVal)
+    {
+      out << " ";
+      toStream(out, cv, lbind, toDepth);
+    }
+  }
+  else if (!cacheVal.isNull())
+  {
+    out << " ";
+    toStream(out, cacheVal, lbind, toDepth);
+  }
+  if (unappliedApp)
+  {
+    out << ")";
+  }
+  else if (isApplied)
+  {
+    // separates further arguments
+    out << " ";
+  }
+}
+
 void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
                                    const std::string& name) const
 {
@@ -2144,7 +2266,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
             TypeNode argType = cons[j].getRangeType();
             std::stringstream ss;
             ss << argType;
-            Node bv = nm->mkBoundVar(ss.str(), argType);
+            Node bv = NodeManager::mkBoundVar(ss.str(), argType);
             cchildren.push_back(bv);
             // if fresh type, store it for later processing
             if (grammarTypes.insert(argType).second)

@@ -231,6 +231,11 @@ class SygusSolver : protected EnvObj
   /** The current sygus conjecture */
   Node d_conj;
   /**
+   * The list of synthesis functions that were trivial (not contained in the
+   * conjecture but were specified via synth-fun).
+   */
+  std::vector<Node> d_trivialFuns;
+  /**
    * Whether we need to reconstruct the sygus conjecture.
    *
    * The sygus conjecture is stale if either:

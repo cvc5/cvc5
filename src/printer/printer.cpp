@@ -32,21 +32,19 @@ using namespace std;
 
 namespace cvc5::internal {
 
-unique_ptr<Printer>
+thread_local unique_ptr<Printer>
     Printer::d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 unique_ptr<Printer> Printer::makePrinter(Language lang)
 {
   switch(lang) {
     case Language::LANG_SMTLIB_V2_6:
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
       // a normal smt2 variant here.
-      return unique_ptr<Printer>(
-          new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
+      return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
 
     case Language::LANG_AST:
       return unique_ptr<Printer>(new printer::ast::AstPrinter());
@@ -57,12 +55,13 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
 void Printer::toStream(std::ostream& out,
                        TNode n,
-                       const LetBinding* lbind) const
+                       const LetBinding* lbind,
+                       bool lbindTop) const
 {
   // no special implementation, just convert and print with default prefix
   if (lbind != nullptr)
   {
-    Node nc = lbind->convert(n);
+    Node nc = lbind->convert(n, lbindTop);
     toStream(out, nc);
   }
   else

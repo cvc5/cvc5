@@ -22,47 +22,12 @@
 
 #include <string>
 
+#include "expr/internal_skolem_id.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
 
 class ProofGenerator;
-
-/**
- * Internal skolem function identifier, used for identifying internal skolems
- * that are not exported as part of the API.
- *
- * This is a subclassification of skolems whose SkolemId is INTERNAL. It is
- * used to generate canonical skolems but without exporting to the API. Skolems
- * can be created using mkInternalSkolemFunction below.
- */
-enum class InternalSkolemId
-{
-  NONE,
-  /** Sequence model construction, element for base */
-  SEQ_MODEL_BASE_ELEMENT,
-  /** the "none" term, for instantiation evaluation */
-  IEVAL_NONE,
-  /** the "some" term, for instantiation evaluation */
-  IEVAL_SOME,
-  /** sygus "any constant" placeholder */
-  SYGUS_ANY_CONSTANT,
-  /**
-   * Quantifiers synth fun embedding, for function-to-synthesize, this the
-   * first order datatype variable for f.
-   */
-  QUANTIFIERS_SYNTH_FUN_EMBED,
-  /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED,
-  /** Input variables for MBQI */
-  MBQI_INPUT,
-  /** abstract value for a term t */
-  ABSTRACT_VALUE,
-};
-/** Converts an internal skolem function name to a string. */
-const char* toString(InternalSkolemId id);
-/** Writes an internal skolem function name to a stream. */
-std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
 /**
  * A manager for skolems that can be used in proofs. This is designed to be
@@ -141,19 +106,17 @@ class SkolemManager
    * will return two different Skolems.
    *
    * @param t The term to purify
-   * @param pg The proof generator for the skolemization of t. This should
-   * only be provided if t is a witness term (witness ((x T)) P). If non-null,
-   * this proof generator must respond to a call to getProofFor on
-   * (exists ((x T)) P) during the lifetime of the current node manager.
    * @return The purification skolem for t
    */
-  Node mkPurifySkolem(Node t,
-                      ProofGenerator* pg = nullptr);
+  Node mkPurifySkolem(Node t);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemId. The user of this
    * method is responsible for providing a proper type for the identifier that
-   * matches the description of id. Skolem functions are useful for modelling
+   * matches the description of id.
+   * This can be done from the function
+   * `SkolemManager::getTypeFor`.
+   * Skolem functions are useful for modelling
    * the behavior of partial functions, or for theory-specific inferences that
    * introduce fresh variables.
    *
@@ -178,8 +141,14 @@ class SkolemManager
    * @return The skolem function.
    */
   Node mkSkolemFunction(SkolemId id, Node cacheVal = Node::null());
-  /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemId id, const std::vector<Node>& cacheVals);
+  /**
+   * Same as above, with multiple cache values.
+   * @param id The identifier of the skolem function
+   * @param cacheVals A vector of cache values.
+   * @return The skolem function.
+   */
+  Node mkSkolemFunction(SkolemId id,
+                        const std::vector<Node>& cacheVals);
   /**
    * Same as above, with multiple cache values and an internal skolem id.
    * This will call mkSkolemFunction where the (external) id is
@@ -199,11 +168,18 @@ class SkolemManager
    */
   bool isSkolemFunction(TNode k, SkolemId& id, Node& cacheVal) const;
   /**
-   * Get skolem function id
+   * @param k The skolem.
+   * @return skolem function id for k.
    */
   SkolemId getId(TNode k) const;
   /**
-   * Get the internal skolem function id, for skolems whose id is
+   * @param k The skolem.
+   * @return The list of skolem indices for k.
+   */
+  std::vector<Node> getIndices(TNode k) const;
+  /**
+   * @param k The skolem.
+   * @return the internal skolem function id, for skolem k whose id is
    * SkolemId::INTERNAL.
    */
   InternalSkolemId getInternalId(TNode k) const;
@@ -229,11 +205,6 @@ class SkolemManager
                      const TypeNode& type,
                      const std::string& comment = "",
                      int flags = SKOLEM_DEFAULT);
-  /**
-   * Get proof generator for existentially quantified formula q. This returns
-   * the proof generator that was provided in a call to `mkSkolemize` above.
-   */
-  ProofGenerator* getProofGenerator(Node q) const;
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
   /**
@@ -255,16 +226,23 @@ class SkolemManager
    * @return the unpurified form of k.
    */
   static Node getUnpurifiedForm(Node k);
-
+  /**
+   * Get the number of indices for a skolem id.
+   * @param id The skolem id.
+   * @return The number of indices for the skolem id.
+   */
+  size_t getNumIndicesForSkolemId(SkolemId id) const;
+  /**
+   * Is the given skolem identifier commutative, in the sense that its
+   * arguments can be reordered? If this method returns true, then
+   * we sort the arguments to the skolem upon construction via the API.
+   */
+  static bool isCommutativeSkolemId(SkolemId id);
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */
   std::map<std::tuple<SkolemId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
   std::map<Node, std::tuple<SkolemId, TypeNode, Node>> d_skolemFunMap;
-  /**
-   * Mapping from witness terms to proof generators.
-   */
-  std::map<Node, ProofGenerator*> d_gens;
 
   /**
    * A counter used to produce unique skolem names.

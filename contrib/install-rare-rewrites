@@ -1,0 +1,30 @@
+#!/bin/bash
+cvc5=cvc5
+DIR=${CVC5_HOME}
+
+# To be run in the build directory where cvc5 is built.
+
+echo "[install-rare-rewrites] Generate cvc5 API include files..." 
+make gen-rewrites
+cp include/cvc5/cvc5_proof_rule.h $DIR/include/cvc5/cvc5_proof_rule.h
+
+echo "[install-rare-rewrites] Generate CPC Eunoia signature..."
+
+REWRITE_SIG=$DIR/proofs/eo/cpc/rules/Rewrites.eo
+
+cat << EOF > $REWRITE_SIG
+(include "../theories/Builtin.eo")
+(include "../theories/Arrays.eo")
+(include "../theories/Arith.eo")
+(include "../theories/Reals.eo")
+(include "../theories/Transcendentals.eo")
+(include "../theories/BitVectors.eo")
+(include "../theories/Strings.eo")
+(include "../theories/Sets.eo")
+
+EOF
+
+echo "(check-sat)" | $cvc5 -o rare-db --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite | sed '$ d' >> $REWRITE_SIG
+
+# use eo::define instead of let
+sed -i 's/(let/(eo::define/g' $REWRITE_SIG

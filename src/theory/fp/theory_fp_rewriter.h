@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
-typedef RewriteResponse (*RewriteFunction) (TNode, bool);
+typedef RewriteResponse (*RewriteFunction)(NodeManager* nm, TNode, bool);
 
 class TheoryFpRewriter : public TheoryRewriter
 {
@@ -47,7 +47,7 @@ class TheoryFpRewriter : public TheoryRewriter
     return postRewrite(equality).d_node;
   }
   /** Expand definitions in node */
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
 
  protected:
   /** TODO: document (projects issue #265) */

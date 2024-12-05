@@ -35,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "smt/solver_engine_state.h"
 #include "theory/combination_care_graph.h"
+#include "theory/conflict_processor.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
 #include "theory/partition_generator.h"
@@ -235,9 +236,11 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
-                      env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
-                                               : nullptr),
+      d_lazyProof(
+          env.isTheoryProofProducing()
+              ? new LazyCDProof(
+                    env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(env, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -261,7 +264,8 @@ TheoryEngine::TheoryEngine(Env& env)
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(context(), false)
+      d_factsAsserted(context(), false),
+      d_cp(nullptr)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -273,6 +277,13 @@ TheoryEngine::TheoryEngine(Env& env)
   if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
+  }
+  if (options().theory.conflictProcessMode
+      != options::ConflictProcessMode::NONE)
+  {
+    bool useExtRewriter = (options().theory.conflictProcessMode
+                           == options::ConflictProcessMode::MINIMIZE_EXT);
+    d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -423,6 +434,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
+      spendResource(Resource::TheoryFullCheckStep);
       d_factsAsserted = true;
       d_tc->resetRound();
     }
@@ -527,7 +539,9 @@ void TheoryEngine::check(Theory::Effort effort) {
             {
               if (!d_tc->buildModel())
               {
-                break;
+                // We don't check if the model building fails, but for
+                // uniformity ask all theories needsCheckLastEffort method.
+                continue;
               }
               theory->check(Theory::EFFORT_LAST_CALL);
             }
@@ -787,7 +801,7 @@ void TheoryEngine::notifyRestart() {
   CVC5_FOR_EACH_THEORY;
 }
 
-void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryEngine::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   // Reset the interrupt flag
   d_interrupted = false;
@@ -1487,11 +1501,24 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // spendResource();
   Assert(tlemma.getKind() == TrustNodeKind::LEMMA
          || tlemma.getKind() == TrustNodeKind::CONFLICT);
+
+  // minimize or generalize conflict
+  if (d_cp)
+  {
+    TrustNode tproc = d_cp->processLemma(tlemma);
+    if (!tproc.isNull())
+    {
+      tlemma = tproc;
+    }
+  }
+
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
 
-  Assert(!expr::hasFreeVar(lemma))
+  // must rewrite when checking here since we may have shadowing in rare cases,
+  // e.g. lazy lambda lifting lemmas
+  Assert(!expr::hasFreeVar(rewrite(lemma)))
       << "Lemma " << lemma << " from " << from << " has a free variable";
 
   // when proofs are enabled, we ensure the trust node has a generator by
@@ -1501,8 +1528,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     // ensure proof: set THEORY_LEMMA if no generator is provided
     if (tlemma.getGenerator() == nullptr)
     {
-      // internal lemmas should have generators
-      Assert(from != THEORY_LAST);
       // add theory lemma step to proof
       Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
       d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
@@ -1515,7 +1540,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   }
 
   // assert the lemma
-  d_propEngine->assertLemma(tlemma, p);
+  d_propEngine->assertLemma(id, tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
@@ -1634,16 +1659,21 @@ void TheoryEngine::conflict(TrustNode tconflict,
       {
         if (!CDProof::isSame(fullConflict, conflict))
         {
-          // ------------------------- explained  ---------- from theory
-          // fullConflict => conflict              ~conflict
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // ------------------------- explained  
+          // fullConflict => conflict             
+          // ------------------------- IMPLIES_ELIM  ---------- from theory
+          // ~fullConflict V conflict                ~conflict
+          // -------------------------------------------------- RESOLUTION
           // ~fullConflict
-          children.push_back(conflict.notNode());
-          args.push_back(mkMethodId(MethodId::SB_LITERAL));
+          Node provenOr = nodeManager()->mkNode(Kind::OR, proven[0].notNode(), proven[1]);
+          d_lazyProof->addStep(provenOr,
+                               ProofRule::IMPLIES_ELIM,
+                               {proven},
+                               {});
           d_lazyProof->addStep(fullConflictNeg,
-                               ProofRule::MACRO_SR_PRED_TRANSFORM,
-                               children,
-                               args);
+                               ProofRule::RESOLUTION,
+                               {provenOr, conflict.notNode()},
+                               {d_true, conflict});
         }
       }
     }
@@ -1670,6 +1700,16 @@ void TheoryEngine::conflict(TrustNode tconflict,
     // pass the trust node that was sent from the theory
     lemma(tconflict, id, LemmaProperty::NONE, theoryId);
   }
+}
+
+void TheoryEngine::setModelUnsound(theory::IncompleteId id)
+{
+  setModelUnsound(TheoryId::THEORY_NONE, id);
+}
+
+void TheoryEngine::setRefutationUnsound(theory::IncompleteId id)
+{
+  setRefutationUnsound(TheoryId::THEORY_NONE, id);
 }
 
 void TheoryEngine::setModelUnsound(theory::TheoryId theory,
@@ -2062,6 +2102,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         if (val != d_true)
         {
           std::stringstream ss;
+          for (Node child : assertion)
+          {
+            Node value = d_tc->getModel()->getValue(child);
+            ss << "getValue(" << child << "): " << value << std::endl;
+          }
           ss << " " << theoryId << " has an asserted fact that";
           if (val == d_false)
           {

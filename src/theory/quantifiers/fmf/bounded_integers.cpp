@@ -18,6 +18,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
 #include "expr/dtype_cons.h"
+#include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/datatypes_options.h"
@@ -31,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
+#include "theory/sets/normal_form.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -45,9 +47,10 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if (options().quantifiers.fmfBoundLazy)
+  // we require a proxy if the term is set.card
+  if (options().quantifiers.fmfBoundLazy || r.getKind() == Kind::SET_CARD)
   {
-    SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* sm = nodeManager()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
   }
   else
@@ -60,7 +63,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
 }
 Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node cn = nm->mkConstInt(Rational(n == 0 ? 0 : n - 1));
   return nm->mkNode(n == 0 ? Kind::LT : Kind::LEQ, d_proxy_range, cn);
 }
@@ -81,14 +84,32 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
     return Node::null();
   }
   d_ranges_proxied[curr] = true;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node currLit = getLiteral(curr);
-  Node lem = nm->mkNode(
-      Kind::EQUAL,
-      currLit,
-      nm->mkNode(curr == 0 ? Kind::LT : Kind::LEQ,
-                 d_range,
-                 nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1))));
+  Node lit;
+  if (d_range.getKind() == Kind::SET_CARD)
+  {
+    // Instead of introducing (set.card s) < n, we introduce the literal
+    // s = characteristicSet(s, n-1) for n>0 and false for n=0. We do this
+    // to avoid introducing set.card.
+    if (curr == 0)
+    {
+      lit = nodeManager()->mkConst(false);
+    }
+    else
+    {
+      Node cset = sets::NormalForm::getCharacteristicSet(
+          nodeManager(), d_range[0], curr - 1);
+      lit = d_range[0].eqNode(cset);
+    }
+  }
+  else
+  {
+    lit = nm->mkNode(curr == 0 ? Kind::LT : Kind::LEQ,
+                     d_range,
+                     nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1)));
+  }
+  Node lem = nm->mkNode(Kind::EQUAL, currLit, lit);
   return lem;
 }
 
@@ -248,7 +269,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       std::map< Node, Node > msum;
       if (ArithMSum::getMonomialSumLit(n, msum))
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Trace("bound-int-debug") << "literal (polarity = " << pol << ") " << n << " is monomial sum : " << std::endl;
         ArithMSum::debugPrintMonomialSum(msum, "bound-int-debug");
         for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
@@ -298,6 +319,11 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
   }
   else if (n.getKind() == Kind::SET_MEMBER)
   {
+    // Note this is incomplete when combined with cardinality constraints,
+    // since we may introduce slack elements during model construction.
+    // Here, fmfBound should be enabled, otherwise the incompleteness check
+    // in the theory of sets is out of sync.
+    Assert(options().quantifiers.fmfBound);
     if( !pol && !hasNonBoundVar( q, n[1] ) ){
       std::vector< Node > bound_vars;
       std::map< Node, bool > visited;
@@ -370,7 +396,7 @@ void BoundedIntegers::checkOwnership(Node f)
     }
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
@@ -407,21 +433,17 @@ void BoundedIntegers::checkOwnership(Node f)
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
-          // only handles infinite element types currently (cardinality is not
-          // supported for finite element types #1123). Regardless, this is
-          // typically not a limitation since this variable can be bound in a
-          // standard way below since its type is finite.
-          if (!d_env.isFiniteType(v.getType()))
-          {
-            setBoundedVar(f, v, BOUND_SET_MEMBER);
-            setBoundVar = true;
-            d_setm_range[f][v] = bound_lit_map[2][v][1];
-            d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
-            Trace("bound-int") << "Variable " << v
-                               << " is bound because of set membership literal "
-                               << bound_lit_map[2][v] << std::endl;
-          }
+          setBoundedVar(f, v, BOUND_SET_MEMBER);
+          setBoundVar = true;
+          d_setm_range[f][v] = bound_lit_map[2][v][1];
+          d_setm_range_lit[f][v] = bound_lit_map[2][v];
+          Node cardTerm = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
+          // Note that we avoid reasoning about cardinality by eagerly
+          // eliminating set.card for literals as they are introduced.
+          d_range[f][v] = cardTerm;
+          Trace("bound-int") << "Variable " << v
+                             << " is bound because of set membership literal "
+                             << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
@@ -695,63 +717,25 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   {
     return sr;
   }
-  NodeManager* nm = NodeManager::currentNM();
-  Node nsr;
-  TypeNode tne = sr.getType().getSetElementType();
-
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
   while (sr.getKind() == Kind::SET_UNION)
   {
+    Assert(sr[0].getKind() == Kind::SET_SINGLETON);
     srCard++;
-    sr = sr[0];
+    sr = sr[1];
   }
   Assert(sr.getKind() == Kind::SET_SINGLETON);
   srCard++;
-  // choices[i] stores the canonical symbolic representation of the (i+1)^th
-  // element of sro
-  std::vector<Node> choices;
-  Node srCardN = nm->mkNode(Kind::SET_CARD, sro);
-  Node choice_i;
-  for (unsigned i = 0; i < srCard; i++)
-  {
-    if (i == d_setm_choice[sro].size())
-    {
-      choice_i = nm->mkBoundVar(tne);
-      choices.push_back(choice_i);
-      Node cBody = nm->mkNode(Kind::SET_MEMBER, choice_i, sro);
-      if (choices.size() > 1)
-      {
-        cBody =
-            nm->mkNode(Kind::AND, cBody, nm->mkNode(Kind::DISTINCT, choices));
-      }
-      choices.pop_back();
-      Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, choice_i);
-      Node cMinCard =
-          nm->mkNode(Kind::LEQ, srCardN, nm->mkConstInt(Rational(i)));
-      choice_i =
-          nm->mkNode(Kind::WITNESS, bvl, nm->mkNode(Kind::OR, cMinCard, cBody));
-      d_setm_choice[sro].push_back(choice_i);
-    }
-    Assert(i < d_setm_choice[sro].size());
-    choice_i = d_setm_choice[sro][i];
-    choices.push_back(choice_i);
-    Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
-    if (nsr.isNull())
-    {
-      nsr = sChoiceI;
-    }
-    else
-    {
-      nsr = nm->mkNode(Kind::SET_UNION, nsr, sChoiceI);
-    }
-  }
-  // turns the concrete model value of sro into a canonical representation
+  Trace("bound-int-rsi") << "...cardinality is " << srCard << std::endl;
+  // get the characteristic set
+  Node nsr = sets::NormalForm::getCharacteristicSet(nodeManager(), sro, srCard);
+  // turns the concrete set value of sro into a canonical representation
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
-  // C1 union ( witness y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
-  // where C1 = ( witness x. card(S)<=0 OR x in S ).
+  // C1 union (set.singleton (set.choose (set.minus S C1)))
+  // where C1 = (set.singleton (set.choose S)).
   Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
   return nsr;
 }
@@ -796,7 +780,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       //must add the lemma
       Node nn = d_nground_range[q][v];
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-      Node lem = NodeManager::currentNM()->mkNode(Kind::LEQ, nn, d_range[q][v]);
+      Node lem = nodeManager()->mkNode(Kind::LEQ, nn, d_range[q][v]);
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
       d_qim.lemma(lem, InferenceId::QUANTIFIERS_BINT_MIN_NG);
     }
@@ -852,7 +836,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         //failed, abort the iterator
         return false;
       }else{
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
         Node range = rewrite(nm->mkNode(Kind::SUB, u, l));
         if (!range.isConst())
@@ -984,9 +968,8 @@ struct QInternalVarAttributeId
 };
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
-Node BoundedIntegers::mkBoundedForall(Node bvl, Node body)
+Node BoundedIntegers::mkBoundedForall(NodeManager* nm, Node bvl, Node body)
 {
-  NodeManager* nm = NodeManager::currentNM();
   QInternalVarAttribute qiva;
   Node qvar;
   if (bvl.hasAttribute(qiva))

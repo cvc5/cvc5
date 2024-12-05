@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "smt/print_benchmark.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -32,10 +33,33 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+/**
+ * Mapping from terms to their "instantiation level", for details see
+ * QuantAttributes::getInstantiationLevel.
+ */
+struct InstLevelAttributeId
+{
+};
+using InstLevelAttribute = expr::Attribute<InstLevelAttributeId, uint64_t>;
+
+/** Attribute true for quantifiers we are doing quantifier elimination on */
+struct QuantElimAttributeId
+{
+};
+using QuantElimAttribute = expr::Attribute<QuantElimAttributeId, bool>;
+
+/** Attribute true for quantifiers we which to preserve structure for, including
+ * those that we are doing quantifier elimination on */
+struct PreserveStructureAttributeId
+{
+};
+using PreserveStructureAttribute =
+    expr::Attribute<PreserveStructureAttributeId, bool>;
+
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && !isOracleInterface()
-         && !d_isQuantBounded;
+  return !d_sygus && !d_preserveStructure && !isFunDef() && !isOracleInterface()
+         && !d_isQuantBounded && !d_hasPool;
 }
 
 QuantAttributes::QuantAttributes() {}
@@ -72,24 +96,6 @@ void QuantAttributes::setUserAttribute(const std::string& attr,
     QuantElimPartialAttribute qepa;
     n.setAttribute( qepa, true );
   }
-}
-
-bool QuantAttributes::checkFunDef( Node q ) {
-  return !getFunDefHead( q ).isNull();
-}
-
-bool QuantAttributes::checkFunDefAnnotation( Node ipl ) {
-  if( !ipl.isNull() ){
-    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
-      {
-        if( ipl[i][0].getAttribute(FunDefAttribute()) ){
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 Node QuantAttributes::getFunDefHead( Node q ) {
@@ -167,21 +173,6 @@ bool QuantAttributes::checkSygusConjectureAnnotation( Node ipl ){
   return false;
 }
 
-bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
-  if( !ipl.isNull() ){
-    for( unsigned i=0; i<ipl.getNumChildren(); i++ ){
-      if (ipl[i].getKind() == Kind::INST_ATTRIBUTE)
-      {
-        Node avar = ipl[i][0];
-        if( avar.getAttribute(QuantElimAttribute()) ){
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
 bool QuantAttributes::hasPattern(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
@@ -245,7 +236,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         if (q[2][i][0].getKind() == Kind::CONST_STRING)
         {
           // make a dummy variable to be used below
-          avar = nm->mkBoundVar(nm->booleanType());
+          avar = NodeManager::mkBoundVar(nm->booleanType());
           std::vector<Node> nodeValues(q[2][i].begin() + 1, q[2][i].end());
           // set user attribute on the dummy variable
           setUserAttribute(
@@ -289,11 +280,15 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           if (q[2][i].getNumChildren() > 1)
           {
             std::string name = q[2][i][1].getName();
+            // mark that this symbol should not be printed with the print
+            // benchmark utility
+            Node sym = q[2][i][1];
+            smt::PrintBenchmark::markNoPrint(sym);
             Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(name, nm->booleanType());
+            qa.d_name = NodeManager::mkBoundVar(name, nm->booleanType());
           }
           else
           {
@@ -304,13 +299,21 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
         }
+        if (avar.getAttribute(PreserveStructureAttribute()))
+        {
+          Trace("quant-attr")
+              << "Attribute : preserve structure : " << q << std::endl;
+          qa.d_preserveStructure = true;
+        }
         if( avar.getAttribute(QuantElimAttribute()) ){
           Trace("quant-attr") << "Attribute : quantifier elimination : " << q << std::endl;
+          qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
           //don't set owner, should happen naturally
         }
         if( avar.getAttribute(QuantElimPartialAttribute()) ){
           Trace("quant-attr") << "Attribute : quantifier elimination partial : " << q << std::endl;
+          qa.d_preserveStructure = true;
           qa.d_quant_elim = true;
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
@@ -366,22 +369,22 @@ int64_t QuantAttributes::getQuantInstLevel(Node q)
   }
 }
 
-bool QuantAttributes::isQuantElim( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
+bool QuantAttributes::isQuantElim(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
     return false;
-  }else{
-    return it->second.d_quant_elim;
   }
+  return it->second.d_quant_elim;
 }
-
-bool QuantAttributes::isQuantElimPartial( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+bool QuantAttributes::isQuantElimPartial(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.d_quant_elim_partial;
   }
+  return it->second.d_quant_elim_partial;
 }
 
 bool QuantAttributes::isQuantBounded(Node q) const
@@ -431,34 +434,40 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
-void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
+Node QuantAttributes::mkAttrPreserveStructure()
 {
-  Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level
-                             << std::endl;
-  // if not from the vector of terms we instantiatied
-  if (qn.getKind() != Kind::BOUND_VARIABLE && n != qn)
-  {
-    // if this is a new term, without an instantiation level
-    if (!n.hasAttribute(InstLevelAttribute()))
-    {
-      InstLevelAttribute ila;
-      n.setAttribute(ila, level);
-      Trace("inst-level-debug") << "Set instantiation level " << n << " to "
-                                << level << std::endl;
-      Assert(n.getNumChildren() == qn.getNumChildren());
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        setInstantiationLevelAttr(n[i], qn[i], level);
-      }
-    }
-  }
+  Node nattr = mkAttrInternal(AttrType::ATTR_PRESERVE_STRUCTURE);
+  PreserveStructureAttribute psa;
+  nattr[0].setAttribute(psa, true);
+  return nattr;
+}
+
+Node QuantAttributes::mkAttrQuantifierElimination()
+{
+  Node nattr = mkAttrInternal(AttrType::ATTR_QUANT_ELIM);
+  QuantElimAttribute qea;
+  nattr[0].setAttribute(qea, true);
+  return nattr;
+}
+Node QuantAttributes::mkAttrInternal(AttrType at)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  // use internal skolem id so that this method is deterministic
+  Node id = nm->mkConstInt(Rational(static_cast<uint32_t>(at)));
+  Node nattr = sm->mkInternalSkolemFunction(
+      InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL,
+      nm->booleanType(),
+      {id});
+  nattr = nm->mkNode(Kind::INST_ATTRIBUTE, nattr);
+  return nattr;
 }
 
 void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
 {
-  if (!n.hasAttribute(InstLevelAttribute()))
+  InstLevelAttribute ila;
+  if (!n.hasAttribute(ila))
   {
-    InstLevelAttribute ila;
     n.setAttribute(ila, level);
     Trace("inst-level-debug") << "Set instantiation level " << n << " to "
                               << level << std::endl;
@@ -467,6 +476,17 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
       setInstantiationLevelAttr(n[i], level);
     }
   }
+}
+
+bool QuantAttributes::getInstantiationLevel(const Node& n, uint64_t& level)
+{
+  InstLevelAttribute ila;
+  if (n.hasAttribute(ila))
+  {
+    level = n.getAttribute(ila);
+    return true;
+  }
+  return false;
 }
 
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)

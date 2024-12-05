@@ -235,6 +235,10 @@ class ITESimplifier : protected EnvObj
     IntStat d_binaryPredFold;
     IntStat d_specialEqualityFolds;
     IntStat d_simpITEVisits;
+    unsigned d_numBranches;
+    unsigned d_numFalseBranches;
+    unsigned d_itesMade;
+    unsigned d_instance;
 
     HistogramStat<uint32_t> d_inSmaller;
 
@@ -327,7 +331,7 @@ class ITESimplifier : protected EnvObj
 class ITECareSimplifier
 {
  public:
-  ITECareSimplifier();
+  ITECareSimplifier(NodeManager* nm);
   ~ITECareSimplifier();
 
   Node simplifyWithCare(TNode e);

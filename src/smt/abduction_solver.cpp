@@ -50,9 +50,15 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Trace("sygus-abduct") << "Axioms: " << axioms << std::endl;
   Trace("sygus-abduct") << "SolverEngine::getAbduct: goal " << goal
                         << std::endl;
-  std::vector<Node> asserts(axioms.begin(), axioms.end());
+  SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
+  std::vector<Node> axiomsn;
+  for (const Node& ax : axioms)
+  {
+    axiomsn.emplace_back(tls.apply(ax));
+  }
+  std::vector<Node> asserts(axiomsn.begin(), axiomsn.end());
   // must expand definitions
-  Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
+  Node conjn = tls.apply(goal);
   conjn = rewrite(conjn);
   // now negate
   conjn = conjn.negate();
@@ -60,7 +66,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   asserts.push_back(conjn);
   std::string name("__internal_abduct");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms, grammarType);
+      nodeManager(), name, asserts, axiomsn, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == Kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -70,11 +76,11 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeQuantifiers().sygus = true;
+  subOptions.write_quantifiers().sygus = true;
   // by default, we don't want disjunctive terms (ITE, OR) in abducts
   if (!d_env.getOptions().quantifiers.sygusGrammarUseDisjWasSetByUser)
   {
-    subOptions.writeQuantifiers().sygusGrammarUseDisj = false;
+    subOptions.write_quantifiers().sygusGrammarUseDisj = false;
   }
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
@@ -180,7 +186,7 @@ void AbductionSolver::checkAbduct(Node a)
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeSmt().produceAbducts = false;
+  subOptions.write_smt().produceAbducts = false;
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, consistent with assertions, second, implies negated goal

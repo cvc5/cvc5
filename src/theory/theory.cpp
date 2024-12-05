@@ -150,18 +150,6 @@ TheoryId Theory::theoryOf(TNode node,
       if (node.isVar())
       {
         tid = theoryOf(node.getType(), usortOwner);
-        if (theoryOf(node.getType(), usortOwner) == theory::THEORY_BOOL)
-        {
-          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-          // Boolean variables belong to UF if they are "purify" variables.
-          // Purify variables are considered theory literals and sent to the
-          // UF theory to ensure theory combination is run properly on functions
-          // having Boolean arguments.
-          if (sm->getId(node) == SkolemId::PURIFY)
-          {
-            tid = THEORY_UF;
-          }
-        }
       }
       else if (node.getKind() == Kind::EQUAL)
       {
@@ -187,17 +175,8 @@ TheoryId Theory::theoryOf(TNode node,
         }
         else
         {
-          SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-          if (sm->getId(node) == SkolemId::PURIFY)
-          {
-            // purify vars also go to UF
-            tid = THEORY_UF;
-          }
-          else
-          {
-            // Other Boolean variables are Bool
-            tid = THEORY_BOOL;
-          }
+          // Other Boolean variables are Bool
+          tid = THEORY_BOOL;
         }
       }
       else if (node.getKind() == Kind::EQUAL)
@@ -319,11 +298,6 @@ void Theory::debugPrintFacts() const{
   printFacts(TraceChannel.getStream());
 }
 
-bool Theory::isLegalElimination(TNode x, TNode val)
-{
-  return d_valuation.isLegalElimination(x, val);
-}
-
 bool Theory::collectModelInfo(TheoryModel* m, const std::set<Node>& termSet)
 {
   // if we are using an equality engine, assert it to the model
@@ -427,12 +401,12 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+    if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;

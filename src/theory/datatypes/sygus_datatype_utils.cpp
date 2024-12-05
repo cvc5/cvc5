@@ -20,7 +20,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "smt/env.h"
 #include "theory/evaluator.h"
@@ -153,8 +152,7 @@ Node mkSygusTerm(const Node& op,
                  bool doBetaReduction)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(nm->getSkolemManager()->getInternalId(op)
-         != InternalSkolemId::SYGUS_ANY_CONSTANT);
+  Assert(op.getInternalSkolemId() != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -291,8 +289,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
           ss << cur;
           const DType& dt = cur.getType().getDType();
           // make a fresh variable
-          NodeManager * nm = NodeManager::currentNM();
-          Node var = nm->mkBoundVar(ss.str(), dt.getSygusType());
+          Node var = NodeManager::mkBoundVar(ss.str(), dt.getSygusType());
           SygusToBuiltinVarAttribute stbv;
           cur.setAttribute(stbv, var);
           visited[cur] = var;
@@ -354,7 +351,16 @@ Node builtinVarToSygus(Node v)
   return Node::null();
 }
 
-void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+/**
+ * Get free symbols or variables in a sygus datatype type.
+ * @param sdt The sygus datatype.
+ * @param sym The symbols to add to.
+ * @param isVar If we are looking for variables (if not, we are looking for
+ * symbols).
+ */
+void getFreeSymbolsSygusTypeInternal(TypeNode sdt,
+                                     std::unordered_set<Node>& syms,
+                                     bool isVar)
 {
   // datatype types we need to process
   std::vector<TypeNode> typeToProcess;
@@ -372,7 +378,14 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
       {
         // collect the symbols from the operator
         Node op = dtc[j].getSygusOp();
-        expr::getSymbols(op, syms);
+        if (isVar)
+        {
+          expr::getVariables(op, syms);
+        }
+        else
+        {
+          expr::getSymbols(op, syms);
+        }
         // traverse the argument types
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
@@ -395,6 +408,16 @@ void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
                          typeNextToProcess.begin(),
                          typeNextToProcess.end());
   }
+}
+
+void getFreeSymbolsSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+{
+  getFreeSymbolsSygusTypeInternal(sdt, syms, false);
+}
+
+void getFreeVariablesSygusType(TypeNode sdt, std::unordered_set<Node>& syms)
+{
+  getFreeSymbolsSygusTypeInternal(sdt, syms, true);
 }
 
 TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
@@ -561,11 +584,10 @@ TypeNode generalizeSygusType(TypeNode sdt)
   }
   std::vector<Node> svec;
   std::vector<Node> vars;
-  NodeManager* nm = NodeManager::currentNM();
   for (const Node& s : syms)
   {
     svec.push_back(s);
-    vars.push_back(nm->mkBoundVar(s.getName(), s.getType()));
+    vars.push_back(NodeManager::mkBoundVar(s.getName(), s.getType()));
   }
   return substituteAndGeneralizeSygusType(sdt, svec, vars);
 }

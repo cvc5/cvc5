@@ -20,6 +20,18 @@
 namespace cvc5::internal {
 namespace theory {
 
+std::ostream& operator<<(std::ostream& os, TheoryRewriteCtx trc)
+{
+  switch (trc)
+  {
+    case TheoryRewriteCtx::PRE_DSL: return os << "PRE_DSL";
+    case TheoryRewriteCtx::DSL_SUBCALL: return os << "DSL_SUBCALL";
+    case TheoryRewriteCtx::POST_DSL: return os << "POST_DSL";
+  }
+  Unreachable();
+  return os;
+}
+
 std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
 {
   switch (rs)
@@ -72,10 +84,42 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryRewriter::expandDefinition(Node node)
+Node TheoryRewriter::expandDefinition(Node node)
 {
   // no expansion
-  return TrustNode::null();
+  return Node::null();
+}
+
+Node TheoryRewriter::rewriteViaRule(ProofRewriteRule pr, const Node& n)
+{
+  return n;
+}
+
+ProofRewriteRule TheoryRewriter::findRule(const Node& a,
+                                          const Node& b,
+                                          TheoryRewriteCtx ctx)
+{
+  std::vector<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  for (ProofRewriteRule r : rules)
+  {
+    if (rewriteViaRule(r, a) == b)
+    {
+      return r;
+    }
+  }
+  return ProofRewriteRule::NONE;
+}
+
+void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
+                                              TheoryRewriteCtx ctx)
+{
+  std::vector<ProofRewriteRule>& rules = d_pfTheoryRewrites[ctx];
+  rules.push_back(id);
+  // theory rewrites marked DSL_SUBCALL are also tried at PRE_DSL effort.
+  if (ctx == TheoryRewriteCtx::DSL_SUBCALL)
+  {
+    d_pfTheoryRewrites[TheoryRewriteCtx::PRE_DSL].push_back(id);
+  }
 }
 
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }

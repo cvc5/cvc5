@@ -27,7 +27,7 @@ namespace quantifiers {
 
 RConsObligation::RConsObligation(TypeNode stn, Node t) : d_ts({t})
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = t.getNodeManager()->getSkolemManager();
   d_k = sm->mkDummySkolem("sygus_rcons", stn);
 }
 
@@ -86,9 +86,9 @@ void RConsObligation::printCandSols(
       Trace("sygus-rcons") << "    "
                            << datatypes::utils::sygusToBuiltin(candSol)
                            << std::endl;
-      std::unordered_set<TNode> vars;
+      std::unordered_set<Node> vars;
       expr::getVariables(candSol, vars);
-      for (TNode var : vars)
+      for (const Node& var : vars)
       {
         if (visited.find(var) == visited.cend())
           for (const std::unique_ptr<RConsObligation>& ob : obs)

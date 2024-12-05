@@ -38,16 +38,18 @@ InstStrategySubConflict::InstStrategySubConflict(
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(options());
+  // disable checking first
+  smt::SetDefaults::disableChecking(d_subOptions);
   // requires full proofs
-  d_subOptions.writeSmt().produceProofs = true;
+  d_subOptions.write_smt().produceProofs = true;
   // don't do simplification, which can preprocess quantifiers to those not
   // occurring in the main solver
-  d_subOptions.writeSmt().simplificationMode =
+  d_subOptions.write_smt().simplificationMode =
       options::SimplificationMode::NONE;
   // requires unsat cores
-  d_subOptions.writeSmt().produceUnsatCores = true;
+  d_subOptions.write_smt().produceUnsatCores = true;
   // don't do this strategy
-  d_subOptions.writeQuantifiers().quantSubCbqi = false;
+  d_subOptions.write_quantifiers().quantSubCbqi = false;
 }
 
 void InstStrategySubConflict::reset_round(Theory::Effort e) {}
@@ -67,12 +69,7 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  double clSet = 0;
-  if (TraceIsOn("qscf-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qscf-engine") << "---Subconflict Find Engine Round---" << std::endl;
-  }
+  beginCallDebug();
   std::vector<Node> assertions;
   std::unordered_set<Node> quants;
   const LogicInfo& logicInfo = d_qstate.getLogicInfo();
@@ -167,19 +164,10 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
     d_qstate.notifyConflictingInst();
   }
 
-  if (TraceIsOn("qscf-engine"))
-  {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("qscf-engine") << "Finished subconflict find engine, time = "
-                         << (clSet2 - clSet);
-    Trace("qscf-engine") << ", result = " << r;
-    if (addedLemmas > 0)
-    {
-      Trace("qscf-engine") << ", addedLemmas = " << addedLemmas;
-    }
-    Trace("qscf-engine") << std::endl;
-  }
+  endCallDebug();
 }
+
+std::string InstStrategySubConflict::identify() const { return "sub-cbqi"; }
 
 }  // namespace quantifiers
 }  // namespace theory

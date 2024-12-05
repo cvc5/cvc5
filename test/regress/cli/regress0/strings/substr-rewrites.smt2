@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic SLIA)
 (set-info :status unsat)

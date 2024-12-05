@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANT_SPLIT_H
 #define CVC5__THEORY__QUANT_SPLIT_H
 
+#include "context/cdhashmap.h"
 #include "context/cdo.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
@@ -28,6 +29,8 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
+
+class QuantDSplitProofGenerator;
 
 /** Quantifiers dynamic splitting
  *
@@ -48,7 +51,8 @@ namespace quantifiers {
  * one variable per quantified formula at a time.
  */
 class QuantDSplit : public QuantifiersModule {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeSet = context::CDHashSet<Node>;
+  using NodeIntMap = context::CDHashMap<Node, size_t>;
 
  public:
   QuantDSplit(Env& env,
@@ -66,12 +70,20 @@ class QuantDSplit : public QuantifiersModule {
   bool checkCompleteFor(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "QuantDSplit"; }
+  /**
+   * Split the index^th variable of quantified formula q based on its possible
+   * constructors. This variable should have datatype type. This method is
+   * used for ProofRewriteRule::QUANT_DT_SPLIT.
+   */
+  static Node split(NodeManager* nm, const Node& q, size_t index);
 
  private:
   /** list of relevant quantifiers asserted in the current context */
-  std::map<Node, int> d_quant_to_reduce;
+  NodeIntMap d_quant_to_reduce;
   /** whether we have instantiated quantified formulas */
   NodeSet d_added_split;
+  /** Proof generator */
+  std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
 }

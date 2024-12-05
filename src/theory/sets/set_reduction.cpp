@@ -101,7 +101,8 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::IMPLIES,
                  interval_i,
                  nm->mkNode(Kind::AND, combine_i_equal, union_i_equal));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node union_n_equal = A.eqNode(union_n);
   asserts.push_back(forAll_i);
@@ -144,7 +145,7 @@ Node SetReduction::reduceProjectOperator(Node n)
   TypeNode elementType = A.getType().getSetElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
   Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
-  Node t = nm->mkBoundVar("t", elementType);
+  Node t = NodeManager::mkBoundVar("t", elementType);
   Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);

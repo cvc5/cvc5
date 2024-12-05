@@ -1,0 +1,63 @@
+(include "../programs/Nary.eo")
+
+; note: >
+;  This is the generic tester predicate whose first argument is expected to be
+;  a constructor symbol for datatype D. We do not currently check this is the
+;  case.
+(declare-const is (-> (! Type :var C :implicit)
+                      (! Type :var D :implicit)
+                      C D Bool))
+
+; note: >
+;  This is the generic updater whose first argument is expected to be
+;  a selector symbol for datatype D. We do not currently check this is the
+;  case.
+(declare-const update (-> (! Type :var D :implicit)
+                          (! Type :var T :implicit)
+                          (! Type :var S :implicit)
+                          S D T D))
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const UnitTuple Type)
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
+
+(declare-const tuple.unit UnitTuple)
+(declare-const tuple (-> (! Type :var T :implicit) (! Type :var U :implicit)
+                         T U (eo::cons Tuple T U)) :right-assoc-nil tuple.unit)
+(declare-const tuple.select
+    (-> (! Type :var T :implicit)
+        (! Int :var i) T (eo::list_nth Tuple T i)))
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const Nullable (-> Type Type))
+(declare-const nullable.null (-> (! Type :var T) (Nullable T)))
+(declare-const nullable.some (-> (! Type :var T :implicit) T (Nullable T)))
+(declare-const nullable.val (-> (! Type :var T :implicit) (Nullable T) T))
+
+; program: $get_type_nullable_lift
+; args:
+; - T Type: The (function) type of the function we are lifting.
+; return: >
+;   The type of the nullable.lift for the given function. This
+;   consists of lifting each argument and return type T to
+;   (Nullable T).
+(program $get_type_nullable_lift ((T Type) (U Type))
+    (Type) Type
+    (
+      (($get_type_nullable_lift (-> T U)) (-> (Nullable T) ($get_type_nullable_lift U)))
+      (($get_type_nullable_lift U)        (Nullable U))
+    )
+)
+
+; disclaimer: This function is not in the SMT-LIB standard.
+(declare-const nullable.lift (-> (! Type :var F :implicit) F ($get_type_nullable_lift F)))
+
+; skolems
+;SHARED_SELECTOR

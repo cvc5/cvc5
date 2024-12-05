@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -31,8 +31,8 @@ ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
   // use raw symbols so that `:args` is not converted to `|:args|`
-  d_conclusionMarker = nm->mkRawSymbol(":conclusion", nm->sExprType());
-  d_argsMarker = nm->mkRawSymbol(":args", nm->sExprType());
+  d_conclusionMarker = NodeManager::mkRawSymbol(":conclusion", nm->sExprType());
+  d_argsMarker = NodeManager::mkRawSymbol(":args", nm->sExprType());
 }
 
 Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
@@ -125,7 +125,7 @@ Node ProofNodeToSExpr::getOrMkProofRuleVariable(ProofRule r)
   std::stringstream ss;
   ss << r;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_pfrMap[r] = var;
   return var;
 }
@@ -146,7 +146,7 @@ Node ProofNodeToSExpr::getOrMkKindVariable(TNode n)
   std::stringstream ss;
   ss << k;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_kindMap[k] = var;
   return var;
 }
@@ -168,7 +168,7 @@ Node ProofNodeToSExpr::getOrMkTheoryIdVariable(TNode n)
   std::stringstream ss;
   ss << tid;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_tidMap[tid] = var;
   return var;
 }
@@ -190,7 +190,7 @@ Node ProofNodeToSExpr::getOrMkMethodIdVariable(TNode n)
   std::stringstream ss;
   ss << mid;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_midMap[mid] = var;
   return var;
 }
@@ -211,7 +211,7 @@ Node ProofNodeToSExpr::getOrMkTrustIdVariable(TNode n)
   std::stringstream ss;
   ss << tid;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_tridMap[tid] = var;
   return var;
 }
@@ -232,21 +232,21 @@ Node ProofNodeToSExpr::getOrMkInferenceIdVariable(TNode n)
   std::stringstream ss;
   ss << iid;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_iidMap[iid] = var;
   return var;
 }
 
 Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
 {
-  rewriter::DslProofRule rid;
-  if (!rewriter::getDslProofRule(n, rid))
+  ProofRewriteRule rid;
+  if (!rewriter::getRewriteRule(n, rid))
   {
     // just use self if we failed to get the node, throw a debug failure
     Assert(false) << "Expected inference id node, got " << n;
     return n;
   }
-  std::map<rewriter::DslProofRule, Node>::iterator it = d_dslrMap.find(rid);
+  std::map<ProofRewriteRule, Node>::iterator it = d_dslrMap.find(rid);
   if (it != d_dslrMap.end())
   {
     return it->second;
@@ -254,7 +254,7 @@ Node ProofNodeToSExpr::getOrMkDslRewriteVariable(TNode n)
   std::stringstream ss;
   ss << rid;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_dslrMap[rid] = var;
   return var;
 }
@@ -269,7 +269,7 @@ Node ProofNodeToSExpr::getOrMkNodeVariable(TNode n)
   std::stringstream ss;
   ss << n;
   NodeManager* nm = NodeManager::currentNM();
-  Node var = nm->mkBoundVar(ss.str(), nm->sExprType());
+  Node var = NodeManager::mkBoundVar(ss.str(), nm->sExprType());
   d_nodeMap[n] = var;
   return var;
 }
@@ -333,6 +333,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case ProofRule::DSL_REWRITE:
+    case ProofRule::THEORY_REWRITE:
       if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;
@@ -346,12 +347,6 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
-    case ProofRule::ANNOTATION:
-      if (i == 0)
-      {
-        return ArgFormat::INFERENCE_ID;
-      }
-      break;
     case ProofRule::TRUST:
     {
       if (i == 0)

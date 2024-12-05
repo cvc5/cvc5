@@ -28,7 +28,6 @@
 #include "theory/sets/solver_state.h"
 #include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -80,17 +79,14 @@ class TheorySetsPrivate : protected EnvObj
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
    *   (and (set.member x B) (= A B))
-   *   (or
-   *    (and (p x) (set.member x (set.filter p A)))
-   *    (and (not (p x)) (not (set.member x (set.filter p A))))
-   *   )
+   *   (= (set.member x (set.filter p A)) (p x))
    * )
    */
   void checkFilterUp();
   /**
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
-   *   (bag.member x (set.filter p A))
+   *   (set.member x (set.filter p A))
    *   (and
    *    (p x)
    *    (set.member x A)
@@ -98,7 +94,6 @@ class TheorySetsPrivate : protected EnvObj
    * )
    */
   void checkFilterDown();
-
   /**
    * Apply the following rule for map terms (set.map f A):
    * Positive member rule:
@@ -326,8 +321,6 @@ class TheorySetsPrivate : protected EnvObj
 
   ~TheorySetsPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
-
   /** Get the solver state */
   SolverState* getSolverState() { return &d_state; }
 
@@ -394,16 +387,30 @@ class TheorySetsPrivate : protected EnvObj
   /** ensure that the set type is over first class type, throw logic exception
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
+  /**
+   * Ensure cardinality is enabled, which may throw a logic exception if
+   * setCardExp is false.
+   */
+  void ensureCardinalityEnabled();
+  /**
+   * Ensure relations are enabled, which may throw a logic exception if
+   * relsExp is false.
+   */
+  void ensureRelationsEnabled();
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
   std::unique_ptr<CardinalityExtension> d_cardSolver;
+  /** Have we ever seen relations? */
+  bool d_hasEnabledRels;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** Have we ever seen cardinality? */
+  bool d_hasEnabledCard;
   /** is cardinality enabled?
    *
    * This flag is set to true during a full effort check if any constraint
@@ -417,9 +424,6 @@ class TheorySetsPrivate : protected EnvObj
    * higher order constraints is asserted to this theory.
    */
   bool d_higher_order_kinds_enabled;
-
-  /** The theory rewriter for this theory. */
-  TheorySetsRewriter d_rewriter;
 
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */

@@ -35,7 +35,7 @@ inline size_t gmpz_hash(const mpz_t toHash) {
   for (int i = 0, n = mpz_size(toHash); i < n; ++i){
     mp_limb_t limb = mpz_getlimbn(toHash, i);
     hash = hash * 2;
-    hash = hash xor limb;
+    hash = hash ^ limb;
   }
   return hash;
 }/* gmpz_hash() */

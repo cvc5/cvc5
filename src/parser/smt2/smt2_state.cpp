@@ -27,13 +27,14 @@ namespace parser {
 Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
                      SymManager* sm,
-                     bool strictMode,
+                     ParsingMode parsingMode,
                      bool isSygus)
-    : ParserState(psc, solver, sm, strictMode),
+    : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
+  d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
 
 Smt2State::~Smt2State() {}
@@ -313,6 +314,19 @@ void Smt2State::addCoreSymbols()
   addClosureKind(Kind::EXISTS, "exists");
 }
 
+void Smt2State::addSkolemSymbols()
+{
+  for (int32_t s = static_cast<int32_t>(SkolemId::INTERNAL);
+       s <= static_cast<int32_t>(SkolemId::NONE);
+       ++s)
+  {
+    auto skolem = static_cast<SkolemId>(s);
+    std::stringstream ss;
+    ss << "@" << skolem;
+    addSkolemId(skolem, ss.str());
+  }
+}
+
 void Smt2State::addOperator(Kind kind, const std::string& name)
 {
   Trace("parser") << "Smt2State::addOperator( " << kind << ", " << name << " )"
@@ -332,6 +346,12 @@ void Smt2State::addClosureKind(Kind tKind, const std::string& name)
   // also include it as a normal operator
   addOperator(tKind, name);
   d_closureKindMap[name] = tKind;
+}
+
+void Smt2State::addSkolemId(SkolemId skolemID, const std::string& name)
+{
+  addOperator(Kind::SKOLEM, name);
+  d_skolemMap[name] = skolemID;
 }
 
 bool Smt2State::isIndexedOperatorEnabled(const std::string& name) const
@@ -757,6 +777,12 @@ void Smt2State::setLogic(std::string name)
   // Core theory belongs to every logic
   addCoreSymbols();
 
+  // add skolems
+  if (d_solver->getOption("parse-skolem-definitions") == "true")
+  {
+    addSkolemSymbols();
+  }
+
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
   {
     ParserState::addOperator(Kind::APPLY_UF);
@@ -781,6 +807,11 @@ void Smt2State::setLogic(std::string name)
         addOperator(Kind::INTS_MODULUS, "mod");
         addOperator(Kind::ABS, "abs");
       }
+      if (!strictModeEnabled())
+      {
+        addOperator(Kind::INTS_DIVISION_TOTAL, "div_total");
+        addOperator(Kind::INTS_MODULUS_TOTAL, "mod_total");
+      }
       addIndexedOperator(Kind::DIVISIBLE, "divisible");
     }
 
@@ -792,6 +823,7 @@ void Smt2State::setLogic(std::string name)
       if (!strictModeEnabled())
       {
         addOperator(Kind::ABS, "abs");
+        addOperator(Kind::DIVISION_TOTAL, "/_total");
       }
     }
 
@@ -862,11 +894,15 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_CARD, "set.card");
     addOperator(Kind::SET_COMPLEMENT, "set.complement");
     addOperator(Kind::SET_CHOOSE, "set.choose");
+    addOperator(Kind::SET_IS_EMPTY, "set.is_empty");
     addOperator(Kind::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(Kind::SET_MAP, "set.map");
     addOperator(Kind::SET_FILTER, "set.filter");
+    addOperator(Kind::SET_ALL, "set.all");
+    addOperator(Kind::SET_SOME, "set.some");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
+    addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
     addOperator(Kind::RELATION_PRODUCT, "rel.product");
     addOperator(Kind::RELATION_TRANSPOSE, "rel.transpose");
     addOperator(Kind::RELATION_TCLOSURE, "rel.tclosure");
@@ -877,6 +913,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::RELATION_AGGREGATE, "rel.aggr");
     addOperator(Kind::RELATION_PROJECT, "rel.project");
     addIndexedOperator(Kind::RELATION_GROUP, "rel.group");
+    addIndexedOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");
     addIndexedOperator(Kind::RELATION_AGGREGATE, "rel.aggr");
     addIndexedOperator(Kind::RELATION_PROJECT, "rel.project");
     // set.comprehension is a closure kind
@@ -1004,6 +1041,8 @@ bool Smt2State::hasGrammars() const
   return sygus() || d_solver->getOption("produce-abducts") == "true"
          || d_solver->getOption("produce-interpolants") == "true";
 }
+
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {
@@ -1332,7 +1371,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       if (kind == Kind::TUPLE_PROJECT || kind == Kind::TABLE_PROJECT
           || kind == Kind::TABLE_AGGREGATE || kind == Kind::TABLE_JOIN
           || kind == Kind::TABLE_GROUP || kind == Kind::RELATION_GROUP
-          || kind == Kind::RELATION_AGGREGATE || kind == Kind::RELATION_PROJECT)
+          || kind == Kind::RELATION_AGGREGATE || kind == Kind::RELATION_PROJECT
+          || kind == Kind::RELATION_TABLE_JOIN)
       {
         std::vector<uint32_t> indices;
         Op op = d_tm.mkOp(kind, indices);
@@ -1347,7 +1387,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         }
         else if (p.d_name == "nullable.some")
         {
-          return d_tm.mkNullableSome(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableSome(args[0]);
+          }
+          parseError("nullable.some requires exactly one argument.");
         }
         else
         {
@@ -1360,7 +1404,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.val")
         {
-          return d_tm.mkNullableVal(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableVal(args[0]);
+          }
+          parseError("nullable.val requires exactly one argument.");
         }
         else
         {
@@ -1373,11 +1421,19 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         if (p.d_name == "nullable.is_null")
         {
-          return d_tm.mkNullableIsNull(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableIsNull(args[0]);
+          }
+          parseError("nullable.is_null requires exactly one argument.");
         }
         else if (p.d_name == "nullable.is_some")
         {
-          return d_tm.mkNullableIsSome(args[0]);
+          if (args.size() == 1)
+          {
+            return d_tm.mkNullableIsSome(args[0]);
+          }
+          parseError("nullable.is_some requires exactly one argument.");
         }
         else
         {
@@ -1555,6 +1611,28 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                         << std::endl;
         return ret;
       }
+    }
+    else if (kind == Kind::SKOLEM)
+    {
+      Term ret;
+      SkolemId skolemId = d_skolemMap[p.d_name];
+      size_t numSkolemIndices = d_tm.getNumIndicesForSkolemId(skolemId);
+      if (numSkolemIndices == args.size())
+      {
+        ret = d_tm.mkSkolem(skolemId, args);
+      }
+      else
+      {
+        std::vector<Term> skolemArgs(args.begin(),
+                                     args.begin() + numSkolemIndices);
+        Term skolem = d_tm.mkSkolem(skolemId, skolemArgs);
+        std::vector<Term> finalArgs = {skolem};
+        finalArgs.insert(
+            finalArgs.end(), args.begin() + numSkolemIndices, args.end());
+        ret = d_tm.mkTerm(Kind::APPLY_UF, finalArgs);
+      }
+      Trace("parser") << "applyParseOp: return skolem " << ret << std::endl;
+      return ret;
     }
     Term ret = d_tm.mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret

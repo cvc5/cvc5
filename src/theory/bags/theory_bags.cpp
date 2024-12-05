@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "options/bags_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/bags_utils.h"
@@ -149,7 +150,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node A = node[0];
   TypeNode bagType = A.getType();
   // use canonical constant to ensure it can be typed
-  Node mkElem = nm->mkGroundValue(bagType);
+  Node mkElem = NodeManager::mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemId::BAGS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
@@ -426,6 +427,12 @@ Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
+  if (!options().bags.bags)
+  {
+    std::stringstream ss;
+    ss << "Bags not available in this configuration, try --bags.";
+    throw LogicException(ss.str());
+  }
   Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {

@@ -45,28 +45,60 @@ using ArrayConstantMostFrequentValueCountAttr =
 using ArrayConstantMostFrequentValueAttr =
     expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node>;
 
-Node getMostFrequentValue(TNode store) {
+Node getMostFrequentValue(TNode store)
+{
   return store.getAttribute(ArrayConstantMostFrequentValueAttr());
 }
-uint64_t getMostFrequentValueCount(TNode store) {
+uint64_t getMostFrequentValueCount(TNode store)
+{
   return store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
 }
 
-void setMostFrequentValue(TNode store, TNode value) {
+void setMostFrequentValue(TNode store, TNode value)
+{
   return store.setAttribute(ArrayConstantMostFrequentValueAttr(), value);
 }
-void setMostFrequentValueCount(TNode store, uint64_t count) {
+void setMostFrequentValueCount(TNode store, uint64_t count)
+{
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
-                                           Rewriter* r,
-                                           EagerProofGenerator* epg)
-    : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
+TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
+    : TheoryRewriter(nm), d_rewriter(r)
 {
+  registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
-Node TheoryArraysRewriter::normalizeConstant(TNode node)
+Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::ARRAYS_SELECT_CONST:
+    {
+      if (n.getKind() == Kind::SELECT && n[0].getKind() == Kind::STORE_ALL)
+      {
+        ArrayStoreAll storeAll = n[0].getConst<ArrayStoreAll>();
+        return storeAll.getValue();
+      }
+    }
+    break;
+    case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
+    {
+      if (n.getKind() == Kind::EQ_RANGE)
+      {
+        return expandEqRange(d_nm, n);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
+
+Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm, TNode node)
 {
   if (node.isConst())
   {
@@ -77,18 +109,20 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node)
   CardinalityClass tcc = tn.getCardinalityClass();
   if (tcc == CardinalityClass::FINITE || tcc == CardinalityClass::ONE)
   {
-    ret = normalizeConstant(node, tn.getCardinality());
+    ret = normalizeConstant(nm, node, tn.getCardinality());
   }
   else
   {
-    ret = normalizeConstant(node, Cardinality::INTEGERS);
+    ret = normalizeConstant(nm, node, Cardinality::INTEGERS);
   }
   Assert(ret.isConst()) << "Non-constant after normalization: " << ret;
   return ret;
 }
 
 // this function is called by printers when using the option "--model-u-dt-enum"
-Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
+Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm,
+                                             TNode node,
+                                             Cardinality indexCard)
 {
   TNode store = node[0];
   TNode index = node[1];
@@ -141,7 +175,6 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   Assert(store.getKind() == Kind::STORE_ALL);
   ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
   Node defaultValue = storeAll.getValue();
-  NodeManager* nm = NodeManager::currentNM();
 
   // Check if we are writing to default value - if so the store
   // to index can be ignored
@@ -305,16 +338,15 @@ Node TheoryArraysRewriter::normalizeConstant(TNode node, Cardinality indexCard)
   return n;
 }
 
-Node TheoryArraysRewriter::expandEqRange(TNode node)
+Node TheoryArraysRewriter::expandEqRange(NodeManager* nm, TNode node)
 {
   Assert(node.getKind() == Kind::EQ_RANGE);
 
-  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
   TNode i = node[2];
   TNode j = node[3];
-  Node k = SkolemCache::getEqRangeVar(node);
+  Node k = SkolemCache::getEqRangeVar(nm, node);
   Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, k);
   TypeNode type = k.getType();
 
@@ -423,7 +455,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
       if (store.isConst() && index.isConst() && value.isConst())
       {
         // normalize constant
-        Node n = normalizeConstant(node);
+        Node n = normalizeConstant(d_nm, node);
         Assert(n.isConst());
         Trace("arrays-postrewrite")
             << "Arrays::postRewrite returning " << n << std::endl;
@@ -683,25 +715,16 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-TrustNode TheoryArraysRewriter::expandDefinition(Node node)
+Node TheoryArraysRewriter::expandDefinition(Node node)
 {
   Kind kind = node.getKind();
 
   if (kind == Kind::EQ_RANGE)
   {
-    Node expandedEqRange = expandEqRange(node);
-    if (d_epg)
-    {
-      TrustNode tn = d_epg->mkTrustNode(node.eqNode(expandedEqRange),
-                                        ProofRule::ARRAYS_EQ_RANGE_EXPAND,
-                                        {},
-                                        {node});
-      return TrustNode::mkTrustRewrite(node, expandedEqRange, d_epg);
-    }
-    return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
+    return expandEqRange(d_nm, node);
   }
 
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace arrays

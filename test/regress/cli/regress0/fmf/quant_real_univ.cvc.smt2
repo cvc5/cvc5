@@ -2,7 +2,7 @@
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :fmf-bound true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-sort Atom 0)
 (declare-fun REAL_UNIVERSE () (Relation Real))
 (declare-fun ATOM_UNIVERSE () (Relation Atom))

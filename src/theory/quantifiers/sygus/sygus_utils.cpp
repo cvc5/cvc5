@@ -19,6 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace cvc5::internal::kind;
@@ -62,7 +63,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
                                    const std::vector<Node>& iattrs)
 {
   Assert(!fs.empty());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conj.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   SygusAttribute ca;
   Node sygusVar = sm->mkDummySkolem("sygus", nm->booleanType());
@@ -86,7 +87,7 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
                                    const Subs& solvedf)
 {
   Assert(!fs.empty());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conj.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> iattrs;
   // take existing properties, without the previous solves
@@ -163,7 +164,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
   Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
   if (sfvl.isNull() && f.getType().isFunction())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = f.getNodeManager();
     std::vector<TypeNode> argTypes = f.getType().getArgTypes();
     // make default variable list if none was specified by input
     std::vector<Node> bvs;
@@ -171,7 +172,7 @@ Node SygusUtils::getOrMkSygusArgumentList(Node f)
     {
       std::stringstream ss;
       ss << "arg" << j;
-      bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
+      bvs.push_back(NodeManager::mkBoundVar(ss.str(), argTypes[j]));
     }
     sfvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
     f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
@@ -193,7 +194,7 @@ Node SygusUtils::wrapSolution(Node f, Node sol)
   Node al = getOrMkSygusArgumentList(f);
   if (!al.isNull())
   {
-    sol = NodeManager::currentNM()->mkNode(Kind::LAMBDA, al, sol);
+    sol = NodeManager::mkNode(Kind::LAMBDA, al, sol);
   }
   Assert(!expr::hasFreeVar(sol));
   return sol;
@@ -203,7 +204,7 @@ void SygusUtils::setSygusType(Node f, const TypeNode& tn)
 {
   Assert(!tn.isNull());
   Assert(getSygusType(f).isNull());
-  Node sym = NodeManager::currentNM()->mkBoundVar("sfproxy", tn);
+  Node sym = NodeManager::mkBoundVar("sfproxy", tn);
   // use an attribute to mark its grammar
   SygusSynthGrammarAttribute ssfga;
   f.setAttribute(ssfga, sym);
@@ -217,6 +218,36 @@ TypeNode SygusUtils::getSygusType(const Node& f)
     return gv.getType();
   }
   return TypeNode::null();
+}
+
+Node SygusUtils::mkSygusTermFor(const Node& f)
+{
+  TypeNode tn = getSygusType(f);
+  Node bvl = getOrMkSygusArgumentList(f);
+  if (tn.isNull())
+  {
+    Node ret;
+    if (f.getType().isFunction())
+    {
+      Assert(!bvl.isNull());
+      ret = NodeManager::mkGroundValue(f.getType().getRangeType());
+      // give the appropriate variable list
+      ret = NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
+    }
+    else
+    {
+      ret = NodeManager::mkGroundValue(f.getType());
+    }
+    return ret;
+  }
+  Node ret = NodeManager::mkGroundValue(tn);
+  // use external=true
+  ret = datatypes::utils::sygusToBuiltin(ret, true);
+  if (!bvl.isNull())
+  {
+    ret = NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
+  }
+  return ret;
 }
 
 }  // namespace quantifiers

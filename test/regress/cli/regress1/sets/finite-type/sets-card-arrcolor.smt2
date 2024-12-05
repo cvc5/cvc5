@@ -1,7 +1,7 @@
 (set-logic QF_ALL)
 (set-info :status sat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-datatype Color ((Red) (Green) (Blue)))
 (declare-fun A () (Set (Array Color Color)))
 (declare-fun B () (Set (Array Color Color)))

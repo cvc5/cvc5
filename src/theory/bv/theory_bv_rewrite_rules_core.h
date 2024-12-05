@@ -305,7 +305,7 @@ Node RewriteRule<SimplifyEq>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<ReflexivityEq>::applies(TNode node) {
-  return (node.getKind() == Kind::EQUAL && node[0] < node[1]);
+  return (node.getKind() == Kind::EQUAL && node[0] > node[1]);
 }
 
 template<> inline

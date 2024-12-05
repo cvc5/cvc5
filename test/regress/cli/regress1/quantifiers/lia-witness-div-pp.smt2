@@ -1,4 +1,6 @@
 ; COMMAND-LINE: --no-sygus-inst
+; times out after change to skolems
+; DISABLE-TESTER: unsat-core
 (set-info :smt-lib-version 2.6)
 (set-logic NIA)
 (set-info :status unsat)

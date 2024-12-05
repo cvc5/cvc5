@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,7 +84,8 @@ typedef enum ENUM(UnknownExplanation) ENUM(UnknownExplanation);
  * @param exp The unknown explanation.
  * @return The string representation.
  */
-const char* cvc5_unknown_explanation_to_string(Cvc5UnknownExplanation exp);
+CVC5_EXPORT const char* cvc5_unknown_explanation_to_string(
+    Cvc5UnknownExplanation exp);
 #else
 /**
  * Serialize an UnknownExplanation to given stream.
@@ -96,7 +97,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, UnknownExplanation e);
 }  // namespace cvc5
 
 namespace std {
-std::string to_string(cvc5::UnknownExplanation exp);
+CVC5_EXPORT std::string to_string(cvc5::UnknownExplanation exp);
 }
 
 namespace cvc5 {
@@ -182,7 +183,7 @@ typedef enum ENUM(RoundingMode) ENUM(RoundingMode);
  * @param rm The rounding mode.
  * @return The string representation.
  */
-const char* cvc5_rm_to_string(Cvc5RoundingMode rm);
+CVC5_EXPORT const char* cvc5_rm_to_string(Cvc5RoundingMode rm);
 #else
 /**
  * Serialize a RoundingMode to given stream.
@@ -193,7 +194,7 @@ const char* cvc5_rm_to_string(Cvc5RoundingMode rm);
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, RoundingMode rm);
 }  // namespace cvc5
 namespace std {
-std::string to_string(cvc5::RoundingMode rm);
+CVC5_EXPORT std::string to_string(cvc5::RoundingMode rm);
 }
 #endif
 
@@ -240,7 +241,8 @@ typedef enum ENUM(BlockModelsMode) ENUM(BlockModelsMode);
  * @param mode The mode.
  * @return The string representation.
  */
-const char* cvc5_modes_block_models_mode_to_string(Cvc5BlockModelsMode mode);
+CVC5_EXPORT const char* cvc5_modes_block_models_mode_to_string(
+    Cvc5BlockModelsMode mode);
 #else
 /**
  * Serialize a BlockModelsMode to given stream.
@@ -252,7 +254,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, BlockModelsMode mode);
 }
 
 namespace std {
-std::string to_string(cvc5::modes::BlockModelsMode mode);
+CVC5_EXPORT std::string to_string(cvc5::modes::BlockModelsMode mode);
 }
 
 namespace cvc5::modes {
@@ -339,7 +341,8 @@ typedef enum ENUM(LearnedLitType) ENUM(LearnedLitType);
  * @param type The learned literal type.
  * @return The string representation.
  */
-const char* cvc5_modes_learned_lit_type_to_string(Cvc5LearnedLitType type);
+CVC5_EXPORT const char* cvc5_modes_learned_lit_type_to_string(
+    Cvc5LearnedLitType type);
 #else
 /**
  * Serialize a LearnedLitType to given stream.
@@ -351,7 +354,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, LearnedLitType type);
 }
 
 namespace std {
-std::string to_string(cvc5::modes::LearnedLitType type);
+CVC5_EXPORT std::string to_string(cvc5::modes::LearnedLitType type);
 }
 
 namespace cvc5::modes {
@@ -439,7 +442,8 @@ typedef enum ENUM(ProofComponent) ENUM(ProofComponent);
  * @param pc The proof component.
  * @return The string representation.
  */
-const char* cvc5_modes_proof_component_to_string(Cvc5ProofComponent pc);
+CVC5_EXPORT const char* cvc5_modes_proof_component_to_string(
+    Cvc5ProofComponent pc);
 #else
 /**
  * Serialize a ProofComponent to given stream.
@@ -451,7 +455,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofComponent pc);
 }
 
 namespace std {
-std::string to_string(cvc5::modes::ProofComponent pc);
+CVC5_EXPORT std::string to_string(cvc5::modes::ProofComponent pc);
 }
 
 namespace cvc5::modes {
@@ -478,8 +482,8 @@ enum ENUM(ProofFormat)
   EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
-  /** Output AletheLF proof using the cvc5 signatures. */
-  EVALUE(ALF),
+  /** Output Cooperating Proof Calculus proof based on Eunoia signatures. */
+  EVALUE(CPC),
   /** Use the proof format mode set in the solver options. */
   EVALUE(DEFAULT),
 #ifdef CVC5_API_USE_C_ENUMS
@@ -500,7 +504,8 @@ typedef enum ENUM(ProofFormat) ENUM(ProofFormat);
  * @param format The proof format.
  * @return The string representation.
  */
-const char* cvc5_modes_proof_format_to_string(Cvc5ProofFormat format);
+CVC5_EXPORT const char* cvc5_modes_proof_format_to_string(
+    Cvc5ProofFormat format);
 #else
 /**
  * Serialize a FindSynthTarget to given stream.
@@ -512,7 +517,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofFormat format);
 }
 
 namespace std {
-std::string to_string(cvc5::modes::ProofFormat format);
+CVC5_EXPORT std::string to_string(cvc5::modes::ProofFormat format);
 }
 
 namespace cvc5::modes {
@@ -594,7 +599,7 @@ typedef enum ENUM(FindSynthTarget) ENUM(FindSynthTarget);
  * @param target The synthesis find target.
  * @return The string representation.
  */
-const char* cvc5_modes_find_synthesis_target_to_string(
+CVC5_EXPORT const char* cvc5_modes_find_synth_target_to_string(
     Cvc5FindSynthTarget target);
 #else
 /**
@@ -607,7 +612,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, FindSynthTarget target);
 }
 
 namespace std {
-std::string to_string(cvc5::modes::FindSynthTarget target);
+CVC5_EXPORT std::string to_string(cvc5::modes::FindSynthTarget target);
 }
 
 namespace cvc5::modes {
@@ -651,7 +656,8 @@ typedef enum ENUM(InputLanguage) ENUM(InputLanguage);
  * @param lang The input language.
  * @return The string representation.
  */
-const char* cvc5_modes_input_language_to_string(Cvc5InputLanguage lang);
+CVC5_EXPORT const char* cvc5_modes_input_language_to_string(
+    Cvc5InputLanguage lang);
 #else
 /**
  * Serialize an InputLanguage to given stream.
@@ -663,7 +669,7 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& out, InputLanguage lang);
 }  // namespace cvc5::modes
 
 namespace std {
-std::string to_string(cvc5::modes::InputLanguage lang);
+CVC5_EXPORT std::string to_string(cvc5::modes::InputLanguage lang);
 }
 #endif
 

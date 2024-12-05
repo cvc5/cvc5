@@ -72,7 +72,7 @@ ICPSolver::ICPSolver(Env& env, InferenceManager& im)
 
 std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 {
-  std::unordered_set<TNode> tmp;
+  std::unordered_set<Node> tmp;
   expr::getVariables(n, tmp);
   std::vector<Node> res;
   for (const auto& t : tmp)
@@ -98,7 +98,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
   auto poly = std::get<0>(comp);
 
   std::vector<Candidate> result;
-  std::unordered_set<TNode> vars;
+  std::unordered_set<Node> vars;
   expr::getVariables(n, vars);
   for (const auto& v : vars)
   {

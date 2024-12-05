@@ -29,7 +29,6 @@
 
 namespace cvc5::internal {
 
-class EagerProofGenerator;
 class Env;
 
 namespace theory {
@@ -41,29 +40,38 @@ uint64_t getMostFrequentValueCount(TNode store);
 void setMostFrequentValue(TNode store, TNode value);
 void setMostFrequentValueCount(TNode store, uint64_t count);
 
-static inline Node mkEqNode(Node a, Node b) {
-  return a.eqNode(b);
-}
+static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
+  TheoryArraysRewriter(NodeManager* nm, Rewriter* r);
 
   /** Normalize a constant whose index type has cardinality indexCard */
-  static Node normalizeConstant(TNode node, Cardinality indexCard);
+  static Node normalizeConstant(NodeManager* nm,
+                                TNode node,
+                                Cardinality indexCard);
 
   /* Expands the eqrange predicate (eqrange a b i j) to the quantified formula
    * (forall ((x T))
    *  (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))).
    */
-  static Node expandEqRange(TNode node);
+  static Node expandEqRange(NodeManager* nm, TNode node);
 
   RewriteResponse postRewrite(TNode node) override;
 
   RewriteResponse preRewrite(TNode node) override;
 
-  TrustNode expandDefinition(Node node) override;
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+
+  Node expandDefinition(Node node) override;
 
   /**
    * Puts array constant node into normal form. This is so that array constants
@@ -72,7 +80,7 @@ class TheoryArraysRewriter : public TheoryRewriter
    * This method should only be called on STORE chains whose AST is built
    * from constant terms only.
    */
-  static Node normalizeConstant(TNode node);
+  static Node normalizeConstant(NodeManager* nm, TNode node);
 
  private:
   /**
@@ -80,8 +88,6 @@ class TheoryArraysRewriter : public TheoryRewriter
    * be removed.
    */
   Rewriter* d_rewriter;
-  /** Pointer to an eager proof generator, if proof are enabled */
-  EagerProofGenerator* d_epg;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays

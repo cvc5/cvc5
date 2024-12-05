@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Jörg Schurr
+ *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -44,7 +44,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustSubstitutionMap(Env& env,
                        context::Context* c,
                        std::string name = "TrustSubstitutionMap",
-                       TrustId trustId = TrustId::PREPROCESS_LEMMA,
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();

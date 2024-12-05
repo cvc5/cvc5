@@ -17,14 +17,18 @@
 
 #include <sstream>
 
+#include "expr/skolem_manager.h"
+
 namespace cvc5::internal {
 
 LetBinding::LetBinding(const std::string& prefix,
                        uint32_t thresh,
-                       bool traverseBinders)
+                       bool traverseBinders,
+                       bool traverseSkolems)
     : d_prefix(prefix),
       d_thresh(thresh),
       d_traverseBinders(traverseBinders),
+      d_traverseSkolems(traverseSkolems),
       d_context(),
       d_visitList(&d_context),
       d_count(&d_context),
@@ -106,7 +110,7 @@ Node LetBinding::convert(Node n, bool letTop) const
         // make the let variable
         std::stringstream ss;
         ss << d_prefix << id;
-        visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+        visited[cur] = NodeManager::mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
       {
@@ -159,9 +163,10 @@ void LetBinding::updateCounts(Node n)
   {
     cur = visit.back();
     it = d_count.find(cur);
+    bool isSkolem = (d_traverseSkolems && cur.getKind() == Kind::SKOLEM);
     // do not traverse beneath quantifiers if d_traverseBinders is false.
-    if (cur.getNumChildren() == 0 || cur.getKind() == Kind::BOUND_VAR_LIST
-        || (!d_traverseBinders && cur.isClosure()))
+    if ((!isSkolem && cur.getNumChildren() == 0) || cur.getKind() == Kind::BOUND_VAR_LIST
+             || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
       continue;
@@ -169,7 +174,31 @@ void LetBinding::updateCounts(Node n)
     if (it == d_count.end())
     {
       d_count[cur] = 0;
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      if (isSkolem)
+      {
+        SkolemId skid;
+        Node cacheVal;
+        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+        if (sm->isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        {
+          if (cacheVal.getKind() == Kind::SEXPR)
+          {
+            visit.insert(visit.end(), cacheVal.begin(), cacheVal.end());
+          }
+          else
+          {
+            visit.push_back(cacheVal);
+          }
+        }
+      }
+      else
+      {
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
     else
     {

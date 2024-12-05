@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite proof rule class
+ * proof rewrite rule class
  */
 
 #include "rewriter/rewrite_proof_rule.h"
@@ -26,9 +26,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(DslProofRule::FAIL) {}
+RewriteProofRule::RewriteProofRule() : d_id(ProofRewriteRule::NONE) {}
 
-void RewriteProofRule::init(DslProofRule id,
+void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& userFvs,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
@@ -39,6 +39,7 @@ void RewriteProofRule::init(DslProofRule id,
   Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
+  std::map<Node, Node> condDef;
   for (const Node& c : cond)
   {
     if (!expr::getListVarContext(c, d_listVarCtx))
@@ -48,6 +49,10 @@ void RewriteProofRule::init(DslProofRule id,
     }
     d_cond.push_back(c);
     d_obGen.push_back(c);
+    if (c.getKind() == Kind::EQUAL && c[0].getKind() == Kind::BOUND_VARIABLE)
+    {
+      condDef[c[0]] = c[1];
+    }
   }
   d_conc = conc;
   d_context = context;
@@ -57,13 +62,53 @@ void RewriteProofRule::init(DslProofRule id,
                 << id;
   }
 
-  d_numFv = fvs.size();
-
   std::unordered_set<Node> fvsCond;
   for (const Node& c : d_cond)
   {
     expr::getFreeVariables(c, fvsCond);
   }
+
+  // ensure free variables in conditions and right hand side are either matched
+  // or are in defined conditions.
+  std::unordered_set<Node> fvsLhs;
+  expr::getFreeVariables(d_conc[0], fvsLhs);
+  std::unordered_set<Node> fvsUnmatched;
+  expr::getFreeVariables(d_conc[1], fvsUnmatched);
+  fvsUnmatched.insert(fvsCond.begin(), fvsCond.end());
+  std::map<Node, Node>::iterator itc;
+  for (const Node& v : fvsUnmatched)
+  {
+    if (fvsLhs.find(v) != fvsLhs.end())
+    {
+      // variable on left hand side
+      continue;
+    }
+    itc = condDef.find(v);
+    if (itc == condDef.end())
+    {
+      Unhandled()
+          << "Free variable " << v << " in rule " << id
+          << " is not on the left hand side, nor is defined in a condition";
+    }
+    // variable defined in the condition
+    d_condDefinedVars[v] = itc->second;
+    // ensure the defining term does not itself contain free variables
+    std::unordered_set<Node> fvst;
+    expr::getFreeVariables(itc->second, fvst);
+    for (const Node& vt : fvst)
+    {
+      if (fvsLhs.find(vt) == fvsLhs.end())
+      {
+        Unhandled() << "Free variable " << vt << " in rule " << id
+                    << " is not on the left hand side of the rule, and it is "
+                       "used to give a definition to the free variable "
+                    << v;
+      }
+    }
+  }
+
+  d_numFv = fvs.size();
+
   for (const Node& v : fvs)
   {
     d_fvs.push_back(v);
@@ -79,7 +124,7 @@ void RewriteProofRule::init(DslProofRule id,
   }
 }
 
-rewriter::DslProofRule RewriteProofRule::getId() const { return d_id; }
+ProofRewriteRule RewriteProofRule::getId() const { return d_id; }
 
 const char* RewriteProofRule::getName() const { return toString(d_id); }
 
@@ -95,10 +140,10 @@ bool RewriteProofRule::isExplicitVar(Node v) const
 }
 Kind RewriteProofRule::getListContext(Node v) const
 {
-  std::map<Node, Kind>::const_iterator it = d_listVarCtx.find(v);
+  std::map<Node, Node>::const_iterator it = d_listVarCtx.find(v);
   if (it != d_listVarCtx.end())
   {
-    return it->second;
+    return it->second.getKind();
   }
   return Kind::UNDEFINED_KIND;
 }
@@ -127,25 +172,93 @@ void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const
   d_mt.getMatches(h, ntm);
 }
 
-Node RewriteProofRule::getConclusion() const { return d_conc; }
-
-Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
+Node RewriteProofRule::getConclusion(bool includeContext) const
 {
-  Assert(d_fvs.size() == ss.size());
   Node conc = d_conc;
   // if the rule has conclusion s, and term context (lambda x. t[x]), then the
   // conclusion is t[s], which we compute in the block below.
-  if (isFixedPoint())
+  if (includeContext && isFixedPoint())
   {
     Node context = d_context;
     Node rhs = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
     conc = conc[0].eqNode(rhs);
   }
+  return conc;
+}
+
+Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
   return expr::narySubstitute(conc, d_fvs, ss);
 }
+
+Node RewriteProofRule::getConclusionFor(
+    const std::vector<Node>& ss,
+    std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const
+{
+  Assert(d_fvs.size() == ss.size());
+  Node conc = getConclusion(true);
+  std::unordered_map<TNode, Node> visited;
+  Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
+  // also compute for the condition
+  for (const Node& c : d_cond)
+  {
+    expr::narySubstitute(c, d_fvs, ss, visited);
+  }
+  std::map<Node, Node>::const_iterator itl;
+  for (size_t i = 0, nfvs = ss.size(); i < nfvs; i++)
+  {
+    TNode v = d_fvs[i];
+    Kind wk = Kind::UNDEFINED_KIND;
+    std::vector<Node> wargs;
+    if (!expr::isListVar(v))
+    {
+      // if not a list variable, it is the given term
+      wargs.push_back(ss[i]);
+    }
+    else
+    {
+      itl = d_listVarCtx.find(v);
+      Assert(itl != d_listVarCtx.end());
+      Node ctx = itl->second;
+      if (ss[i].getNumChildren() == 0)
+      {
+        // to determine the type, we get the type of the substitution of the
+        // list context of the variable.
+        Node subsCtx = visited[ctx];
+        Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
+        Node nt = expr::getNullTerminator(ctx.getKind(), subsCtx.getType());
+        wargs.push_back(nt);
+      }
+      else
+      {
+        wk = ctx.getKind();
+        wargs.insert(wargs.end(), ss[i].begin(), ss[i].end());
+      }
+    }
+    witnessTerms.emplace_back(wk, wargs);
+  }
+  return ret;
+}
+
 bool RewriteProofRule::isFixedPoint() const
 {
   return d_context != Node::null();
 }
+
+void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
+                                                 const std::vector<Node>& ss,
+                                                 std::vector<Node>& dvs,
+                                                 std::vector<Node>& dss) const
+{
+  for (const std::pair<const Node, Node>& cv : d_condDefinedVars)
+  {
+    dvs.push_back(cv.first);
+    Node cvs = expr::narySubstitute(cv.second, vs, ss);
+    dss.push_back(cvs);
+  }
+}
+
 }  // namespace rewriter
 }  // namespace cvc5::internal

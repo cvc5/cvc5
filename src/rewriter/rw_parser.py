@@ -24,6 +24,7 @@ symbol_to_op = {e.symbol: e for e in Op if e.symbol is not None}
 class SymbolTable:
     def __init__(self):
         self.consts = {
+            'real.pi': App(Op.REAL_PI, []),
             're.none': App(Op.REGEXP_NONE, []),
             're.all': App(Op.REGEXP_ALL, []),
             're.allchar': App(Op.REGEXP_ALLCHAR, []),
@@ -75,7 +76,7 @@ class Parser:
         return int(s[2:])
 
     def symbol(self):
-        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@'
+        special_chars = '=' + '_' + '+' + '-' + '<' + '>' + '*' + '.' + '@' + '/'
         return pp.Word(pp.alphas + special_chars, pp.alphanums + special_chars)
 
     def app_action(self, s, l, t):
@@ -83,6 +84,14 @@ class Parser:
         if op == Op.SUB and len(t) == 2:
             op = Op.NEG
         return App(op, t[1:])
+    
+    # Action when parsing a decimal or numeral
+    def number_parse_action(s, l, t):
+        num_str = t[0]
+        if '/' in num_str:
+            return CRational(num_str)
+        else:
+            return CInt(int(num_str))
 
     def expr(self, allow_comprehension=True):
         expr = pp.Forward()
@@ -95,8 +104,10 @@ class Parser:
         bconst = pp.Keyword('true').setParseAction(
             lambda s, l, t: CBool(True)) | pp.Keyword('false').setParseAction(
                 lambda s, l, t: CBool(False))
-        iconst = pp.Word(
-            pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
+        # handles both rationals and numerals
+        aconst = pp.Combine(
+              pp.Word(pp.nums) + pp.Optional('/' + pp.Word(pp.nums))
+          ).setParseAction(self.number_parse_action)
         strconst = pp.QuotedString(
             quoteChar='"').setParseAction(lambda s, l, t: CString(t[0]))
 
@@ -108,7 +119,7 @@ class Parser:
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
                pp.Suppress(')')).setParseAction(self.app_action)
 
-        options = bconst | iconst | strconst | indexed_app | app | var
+        options = bconst | aconst | strconst | indexed_app | app | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +
@@ -194,8 +205,8 @@ class Parser:
         def fixed_rule_action(s, l, t):
             # t = [key, args, match, target, (cond)]
             assert len(t) == 4 or len(t) == 5
-            keys, args, match, target, cond = list(t) + [None] \
-                if len(t) == 4 else t
+            keys, args, match, target = t[:4]
+            cond = Placeholder() if len(t) == 4 else t[4]
             return self.rule_action(args, CBool(True), match, target, True, cond)
         fixed_rule = (
             pp.Suppress('(') +

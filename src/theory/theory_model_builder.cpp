@@ -16,6 +16,8 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "expr/sort_type_size.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -132,8 +134,9 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  if (n.getKind() == Kind::SELECT || n.getKind() == Kind::APPLY_SELECTOR
-      || n.getKind() == Kind::SEQ_NTH)
+  Kind k = n.getKind();
+  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR
+      || k == Kind::SEQ_NTH)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
@@ -148,12 +151,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (n.getKind() == Kind::FLOATINGPOINT_COMPONENT_SIGN)
+  else if (k == Kind::FLOATINGPOINT_COMPONENT_SIGN || k==Kind::SEP_NIL)
   {
-    // Extracting the sign of a floating-point number acts similar to a
+    // - Extracting the sign of a floating-point number acts similar to a
     // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
     // can pick an arbitrary one. Note that the other components of a
     // floating-point number should always be assigned a value.
+    // - sep.nil is a nullary constant that acts like a variable and thus is
+    // assignable.
     return true;
   }
   else
@@ -162,16 +167,15 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
-      Assert(n.getKind() != Kind::HO_APPLY);
+      Assert(k != Kind::HO_APPLY);
       Assert(!n.getType().isFunction());
-      return n.isVar() || n.getKind() == Kind::APPLY_UF;
+      return n.isVar() || k == Kind::APPLY_UF;
     }
     else
     {
-      // Assert( n.getKind() != Kind::APPLY_UF );
       return (n.isVar() && !n.getType().isFunction())
-             || n.getKind() == Kind::APPLY_UF
-             || (n.getKind() == Kind::HO_APPLY
+             || k == Kind::APPLY_UF
+             || (k == Kind::HO_APPLY
                  && n[0].getType().getNumChildren() == 2);
     }
   }
@@ -933,6 +937,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       {
         i2 = i;
         ++i;
+        if (evaluableEqc.find(*i2) != evaluableEqc.end())
+        {
+          // we never assign to evaluable equivalence classes
+          continue;
+        }
         // check whether it has an assigner object
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
@@ -954,13 +963,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         {
           assignable = assignableEqc.find(*i2) != assignableEqc.end();
         }
-        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
-            << ", evaluable=" << evaluable << std::endl;
+            << std::endl;
         if (assignable)
         {
-          Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
           // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
@@ -1071,7 +1078,15 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // that has both assignable and evaluable expressions will get assigned.
     if (!changed)
     {
-      Assert(!assignOne);  // check for infinite loop!
+      Trace("model-builder-debug") << "...must assign one" << std::endl;
+      // Avoid infinite loops: if we are in a deadlock, we abort model building
+      // unsuccessfully here.
+      if (assignOne)
+      {
+        Assert (false) << "Reached a deadlock during model construction";
+        Trace("model-builder-debug") << "...avoid loop, fail" << std::endl;
+        return false;
+      }
       assignOne = true;
     }
   }
@@ -1175,8 +1190,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      static int repCheckInstance = 0;
-      ++repCheckInstance;
       AlwaysAssert(rep.getType() == n.getType())
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
@@ -1186,7 +1199,6 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       {
         std::stringstream err;
         err << "Failed representative check:" << std::endl
-            << "( " << repCheckInstance << ") "
             << "n: " << n << std::endl
             << "getValue(n): " << val << std::endl
             << "rep: " << rep << std::endl;
@@ -1214,7 +1226,13 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
   std::map<Node, Node>::iterator itMap = d_constantReps.find(r);
   if (itMap != d_constantReps.end())
   {
-    return (*itMap).second;
+    r = (*itMap).second;
+    // if d_constantReps stores a constant, we are done, otherwise we process
+    // it below.
+    if (r.isConst())
+    {
+      return r;
+    }
   }
   NodeMap::iterator it = d_normalizedCache.find(r);
   if (it != d_normalizedCache.end())
@@ -1244,7 +1262,8 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           {
             ri = (*itMap).second;
             Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
-            recurse = false;
+            // need to recurse if d_constantReps stores a non-constant
+            recurse = !ri.isConst();
           }
           else if (!evalOnly)
           {
@@ -1288,6 +1307,8 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
   Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
+  options::DefaultFunctionValueMode dfvm =
+      options().theory.defaultFunctionValueMode;
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
   {
@@ -1308,12 +1329,24 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
     ufmt.setValue(m, simp, v);
-    default_v = v;
+    if (dfvm == options::DefaultFunctionValueMode::FIRST)
+    {
+      default_v = v;
+    }
   }
-  if (default_v.isNull())
+  TypeNode rangeType = f.getType().getRangeType();
+  if (dfvm == options::DefaultFunctionValueMode::HOLE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    default_v = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+  }
+  else if (default_v.isNull())
   {
     // choose default value from model if none exists
-    TypeEnumerator te(f.getType().getRangeType());
+    TypeEnumerator te(rangeType);
     default_v = (*te);
   }
   ufmt.setDefaultValue(m, default_v);
@@ -1338,6 +1371,8 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
   std::vector<TNode> apply_args;
+  options::DefaultFunctionValueMode dfvm =
+      options().theory.defaultFunctionValueMode;
   for (unsigned i = 0; i < argTypes.size(); i++)
   {
     Node v = nodeManager()->mkBoundVar(argTypes[i]);
@@ -1347,10 +1382,30 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       apply_args.push_back(v);
     }
   }
-  // start with the base return value (currently we use the same default value
-  // for all functions)
-  TypeEnumerator te(type.getRangeType());
-  Node curr = (*te);
+  // Depending on the default value mode, maybe set the current value (curr).
+  // We also remember a default value (currPre) in case there are no terms
+  // to assign below.
+  TypeNode rangeType = type.getRangeType();
+  Node curr, currPre;
+  if (dfvm == options::DefaultFunctionValueMode::HOLE)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
+    currPre = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
+    curr = currPre;
+  }
+  else
+  {
+    TypeEnumerator te(rangeType);
+    currPre = (*te);
+    if (dfvm == options::DefaultFunctionValueMode::FIRST_ENUM)
+    {
+      curr = currPre;
+    }
+  }
+  curr = currPre;
   std::map<Node, std::vector<Node> >::iterator itht = m->d_ho_uf_terms.find(f);
   if (itht != m->d_ho_uf_terms.end())
   {
@@ -1388,8 +1443,20 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         hnv = rewrite(hnv);
       }
       Assert(hnv.getType() == curr.getType());
-      curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
+      if (curr.isNull())
+      {
+        curr = hnv;
+      }
+      else
+      {
+        curr = nodeManager()->mkNode(Kind::ITE, hni, hnv, curr);
+      }
     }
+  }
+  // if curr was not set, we set it to currPre.
+  if (curr.isNull())
+  {
+    curr = currPre;
   }
   Node val = nodeManager()->mkNode(
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);

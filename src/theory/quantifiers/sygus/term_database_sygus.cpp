@@ -505,6 +505,10 @@ void TermDbSygus::registerEnumerator(Node e,
     Assert(d_qim != nullptr);
     d_qim->setRefutationUnsound(
         IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
+    Warning()
+        << "Warning: The SyGuS solver is incomplete when symbolic constants "
+           "are used in grammars and --sygus-repair-const is disabled."
+        << std::endl;
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
@@ -530,15 +534,12 @@ void TermDbSygus::registerEnumerator(Node e,
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
     if (!f.isNull())
     {
-      SkolemManager* sm = nm->getSkolemManager();
-      Assert(sm->getInternalId(f)
+      Assert(f.getInternalSkolemId()
              == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
-      Node ff;
-      SkolemId id;
-      sm->isSkolemFunction(f, id, ff);
+      std::vector<Node> ski = f.getSkolemIndices();
       // get the argument, which is stored after the internal identifier
-      Assert(ff.getKind() == Kind::SEXPR && ff.getNumChildren() == 2);
-      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ff[1];
+      Assert(ski.size() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ski[1];
     }
     d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
     std::stringstream ss;

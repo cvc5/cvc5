@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Jörg Schurr
+ *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
@@ -49,6 +49,12 @@ bool ProofNodeUpdaterCallback::updatePost(Node res,
                                           CDProof* cdp)
 {
   return false;
+}
+
+bool ProofNodeUpdaterCallback::canMerge(std::shared_ptr<ProofNode> pn)
+{
+  // by default, no restriction on what proofs can merge
+  return true;
 }
 
 ProofNodeUpdater::ProofNodeUpdater(Env& env,
@@ -294,6 +300,11 @@ void ProofNodeUpdater::runFinalize(
   }
   if (d_mergeSubproofs)
   {
+    // if we cannot merge this proof, skip it
+    if (!d_cb.canMerge(cur))
+    {
+      return;
+    }
     Node res = cur->getResult();
     // cache the result if we don't contain an assumption
     if (!expr::containsAssumption(cur.get(), cfaMap, cfaAllowed))

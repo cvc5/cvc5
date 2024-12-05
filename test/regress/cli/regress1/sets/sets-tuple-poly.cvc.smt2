@@ -1,7 +1,7 @@
 ; COMMAND-LINE:
 ; EXPECT: sat
 (set-option :incremental false)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (set-logic ALL)
 (declare-fun a () (Relation Real Int))
 (declare-fun b () (Relation Int Real))

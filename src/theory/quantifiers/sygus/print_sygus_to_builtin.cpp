@@ -26,7 +26,6 @@ namespace quantifiers {
 
 Node getPrintableSygusToBuiltin(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
@@ -77,7 +76,7 @@ Node getPrintableSygusToBuiltin(Node n)
         // then, annotate with the name of the datatype
         std::stringstream ss;
         ss << "(! " << ret << " :gterm " << dt.getName() << ")";
-        ret = nm->mkRawSymbol(ss.str(), ret.getType());
+        ret = NodeManager::mkRawSymbol(ss.str(), ret.getType());
       }
       visited[cur] = ret;
     }

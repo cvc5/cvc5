@@ -29,7 +29,18 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter* rr)
+    : TheoryRewriter(nm), d_rr(rr)
+{
+  registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::LAMBDA_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::BV_TO_NAT_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
@@ -56,6 +67,22 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
     {
+      // Note that the rewriter does not rewrite inside of operators, so the
+      // lambda we receive here may not be in rewritten form, and thus may
+      // contain variable shadowing. We rewrite the operator explicitly here.
+      Node lambdaRew = d_rr->rewrite(lambda);
+      // We compare against the original operator, if it is different, then
+      // we rewrite again.
+      if (lambdaRew != node.getOperator())
+      {
+        std::vector<TNode> args;
+        args.push_back(lambdaRew);
+        args.insert(args.end(), node.begin(), node.end());
+        NodeManager* nm = NodeManager::currentNM();
+        Node ret = nm->mkNode(Kind::APPLY_UF, args);
+        Assert(ret != node);
+        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+      }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
@@ -66,10 +93,18 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         expr::getFreeVariables(s, fvs);
       }
       Node new_body = lambda[1];
+      Trace("uf-ho-beta") << "... body is " << new_body << std::endl;
       if (!fvs.empty())
       {
         ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
         new_body = esnc.convert(new_body);
+        Trace("uf-ho-beta")
+            << "... elim shadow body is " << new_body << std::endl;
+      }
+      else
+      {
+        Trace("uf-ho-beta") << "... no free vars in substitution for " << vars
+                            << " -> " << subs << std::endl;
       }
       Node ret = new_body.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
@@ -153,6 +188,69 @@ RewriteResponse TheoryUfRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
+Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
+{
+  switch (id)
+  {
+    case ProofRewriteRule::BETA_REDUCE:
+    {
+      if (n.getKind() != Kind::APPLY_UF)
+      {
+        return Node::null();
+      }
+      Node lambda = uf::FunctionConst::toLambda(n.getOperator());
+      if (lambda.isNull())
+      {
+        return Node::null();
+      }
+      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+      std::vector<TNode> subs(n.begin(), n.end());
+      if (vars.size() != subs.size())
+      {
+        return Node::null();
+      }
+      // Note that we do not check for variable shadowing in the lambda here.
+      // This rule will only be used to express valid instances of beta
+      // reduction. If a beta reduction had to eliminate shadowing, then it
+      // will not be inferred by this rule as is.
+      Node ret = lambda[1].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+      return ret;
+    }
+    break;
+    case ProofRewriteRule::LAMBDA_ELIM:
+    {
+      if (n.getKind() == Kind::LAMBDA)
+      {
+        Node felim = canEliminateLambda(n);
+        if (!felim.isNull())
+        {
+          return felim;
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    {
+      if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+      {
+        return arith::eliminateBv2Nat(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::INT_TO_BV_ELIM:
+    {
+      if (n.getKind() == Kind::INT_TO_BITVECTOR)
+      {
+        return arith::eliminateInt2Bv(n);
+      }
+    }
+    break;
+    default: break;
+  }
+  return Node::null();
+}
+
 Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
 {
   Assert(n.getKind() == Kind::APPLY_UF);
@@ -206,6 +304,13 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   // normalization on array constants, and then converting the array constant
   // back to a lambda.
   Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
+  // eliminate shadowing, prior to handling whether the lambda is constant
+  // below.
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow != node)
+  {
+    return retElimShadow;
+  }
   Node anode = FunctionConst::toArrayConst(node);
   // Only rewrite constant array nodes, since these are the only cases
   // where we require canonicalization of lambdas. Moreover, applying the
@@ -225,32 +330,11 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   }
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
-  // eliminate shadowing
-  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
-  if (retElimShadow != node)
-  {
-    return retElimShadow;
-  }
   // see if it can be eliminated, (lambda ((x T)) (f x)) ---> f
-  if (node[1].getKind() == Kind::APPLY_UF)
+  Node felim = canEliminateLambda(node);
+  if (!felim.isNull())
   {
-    size_t nvar = node[0].getNumChildren();
-    if (node[1].getNumChildren() == nvar)
-    {
-      bool matchesList = true;
-      for (size_t i = 0; i < nvar; i++)
-      {
-        if (node[0][i] != node[1][i])
-        {
-          matchesList = false;
-          break;
-        }
-      }
-      if (matchesList)
-      {
-        return node[1].getOperator();
-      }
-    }
+    return felim;
   }
   return node;
 }
@@ -315,6 +399,33 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
+
+Node TheoryUfRewriter::canEliminateLambda(const Node& node)
+{
+  Assert(node.getKind() == Kind::LAMBDA);
+  if (node[1].getKind() == Kind::APPLY_UF)
+  {
+    size_t nvar = node[0].getNumChildren();
+    if (node[1].getNumChildren() == nvar)
+    {
+      bool matchesList = true;
+      for (size_t i = 0; i < nvar; i++)
+      {
+        if (node[0][i] != node[1][i])
+        {
+          matchesList = false;
+          break;
+        }
+      }
+      if (matchesList)
+      {
+        return node[1].getOperator();
+      }
+    }
+  }
+  return Node::null();
+}
+
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

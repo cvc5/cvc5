@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
@@ -128,6 +129,14 @@ class RemoveTermFormulas : protected EnvObj
    * returns the null node.
    */
   TrustNode runCurrent(TNode node, bool inTerm, TrustNode& newLem);
+
+  /**
+   * Is k a skolem introduced for purifying a Boolean term? This impacts whether
+   * k is treated as a theory atom.
+   * @param k The term in question.
+   * @return true if k is a Boolean term skolem.
+   */
+  bool isBooleanTermSkolem(const Node& k) const;
 
  private:
   typedef context::CDInsertHashMap<

@@ -1,8 +1,9 @@
 from collections import defaultdict
 from fractions import Fraction
 from functools import wraps
-import sys
+import traceback
 
+cimport cpython.ref as cpy_ref
 from cython.operator cimport dereference, preincrement
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -13,6 +14,7 @@ from libcpp.pair cimport pair
 from libcpp.set cimport set as c_set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.map cimport map
 
 from cvc5 cimport cout
 from cvc5 cimport stringstream
@@ -32,6 +34,8 @@ from cvc5 cimport holds as c_holds
 from cvc5 cimport getVariant as c_getVariant
 from cvc5 cimport TermManager as c_TermManager
 from cvc5 cimport Solver as c_Solver
+from cvc5 cimport Plugin as c_Plugin
+from cvc5 cimport PyPlugin as c_PyPlugin
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
@@ -48,6 +52,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
 
@@ -157,6 +162,8 @@ cdef Proof _proof(tm: TermManager, proof: c_Proof):
 cdef c_hash[c_Op] cophash = c_hash[c_Op]()
 cdef c_hash[c_Sort] csorthash = c_hash[c_Sort]()
 cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
+cdef c_hash[c_Grammar] cgrammarhash = c_hash[c_Grammar]()
+cdef c_hash[c_Proof] cproofhash = c_hash[c_Proof]()
 
 # ----------------------------------------------------------------------------
 # SymbolManager
@@ -178,11 +185,24 @@ cdef class SymbolManager:
         Wrapper class for the C++ class :cpp:class:`cvc5::parser::SymbolManager`.
     """
     cdef c_SymbolManager* csm
-    cdef Solver solver
+    cdef TermManager tm
 
-    def __cinit__(self, Solver solver):
-        self.csm = new c_SymbolManager(solver.csolver)
-        self.solver = solver
+    def __cinit__(self, tm):
+        """
+            Constructor.
+            Initialize with associated Solver or TermManager instance.
+            .. warning:: Initializing with associated solver instance is
+                         deprecated and will be removed in a future release.
+        """
+        if isinstance(tm, TermManager):
+            self.csm = new c_SymbolManager(dereference((<TermManager?>tm).ctm))
+            self.tm = tm
+        # backwards compatibility, deprecated
+        elif isinstance(tm, Solver):
+            self.csm = new c_SymbolManager(dereference((<Solver?>tm).tm.ctm))
+            self.tm = (<Solver?>tm).tm
+        else:
+          raise ValueError("Expecting a TermManager or Solver argument")
 
     def __dealloc__(self):
         del self.csm
@@ -211,13 +231,7 @@ cdef class SymbolManager:
 
             :return: The declared sorts.
         """
-        sorts = []
-        csorts = self.csm.getDeclaredSorts()
-        for c in csorts:
-            sort = Sort(self.solver)
-            sort.csort = c
-            sorts.append(sort)
-        return sorts
+        return [_sort(self.tm, c) for c in self.csm.getDeclaredSorts()]
 
     def getDeclaredTerms(self):
         """
@@ -227,13 +241,23 @@ cdef class SymbolManager:
 
             :return: The declared terms.
         """
-        terms = []
-        cterms = self.csm.getDeclaredTerms()
-        for c in cterms:
-            term = Term(self.solver)
-            term.cterm = c
-            terms.append(term)
-        return terms
+        return [_term(self.tm, c) for c in self.csm.getDeclaredTerms()]
+
+    def getNamedTerms(self):
+        """
+            Get a mapping from terms to names that have been given to them via
+            the :named attribute.
+
+            :return: A map of the named terms to their names.
+        """
+        namedi = {}
+        for p in self.csm.getNamedTerms():
+            k = p.first
+            v = p.second
+            termk = _term(self.tm, k)
+            termv = v.decode()
+            namedi[termk] = termv
+        return namedi
 
 # ----------------------------------------------------------------------------
 # Command
@@ -327,7 +351,7 @@ cdef class InputParser:
     def __cinit__(self, Solver solver, SymbolManager sm=None):
         self.solver = solver
         if sm is None:
-            self.sm = SymbolManager(solver)
+            self.sm = SymbolManager(solver.tm)
         else:
             self.sm = sm
 
@@ -953,6 +977,12 @@ cdef class Grammar:
     def __str__(self):
         return self.cgrammar.toString().decode()
 
+    def __hash__(self):
+        return cgrammarhash(self.cgrammar)
+
+    def isNull(self):
+        return self.cgrammar.isNull()
+
     def addRule(self, Term ntSymbol, Term rule):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
@@ -1072,6 +1102,12 @@ cdef class SynthResult:
     def __cinit__(self):
         # gets populated by solver
         self.cr = c_SynthResult()
+
+    def __eq__(self, SynthResult other):
+        return self.cr == other.cr
+
+    def __ne__(self, SynthResult other):
+        return self.cr != other.cr
 
     def isNull(self):
         """
@@ -1306,6 +1342,34 @@ cdef class TermManager:
         if symbolname is None:
           return _sort(self, self.ctm.mkParamSort())
         return _sort(self, self.ctm.mkParamSort(symbolname.encode()))
+
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        cdef vector[c_Term] v
+        for t in indices:
+            v.push_back((<Term?> t).cterm)
+        return _term(self, self.ctm.mkSkolem(<c_SkolemId> id.value, v))
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            .. warning:: This function is experimental and may change in future
+                         versions.
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.ctm.getNumIndicesForSkolemId(<c_SkolemId> id.value)
 
     def mkPredicateSort(self, *sorts):
         """
@@ -2056,6 +2120,69 @@ cdef class TermManager:
         raise ValueError("Can't create DatatypeDecl with {}".format(
                     [type(a) for a in [name, sorts_or_bool, isCoDatatype]]))
 
+# ----------------------------------------------------------------------------
+# Plugin
+# ----------------------------------------------------------------------------
+
+cdef class Plugin:
+    """
+        A cvc5 plugin.
+
+        Wrapper class for :cpp:class:`cvc5::Plugin`.
+    """
+    cdef c_PyPlugin* cplugin
+    cdef TermManager tm
+
+    # Ensure that both __init__ and __cinit__ have the same signature
+    def __init__(self, TermManager tm):
+        pass
+
+    def __cinit__(self, TermManager tm):
+        self.tm = tm
+        self.cplugin = new c_PyPlugin(<cpy_ref.PyObject*>self, dereference(tm.ctm))
+
+    def __dealloc__(self):
+        del self.cplugin
+
+    def __term_manager(self):
+        return self.tm
+
+    def check(self):
+        """
+        Call to check, return list of lemmas to add to the SAT solver.
+        This method is called periodically, roughly at every SAT decision.
+
+        :return: The list of lemmas to add to the SAT solver.
+        """
+        lemmas = []
+        for l in self.cplugin.plugin_check():
+            lemmas.append(_term(self.tm, l))
+        return lemmas
+
+    def notifySatClause(self, Term cl):
+        """
+        Notify SAT clause, called when cl is a clause learned by the SAT solver.
+
+        :param cl: The learned clause.
+        """
+        self.cplugin.plugin_notifySatClause(cl.cterm)
+
+    def notifyTheoryLemma(self, Term lem):
+        """
+        Notify theory lemma, called when lem is a theory lemma sent by a theory solver.
+
+        :param lem: The theory lemma.
+        """
+        self.cplugin.plugin_notifyTheoryLemma(lem.cterm)
+
+    def getName(self):
+        """
+        Get the name of the plugin (for debugging).
+
+        :return: The name of the plugin.
+        """
+        raise NotImplementedError
+
 
 # ----------------------------------------------------------------------------
 # Solver
@@ -2248,6 +2375,25 @@ cdef class Solver:
                          future release.
         """
         return self.tm.mkParamSort(symbolname)
+
+    def mkSkolem(self, id, *indices):
+        """
+            Create a skolem. 
+
+            :param id: The skolem id.
+            :param indices: The indices for the skolem.
+            :return: The skolem with the given id and indices. 
+        """  
+        return self.tm.mkSkolem(id, indices)
+
+    def getNumIndicesForSkolemId(self, id):
+        """
+            Get the number of indices for a skolem id. 
+
+            :param id: The skolem id.
+            :return: The number of indice for a skolem with the given id. 
+        """  
+        return self.tm.getNumIndicesForSkolemId(id)
 
     def mkPredicateSort(self, *sorts):
         """
@@ -2928,20 +3074,23 @@ cdef class Solver:
         """
         return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
-    def simplify(self, Term t):
+    def simplify(self, Term t, applySubs=False):
         """
-            Simplify a formula without doing "much" work.  Does not involve the
-            SAT Engine in the simplification, but uses the current definitions,
-            assertions, and the current partial model, if one has been
-            constructed. It also involves theory normalization.
+            Simplify a term or formula based on rewriting and (optionally)
+            applying substitutions for solved variables.
+            
+            If applySubs is true, then for example, if `(= x 0)` was asserted to
+            this solver, this method may replace occurrences of `x` with `0`.
 
             .. warning:: This function is experimental and may change in future
                          versions.
 
-            :param t: The formula to simplify.
-            :return: The simplified formula.
+            :param t: The term to simplify.
+            :param applySubs: Whether to apply substitutions for solved
+                              variables.
+            :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm))
+        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
 
     def assertFormula(self, Term term):
         """
@@ -3459,7 +3608,8 @@ cdef class Solver:
         return proofs
 
     def proofToString(self, proof,
-                      format = ProofFormat.DEFAULT):
+                      format = ProofFormat.DEFAULT,
+                      assertionNames = {}):
         """
             Prints proof into a string with a selected proof format mode.
             Other aspects of printing are taken from the solver options.
@@ -3471,11 +3621,18 @@ cdef class Solver:
                           :py:meth:`getProof()`.
             :param format: The proof format used to print the proof.  Must be
                           "None" if the proof is not a full proof.
+            :param assertionNames: Mapping between assertions and names, if
+                                   they were  given by the user.  This is used
+                                   by the Alethe proof format.
 
             :return: The proof printed in the current format.
         """
+        cdef map[c_Term, string] assertionMap
+        for k in assertionNames:
+            assertionMap[(<Term> k).cterm] = assertionNames[k].encode('utf-8')
         return self.csolver.proofToString((<Proof?> proof).cproof,
-                                         <c_ProofFormat> format.value)
+                                         <c_ProofFormat> format.value,
+                                         assertionMap)
 
     def getLearnedLiterals(self, type = LearnedLitType.INPUT):
         """
@@ -4037,6 +4194,16 @@ cdef class Solver:
             self.tm,
             self.csolver.declarePool(symbol.encode(), sort.csort, niv))
 
+    def addPlugin(self, Plugin p):
+        """
+            Add plugin to this solver. Its callbacks will be called throughout the
+            lifetime of this solver.
+
+            :param p: The plugin to add to this solver.
+        """
+        cdef c_Plugin* ptr = <c_Plugin*> p.cplugin
+        self.csolver.addPlugin(dereference(ptr))
+
     def pop(self, nscopes=1):
         """
             Pop ``nscopes`` level(s) from the assertion stack.
@@ -4145,25 +4312,37 @@ cdef class Solver:
     def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
+	    Assuming that :math:`A \\rightarrow B` is valid,
+	    this function
+            determines a term :math:`I`
+	    over the shared variables of 
+            :math:`A` and :math:`B`,
+	    optionally with respect to a
+            a given grammar, such that :math:`A \\rightarrow I` and
+            :math:`I \\rightarrow B` are valid, if such a term exits.
+            :math:`A` is the current set of assertions and :math:`B` is the
+            conjecture, given as :code:`conj`.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-                ( get-interpolant <conj> )
-                ( get-interpolant <conj> <grammar> )
+                ( get-interpolant <symbol> <conj> )
+                ( get-interpolant <symbol> <conj> <grammar> )
 
-            Requires option
-            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
-            to be set to a mode different from `none`.
+            .. note:: In SMT-LIB, :code:`<symbol>` assigns a symbol to the
+                      interpolant.
+
+            .. note:: Requires option
+                 :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+                 to be set to a mode different from :code:`none`.
 
             .. warning:: This function is experimental and may change in future
                         versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the interpolant.
-            :return: The interpolant.
-                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+            :return: The interpolant, if such a term exists.
         """
         if grammar is None:
             return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
@@ -5667,11 +5846,28 @@ cdef class Proof:
     cdef c_Proof cproof
     cdef TermManager tm
 
+    def __eq__(self, Proof other):
+        return self.cproof == other.cproof
+
+    def __ne__(self, Proof other):
+        return self.cproof != other.cproof
+
+    def __hash__(self):
+        return cproofhash(self.cproof)
+
     def getRule(self):
         """
             :return: The proof rule used by the root step of the proof.
         """
         return ProofRule(<int> self.cproof.getRule())
+
+    def getRewriteRule(self):
+        """
+            :return: The proof rewrite rule used by the root step of the proof.
+                     Raises an exception if `getRule()` does not return
+                     `DSL_REWRITE` or `THEORY_REWRITE`.
+        """
+        return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
     def getResult(self):
         """
@@ -5698,3 +5894,31 @@ cdef class Proof:
             args.append(_term(self.tm, a))
         return args
 
+
+cdef public api:
+    string cy_call_string_func(object self, string method, string *error):
+        try:
+            func = getattr(self, method.decode())
+            return func().encode()
+        except Exception as e:
+            error[0] = traceback.format_exc().encode()
+        return b""
+
+    vector[c_Term] cy_call_vec_term_func(object self, string method, string *error):
+        cdef vector[c_Term] result
+        try:
+            func = getattr(self, method.decode())
+            terms = func() 
+            for t in terms:
+                result.push_back((<Term?> t).cterm)
+        except Exception as e:
+            error[0] = traceback.format_exc().encode()
+        return result
+
+
+    void cy_call_void_func_term(object self, string method, const c_Term& t, string *error):
+        try:
+            func = getattr(self, method.decode())
+            func(_term(self._Plugin__term_manager(), t))
+        except Exception as e:
+            error[0] = traceback.format_exc().encode()

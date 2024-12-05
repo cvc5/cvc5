@@ -25,11 +25,12 @@
 #include <memory>
 #include <utility>
 
-#include "test_smt.h"
+#include "test_env.h"
 #include "theory/ff/multi_roots.h"
 #include "theory/ff/split_gb.h"
 #include "util/cocoa_globals.h"
 #include "util/random.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 
@@ -39,11 +40,11 @@ using namespace theory;
 
 namespace test {
 
-class TestTheoryFfSplitGb : public TestSmt
+class TestTheoryFfSplitGb : public TestEnv
 {
   void SetUp() override
   {
-    TestSmt::SetUp();
+    TestEnv::SetUp();
     initCocoaGlobalManager();
   }
 };
@@ -117,13 +118,13 @@ TEST_F(TestTheoryFfSplitGb, RandSat)
     std::vector<ff::Gb> bases;
     for (size_t i = 0; i < n_bases; ++i)
     {
-      bases.emplace_back(gens[i]);
+      bases.emplace_back(gens[i], nullptr);
     }
     ff::BitProp nullBitProp{};
-    bool isSat = ff::findZero(CoCoA::ideal(allGens)).size();
+    bool isSat = ff::findZero(CoCoA::ideal(allGens), *d_env).size();
     ff::SplitGb splitBases(bases);
     auto result =
-        ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp);
+        ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp, *d_env);
     ASSERT_EQ(result.has_value(), isSat);
     if (result.has_value())
     {
@@ -158,13 +159,13 @@ TEST_F(TestTheoryFfSplitGb, RandUnsat)
     std::vector<ff::Gb> bases;
     for (size_t i = 0; i < n_bases; ++i)
     {
-      bases.emplace_back(gens[i]);
+      bases.emplace_back(gens[i], nullptr);
     }
     ff::BitProp nullBitProp{};
-    bool isSat = ff::findZero(CoCoA::ideal(allGens)).size();
+    bool isSat = ff::findZero(CoCoA::ideal(allGens), *d_env).size();
     ff::SplitGb splitBases(bases);
     auto result =
-        ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp);
+        ff::splitFindZero(std::move(splitBases), polyRing, nullBitProp, *d_env);
     ASSERT_EQ(result.has_value(), isSat);
     if (result.has_value())
     {
@@ -182,7 +183,7 @@ TEST_F(TestTheoryFfSplitGb, GbEmpty)
   CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(ring, syms);
 
   // empty vector
-  ff::Gb gb{std::vector<CoCoA::RingElem>()};
+  ff::Gb gb{std::vector<CoCoA::RingElem>(), nullptr};
   ASSERT_FALSE(gb.isWholeRing());
   ASSERT_FALSE(gb.zeroDimensional());
   ASSERT_EQ(gb.basis().size(), 0);
@@ -222,7 +223,7 @@ TEST_F(TestTheoryFfSplitGb, GbRand)
       gens.push_back(randPoly(polyRing, degree, n_terms, rng));
     }
     CoCoA::ideal i(gens);
-    ff::Gb gb(gens);
+    ff::Gb gb(gens, nullptr);
     ASSERT_EQ(gb.isWholeRing(), CoCoA::IsZero(i));
     ASSERT_EQ(gb.zeroDimensional(), CoCoA::IsZeroDim(i));
     ASSERT_EQ(gb.basis().size(), CoCoA::GBasis(i).size());

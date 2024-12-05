@@ -15,6 +15,8 @@
 
 package io.github.cvc5;
 
+import java.util.*;
+
 public class SymbolManager extends AbstractPointer
 {
   /**
@@ -27,9 +29,27 @@ public class SymbolManager extends AbstractPointer
     super(pointer);
   }
 
+  /**
+   * Create symbol manager instance.
+   * @param tm The associated term manager.
+   */
+  public SymbolManager(TermManager tm)
+  {
+    super(newSymbolManager(tm.getPointer()));
+  }
+
+  /**
+   * Create symbol manager instance.
+   * @param solver The associated solver.
+   * @deprecated
+   * This function is deprecated and replaced by
+   * {@link Solver#Solver(TermManager)}.
+   * It will be removed in a future release.
+   */
+  @Deprecated
   public SymbolManager(Solver solver)
   {
-    super(newSymbolManager(solver.getPointer()));
+    this(solver.getTermManager());
   }
 
   private static native long newSymbolManager(long solverPointer);
@@ -111,4 +131,27 @@ public class SymbolManager extends AbstractPointer
   }
 
   private native long[] getDeclaredTerms(long pointer);
+
+
+
+  /**
+   * Get a mapping from terms to names that have been given to them via the
+   * :named attribute.
+   *
+   * @return A map of the named terms to their names.
+   */
+  public Map<Term, String> getNamedTerms()
+  {
+    Map<Long, String> map = getNamedTerms(pointer);
+    Map<Term, String> ret = new HashMap<>();
+    for (Map.Entry<Long, String> entry : map.entrySet())
+    {
+      Term key = new Term(entry.getKey());
+      String value = entry.getValue();
+      ret.put(key, value);
+    }
+    return ret;
+  }
+
+  private native Map<Long, String> getNamedTerms(long pointer);
 }

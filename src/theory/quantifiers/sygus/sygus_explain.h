@@ -71,7 +71,7 @@ class TermRecBuild
   /** build the (modified) version of the term
    * we initialized via the call to init().
    */
-  Node build(unsigned p = 0);
+  Node build(NodeManager* nm, unsigned p = 0);
 
  private:
   /** stack of active terms */

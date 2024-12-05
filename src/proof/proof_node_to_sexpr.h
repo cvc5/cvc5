@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Jörg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
@@ -94,7 +94,7 @@ class ProofNodeToSExpr
   std::map<theory::InferenceId, Node> d_iidMap;
   /** map dsl rewrite ids to a variable displaying the dsl rewrite id they
    * represent */
-  std::map<rewriter::DslProofRule, Node> d_dslrMap;
+  std::map<ProofRewriteRule, Node> d_dslrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
   /** Dummy ":conclusion" marker */

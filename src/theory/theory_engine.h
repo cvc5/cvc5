@@ -92,6 +92,7 @@ class RelevanceManager;
 class Rewriter;
 class SharedSolver;
 class TheoryModel;
+class ConflictProcessor;
 
 }  // namespace theory
 
@@ -285,10 +286,12 @@ class TheoryEngine : protected EnvObj
   void check(theory::Theory::Effort effort);
 
   /**
-   * Calls ppStaticLearn() on all theories, accumulating their
-   * combined contributions in the "learned" builder.
+   * Calls ppStaticLearn() on all theories.
+   * Adds any new lemmas learned to the learned vector.
+   * @param in The formula that holds.
+   * @param learned The vector storing the new lemmas learned.
    */
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   /**
    * Calls presolve() on all theories and returns true
@@ -439,6 +442,11 @@ class TheoryEngine : protected EnvObj
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
+
+  /** Called externally to notify that the current branch is incomplete. */
+  void setModelUnsound(theory::IncompleteId id);
+  /** Called externally that we are unsound (user-context). */
+  void setRefutationUnsound(theory::IncompleteId id);
 
  private:
   typedef context::
@@ -675,6 +683,8 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
   /** The list of modules */
   std::vector<theory::TheoryEngineModule*> d_modules;
+  /** Conflict processor */
+  std::unique_ptr<theory::ConflictProcessor> d_cp;
   /** User plugin modules */
   std::vector<std::unique_ptr<theory::PluginModule>> d_userPlugins;
 

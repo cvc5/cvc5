@@ -28,11 +28,11 @@ using namespace cvc5::parser;
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_SymbolManager_newSymbolManager(
-    JNIEnv* env, jclass, jlong solverPointer)
+    JNIEnv* env, jclass, jlong tmPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(solverPointer);
-  SymbolManager* symbolManager = new SymbolManager(solver);
+  TermManager* tm = reinterpret_cast<TermManager*>(tmPointer);
+  SymbolManager* symbolManager = new SymbolManager(*tm);
   return reinterpret_cast<jlong>(symbolManager);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -105,5 +105,41 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_SymbolManager_getDeclaredTerms(
   std::vector<Term> terms = symbolManager->getDeclaredTerms();
   jlongArray ret = getPointersFromObjects<Term>(env, terms);
   return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_SymbolManager
+ * Method:    getNamedTerms
+ * Signature: (J)Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_SymbolManager_getNamedTerms(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SymbolManager* symbolManager = reinterpret_cast<SymbolManager*>(pointer);
+  std::map<Term, std::string> map = symbolManager->getNamedTerms();
+  // HashMap hashMap = new HashMap();
+  jclass hashMapClass = env->FindClass("Ljava/util/HashMap;");
+  jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+  jobject hashMap = env->NewObject(hashMapClass, constructor);
+  jmethodID putMethod = env->GetMethodID(
+      hashMapClass,
+      "put",
+      "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+
+  for (const auto& [k, v] : map)
+  {
+    // hashmap.put(key, value);
+    Term* termKey = new Term(k);
+    jobject key = env->NewObject(
+        longClass, longConstructor, reinterpret_cast<jlong>(termKey));
+    jstring value = env->NewStringUTF(v.c_str());
+    env->CallObjectMethod(hashMap, putMethod, key, value);
+  }
+  return hashMap;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }

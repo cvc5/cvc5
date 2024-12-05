@@ -90,9 +90,9 @@ class SygusInst : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
 
   /* For collecting global terms from all available assertions. */
-  void ppNotifyAssertions(const std::vector<Node>& assertions);
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
 
-  std::string identify() const override { return "SygusInst"; }
+  std::string identify() const override;
 
  private:
   /* Lookup counterexample literal or create a new one for quantifier 'q'. */

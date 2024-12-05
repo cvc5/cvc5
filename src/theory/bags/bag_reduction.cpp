@@ -105,7 +105,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::IMPLIES,
                  interval_i,
                  nm->mkNode(Kind::AND, combine_i_equal, unionDisjoint_i_equal));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
@@ -174,12 +175,14 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::EQUAL, elements_i, elements_j);
   Node notEqual = nm->mkNode(Kind::EQUAL, elements_i, elements_j).negate();
   Node body_j = nm->mkNode(Kind::OR, interval_j.negate(), notEqual);
-  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node forAll_j =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, jList, body_j);
   Node body_i = nm->mkNode(
       Kind::IMPLIES,
       interval_i,
       nm->mkNode(Kind::AND, combine_i_equal, unionDisjoint_i_equal, forAll_j));
-  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node forAll_i =
+      quantifiers::BoundedIntegers::mkBoundedForall(nm, iList, body_i);
   Node nonNegative = nm->mkNode(Kind::GEQ, n, zero);
   Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
   asserts.push_back(forAll_i);
@@ -222,7 +225,7 @@ Node BagReduction::reduceProjectOperator(Node n)
   TypeNode elementType = A.getType().getBagElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
   Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
-  Node t = nm->mkBoundVar("t", elementType);
+  Node t = NodeManager::mkBoundVar("t", elementType);
   Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);

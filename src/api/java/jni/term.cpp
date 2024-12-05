@@ -1125,3 +1125,18 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_iterator(JNIEnv* env,
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_Term
+ * Method:    hashCode
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_hashCode(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* result = reinterpret_cast<Term*>(pointer);
+  return static_cast<jint>(std::hash<cvc5::Term>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

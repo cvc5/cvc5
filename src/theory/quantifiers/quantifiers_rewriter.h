@@ -25,6 +25,7 @@
 namespace cvc5::internal {
 
 class Options;
+class TConvProofGenerator;
 
 namespace theory {
 
@@ -76,6 +77,15 @@ class QuantifiersRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode in) override;
   /** Post-rewrite n */
   RewriteResponse postRewrite(TNode in) override;
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
@@ -130,11 +140,18 @@ class QuantifiersRewriter : public TheoryRewriter
    * corresponds to a variable elimination for some v via the above method
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
+   *
+   * The vector lits is populated with the literals that are equivalent to
+   * each vars[i]==subs[i].
+   *
+   * For simplicity, this method will only add a single element to
+   * vars/subs/lits.
    */
   bool getVarElim(Node body,
                   std::vector<Node>& args,
                   std::vector<Node>& vars,
-                  std::vector<Node>& subs) const;
+                  std::vector<Node>& subs,
+                  std::vector<Node>& lits) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
@@ -160,11 +177,6 @@ class QuantifiersRewriter : public TheoryRewriter
                       std::vector<Node>& subs,
                       QAttributes& qa) const;
   //-------------------------------------end variable elimination utilities
-  /**
-   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
-   * and computes NNF.
-   */
-  Node computeElimSymbols(Node body) const;
   /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
@@ -216,14 +228,28 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static bool isStandard(QAttributes& qa, const Options& opts);
 
+  /**
+   * @param q The quantified formula to rewrite.
+   * @param pg If provided, stores a set of small step rewrites that suffice
+   * to show that q rewrites to the returned quantified formula.
+   */
+  Node computeRewriteBody(const Node& q,
+                          TConvProofGenerator* pg = nullptr) const;
+
  private:
   /**
    * Do trivial merging of the prenex of quantified formula q, e.g.
    * (forall ((x Int)) (forall ((y Int)) (P x y))) --->
    * (forall ((x Int) (y Int)) (P x y)).
    * This is done until fixed point.
+   *
+   * @param q The quantified formula to prenex.
+   * @param checkStd If true, we do not merge prenex for any non-standard
+   * quantified formula
+   * @param rmDup If true, we remove duplicate variables.
+   * @return The result of merging prenex in q.
    */
-  Node mergePrenex(const Node& q);
+  Node mergePrenex(const Node& q, bool checkStd, bool rmDup);
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
@@ -232,12 +258,8 @@ class QuantifiersRewriter : public TheoryRewriter
                           bool pol,
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
-                          std::vector<Node>& subs) const;
-  bool addCheckElimChild(std::vector<Node>& children,
-                         Node c,
-                         Kind k,
-                         std::map<Node, bool>& lit_pol,
-                         bool& childrenChanged) const;
+                          std::vector<Node>& subs,
+                          std::vector<Node>& lits) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -250,25 +272,23 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   /**
-   * It may introduce new conditions C into new_conds. It returns a node retBody
-   * such that q of the form
+   * Returns a node retBody such that q of the form
    *   forall args. body
    * is equivalent to:
-   *   forall args. ( C V retBody )
+   *   forall args. retBody
    *
    * @param q The original quantified formula we are processing
    * @param args The bound variables of q
    * @param body The subformula of the body of q we are processing
    * @param cache Cache from terms to their processed form
-   * @param new_conds New conditions to add as disjunctions to the return
    * @param iteLiftMode The mode for lifting ITEs from body.
    */
   Node computeProcessTerms2(const Node& q,
                             const std::vector<Node>& args,
                             Node body,
                             std::map<Node, Node>& cache,
-                            std::vector<Node>& new_conds,
-                            options::IteLiftQuantMode iteLiftMode) const;
+                            options::IteLiftQuantMode iteLiftMode,
+                            TConvProofGenerator* pg) const;
   void computeDtTesterIteSplit(Node n,
                                std::map<Node, Node>& pcons,
                                std::map<Node, std::map<int, Node> >& ncons,
@@ -318,7 +338,8 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeProcessTerms(const Node& q,
                            const std::vector<Node>& args,
                            Node body,
-                           QAttributes& qa) const;
+                           QAttributes& qa,
+                           TConvProofGenerator* pg = nullptr) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite
   /** compute extended rewrite

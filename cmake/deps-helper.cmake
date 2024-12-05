@@ -39,6 +39,13 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
     )
 endif()
 
+# On Windows, DLL libraries are runtime artifacts
+if(BUILD_SHARED_LIBS AND WIN32)
+  set(LIB_BUILD_TYPE BIN)
+else()
+  set(LIB_BUILD_TYPE LIB)
+endif()
+
 # On Windows, we need to have a shell interpreter to call 'configure'
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     find_program (SHELL "sh" REQUIRED)
