@@ -371,12 +371,6 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   {
     return RewriteProofStatus::ARITH_POLY_NORM;
   }
-  // alpha equivalence
-  if (proveWithRule(
-          RewriteProofStatus::ALPHA_EQUIV, eqi, {}, {}, false, false, true))
-  {
-    return RewriteProofStatus::ALPHA_EQUIV;
-  }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
   if (d_tmode==TheoryRewriteMode::STANDARD)
@@ -636,39 +630,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   else if (id == RewriteProofStatus::ACI_NORM)
   {
     if (!expr::isACINorm(target[0], target[1]))
-    {
-      return false;
-    }
-    pic.d_id = id;
-  }
-  else if (id == RewriteProofStatus::ALPHA_EQUIV)
-  {
-    if (target[0].getKind() != target[1].getKind() || !target[0].isClosure())
-    {
-      return false;
-    }
-    size_t nchild = target[0][0].getNumChildren();
-    if (nchild != target[1][0].getNumChildren())
-    {
-      return false;
-    }
-    std::vector<Node> avars;
-    std::vector<Node> asubs;
-    for (size_t i = 0; i < nchild; i++)
-    {
-      if (target[0][0][i] != target[1][0][i])
-      {
-        avars.emplace_back(target[0][0][i]);
-        asubs.emplace_back(target[1][0][i]);
-      }
-    }
-    if (avars.empty())
-    {
-      return false;
-    }
-    Node res = target[0].substitute(
-        avars.begin(), avars.end(), asubs.begin(), asubs.end());
-    if (res != target[1])
     {
       return false;
     }
@@ -1225,22 +1186,6 @@ bool RewriteDbProofCons::ensureProofInternal(
       else if (pcur.d_id == RewriteProofStatus::ACI_NORM)
       {
         cdp->addStep(cur, ProofRule::ACI_NORM, {}, {cur});
-      }
-      else if (pcur.d_id == RewriteProofStatus::ALPHA_EQUIV)
-      {
-        std::vector<Node> v1s;
-        std::vector<Node> v2s;
-        for (size_t i = 0, nvars = cur[0][0].getNumChildren(); i < nvars; i++)
-        {
-          if (cur[0][0][i] != cur[1][0][i])
-          {
-            v1s.emplace_back(cur[0][0][i]);
-            v2s.emplace_back(cur[1][0][i]);
-          }
-        }
-        Node v1 = nm->mkNode(Kind::SEXPR, v1s);
-        Node v2 = nm->mkNode(Kind::SEXPR, v2s);
-        cdp->addStep(cur, ProofRule::ALPHA_EQUIV, {}, {cur, v1, v2});
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
