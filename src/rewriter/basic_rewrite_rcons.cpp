@@ -237,8 +237,10 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
   args.push_back(
       nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(id))));
   args.push_back(eq);
-  // always overwrite, in case we partially completed a proof in a macro method above
-  cdp->addStep(eq, ProofRule::THEORY_REWRITE, {}, args, false, CDPOverwrite::ALWAYS);
+  // always overwrite, in case we partially completed a proof in a macro method
+  // above
+  cdp->addStep(
+      eq, ProofRule::THEORY_REWRITE, {}, args, false, CDPOverwrite::ALWAYS);
 }
 
 bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
