@@ -121,7 +121,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_skolemManager->mkDummySkolem(
-      "x", *d_boolTypeNode, "", SkolemManager::SKOLEM_EXACT_NAME);
+      "x", *d_boolTypeNode, "", SkolemFlags::SKOLEM_EXACT_NAME);
   ASSERT_EQ(x.getKind(), Kind::DUMMY_SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
   ASSERT_EQ(x.getAttribute(VarNameAttr()), "x");

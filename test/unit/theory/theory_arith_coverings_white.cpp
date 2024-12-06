@@ -114,13 +114,13 @@ Node make_real_variable(const std::string& s)
 {
   SkolemManager* sm = nodeManager->getSkolemManager();
   return sm->mkDummySkolem(
-      s, nodeManager->realType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->realType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
 }
 Node make_int_variable(const std::string& s)
 {
   SkolemManager* sm = nodeManager->getSkolemManager();
   return sm->mkDummySkolem(
-      s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->integerType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_univariate_isolation)
