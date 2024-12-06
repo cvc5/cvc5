@@ -77,21 +77,23 @@ enum class SkolemFlags : uint8_t
 };
 
 /*
-* Performs a bitwise OR operation between two SkolemFlags values.
-*/
-inline SkolemFlags operator|(SkolemFlags lhs, SkolemFlags rhs) {
-    return static_cast<SkolemFlags>(
-        static_cast<std::underlying_type_t<SkolemFlags>>(lhs) |
-        static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
+ * Performs a bitwise OR operation between two SkolemFlags values.
+ */
+inline SkolemFlags operator|(SkolemFlags lhs, SkolemFlags rhs)
+{
+  return static_cast<SkolemFlags>(
+      static_cast<std::underlying_type_t<SkolemFlags>>(lhs)
+      | static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
 }
 
 /*
-* Performs a bitwise AND operation between two SkolemFlags values.
-*/
-inline SkolemFlags operator&(SkolemFlags lhs, SkolemFlags rhs) {
+ * Performs a bitwise AND operation between two SkolemFlags values.
+ */
+inline SkolemFlags operator&(SkolemFlags lhs, SkolemFlags rhs)
+{
   return static_cast<SkolemFlags>(
-    static_cast<std::underlying_type_t<SkolemFlags>>(lhs) &
-    static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
+      static_cast<std::underlying_type_t<SkolemFlags>>(lhs)
+      & static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
 }
 
 }  // namespace cvc5::internal
