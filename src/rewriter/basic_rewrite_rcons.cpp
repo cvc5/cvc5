@@ -279,7 +279,17 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   Trace("brc-macro") << "Expand dt cons eq for " << eq << std::endl;
   TConvProofGenerator tcpg(d_env);
   theory::Rewriter* rr = d_env.getRewriter();
-  // bool isConflict = eq[1].isConst();
+  if (eq[1].isConst())
+  {
+    // DT_CONS_EQ_CLASH may suffice if it is purely datatypes
+    Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ_CLASH, eq[0]);
+    if (curRew==eq[1])
+    {
+      cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_CONS_EQ_CLASH);
+      return true;
+    }
+    return false;
+  }
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -316,20 +326,22 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   Node rhs = res[1];
   if (rhs == eq[1])
   {
+    // no rewrite needed, e.g. one step
     cdp->addProof(pfn);
     return true;
   }
   // should rewrite via ACI_NORM
-  if (expr::isACINorm(rhs, eq[1]))
+  if (!expr::isACINorm(rhs, eq[1]))
   {
-    cdp->addProof(pfn);
-    Node eqa = rhs.eqNode(eq[1]);
-    cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
-    cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
-    return true;
+    Assert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
+    return false;
   }
-  AlwaysAssert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
-  return false;
+  // use ACI_NORM
+  cdp->addProof(pfn);
+  Node eqa = rhs.eqNode(eq[1]);
+  cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
+  cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
+  return true;
 }
 
 bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
