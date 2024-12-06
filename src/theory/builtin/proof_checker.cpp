@@ -479,7 +479,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   return Node::null();
 }
 
-Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager * nm, const Node& n)
+Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager* nm, const Node& n)
 {
   rewriter::RewriteDbNodeConverter rconv(nm);
   // run a single (small) step conversion

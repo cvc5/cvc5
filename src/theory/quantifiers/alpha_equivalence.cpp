@@ -209,15 +209,15 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())
   {
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     Node proveLem = lem;
     CDProof cdp(d_env);
     // remove patterns from both sides
-    if (q.getNumChildren()==3)
+    if (q.getNumChildren() == 3)
     {
       Node qo = q;
       q = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, q);
-      if (q!=qo)
+      if (q != qo)
       {
         Node eqq = qo.eqNode(q);
         cdp.addStep(eqq, ProofRule::ENCODE_EQ_INTRO, {}, {qo});
@@ -228,11 +228,11 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
         proveLem = eqq2;
       }
     }
-    if (ret.getNumChildren()==3)
+    if (ret.getNumChildren() == 3)
     {
       Node reto = ret;
       ret = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, ret);
-      if (ret!=reto)
+      if (ret != reto)
       {
         Node eqq = reto.eqNode(ret);
         cdp.addStep(eqq, ProofRule::ENCODE_EQ_INTRO, {}, {reto});
