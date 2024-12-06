@@ -288,6 +288,8 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
       cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_CONS_EQ_CLASH);
       return true;
     }
+    // otherwise, we require proving the non-datatype constants are distinct
+    // this case is not yet handled.
     return false;
   }
   std::unordered_set<TNode> visited;
