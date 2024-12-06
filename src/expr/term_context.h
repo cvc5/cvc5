@@ -202,12 +202,13 @@ class BoolSkeletonTermContext : public TermContext
 class WithinKindTermContext : public TermContext
 {
  public:
-  WithinKindTermContext(Kind k) : d_kind(k){}
+  WithinKindTermContext(Kind k) : d_kind(k) {}
   /** The initial value: not within kind. */
   uint32_t initialValue() const override;
   /** Compute the value of the index^th child of t whose hash is tval */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-protected:
+
+ protected:
   /** The kind */
   Kind d_kind;
 };
