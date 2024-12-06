@@ -181,6 +181,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_DT_CONS_EQ:
+      if (ensureProofMacroDtConsEq(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       if (ensureProofMacroArithStringPredEntail(cdp, eq))
       {
@@ -265,6 +271,61 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
   return true;
+}
+
+
+bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("brc-macro") << "Expand dt cons eq for " << eq << std::endl;
+  TConvProofGenerator tcpg(d_env);
+  theory::Rewriter* rr = d_env.getRewriter();
+  //bool isConflict = eq[1].isConst();
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(eq[0]);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if (cur.getKind()==Kind::EQUAL)
+      {
+        Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, cur);
+        if (!curRew.isNull())
+        {
+          tcpg.addTheoryRewriteStep(cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
+        }
+      }
+      else
+      {
+        // traverse AND
+        Assert (cur.getKind()==Kind::AND);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  } while (!visit.empty());
+  // get proof for rewriting, which should expand equalities
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  Node res = pfn->getResult();
+  Assert (res.getKind()==Kind::EQUAL);
+  // the right hand side should rewrite to the other side
+  Node rhs = res[1];
+  if (rhs==eq[1])
+  {
+    return true;
+  }
+  // should rewrite via ACI_NORM
+  if (expr::isACINorm(rhs, eq[1]))
+  {
+    cdp->addProof(pfn);
+    Node eqa = rhs.eqNode(eq[1]);
+    cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
+    cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
+    return true;
+  }
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
