@@ -24,6 +24,7 @@
 #include "expr/node_converter.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
+#include "expr/term_context.h"
 
 namespace cvc5::internal {
 namespace rewriter {
@@ -72,6 +73,8 @@ class RewriteDbNodeConverter : public NodeConverter
   CDProof* d_proof;
   /** Record that n ---> ret, justifiable by proof rule r. */
   void recordProofStep(const Node& n, const Node& ret, ProofRule r);
+  /** Should we traverse n? */
+  bool shouldTraverse(Node n) override;
 };
 
 /** A proof producing version of the above class */
@@ -89,6 +92,8 @@ class ProofRewriteDbNodeConverter : protected EnvObj
   std::shared_ptr<ProofNode> convert(const Node& n);
 
  private:
+  /** Term context matching the policy for the converter above */
+  WithinKindTermContext d_wktc;
   /** A pointer to a TConvProofGenerator, if proof producing */
   TConvProofGenerator d_tpg;
   /** A CDProof */

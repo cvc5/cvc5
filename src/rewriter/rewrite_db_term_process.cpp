@@ -157,6 +157,11 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   return n;
 }
 
+bool RewriteDbNodeConverter::shouldTraverse(Node n)
+{
+  return n.getKind() != Kind::INST_PATTERN_LIST;
+}
+
 void RewriteDbNodeConverter::recordProofStep(const Node& n,
                                              const Node& ret,
                                              ProofRule r)
@@ -194,13 +199,14 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
+      d_wktc(Kind::INST_PATTERN_LIST),
       // must rewrite within operators
       d_tpg(env,
             nullptr,
             TConvPolicy::FIXPOINT,
             TConvCachePolicy::NEVER,
             "ProofRewriteDb",
-            nullptr,
+            &d_wktc,
             true),
       d_proof(env)
 {
