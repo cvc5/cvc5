@@ -164,7 +164,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       if (n[0].getOperator() == n[1].getOperator())
       {
-        Assert(n1.getNumChildren() == n2.getNumChildren());
+        Assert(n[0].getNumChildren() == n[1].getNumChildren());
         std::vector<Node> children;
         for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
         {
