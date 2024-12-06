@@ -5,7 +5,7 @@
 (declare-sort N_ 0)
 (declare-sort _l 0)
 (declare-sort d 0)
-(declare-datatypes ((T 0) (l 0) (T_ 0) (i 0) (_d 0) (N_l 0)) (((r (r D))) ((i) (o ($ N) (l l))) ((ni)) ((l)) ((ni)) ((ni))))
+(declare-datatypes ((T 0) (l 0) (T_ 0) (i 0) (_d 0) (N_l 0)) (((r (r D))) ((i) (o ($ N) (l2 l))) ((ni)) ((l3)) ((ni)) ((ni))))
 (declare-fun f () N_)
 (declare-fun n () N)
 (declare-fun c (D) d)
