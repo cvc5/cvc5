@@ -174,10 +174,10 @@ class TConvProofGenerator : protected EnvObj, public ProofGenerator
                       uint32_t tctx = 0);
   /** Same as above, with a theory rewrite step */
   void addTheoryRewriteStep(Node t,
-                      Node s,
-                      ProofRewriteRule id,
-                      bool isPre = false,
-                      uint32_t tctx = 0);
+                            Node s,
+                            ProofRewriteRule id,
+                            bool isPre = false,
+                            uint32_t tctx = 0);
   /** Has rewrite step for term t */
   bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /**

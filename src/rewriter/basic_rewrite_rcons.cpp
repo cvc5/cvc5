@@ -273,35 +273,37 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   return true;
 }
 
-
 bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
   Trace("brc-macro") << "Expand dt cons eq for " << eq << std::endl;
   TConvProofGenerator tcpg(d_env);
   theory::Rewriter* rr = d_env.getRewriter();
-  //bool isConflict = eq[1].isConst();
+  // bool isConflict = eq[1].isConst();
   std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(eq[0]);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if (cur.getKind()==Kind::EQUAL)
+      if (cur.getKind() == Kind::EQUAL)
       {
         Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, cur);
         if (!curRew.isNull())
         {
-          tcpg.addTheoryRewriteStep(cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
+          tcpg.addTheoryRewriteStep(
+              cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
         }
       }
       else
       {
         // traverse AND
-        Assert (cur.getKind()==Kind::AND);
+        Assert(cur.getKind() == Kind::AND);
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
@@ -309,10 +311,10 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   // get proof for rewriting, which should expand equalities
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
   Node res = pfn->getResult();
-  Assert (res.getKind()==Kind::EQUAL);
+  Assert(res.getKind() == Kind::EQUAL);
   // the right hand side should rewrite to the other side
   Node rhs = res[1];
-  if (rhs==eq[1])
+  if (rhs == eq[1])
   {
     return true;
   }

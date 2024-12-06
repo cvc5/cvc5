@@ -152,7 +152,9 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::DT_CONS_EQ:
     {
-      if (n.getKind() != Kind::EQUAL || n[0].getKind()!=Kind::APPLY_CONSTRUCTOR || n[1].getKind()!=Kind::APPLY_CONSTRUCTOR)
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
       {
         return Node::null();
       }
