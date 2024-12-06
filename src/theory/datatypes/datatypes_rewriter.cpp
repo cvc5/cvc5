@@ -137,9 +137,13 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           nn = nodeManager()->mkConst(false);
         }
-        else
+        else if (!rew.empty())
         {
           nn = nodeManager()->mkAnd(rew);
+        }
+        else
+        {
+          return Node::null();
         }
         // In the "else" case above will n if this rewrite does not apply. We
         // do not return the reflexive equality in this case.
@@ -158,17 +162,30 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      if (n[0].getOperator() != n[1].getOperator())
+      if (n[0].getOperator() == n[1].getOperator())
+      {
+        Assert(n1.getNumChildren() == n2.getNumChildren());
+        std::vector<Node> children;
+        for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
+        {
+          children.push_back(n[0][i].eqNode(n[1][i]));
+        }
+        return nodeManager()->mkAnd(children);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    {
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      if (utils::checkClash(n[0], n[1], rew, false))
       {
         return nodeManager()->mkConst(false);
       }
-      Assert(n1.getNumChildren() == n2.getNumChildren());
-      std::vector<Node> children;
-      for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
-      {
-        children.push_back(n[0][i].eqNode(n[1][i]));
-      }
-      return nodeManager()->mkAnd(children);
     }
     break;
     case ProofRewriteRule::DT_UPDATER_ELIM:

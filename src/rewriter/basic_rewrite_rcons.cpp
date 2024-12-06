@@ -316,6 +316,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   Node rhs = res[1];
   if (rhs == eq[1])
   {
+    cdp->addProof(pfn);
     return true;
   }
   // should rewrite via ACI_NORM
@@ -327,6 +328,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
     cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
     return true;
   }
+  AlwaysAssert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
   return false;
 }
 
