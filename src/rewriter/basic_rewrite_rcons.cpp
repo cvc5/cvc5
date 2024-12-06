@@ -283,7 +283,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   {
     // DT_CONS_EQ_CLASH may suffice if it is purely datatypes
     Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ_CLASH, eq[0]);
-    if (curRew==eq[1])
+    if (curRew == eq[1])
     {
       cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_CONS_EQ_CLASH);
       return true;

@@ -116,7 +116,10 @@ bool isNullaryConstructor(const DTypeConstructor& c);
  * @param checkNdtConst If true, we consider constants (of non-datatype type) to
  * be a conflict.
  */
-bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst = true);
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst = true);
 
 }  // namespace utils
 }  // namespace datatypes
