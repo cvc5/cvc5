@@ -420,9 +420,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv(nodeManager());
-    // run a single (small) step conversion
-    Node ac = rconv.postConvert(args[0]);
+    Node ac = getEncodeEqIntro(nodeManager(), args[0]);
     return args[0].eqNode(ac);
   }
   else if (id == ProofRule::DSL_REWRITE)
@@ -479,6 +477,14 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   }
   // no rule
   return Node::null();
+}
+
+Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager * nm, const Node& n)
+{
+  rewriter::RewriteDbNodeConverter rconv(nm);
+  // run a single (small) step conversion
+  Node nc = rconv.postConvert(n);
+  return nc;
 }
 
 bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)

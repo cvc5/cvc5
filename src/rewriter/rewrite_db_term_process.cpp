@@ -157,11 +157,6 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   return n;
 }
 
-bool RewriteDbNodeConverter::shouldTraverse(Node n)
-{
-  return n.getKind() != Kind::INST_PATTERN_LIST;
-}
-
 void RewriteDbNodeConverter::recordProofStep(const Node& n,
                                              const Node& ret,
                                              ProofRule r)

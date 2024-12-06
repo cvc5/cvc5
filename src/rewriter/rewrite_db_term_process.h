@@ -72,8 +72,6 @@ class RewriteDbNodeConverter : public NodeConverter
   CDProof* d_proof;
   /** Record that n ---> ret, justifiable by proof rule r. */
   void recordProofStep(const Node& n, const Node& ret, ProofRule r);
-  /** Should we traverse n? */
-  bool shouldTraverse(Node n) override;
 };
 
 /** A proof producing version of the above class */
