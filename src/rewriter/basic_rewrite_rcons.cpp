@@ -657,8 +657,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
   cdp->addStep(eq, ProofRule::TRANS, {eqq, eqq2}, {});
   Trace("brc-macro") << "Remains to prove: " << body1 << " == " << body2
                      << std::endl;
-  Node body2ms = rr->rewriteViaRule(
-      ProofRewriteRule::QUANT_MINISCOPE_FV, body2);
+  Node body2ms =
+      rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_FV, body2);
   if (body2ms.isNull())
   {
     Assert(false) << "Failed miniscope";
