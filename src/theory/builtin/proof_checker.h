@@ -110,7 +110,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /**
    * @param nm The node manager.
    * @param n The term to rewrite via ENCODE_EQ_INTRO.
-   * @return The equality concluded by ENCODE_EQ_INTRO for n.
+   * @return The right hand side of the equality concluded by ENCODE_EQ_INTRO
+   * for n.
    */
   static Node getEncodeEqIntro(NodeManager* nm, const Node& n);
 
