@@ -694,6 +694,9 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
       {
         Trace("brc-macro") << "...subgoal " << eqc << std::endl;
         // otherwise just add subgoal, likely alpha equivalence
+        // Some of these goals cannot be currently proven since they involve
+        // multiple nested steps of miniscoping, combined with alpha
+        // equivalence.
         cdp->addTrustedStep(
             eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
       }
