@@ -2729,6 +2729,26 @@ enum ENUM(ProofRewriteRule)
    * **Datatypes -- constructor equality**
    *
    * .. math::
+   *   (t = s) = (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
+   *
+   * where :math:`t_1, \ldots, t_n` and :math:`s_1, \ldots, s_n` are subterms
+   * of :math:`t` and :math:`s` that occur at the same position respectively
+   * (beneath constructor applications), or alternatively
+   *
+   * .. math::
+   *   (t = s) = false
+   * 
+   * where :math:`t` and :math:`s` have a subterm that are distinct constructors
+   * that occur in the same position (beneath other constructor applications).
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- constructor equality**
+   *
+   * .. math::
    *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
    *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
    *

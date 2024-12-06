@@ -49,7 +49,8 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
+  // DT_CONS_EQ is part of the reconstruction of MACRO_DT_CONS_EQ.
+  registerProofRewriteRule(ProofRewriteRule::MACRO_DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,
                            TheoryRewriteCtx::PRE_DSL);
@@ -126,7 +127,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::MACRO_DT_CONS_EQ:
     {
       if (n.getKind() == Kind::EQUAL)
       {
@@ -147,6 +148,25 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           return nn;
         }
       }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ:
+    {
+      if (n.getKind() != Kind::EQUAL || n[0].getKind()!=Kind::APPLY_CONSTRUCTOR || n[1].getKind()!=Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      if (n[0].getOperator() != n[1].getOperator())
+      {
+        return nodeManager()->mkConst(false);
+      }
+      Assert(n1.getNumChildren() == n2.getNumChildren());
+      std::vector<Node> children;
+      for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
+      {
+        children.push_back(n[0][i].eqNode(n[1][i]));
+      }
+      return nodeManager()->mkAnd(children);
     }
     break;
     case ProofRewriteRule::DT_UPDATER_ELIM:
@@ -379,10 +399,6 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Trace("datatypes-rewrite")
           << "Rewrite clashing equality " << in << " to false" << std::endl;
       return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      //}else if( rew.size()==1 && rew[0]!=in ){
-      //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " <<
-      //  rew[0] << std::endl;
-      //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
     }
     else if (in[1] < in[0])
     {
