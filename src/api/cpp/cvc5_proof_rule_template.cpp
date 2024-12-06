@@ -265,6 +265,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "dt-collapse-tester-singleton";
     case ProofRewriteRule::MACRO_DT_CONS_EQ: return "macro-dt-cons-eq";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_CONS_EQ_CLASH: return "dt-cons-eq-clash";
     case ProofRewriteRule::DT_CYCLE: return "dt-cycle";
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";

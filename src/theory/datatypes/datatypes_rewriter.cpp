@@ -182,6 +182,8 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
+      // do not look for constant clashing equality between non-datatypes
+      std::vector<Node> rew;
       if (utils::checkClash(n[0], n[1], rew, false))
       {
         return nodeManager()->mkConst(false);

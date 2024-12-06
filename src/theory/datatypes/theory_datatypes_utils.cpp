@@ -162,12 +162,6 @@ bool isNullaryConstructor(const DTypeConstructor& c)
   return true;
 }
 
-bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
-{
-  std::vector<Node> path;
-  return checkClash(n1, n2, rew, path);
-}
-
 bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
 {
   Trace("datatypes-rewrite-debug")
@@ -193,6 +187,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
   }
   else if (n1 != n2)
   {
+    // if checking equality between non-datatypes
     if (checkNdtConst && n1.isConst() && n2.isConst())
     {
       Trace("datatypes-rewrite-debug")
@@ -201,8 +196,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
     }
     else
     {
-      Node eq = NodeManager::currentNM()->mkNode(Kind::EQUAL, n1, n2);
-      rew.push_back(eq);
+      rew.push_back(n1.eqNode(n2));
     }
   }
   return false;

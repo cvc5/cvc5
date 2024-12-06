@@ -2738,8 +2738,8 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   (t = s) = false
    * 
-   * where :math:`t` and :math:`s` have a subterm that are distinct constructors
-   * that occur in the same position (beneath other constructor applications).
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct.
    *
    * \endverbatim
    */
@@ -2764,8 +2764,9 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   (t = s) = false
    * 
-   * where :math:`t` and :math:`s` have a subterm that are distinct constructors
-   * that occur in the same position (beneath other constructor applications).
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct constructor
+   * applications.
    *
    * \endverbatim
    */
