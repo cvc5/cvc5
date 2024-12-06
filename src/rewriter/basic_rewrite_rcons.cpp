@@ -668,7 +668,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp, const Node& eq
   // since then it would end up in the final proof. Instead we introduce a
   // trust step which will be filled based on the macro rule and elaborated.
   cdp->addTrustedStep(
-        eqqm, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+        eqqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Node eqqrs = body2.eqNode(body1);
   if (body2ms!=body1)
   {
