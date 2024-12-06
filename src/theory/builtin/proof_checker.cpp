@@ -483,8 +483,7 @@ Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager* nm, const Node& n)
 {
   rewriter::RewriteDbNodeConverter rconv(nm);
   // run a single (small) step conversion
-  Node nc = rconv.postConvert(n);
-  return nc;
+  return rconv.postConvert(n);
 }
 
 bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
