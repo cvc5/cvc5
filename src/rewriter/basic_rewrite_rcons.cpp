@@ -661,6 +661,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
       rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_FV, body2);
   if (body2ms.isNull())
   {
+    // currently fails if we are doing
+    //   forall x. ite(C, forall Y. t, s) =
+    //   forall xy. ite(C, t, s)
+    // since we don't miniscope over ITE.
     Trace("brc-macro") << "Failed miniscope";
     return false;
   }
