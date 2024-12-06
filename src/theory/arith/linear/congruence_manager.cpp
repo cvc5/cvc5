@@ -366,6 +366,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     ++(d_statistics.d_conflicts);
     if (isProofEnabled())
     {
+      Trace("arith-cm-proof") << "Handle conflict " << finalPf << std::endl;
       // we have a proof of (=> C L1) and need a proof of
       // (not (and C L2)), where L1 and L2 are contradictory literals,
       // stored in proven[1] and neg respectively below.
@@ -376,9 +377,18 @@ bool ArithCongruenceManager::propagate(TNode x){
       Node finalPfNeg = finalPf.notNode();
       cdp.addProof(texpC.toProofNode());
       Node proven = texpC.getProven();
+      Trace("arith-cm-proof") << "Proven was " << proven << std::endl;
       Node antec = proven[0];
-      std::vector<Node> antecc(antec.begin(), antec.end());
-      cdp.addStep(antec, ProofRule::AND_INTRO, antecc, {});
+      std::vector<Node> antecc;
+      if (antec.getKind()==Kind::AND)
+      {
+        antecc.insert(antecc.end(), antec.begin(), antec.end());
+        cdp.addStep(antec, ProofRule::AND_INTRO, antecc, {});
+      }
+      else
+      {
+        antecc.push_back(antec);
+      }
       cdp.addStep(proven[1], ProofRule::MODUS_PONENS, {antec, proven}, {});
       std::shared_ptr<ProofNode> pf;
       bool success = false;
