@@ -1383,6 +1383,7 @@ set(regress_0_tests
   regress0/proofs/subtype-elim-rare-fail.smt2
   regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
+  regress0/proofs/t3_rw903.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/proofs/unused-def1.smt2
