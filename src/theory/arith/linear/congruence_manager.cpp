@@ -380,7 +380,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       Trace("arith-cm-proof") << "Proven was " << proven << std::endl;
       Node antec = proven[0];
       std::vector<Node> antecc;
-      if (antec.getKind()==Kind::AND)
+      if (antec.getKind() == Kind::AND)
       {
         antecc.insert(antecc.end(), antec.begin(), antec.end());
         cdp.addStep(antec, ProofRule::AND_INTRO, antecc, {});
