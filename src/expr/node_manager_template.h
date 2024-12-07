@@ -569,7 +569,8 @@ class NodeManager
 
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
-  static Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+  static Node mkNode(TNode opNode,
+                     const std::vector<NodeTemplate<ref_count>>& children);
 
   /**
    * Create a node by applying an operator to an arbitrary number of children.

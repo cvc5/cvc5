@@ -499,7 +499,8 @@ void ProofEqEngine::explainWithProof(Node lit,
   {
     return;
   }
-  std::shared_ptr<eq::EqProof> pf = std::make_shared<eq::EqProof>(nodeManager());
+  std::shared_ptr<eq::EqProof> pf =
+      std::make_shared<eq::EqProof>(nodeManager());
   Trace("pfee-proof") << "pfee::explainWithProof: " << lit << std::endl;
   bool polarity = lit.getKind() != Kind::NOT;
   TNode atom = polarity ? lit : lit[0];

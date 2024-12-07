@@ -1236,7 +1236,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           {
             simpTrans = false;
             Assert(c1.getType() == c2.getType());
-            std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>(nodeManager());
+            std::shared_ptr<EqProof> eqpmc =
+                std::make_shared<EqProof>(nodeManager());
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
             eqp->d_children.push_back(eqpmc);

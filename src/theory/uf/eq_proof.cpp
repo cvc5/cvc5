@@ -951,14 +951,12 @@ Node EqProof::addToProof(CDProof* p,
       if (d_node.getKind() == Kind::NOT)
       {
         intro = ProofRule::FALSE_INTRO;
-        conclusion =
-            d_node[0].eqNode(d_nm->mkConst<bool>(false));
+        conclusion = d_node[0].eqNode(d_nm->mkConst<bool>(false));
       }
       else
       {
         intro = ProofRule::TRUE_INTRO;
-        conclusion =
-            d_node.eqNode(d_nm->mkConst<bool>(true));
+        conclusion = d_node.eqNode(d_nm->mkConst<bool>(true));
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
@@ -1005,8 +1003,7 @@ Node EqProof::addToProof(CDProof* p,
     // rest of the reconstruction works
     if (d_children.empty())
     {
-      Node conclusion =
-          d_node[0].eqNode(d_nm->mkConst<bool>(false));
+      Node conclusion = d_node[0].eqNode(d_nm->mkConst<bool>(false));
       p->addStep(d_node, ProofRule::MACRO_SR_PRED_INTRO, {}, {d_node});
       p->addStep(conclusion, ProofRule::FALSE_INTRO, {d_node}, {});
       visited[d_node] = conclusion;
@@ -1119,10 +1116,9 @@ Node EqProof::addToProof(CDProof* p,
     // is the correct conclusion of the equality reasoning step. A FALSE_ELIM
     // step to revert this is only necessary when this is the root. That step is
     // done in the non-recursive caller of this function.
-    Node conclusion =
-        d_node.getKind() != Kind::NOT
-            ? d_node
-            : d_node[0].eqNode(d_nm->mkConst<bool>(false));
+    Node conclusion = d_node.getKind() != Kind::NOT
+                          ? d_node
+                          : d_node[0].eqNode(d_nm->mkConst<bool>(false));
     // If the conclusion is an assumption, its derivation was spurious, so it
     // can be discarded. Moreover, reconstructing the step may lead to cyclic
     // proofs, so we *must* cut here.
@@ -1336,8 +1332,8 @@ Node EqProof::addToProof(CDProof* p,
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
       conclusion = d_nm->mkNode(Kind::EQUAL,
-                              d_nm->mkNode(k, newChildren1),
-                              d_nm->mkNode(k, newChildren2));
+                                d_nm->mkNode(k, newChildren1),
+                                d_nm->mkNode(k, newChildren2));
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;

@@ -343,8 +343,7 @@ bool Region::check( Theory::Effort level, int cardinality,
             if( !isDisequal( newClique[j], newClique[k], 1 ) ){
               Node at_j = newClique[j];
               Node at_k = newClique[k];
-              Node j_eq_k =
-                  NodeManager::mkNode(Kind::EQUAL, at_j, at_k);
+              Node j_eq_k = NodeManager::mkNode(Kind::EQUAL, at_j, at_k);
               d_splits[ j_eq_k ] = true;
               d_splitsSize = d_splitsSize + 1;
             }
@@ -1017,8 +1016,8 @@ int SortModel::addSplit(Region* r)
     Node ss = rewrite(s);
     if (ss.getKind() != Kind::EQUAL)
     {
-      Node b_t = nodeManager()->mkConst( true );
-      Node b_f = nodeManager()->mkConst( false );
+      Node b_t = nodeManager()->mkConst(true);
+      Node b_f = nodeManager()->mkConst(false);
       if( ss==b_f ){
         Trace("uf-ss-lemma") << "....Assert disequal directly : "
                              << s[0] << " " << s[1] << std::endl;
@@ -1093,10 +1092,10 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
 
 void SortModel::simpleCheckCardinality() {
   if( d_maxNegCard.get()!=0 && d_hasCard.get() && d_cardinality.get()<d_maxNegCard.get() ){
-    Node lem = NodeManager::mkNode(
-        Kind::AND,
-        getCardinalityLiteral(d_cardinality.get()),
-        getCardinalityLiteral(d_maxNegCard.get()).negate());
+    Node lem =
+        NodeManager::mkNode(Kind::AND,
+                            getCardinalityLiteral(d_cardinality.get()),
+                            getCardinalityLiteral(d_maxNegCard.get()).negate());
     Trace("uf-ss-lemma") << "*** Simple cardinality conflict : " << lem << std::endl;
     d_im.conflict(lem, InferenceId::UF_CARD_SIMPLE_CONFLICT);
   }
@@ -1192,7 +1191,8 @@ bool SortModel::checkLastCall()
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );
-        Node lem = NodeManager::mkNode(Kind::OR, cl, nodeManager()->mkAnd(force_cl));
+        Node lem =
+            NodeManager::mkNode(Kind::OR, cl, nodeManager()->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
         d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE);
         return false;
@@ -1545,8 +1545,7 @@ void CardinalityExtension::check(Theory::Effort level)
                   Node b = itel->second[j];
                   if( !d_th->getEqualityEngine()->areDisequal( a, b, false ) ){
                     Node eq = rewrite(a.eqNode(b));
-                    Node lem = NodeManager::mkNode(
-                        Kind::OR, eq, eq.negate());
+                    Node lem = NodeManager::mkNode(Kind::OR, eq, eq.negate());
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
                     d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);
                     d_im.preferPhase(eq, true);
