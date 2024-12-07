@@ -317,8 +317,8 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
         {
           tcpg.addTheoryRewriteStep(
               cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
+          visit.push_back(curRew);
         }
-        visit.push_back(curRew);
       }
       else
       {
