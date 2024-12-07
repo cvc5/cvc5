@@ -136,6 +136,15 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
 
+  if (isOutputOn(OutputTag::NORMALIZE))
+  {
+    applyPass("normalize", ap);
+    std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
+    outPA << ";; normalize start" << std::endl;
+    dumpAssertionsToStream(outPA, ap);
+    outPA << ";; normalize end" << std::endl;
+  }
+
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
   if (options().quantifiers.globalNegate)
@@ -491,9 +500,13 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
   std::vector<Node> defs;
   const theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   const std::unordered_map<Node, Node>& ss = sm.getSubstitutions();
-  for (const std::pair<const Node, Node>& s : ss)
+
+  if (options().smt.printDefs)
   {
-    defs.push_back(s.first.eqNode(s.second));
+    for (const std::pair<const Node, Node>& s : ss)
+    {
+      defs.push_back(s.first.eqNode(s.second));
+    }
   }
   for (size_t i = 0, size = ap.size(); i < size; i++)
   {

@@ -539,3 +539,11 @@ name   = "SMT Layer"
   type       = "uint64_t"
   default    = "10000"
   help       = "timeout (in milliseconds) for satisfiability checks for timeout cores"
+
+[[option]]
+  name       = "printDefs"
+  category   = "expert"
+  long       = "output-print-defs"
+  type       = "bool"
+  default    = "false"
+  help       = "prints definitions"

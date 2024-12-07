@@ -52,16 +52,13 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getTypes(a, unorderedTypes, typeVisited);
   }
+  // We want to print declarations in a deterministic order, independent of
+  // the implementation of data structures. Hence, we insert into a vector
+  // and reorder. Note that collecting the types in an std::unordered_map,
+  // then inserting them into a vector and sorting the vector is faster than
+  // immediately using an std::set instead.
   std::vector<TypeNode> types{unorderedTypes.begin(), unorderedTypes.end()};
-  if (d_sorted)
-  {
-    // We want to print declarations in a deterministic order, independent of
-    // the implementation of data structures. Hence, we insert into a vector
-    // and reorder. Note that collecting the types in an std::unordered_map,
-    // then inserting them into a vector and sorting the vector is faster than
-    // immediately using an std::set instead.
-    std::sort(types.begin(), types.end());
-  }
+  std::sort(types.begin(), types.end());
   // print the declared types first
   std::unordered_set<TypeNode> alreadyPrintedDeclSorts;
   for (const TypeNode& st : types)
@@ -127,6 +124,7 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   std::unordered_set<Node> alreadyPrintedDef;
 
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;
+  
   for (const Node& s : defSyms)
   {
     std::vector<Node> recDefs;
@@ -139,27 +137,19 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
                             defMap,
                             alreadyPrintedDef,
                             visited);
+    // We want to print declarations in a deterministic order, independent of
+    // the implementation of data structures. Hence, we insert into a vector
+    // and reorder. Note that collecting `syms` in an std::unordered_map,
+    // then inserting them into a vector and sorting the vector is faster than
+    // immediately using an std::set instead.
     std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-    if (d_sorted)
-    {
-      // We want to print declarations in a deterministic order, independent of
-      // the implementation of data structures. Hence, we insert into a vector
-      // and reorder. Note that collecting `syms` in an std::unordered_map,
-      // then inserting them into a vector and sorting the vector is faster than
-      // immediately using an std::set instead.
-      std::sort(syms.begin(), syms.end());
-    }
+    std::sort(syms.begin(), syms.end());
     // print the declarations that are encountered for the first time in this
     // block
     printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
-    if (d_sorted)
-    {
-      // Sort recursive definitions for deterministic order.
-      std::sort(recDefs.begin(), recDefs.end());
-      // In general, we cannot sort the ordinary definitions since they were
-      // added to the vector in an order which ensures the functions they
-      // depend on are defined first.
-    }
+    // Sort ordinary and recursive definitions for deterministic order.
+    std::sort(recDefs.begin(), recDefs.end());
+    std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
     {
@@ -195,6 +185,7 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
       outDef << std::endl;
     }
   }
+  
 
   // print the remaining declared symbols
   std::unordered_set<Node> unorderedSyms;
@@ -202,16 +193,13 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getSymbols(a, unorderedSyms, visited);
   }
+  // We want to print declarations in a deterministic order, independent of
+  // the implementation of data structures. Hence, we insert into a vector
+  // and reorder. Note that collecting `syms` in an std::unordered_map,
+  // then inserting them into a vector and sorting the vector is faster than
+  // immediately using an std::set instead.
   std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-  if (d_sorted)
-  {
-    // We want to print declarations in a deterministic order, independent of
-    // the implementation of data structures. Hence, we insert into a vector
-    // and reorder. Note that collecting `syms` in an std::unordered_map,
-    // then inserting them into a vector and sorting the vector is faster than
-    // immediately using an std::set instead.
-    std::sort(syms.begin(), syms.end());
-  }
+  std::sort(syms.begin(), syms.end());
   printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
 }
 
@@ -244,8 +232,6 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        const std::vector<Node>& funs,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
-  bool printSkolemDefs = options::ioutils::getPrintSkolemDefinitions(out);
-  SkolemManager* sm = d_nm->getSkolemManager();
   BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
@@ -261,15 +247,6 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     if (f.getAttribute(bnpa))
     {
       continue;
-    }
-    // if print skolem definitions is true, we shouldn't print declarations for
-    // (exported) skolems, as they are printed as parsable terms.
-    if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
-    {
-      if (sm->getId(f)!= SkolemId::INTERNAL)
-      {
-        continue;
-      }
     }
     if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
