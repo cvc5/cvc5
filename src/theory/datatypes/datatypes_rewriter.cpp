@@ -49,7 +49,7 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
-  // DT_CONS_EQ is part of the reconstruction of MACRO_DT_CONS_EQ.
+  // DT_CONS_EQ and DT_CONS_EQ_CLASH are part of the reconstruction of MACRO_DT_CONS_EQ.
   registerProofRewriteRule(ProofRewriteRule::MACRO_DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,

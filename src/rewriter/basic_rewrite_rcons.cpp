@@ -318,6 +318,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
           tcpg.addTheoryRewriteStep(
               cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
         }
+        visit.push_back(curRew);
       }
       else
       {
@@ -342,6 +343,7 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   // should rewrite via ACI_NORM
   if (!expr::isACINorm(rhs, eq[1]))
   {
+    Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1] << std::endl;
     Assert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
     return false;
   }
