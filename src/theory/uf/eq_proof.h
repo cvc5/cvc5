@@ -35,7 +35,9 @@ namespace eq {
 class EqProof
 {
  public:
-  EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY) {}
+  EqProof(NodeManager* nm) : d_nm(nm), d_id(MERGED_THROUGH_REFLEXIVITY) {}
+  /* The associated node manager */
+  NodeManager* d_nm;
   /** The proof rule for concluding d_node */
   MergeReasonType d_id;
   /** The conclusion of this EqProof */

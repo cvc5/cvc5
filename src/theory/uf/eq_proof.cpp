@@ -144,7 +144,6 @@ bool EqProof::expandTransitivityForDisequalities(
         << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
-  NodeManager* nm = NodeManager::currentNM();
   Assert(termPos == 0 || termPos == 1);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: found "
                            "offending equality at index "
@@ -474,9 +473,9 @@ bool EqProof::expandTransitivityForDisequalities(
     //                   (= (= t3 t4) false)
     //
     // where note that the SYMM steps are implicitly added by CDProof.
-    Node congConclusion = nm->mkNode(
+    Node congConclusion = d_nm->mkNode(
         Kind::EQUAL,
-        nm->mkNode(Kind::EQUAL, substPremises[0][0], substPremises[1][0]),
+        d_nm->mkNode(Kind::EQUAL, substPremises[0][0], substPremises[1][0]),
         premises[0][0]);
     p->addStep(congConclusion,
                ProofRule::CONG,
@@ -491,7 +490,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node transConclusion =
         !substConclusionInReverseOrder
             ? conclusion
-            : nm->mkNode(Kind::EQUAL, congConclusion[0], conclusion[1]);
+            : d_nm->mkNode(Kind::EQUAL, congConclusion[0], conclusion[1]);
     // check to avoid cyclic proofs
     if (!assumptions.count(transConclusion))
     {
@@ -525,7 +524,7 @@ bool EqProof::expandTransitivityForDisequalities(
         << ProofRule::TRUE_INTRO << " step for " << expansionConclusion[0]
         << "\n";
     Node newExpansionConclusion =
-        expansionConclusion.eqNode(nm->mkConst<bool>(true));
+        expansionConclusion.eqNode(d_nm->mkConst<bool>(true));
     p->addStep(newExpansionConclusion,
                ProofRule::TRUE_INTRO,
                {expansionConclusion},
@@ -595,7 +594,7 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = NodeManager::currentNM()->mkNode(Kind::EQUAL, constChildren);
+  Node constApp = d_nm->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -953,13 +952,13 @@ Node EqProof::addToProof(CDProof* p,
       {
         intro = ProofRule::FALSE_INTRO;
         conclusion =
-            d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+            d_node[0].eqNode(d_nm->mkConst<bool>(false));
       }
       else
       {
         intro = ProofRule::TRUE_INTRO;
         conclusion =
-            d_node.eqNode(NodeManager::currentNM()->mkConst<bool>(true));
+            d_node.eqNode(d_nm->mkConst<bool>(true));
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
@@ -1007,7 +1006,7 @@ Node EqProof::addToProof(CDProof* p,
     if (d_children.empty())
     {
       Node conclusion =
-          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+          d_node[0].eqNode(d_nm->mkConst<bool>(false));
       p->addStep(d_node, ProofRule::MACRO_SR_PRED_INTRO, {}, {d_node});
       p->addStep(conclusion, ProofRule::FALSE_INTRO, {d_node}, {});
       visited[d_node] = conclusion;
@@ -1088,7 +1087,7 @@ Node EqProof::addToProof(CDProof* p,
     {
       constChildren.insert(constChildren.begin(), d_node[0].getOperator());
     }
-    Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
+    Node constApp = d_nm->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
                           << ProofRule::MACRO_SR_PRED_INTRO << " step for "
@@ -1123,7 +1122,7 @@ Node EqProof::addToProof(CDProof* p,
     Node conclusion =
         d_node.getKind() != Kind::NOT
             ? d_node
-            : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+            : d_node[0].eqNode(d_nm->mkConst<bool>(false));
     // If the conclusion is an assumption, its derivation was spurious, so it
     // can be discarded. Moreover, reconstructing the step may lead to cyclic
     // proofs, so we *must* cut here.
@@ -1261,7 +1260,6 @@ Node EqProof::addToProof(CDProof* p,
   // whether the transitivity matrix computed by reduceNestedCongruence contains
   // empty rows
   Node conclusion = d_node;
-  NodeManager* nm = NodeManager::currentNM();
   if (isNary)
   {
     unsigned emptyRows = 0;
@@ -1323,8 +1321,8 @@ Node EqProof::addToProof(CDProof* p,
                                         d_node[0].begin() + arityPrefix1};
       std::vector<Node> childrenPrefix2{d_node[1].begin(),
                                         d_node[1].begin() + arityPrefix2};
-      Node newFirstChild1 = nm->mkNode(k, childrenPrefix1);
-      Node newFirstChild2 = nm->mkNode(k, childrenPrefix2);
+      Node newFirstChild1 = d_nm->mkNode(k, childrenPrefix1);
+      Node newFirstChild2 = d_nm->mkNode(k, childrenPrefix2);
       Trace("eqproof-conv")
           << "EqProof::addToProof:\t " << newFirstChild1 << "\n";
       Trace("eqproof-conv")
@@ -1337,9 +1335,9 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(Kind::EQUAL,
-                              nm->mkNode(k, newChildren1),
-                              nm->mkNode(k, newChildren2));
+      conclusion = d_nm->mkNode(Kind::EQUAL,
+                              d_nm->mkNode(k, newChildren1),
+                              d_nm->mkNode(k, newChildren2));
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;
