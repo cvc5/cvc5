@@ -305,6 +305,13 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
       visited.insert(cur);
       if (cur.getKind() == Kind::EQUAL)
       {
+        // if a reflexive component, it rewrites to true
+        if (cur[0]==cur[1])
+        {
+          Node truen = nodeManager()->mkConst(true);
+          tcpg.addRewriteStep(cur, truen, nullptr, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          continue;
+        }
         Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, cur);
         if (!curRew.isNull())
         {
