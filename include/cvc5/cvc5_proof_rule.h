@@ -1917,9 +1917,13 @@ enum ENUM(ProofRule)
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
-   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:c_y` are
+   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:`c_y` are
    * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
    * same sign. For bitvectors, they are set to :math:`1`.
+   *
+   * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
+   * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
+   * `to_real`, similarly for :math:`(y_1 - y_2)`.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM_REL),
@@ -2310,7 +2314,14 @@ enum ENUM(ProofRewriteRule)
    * **Builtin -- Distinct elimination**
    *
    * .. math::
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i \neq j} t_i \neq t_j
+   *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
+   *
+   * if :math:`n = 2`, or
+   * 
+   * .. math::
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *
+   * if :math:`n > 2`
    *
    * \endverbatim
    */
@@ -2437,7 +2448,7 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic -- power elimination**
    *
    * .. math::
-   *   (^ x c) = (x \cdot \ldots \cdot x)
+   *   (x ^ c) = (x \cdot \ldots \cdot x)
    *
    * where :math:`c` is a non-negative integer.
    *
@@ -2507,11 +2518,25 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall X.\> F = \forall X_1.\> F
    *
-   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`.
+   * where :math:`X_1` is the subset of :math:`X` that appear free in :math:`F`
+   * and :math:`X_1` does not contain duplicate variables.
    *
    * \endverbatim
    */
   EVALUE(QUANT_UNUSED_VARS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro merge prenex**
+   *
+   * .. math::
+   *   \forall X_1.\> \ldots \forall X_n.\> F = \forall X.\> F
+   *
+   * where :math:`X_1 \ldots X_n` are lists of variables and :math:`X` is the
+   * result of removing duplicates from :math:`X_1 \ldots X_n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Merge prenex**
@@ -2633,6 +2658,18 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro quantifiers rewrite body**
+   *
+   * .. math::
+   *   \forall X.\> F = \forall X.\> G
+   *
+   * where :math:`G` is semantically equivalent to :math:`F`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_REWRITE_BODY),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Instantiation**
@@ -3060,6 +3097,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAY_STORE_OVERWRITE),
   /** Auto-generated from RARE rule array-store-self */
   EVALUE(ARRAY_STORE_SELF),
+  /** Auto-generated from RARE rule array-read-over-write-split */
+  EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
   /** Auto-generated from RARE rule bool-not-true */
@@ -3084,20 +3123,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPL_ELIM),
   /** Auto-generated from RARE rule bool-or-true */
   EVALUE(BOOL_OR_TRUE),
-  /** Auto-generated from RARE rule bool-or-false */
-  EVALUE(BOOL_OR_FALSE),
   /** Auto-generated from RARE rule bool-or-flatten */
   EVALUE(BOOL_OR_FLATTEN),
-  /** Auto-generated from RARE rule bool-or-dup */
-  EVALUE(BOOL_OR_DUP),
-  /** Auto-generated from RARE rule bool-and-true */
-  EVALUE(BOOL_AND_TRUE),
   /** Auto-generated from RARE rule bool-and-false */
   EVALUE(BOOL_AND_FALSE),
   /** Auto-generated from RARE rule bool-and-flatten */
   EVALUE(BOOL_AND_FLATTEN),
-  /** Auto-generated from RARE rule bool-and-dup */
-  EVALUE(BOOL_AND_DUP),
   /** Auto-generated from RARE rule bool-and-conf */
   EVALUE(BOOL_AND_CONF),
   /** Auto-generated from RARE rule bool-and-conf2 */
@@ -3112,6 +3143,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPLIES_DE_MORGAN),
   /** Auto-generated from RARE rule bool-and-de-morgan */
   EVALUE(BOOL_AND_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-or-and-distrib */
+  EVALUE(BOOL_OR_AND_DISTRIB),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
@@ -3126,8 +3159,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_XOR_ELIM),
   /** Auto-generated from RARE rule bool-not-xor-elim */
   EVALUE(BOOL_NOT_XOR_ELIM),
-  /** Auto-generated from RARE rule bool-not-eq-elim */
-  EVALUE(BOOL_NOT_EQ_ELIM),
+  /** Auto-generated from RARE rule bool-not-eq-elim1 */
+  EVALUE(BOOL_NOT_EQ_ELIM1),
+  /** Auto-generated from RARE rule bool-not-eq-elim2 */
+  EVALUE(BOOL_NOT_EQ_ELIM2),
   /** Auto-generated from RARE rule ite-neg-branch */
   EVALUE(ITE_NEG_BRANCH),
   /** Auto-generated from RARE rule ite-then-true */
@@ -3146,6 +3181,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-not-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-expand */
+  EVALUE(ITE_EXPAND),
   /** Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */
@@ -3832,6 +3869,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(EQ_SYMM),
   /** Auto-generated from RARE rule eq-cond-deq */
   EVALUE(EQ_COND_DEQ),
+  /** Auto-generated from RARE rule eq-ite-lift */
+  EVALUE(EQ_ITE_LIFT),
   /** Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
   /** Auto-generated from RARE rule uf-bv2nat-int2bv */

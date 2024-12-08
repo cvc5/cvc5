@@ -178,6 +178,13 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   Node eqConv = ai.eqNode(bi);
   if (ai[0] == bi[0])
   {
+    ProofRewriteRule prid = d_env.getRewriter()->findRule(
+        ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
+    if (prid != ProofRewriteRule::NONE)
+    {
+      // a simple theory rewrite happens to solve it, do not continue
+      return Node::null();
+    }
     std::vector<Node> cargs;
     ProofRule cr = expr::getCongRule(ai, cargs);
     // remains to prove their bodies are equal

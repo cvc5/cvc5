@@ -864,7 +864,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("slackVal", nm->stringType());
+    Node s = NodeManager::mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sleny = nm->mkNode(Kind::ADD, y, slen);
     Node rr = rewriteArith(nm->mkNode(Kind::SUB, x, sleny));

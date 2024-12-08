@@ -3718,11 +3718,10 @@ SkolemId Term::getSkolemId() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->isSkolem(), *d_node)
       << "Term to be a skolem when calling getSkolemId";
   //////// all checks before this line
-  return skm->getId(*d_node);
+  return d_node->getSkolemId();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3731,29 +3730,11 @@ std::vector<Term> Term::getSkolemIndices() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->isSkolem(), *d_node)
       << "Term to be a skolem when calling getSkolemIndices";
   //////// all checks before this line
-  internal::Node cacheVal;
-  SkolemId id;
-  skm->isSkolemFunction(*d_node, id, cacheVal);
-  std::vector<Term> args;
-  if (!cacheVal.isNull())
-  {
-    if (cacheVal.getKind() == internal::Kind::SEXPR)
-    {
-      for (const internal::Node& nc : cacheVal)
-      {
-        args.push_back(Term(d_tm, nc));
-      }
-    }
-    else
-    {
-      args.push_back(Term(d_tm, cacheVal));
-    }
-  }
-  return args;
+  std::vector<internal::Node> indices = d_node->getSkolemIndices();
+  return Term::nodeVectorToTerms(d_tm, indices);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5425,8 +5406,8 @@ bool TermManager::isValidInteger(const std::string& s) const
 internal::Node TermManager::mkVarHelper(
     const internal::TypeNode& type, const std::optional<std::string>& symbol)
 {
-  internal::Node res =
-      symbol ? d_nm->mkBoundVar(*symbol, type) : d_nm->mkBoundVar(type);
+  internal::Node res = symbol ? internal::NodeManager::mkBoundVar(*symbol, type)
+                              : internal::NodeManager::mkBoundVar(type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(type, true);
   return res;

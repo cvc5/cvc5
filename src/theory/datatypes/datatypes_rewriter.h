@@ -101,7 +101,7 @@ class DatatypesRewriter : public TheoryRewriter
    */
   static Node expandMatch(Node n);
   /** expand defintions */
-  TrustNode expandDefinition(Node n) override;
+  Node expandDefinition(Node n) override;
   /**
    * Expand a nullable lift term with an ite expression.
    * Example:
