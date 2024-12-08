@@ -53,7 +53,6 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
         else
         {
-          tn = d_nm->mkSequenceType(tn);
           std::vector<Node> seq;
           return d_tproc.convert(d_nm->mkConst(Sequence(tn, seq)));
         }
