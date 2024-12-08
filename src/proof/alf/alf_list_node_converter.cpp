@@ -16,6 +16,7 @@
 #include "proof/alf/alf_list_node_converter.h"
 
 #include "expr/emptyset.h"
+#include "expr/sequence.h"
 #include "expr/nary_term_util.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
@@ -53,10 +54,8 @@ Node AlfListNodeConverter::preConvert(Node n)
         else
         {
           tn = d_nm->mkSequenceType(tn);
-          Node ntn = d_tproc.typeAsNode(tn);
-          // must use $mk_emptystr side condition, since string and sequence
-          // have different representations in the Eunoia signature
-          return d_tproc.mkInternalApp("$mk_emptystr", {ntn}, n.getType());
+          std::vector<Node> seq;
+          return d_tproc.convert(d_nm->mkConst(Sequence(tn, seq)));
         }
       }
     }
