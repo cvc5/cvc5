@@ -32,12 +32,11 @@
 (declare-consts <string> String)
 
 ; Empty sequence
-; disclaimer: This function is not in SMT-LIB.
 ; note: >
 ;   This symbol is used as the term denoting the empty sequence.
 ;   This is not the same as seq.empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
-;   defined as seq.empty below.
+;   defined as seq.empty below. It is never used for strings.
 (declare-const @seq.empty (-> (! Type :var T) T))
 
 ; program: seq.empty
@@ -50,6 +49,7 @@
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g. RARE), we use this program to ensure this is the case.
+; disclaimer: This function is not in SMT-LIB.
 (program seq.empty ((U Type))
   (Type) (Seq U)
   (
