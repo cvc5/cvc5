@@ -30,7 +30,10 @@ enum class TrustId : uint32_t
   NONE,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
+  /** 
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
   THEORY_INFERENCE_ARITH,
   THEORY_INFERENCE_ARRAYS,
   THEORY_INFERENCE_DATATYPES,
