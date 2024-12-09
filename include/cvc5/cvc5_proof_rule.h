@@ -1830,6 +1830,26 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Non-linear multiply absolute value comparison**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{F}
+   * 
+   * where :math:`F` is of the form 
+   * :math:`\left| t_1 \cdot t_n \right| \diamond \left| s_1 \cdot s_n \right|`.
+   * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
+   * :math:`\left| t_i \right| = \left| s_i \right|`.
+   *
+   * If :math:`\diamond` is :math:`>`, then
+   * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
+   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`,
+   * and :math:`F_1` is of the former form.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_MULT_ABS_COMPARISON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
    *
    * .. math::
@@ -3089,6 +3109,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_COTANGENT_ELIM),
   /** Auto-generated from RARE rule arith-pi-not-int */
   EVALUE(ARITH_PI_NOT_INT),
+  /** Auto-generated from RARE rule arith-abs-eq */
+  EVALUE(ARITH_ABS_EQ),
+  /** Auto-generated from RARE rule arith-abs-int-gt */
+  EVALUE(ARITH_ABS_INT_GT),
+  /** Auto-generated from RARE rule arith-abs-real-gt */
+  EVALUE(ARITH_ABS_REAL_GT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
