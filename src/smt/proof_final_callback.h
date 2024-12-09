@@ -53,6 +53,8 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<ProofRule> d_ruleCount;
+  /** Counts number of postprocessed proof nodes for each kind of proof rule */
+  HistogramStat<ProofRule> d_ruleEouCount;
   /**
    * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
    * marked with the given inference id.
