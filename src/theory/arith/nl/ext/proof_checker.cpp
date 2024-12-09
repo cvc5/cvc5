@@ -196,7 +196,8 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           if (ck == Kind::EQUAL)
           {
             // guarded zero disequality should be for LHS
-            if (zeroGuard.isNull() || lit[0].getKind()!=Kind::ABS || zeroGuard != lit[0][0])
+            if (zeroGuard.isNull() || lit[0].getKind() != Kind::ABS
+                || zeroGuard != lit[0][0])
             {
               return Node::null();
             }
@@ -207,7 +208,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           }
         }
       }
-      Assert (ck==Kind::EQUAL || ck==Kind::GT);
+      Assert(ck == Kind::EQUAL || ck == Kind::GT);
       if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)
       {
         return Node::null();
