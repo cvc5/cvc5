@@ -163,7 +163,6 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
          cindex++)
     {
       const Node& c = children[cindex];
-      std::vector<Node> eprod[2];
       Kind ck = c.getKind();
       Node zeroGuard;
       Node lit = c;
@@ -180,8 +179,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           return Node::null();
         }
       }
-      ck = ArithNlCompareProofGenerator::decomposeCompareLit(
-          lit, eprod[0], eprod[1]);
+      ck = lit.getKind();
       if (k == Kind::EQUAL)
       {
         // should be an equality
@@ -198,8 +196,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           if (ck == Kind::EQUAL)
           {
             // guarded zero disequality should be for LHS
-            if (zeroGuard.isNull() || eprod[0].empty()
-                || zeroGuard != eprod[0][0])
+            if (zeroGuard.isNull() || lit[0].getKind()!=Kind::ABS || zeroGuard != lit[0][0])
             {
               return Node::null();
             }
@@ -210,25 +207,31 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           }
         }
       }
+      Assert (ck==Kind::EQUAL || ck==Kind::GT);
+      if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)
+      {
+        return Node::null();
+      }
       // add to the product
       for (size_t j = 0; j < 2; j++)
       {
-        if (eprod[j].empty())
+        if (lit[j][0].isConst())
         {
-          size_t jj = 1 - j;
-          if (eprod[jj].empty())
+          if (!lit[j][0].getConst<Rational>().isOne())
           {
             return Node::null();
           }
-          Node one = nm->mkConstRealOrInt(eprod[jj][0].getType(), Rational(1));
+          size_t jj = 1 - j;
+          if (lit[jj][0].isConst())
+          {
+            return Node::null();
+          }
+          // always ensure type matches
+          Node one = nm->mkConstRealOrInt(lit[jj][0].getType(), Rational(1));
           concProd[j].emplace_back(one);
           continue;
         }
-        else if (eprod[j].size() > 1)
-        {
-          return Node::null();
-        }
-        concProd[j].emplace_back(eprod[j][0]);
+        concProd[j].emplace_back(lit[j][0]);
       }
     }
     Node lhs = ArithNlCompareProofGenerator::mkProduct(nm, concProd[0]);
