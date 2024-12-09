@@ -12,7 +12,7 @@ properties         = ["parametric", "check"]
 typechecker_header = "theory/ff/theory_ff_type_rules.h"
 
 [rewriter]
-class  = ":cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter"
+class  = "::cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter"
 header = "theory/ff/theory_ff_rewriter.h"
 
 [[kinds]]
