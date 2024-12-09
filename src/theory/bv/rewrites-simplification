@@ -245,16 +245,16 @@
     (@bv 0 exponent)))
 (define-cond-rule bv-mult-pow2-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int) (exponent Int) (u Int))
-  (def (e (int.log2 n)))
-  (and (int.ispow2 (- n)) (= exponent e) (= u (- (- size e) 1)))
+  (def (ns (- (int.pow2 size) n)) (e (int.log2 ns)))
+  (and (int.ispow2 ns) (= exponent e) (= u (- (- size e) 1)))
   (bvmul xs z (@bv n size) ys)
   (concat
     (extract u 0 (bvneg (bvmul xs z ys)))
     (@bv 0 exponent)))
 (define-cond-rule bv-mult-pow2-2b
   ((z ?BitVec) (size Int) (n Int) (exponent Int) (u Int))
-  (def (e (int.log2 n)))
-  (and (int.ispow2 (- n)) (= exponent e) (= u (- (- size e) 1)))
+  (def (ns (- (int.pow2 size) n)) (e (int.log2 ns)))
+  (and (int.ispow2 ns) (= exponent e) (= u (- (- size e) 1)))
   (bvmul z (@bv n size))
   (concat
     (extract u 0 (bvneg z))

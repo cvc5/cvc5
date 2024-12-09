@@ -1312,6 +1312,7 @@ set(regress_0_tests
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/cyclic-ucp.smt2
+  regress0/proofs/bv-mul-pow2-neg-middle.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
   regress0/proofs/bvrewrite-ite.smt2
