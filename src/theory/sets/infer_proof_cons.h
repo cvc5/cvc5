@@ -94,7 +94,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   /** The sets rewriter */
   TheorySetsRewriter* d_tsr;
   /** Common constants */
-  Node d_tid;
   Node d_false;
   /**
    * Maps lemma formulas to the inference id they were notified with. This is

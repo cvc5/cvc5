@@ -31,7 +31,12 @@ enum class TrustId : uint32_t
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
   /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
