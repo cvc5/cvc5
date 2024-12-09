@@ -269,7 +269,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   }
 }
 
-void PfManager::checkProof(
+void PfManager::checkFinalProof(
     std::shared_ptr<ProofNode> pfn)
 {
   // take stats and check pedantic

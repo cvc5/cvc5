@@ -1542,7 +1542,7 @@ void SolverEngine::checkProof()
     d_pfManager->connectProofToAssertions(
         pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
     // now check the proof
-    d_pfManager->checkProof(pePfn);
+    d_pfManager->checkFinalProof(pePfn);
   }
 }
 
