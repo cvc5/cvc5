@@ -1382,6 +1382,15 @@ Node NodeManager::mkGroundValue(const TypeNode& tn)
   return *te;
 }
 
+Node NodeManager::mkDummySkolem(const std::string& prefix,
+                                const TypeNode& type,
+                                const std::string& comment,
+                                SkolemFlags flags)
+{
+  NodeManager* nm = type.getNodeManager();
+  return nm->getSkolemManager()->mkDummySkolem(prefix, type, comment, flags);
+}
+
 bool NodeManager::safeToReclaimZombies() const
 {
   // FIXME multithreading

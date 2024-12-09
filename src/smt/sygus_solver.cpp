@@ -315,7 +315,8 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     }
     if (!ntrivSynthFuns.empty())
     {
-      body = quantifiers::SygusUtils::mkSygusConjecture(ntrivSynthFuns, body);
+      body = quantifiers::SygusUtils::mkSygusConjecture(
+          nodeManager(), ntrivSynthFuns, body);
     }
     Trace("smt-debug") << "...constructed forall " << body << std::endl;
 

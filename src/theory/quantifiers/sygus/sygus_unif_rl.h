@@ -208,12 +208,16 @@ class SygusUnifRl : public SygusUnif
   {
    public:
     DecisionTreeInfo()
-        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0)
+        : d_unif(nullptr),
+          d_nm(nullptr),
+          d_strategy(nullptr),
+          d_strategy_index(0)
     {
     }
     ~DecisionTreeInfo() {}
     /** initializes this class */
-    void initialize(Node cond_enum,
+    void initialize(NodeManager* nm,
+                    Node cond_enum,
                     SygusUnifRl* unif,
                     SygusUnifStrategy* strategy,
                     unsigned strategy_index);
@@ -264,6 +268,8 @@ class SygusUnifRl : public SygusUnif
                        const std::vector<Node>& conds);
 
    private:
+    /** Pointer to node manager */
+    NodeManager* d_nm;
     /** true and false nodes */
     Node d_true;
     Node d_false;
@@ -375,7 +381,7 @@ class SygusUnifRl : public SygusUnif
       /** the lazy trie for building the separation classes */
       LazyTrieMulti d_trie;
       /** extracts solution from decision tree built */
-      Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
+      Node extractSol(NodeManager* nm, Node cons, std::map<Node, Node>& hd_mv);
       /** computes the result of applying cond on the respective point of hd
        *
        * If for example cond is (\lambda xy. x < y) and hd is an evaluation head

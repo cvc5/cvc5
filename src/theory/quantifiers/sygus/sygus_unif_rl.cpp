@@ -137,7 +137,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // Travese to purify
   bool childChanged = false;
   std::vector<Node> children;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0; i < size; ++i)
   {
@@ -170,7 +170,7 @@ Node SygusUnifRl::purifyLemma(Node n,
         Trace("sygus-unif-rl-purify-debug") << "...... " << child << "\n";
       }
     }
-    nb = NodeManager::currentNM()->mkNode(k, children);
+    nb = nodeManager()->mkNode(k, children);
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : transformed " << n << " into " << nb << "\n";
   }
@@ -226,8 +226,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // Add equality between purified fapp and model value
   if (ensureConst && fapp)
   {
-    model_guards.push_back(
-        NodeManager::currentNM()->mkNode(Kind::EQUAL, nv, nb).negate());
+    model_guards.push_back(NodeManager::mkNode(Kind::EQUAL, nv, nb).negate());
     nb = nv;
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : adding model eq " << model_guards.back() << "\n";
@@ -261,7 +260,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   if (!model_guards.empty())
   {
     model_guards.push_back(plem);
-    plem = NodeManager::currentNM()->mkNode(Kind::OR, model_guards);
+    plem = nodeManager()->mkNode(Kind::OR, model_guards);
   }
   plem = rewrite(plem);
   Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
@@ -502,22 +501,25 @@ void SygusUnifRl::registerConditionalEnumerator(Node f,
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy.at(f), strategy_index);
+  d_stratpt_to_dt[e].initialize(
+      nodeManager(), cond, this, &d_strategy.at(f), strategy_index);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }
 
-void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
+void SygusUnifRl::DecisionTreeInfo::initialize(NodeManager* nm,
+                                               Node cond_enum,
                                                SygusUnifRl* unif,
                                                SygusUnifStrategy* strategy,
                                                unsigned strategy_index)
 {
+  d_nm = nm;
   d_cond_enum = cond_enum;
   d_unif = unif;
   d_strategy = strategy;
   d_strategy_index = strategy_index;
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = d_nm->mkConst(true);
+  d_false = d_nm->mkConst(false);
   // Retrieve template
   EnumInfo& eiv = d_strategy->getEnumInfo(d_cond_enum);
   d_template = NodePair(eiv.d_template, eiv.d_template_arg);
@@ -644,7 +646,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
 Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
                                                     std::vector<Node>& lemmas)
 {
-  NodeManager* nm = NodeManager::currentNM();
   // model values for evaluation heads
   std::map<Node, Node> hd_mv;
   // the current explanation of why there has not yet been a separation conflict
@@ -864,7 +865,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
         AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
         cechildren.insert(
             cechildren.end(), ith->second.begin(), ith->second.end());
-        Node cea = nm->mkNode(Kind::DT_SYGUS_EVAL, cechildren);
+        Node cea = d_nm->mkNode(Kind::DT_SYGUS_EVAL, cechildren);
         Trace("sygus-unif-sol-sym")
             << "Sep conflict app #" << r << " : " << cea << std::endl;
         std::vector<Node> tmpExp;
@@ -909,7 +910,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
   }
   if (exp_conflict)
   {
-    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
+    Node lemma = d_nm->mkAnd(exp);
     lemma = lemma.negate();
     Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
     lemmas.push_back(lemma);
@@ -928,14 +929,13 @@ Node SygusUnifRl::DecisionTreeInfo::extractSol(Node cons,
   {
     recomputeSolHeuristically(hd_mv);
   }
-  return d_pt_sep.extractSol(cons, hd_mv);
+  return d_pt_sep.extractSol(d_nm, cons, hd_mv);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
-    Node cons, std::map<Node, Node>& hd_mv)
+    NodeManager* nm, Node cons, std::map<Node, Node>& hd_mv)
 {
   // Traverse trie and build ITE with cons
-  NodeManager* nm = NodeManager::currentNM();
   std::map<IndTriePair, Node> cache;
   std::map<IndTriePair, Node>::iterator it;
   std::vector<IndTriePair> visit;
