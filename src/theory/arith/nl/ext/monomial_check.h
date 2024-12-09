@@ -182,9 +182,7 @@ class MonomialCheck : protected EnvObj
    * literal corresponds to the given associate comparison literal between a
    * and b.
    */
-  Node mkAndNotifyAbsLit(Kind k, 
-                         Node a,
-                      Node b) const;
+  Node mkAndNotifyAbsLit(Kind k, Node a, Node b) const;
   /**
    * Make literal that compares (the absolute value of) a and b based on
    * status.

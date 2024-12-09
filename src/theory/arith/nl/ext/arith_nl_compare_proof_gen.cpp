@@ -58,7 +58,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     {
       // not a comparison literal, likely a disequality to zero
       Node v = isDisequalZero(e);
-      Assert (!v.isNull());
+      Assert(!v.isNull());
       deq[v] = e;
       continue;
     }
@@ -79,7 +79,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   Node concc = getCompareLit(conc);
   Assert(!concc.isNull());
   Assert(concc.getNumChildren() == 2);
-  Assert (concc[0].getKind() == Kind::ABS);
+  Assert(concc[0].getKind() == Kind::ABS);
   std::vector<Node> cprod[2];
   Kind ck = decomposeCompareLit(concc, cprod[0], cprod[1]);
   // convert to exponent counts
@@ -95,13 +95,13 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   }
   // if GT conclusion, ensure the first explanation is GT, which makes checking
   // simpler
-  if (ck==Kind::GT)
+  if (ck == Kind::GT)
   {
-    for (size_t i=0, nexp = expc.size(); i<nexp; i++)
+    for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
     {
-      if (expc[i].getKind()==Kind::GT)
+      if (expc[i].getKind() == Kind::GT)
       {
-        if (i>0)
+        if (i > 0)
         {
           Node tmp = expc[i];
           expc[i] = expc[0];
@@ -131,9 +131,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         // Don't take more than this side has. This handles cases like
         // (> (abs x) (abs 1)) => (> (abs (* x x)) (abs x)),
         // where we should only consume one copy of x.
-        size_t n = na-nb;
+        size_t n = na - nb;
         Node one = mkOne(a.getType());
-        for (size_t j=0; j<n; j++)
+        for (size_t j = 0; j < n; j++)
         {
           cprodt[i].push_back(one);
           cprodt[ii].push_back(a);
@@ -153,7 +153,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         for (size_t j = 0; j < 2; j++)
         {
           const Node& c = eprod[j][0];
-          for (size_t k=0; k<n; k++)
+          for (size_t k = 0; k < n; k++)
           {
             cprodt[j].push_back(c);
           }
@@ -168,7 +168,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   {
     if (m.second > 0)
     {
-      for (size_t k=0; k<m.second; k++)
+      for (size_t k = 0; k < m.second; k++)
       {
         cprodt[0].push_back(m.first);
         cprodt[1].push_back(m.first);
@@ -181,24 +181,24 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
     }
   }
   // if strict version, we go back and guard zeroes
-  if (ck==Kind::GT)
+  if (ck == Kind::GT)
   {
     std::map<Node, Node>::iterator itd;
     for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
     {
       Node e = expc[i];
-      if (e.getKind()!=ck)
+      if (e.getKind() != ck)
       {
         // needs to have a disequal to zero explanation
         std::vector<Node> eprod[2];
         decomposeCompareLit(e, eprod[0], eprod[1]);
-        if (eprod[0].size()!=1)
+        if (eprod[0].size() != 1)
         {
           Assert(false) << "ArithNlCompareProofGenerator failed explain";
           return nullptr;
         }
         itd = deq.find(eprod[0][0]);
-        if (itd==deq.end())
+        if (itd == deq.end())
         {
           Assert(false) << "ArithNlCompareProofGenerator failed explain deq";
           return nullptr;
@@ -209,13 +209,13 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       }
     }
   }
-  Assert (eexp.size()==expc.size());
+  Assert(eexp.size() == expc.size());
   // use repetition of explanation to match the exponents
   std::vector<Node> expcFinal;
-  for (size_t i=0, nexp = expc.size(); i<nexp; i++)
+  for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
   {
     size_t n = eexp[i];
-    for (size_t j=0; j<n; j++)
+    for (size_t j = 0; j < n; j++)
     {
       expcFinal.emplace_back(expc[i]);
     }
@@ -248,16 +248,19 @@ std::string ArithNlCompareProofGenerator::identify() const
   return "ArithNlCompareProofGenerator";
 }
 
-Node ArithNlCompareProofGenerator::mkProduct(NodeManager* nm, const std::vector<Node>& c)
+Node ArithNlCompareProofGenerator::mkProduct(NodeManager* nm,
+                                             const std::vector<Node>& c)
 {
   Assert(!c.empty());
   return c.size() == 1 ? c[0] : nm->mkNode(Kind::NONLINEAR_MULT, c);
 }
 
-Node ArithNlCompareProofGenerator::mkLit(
-    NodeManager* nm, Kind k, const Node& a, const Node& b)
+Node ArithNlCompareProofGenerator::mkLit(NodeManager* nm,
+                                         Kind k,
+                                         const Node& a,
+                                         const Node& b)
 {
-  Assert (a.getType()==b.getType());
+  Assert(a.getType() == b.getType());
   // add absolute value
   Node au = nm->mkNode(Kind::ABS, a);
   Node bu = nm->mkNode(Kind::ABS, b);
@@ -271,11 +274,8 @@ struct ArithNlCompareLitAttributeId
 using ArithNlCompareLitAttribute =
     expr::Attribute<ArithNlCompareLitAttributeId, Node>;
 
-void ArithNlCompareProofGenerator::setCompareLit(NodeManager* nm,
-                                                 Node olit,
-                                                 Kind k,
-                                                 const Node& a,
-                                                 const Node& b)
+void ArithNlCompareProofGenerator::setCompareLit(
+    NodeManager* nm, Node olit, Kind k, const Node& a, const Node& b)
 {
   Node lit = mkLit(nm, k, a, b);
   ArithNlCompareLitAttribute ancla;
@@ -325,9 +325,8 @@ void ArithNlCompareProofGenerator::addProduct(const Node& n,
 
 Node ArithNlCompareProofGenerator::isDisequalZero(const Node& g)
 {
-  if (g.getKind() == Kind::NOT
-            && g[0].getKind() == Kind::EQUAL && g[0][1].isConst()
-            && g[0][1].getConst<Rational>().isZero())
+  if (g.getKind() == Kind::NOT && g[0].getKind() == Kind::EQUAL
+      && g[0][1].isConst() && g[0][1].getConst<Rational>().isZero())
   {
     return g[0][0];
   }

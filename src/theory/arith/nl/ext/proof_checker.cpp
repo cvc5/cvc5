@@ -152,14 +152,15 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
-  else if ( id == ProofRule::ARITH_MULT_ABS_COMPARISON)
+  else if (id == ProofRule::ARITH_MULT_ABS_COMPARISON)
   {
     Assert(!children.empty());
     Assert(args.empty());
     // the conclusion kind is kind of the first premise
     Kind k = children[0].getKind();
     std::vector<Node> concProd[2];
-    for (size_t cindex=0, nchildren = children.size(); cindex<nchildren; cindex++)
+    for (size_t cindex = 0, nchildren = children.size(); cindex < nchildren;
+         cindex++)
     {
       const Node& c = children[cindex];
       std::vector<Node> eprod[2];
@@ -181,23 +182,24 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       }
       ck = ArithNlCompareProofGenerator::decomposeCompareLit(
           lit, eprod[0], eprod[1]);
-      if (k==Kind::EQUAL)
+      if (k == Kind::EQUAL)
       {
         // should be an equality
-        if (ck!=Kind::EQUAL)
+        if (ck != Kind::EQUAL)
         {
           return Node::null();
         }
       }
-      else if (k==Kind::GT)
+      else if (k == Kind::GT)
       {
-        if (ck!=Kind::GT)
+        if (ck != Kind::GT)
         {
           // if an equality, needs a disequal to zero guard
-          if (ck==Kind::EQUAL)
+          if (ck == Kind::EQUAL)
           {
             // guarded zero disequality should be for LHS
-            if (zeroGuard.isNull() || eprod[0].empty() || zeroGuard != eprod[0][0])
+            if (zeroGuard.isNull() || eprod[0].empty()
+                || zeroGuard != eprod[0][0])
             {
               return Node::null();
             }
@@ -213,7 +215,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       {
         if (eprod[j].empty())
         {
-          size_t jj = 1-j;
+          size_t jj = 1 - j;
           if (eprod[jj].empty())
           {
             return Node::null();
@@ -222,7 +224,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
           concProd[j].emplace_back(one);
           continue;
         }
-        else if (eprod[j].size()>1)
+        else if (eprod[j].size() > 1)
         {
           return Node::null();
         }

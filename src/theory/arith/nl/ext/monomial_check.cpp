@@ -428,7 +428,7 @@ bool MonomialCheck::compareMonomial(
           exp.push_back(v.eqNode(mkZero(v.getType())).negate());
         }
       }
-      Kind k = status==0 ? Kind::EQUAL : Kind::GT;
+      Kind k = status == 0 ? Kind::EQUAL : Kind::GT;
       Node conc = mkAndNotifyAbsLit(k, oa, ob);
       Node clem = nm->mkNode(Kind::IMPLIES, nm->mkAnd(exp), conc);
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
@@ -511,7 +511,7 @@ bool MonomialCheck::compareMonomial(
       Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
       // can multiply b by <=1
       Node one = mkOne(bv.getType());
-      Kind k =  bvo == ovo ? Kind::EQUAL : Kind::GT;
+      Kind k = bvo == ovo ? Kind::EQUAL : Kind::GT;
       exp.push_back(mkAndNotifyAbsLit(k, one, bv));
       return compareMonomial(oa,
                              a,
@@ -584,7 +584,7 @@ bool MonomialCheck::compareMonomial(
     b_exp_proc[bv] += min_exp;
     Trace("nl-ext-comp-debug") << "...take leading " << min_exp << " from "
                                << av << " and " << bv << std::endl;
-                               Kind k = avo == bvo ? Kind::EQUAL : Kind::GT;
+    Kind k = avo == bvo ? Kind::EQUAL : Kind::GT;
     exp.push_back(mkAndNotifyAbsLit(k, av, bv));
     bool ret = compareMonomial(oa,
                                a,
@@ -607,7 +607,7 @@ bool MonomialCheck::compareMonomial(
     Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
     // try multiply b <= 1
     Node one = mkOne(bv.getType());
-    Kind k =bvo == ovo ? Kind::EQUAL : Kind::GT;
+    Kind k = bvo == ovo ? Kind::EQUAL : Kind::GT;
     exp.push_back(mkAndNotifyAbsLit(k, one, bv));
     return compareMonomial(oa,
                            a,
@@ -731,15 +731,13 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
   }
 }
 
-Node MonomialCheck::mkAndNotifyAbsLit(Kind k,
-                                      Node a,
-                                   Node b) const
+Node MonomialCheck::mkAndNotifyAbsLit(Kind k, Node a, Node b) const
 {
   NodeManager* nm = nodeManager();
   // must ensure types match now
   TypeNode at = a.getType();
   TypeNode bt = b.getType();
-  if (at!=bt)
+  if (at != bt)
   {
     if (at.isInteger())
     {
@@ -747,11 +745,11 @@ Node MonomialCheck::mkAndNotifyAbsLit(Kind k,
     }
     else
     {
-      Assert( bt.isInteger());
+      Assert(bt.isInteger());
       b = castToReal(nm, b);
     }
   }
-  int status = k==Kind::EQUAL ? 0 : 2;
+  int status = k == Kind::EQUAL ? 0 : 2;
   Node ret = mkLit(a, b, status, true);
   // if proofs are enabled, we ensure we remember what the literal represents
   if (d_ancPfGen != nullptr)

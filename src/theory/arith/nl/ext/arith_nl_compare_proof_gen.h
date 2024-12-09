@@ -27,19 +27,20 @@ namespace nl {
 /**
  * A proof generator that takes lemmas InferenceId::ARITH_NL_COMPARISON and
  * gives them a proof in terms of ProofRule::ARITH_MULT_ABS_COMPARISON.
- * 
+ *
  * This involves several things:
  * (1) It makes the proof involve literals of the form (abs x) ~ (abs y)
  * instead of their rewritten form (MonomialCheck::mkLit).
  * (2) Reorders the explanation to match the conclusion.
  * (3) Groups the disequalities with the proper explanation.
  * (4) Uses repetition of the explanation to match exponents > 1.
- * 
+ *
  * For example, after santizing the literals in (1), the lemma:
- * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (> (abs w) (abs 1)) (not (= x 0)))
+ * (=> (and (= (abs x) (abs z)) (> (abs w) (abs y)) (> (abs w) (abs 1)) (not (=
+ * x 0)))
  *     (> (abs (* x x w w)) (abs (* z z y))))
  * is based on the proof step:
- * (=> (and 
+ * (=> (and
  *        (and (= (abs x) (abs z)) (not (= x 0)))
  *        (and (= (abs x) (abs z)) (not (= x 0)))
  *        (> (abs w) (abs y))
@@ -47,7 +48,7 @@ namespace nl {
  *     )
  *     (> (abs (* x x w w)) (abs (* z z y 1)))
  * )
- * 
+ *
  */
 class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
 {
@@ -68,18 +69,14 @@ class ArithNlCompareProofGenerator : protected EnvObj, public ProofGenerator
   /**
    * Make literal that compares the absolute value of a and b with kind k.
    */
-  static Node mkLit(
-      NodeManager* nm, Kind k, const Node& a, const Node& b);
+  static Node mkLit(NodeManager* nm, Kind k, const Node& a, const Node& b);
   /**
    * Mark that the formula olit corresponds to the literal that compares the
    * absolute values of a and b with kind k.
    */
-  static void setCompareLit(NodeManager* nm,
-                            Node olit,
-                            Kind k,
-                            const Node& a,
-                            const Node& b);
-  /** 
+  static void setCompareLit(
+      NodeManager* nm, Node olit, Kind k, const Node& a, const Node& b);
+  /**
    * Get the literal that was marked by the above method for olit, if the
    * null node is not applicable.
    */
