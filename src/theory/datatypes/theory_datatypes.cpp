@@ -1007,9 +1007,11 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         Node c = ei->d_constructor.get();
         eqc_cons[ eqc ] = c;
       }else{
-        //if eqc contains a symbol known to datatypes (a selector), then we must assign
-        //should assign constructors to EQC if they have a selector or a tester
+        // If eqc contains a symbol known to datatypes (a selector), then we
+        // must assign should assign constructors to EQC if they have a
+        // selector or a tester.
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
+        // We only consider this term additionally if it is relevant.
         if (shouldConsider && termSet.find(eqc) != termSet.end())
         {
           nodes.push_back( eqc );
