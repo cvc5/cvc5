@@ -227,7 +227,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           TypeNode vt = v.getType();
           newTypes.push_back(vt);
-          Node nv = nm->mkBoundVar(vt);
+          Node nv = NodeManager::mkBoundVar(vt);
           vs.push_back(v);
           nvs.push_back(nv);
         }

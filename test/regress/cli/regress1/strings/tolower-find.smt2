@@ -1,5 +1,5 @@
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 (declare-const x String)
 (declare-const y String)

@@ -222,6 +222,8 @@ libcvc5_add_sources(
   proof/proof_step_buffer.h
   proof/resolution_proofs_util.cpp
   proof/resolution_proofs_util.h
+  proof/rewrite_proof_generator.cpp
+  proof/rewrite_proof_generator.h
   proof/subtype_elim_proof_converter.cpp
   proof/subtype_elim_proof_converter.h
   proof/trust_id.cpp
@@ -232,6 +234,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/valid_witness_proof_generator.cpp
+  proof/valid_witness_proof_generator.h
   proof/alethe/alethe_let_binding.cpp
   proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
@@ -341,6 +345,8 @@ libcvc5_add_sources(
   smt/proof_manager.h
   smt/proof_final_callback.cpp
   smt/proof_final_callback.h
+  smt/proof_logger.cpp
+  smt/proof_logger.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/proof_post_processor_dsl.cpp

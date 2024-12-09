@@ -11,3 +11,6 @@
 (define-rule array-store-self ((t ?Array) (i ?))
   (store t i (select t i))
   t)
+
+(define-rule array-read-over-write-split ((t ?Array) (i ?) (e ?) (j ?))
+  (select (store t j e) i) (ite (= i j) e (select t i)))

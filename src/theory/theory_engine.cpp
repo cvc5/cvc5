@@ -539,7 +539,9 @@ void TheoryEngine::check(Theory::Effort effort) {
             {
               if (!d_tc->buildModel())
               {
-                break;
+                // We don't check if the model building fails, but for
+                // uniformity ask all theories needsCheckLastEffort method.
+                continue;
               }
               theory->check(Theory::EFFORT_LAST_CALL);
             }
@@ -799,7 +801,7 @@ void TheoryEngine::notifyRestart() {
   CVC5_FOR_EACH_THEORY;
 }
 
-void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryEngine::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   // Reset the interrupt flag
   d_interrupted = false;

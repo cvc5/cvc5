@@ -81,14 +81,19 @@ class Env
 
   /* Access to members------------------------------------------------------- */
   /** Get a pointer to the node manager */
-  NodeManager* getNodeManager();
+  NodeManager* getNodeManager() const;
 
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
-
+  /**
+   * Get the underlying proof manager. Note since proofs depend on option
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
+   */
+  smt::PfManager* getProofManager();
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SolverEngine that owns
@@ -317,7 +322,7 @@ class Env
   /* Private initialization ------------------------------------------------- */
 
   /** Set proof node manager if it exists */
-  void finishInit(ProofNodeManager* pnm);
+  void finishInit(smt::PfManager* pm);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -333,6 +338,10 @@ class Env
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
+  /**
+   * The proof manager of the solver engine.
+   */
+  smt::PfManager* d_pfManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SolverEngine that owns

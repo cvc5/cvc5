@@ -117,13 +117,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
   std::shared_ptr<TrustSubstitutionMap> constantPropagations =
-      std::make_shared<TrustSubstitutionMap>(
-          d_env, u, "NonClausalSimp::cprop", TrustId::PREPROCESS_LEMMA);
+      std::make_shared<TrustSubstitutionMap>(d_env, u, "NonClausalSimp::cprop");
   SubstitutionMap& cps = constantPropagations->get();
   // new substitutions
   std::shared_ptr<TrustSubstitutionMap> newSubstitutions =
       std::make_shared<TrustSubstitutionMap>(
-          d_env, u, "NonClausalSimp::newSubs", TrustId::PREPROCESS_LEMMA);
+          d_env, u, "NonClausalSimp::newSubs");
   SubstitutionMap& nss = newSubstitutions->get();
 
   size_t j = 0;

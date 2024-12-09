@@ -224,10 +224,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     if (expr::hasSubterm(ret, subs))
     {
       std::vector<Node> isubs;
-      NodeManager* nm = nodeManager();
       for (const Node& v : subs)
       {
-        isubs.emplace_back(nm->mkBoundVar(v.getType()));
+        isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
       // ---------- ALPHA_EQUIV
       // ret = iret
@@ -242,6 +241,26 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     Assert(eq.getKind() == Kind::EQUAL);
     Node sret = eq[1];
     transEq.emplace_back(eq);
+    Assert(sret.getKind() == Kind::FORALL);
+    if (sret[0] != q[0])
+    {
+      // variable reorder?
+      std::vector<Node> children;
+      children.push_back(q[0]);
+      children.push_back(sret[1]);
+      if (sret.getNumChildren() == 3)
+      {
+        children.push_back(sret[2]);
+      }
+      Node sreorder = nodeManager()->mkNode(Kind::FORALL, children);
+      Node eqqr = sret.eqNode(sreorder);
+      if (cdp.addStep(eqqr, ProofRule::QUANT_VAR_REORDERING, {}, {eqqr}))
+      {
+        transEq.push_back(eqqr);
+        sret = sreorder;
+      }
+      // if var reordering did not apply, we likely will not succeed below
+    }
     // if not syntactically equal, maybe it can be transformed
     bool success = false;
     if (sret == q)

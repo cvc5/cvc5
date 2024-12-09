@@ -169,11 +169,8 @@ class TheoryRewriter
 
   /**
    * Expand definitions in the term node. This returns a term that is
-   * equivalent to node. It wraps this term in a TrustNode of kind
-   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
-   * null TrustNode may be returned. This is an optimization to avoid
-   * constructing the trivial equality (= node node) internally within
-   * TrustNode.
+   * equivalent to node. If node is unchanged by this method, the
+   * null Node may be returned.
    *
    * The purpose of this method is typically to eliminate the operators in node
    * that are syntax sugar that cannot otherwise be eliminated during rewriting.
@@ -188,8 +185,11 @@ class TheoryRewriter
    * Where possible rewrite rules should be used, definitions should only be
    * used when rewrites are not possible, for example in handling
    * under-specified operations using partially defined functions.
+   *
+   * @param node The node to expand.
+   * @return the expanded form of node.
    */
-  virtual TrustNode expandDefinition(Node node);
+  virtual Node expandDefinition(Node node);
 
   /**
    * Rewrite n based on the proof rewrite rule id.

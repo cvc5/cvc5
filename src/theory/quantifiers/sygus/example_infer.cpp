@@ -24,7 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-ExampleInfer::ExampleInfer(TermDbSygus* tds) : d_tds(tds)
+ExampleInfer::ExampleInfer(NodeManager* nm, TermDbSygus* tds)
+    : d_nm(nm), d_tds(tds)
 {
   d_isExamples = false;
 }
@@ -96,7 +97,6 @@ bool ExampleInfer::collectExamples(
     return true;
   }
   visited[cacheIndex].insert(n);
-  NodeManager* nm = NodeManager::currentNM();
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
@@ -105,7 +105,7 @@ bool ExampleInfer::collectExamples(
     neval = n;
     if (hasPol)
     {
-      n_output = nm->mkConst(pol);
+      n_output = d_nm->mkConst(pol);
     }
     neval_is_evalapp = true;
   }
