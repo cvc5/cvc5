@@ -1010,7 +1010,8 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
         //should assign constructors to EQC if they have a selector or a tester
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-        if( shouldConsider && termSet.find(eqc)!=termSet.end()){
+        if (shouldConsider && termSet.find(eqc) != termSet.end())
+        {
           nodes.push_back( eqc );
         }
       }
@@ -1029,11 +1030,13 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     TypeNode tt = eqc.getType();
     const DType& dt = tt.getDType();
     Assert(d_equalityEngine->hasTerm(eqc));
-    Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
+    Trace("dt-cmi")
+        << "NOTICE : Datatypes: no constructor in equivalence class " << eqc
+        << std::endl;
     Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
-    EqcInfo* ei = getOrMakeEqcInfo( eqc );
-    std::vector< bool > pcons;
-    getPossibleCons( ei, eqc, pcons );
+    EqcInfo* ei = getOrMakeEqcInfo(eqc);
+    std::vector<bool> pcons;
+    getPossibleCons(ei, eqc, pcons);
     if (TraceIsOn("dt-cmi"))
     {
       Trace("dt-cmi") << "Possible constructors : ";
@@ -1044,13 +1047,15 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     }
     for (size_t r = 0; r < 2; r++)
     {
-      if( neqc.isNull() ){
+      if (neqc.isNull())
+      {
         for (size_t i = 0, psize = pcons.size(); i < psize; i++)
         {
           // must try the infinite ones first
           bool cfinite =
               d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
-          if( pcons[i] && (r==1)==cfinite ){
+          if (pcons[i] && (r == 1) == cfinite)
+          {
             neqc = utils::getInstCons(eqc, dt, i, shareSel);
             break;
           }
