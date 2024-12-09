@@ -1073,8 +1073,8 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_CTN_TRANS:
     case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below since the
-      // rule is unknown.
+      // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below
+      // since the rule is unknown.
       break;
   }
 
