@@ -16,6 +16,7 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_algorithm.h"
@@ -31,7 +32,6 @@
 #include "theory/strings/infer_proof_cons.h"
 #include "theory/theory.h"
 #include "util/rational.h"
-#include "options/base_options.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;

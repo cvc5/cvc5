@@ -144,13 +144,12 @@ class PfManager : protected EnvObj
       std::shared_ptr<ProofNode> pfn,
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
-  /** 
+  /**
    * Check proof. This call runs the final proof callback, which checks for
    * pedantic failures and takes statistics.
    * @param pfn The proof to check.
    */
-  void checkFinalProof(
-      std::shared_ptr<ProofNode> pfn);
+  void checkFinalProof(std::shared_ptr<ProofNode> pfn);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

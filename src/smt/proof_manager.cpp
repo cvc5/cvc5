@@ -269,8 +269,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   }
 }
 
-void PfManager::checkFinalProof(
-    std::shared_ptr<ProofNode> pfn)
+void PfManager::checkFinalProof(std::shared_ptr<ProofNode> pfn)
 {
   // take stats and check pedantic
   d_finalCb.initializeUpdate();
