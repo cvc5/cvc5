@@ -165,11 +165,12 @@ inline Kind negateKind(Kind k){
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == Kind::AND);
-  NodeBuilder orBuilder(Kind::OR);
+  NodeBuilder orBuilder(conjunction.getNodeManager(), Kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
     TNode child = *i;
-    Node negatedChild = NodeBuilder(Kind::NOT) << (child);
+    Node negatedChild = NodeBuilder(conjunction.getNodeManager(), Kind::NOT)
+                        << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;

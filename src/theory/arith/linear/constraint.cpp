@@ -515,7 +515,7 @@ bool Constraint::isInternalAssumption() const {
 
 TrustNode Constraint::externalExplainByAssertions() const
 {
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, AssertionOrderSentinel);
   Node exp = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
@@ -1106,19 +1106,19 @@ TrustNode Constraint::split()
   TNode lhs = eqNode[0];
   TNode rhs = eqNode[1];
 
-  Node leqNode = NodeBuilder(Kind::LEQ) << lhs << rhs;
-  Node ltNode = NodeBuilder(Kind::LT) << lhs << rhs;
-  Node gtNode = NodeBuilder(Kind::GT) << lhs << rhs;
-  Node geqNode = NodeBuilder(Kind::GEQ) << lhs << rhs;
+  NodeManager* nm = NodeManager::currentNM();
+  Node leqNode = NodeBuilder(nm, Kind::LEQ) << lhs << rhs;
+  Node ltNode = NodeBuilder(nm, Kind::LT) << lhs << rhs;
+  Node gtNode = NodeBuilder(nm, Kind::GT) << lhs << rhs;
+  Node geqNode = NodeBuilder(nm, Kind::GEQ) << lhs << rhs;
 
-  Node lemma = NodeBuilder(Kind::OR) << leqNode << geqNode;
+  Node lemma = NodeBuilder(nm, Kind::OR) << leqNode << geqNode;
 
   TrustNode trustedLemma;
   if (d_database->isProofEnabled())
   {
     TypeNode type = lhs.getType();
     // Farkas proof that this works.
-    auto nm = NodeManager::currentNM();
     auto nLeqPf = d_database->d_pnm->mkAssume(leqNode.negate());
     auto gtPf = d_database->d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {nLeqPf}, {gtNode});
@@ -1549,7 +1549,7 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Assert(hasProof());
   Assert(!isAssumption());
   Assert(!isInternalAssumption());
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   auto pfFromAssumptions = externalExplain(nb, d_assertionOrder);
   Node n = mkAndFromBuilder(nb);
   if (d_database->isProofEnabled())
@@ -1582,7 +1582,7 @@ TrustNode Constraint::externalExplainConflict() const
 {
   Trace("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   auto pf1 = externalExplainByAssertions(nb);
   auto not2 = getNegation()->getProofLiteral().negate();
   auto pf2 = getNegation()->externalExplainByAssertions(nb);
@@ -1679,7 +1679,7 @@ void Constraint::assertionFringe(ConstraintCPVec& o, const ConstraintCPVec& i){
 }
 
 Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order){
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   ConstraintCPVec::const_iterator i, end;
   for(i = v.begin(), end = v.end(); i != end; ++i){
     ConstraintCP v_i = *i;
@@ -1871,14 +1871,14 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b){
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   return nb;
 }
 
 Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b, ConstraintCP c){
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
   a->externalExplainByAssertions(nb);
   b->externalExplainByAssertions(nb);
   c->externalExplainByAssertions(nb);

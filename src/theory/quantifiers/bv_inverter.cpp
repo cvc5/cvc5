@@ -213,7 +213,7 @@ static Node dropChild(Node n, unsigned index)
   if (nchildren < 2) return Node::null();
 
   Kind k = n.getKind();
-  NodeBuilder nb(k);
+  NodeBuilder nb(n.getNodeManager(), k);
   for (unsigned i = 0; i < nchildren; ++i)
   {
     if (i == index) continue;
@@ -363,7 +363,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder nb(Kind::BITVECTOR_CONCAT);
+        NodeBuilder nb(NodeManager::currentNM(), Kind::BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)

@@ -1985,7 +1985,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder t(Kind::AND);
+      NodeBuilder t(nm, Kind::AND);
       std::vector<Node> argsc;
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {

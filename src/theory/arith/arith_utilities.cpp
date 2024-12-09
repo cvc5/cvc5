@@ -358,7 +358,7 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(NodeManager::currentNM(), Kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }

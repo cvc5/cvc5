@@ -436,7 +436,7 @@ public:
 
 template <class GetNodeIterator>
 inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
-  NodeBuilder nb(k);
+  NodeBuilder nb(NodeManager::currentNM(), k);
 
   while(start != end) {
     nb << (*start).getNode();
