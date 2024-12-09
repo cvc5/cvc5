@@ -25,11 +25,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-
 ArithNlCompareProofGenerator::ArithNlCompareProofGenerator(Env& env)
     : EnvObj(env)
 {
 }
+
 ArithNlCompareProofGenerator::~ArithNlCompareProofGenerator() {}
 
 std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
@@ -267,6 +267,7 @@ Node ArithNlCompareProofGenerator::mkLit(
 struct ArithNlCompareLitAttributeId
 {
 };
+
 using ArithNlCompareLitAttribute =
     expr::Attribute<ArithNlCompareLitAttributeId, Node>;
 

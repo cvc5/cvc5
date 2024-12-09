@@ -1831,11 +1831,11 @@ enum ENUM(ProofRule)
    *   \inferrule{F_1 \dots F_n \mid -}{F}
    * 
    * where :math:`F` is of the form 
-   * :math:`abs(t_1 \cdot t_n) \diamond abs(s_1 \cdot s_n)`.
+   * :math:`\left| t_1 \cdot t_n \right| \diamond \left| s_1 \cdot s_n \right|`.
    * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
-   * :math:`abs(t_i) = abs(s_i)`. If :math:`\diamond` is :math:`>`, then
-   * each :math:`F_i` is either :math:`abs(t_i) > abs(s_i)` or
-   * :math:`abs(t_i) = abs(s_i) \wege abs(t_i) \neq 0`.
+   * :math:`\left| t_i \right| = \left| s_i \right|`. If :math:`\diamond` is :math:`>`, then
+   * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
+   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`.
    *
    * \endverbatim
    */
