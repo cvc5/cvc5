@@ -1838,9 +1838,12 @@ enum ENUM(ProofRule)
    * where :math:`F` is of the form 
    * :math:`\left| t_1 \cdot t_n \right| \diamond \left| s_1 \cdot s_n \right|`.
    * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
-   * :math:`\left| t_i \right| = \left| s_i \right|`. If :math:`\diamond` is :math:`>`, then
+   * :math:`\left| t_i \right| = \left| s_i \right|`.
+   *
+   * If :math:`\diamond` is :math:`>`, then
    * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
-   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`.
+   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`,
+   * and :math:`F_1` is of the former form.
    *
    * \endverbatim
    */
