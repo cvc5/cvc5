@@ -32,8 +32,7 @@ cpp_type  = "bool"
 hasher    = "::cvc5::internal::BoolHashFunction"
 header    = "util/bool.h"
 comment   = "truth and falsity; payload is a (C++) bool"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule  = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type   = "enumerator"
@@ -46,45 +45,39 @@ type     = "operator"
 name     = "NOT"
 children = 1
 comment  = "logical not"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type     = "operator"
 name     = "AND"
 children = "2:"
 comment  = "logical and (N-ary)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type     = "operator"
 name     = "IMPLIES"
 children = 2
 comment  = "logical implication (exactly two parameters)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type     = "operator"
 name     = "OR"
 children = "2:"
 comment  = "logical or (N-ary)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type     = "operator"
 name     = "XOR"
 children = 2
 comment  = "exclusive or (exactly two parameters)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
 
 [[kinds]]
 type     = "operator"
 name     = "ITE"
 children = 3
 comment  = "if-then-else, used for both Boolean and term ITE constructs; first parameter is (Boolean-sorted) condition, second is 'then', third is 'else' and these two parameters must have same base sort"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::boolean::IteTypeRule"
+typerule = "::cvc5::internal::theory::boolean::IteTypeRule"
