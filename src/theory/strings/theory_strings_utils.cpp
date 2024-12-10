@@ -160,7 +160,8 @@ Node mkSuffix(Node t, Node n)
       Kind::STRING_SUBSTR,
       t,
       n,
-      NodeManager::mkNode(Kind::SUB, NodeManager::mkNode(Kind::STRING_LENGTH, t), n));
+      NodeManager::mkNode(
+          Kind::SUB, NodeManager::mkNode(Kind::STRING_LENGTH, t), n));
 }
 
 Node mkPrefixExceptLen(Node t, Node n)
@@ -176,7 +177,8 @@ Node mkPrefixExceptLen(Node t, Node n)
 Node mkSuffixOfLen(Node t, Node n)
 {
   Node lent = NodeManager::mkNode(Kind::STRING_LENGTH, t);
-  return NodeManager::mkNode(Kind::STRING_SUBSTR, t, NodeManager::mkNode(Kind::SUB, lent, n), n);
+  return NodeManager::mkNode(
+      Kind::STRING_SUBSTR, t, NodeManager::mkNode(Kind::SUB, lent, n), n);
 }
 
 Node mkUnit(TypeNode tn, Node n)
@@ -382,8 +384,8 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
     size_t rlen = Word::getLength(r[0]);
     for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          NodeManager::mkNode(Kind::STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
+      result.push_back(NodeManager::mkNode(Kind::STRING_TO_REGEXP,
+                                           Word::substr(r[0], i, 1)));
     }
   }
   else

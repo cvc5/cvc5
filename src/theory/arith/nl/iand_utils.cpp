@@ -52,10 +52,10 @@ Node intExtract(Node x, uint32_t i, uint32_t size)
   Assert(size > 0);
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
-  Node extract =
-      NodeManager::mkNode(Kind::INTS_MODULUS_TOTAL,
-                 NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
-                 pow2(size));
+  Node extract = NodeManager::mkNode(
+      Kind::INTS_MODULUS_TOTAL,
+      NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
+      pow2(size));
   return extract;
 }
 
@@ -95,9 +95,10 @@ Node IAndUtils::createITEFromTable(
       // append the current value to the ite.
       ite = NodeManager::mkNode(
           Kind::ITE,
-          NodeManager::mkNode(Kind::AND,
-                     NodeManager::mkNode(Kind::EQUAL, x, nm->mkConstInt(Rational(i))),
-                     NodeManager::mkNode(Kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
+          NodeManager::mkNode(
+              Kind::AND,
+              NodeManager::mkNode(Kind::EQUAL, x, nm->mkConstInt(Rational(i))),
+              NodeManager::mkNode(Kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
           nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
           ite);
     }
@@ -153,10 +154,10 @@ Node IAndUtils::createSumNode(Node x,
     // compute the ite for this part
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
-    sumNode =
-        NodeManager::mkNode(Kind::ADD,
-                   sumNode,
-                   NodeManager::mkNode(Kind::MULT, pow2(i * granularity), sumPart));
+    sumNode = NodeManager::mkNode(
+        Kind::ADD,
+        sumNode,
+        NodeManager::mkNode(Kind::MULT, pow2(i * granularity), sumPart));
   }
   return sumNode;
 }

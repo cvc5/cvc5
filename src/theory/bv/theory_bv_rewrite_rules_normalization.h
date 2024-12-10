@@ -536,7 +536,8 @@ inline Node RewriteRule<MultDistribConst>::apply(TNode node)
   std::vector<Node> children;
   for (unsigned i = 0; i < factor.getNumChildren(); ++i)
   {
-    children.push_back(NodeManager::mkNode(Kind::BITVECTOR_MULT, factor[i], constant));
+    children.push_back(
+        NodeManager::mkNode(Kind::BITVECTOR_MULT, factor[i], constant));
   }
 
   return utils::mkNaryNode(factor.getKind(), children);
@@ -576,7 +577,8 @@ inline Node RewriteRule<MultDistrib>::apply(TNode node)
   std::vector<Node> children;
   for (unsigned i = 0; i < sum.getNumChildren(); ++i)
   {
-    children.push_back(NodeManager::mkNode(Kind::BITVECTOR_MULT, sum[i], factor));
+    children.push_back(
+        NodeManager::mkNode(Kind::BITVECTOR_MULT, sum[i], factor));
   }
 
   return utils::mkNaryNode(sum.getKind(), children);
@@ -1010,8 +1012,7 @@ template <>
 inline Node RewriteRule<NegSub>::apply(TNode node)
 {
   Trace("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
-  return NodeManager::mkNode(
-      Kind::BITVECTOR_SUB, node[0][1], node[0][0]);
+  return NodeManager::mkNode(Kind::BITVECTOR_SUB, node[0][1], node[0][0]);
 }
 
 template <>

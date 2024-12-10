@@ -33,8 +33,7 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   {
     return monomial;
   }
-  return NodeManager::mkNode(
-      Kind::MULT, mkConst(multiplicity), monomial);
+  return NodeManager::mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)

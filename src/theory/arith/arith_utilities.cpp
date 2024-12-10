@@ -224,8 +224,9 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 
 Node mkBounded(Node l, Node a, Node u)
 {
-  return NodeManager::mkNode(
-      Kind::AND, NodeManager::mkNode(Kind::GEQ, a, l), NodeManager::mkNode(Kind::LEQ, a, u));
+  return NodeManager::mkNode(Kind::AND,
+                             NodeManager::mkNode(Kind::GEQ, a, l),
+                             NodeManager::mkNode(Kind::LEQ, a, u));
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }

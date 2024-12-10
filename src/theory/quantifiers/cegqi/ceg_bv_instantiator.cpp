@@ -184,8 +184,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
       Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;
-      ret =
-          NodeManager::mkNode(Kind::EQUAL, s, NodeManager::mkNode(Kind::BITVECTOR_ADD, t, slack));
+      ret = NodeManager::mkNode(
+          Kind::EQUAL, s, NodeManager::mkNode(Kind::BITVECTOR_ADD, t, slack));
       Trace("cegqi-bv") << "Slack is " << slack << std::endl;
     }
     else
@@ -538,7 +538,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::vector<Node>& children,
     std::unordered_map<Node, bool>& contains_pv)
 {
-
   // [1] rewrite cases of non-invertible operators
 
   if (n.getKind() == Kind::EQUAL)

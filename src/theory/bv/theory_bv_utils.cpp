@@ -314,10 +314,7 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkNot(Node child)
-{
-  return NodeManager::mkNode(Kind::NOT, child);
-}
+Node mkNot(Node child) { return NodeManager::mkNode(Kind::NOT, child); }
 
 Node mkAnd(TNode node1, TNode node2)
 {
@@ -395,14 +392,12 @@ Node mkConcat(TNode node, unsigned repeat)
 
 Node mkInc(TNode t)
 {
-  return NodeManager::mkNode(
-      Kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
+  return NodeManager::mkNode(Kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)
 {
-  return NodeManager::mkNode(
-      Kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
+  return NodeManager::mkNode(Kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
 }
 
 /* ------------------------------------------------------------------------- */

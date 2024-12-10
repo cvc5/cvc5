@@ -705,8 +705,7 @@ Node TermRegistry::mkNConcat(Node n1, Node n2) const
 
 Node TermRegistry::mkNConcat(Node n1, Node n2, Node n3) const
 {
-  return rewrite(
-      NodeManager::mkNode(Kind::STRING_CONCAT, n1, n2, n3));
+  return rewrite(NodeManager::mkNode(Kind::STRING_CONCAT, n1, n2, n3));
 }
 
 Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn) const

@@ -987,9 +987,7 @@ Node StringsPreprocess::reduce(Node t,
         Kind::AND,
         NodeManager::mkNode(Kind::LEQ, zero, b1),
         NodeManager::mkNode(
-            Kind::LEQ,
-            b1,
-            NodeManager::mkNode(Kind::SUB, lenx, lens)),
+            Kind::LEQ, b1, NodeManager::mkNode(Kind::SUB, lenx, lens)),
         NodeManager::mkNode(
             Kind::EQUAL,
             NodeManager::mkNode(Kind::STRING_SUBSTR, x, b1, lens),

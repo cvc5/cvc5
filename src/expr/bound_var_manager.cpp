@@ -47,8 +47,7 @@ Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, TNode cv3)
 
 Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, size_t i)
 {
-  return NodeManager::mkNode(
-      Kind::SEXPR, cv1, cv2, getCacheValue(i));
+  return NodeManager::mkNode(Kind::SEXPR, cv1, cv2, getCacheValue(i));
 }
 
 Node BoundVarManager::getCacheValue(size_t i)

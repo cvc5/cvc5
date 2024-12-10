@@ -195,8 +195,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
       Node next_s = NodeManager::mkNode(
           Kind::SUB,
           curr,
-          NodeManager::mkNode(Kind::STRING_LENGTH,
-                                           n1[sindex_use]));
+          NodeManager::mkNode(Kind::STRING_LENGTH, n1[sindex_use]));
       next_s = d_arithEntail.rewriteArith(next_s);
       if (d_arithEntail.check(next_s))
       {
@@ -263,8 +262,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = NodeManager::mkNode(
-                Kind::STRING_CONCAT, n1[i], n1re);
+            n1[i] = NodeManager::mkNode(Kind::STRING_CONCAT, n1[i], n1re);
           }
           if (remainderDir != 1)
           {
@@ -277,8 +275,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = NodeManager::mkNode(
-                Kind::STRING_CONCAT, n1rb, n1[i]);
+            n1[i] = NodeManager::mkNode(Kind::STRING_CONCAT, n1rb, n1[i]);
           }
         }
         return i;

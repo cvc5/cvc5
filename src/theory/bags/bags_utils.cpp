@@ -769,7 +769,8 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     ++j;
     while (j != elements.end())
     {
-      Node sameClass = NodeManager::mkNode(Kind::APPLY_UF, r, i->first, j->first);
+      Node sameClass =
+          NodeManager::mkNode(Kind::APPLY_UF, r, i->first, j->first);
       sameClass = rewriter->rewrite(sameClass);
       if (!sameClass.isConst())
       {

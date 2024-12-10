@@ -121,8 +121,7 @@ const DType& datatypeOf(Node n)
 
 Node mkTester(Node n, int i, const DType& dt)
 {
-  return NodeManager::mkNode(
-      Kind::APPLY_TESTER, dt[i].getTester(), n);
+  return NodeManager::mkNode(Kind::APPLY_TESTER, dt[i].getTester(), n);
 }
 
 Node mkSplit(Node n, const DType& dt)

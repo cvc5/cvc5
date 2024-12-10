@@ -94,7 +94,8 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
     {
       Node x = m->getBoundVariable(tn);
       Node ccond = new_cond.substitute(solve_var, x);
-      c = NodeManager::mkNode(Kind::WITNESS, NodeManager::mkNode(Kind::BOUND_VAR_LIST, x), ccond);
+      c = NodeManager::mkNode(
+          Kind::WITNESS, NodeManager::mkNode(Kind::BOUND_VAR_LIST, x), ccond);
       Trace("cegqi-bv-skvinv")
           << "SKVINV : Make " << c << " for " << new_cond << std::endl;
     }
