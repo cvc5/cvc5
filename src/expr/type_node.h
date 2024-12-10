@@ -847,7 +847,7 @@ TypeNode TypeNode::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(NodeManager::currentNM(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);

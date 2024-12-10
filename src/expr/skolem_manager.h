@@ -78,18 +78,6 @@ class SkolemManager
  public:
   SkolemManager();
   ~SkolemManager() {}
-
-  /**
-   * Optional flags used to control behavior of skolem creation.
-   * They should be composed with a bitwise OR.
-   */
-  enum SkolemFlags
-  {
-    /** default behavior */
-    SKOLEM_DEFAULT = 0,
-    /** do not make the name unique by adding the id */
-    SKOLEM_EXACT_NAME = 1,
-  };
   /**
    * Make purification skolem. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
@@ -204,7 +192,7 @@ class SkolemManager
   Node mkDummySkolem(const std::string& prefix,
                      const TypeNode& type,
                      const std::string& comment = "",
-                     int flags = SKOLEM_DEFAULT);
+                     SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
   /**
@@ -270,7 +258,7 @@ class SkolemManager
   Node mkSkolemNode(Kind k,
                     const std::string& prefix,
                     const TypeNode& type,
-                    int flags = SKOLEM_DEFAULT);
+                    SkolemFlags flags = SkolemFlags::SKOLEM_DEFAULT);
   /** Get type for skolem */
   TypeNode getTypeFor(SkolemId id, const std::vector<Node>& cacheVals);
 };

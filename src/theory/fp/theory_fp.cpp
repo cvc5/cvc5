@@ -789,7 +789,7 @@ Node TheoryFp::getCandidateModelValue(TNode node)
     }
     else if (!vit->second)
     {
-      NodeBuilder nb(kind);
+      NodeBuilder nb(nodeManager(), kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

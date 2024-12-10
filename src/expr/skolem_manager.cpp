@@ -234,7 +234,7 @@ InternalSkolemId SkolemManager::getInternalId(TNode k) const
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const TypeNode& type,
                                   const std::string& comment,
-                                  int flags)
+                                  SkolemFlags flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
@@ -347,19 +347,20 @@ Node SkolemManager::getUnpurifiedForm(Node k)
 Node SkolemManager::mkSkolemNode(Kind k,
                                  const std::string& prefix,
                                  const TypeNode& type,
-                                 int flags)
+                                 SkolemFlags flags)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n = NodeBuilder(nm, k);
-  if ((flags & SKOLEM_EXACT_NAME) == 0)
+  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME)
+      == SkolemFlags::SKOLEM_EXACT_NAME)
+  {
+    n.setAttribute(expr::VarNameAttr(), prefix);
+  }
+  else
   {
     std::stringstream name;
     name << prefix << '_' << ++d_skolemCounter;
     n.setAttribute(expr::VarNameAttr(), name.str());
-  }
-  else
-  {
-    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);

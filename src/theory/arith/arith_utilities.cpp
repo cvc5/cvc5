@@ -294,6 +294,12 @@ Node mkEquality(const Node& a, const Node& b)
   return nm->mkNode(Kind::EQUAL, diff, mkZero(diff.getType()));
 }
 
+Node castToReal(NodeManager* nm, const Node& n)
+{
+  return n.isConst() ? nm->mkConstReal(n.getConst<Rational>())
+                     : nm->mkNode(Kind::TO_REAL, n);
+}
+
 std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
 {
   TypeNode at = a.getType();
@@ -358,7 +364,7 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(NodeManager::currentNM(), Kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }

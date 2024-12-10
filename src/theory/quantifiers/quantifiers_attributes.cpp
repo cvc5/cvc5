@@ -492,9 +492,8 @@ bool QuantAttributes::getInstantiationLevel(const Node& n, uint64_t& level)
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node v = sm->mkDummySkolem(
-      name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+  Node v = NodeManager::mkDummySkolem(
+      name, nm->booleanType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node attr = nm->mkConst(String("qid"));
   Node ip = nm->mkNode(Kind::INST_ATTRIBUTE, attr, v);
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ip);

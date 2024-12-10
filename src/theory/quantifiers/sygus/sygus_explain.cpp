@@ -93,7 +93,7 @@ Node TermRecBuild::getChild(unsigned i)
   return d_children[curr][i + o];
 }
 
-Node TermRecBuild::build(NodeManager* nm, unsigned d)
+Node TermRecBuild::build(unsigned d)
 {
   Assert(d_pos.size() + 1 == d_term.size());
   Assert(d < d_term.size());
@@ -105,7 +105,7 @@ Node TermRecBuild::build(NodeManager* nm, unsigned d)
     Node nc;
     if (p + o == i)
     {
-      nc = build(nm, d + 1);
+      nc = build(d + 1);
     }
     else
     {
@@ -113,7 +113,7 @@ Node TermRecBuild::build(NodeManager* nm, unsigned d)
     }
     children.push_back(nc);
   }
-  return nm->mkNode(d_kind[d], children);
+  return d_nm->mkNode(d_kind[d], children);
 }
 
 SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb)
@@ -216,7 +216,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     TypeNode xtn = vn[i].getType();
     Node x = d_tdb->getFreeVarInc(xtn, var_count);
     trb.replaceChild(i, x);
-    Node nvn = trb.build(n.getNodeManager());
+    Node nvn = trb.build();
     Assert(nvn.getKind() == Kind::APPLY_CONSTRUCTOR);
     if (et.is_invariant(d_tdb, nvn, x))
     {
@@ -310,7 +310,7 @@ void SygusExplain::getExplanationFor(Node n,
   // return getExplanationForEquality( n, vn, exp );
 
   // set up the recursion object;
-  TermRecBuild trb;
+  TermRecBuild trb(nodeManager());
   trb.init(vn);
   Node vnr_exp;
   int sz_use = sz;
@@ -353,7 +353,7 @@ void SygusExplain::getExplanationFor(Node n,
     var_count[vtn]--;
   }
   int sz = -1;
-  TermRecBuild trb;
+  TermRecBuild trb(nodeManager());
   trb.init(vn);
   Node vnr;
   Node vnr_exp;

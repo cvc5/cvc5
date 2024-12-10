@@ -100,7 +100,7 @@ size_t MipLibTrick::removeFromConjunction(
         || (sub.getKind() == Kind::AND
             && (subremovals = removeFromConjunction(sub, toRemove)) > 0))
     {
-      NodeBuilder b(Kind::AND);
+      NodeBuilder b(nodeManager(), Kind::AND);
       b.append(n.begin(), j);
       if (subremovals > 0)
       {
@@ -559,7 +559,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Node sum;
           if (pos.getKind() == Kind::AND)
           {
-            NodeBuilder sumb(Kind::ADD);
+            NodeBuilder sumb(nodeManager(), Kind::ADD);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(
