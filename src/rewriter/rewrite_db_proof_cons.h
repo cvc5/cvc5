@@ -187,7 +187,7 @@ class RewriteDbProofCons : protected EnvObj
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
-  bool proveStratified(CDProof* cdp,
+  bool proveEqStratified(CDProof* cdp,
                        const Node& eq,
                        const Node& eqi,
                        int64_t recLimit,

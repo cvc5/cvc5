@@ -99,7 +99,7 @@ bool RewriteDbProofCons::prove(
   bool success = false;
   // first try unconverted
   Node eqi;
-  if (proveStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
+  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
   {
     success = true;
   }
@@ -110,7 +110,7 @@ bool RewriteDbProofCons::prove(
     if (eqi != eq)
     {
       Trace("rpc-debug") << "...now try converted" << std::endl;
-      if (proveStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
+      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
       {
         success = true;
       }
@@ -149,7 +149,7 @@ bool RewriteDbProofCons::prove(
   return success;
 }
 
-bool RewriteDbProofCons::proveStratified(
+bool RewriteDbProofCons::proveEqStratified(
     CDProof* cdp,
     const Node& eq,
     const Node& eqi,
