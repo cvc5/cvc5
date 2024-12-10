@@ -2401,18 +2401,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arith -- Division by constant elimination**
-   *
-   * .. math::
-   *   t / c = t * 1/c
-   *
-   * where :math:`c` is a constant.
-   *
-   * \endverbatim
-   */
-  EVALUE(ARITH_DIV_BY_CONST_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
