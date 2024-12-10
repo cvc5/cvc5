@@ -638,5 +638,5 @@
   :requires ((($str_is_multiset_subset_strict
                 ($str_to_flat_form s false)
                 ($str_multiset_overapprox t) false) true))
-  :conclusion (= (str.contains s t) false)
+  :conclusion (= (str.contains t s) false)
 )
