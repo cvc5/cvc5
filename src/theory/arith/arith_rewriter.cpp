@@ -500,7 +500,7 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == Kind::ADD);
-  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(d_nm, t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t)
