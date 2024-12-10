@@ -278,6 +278,12 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+      return "str-ctn-multiset-subset";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
+      return "macro-str-eq-len-unify-prefix";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
+      return "macro-str-eq-len-unify";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";
