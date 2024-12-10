@@ -1,3 +1,4 @@
+; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () Int)
 (declare-fun c () Int)
