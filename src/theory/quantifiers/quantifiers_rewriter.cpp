@@ -215,8 +215,10 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       QAttributes qa;
       QuantAttributes::computeQuantAttributes(n, qa);
       Node nret = computeMiniscoping(n, qa, true, false);
-      Assert(nret != n);
-      return nret;
+      if (nret != n)
+      {
+        return nret;
+      }
     }
     break;
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
