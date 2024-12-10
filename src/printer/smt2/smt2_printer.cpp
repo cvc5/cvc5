@@ -1116,6 +1116,10 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         visit.pop_back();
         out << "(...)";
+        if (cur.getNumChildren() > 0)
+        {
+          out << ')';
+        }
         continue;
       }
     }
