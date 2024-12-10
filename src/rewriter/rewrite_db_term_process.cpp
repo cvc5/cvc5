@@ -199,13 +199,14 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
+      d_wktc(Kind::INST_PATTERN_LIST),
       // must rewrite within operators
       d_tpg(env,
             nullptr,
             TConvPolicy::FIXPOINT,
             TConvCachePolicy::NEVER,
             "ProofRewriteDb",
-            nullptr,
+            &d_wktc,
             true),
       d_proof(env)
 {
