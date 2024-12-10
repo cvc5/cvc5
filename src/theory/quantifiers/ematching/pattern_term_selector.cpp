@@ -117,7 +117,7 @@ Node PatternTermSelector::getIsUsableEq(Node q, Node n) const
       if (i == 1 && n.getKind() == Kind::EQUAL
           && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
       {
-        return NodeManager::currentNM()->mkNode(Kind::EQUAL, n[1], n[0]);
+        return NodeManager::mkNode(Kind::EQUAL, n[1], n[0]);
       }
       else
       {

@@ -49,7 +49,7 @@ using namespace cvc5::internal::theory::fp::symfpuSymbolic;
                          const T& _r)                                        \
     {                                                                        \
       cvc5::internal::NodeManager* nm =                                      \
-          cvc5::internal::NodeManager::currentNM();                          \
+          _cond.getNodeManager();                                            \
                                                                              \
       cvc5::internal::Node cond = _cond;                                     \
       cvc5::internal::Node l = _l;                                           \
@@ -205,35 +205,35 @@ symbolicProposition::symbolicProposition(const symbolicProposition& old)
 symbolicProposition symbolicProposition::operator!(void) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NOT, *this));
+      NodeManager::mkNode(Kind::BITVECTOR_NOT, *this));
 }
 
 symbolicProposition symbolicProposition::operator&&(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_AND, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_AND, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator||(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_OR, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_OR, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator==(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 symbolicProposition symbolicProposition::operator^(
     const symbolicProposition& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_XOR, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_XOR, *this, op));
 }
 
 bool symbolicRoundingMode::checkNodeType(const TNode n)
@@ -285,7 +285,7 @@ symbolicProposition symbolicRoundingMode::operator==(
     const symbolicRoundingMode& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 template <bool isSigned>
@@ -397,7 +397,7 @@ symbolicBitVector<true> symbolicBitVector<true>::maxValue(const bwt& w)
   symbolicBitVector<true> base(symbolicBitVector<true>::allOnes(w - 1));
 
   return symbolicBitVector<true>(
-      cvc5::internal::NodeManager::currentNM()->mkNode(
+      cvc5::internal::NodeManager::mkNode(
           cvc5::internal::Kind::BITVECTOR_CONCAT, leadingZero, base));
 }
 
@@ -414,7 +414,7 @@ symbolicBitVector<true> symbolicBitVector<true>::minValue(const bwt& w)
   symbolicBitVector<true> base(symbolicBitVector<true>::zero(w - 1));
 
   return symbolicBitVector<true>(
-      cvc5::internal::NodeManager::currentNM()->mkNode(
+      cvc5::internal::NodeManager::mkNode(
           cvc5::internal::Kind::BITVECTOR_CONCAT, leadingOne, base));
 }
 
@@ -430,14 +430,14 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator<<(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SHL, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_SHL, *this, op));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator>>(
     const symbolicBitVector<isSigned>& op) const
 {
-  return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
+  return symbolicBitVector<isSigned>(NodeManager::mkNode(
       (isSigned) ? Kind::BITVECTOR_ASHR : Kind::BITVECTOR_LSHR, *this, op));
 }
 
@@ -446,7 +446,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator|(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_OR, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_OR, *this, op));
 }
 
 template <bool isSigned>
@@ -454,7 +454,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator&(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_AND, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_AND, *this, op));
 }
 
 template <bool isSigned>
@@ -462,7 +462,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator+(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_ADD, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_ADD, *this, op));
 }
 
 template <bool isSigned>
@@ -470,7 +470,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator-(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_SUB, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_SUB, *this, op));
 }
 
 template <bool isSigned>
@@ -478,14 +478,14 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator*(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_MULT, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_MULT, *this, op));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned>& op) const
 {
-  return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
+  return symbolicBitVector<isSigned>(NodeManager::mkNode(
       (isSigned) ? Kind::BITVECTOR_SDIV : Kind::BITVECTOR_UDIV, *this, op));
 }
 
@@ -493,7 +493,7 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned>& op) const
 {
-  return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
+  return symbolicBitVector<isSigned>(NodeManager::mkNode(
       (isSigned) ? Kind::BITVECTOR_SREM : Kind::BITVECTOR_UREM, *this, op));
 }
 
@@ -501,27 +501,27 @@ template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator-(void) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NEG, *this));
+      NodeManager::mkNode(Kind::BITVECTOR_NEG, *this));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator~(void) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_NOT, *this));
+      NodeManager::mkNode(Kind::BITVECTOR_NOT, *this));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::increment() const
 {
-  return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
+  return symbolicBitVector<isSigned>(NodeManager::mkNode(
       Kind::BITVECTOR_ADD, *this, one(this->getWidth())));
 }
 
 template <bool isSigned>
 symbolicBitVector<isSigned> symbolicBitVector<isSigned>::decrement() const
 {
-  return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
+  return symbolicBitVector<isSigned>(NodeManager::mkNode(
       Kind::BITVECTOR_SUB, *this, one(this->getWidth())));
 }
 
@@ -530,7 +530,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::signExtendRightShift(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_ASHR, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_ASHR, *this, op));
 }
 
 /*** Modular operations ***/
@@ -583,7 +583,7 @@ symbolicProposition symbolicBitVector<isSigned>::operator==(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicProposition(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_COMP, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_COMP, *this, op));
 }
 
 template <bool isSigned>
@@ -605,7 +605,7 @@ template <bool isSigned>
 symbolicProposition symbolicBitVector<isSigned>::operator<(
     const symbolicBitVector<isSigned>& op) const
 {
-  return symbolicProposition(NodeManager::currentNM()->mkNode(
+  return symbolicProposition(NodeManager::mkNode(
       (isSigned) ? Kind::BITVECTOR_SLTBV : Kind::BITVECTOR_ULTBV, *this, op));
 }
 
@@ -613,7 +613,7 @@ template <bool isSigned>
 symbolicProposition symbolicBitVector<isSigned>::operator>(
     const symbolicBitVector<isSigned>& op) const
 {
-  return symbolicProposition(NodeManager::currentNM()->mkNode(
+  return symbolicProposition(NodeManager::mkNode(
       (isSigned) ? Kind::BITVECTOR_SLTBV : Kind::BITVECTOR_ULTBV, op, *this));
 }
 
@@ -700,7 +700,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::append(
     const symbolicBitVector<isSigned>& op) const
 {
   return symbolicBitVector<isSigned>(
-      NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, *this, op));
+      NodeManager::mkNode(Kind::BITVECTOR_CONCAT, *this, op));
 }
 
 // Inclusive of end points, thus if the same, extracts just one bit
@@ -812,13 +812,12 @@ FpWordBlaster::uf FpWordBlaster::buildComponents(TNode current)
   Assert(Theory::isLeafOf(current, THEORY_FP)
          || current.getKind() == Kind::FLOATINGPOINT_TO_FP_FROM_REAL);
 
-  NodeManager* nm = NodeManager::currentNM();
-  uf tmp(nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current),
-         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current),
-         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current),
-         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current),
-         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current),
-         nm->mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current));
+  uf tmp(NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_NAN, current),
+         NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_INF, current),
+         NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_ZERO, current),
+         NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGN, current),
+         NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_EXPONENT, current),
+         NodeManager::mkNode(Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, current));
 
   d_additionalAssertions.push_back(tmp.valid(fpt(current.getType())));
 
@@ -829,7 +828,6 @@ Node FpWordBlaster::wordBlast(TNode node)
 {
   std::vector<TNode> visit;
   std::unordered_map<TNode, bool> visited;
-  NodeManager* nm = NodeManager::currentNM();
 
   visit.push_back(node);
 
@@ -914,7 +912,7 @@ Node FpWordBlaster::wordBlast(TNode node)
         }
         else
         {
-          rm tmp(nm->mkNode(Kind::ROUNDINGMODE_BITBLAST, cur));
+          rm tmp(NodeManager::mkNode(Kind::ROUNDINGMODE_BITBLAST, cur));
           d_rmMap.insert(cur, tmp);
           d_additionalAssertions.push_back(tmp.valid());
         }
@@ -1081,7 +1079,7 @@ Node FpWordBlaster::wordBlast(TNode node)
               Assert(cur[2].getType().isBitVector());
 
               Node IEEEBV(
-                  nm->mkNode(Kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
+                  NodeManager::mkNode(Kind::BITVECTOR_CONCAT, cur[0], cur[1], cur[2]));
               d_fpMap.insert(cur, symfpu::unpack<traits>(fpt(t), IEEEBV));
             }
             break;

@@ -50,12 +50,11 @@ bool oneBitAnd(bool a, bool b) { return (a && b); }
 Node intExtract(Node x, uint32_t i, uint32_t size)
 {
   Assert(size > 0);
-  NodeManager* nm = NodeManager::currentNM();
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   Node extract =
-      nm->mkNode(Kind::INTS_MODULUS_TOTAL,
-                 nm->mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
+      NodeManager::mkNode(Kind::INTS_MODULUS_TOTAL,
+                 NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
                  pow2(size));
   return extract;
 }
@@ -94,11 +93,11 @@ Node IAndUtils::createITEFromTable(
         continue;
       }
       // append the current value to the ite.
-      ite = nm->mkNode(
+      ite = NodeManager::mkNode(
           Kind::ITE,
-          nm->mkNode(Kind::AND,
-                     nm->mkNode(Kind::EQUAL, x, nm->mkConstInt(Rational(i))),
-                     nm->mkNode(Kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
+          NodeManager::mkNode(Kind::AND,
+                     NodeManager::mkNode(Kind::EQUAL, x, nm->mkConstInt(Rational(i))),
+                     NodeManager::mkNode(Kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
           nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
           ite);
     }
@@ -155,9 +154,9 @@ Node IAndUtils::createSumNode(Node x,
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
     sumNode =
-        nm->mkNode(Kind::ADD,
+        NodeManager::mkNode(Kind::ADD,
                    sumNode,
-                   nm->mkNode(Kind::MULT, pow2(i * granularity), sumPart));
+                   NodeManager::mkNode(Kind::MULT, pow2(i * granularity), sumPart));
   }
   return sumNode;
 }
@@ -182,10 +181,9 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
 
 Node IAndUtils::iextract(uint32_t i, uint32_t j, Node n) const
 {
-  NodeManager* nm = NodeManager::currentNM();
   //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
-  Node n2j = nm->mkNode(Kind::INTS_DIVISION_TOTAL, n, twoToK(j));
-  return nm->mkNode(Kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
+  Node n2j = NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, n, twoToK(j));
+  return NodeManager::mkNode(Kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
 }
 
 void IAndUtils::computeAndTable(uint32_t granularity)
@@ -269,8 +267,7 @@ Node IAndUtils::twoToK(unsigned k) const
 Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(Kind::SUB, twoToK(k), d_one);
+  return NodeManager::mkNode(Kind::SUB, twoToK(k), d_one);
 }
 
 }  // namespace nl
