@@ -608,7 +608,8 @@
 ; - b Bool: whether we have found that a character from s was not contained in t.
 ; return: >
 ;   True if the string approximated by s is definitely not contained in the string
-;   approximated by t.
+;   approximated by t. We compute this by iteratively removing the components of
+;   t from s, remembering if we have removed a character.
 ; note: This method only supports strings currently.
 (program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
     ((Seq T) (Seq T) Bool) Bool
