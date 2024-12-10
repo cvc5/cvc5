@@ -136,7 +136,7 @@
   (eo::define ((a2q (eo::to_q a2)))
   (eo::ite (eo::and (eo::is_q a2q) (eo::not (eo::is_eq a2q 0/1)))
     ; if division by non-zero constant, we normalize
-    ($poly_mul_mon (@mon 1 (eo::to_q (eo::qdiv 1/1 a2))) a1p)
+    ($poly_mul_mon (@mon 1 (eo::qdiv 1/1 a2q)) a1p)
     ; otherwise it is treated as a variable
     (@poly (@mon (* (/ a1 a2)) 1/1)))))
 
