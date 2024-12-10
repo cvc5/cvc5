@@ -15,6 +15,7 @@
 
 #include "rewriter/rewrite_db_term_process.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -28,7 +29,6 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 

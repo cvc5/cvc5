@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
@@ -40,7 +41,6 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 
