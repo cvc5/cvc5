@@ -1144,7 +1144,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
       // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
       if (eqp && toExplain.first != toExplain.second) {
-        eqpc = std::make_shared<EqProof>(nodeManager());
+        eqpc = std::make_shared<EqProof>();
         Trace("pf::ee") << "Deq getExplanation #" << i << " for " << eqp->d_node
                         << " : " << toExplain.first << " " << toExplain.second
                         << std::endl;
@@ -1236,8 +1236,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           {
             simpTrans = false;
             Assert(c1.getType() == c2.getType());
-            std::shared_ptr<EqProof> eqpmc =
-                std::make_shared<EqProof>(nodeManager());
+            std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
             eqp->d_children.push_back(eqpmc);
@@ -1505,7 +1504,7 @@ void EqualityEngine::getExplanation(
             std::shared_ptr<EqProof> eqpc;;
             // Make child proof if a proof is being constructed
             if (eqp) {
-              eqpc = std::make_shared<EqProof>(nodeManager());
+              eqpc = std::make_shared<EqProof>();
               eqpc->d_id = reasonType;
             }
 
@@ -1525,11 +1524,11 @@ void EqualityEngine::getExplanation(
               Trace("equality") << push;
               Trace("equality") << "Explaining left hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc1 =
-                  eqpc ? std::make_shared<EqProof>(nodeManager()) : nullptr;
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_a, f2.d_a, equalities, cache, eqpc1.get());
               Trace("equality") << "Explaining right hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc2 =
-                  eqpc ? std::make_shared<EqProof>(nodeManager()) : nullptr;
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
               if (eqpc)
               {
@@ -1566,7 +1565,7 @@ void EqualityEngine::getExplanation(
               // Explain why a = b constant
               Trace("equality") << push;
               std::shared_ptr<EqProof> eqpc1 =
-                  eqpc ? std::make_shared<EqProof>(nodeManager()) : nullptr;
+                  eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(eq.d_a, eq.d_b, equalities, cache, eqpc1.get());
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
@@ -1609,7 +1608,7 @@ void EqualityEngine::getExplanation(
                 EqualityNodeId childId = getNodeId(interpreted[i]);
                 Assert(isConstant(childId));
                 std::shared_ptr<EqProof> eqpcc =
-                    eqpc ? std::make_shared<EqProof>(nodeManager()) : nullptr;
+                    eqpc ? std::make_shared<EqProof>() : nullptr;
                 getExplanation(childId,
                                getEqualityNode(childId).getFind(),
                                equalities,
