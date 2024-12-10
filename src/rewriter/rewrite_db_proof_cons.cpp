@@ -130,7 +130,8 @@ bool RewriteDbProofCons::prove(
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
-    else if (eqi!=eq && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
+    else if (eqi != eq
+             && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
