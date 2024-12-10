@@ -979,8 +979,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
   Assert(q.getKind() == Kind::FORALL);
   NodeManager* nm = nodeManager();
   Kind bk = q[1].getKind();
-  Assert (bk==Kind::AND || bk==Kind::ITE);
-  ProofRewriteRule prr = bk==Kind::AND ? ProofRewriteRule::QUANT_MINISCOPE_AND : ProofRewriteRule::QUANT_MINISCOPE_ITE;
+  Assert(bk == Kind::AND || bk == Kind::ITE);
+  ProofRewriteRule prr = bk == Kind::AND
+                             ? ProofRewriteRule::QUANT_MINISCOPE_AND
+                             : ProofRewriteRule::QUANT_MINISCOPE_ITE;
   theory::Rewriter* rr = d_env.getRewriter();
   Node mq = rr->rewriteViaRule(prr, q);
   Node equiv = q.eqNode(mq);

@@ -320,7 +320,10 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Node body = n[1];
       if (!expr::hasSubterm(body[0], args))
       {
-        return d_nm->mkNode(Kind::ITE, body[0], d_nm->mkNode(Kind::FORALL, n[0], body[1]), d_nm->mkNode(Kind::FORALL, n[0], body[2]));
+        return d_nm->mkNode(Kind::ITE,
+                            body[0],
+                            d_nm->mkNode(Kind::FORALL, n[0], body[1]),
+                            d_nm->mkNode(Kind::FORALL, n[0], body[2]));
       }
     }
     break;
