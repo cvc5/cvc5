@@ -207,7 +207,7 @@
   )
 )
 
-; rule: quant-miniscope
+; rule: quant-miniscope-and
 ; implements: ProofRewriteRule::QUANT_MINISCOPE_AND
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
