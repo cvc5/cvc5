@@ -2200,8 +2200,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
         if( chres2.first ){
           return std::pair<bool, Node>(
               true,
-              NodeManager::currentNM()->mkNode(
-                  Kind::AND, chres.second, chres2.second));
+              NodeManager::mkNode(Kind::AND, chres.second, chres2.second));
         }else{
           break;
         }

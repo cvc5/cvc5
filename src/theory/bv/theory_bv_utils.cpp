@@ -291,11 +291,11 @@ Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 
   if (child1 < child2)
   {
-    return NodeManager::currentNM()->mkNode(kind, child1, child2);
+    return NodeManager::mkNode(kind, child1, child2);
   }
   else
   {
-    return NodeManager::currentNM()->mkNode(kind, child2, child1);
+    return NodeManager::mkNode(kind, child2, child1);
   }
 }
 
@@ -314,24 +314,21 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkNot(Node child)
-{
-  return NodeManager::currentNM()->mkNode(Kind::NOT, child);
-}
+Node mkNot(Node child) { return NodeManager::mkNode(Kind::NOT, child); }
 
 Node mkAnd(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(Kind::AND, node1, node2);
+  return NodeManager::mkNode(Kind::AND, node1, node2);
 }
 
 Node mkOr(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(Kind::OR, node1, node2);
+  return NodeManager::mkNode(Kind::OR, node1, node2);
 }
 
 Node mkXor(TNode node1, TNode node2)
 {
-  return NodeManager::currentNM()->mkNode(Kind::XOR, node1, node2);
+  return NodeManager::mkNode(Kind::XOR, node1, node2);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -364,7 +361,7 @@ Node mkBit(TNode node, unsigned index)
 
 Node mkConcat(TNode t1, TNode t2)
 {
-  return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, t1, t2);
+  return NodeManager::mkNode(Kind::BITVECTOR_CONCAT, t1, t2);
 }
 
 Node mkConcat(std::vector<Node>& children)
@@ -395,14 +392,12 @@ Node mkConcat(TNode node, unsigned repeat)
 
 Node mkInc(TNode t)
 {
-  return NodeManager::currentNM()->mkNode(
-      Kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
+  return NodeManager::mkNode(Kind::BITVECTOR_ADD, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)
 {
-  return NodeManager::currentNM()->mkNode(
-      Kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
+  return NodeManager::mkNode(Kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
 }
 
 /* ------------------------------------------------------------------------- */
