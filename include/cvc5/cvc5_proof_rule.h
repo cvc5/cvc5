@@ -2588,7 +2588,12 @@ enum ENUM(ProofRewriteRule)
    *   G_1 \wedge \cdots \wedge G_n
    *
    * where each :math:`G_i` is semantically equivalent to
-   * :math:`\forall X.\> F_i`.
+   * :math:`\forall X.\> F_i`, or alternatively
+   *
+   * .. math::
+   *   \forall X.\> ite( C, F_1, F_2) = ite( C, G_1, G_2)
+   *
+   * where :math:`C` does not have any free variable in :math:`X`.
    *
    * \endverbatim
    */
