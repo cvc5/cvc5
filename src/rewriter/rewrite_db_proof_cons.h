@@ -188,12 +188,12 @@ class RewriteDbProofCons : protected EnvObj
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool proveEqStratified(CDProof* cdp,
-                       const Node& eq,
-                       const Node& eqi,
-                       int64_t recLimit,
-                       int64_t stepLimit,
-                       std::vector<std::shared_ptr<ProofNode>>& subgoals,
-                       TheoryRewriteMode tmode);
+                         const Node& eq,
+                         const Node& eqi,
+                         int64_t recLimit,
+                         int64_t stepLimit,
+                         std::vector<std::shared_ptr<ProofNode>>& subgoals,
+                         TheoryRewriteMode tmode);
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
    * return true if successful. Tries a single recursion depth.
