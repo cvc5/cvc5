@@ -383,7 +383,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       }
       else if (k==Kind::DIVISION || k == Kind::DIVISION_TOTAL)
       {
-        // only division by constant is supported
+        // only division by non-zero constant is supported
         if (cur[1].isConst() && cur[1].getConst<Rational>().sgn()!=0)
         {
           visited[cur] = PolyNorm();
