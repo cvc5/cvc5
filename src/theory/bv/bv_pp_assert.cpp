@@ -114,9 +114,6 @@ std::shared_ptr<ProofNode> BvPpAssert::getProofFor(Node fact)
     return nullptr;
   }
   Node assump = it->second.getProven();
-  // reorient so that extract is on the left hand side
-  // Node assumpn = assump[1].getKind()==Kind::BITVECTOR_EXTRACT ?
-  // assump[1].eqNode(assump[0]) : assump;
   Assert(assump.getKind() == Kind::EQUAL);
   context::CDHashMap<Node, Node>::iterator ito;
   ito = d_origForm.find(fact[1]);
