@@ -169,7 +169,7 @@ class TheoryValidator:
         rewriter = kinds.get("rewriter")
         required_fields = ["class", "header"]
         if not rewriter:
-            print(f"{filename}: error: theory not defined")
+            print(f"{filename}: error: rewriter not defined")
             exit(1)
         
         self.check_required_fields(filename, "rewriter", rewriter, required_fields)
