@@ -79,7 +79,7 @@ class CodeGenerator:
 
             input_kind_type = input_kind["type"]
             input_typerule_name = input_kind["K1"] if input_kind_type == 'parameterized' else input_kind["name"]
-            input_typerule_type_checker_class = input_kind["typerule"]["type_checker_class"]
+            input_typerule_type_checker_class = input_kind["typerule"]
 
             self.typerules = f"""{self.typerules}
     case Kind::{input_typerule_name}:
@@ -103,7 +103,7 @@ class CodeGenerator:
             
             input_kind_type = input_kind["type"]
             input_const_rule_name = input_kind["K1"] if input_kind_type == 'parameterized' else input_kind["name"]
-            input_const_rule_checker_class = input_kind["construle"]["type_checker_class"]
+            input_const_rule_checker_class = input_kind["construle"]
 
             self.const_rules = f"""{self.const_rules}
     case Kind::{input_const_rule_name}:
@@ -175,28 +175,10 @@ class TheoryValidator:
         self.check_required_fields(filename, "rewriter", rewriter, required_fields)
         self.check_not_allowed_fields(filename, "rewriter", rewriter, required_fields)
         self.validate_header(filename, rewriter["header"])
-        
-        # if "header" not in rewriter:
-        #     print(f"{filename}: error: rewriter does not contain required field 'header'")
-        #     exit(1)
-
-    def validate_typerule(self, filename, typerule):
-        required_fields = ["type_checker_class"]
-        optional_fields = []
-
-        self.check_required_fields(filename, "typerule", typerule, required_fields)
-        self.check_not_allowed_fields(filename, "typerule", typerule, required_fields)
-    
-    def validate_construle(self, filename, construle):
-        required_fields = ["type_checker_class"]
-        optional_fields = []
-
-        self.check_required_fields(filename, "construle", construle, required_fields)
-        self.check_not_allowed_fields(filename, "construle", construle, required_fields)
     
     def validate_sort(self, filename, sort):
         required_fields = ["name", "cardinality", "well_founded"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
 
         self.check_required_fields(filename, "sort", sort, required_fields)
 
@@ -217,7 +199,7 @@ class TheoryValidator:
 
     def validate_cardinality(self, filename, cardinality):
         required_fields = ["computer"]
-        optional_fields = ["header"]
+        optional_fields = ["header", "typerule", "construle"]
 
         self.check_required_fields(filename, "cardinality", cardinality, required_fields)
         self.check_not_allowed_fields(filename, "cardinality", cardinality, required_fields + optional_fields)
@@ -226,12 +208,6 @@ class TheoryValidator:
             self.validate_header(filename, cardinality["header"])
 
     def check_extra_fields(self, filename, kind, kind_type = "kind"):
-        if "typerule" in kind:
-            self.validate_typerule(filename, kind["typerule"])
-        
-        if "construle" in kind:
-            self.validate_construle(filename, kind["construle"])
-        
         if "cardinality" in kind and kind_type != "sort":
             self.validate_cardinality(filename, kind["cardinality"])
         
@@ -240,7 +216,7 @@ class TheoryValidator:
 
     def validate_operator(self, filename, operator):
         required_fields = ["name", "children"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
 
         self.check_required_fields(filename, "operator", operator, required_fields)
         self.check_extra_fields(filename, operator)
@@ -248,7 +224,7 @@ class TheoryValidator:
     
     def validate_nullary_operator(self, filename, nullary_operator):
         required_fields = ["name"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
 
         self.check_required_fields(filename, "nullaryoperator", nullary_operator, required_fields)
         self.check_extra_fields(filename, nullary_operator)
@@ -256,7 +232,7 @@ class TheoryValidator:
 
     def validate_variable(self, filename, variable):
         required_fields = ["name"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
         
         self.check_required_fields(filename, "variable", variable, required_fields)
         self.check_extra_fields(filename, variable)
@@ -264,7 +240,7 @@ class TheoryValidator:
     
     def validate_parameterized(self, filename, parameterized):
         required_fields = ["K1", "K2", "children"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
         
         self.check_required_fields(filename, "parameterized", parameterized, required_fields)
         self.check_extra_fields(filename, parameterized)
@@ -272,7 +248,7 @@ class TheoryValidator:
     
     def validate_constant(self, filename, constant):
         required_fields = ["name", "class_key", "cpp_type", "hasher", "header"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
         
         self.check_required_fields(filename, "constant", constant, required_fields)
         self.check_extra_fields(filename, constant)
@@ -280,7 +256,7 @@ class TheoryValidator:
 
     def validate_well_founded(self, filename, well_founded):
         required_fields = ["wellfoundedness-computer", "ground-term-computer"]
-        optional_fields = ["header"]
+        optional_fields = ["header", "typerule", "construle"]
         
         self.check_required_fields(filename, "well-founded", well_founded, required_fields)
         if "header" in well_founded:
@@ -289,7 +265,7 @@ class TheoryValidator:
 
     def validate_enumerator(self, filename, enumerator):
         required_fields = ["name", "class", "header"]
-        optional_fields = ["comment"]
+        optional_fields = ["comment", "typerule", "construle"]
         
         self.check_required_fields(filename, "enumerator", enumerator, required_fields)
         self.check_not_allowed_fields(filename, "enumerator", enumerator, required_fields + optional_fields)
