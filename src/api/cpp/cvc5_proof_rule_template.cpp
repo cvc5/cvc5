@@ -246,6 +246,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
       return "macro-quant-merge-prenex";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::MACRO_QUANT_PRENEX: return "macro-quant-prenex";
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
       return "macro-quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";

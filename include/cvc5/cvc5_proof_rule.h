@@ -2571,6 +2571,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro prenex**
+   *
+   * .. math::
+   *   (\forall X.\> F_1 \vee \cdots \vee (\forall Y.\> F_i) \vee \cdots \vee F_n) = (\forall X Z.\> F_1 \vee \cdots \vee F_i\{ Y \mapsto Z \} \vee \cdots \vee F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro miniscoping**
    *
    * .. math::
