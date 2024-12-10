@@ -23,7 +23,6 @@
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -40,6 +39,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 

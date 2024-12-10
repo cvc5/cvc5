@@ -24,6 +24,7 @@
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
+#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 

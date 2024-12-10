@@ -17,7 +17,6 @@
 
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"

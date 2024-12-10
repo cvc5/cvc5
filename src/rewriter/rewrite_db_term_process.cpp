@@ -18,7 +18,6 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -29,6 +28,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 

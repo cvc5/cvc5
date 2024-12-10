@@ -23,6 +23,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 

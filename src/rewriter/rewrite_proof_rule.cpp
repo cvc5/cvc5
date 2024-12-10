@@ -20,6 +20,7 @@
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"
+#include "expr/aci_norm.h"
 
 using namespace cvc5::internal::kind;
 
