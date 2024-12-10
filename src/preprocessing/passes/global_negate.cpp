@@ -73,7 +73,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
     std::vector<Node> bvs;
     for (const Node& v : fvs)
     {
-      Node bv = nm->mkBoundVar(v.getType());
+      Node bv = NodeManager::mkBoundVar(v.getType());
       bvs.push_back(bv);
     }
 

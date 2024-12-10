@@ -1223,10 +1223,8 @@ namespace {
 Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
-  NodeBuilder nb(Kind::OR);
-  NodeManager* nm;
-
-  nm = NodeManager::currentNM();
+  NodeManager* nm = s.getNodeManager();
+  NodeBuilder nb(nm, Kind::OR);
 
   w = bv::utils::getSize(s);
   Assert(w == bv::utils::getSize(t));
@@ -2064,7 +2062,8 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
   unsigned w = bv::utils::getSize(t), wx = bv::utils::getSize(x);
-  NodeBuilder nbs1(Kind::BITVECTOR_CONCAT), nbs2(Kind::BITVECTOR_CONCAT);
+  NodeBuilder nbs1(nm, Kind::BITVECTOR_CONCAT),
+      nbs2(nm, Kind::BITVECTOR_CONCAT);
   Node s1, s2;
   Node t1, t2, tx;
   Node scl, scr;

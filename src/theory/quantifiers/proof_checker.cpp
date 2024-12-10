@@ -38,6 +38,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SKOLEMIZE, this);
   pc->registerChecker(ProofRule::INSTANTIATE, this);
   pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
+  pc->registerChecker(ProofRule::QUANT_VAR_REORDERING, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -122,6 +123,30 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node renamedBody = args[0].substitute(
         vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(renamedBody);
+  }
+  else if (id == ProofRule::QUANT_VAR_REORDERING)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node eq = args[0];
+    if (eq.getKind() != Kind::EQUAL || eq[0].getKind() != Kind::FORALL
+        || eq[1].getKind() != Kind::FORALL || eq[0][1] != eq[1][1])
+    {
+      return Node::null();
+    }
+    std::unordered_set<Node> varSet1(eq[0][0].begin(), eq[0][0].end());
+    std::unordered_set<Node> varSet2(eq[1][0].begin(), eq[1][0].end());
+    // cannot have repetition
+    if (varSet1.size() != eq[0][0].getNumChildren()
+        || varSet2.size() != eq[1][0].getNumChildren())
+    {
+      return Node::null();
+    }
+    if (varSet1 != varSet2)
+    {
+      return Node::null();
+    }
+    return eq;
   }
 
   // no rule

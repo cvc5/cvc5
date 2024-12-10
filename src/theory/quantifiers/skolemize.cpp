@@ -92,7 +92,7 @@ TrustNode Skolemize::process(Node q)
     // otherwise, we use the more general skolemization with inductive
     // strengthening, which does not support proofs
     Node body = getSkolemizedBodyInduction(q);
-    NodeBuilder nb(Kind::OR);
+    NodeBuilder nb(nodeManager(), Kind::OR);
     nb << q << body.notNode();
     lem = nb;
   }

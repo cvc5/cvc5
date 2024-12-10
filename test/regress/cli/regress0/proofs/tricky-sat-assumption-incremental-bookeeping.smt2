@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i --produce-proofs --proof-check=eager
+; COMMAND-LINE: -i --proof-check=eager
 ; EXPECT: sat
 ; EXPECT: unsat
 (set-logic QF_UFLIA)

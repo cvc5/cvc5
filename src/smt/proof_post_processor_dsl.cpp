@@ -35,8 +35,12 @@ ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
 }
 
 void ProofPostprocessDsl::reconstruct(
-    std::unordered_set<std::shared_ptr<ProofNode>>& pfs)
+    std::vector<std::shared_ptr<ProofNode>>& pfs)
 {
+  if (pfs.empty())
+  {
+    return;
+  }
   Trace("pp-dsl") << "Reconstruct proofs for " << pfs.size()
                   << " trusted steps..." << std::endl;
   // run an updater for this callback
@@ -153,6 +157,7 @@ bool ProofPostprocessDsl::update(Node res,
       cdp->addStep(res[0], ProofRule::TRUE_ELIM, {res}, {});
       res = res[0];
     }
+    Trace("check-dsl") << "Check closed..." << std::endl;
     pfgEnsureClosed(options(), res, cdp, "check-dsl", "check dsl");
     // if successful, we update the proof
     return true;

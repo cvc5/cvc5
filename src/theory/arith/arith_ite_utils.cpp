@@ -38,7 +38,7 @@ namespace theory {
 namespace arith {
 
 Node ArithIteUtils::applyReduceVariablesInItes(Node n){
-  NodeBuilder nb(n.getKind());
+  NodeBuilder nb(nodeManager(), n.getKind());
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << (n.getOperator());
   }
@@ -277,7 +277,7 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   }
 
   if(n.getNumChildren() > 0){
-    NodeBuilder nb(n.getKind());
+    NodeBuilder nb(nodeManager(), n.getKind());
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       nb << (n.getOperator());
     }

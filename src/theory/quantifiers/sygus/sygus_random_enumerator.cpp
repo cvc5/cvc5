@@ -108,7 +108,7 @@ Node SygusRandomEnumerator::incrementH()
     if (d_argCons[currSkolemType].empty()
         && d_noArgCons[currSkolemType].empty())
     {
-      groundTerm[currSkolem] = nm->mkGroundValue(currSkolemType);
+      groundTerm[currSkolem] = NodeManager::mkGroundValue(currSkolemType);
       continue;
     }
     stack.push_back(currSkolem);
@@ -139,7 +139,7 @@ Node SygusRandomEnumerator::incrementH()
     TypeNode skolemType = skolem.getType();
     if (d_noArgCons[skolemType].empty())
     {
-      groundTerm[skolem] = nm->mkGroundValue(skolemType);
+      groundTerm[skolem] = NodeManager::mkGroundValue(skolemType);
     }
     else
     {

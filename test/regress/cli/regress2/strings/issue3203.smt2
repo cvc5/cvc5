@@ -1,7 +1,7 @@
 ; Temporarily disable checking of unsat cores (see issue #3606)
 ; DISABLE-TESTER: unsat-core
 (set-logic ALL)
-(set-option :strings-exp true)
+
 (set-info :status unsat)
 (declare-fun a () String)
 (declare-fun b () String)

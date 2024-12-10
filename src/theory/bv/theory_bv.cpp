@@ -239,7 +239,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 
         Node concat = utils::mkConcat(children);
         Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-        if (isLegalElimination(extract[0], concat))
+        if (d_valuation.isLegalElimination(extract[0], concat))
         {
           outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
           return Theory::PP_ASSERT_STATUS_SOLVED;
@@ -343,7 +343,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -379,7 +379,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 
           Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }
@@ -439,7 +440,7 @@ Node TheoryBV::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder nb(cur.getKind());
+      NodeBuilder nb(nodeManager(), cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

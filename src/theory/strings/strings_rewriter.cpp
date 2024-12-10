@@ -188,7 +188,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == Kind::STRING_CONCAT)
   {
-    NodeBuilder concatBuilder(Kind::STRING_CONCAT);
+    NodeBuilder concatBuilder(nm, Kind::STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);

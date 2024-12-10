@@ -548,11 +548,11 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
   Kind kind = node.getKind();
   TNode concat;
   Node x, y, z, c;
-  NodeBuilder xb(kind);
-  NodeBuilder yb(Kind::BITVECTOR_CONCAT);
-  NodeBuilder zb(Kind::BITVECTOR_CONCAT);
-  NodeBuilder res(Kind::BITVECTOR_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
+  NodeBuilder xb(nm, kind);
+  NodeBuilder yb(nm, Kind::BITVECTOR_CONCAT);
+  NodeBuilder zb(nm, Kind::BITVECTOR_CONCAT);
+  NodeBuilder res(nm, Kind::BITVECTOR_CONCAT);
 
   for (const TNode& child : node)
   {
@@ -1719,13 +1719,13 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
                            .d_zeroExtendAmount;
     if (amount2 == 0)
     {
-      NodeBuilder nb(Kind::BITVECTOR_SIGN_EXTEND);
+      NodeBuilder nb(nm, Kind::BITVECTOR_SIGN_EXTEND);
       Node op = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount1));
       nb << op << node[0][0];
       Node res = nb;
       return res;
     }
-    NodeBuilder nb(Kind::BITVECTOR_ZERO_EXTEND);
+    NodeBuilder nb(nm, Kind::BITVECTOR_ZERO_EXTEND);
     Node op = nm->mkConst<BitVectorZeroExtend>(
         BitVectorZeroExtend(amount1 + amount2));
     nb << op << node[0][0];
@@ -2303,7 +2303,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   Node zero_t = utils::mkZero(utils::getSize(t));
   Node zero_a = utils::mkZero(utils::getSize(a));
 
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nm, Kind::AND);
   Kind k = is_sext ? Kind::BITVECTOR_SLT : Kind::BITVECTOR_ULT;
   nb << t.eqNode(zero_t).notNode();
   nb << a.eqNode(zero_a).notNode();
