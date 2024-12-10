@@ -708,8 +708,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
     cdp->addStep(eqqb, cr, cpremises, cargs);
     cdp->addStep(eqqrs, ProofRule::TRANS, {eqqm, eqqb}, {});
   }
-  Node eqqr = body1.eqNode(body2);
-  cdp->addStep(eqqr, ProofRule::SYMM, {eqqrs}, {});
+  cdp->addStep(beq, ProofRule::SYMM, {eqqrs}, {});
   return true;
 }
 
