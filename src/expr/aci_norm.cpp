@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite database
+ * Definition of ProofRule::ACI_NORM
  */
 
 #include "expr/aci_norm.h"

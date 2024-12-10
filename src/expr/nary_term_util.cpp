@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite database
+ * N-ary term utilities
  */
 
 #include "expr/nary_term_util.h"
