@@ -33,7 +33,7 @@ void RConsTypeInfo::initialize(Env& env,
                                TypeNode stn,
                                const std::vector<Node>& builtinVars)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   // create a terms enumerator
   d_enumerators.push_back(

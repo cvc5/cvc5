@@ -57,7 +57,7 @@ TypeNode TypeNode::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
+  NodeBuilder nb(NodeManager::currentNM(), getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
@@ -399,7 +399,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
     // different arities
     return TypeNode::null();
   }
-  NodeBuilder nb(k);
+  NodeBuilder nb(NodeManager::currentNM(), k);
   for (size_t i = 0; i < nchild; i++)
   {
     TypeNode c = (*this)[i];

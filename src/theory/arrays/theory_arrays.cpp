@@ -78,9 +78,7 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rrEpg(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
-                                           : nullptr),
-      d_rewriter(env.getNodeManager(), env.getRewriter(), d_rrEpg.get()),
+      d_rewriter(env.getNodeManager(), env.getRewriter()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
@@ -228,7 +226,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // (index_0 != index_1 & index_0 != index_2 & ... & index_0 != index_n) -> read(store, index_0) = v_0
     TNode write_i, write_j, index_i, index_j;
     Node conc;
-    NodeBuilder result(Kind::AND);
+    NodeBuilder result(nm, Kind::AND);
     int i, j;
     write_i = left;
     for (i = leftWrites-1; i >= 0; --i) {
@@ -238,7 +236,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
       //         ... && index_i /= index_(i+1)] -> read(store, index_i) = v_i
       write_j = left;
       {
-        NodeBuilder hyp(Kind::AND);
+        NodeBuilder hyp(nm, Kind::AND);
         for (j = leftWrites - 1; j > i; --j) {
           index_j = write_j[1];
           if (!ppCheck || !ppDisequal(index_i, index_j)) {
@@ -281,7 +279,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
     // store(store(...),i,select(a,i)) = a && select(store(...),i)=v
     Node l = left;
     Node tmp;
-    NodeBuilder nb(Kind::AND);
+    NodeBuilder nb(nm, Kind::AND);
     while (right.getKind() == Kind::STORE)
     {
       tmp = nm->mkNode(Kind::SELECT, l, right[1]);
@@ -312,10 +310,11 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     }
   }
   // see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(term);
+  Node texp = d_rewriter.expandDefinition(term);
   if (!texp.isNull())
   {
-    return texp;
+    // do not track proofs here
+    return TrustNode::mkTrustRewrite(term, texp, nullptr);
   }
   if (!d_preprocess)
   {
@@ -373,12 +372,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+      if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+      if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         return PP_ASSERT_STATUS_SOLVED;
@@ -1441,7 +1440,7 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
     }
   }
 
-  NodeBuilder conjunction(invert ? Kind::OR : Kind::AND);
+  NodeBuilder conjunction(nodeManager(), invert ? Kind::OR : Kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {

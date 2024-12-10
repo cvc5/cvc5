@@ -4312,25 +4312,37 @@ cdef class Solver:
     def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
+	    Assuming that :math:`A \\rightarrow B` is valid,
+	    this function
+            determines a term :math:`I`
+	    over the shared variables of 
+            :math:`A` and :math:`B`,
+	    optionally with respect to a
+            a given grammar, such that :math:`A \\rightarrow I` and
+            :math:`I \\rightarrow B` are valid, if such a term exits.
+            :math:`A` is the current set of assertions and :math:`B` is the
+            conjecture, given as :code:`conj`.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-                ( get-interpolant <conj> )
-                ( get-interpolant <conj> <grammar> )
+                ( get-interpolant <symbol> <conj> )
+                ( get-interpolant <symbol> <conj> <grammar> )
 
-            Requires option
-            :ref:`produce-interpolants <lbl-option-produce-interpolants>`
-            to be set to a mode different from `none`.
+            .. note:: In SMT-LIB, :code:`<symbol>` assigns a symbol to the
+                      interpolant.
+
+            .. note:: Requires option
+                 :ref:`produce-interpolants <lbl-option-produce-interpolants>`
+                 to be set to a mode different from :code:`none`.
 
             .. warning:: This function is experimental and may change in future
                         versions.
 
             :param conj: The conjecture term.
             :param grammar: A grammar for the interpolant.
-            :return: The interpolant.
-                     See :cpp:func:`cvc5::Solver::getInterpolant` for details.
+            :return: The interpolant, if such a term exists.
         """
         if grammar is None:
             return _term(self.tm, self.csolver.getInterpolant(conj.cterm))

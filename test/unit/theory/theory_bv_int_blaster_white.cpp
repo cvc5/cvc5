@@ -45,7 +45,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector constant representing the integer 7, with 4 bits
@@ -67,7 +67,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector variable
@@ -88,7 +88,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // uf from integers and bit-vectors to Bools
@@ -124,7 +124,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
 
@@ -272,7 +272,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::BITWISE, 1);
 

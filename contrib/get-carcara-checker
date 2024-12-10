@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e -o pipefail
+
 # utility function to download a file
 function download {
   if [ -x "$(command -v wget)" ]; then
@@ -24,7 +26,7 @@ CARCARA_DIR="$BASE_DIR/carcara"
 mkdir -p $CARCARA_DIR
 
 # download and unpack Carcara
-CARCARA_VERSION="6eb3cd069773b0f0bec4c312e30b2bf921681e74"
+CARCARA_VERSION="c3a785546a6e6cdd91f63dfb70f33b746d96a92f"
 download "https://github.com/hanielb/carcara/archive/$CARCARA_VERSION.tar.gz" $BASE_DIR/tmp/carcara.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/carcara.tgz -C $CARCARA_DIR
 rm $BASE_DIR/tmp/carcara.tgz

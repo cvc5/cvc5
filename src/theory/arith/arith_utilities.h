@@ -165,11 +165,12 @@ inline Kind negateKind(Kind k){
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == Kind::AND);
-  NodeBuilder orBuilder(Kind::OR);
+  NodeBuilder orBuilder(conjunction.getNodeManager(), Kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
     TNode child = *i;
-    Node negatedChild = NodeBuilder(Kind::NOT) << (child);
+    Node negatedChild = NodeBuilder(conjunction.getNodeManager(), Kind::NOT)
+                        << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;
@@ -329,6 +330,12 @@ Node multConstants(const Node& c1, const Node& c2);
  * Use this utility to ensure an equality is properly typed.
  */
 Node mkEquality(const Node& a, const Node& b);
+
+/**
+ * Return the real cast of n. If n is a constant integer, we return a
+ * constant real. Otherwise we apply TO_REAL to n.
+ */
+Node castToReal(NodeManager* nm, const Node& n);
 
 /**
  * Ensures that the returned pair has equal type, where a and b have

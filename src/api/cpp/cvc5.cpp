@@ -869,6 +869,7 @@ const static std::
             {internal::Kind::FUNCTION_TYPE, SortKind::FUNCTION_SORT},
             {internal::Kind::SEQUENCE_TYPE, SortKind::SEQUENCE_SORT},
             {internal::Kind::SET_TYPE, SortKind::SET_SORT},
+            {internal::Kind::SORT_TYPE, SortKind::UNINTERPRETED_SORT},
             {internal::Kind::TUPLE_TYPE, SortKind::TUPLE_SORT},
             {internal::Kind::NULLABLE_TYPE, SortKind::NULLABLE_SORT},
         };
@@ -3717,11 +3718,10 @@ SkolemId Term::getSkolemId() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->isSkolem(), *d_node)
       << "Term to be a skolem when calling getSkolemId";
   //////// all checks before this line
-  return skm->getId(*d_node);
+  return d_node->getSkolemId();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3730,29 +3730,11 @@ std::vector<Term> Term::getSkolemIndices() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  internal::SkolemManager* skm = d_tm->d_nm->getSkolemManager();
-  CVC5_API_ARG_CHECK_EXPECTED(skm->isSkolemFunction(*d_node), *d_node)
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->isSkolem(), *d_node)
       << "Term to be a skolem when calling getSkolemIndices";
   //////// all checks before this line
-  internal::Node cacheVal;
-  SkolemId id;
-  skm->isSkolemFunction(*d_node, id, cacheVal);
-  std::vector<Term> args;
-  if (!cacheVal.isNull())
-  {
-    if (cacheVal.getKind() == internal::Kind::SEXPR)
-    {
-      for (const internal::Node& nc : cacheVal)
-      {
-        args.push_back(Term(d_tm, nc));
-      }
-    }
-    else
-    {
-      args.push_back(Term(d_tm, cacheVal));
-    }
-  }
-  return args;
+  std::vector<internal::Node> indices = d_node->getSkolemIndices();
+  return Term::nodeVectorToTerms(d_tm, indices);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5424,8 +5406,8 @@ bool TermManager::isValidInteger(const std::string& s) const
 internal::Node TermManager::mkVarHelper(
     const internal::TypeNode& type, const std::optional<std::string>& symbol)
 {
-  internal::Node res =
-      symbol ? d_nm->mkBoundVar(*symbol, type) : d_nm->mkBoundVar(type);
+  internal::Node res = symbol ? internal::NodeManager::mkBoundVar(*symbol, type)
+                              : internal::NodeManager::mkBoundVar(type);
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(type, true);
   return res;
@@ -5658,7 +5640,7 @@ Term TermManager::mkTermHelper(const Op& op, const std::vector<Term>& children)
   const internal::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<internal::Node> echildren = Term::termVectorToNodes(children);
 
-  internal::NodeBuilder nb(int_kind);
+  internal::NodeBuilder nb(d_nm, int_kind);
   nb << *op.d_node;
   nb.append(echildren);
   internal::Node res = nb.constructNode();
@@ -6658,7 +6640,7 @@ Term TermManager::mkTuple(const std::vector<Term>& terms)
   }
   internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
@@ -6677,7 +6659,7 @@ Term TermManager::mkNullableSome(const Term& term)
   internal::TypeNode typeNode = arg.getType();
   internal::TypeNode tn = d_nm->mkNullableType(typeNode);
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[1].getConstructor();
   nb.append(arg);
   internal::Node res = nb.constructNode();
@@ -6695,7 +6677,7 @@ Term TermManager::mkNullableNull(const Sort& sort)
   //////// all checks before this line
   internal::TypeNode tn = sort.getTypeNode();
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */

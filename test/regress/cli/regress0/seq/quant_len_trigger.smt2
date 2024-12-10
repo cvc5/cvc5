@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 
-(set-option :strings-exp true)
+
 (set-logic ALL)
 
 (assert (forall ((x (Seq Int)) (xx (Seq Int)) ) (=> (and (= (seq.len x) (seq.len xx)) (forall ((i Int) )   (=> (and (<= 0 i) (< i (seq.len x))) (= (seq.nth x i) (seq.nth xx i))))) (= x xx))))

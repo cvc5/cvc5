@@ -113,7 +113,7 @@ Node TermRecBuild::build(unsigned d)
     }
     children.push_back(nc);
   }
-  return NodeManager::currentNM()->mkNode(d_kind[d], children);
+  return d_nm->mkNode(d_kind[d], children);
 }
 
 SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb)
@@ -176,8 +176,7 @@ Node SygusExplain::getExplanationForEquality(Node n,
   std::vector<Node> exp;
   getExplanationForEquality(n, vn, exp, cexc);
   Assert(!exp.empty());
-  return exp.size() == 1 ? exp[0]
-                         : NodeManager::currentNM()->mkNode(Kind::AND, exp);
+  return exp.size() == 1 ? exp[0] : nodeManager()->mkNode(Kind::AND, exp);
 }
 
 // we have ( n = vn => eval( n ) = bvr ) ^ vn != vnr , returns exp such that exp
@@ -247,7 +246,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     if (vnr.getOperator() != vn.getOperator())
     {
       vnr = Node::null();
-      vnr_exp = NodeManager::currentNM()->mkConst(true);
+      vnr_exp = nodeManager()->mkConst(true);
     }
   }
   bool shareSel = options().datatypes.dtSharedSelectors;
@@ -311,7 +310,7 @@ void SygusExplain::getExplanationFor(Node n,
   // return getExplanationForEquality( n, vn, exp );
 
   // set up the recursion object;
-  TermRecBuild trb;
+  TermRecBuild trb(nodeManager());
   trb.init(vn);
   Node vnr_exp;
   int sz_use = sz;
@@ -354,7 +353,7 @@ void SygusExplain::getExplanationFor(Node n,
     var_count[vtn]--;
   }
   int sz = -1;
-  TermRecBuild trb;
+  TermRecBuild trb(nodeManager());
   trb.init(vn);
   Node vnr;
   Node vnr_exp;

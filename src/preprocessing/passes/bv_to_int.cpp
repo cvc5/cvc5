@@ -53,18 +53,25 @@ PreprocessingPassResult BVToInt::applyInternal(
   // this will always contain range constraints
   // and for options::SolveBVAsIntMode::BITWISE, it will
   // also include bitwise assertion constraints
-  std::vector<Node> additionalConstraints;
+  std::vector<TrustNode> additionalConstraints;
   std::map<Node, Node> skolems;
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
+    // ensure bv rewritten
+    assertionsToPreprocess->ensureRewritten(i);
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node intNode =
-        d_intBlaster.intBlast(bvNode, additionalConstraints, skolems);
-    Node rwNode = rewrite(intNode);
+    TrustNode tr =
+        d_intBlaster.trustedIntBlast(bvNode, additionalConstraints, skolems);
+    if (tr.isNull())
+    {
+      // int blaster did not apply
+      continue;
+    }
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
-    Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
-    Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
-    assertionsToPreprocess->replace(i, rwNode);
+    Trace("bv-to-int-debug") << "int node: " << tr.getProven()[1] << std::endl;
+    assertionsToPreprocess->replaceTrusted(i, tr);
+    // ensure integer rewritten
+    assertionsToPreprocess->ensureRewritten(i);
   }
   addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
   addSkolemDefinitions(skolems);
@@ -96,13 +103,14 @@ void BVToInt::addSkolemDefinitions(const std::map<Node, Node>& skolems)
 
 void BVToInt::addFinalizeAssertions(
     AssertionPipeline* assertionsToPreprocess,
-    const std::vector<Node>& additionalConstraints)
+    const std::vector<TrustNode>& additionalConstraints)
 {
-  NodeManager* nm = nodeManager();
-  Node lemmas = nm->mkAnd(additionalConstraints);
-  assertionsToPreprocess->push_back(lemmas);
-  Trace("bv-to-int-debug") << "range constraints: " << lemmas.toString()
-                           << std::endl;
+  Trace("bv-to-int-debug") << "range constraints:" << std::endl;
+  for (const TrustNode& tlem : additionalConstraints)
+  {
+    Trace("bv-to-int-debug") << "- " << tlem.getProven() << std::endl;
+    assertionsToPreprocess->pushBackTrusted(tlem);
+  }
 }
 
 }  // namespace passes

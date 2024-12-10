@@ -52,7 +52,9 @@ class TheoryBoolRewriter : public TheoryRewriter
    * @param nm Pointer to node manager.
    * @param n The node to rewrite.
    * @param pg If non-null, this stores rewrite rules that are capable of
-   * proving that n is equal to its normalized form.
+   * proving that n is equal to its normalized form. This conversion generator
+   * is expected to use a BoolSkeletonTermContext (see expr/term_context.h) as
+   * this method only traverses the propositional skeleton of n.
    * @return The normalized form of n.
    */
   static Node computeNnfNorm(NodeManager* nm,

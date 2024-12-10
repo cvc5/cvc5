@@ -610,7 +610,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           if (sol_templ_children[j].isNull())
           {
             sol_templ_children[j] =
-                nm->mkGroundTerm(cop_to_sks[cop][j].getType());
+                NodeManager::mkGroundTerm(cop_to_sks[cop][j].getType());
           }
         }
         sol_templ_children.insert(sol_templ_children.begin(), cop);
