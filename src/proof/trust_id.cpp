@@ -85,6 +85,7 @@ const char* toString(TrustId id)
       return "ARITH_NL_COMPARE_LIT_TRANSFORM";
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
     case TrustId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
+    case TrustId::BV_PP_ASSERT: return "BV_PP_ASSERT";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
