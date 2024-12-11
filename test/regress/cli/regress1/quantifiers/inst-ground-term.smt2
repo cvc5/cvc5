@@ -1,3 +1,4 @@
+; COMMAND-LINE: --enum-inst
 ; EXPECT: unsat
 (set-logic AUFLIA)
 (declare-sort A$ 0)
