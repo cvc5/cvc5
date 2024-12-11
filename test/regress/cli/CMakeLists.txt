@@ -2784,6 +2784,7 @@ set(regress_1_tests
   regress1/quantifiers/ho-grammar.smt2
   regress1/quantifiers/ho-seu-sygus-inst.smt2
   regress1/quantifiers/horn-simple.smt2
+  regress1/quantifiers/inst-ground-term.smt2
   regress1/quantifiers/inst-max-level-segf.smt2
   regress1/quantifiers/inst-prop-simp.smt2
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
