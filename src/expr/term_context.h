@@ -182,6 +182,36 @@ class TheoryLeafTermContext : public TermContext
   theory::TheoryId d_theoryId;
 };
 
+/**
+ * Boolean skeleton term context.
+ * Returns 0 for terms that are part of a Boolean skeleton, 1 otherwise.
+ */
+class BoolSkeletonTermContext : public TermContext
+{
+ public:
+  BoolSkeletonTermContext() {}
+  /** The initial value: assumed to be 0, i.e. in the Boolean skeleton. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+};
+
+/**
+ * Returns 1 if we are in a term of Kind k, 0 otherwise.
+ */
+class WithinKindTermContext : public TermContext
+{
+ public:
+  WithinKindTermContext(Kind k) : d_kind(k) {}
+  /** The initial value: not within kind. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ protected:
+  /** The kind */
+  Kind d_kind;
+};
 }  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

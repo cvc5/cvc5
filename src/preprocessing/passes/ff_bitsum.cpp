@@ -85,7 +85,7 @@ PreprocessingPassResult FfBitsum::applyInternal(
       else
       {
         Kind oldKind = current.getKind();
-        NodeBuilder builder(oldKind);
+        NodeBuilder builder(nm, oldKind);
         if (current.getMetaKind() == kind::MetaKind::PARAMETERIZED)
         {
           builder << current.getOperator();
@@ -121,7 +121,8 @@ PreprocessingPassResult FfBitsum::applyInternal(
     Node newFact = cache[fact];
     if (newFact != fact)
     {
-      assertionsToPreprocess->replace(i, newFact);
+      assertionsToPreprocess->replace(
+          i, newFact, nullptr, TrustId::PREPROCESS_FF_BITSUM);
     }
   }
 

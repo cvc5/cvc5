@@ -159,6 +159,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CPROP:
     case ProofRule::CONCAT_CONFLICT:
+    case ProofRule::CONCAT_CONFLICT_DEQ:
     case ProofRule::CONCAT_SPLIT:
     case ProofRule::CONCAT_LPROP:
     case ProofRule::STRING_LENGTH_POS:
@@ -170,6 +171,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_CODE_INJ:
     case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::STRING_DECOMPOSE:
+    case ProofRule::STRING_EXT:
+    case ProofRule::DT_SPLIT:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
@@ -214,7 +217,20 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_SUBSTR || k == Kind::STRING_INDEXOF;
+      switch (k)
+      {
+        case Kind::STRING_SUBSTR:
+        case Kind::STRING_INDEXOF:
+        case Kind::STRING_REPLACE:
+        case Kind::STRING_STOI:
+        case Kind::STRING_ITOS:
+        case Kind::SEQ_NTH:
+          return true;
+        default:
+          break;
+      }
+      Trace("alf-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
+      return false;
     }
     break;
     case ProofRule::STRING_EAGER_REDUCTION:
@@ -259,6 +275,9 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
+    case ProofRewriteRule::DT_INST:
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    case ProofRewriteRule::QUANT_MINISCOPE:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::RE_LOOP_ELIM:
@@ -339,9 +358,11 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::INTS_DIVISION_TOTAL:
         case Kind::INTS_ISPOW2:
         case Kind::INTS_LOG2:
+        case Kind::POW2:
         case Kind::TO_REAL:
         case Kind::TO_INTEGER:
         case Kind::IS_INTEGER:
+        case Kind::ABS:
         case Kind::STRING_CONCAT:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_LENGTH:
@@ -350,6 +371,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
+        case Kind::STRING_PREFIX:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -359,7 +381,21 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_MULT:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
-        case Kind::CONST_BITVECTOR_SYMBOLIC: break;
+        case Kind::BITVECTOR_XOR:
+        case Kind::BITVECTOR_ULT:
+        case Kind::BITVECTOR_ULE:
+        case Kind::BITVECTOR_UGT:
+        case Kind::BITVECTOR_UGE:
+        case Kind::BITVECTOR_SLT:
+        case Kind::BITVECTOR_SLE:
+        case Kind::BITVECTOR_SGT:
+        case Kind::BITVECTOR_SGE:
+        case Kind::BITVECTOR_REPEAT:
+        case Kind::BITVECTOR_SIGN_EXTEND:
+        case Kind::BITVECTOR_ZERO_EXTEND:
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
+        case Kind::BITVECTOR_TO_NAT:
+        case Kind::INT_TO_BITVECTOR: break;
         case Kind::EQUAL:
         {
           TypeNode tn = cur[0].getType();

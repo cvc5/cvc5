@@ -85,7 +85,7 @@ Node intToBVMakeBinary(NodeManager* nm, TNode n, NodeMap& cache)
     }
     else
     {
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nm, current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
@@ -217,7 +217,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
            << " to a bit-vector operator. Remove option `--solve-int-as-bv`.";
         throw LogicException(ss.str());
       }
-      NodeBuilder builder(newKind);
+      NodeBuilder builder(nm, newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }

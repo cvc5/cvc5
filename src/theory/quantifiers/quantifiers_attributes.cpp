@@ -236,7 +236,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         if (q[2][i][0].getKind() == Kind::CONST_STRING)
         {
           // make a dummy variable to be used below
-          avar = nm->mkBoundVar(nm->booleanType());
+          avar = NodeManager::mkBoundVar(nm->booleanType());
           std::vector<Node> nodeValues(q[2][i].begin() + 1, q[2][i].end());
           // set user attribute on the dummy variable
           setUserAttribute(
@@ -288,7 +288,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(name, nm->booleanType());
+            qa.d_name = NodeManager::mkBoundVar(name, nm->booleanType());
           }
           else
           {
@@ -369,13 +369,22 @@ int64_t QuantAttributes::getQuantInstLevel(Node q)
   }
 }
 
-bool QuantAttributes::isQuantElimPartial( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+bool QuantAttributes::isQuantElim(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
+    return false;
+  }
+  return it->second.d_quant_elim;
+}
+bool QuantAttributes::isQuantElimPartial(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.d_quant_elim_partial;
   }
+  return it->second.d_quant_elim_partial;
 }
 
 bool QuantAttributes::isQuantBounded(Node q) const
@@ -483,9 +492,8 @@ bool QuantAttributes::getInstantiationLevel(const Node& n, uint64_t& level)
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node v = sm->mkDummySkolem(
-      name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+  Node v = NodeManager::mkDummySkolem(
+      name, nm->booleanType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node attr = nm->mkConst(String("qid"));
   Node ip = nm->mkNode(Kind::INST_ATTRIBUTE, attr, v);
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, ip);

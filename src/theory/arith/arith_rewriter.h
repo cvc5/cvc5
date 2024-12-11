@@ -40,7 +40,7 @@ class ArithRewriter : public TheoryRewriter
    * Expand definition, which eliminates extended operators like div/mod in
    * the given node.
    */
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
   /**
    * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
    * if possible, return an equivalent formula involving a bitvector inequality.

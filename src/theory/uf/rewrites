@@ -8,6 +8,10 @@
   (= (= t s) (= t r))
   (and (not (= t s)) (not (= t r))))
 
+(define-rule eq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (= (ite C t s) r)
+  (ite C (= t r) (= s r)))
+
 (define-rule distinct-binary-elim ((t ?) (s ?)) (distinct t s) (not (= t s)))
 
 ; bv to arith conversions

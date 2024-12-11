@@ -15,6 +15,7 @@
 
 #include "rewriter/rewrite_db_proof_cons.h"
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
@@ -73,92 +74,68 @@ bool RewriteDbProofCons::prove(
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;
   // As a heuristic, always apply CONG if we are an equality between two
-  // binder terms with the same quantifier prefix.
-  if (a.isClosure() && a.getKind() == b.getKind() && a[0] == b[0])
+  // binder terms with the same quantifier prefix or ALPHA_EQUIV if they have
+  // a different prefix whose types are the same.
+  if (a.isClosure())
   {
-    // Ensure patterns are removed by calling d_rdnc postConvert (single step).
-    // We do not apply convert recursively here or else it would e.g. convert
-    // the entire quantifier body to ACI normal form.
-    Node ai = d_rdnc.postConvert(a);
-    Node bi = d_rdnc.postConvert(b);
-    // only apply this to standard binders (those with 2 children)
-    if (ai.getNumChildren() == 2 && bi.getNumChildren()==2)
+    // Note we apply this to fixed point, which should only occur at most 2
+    // times (first ALPHA_EQUIV, then CONG).
+    Node eqp;
+    do
     {
-      Node eqo = eq;
-      std::vector<Node> transEq;
-      if (ai!=a)
+      eqp = preprocessClosureEq(cdp, eq[0], eq[1]);
+      if (!eqp.isNull())
       {
-        Node aeq = a.eqNode(ai);
-        cdp->addStep(aeq, ProofRule::ENCODE_EQ_INTRO, {}, {a});
-        transEq.push_back(aeq);
+        eq = eqp;
+        Trace("rpc") << "- closure-preprocess to " << eq[0] << " == " << eq[1]
+                     << std::endl;
       }
-      std::vector<Node> cargs;
-      ProofRule cr = expr::getCongRule(ai, cargs);
-      eq = ai[1].eqNode(bi[1]);
-      Node eqConv = ai.eqNode(bi);
-      cdp->addStep(eqConv, cr, {eq}, cargs);
-      transEq.push_back(eqConv);
-      if (bi!=b)
+      else
       {
-        Node beq = b.eqNode(bi);
-        cdp->addStep(beq, ProofRule::ENCODE_EQ_INTRO, {}, {b});
-        Node beqs = bi.eqNode(b);
-        cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
-        transEq.push_back(beqs);
+        Trace("rpc") << "...does not closure-preprocess" << std::endl;
       }
-      if (transEq.size()>1)
-      {
-        cdp->addStep(eqo, ProofRule::TRANS, transEq, {});
-      }
-      Trace("rpc") << "- process to " << eq[0] << " == " << eq[1] << std::endl;
-    }
+    } while (!eqp.isNull() && eqp[0].isClosure());
   }
-  Trace("rpc-debug") << "- prove basic" << std::endl;
-  // first, try with the basic utility
+  ++d_statTotalInputs;
   bool success = false;
-  if (d_trrc.prove(cdp, eq[0], eq[1], subgoals, tmode))
+  // first try unconverted
+  Node eqi;
+  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
   {
-    Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
   }
   else
   {
-    ++d_statTotalInputs;
-    Trace("rpc-debug") << "- convert to internal" << std::endl;
-    // prove the equality
-    for (int64_t i = 0; i <= recLimit; i++)
+    eqi = d_rdnc.convert(eq);
+    // if converter didn't make a difference, don't try to prove again
+    if (eqi != eq)
     {
-      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-      if (proveEq(cdp, eq, eq, i, stepLimit, subgoals))
+      Trace("rpc-debug") << "...now try converted" << std::endl;
+      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
       {
         success = true;
-        break;
       }
     }
-    if (!success)
+    else
     {
-      Node eqi = d_rdnc.convert(eq);
-      // if converter didn't make a difference, don't try to prove again
-      if (eqi != eq)
-      {
-        for (int64_t i = 0; i <= recLimit; i++)
-        {
-          Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-          if (proveEq(cdp, eq, eqi, i, stepLimit, subgoals))
-          {
-            success = true;
-            break;
-          }
-        }
-      }
+      Trace("rpc-debug") << "...do not try converted, did not change"
+                         << std::endl;
     }
   }
   if (!success)
   {
-    // now try the "post-prove" method as a last resort
+    // Now try the "post-prove" method as a last resort. We try the unconverted
+    // then the converted form of eq, if applicable.
     if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      success = true;
+    }
+    else if (eqi != eq
+             && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
+    {
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
       success = true;
     }
     else
@@ -173,9 +150,169 @@ bool RewriteDbProofCons::prove(
   return success;
 }
 
-bool RewriteDbProofCons::proveEq(
+bool RewriteDbProofCons::proveEqStratified(
     CDProof* cdp,
     const Node& eq,
+    const Node& eqi,
+    int64_t recLimit,
+    int64_t stepLimit,
+    std::vector<std::shared_ptr<ProofNode>>& subgoals,
+    TheoryRewriteMode tmode)
+{
+  bool success = false;
+  // first, try the basic utility
+  if (d_trrc.prove(cdp, eqi[0], eqi[1], subgoals, tmode))
+  {
+    Trace("rpc") << "...success (basic)" << std::endl;
+    success = true;
+  }
+  else
+  {
+    // prove the equality
+    for (int64_t i = 0; i <= recLimit; i++)
+    {
+      Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
+      if (proveEq(cdp, eqi, i, stepLimit, subgoals))
+      {
+        Trace("rpc") << "...success" << std::endl;
+        success = true;
+        break;
+      }
+    }
+  }
+  if (success)
+  {
+    // if eqi was converted, update the proof to account for this
+    if (eq != eqi)
+    {
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
+    }
+    return true;
+  }
+  return false;
+}
+
+Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
+                                             const Node& a,
+                                             const Node& b)
+{
+  // Ensure patterns are removed by calling d_rdnc postConvert (single step),
+  // which also ensures differences e.g. LAMBDA vs FUNCTION_ARRAY_CONST are
+  // resolved. We do not apply convert recursively here.
+  Node ai = d_rdnc.postConvert(a);
+  Node bi = d_rdnc.postConvert(b);
+  // The kinds must match.
+  if (ai.getKind() != bi.getKind())
+  {
+    return Node::null();
+  }
+  // only apply this to standard binders (those with 2 children)
+  if (ai.getNumChildren() != 2 || bi.getNumChildren() != 2)
+  {
+    return Node::null();
+  }
+  Node eq;
+  Node eqConv = ai.eqNode(bi);
+  if (ai[0] == bi[0])
+  {
+    ProofRewriteRule prid = d_env.getRewriter()->findRule(
+        ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
+    if (prid != ProofRewriteRule::NONE)
+    {
+      // a simple theory rewrite happens to solve it, do not continue
+      return Node::null();
+    }
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(ai, cargs);
+    // remains to prove their bodies are equal
+    eq = ai[1].eqNode(bi[1]);
+    cdp->addStep(eqConv, cr, {eq}, cargs);
+  }
+  else if (ai[0].getNumChildren() == bi[0].getNumChildren())
+  {
+    size_t nchild = ai[0].getNumChildren();
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    std::unordered_set<Node> uvars;
+    for (size_t i = 0; i < nchild; i++)
+    {
+      // rare corner case: don't use if duplicate variables
+      if (!uvars.insert(ai[0][i]).second)
+      {
+        return Node::null();
+      }
+      if (ai[0][i] != bi[0][i])
+      {
+        if (ai[0][i].getType() != bi[0][i].getType())
+        {
+          return Node::null();
+        }
+        vars.emplace_back(ai[0][i]);
+        subs.emplace_back(bi[0][i]);
+      }
+    }
+    if (vars.empty())
+    {
+      return Node::null();
+    }
+    NodeManager* nm = nodeManager();
+    std::vector<Node> aeArgs;
+    aeArgs.push_back(ai);
+    aeArgs.push_back(nm->mkNode(Kind::SEXPR, vars));
+    aeArgs.push_back(nm->mkNode(Kind::SEXPR, subs));
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+    Node res = pc->checkDebug(ProofRule::ALPHA_EQUIV, {}, aeArgs);
+    if (!res.isNull())
+    {
+      Assert(res.getKind() == Kind::EQUAL);
+      cdp->addStep(res, ProofRule::ALPHA_EQUIV, {}, aeArgs);
+      // Remains to prove that the result of applying alpha equivalence to the
+      // left hand side is equal to the right hand side. This may be a
+      // reflexive equality when ALPHA_EQUIV alone suffices. Note that when this
+      // occurs eq is not a free assumption in cdp. Proof generation will
+      // easily succeed in proving eq by REFL, but this will not be used
+      // in the final proof.
+      eq = res[1].eqNode(bi);
+      if (res != eqConv)
+      {
+        cdp->addStep(eqConv, ProofRule::TRANS, {res, eq}, {});
+      }
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
+  else
+  {
+    return Node::null();
+  }
+  std::vector<Node> transEq;
+  if (ai != a)
+  {
+    Node aeq = a.eqNode(ai);
+    cdp->addStep(aeq, ProofRule::ENCODE_EQ_INTRO, {}, {a});
+    transEq.push_back(aeq);
+  }
+  transEq.push_back(eqConv);
+  if (bi != b)
+  {
+    Node beq = b.eqNode(bi);
+    cdp->addStep(beq, ProofRule::ENCODE_EQ_INTRO, {}, {b});
+    Node beqs = bi.eqNode(b);
+    cdp->addStep(beqs, ProofRule::SYMM, {beq}, {});
+    transEq.push_back(beqs);
+  }
+  if (transEq.size() > 1)
+  {
+    Node eqo = a.eqNode(b);
+    cdp->addStep(eqo, ProofRule::TRANS, transEq, {});
+  }
+  return eq;
+}
+
+bool RewriteDbProofCons::proveEq(
+    CDProof* cdp,
     const Node& eqi,
     int64_t recLimit,
     int64_t stepLimit,
@@ -199,11 +336,6 @@ bool RewriteDbProofCons::proveEq(
   {
     ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    // if it changed encoding, account for this
-    if (eq != eqi)
-    {
-      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
-    }
     ensureProofInternal(cdp, eqi, subgoals);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
@@ -619,7 +751,6 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       // the missing transitivity link is a subgoal to prove
       transEq = stgt.eqNode(target[1]);
-      vcs.push_back(transEq);
       Trace("rpc-debug2") << "  Try transitive with " << transEq << std::endl;
     }
     // do its conditions hold?
@@ -643,6 +774,14 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       // cannot get conditions, likely due to failed side condition
       Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
       return false;
+    }
+    // Prove transitive equality last. We choose this order since the
+    // transitive equality is expected to be the hardest to prove. Also, the
+    // conditions may guard instances where the RHS is not well typed (e.g.
+    // bv-eq-extract-elim1,2,3).
+    if (!transEq.isNull())
+    {
+      vcs.push_back(transEq);
     }
   }
   // First, check which premises are non-trivial, and if there is a trivial

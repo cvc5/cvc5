@@ -145,7 +145,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
         std::vector<Node> children;
-        Node bv = nm->mkBoundVar("?i", iType);
+        Node bv = NodeManager::mkBoundVar("?i", iType);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bv);
         std::vector<Node> subs;
         std::vector<Node> vars;
@@ -162,8 +162,9 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
             << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
         Node new_q = nm->mkNode(Kind::FORALL, bvl, bd);
-        new_q = rewrite(new_q);
-        assertionsToPreprocess->replace(i, new_q);
+        assertionsToPreprocess->replace(
+            i, new_q, nullptr, TrustId::PREPROCESS_FUN_DEF_FMF);
+        assertionsToPreprocess->ensureRewritten(i);
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back(i);
       }
@@ -201,7 +202,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           << "FMF fun def : rewrite " << assertions[i] << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
       Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      assertionsToPreprocess->replace(i, n);
+      assertionsToPreprocess->replace(
+          i, n, nullptr, TrustId::PREPROCESS_FUN_DEF_FMF);
     }
   }
 }
@@ -444,7 +446,7 @@ void FunDefFmf::getConstraints(Node n,
       if (it != d_sorts.end())
       {
         // create existential
-        Node z = nm->mkBoundVar("?z", it->second);
+        Node z = NodeManager::mkBoundVar("?z", it->second);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, z);
         std::vector<Node> children;
         for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)

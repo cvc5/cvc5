@@ -63,12 +63,12 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     else if (in[0].getKind() == Kind::EQUAL && in[0][0].getType().isBoolean())
     {
       TNode eq = in[0];
-      if (eq[0].isVar() && isLegalElimination(eq[0], eq[1]))
+      if (eq[0].isVar() && d_valuation.isLegalElimination(eq[0], eq[1]))
       {
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1].notNode(), tin);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      else if (eq[1].isVar() && isLegalElimination(eq[1], eq[0]))
+      else if (eq[1].isVar() && d_valuation.isLegalElimination(eq[1], eq[0]))
       {
         outSubstitutions.addSubstitutionSolved(eq[1], eq[0].notNode(), tin);
         return PP_ASSERT_STATUS_SOLVED;

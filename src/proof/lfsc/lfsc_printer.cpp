@@ -186,12 +186,11 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     const DType& dt = stc.getDType();
     preamble << "; DATATYPE " << dt.getName() << std::endl;
-    NodeManager* nm = nodeManager();
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
       std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
-      Node cc = nm->mkRawSymbol(cname, stc);
+      Node cc = NodeManager::mkRawSymbol(cname, stc);
       // print constructor/tester
       preamble << "(declare " << cc << " term)" << std::endl;
       for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
@@ -199,7 +198,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
         const DTypeSelector& arg = cons[j];
         // print selector
         std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
-        Node sc = nm->mkRawSymbol(sname, stc);
+        Node sc = NodeManager::mkRawSymbol(sname, stc);
         preamble << "(declare " << sc << " term)" << std::endl;
       }
     }
@@ -540,11 +539,6 @@ void LfscPrinter::printProofInternal(
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
-        }
-        else if (r == ProofRule::ENCODE_EQ_INTRO)
-        {
-          // just add child
-          visit.push_back(PExpr(cur->getChildren()[0].get()));
         }
         else if (isLambda)
         {
