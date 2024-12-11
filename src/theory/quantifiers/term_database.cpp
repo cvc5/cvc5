@@ -16,6 +16,7 @@
 #include "theory/quantifiers/term_database.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
@@ -29,7 +30,6 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/sort_to_term.h"
 #include "theory/uf/equality_engine.h"
 
 using namespace cvc5::internal::kind;
@@ -161,7 +161,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(tn)));
