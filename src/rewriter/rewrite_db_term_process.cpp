@@ -15,10 +15,10 @@
 
 #include "rewriter/rewrite_db_term_process.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
