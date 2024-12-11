@@ -79,8 +79,6 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
@@ -106,14 +104,11 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param id The theory rewrite that proves eq.
    * @param eq The conclusion of the theory rewrite.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    */
   void ensureProofForTheoryRewrite(
       CDProof* cdp,
       ProofRewriteRule id,
-      const Node& eq,
-      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+      const Node& eq);
 
  private:
   /**
