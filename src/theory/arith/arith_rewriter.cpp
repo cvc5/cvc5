@@ -53,8 +53,6 @@ ArithRewriter::ArithRewriter(NodeManager* nm, OperatorElim& oe)
 {
   registerProofRewriteRule(ProofRewriteRule::ARITH_POW_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
-                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   // we don't register ARITH_STRING_PRED_ENTAIL or
@@ -74,20 +72,6 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         if (!nx.isNull())
         {
           return nx;
-        }
-      }
-    }
-    break;
-    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
-    {
-      if (n.getKind() == Kind::DIVISION && n[1].isConst())
-      {
-        Rational r = n[1].getConst<Rational>();
-        if (r.sgn() != 0)
-        {
-          Rational rinv = Rational(1) / r;
-          NodeManager* nm = nodeManager();
-          return nm->mkNode(Kind::MULT, n[0], nm->mkConstReal(rinv));
         }
       }
     }

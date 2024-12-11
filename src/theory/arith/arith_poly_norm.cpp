@@ -381,6 +381,16 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         }
         continue;
       }
+      else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL)
+      {
+        // only division by non-zero constant is supported
+        if (cur[1].isConst() && cur[1].getConst<Rational>().sgn() != 0)
+        {
+          visited[cur] = PolyNorm();
+          visit.push_back(cur[0]);
+          continue;
+        }
+      }
       // it is a leaf
       visited[cur].addMonomial(cur, one);
       visit.pop_back();
@@ -423,6 +433,18 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        {
+          it = visited.find(cur[0]);
+          Assert(it != visited.end());
+          ret.add(it->second);
+          Assert(cur[1].isConst());
+          // multiply by inverse
+          Rational invc = cur[1].getConst<Rational>().inverse();
+          ret.multiplyMonomial(TNode::null(), invc);
+        }
+        break;
         case Kind::CONST_RATIONAL:
         case Kind::CONST_INTEGER:
         case Kind::CONST_BITVECTOR:
