@@ -47,6 +47,9 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_theoryRewriteRuleCount(
           statisticsRegistry().registerHistogram<ProofRewriteRule>(
               "finalProof::theoryRewriteRuleCount")),
+      d_theoryRewriteEouCount(
+          statisticsRegistry().registerHistogram<ProofRewriteRule>(
+              "finalProof::theoryRewriteRuleUnhandledEoCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
       d_trustTheoryRewriteCount(
@@ -106,7 +109,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     // record stats for the rule
     d_ruleCount << r;
-    if (!proof::AlfPrinter::isHandled(options(), pn.get()))
+    bool isHandled = proof::AlfPrinter::isHandled(options(), pn.get());
+    if (!isHandled)
     {
       d_ruleEouCount << r;
     }
@@ -115,17 +119,20 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
-      ProofRewriteRule di;
-      if (rewriter::getRewriteRule(args[0], di))
+      ProofRewriteRule di = ProofRewriteRule::NONE;
+      rewriter::getRewriteRule(args[0], di);
+      Assert(di != ProofRewriteRule::NONE);
+      if (r == ProofRule::DSL_REWRITE)
       {
-        if (r == ProofRule::DSL_REWRITE)
+        d_dslRuleCount << di;
+      }
+      else
+      {
+        if (!isHandled)
         {
-          d_dslRuleCount << di;
+          d_theoryRewriteEouCount << di;
         }
-        else
-        {
-          d_theoryRewriteRuleCount << di;
-        }
+        d_theoryRewriteRuleCount << di;
       }
     }
     // take stats on the instantiations in the proof
