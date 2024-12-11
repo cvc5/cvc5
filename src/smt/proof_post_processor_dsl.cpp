@@ -145,6 +145,9 @@ bool ProofPostprocessDsl::update(Node res,
     // if successful, we update the proof
     return true;
   }
+  // clean up traversing, since we are setting continueUpdate to false
+  Assert (!d_traversing.empty());
+  d_traversing.pop_back();
   // otherwise no update
   return false;
 }
