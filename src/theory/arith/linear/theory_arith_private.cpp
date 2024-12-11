@@ -1823,8 +1823,7 @@ void TheoryArithPrivate::outputPropagate(TNode lit) {
 void TheoryArithPrivate::outputRestart() {
   Trace("arith::channel") << "Arith restart!" << std::endl;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node restartVar = sm->mkDummySkolem(
+  Node restartVar = NodeManager::mkDummySkolem(
       "restartVar",
       nm->booleanType(),
       "A boolean variable asserted to be true to force a restart");

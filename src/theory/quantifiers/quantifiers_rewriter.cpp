@@ -1989,8 +1989,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    SkolemManager* sm = nm->getSkolemManager();
-    Node avar = sm->mkDummySkolem("id", nm->booleanType());
+    Node avar = NodeManager::mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(Kind::INST_ATTRIBUTE, avar));

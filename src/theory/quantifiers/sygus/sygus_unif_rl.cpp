@@ -138,7 +138,6 @@ Node SygusUnifRl::purifyLemma(Node n,
   bool childChanged = false;
   std::vector<Node> children;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   for (unsigned i = 0; i < size; ++i)
   {
     if (i == 0 && fapp)
@@ -188,7 +187,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
-      Node new_f = sm->mkDummySkolem(
+      Node new_f = NodeManager::mkDummySkolem(
           ss.str(), nb[0].getType(), "head of unif evaluation point");
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify")

@@ -47,7 +47,6 @@ Node preSkolemEmp(NodeManager* nm,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
-    SkolemManager* sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;
@@ -55,10 +54,10 @@ Node preSkolemEmp(NodeManager* nm,
     {
       if (!pol)
       {
-        Node x =
-            sm->mkDummySkolem("ex", locType, "skolem location for negated emp");
-        Node y =
-            sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
+        Node x = NodeManager::mkDummySkolem(
+            "ex", locType, "skolem location for negated emp");
+        Node y = NodeManager::mkDummySkolem(
+            "ey", dataType, "skolem data for negated emp");
         return nm
             ->mkNode(Kind::SEP_STAR,
                      nm->mkNode(Kind::SEP_PTO, x, y),

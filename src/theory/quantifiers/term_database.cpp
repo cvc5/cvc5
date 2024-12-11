@@ -160,11 +160,11 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    SkolemManager* sm = nodeManager()->getSkolemManager();
     std::stringstream ss;
     options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
-    Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
+    Node k =
+        NodeManager::mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
     if (options().quantifiers.instMaxLevel != -1)

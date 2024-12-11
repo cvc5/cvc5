@@ -111,7 +111,6 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   AlwaysAssert(!options().base.incrementalSolving);
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   NodeMap binaryCache;
   Node n_binary = intToBVMakeBinary(nm, n, binaryCache);
 
@@ -236,9 +235,10 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         if (current.getType() == nm->integerType())
         {
-          result = sm->mkDummySkolem("__intToBV_var",
-                                     nm->mkBitVectorType(size),
-                                     "Variable introduced in intToBV pass");
+          result =
+              NodeManager::mkDummySkolem("__intToBV_var",
+                                         nm->mkBitVectorType(size),
+                                         "Variable introduced in intToBV pass");
           /**
            * Correctly convert signed/unsigned BV values to Integers as follows
            * x < 0 ? -nat(-x) : nat(x)
