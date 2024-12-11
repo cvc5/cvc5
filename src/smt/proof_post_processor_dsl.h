@@ -52,7 +52,7 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
                     bool& continueUpdate) override;
   /** Should proof pn be updated (post-traversal)? */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa) override;
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,

@@ -130,8 +130,7 @@ bool RewriteDbProofCons::prove(
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
-    else if (eqi != eq
-             && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
+    else if (eqi != eq && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
@@ -309,11 +308,10 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   return eq;
 }
 
-bool RewriteDbProofCons::proveEq(
-    CDProof* cdp,
-    const Node& eqi,
-    int64_t recLimit,
-    int64_t stepLimit)
+bool RewriteDbProofCons::proveEq(CDProof* cdp,
+                                 const Node& eqi,
+                                 int64_t recLimit,
+                                 int64_t stepLimit)
 {
   // add one to recursion limit, since it is decremented whenever we
   // initiate the getMatches routine.
@@ -1005,9 +1003,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   return false;
 }
 
-bool RewriteDbProofCons::ensureProofInternal(
-    CDProof* cdp,
-    const Node& eqi)
+bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = nodeManager();

@@ -63,7 +63,8 @@ bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // - We have no premises
   // - We are not already recursively expanding >= 3 steps of the above form.
   // We check for the third criteria by tracking a d_traversing vector.
-  if ((id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE) && pn->getChildren().empty() && d_traversing.size()<3)
+  if ((id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE)
+      && pn->getChildren().empty() && d_traversing.size() < 3)
   {
     d_traversing.push_back(pn);
     return true;
@@ -72,16 +73,16 @@ bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
 }
 
 bool ProofPostprocessDsl::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                       const std::vector<Node>& fa)
+                                           const std::vector<Node>& fa)
 {
   // clean up d_traversing at post-traversal
-  if (!d_traversing.empty() && d_traversing.back()==pn)
+  if (!d_traversing.empty() && d_traversing.back() == pn)
   {
     d_traversing.pop_back();
   }
   return false;
 }
-  
+
 bool ProofPostprocessDsl::update(Node res,
                                  ProofRule id,
                                  const std::vector<Node>& children,
@@ -91,7 +92,7 @@ bool ProofPostprocessDsl::update(Node res,
 {
   continueUpdate = false;
   Assert(id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE);
-  Assert (children.empty());
+  Assert(children.empty());
   Assert(!res.isNull());
   bool reqTrueElim = false;
   // if not an equality, make (= res true).
@@ -109,7 +110,7 @@ bool ProofPostprocessDsl::update(Node res,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     getMethodId(args[2], mid);
   }
-  else if (id==ProofRule::TRUST)
+  else if (id == ProofRule::TRUST)
   {
     TrustId trid;
     getTrustId(args[0], trid);
@@ -128,8 +129,7 @@ bool ProofPostprocessDsl::update(Node res,
   // Attempt to reconstruct the proof of the equality into cdp using the
   // rewrite database proof reconstructor.
   // We record the subgoals in d_subgoals.
-  if (d_rdbPc.prove(
-          cdp, res[0], res[1], recLimit, stepLimit, tm))
+  if (d_rdbPc.prove(cdp, res[0], res[1], recLimit, stepLimit, tm))
   {
     // we will update this again, in case the elaboration introduced
     // new trust steps
