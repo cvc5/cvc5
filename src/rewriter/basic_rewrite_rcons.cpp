@@ -310,7 +310,7 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   std::pair<Node, Node> p =
       theory::arith::rewriter::decomposeRelation(nm, rewRel[0], rewRel[1]);
   Assert(p.second.isConst());
-  Assert(p.second.getConst<Rational>().isIntegral());
+  Assert(!p.second.getConst<Rational>().isIntegral());
   Node rew =
       nm->mkNode(rk, nm->mkNode(Kind::TO_REAL, p.first), p.second);
   Trace("brc-macro") << "...setup relation is " << rew << std::endl;
