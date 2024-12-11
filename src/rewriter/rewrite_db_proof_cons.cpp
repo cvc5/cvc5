@@ -62,7 +62,6 @@ bool RewriteDbProofCons::prove(
     const Node& b,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
   d_tmode = tmode;
@@ -100,7 +99,7 @@ bool RewriteDbProofCons::prove(
   bool success = false;
   // first try unconverted
   Node eqi;
-  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
+  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, tmode))
   {
     success = true;
   }
@@ -111,7 +110,7 @@ bool RewriteDbProofCons::prove(
     if (eqi != eq)
     {
       Trace("rpc-debug") << "...now try converted" << std::endl;
-      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
+      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, tmode))
       {
         success = true;
       }
@@ -126,13 +125,13 @@ bool RewriteDbProofCons::prove(
   {
     // Now try the "post-prove" method as a last resort. We try the unconverted
     // then the converted form of eq, if applicable.
-    if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
     else if (eqi != eq
-             && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
+             && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
@@ -156,12 +155,11 @@ bool RewriteDbProofCons::proveEqStratified(
     const Node& eqi,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
   bool success = false;
   // first, try the basic utility
-  if (d_trrc.prove(cdp, eqi[0], eqi[1], subgoals, tmode))
+  if (d_trrc.prove(cdp, eqi[0], eqi[1], tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -172,7 +170,7 @@ bool RewriteDbProofCons::proveEqStratified(
     for (int64_t i = 0; i <= recLimit; i++)
     {
       Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-      if (proveEq(cdp, eqi, i, stepLimit, subgoals))
+      if (proveEq(cdp, eqi, i, stepLimit))
       {
         Trace("rpc") << "...success" << std::endl;
         success = true;
@@ -315,8 +313,7 @@ bool RewriteDbProofCons::proveEq(
     CDProof* cdp,
     const Node& eqi,
     int64_t recLimit,
-    int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    int64_t stepLimit)
 {
   // add one to recursion limit, since it is decremented whenever we
   // initiate the getMatches routine.
@@ -336,7 +333,7 @@ bool RewriteDbProofCons::proveEq(
   {
     ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    ensureProofInternal(cdp, eqi, subgoals);
+    ensureProofInternal(cdp, eqi);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
     return true;
@@ -1010,8 +1007,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
 
 bool RewriteDbProofCons::ensureProofInternal(
     CDProof* cdp,
-    const Node& eqi,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+    const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = nodeManager();
@@ -1242,7 +1238,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
           // use the utility, possibly to do macro expansion
-          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur, subgoals);
+          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur);
         }
       }
     }

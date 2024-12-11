@@ -64,15 +64,12 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
   bool prove(CDProof* cdp,
              Node a,
              Node b,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals,
              TheoryRewriteMode tmode);
   /**
    * There are theory rewrites which cannot be expressed in RARE rules. In this
@@ -90,7 +87,6 @@ class BasicRewriteRCons : protected EnvObj
   bool postProve(CDProof* cdp,
                  Node a,
                  Node b,
-                 std::vector<std::shared_ptr<ProofNode>>& subgoals,
                  TheoryRewriteMode tmode);
   /**
    * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
@@ -241,8 +237,7 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
-                        theory::TheoryRewriteCtx ctx,
-                        std::vector<std::shared_ptr<ProofNode>>& subgoals);
+                        theory::TheoryRewriteCtx ctx);
 };
 
 }  // namespace rewriter
