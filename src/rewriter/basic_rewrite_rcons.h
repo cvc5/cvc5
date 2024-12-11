@@ -105,10 +105,9 @@ class BasicRewriteRCons : protected EnvObj
    * @param id The theory rewrite that proves eq.
    * @param eq The conclusion of the theory rewrite.
    */
-  void ensureProofForTheoryRewrite(
-      CDProof* cdp,
-      ProofRewriteRule id,
-      const Node& eq);
+  void ensureProofForTheoryRewrite(CDProof* cdp,
+                                   ProofRewriteRule id,
+                                   const Node& eq);
 
  private:
   /**
