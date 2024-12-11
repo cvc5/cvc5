@@ -259,6 +259,21 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   return NodeManager::mkNode(kind, left, right);
 }
 
+bool isIntConflictGCDLCM(Sum&& sum)
+{
+  normalizeGCDLCM(sum);
+  const auto& constant = *sum.begin();
+  if (constant.first.isConst())
+  {
+    Assert(constant.second.isRational());
+    if (!constant.second.toRational().isIntegral())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 Node buildIntegerEquality(Sum&& sum)
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
@@ -360,6 +375,44 @@ Node buildRealInequality(Sum&& sum, Kind k)
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));
   return buildRelation(k, collectSum(sum), rhs);
+}
+
+std::pair<Node, Node> decomposeSum(NodeManager* nm,
+                                   Sum&& sum,
+                                   bool& negated,
+                                   bool followLCoeffSign)
+{
+  negated = normalizeGCDLCM(sum, followLCoeffSign);
+  RealAlgebraicNumber constant = removeConstant(sum);
+  Assert(constant.isRational());
+  Node c = nm->mkConstReal(constant.toRational());
+  Node t = collectSum(sum);
+  return std::pair<Node, Node>(t, c);
+}
+
+std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum)
+{
+  bool negated = false;
+  return decomposeSum(nm, std::move(sum), negated, false);
+}
+
+std::pair<Node, Node> decomposeRelation(NodeManager* nm,
+                                        const Node& a,
+                                        const Node& b)
+{
+  Node ar = a.getKind() == Kind::TO_REAL ? a[0] : a;
+  Node br = b.getKind() == Kind::TO_REAL ? b[0] : b;
+  rewriter::Sum sum;
+  rewriter::addToSum(sum, ar, false);
+  rewriter::addToSum(sum, br, true);
+  // decompose the sum into a non-constant and constant part
+  normalizeGCDLCM(sum);
+  RealAlgebraicNumber constant = removeConstant(sum);
+  Assert(constant.isRational());
+  // negate the constant
+  Node c = nm->mkConstReal(-constant.toRational());
+  Node t = collectSum(sum);
+  return std::pair<Node, Node>(t, c);
 }
 
 }  // namespace rewriter

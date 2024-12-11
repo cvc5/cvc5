@@ -182,6 +182,13 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+      if (ensureProofMacroArithIntRelation(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       if (ensureProofMacroArithStringPredEntail(cdp, eq))
       {
@@ -271,6 +278,70 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
+                                                           const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("brc-macro") << "Expand int relation for " << eq << std::endl;
+  NodeManager* nm = nodeManager();
+  Kind rk = eq[0].getKind();
+  Assert(rk == Kind::EQUAL || rk == Kind::GEQ);
+  Node rewRel = eq[0];
+  std::vector<Node> transEq;
+  if (rewRel[0].getType().isInteger() && rk ==Kind::EQUAL)
+  {
+    // if we are starting from an integer equality, we should convert to
+    // a real equality first to ensure the ARITH_POLY_NORM_REL step will
+    // work below.
+    Node rer = nm->mkNode(rk,
+                          nm->mkNode(Kind::TO_REAL, rewRel[0]),
+                          nm->mkNode(Kind::TO_REAL, rewRel[1]));
+    Node eqq = rewRel.eqNode(rer);
+    cdp->addTrustedStep(
+        eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    transEq.push_back(eqq);
+    rewRel = rer;
+  }
+  // construct the setup equality
+  std::pair<Node, Node> p =
+      theory::arith::rewriter::decomposeRelation(nm, rewRel[0], rewRel[1]);
+  Assert(p.second.isConst());
+  Assert(p.second.getConst<Rational>().isIntegral());
+  Node rew =
+      nm->mkNode(rk, nm->mkNode(Kind::TO_REAL, p.first), p.second);
+  Trace("brc-macro") << "...setup relation is " << rew << std::endl;
+  Node eqq = rewRel.eqNode(rew);
+  transEq.push_back(eqq);
+  // should be able to show the equivalence by ARITH_POLY_NORM_REL
+  if (!ensureProofArithPolyNormRel(cdp, eqq))
+  {
+    Trace("brc-macro") << "...failed arith poly rel" << std::endl;
+    return false;
+  }
+  Node tgt = eq[1];
+  // if GEQ, we rewrite the right hand side to match the RARE rule
+  // arith-int-geq-tighten verbatim
+  if (rk==Kind::GEQ)
+  {
+    Node cceil = nm->mkConstInt(p.second.getConst<Rational>().ceiling());
+    tgt = nm->mkNode(rk, p.first,cceil);
+  }
+  // the last step can be shown by the RARE rules
+  // arith-int-eq-conflict or arith-int-geq-tighten
+  eqq = rew.eqNode(tgt);
+  cdp->addTrustedStep(eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  transEq.push_back(eqq);
+  if (tgt != eq[1])
+  {
+    eqq = tgt.eqNode(eq[1]);
+    cdp->addTrustedStep(eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    transEq.push_back(eqq);
+  }
+  // connect with transitive
+  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
 }
 
