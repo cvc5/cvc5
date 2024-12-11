@@ -312,7 +312,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
   {
     return n[0];
   }
-  return NodeManager::currentNM()->mkNode(notk, n);
+  return NodeManager::mkNode(notk, n);
 }
 
 bool TermUtil::isNegate(Kind k)
@@ -657,11 +657,11 @@ Node TermUtil::ensureType(Node n, TypeNode tn)
   }
   if (tn.isInteger())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
+    return NodeManager::mkNode(Kind::TO_INTEGER, n);
   }
   else if (tn.isReal())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
+    return NodeManager::mkNode(Kind::TO_REAL, n);
   }
   return Node::null();
 }

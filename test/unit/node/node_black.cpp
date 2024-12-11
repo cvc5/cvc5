@@ -78,7 +78,7 @@ class TestNodeBlackNode : public TestNode
 
   void testNaryExpForSize(Kind k, uint32_t n)
   {
-    NodeBuilder nbz(k);
+    NodeBuilder nbz(d_nodeManager, k);
     Node trueNode = d_nodeManager->mkConst(true);
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -468,7 +468,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 
 TEST_F(TestNodeBlackNode, iterator)
 {
-  NodeBuilder b;
+  NodeBuilder b(d_nodeManager);
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
@@ -494,7 +494,7 @@ TEST_F(TestNodeBlackNode, iterator)
 
 TEST_F(TestNodeBlackNode, const_reverse_iterator)
 {
-  NodeBuilder b;
+  NodeBuilder b(d_nodeManager);
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
@@ -545,8 +545,8 @@ TEST_F(TestNodeBlackNode, toString)
       "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder() << w << x << Kind::OR;
-  Node n = NodeBuilder() << m << y << z << Kind::AND;
+  Node m = NodeBuilder(d_nodeManager) << w << x << Kind::OR;
+  Node n = NodeBuilder(d_nodeManager) << m << y << z << Kind::AND;
 
   ASSERT_EQ(n.toString(), "(AND (OR w x) y z)");
 }
@@ -563,9 +563,9 @@ TEST_F(TestNodeBlackNode, toStream)
       "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder() << x << y << Kind::OR;
-  Node n = NodeBuilder() << w << m << z << Kind::AND;
-  Node o = NodeBuilder() << n << n << Kind::XOR;
+  Node m = NodeBuilder(d_nodeManager) << x << y << Kind::OR;
+  Node n = NodeBuilder(d_nodeManager) << w << m << z << Kind::AND;
+  Node o = NodeBuilder(d_nodeManager) << n << n << Kind::XOR;
 
   std::stringstream sstr;
   options::ioutils::applyDagThresh(sstr, 0);
@@ -798,7 +798,7 @@ namespace {
 Node level0(NodeManager* nm)
 {
   SkolemManager* sm = nm->getSkolemManager();
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nm, Kind::AND);
   Node x = sm->mkDummySkolem("x", nm->booleanType());
   nb << x;
   nb << x;

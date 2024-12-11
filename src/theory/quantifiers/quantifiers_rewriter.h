@@ -203,8 +203,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node computePrenex(Node q,
                      Node body,
-                     std::unordered_set<Node>& args,
-                     std::unordered_set<Node>& nargs,
+                     std::vector<Node>& args,
+                     std::vector<Node>& nargs,
                      bool pol,
                      bool prenexAgg) const;
   Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;

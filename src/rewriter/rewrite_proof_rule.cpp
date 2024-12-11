@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"

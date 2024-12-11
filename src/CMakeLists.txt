@@ -477,6 +477,8 @@ libcvc5_add_sources(
   theory/arith/nl/coverings/variable_ordering.h
   theory/arith/nl/equality_substitution.cpp
   theory/arith/nl/equality_substitution.h
+  theory/arith/nl/ext/arith_nl_compare_proof_gen.cpp
+  theory/arith/nl/ext/arith_nl_compare_proof_gen.h
   theory/arith/nl/ext/constraint.cpp
   theory/arith/nl/ext/constraint.h
   theory/arith/nl/ext/factoring_check.cpp

@@ -158,7 +158,7 @@ class NormalForm {
     }else if( index==els.size()-1 ){
       return els[index];
     }else{
-      return NodeManager::currentNM()->mkNode( k, els[index], mkBop( k, els, tn, index+1 ) );
+      return NodeManager::mkNode(k, els[index], mkBop(k, els, tn, index + 1));
     }
   }
 

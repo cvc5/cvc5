@@ -79,3 +79,29 @@
 (define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
 
 (define-rule arith-pi-not-int () (is_int real.pi) false)
+
+; absolute value comparisons
+
+(define-rule arith-abs-eq ((x ?) (y ?))
+  (= (abs x) (abs y))
+  (or (= x y) (= x (- y))))
+
+(define-rule arith-abs-int-gt ((x Int) (y Int))
+  (> (abs x) (abs y))
+  (ite (>= x 0)
+    (ite (>= y 0)
+      (> x y)
+      (> x (- y)))
+    (ite (>= y 0)
+      (> (- x) y)
+      (> (- x) (- y)))))
+  
+(define-rule arith-abs-real-gt ((x Real) (y Real))
+  (> (abs x) (abs y))
+  (ite (>= x 0/1)
+    (ite (>= y 0/1)
+      (> x y)
+      (> x (- y)))
+    (ite (>= y 0/1)
+      (> (- x) y)
+      (> (- x) (- y)))))
