@@ -97,7 +97,8 @@ void ProofPostprocessDsl::reconstruct(
     for (std::shared_ptr<ProofNode> p : d_subgoals)
     {
       Trace("pp-dsl") << "  " << p->getResult() << std::endl;
-      Trace("pp-dsl-warn") << "WARNING: unproven subgoal " << p->getResult() << std::endl;
+      Trace("pp-dsl-warn") << "WARNING: unproven subgoal " << p->getResult()
+                           << std::endl;
     }
     d_subgoals.clear();
   }
