@@ -381,10 +381,10 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         }
         continue;
       }
-      else if (k==Kind::DIVISION || k == Kind::DIVISION_TOTAL)
+      else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL)
       {
         // only division by non-zero constant is supported
-        if (cur[1].isConst() && cur[1].getConst<Rational>().sgn()!=0)
+        if (cur[1].isConst() && cur[1].getConst<Rational>().sgn() != 0)
         {
           visited[cur] = PolyNorm();
           visit.push_back(cur[0]);
@@ -439,12 +439,12 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           it = visited.find(cur[0]);
           Assert(it != visited.end());
           ret.add(it->second);
-          Assert (cur[1].isConst());
+          Assert(cur[1].isConst());
           // multiply by inverse
           Rational invc = cur[1].getConst<Rational>().inverse();
           ret.multiplyMonomial(TNode::null(), invc);
         }
-          break;
+        break;
         case Kind::CONST_RATIONAL:
         case Kind::CONST_INTEGER:
         case Kind::CONST_BITVECTOR:
