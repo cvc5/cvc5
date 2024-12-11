@@ -656,7 +656,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
   Assert(this->getWidth() > reduction);
 
   NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_EXTRACT);
-  construct << getNodeManager()->mkConst<BitVectorExtract>(
+  construct << getNodeManager()->template mkConst<BitVectorExtract>(
       BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
 
@@ -707,7 +707,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
   Assert(upper >= lower);
 
   NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_EXTRACT);
-  construct << getNodeManager()->mkConst<BitVectorExtract>(
+  construct << getNodeManager()->template mkConst<BitVectorExtract>(
       BitVectorExtract(upper, lower))
             << *this;
 
