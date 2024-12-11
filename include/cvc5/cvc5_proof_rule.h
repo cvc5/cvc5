@@ -2498,6 +2498,32 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARRAYS_SELECT_CONST),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro distinct arrays**
+   *
+   * .. math::
+   *   (A=B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct array values.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_DISTINCT_ARRAYS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize constant**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array value :math:`A`
+   * into a canonical form.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_CONSTANT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
