@@ -166,6 +166,8 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
     case ProofRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
+      return "ARITH_MULT_ABS_COMPARISON";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
@@ -225,8 +227,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
-    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
-      return "arith-div-by-const-elim";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -241,7 +241,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
+      return "macro-quant-merge-prenex";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
+    case ProofRewriteRule::MACRO_QUANT_PRENEX: return "macro-quant-prenex";
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
       return "macro-quant-miniscope";
     case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
@@ -254,6 +257,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
       return "macro-quant-var-elim-ineq";
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ: return "quant-var-elim-eq";
+    case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
+      return "macro-quant-rewrite-body";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";

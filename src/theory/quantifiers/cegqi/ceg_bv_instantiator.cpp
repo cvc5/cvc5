@@ -159,7 +159,6 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return lit;
   }
-  NodeManager* nm = NodeManager::currentNM();
   Node s = atom[0];
   Node t = atom[1];
 
@@ -181,12 +180,12 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
     if (sm != tm)
     {
-      Node slack = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, sm, tm));
+      Node slack = rewrite(NodeManager::mkNode(Kind::BITVECTOR_SUB, sm, tm));
       Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;
-      ret =
-          nm->mkNode(Kind::EQUAL, s, nm->mkNode(Kind::BITVECTOR_ADD, t, slack));
+      ret = NodeManager::mkNode(
+          Kind::EQUAL, s, NodeManager::mkNode(Kind::BITVECTOR_ADD, t, slack));
       Trace("cegqi-bv") << "Slack is " << slack << std::endl;
     }
     else
@@ -220,7 +219,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     else
     {
       Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
-      ret = nm->mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
+      ret = NodeManager::mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
     }
   }
   Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
@@ -539,8 +538,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::vector<Node>& children,
     std::unordered_map<Node, bool>& contains_pv)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   // [1] rewrite cases of non-invertible operators
 
   if (n.getKind() == Kind::EQUAL)
@@ -554,7 +551,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
         || (rhs == pv && lhs.getKind() == Kind::BITVECTOR_MULT && lhs[0] == pv
             && lhs[1] == pv))
     {
-      return nm->mkNode(
+      return NodeManager::mkNode(
           Kind::BITVECTOR_ULT,
           pv,
           bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));

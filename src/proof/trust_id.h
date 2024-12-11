@@ -141,6 +141,12 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
+  /**
+   * A conversion between a literal used in the inference id lemma
+   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
+   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
+   */
+  ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
   /** An extended theory rewrite */
@@ -172,6 +178,11 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /**
+   * An existential corresponding to a witness term introduced e.g. in
+   * quantifier instantiation
+   */
+  VALID_WITNESS,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */

@@ -25,6 +25,7 @@
 namespace cvc5::internal {
 
 class Options;
+class TConvProofGenerator;
 
 namespace theory {
 
@@ -202,8 +203,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node computePrenex(Node q,
                      Node body,
-                     std::unordered_set<Node>& args,
-                     std::unordered_set<Node>& nargs,
+                     std::vector<Node>& args,
+                     std::vector<Node>& nargs,
                      bool pol,
                      bool prenexAgg) const;
   Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
@@ -227,6 +228,14 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static bool isStandard(QAttributes& qa, const Options& opts);
 
+  /**
+   * @param q The quantified formula to rewrite.
+   * @param pg If provided, stores a set of small step rewrites that suffice
+   * to show that q rewrites to the returned quantified formula.
+   */
+  Node computeRewriteBody(const Node& q,
+                          TConvProofGenerator* pg = nullptr) const;
+
  private:
   /**
    * Do trivial merging of the prenex of quantified formula q, e.g.
@@ -237,9 +246,10 @@ class QuantifiersRewriter : public TheoryRewriter
    * @param q The quantified formula to prenex.
    * @param checkStd If true, we do not merge prenex for any non-standard
    * quantified formula
+   * @param rmDup If true, we remove duplicate variables.
    * @return The result of merging prenex in q.
    */
-  Node mergePrenex(const Node& q, bool checkStd);
+  Node mergePrenex(const Node& q, bool checkStd, bool rmDup);
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
@@ -262,25 +272,23 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   /**
-   * It may introduce new conditions C into new_conds. It returns a node retBody
-   * such that q of the form
+   * Returns a node retBody such that q of the form
    *   forall args. body
    * is equivalent to:
-   *   forall args. ( C V retBody )
+   *   forall args. retBody
    *
    * @param q The original quantified formula we are processing
    * @param args The bound variables of q
    * @param body The subformula of the body of q we are processing
    * @param cache Cache from terms to their processed form
-   * @param new_conds New conditions to add as disjunctions to the return
    * @param iteLiftMode The mode for lifting ITEs from body.
    */
   Node computeProcessTerms2(const Node& q,
                             const std::vector<Node>& args,
                             Node body,
                             std::map<Node, Node>& cache,
-                            std::vector<Node>& new_conds,
-                            options::IteLiftQuantMode iteLiftMode) const;
+                            options::IteLiftQuantMode iteLiftMode,
+                            TConvProofGenerator* pg) const;
   void computeDtTesterIteSplit(Node n,
                                std::map<Node, Node>& pcons,
                                std::map<Node, std::map<int, Node> >& ncons,
@@ -330,7 +338,8 @@ class QuantifiersRewriter : public TheoryRewriter
   Node computeProcessTerms(const Node& q,
                            const std::vector<Node>& args,
                            Node body,
-                           QAttributes& qa) const;
+                           QAttributes& qa,
+                           TConvProofGenerator* pg = nullptr) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite
   /** compute extended rewrite

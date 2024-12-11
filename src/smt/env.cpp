@@ -76,7 +76,7 @@ Env::Env(NodeManager* nm, const Options* opts)
 
 Env::~Env() {}
 
-NodeManager* Env::getNodeManager() { return d_nm; }
+NodeManager* Env::getNodeManager() const { return d_nm; }
 
 void Env::finishInit(smt::PfManager* pm)
 {

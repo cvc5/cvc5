@@ -116,18 +116,35 @@
 
 ;;;;; ProofRewriteRule::QUANT_UNUSED_VARS
 
-; program: $is_quant_unused_vars
+; program: $mk_quant_unused_vars_rec
 ; args:
-; - F Bool: The first formula in question.
-; - G Bool: The second formula in question.
-; return: true iff G is the result of removing unused variables from F.
-(program $is_quant_unused_vars ((x @List) (y @List) (F Bool) (Q (-> @List Bool Bool)))
-  (Bool Bool) Bool
+; - x @List: The list of variables of the quantified formula.
+; - F Bool: The body of the quantified formula.
+; return: the sublist of variables in x that should be quantified for F.
+(program $mk_quant_unused_vars_rec ((T Type) (xs @List :list) (x T) (F Bool))
+  (@List Bool) Bool
   (
-  (($is_quant_unused_vars (Q x F) (Q y F)) (eo::not ($contains_subterm_list F ($nary_diff @list @list.nil x y))))
-  (($is_quant_unused_vars (Q x F) F)       (eo::not ($contains_subterm_list F x)))
+  (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
+  (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
+                                              (eo::ite ($contains_subterm F x)
+                                                (eo::ite ($contains_subterm r x) r (eo::cons @list x r))
+                                                r)))
   )
 )
+
+; program: $mk_quant_unused_vars
+; args:
+; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
+; - x @List: The list of variables of the quantified formula.
+; - F Bool: The body of the quantified formula.
+; return: the result of removing duplicate and unused variables from x.
+(define $mk_quant_unused_vars ((Q (-> @List Bool Bool)) (x @List) (F Bool))
+  (eo::match ((y @List))
+    ($mk_quant_unused_vars_rec x F)
+    (
+      (@list.nil F)
+      (y (Q y F))
+    )))
 
 ; rule: quant-unused-vars
 ; implements: ProofRewriteRule::QUANT_UNUSED_VARS
@@ -136,23 +153,23 @@
 ; requires: >
 ;   The variables removed from the left hand side do not occur in its body.
 ; conclusion: The given equality.
-(declare-rule quant-unused-vars ((F Bool) (G Bool))
-  :args ((= F G))
-  :requires ((($is_quant_unused_vars F G) true))
-  :conclusion (= F G)
+(declare-rule quant-unused-vars ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
+  :args ((= (Q x F) G))
+  :requires ((($mk_quant_unused_vars Q x F) G))
+  :conclusion (= (Q x F) G)
 )
 
 ;;;;; ProofRewriteRule::QUANT_MERGE_PRENEX
 
 ; program: $mk_quant_merge_prenex
 ; args:
-; - Q (-> @List Bool): The binding operator (forall or exists).
+; - Q (-> @List Bool Bool): The binding operator (forall or exists).
 ; - F Bool: The formula for which we are merging prenexes.
 ; return: the result of merging all bound variables bound by Q in F.
-(program $mk_quant_merge_prenex ((Q (-> @List Bool)) (x @List) (F Bool))
-  ((-> @List Bool) Bool) Bool
+(program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool))
+  ((-> @List Bool Bool) Bool) Bool
   (
-  (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool)) (y @List) (G Bool))
+  (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool Bool)) (y @List) (G Bool))
                                          ($mk_quant_merge_prenex Q F)
                                          ; note that since this method returns Q terms only, R is Q
                                          (((R y G) (Q (eo::list_concat @list x y) G)))))
@@ -168,7 +185,7 @@
 ;   The right hand side of the equality is the result of merging quantifier
 ;   prenexes in its left hand side.
 ; conclusion: The given equality.
-(declare-rule quant-merge-prenex ((Q (-> @List Bool)) (x @List) (F Bool) (G Bool))
+(declare-rule quant-merge-prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
   :requires (((eo::or (eo::is_eq Q forall) (eo::is_eq Q exists)) true)
              (($mk_quant_merge_prenex Q (Q x F)) G))

@@ -57,6 +57,10 @@ CegInstantiator::CegInstantiator(Env& env,
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
+  if (d_env.isTheoryProofProducing())
+  {
+    d_vwpg.reset(new ValidWitnessProofGenerator(env));
+  }
 }
 
 CegInstantiator::~CegInstantiator() {
@@ -1055,7 +1059,10 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
     // add the existentials, if any witness term was eliminated
     for (const Node& q : exists)
     {
-      d_qim.addPendingLemma(q, InferenceId::QUANTIFIERS_CEGQI_WITNESS);
+      d_qim.addPendingLemma(q,
+                            InferenceId::QUANTIFIERS_CEGQI_WITNESS,
+                            LemmaProperty::NONE,
+                            d_vwpg.get());
     }
     return true;
   }

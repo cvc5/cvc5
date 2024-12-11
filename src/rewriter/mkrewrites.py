@@ -59,7 +59,7 @@ def gen_mk_skolem(name, sort):
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
-    res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
+    res = f'Node {name} = NodeManager::mkBoundVar("{name}", {sort_code});'
     if sort.is_list:
         res += f'expr::markListVar({name});'
     return res

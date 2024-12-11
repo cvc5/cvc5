@@ -19,11 +19,11 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/builtin/generic_op.h"
@@ -82,9 +82,9 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy node, return it
     return n;
   }
-  TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT)
   {
+    TypeNode tn = n.getType();
     // constructors/selectors are represented by skolems, which are defined
     // symbols
     if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
@@ -94,11 +94,14 @@ Node AlfNodeConverter::postConvert(Node n)
       // to avoid type errors when constructing terms for postConvert
       return n;
     }
-    // might be a skolem function
-    Node ns = maybeMkSkolemFun(n);
-    if (!ns.isNull())
+    if (k == Kind::SKOLEM)
     {
-      return ns;
+      // might be a skolem function
+      Node ns = maybeMkSkolemFun(n);
+      if (!ns.isNull())
+      {
+        return ns;
+      }
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no
@@ -125,6 +128,7 @@ Node AlfNodeConverter::postConvert(Node n)
     }
     // A variable x of type T can unambiguously referred to as (eo::var "x" T).
     // We convert to this representation here, which will often be letified.
+    TypeNode tn = n.getType();
     std::vector<Node> args;
     Node nn = d_nm->mkConst(String(sname));
     args.push_back(nn);
@@ -142,6 +146,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // must ensure we print higher-order function applications with "_"
     if (!n.getOperator().isVar())
     {
+    TypeNode tn = n.getType();
       std::vector<Node> args;
       args.push_back(n.getOperator());
       args.insert(args.end(), n.begin(), n.end());
@@ -150,10 +155,12 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::HO_APPLY)
   {
+    TypeNode tn = n.getType();
     return mkInternalApp("_", {n[0], n[1]}, tn);
   }
   else if (n.isClosure())
   {
+    TypeNode tn = n.getType();
     Node vl = n[0];
     // Notice that intentionally we drop annotations here.
     // Additionally, it is important that we convert the closure to a
@@ -168,6 +175,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::STORE_ALL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     Node val = convert(storeAll.getValue());
@@ -176,11 +184,13 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
            || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
   }
   else if (k == Kind::SET_INSERT)
   {
+    TypeNode tn = n.getType();
     std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
     Node list = mkList(iargs);
     return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
@@ -189,6 +199,7 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     if (n.getConst<Sequence>().empty())
     {
+      TypeNode tn = n.getType();
       Node t = typeAsNode(tn);
       return mkInternalApp("seq.empty", {t}, tn);
     }
@@ -198,6 +209,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::CONST_FINITE_FIELD)
   {
+    TypeNode tn = n.getType();
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
     Node v = convert(d_nm->mkConstInt(ffv.getValue()));
     Node fs = convert(d_nm->mkConstInt(ffv.getFieldSize()));
@@ -225,6 +237,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     if (opc.getNumChildren() > 0)
     {
+      TypeNode tn = n.getType();
       newArgs.insert(newArgs.end(), opc.begin(), opc.end());
       newArgs.insert(newArgs.end(), n.begin(), n.end());
       opc = opc.getOperator();
@@ -238,6 +251,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::INDEXED_ROOT_PREDICATE)
   {
+    TypeNode tn = n.getType();
     const IndexedRootPredicate& irp =
         n.getOperator().getConst<IndexedRootPredicate>();
     std::vector<Node> newArgs;
@@ -252,6 +266,7 @@ Node AlfNodeConverter::postConvert(Node n)
            || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
            || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)
   {
+    TypeNode tn = n.getType();
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
@@ -260,6 +275,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
+    TypeNode tn = n.getType();
     // use generic list
     std::vector<Node> args;
     args.insert(args.end(), n.begin(), n.end());
@@ -270,6 +286,7 @@ Node AlfNodeConverter::postConvert(Node n)
     Kind okind = n.getOperator().getConst<GenericOp>().getKind();
     if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
     {
+      TypeNode tn = n.getType();
       // This does not take a rounding mode, we change the smt2 syntax
       // to distinguish this case, similar to the case in getOperatorOfTerm
       // where it is processed as an indexed operator.
@@ -279,6 +296,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
+    TypeNode tn = n.getType();
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());
@@ -400,8 +418,8 @@ Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
                                         bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }

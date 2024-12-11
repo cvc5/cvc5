@@ -75,7 +75,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
           {
             TypeNode vt = v.getType();
             ftypes.push_back(vt);
-            Node vs = nm->mkBoundVar(vt);
+            Node vs = NodeManager::mkBoundVar(vt);
             vars.push_back(v);
             nvars.push_back(vs);
             lvars.push_back(vs);
@@ -193,7 +193,7 @@ Node HoElim::eliminateHo(Node n)
             TypeNode ut = getUSort(tn);
             if (cur.getKind() == Kind::BOUND_VARIABLE)
             {
-              ret = nm->mkBoundVar(ut);
+              ret = NodeManager::mkBoundVar(ut);
             }
             else
             {
@@ -348,7 +348,7 @@ PreprocessingPassResult HoElim::applyInternal(
         std::vector<Node> nvars;
         for (const Node& v : lambda[0])
         {
-          Node bv = nm->mkBoundVar(v.getType());
+          Node bv = NodeManager::mkBoundVar(v.getType());
           vars.push_back(v);
           nvars.push_back(bv);
         }
@@ -410,9 +410,9 @@ PreprocessingPassResult HoElim::applyInternal(
       TypeNode uf = getUSort(ft[0]);
       TypeNode ut = getUSort(ft[1]);
       // extensionality
-      Node x = nm->mkBoundVar("x", uf);
-      Node y = nm->mkBoundVar("y", uf);
-      Node z = nm->mkBoundVar("z", ut);
+      Node x = NodeManager::mkBoundVar("x", uf);
+      Node y = NodeManager::mkBoundVar("y", uf);
+      Node z = NodeManager::mkBoundVar("z", ut);
       Node eq = nm->mkNode(Kind::APPLY_UF, h, x, z)
                     .eqNode(nm->mkNode(Kind::APPLY_UF, h, y, z));
       Node antec =
@@ -429,12 +429,12 @@ PreprocessingPassResult HoElim::applyInternal(
       // Without this axiom, the translation is model unsound.
       if (options().quantifiers.hoElimStoreAx)
       {
-        Node u = nm->mkBoundVar("u", uf);
-        Node v = nm->mkBoundVar("v", uf);
-        Node i = nm->mkBoundVar("i", ut);
-        Node ii = nm->mkBoundVar("ii", ut);
+        Node u = NodeManager::mkBoundVar("u", uf);
+        Node v = NodeManager::mkBoundVar("v", uf);
+        Node i = NodeManager::mkBoundVar("i", ut);
+        Node ii = NodeManager::mkBoundVar("ii", ut);
         Node huii = nm->mkNode(Kind::APPLY_UF, h, u, ii);
-        Node e = nm->mkBoundVar("e", huii.getType());
+        Node e = NodeManager::mkBoundVar("e", huii.getType());
         Node store = nm->mkNode(
             Kind::FORALL,
             nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),
@@ -451,13 +451,13 @@ PreprocessingPassResult HoElim::applyInternal(
     }
     else if (options().quantifiers.hoElimStoreAx)
     {
-      Node u = nm->mkBoundVar("u", ftn);
-      Node v = nm->mkBoundVar("v", ftn);
+      Node u = NodeManager::mkBoundVar("u", ftn);
+      Node v = NodeManager::mkBoundVar("v", ftn);
       std::vector<TypeNode> argTypes = ftn.getArgTypes();
-      Node i = nm->mkBoundVar("i", argTypes[0]);
-      Node ii = nm->mkBoundVar("ii", argTypes[0]);
+      Node i = NodeManager::mkBoundVar("i", argTypes[0]);
+      Node ii = NodeManager::mkBoundVar("ii", argTypes[0]);
       Node huii = nm->mkNode(Kind::HO_APPLY, u, ii);
-      Node e = nm->mkBoundVar("e", huii.getType());
+      Node e = NodeManager::mkBoundVar("e", huii.getType());
       Node store = nm->mkNode(
           Kind::FORALL,
           nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),

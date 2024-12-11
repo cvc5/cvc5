@@ -761,7 +761,7 @@ void TheoryDatatypes::addTester(
           Assert(testerIndex != -1);
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
-          NodeBuilder nb(Kind::AND);
+          NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
           for (unsigned i = 0; i < n_lbl; i++)
           {
             Node ti = d_labels_data[n][i];
@@ -1127,8 +1127,8 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   if( it==d_singleton_lemma[index].end() ){
     Node a;
     if( pol ){
-      Node v1 = nm->mkBoundVar(tn);
-      Node v2 = nm->mkBoundVar(tn);
+      Node v1 = NodeManager::mkBoundVar(tn);
+      Node v2 = NodeManager::mkBoundVar(tn);
       a = nm->mkNode(Kind::FORALL,
                      nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
                      v1.eqNode(v2));
@@ -1697,7 +1697,7 @@ void TheoryDatatypes::checkSplit()
         Trace("dt-split") << "*************Split for possible constructor "
                           << dt[consIndex] << " for " << n << endl;
         test = rewrite(test);
-        NodeBuilder nb(Kind::OR);
+        NodeBuilder nb(NodeManager::currentNM(), Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
         d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);

@@ -105,7 +105,7 @@ bool canFlatten(TNode t, Kinds... kinds)
  * @return A flattened version of t
  */
 template <typename... Kinds>
-Node flatten(TNode t, Kinds... kinds)
+Node flatten(NodeManager* nm, TNode t, Kinds... kinds)
 {
   if (!canFlatten(t, kinds...))
   {
@@ -113,7 +113,7 @@ Node flatten(TNode t, Kinds... kinds)
   }
   std::vector<TNode> children;
   flatten(t, children, kinds...);
-  return NodeManager::currentNM()->mkNode(t.getKind(), children);
+  return nm->mkNode(t.getKind(), children);
 }
 
 }  // namespace cvc5::internal::expr
