@@ -2603,14 +2603,19 @@ enum ENUM(ProofRewriteRule)
    *   G_1 \wedge \cdots \wedge G_n
    *
    * where each :math:`G_i` is semantically equivalent to
-   * :math:`\forall X.\> F_i`.
+   * :math:`\forall X.\> F_i`, or alternatively
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{G_1}{G_2}
+   *
+   * where :math:`C` does not have any free variable in :math:`X`.
    *
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping**
+   * **Quantifiers -- Miniscoping and**
    *
    * .. math::
    *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
@@ -2618,10 +2623,10 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE),
+  EVALUE(QUANT_MINISCOPE_AND),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping free variables**
+   * **Quantifiers -- Miniscoping or**
    *
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
@@ -2631,7 +2636,19 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE_FV),
+  EVALUE(QUANT_MINISCOPE_OR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping ite**
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\> F_2}
+   * 
+   * where :math:`C` does not have any free variable in :math:`X`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE_ITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Datatypes Split**
