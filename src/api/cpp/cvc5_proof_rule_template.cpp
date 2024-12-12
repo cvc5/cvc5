@@ -237,6 +237,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+      return "macro-arrays-distinct-arrays";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+      return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";

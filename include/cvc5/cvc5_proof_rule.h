@@ -2500,6 +2500,33 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro distinct arrays**
+   *
+   * .. math::
+   *   (A = B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct array values, that is,
+   * the Node::isConst method returns true for both.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_DISTINCT_ARRAYS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize constant**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array value :math:`A`
+   * into a canonical form, using the internal method
+   * TheoryArraysRewriter::normalizeConstant.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_CONSTANT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
    *
    * .. math::
