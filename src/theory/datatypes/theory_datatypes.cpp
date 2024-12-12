@@ -343,6 +343,15 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       // Get triggered for both equal and dis-equal
       d_state.addEqualityEngineTriggerPredicate(n);
       break;
+    case Kind::MATCH:
+    {
+      Assert (!options().datatypes.datatypesExp);
+      std::stringstream ss;
+      ss << "Match terms not available in this configuration, try "
+            "--datatypes-exp.";
+      throw LogicException(ss.str());
+    }
+      break;
     default:
       // do initial lemmas (e.g. for dt.size)
       registerInitialLemmas(n);
