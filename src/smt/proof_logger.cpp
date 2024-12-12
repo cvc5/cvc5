@@ -114,7 +114,7 @@ void ProofLoggerCpc::logSatRefutation()
   premises.insert(premises.end(), d_lemmaPfs.begin(), d_lemmaPfs.end());
   Node f = nodeManager()->mkConst(false);
   std::shared_ptr<ProofNode> psr =
-      d_pnm->mkTrustedNode(TrustId::SAT_REFUTATION, premises, {}, f);
+      d_pnm->mkNode(ProofRule::SAT_REFUTATION, premises, {}, f);
   d_alfp.printNext(d_aout, psr);
   Trace("pf-log") << "; log SAT refutation end" << std::endl;
   // for now, to avoid checking failure

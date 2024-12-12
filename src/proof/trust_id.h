@@ -30,8 +30,6 @@ enum class TrustId : uint32_t
   NONE,
   /** Assertions of the preprocessed input clauses */
   PREPROCESSED_INPUT,
-  /** A SAT refutation */
-  SAT_REFUTATION,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
   /** An internal inference made by a theory without a proof */
