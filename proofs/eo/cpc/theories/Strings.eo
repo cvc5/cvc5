@@ -44,11 +44,11 @@
 ; - T Type: The string-like type.
 ; return: The empty string of the given string-like type T.
 ; note: >
-;   We seq.empty in this way since the same symbols in our theory
+;   We define seq.empty in this way since the same symbols in our theory
 ;   are used for strings and sequences, yet for the purposes of
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
-;   sequence (e.g. RARE), we use this program to ensure this is the case.
+;   sequence (e.g., RARE), we use this program to ensure this is the case.
 ; disclaimer: This function is not in SMT-LIB.
 (program seq.empty ((U Type))
   (Type) (Seq U)
