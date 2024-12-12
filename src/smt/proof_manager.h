@@ -28,6 +28,7 @@ namespace cvc5::internal {
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
+class ProofLogger;
 class SolverEngine;
 
 namespace rewriter {
@@ -143,11 +144,20 @@ class PfManager : protected EnvObj
       std::shared_ptr<ProofNode> pfn,
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
+  /** 
+   * Start proof logging. This is called when the SMT solver is initialized
+   * with and --proof-log is enabled.
+   * @param out The output stream to log proofs on.
+   * @param as Reference to the assertions.
+   */
+  void startProofLogging(std::ostream& out, Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
+  /** Get a pointer to the ProofLogger owned by this. */
+  ProofLogger* getProofLogger() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
   /** Get the preprocess proof generator */
@@ -172,6 +182,8 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
+  /** A proof logger, if proofLog is enabled */
+  std::unique_ptr<ProofLogger> d_plog;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
   /** The preprocess proof generator. */
