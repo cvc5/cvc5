@@ -270,6 +270,9 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::DT_INST:
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE:
     case ProofRewriteRule::QUANT_MINISCOPE_FV:
