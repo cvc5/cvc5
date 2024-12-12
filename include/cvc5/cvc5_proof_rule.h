@@ -2591,7 +2591,7 @@ enum ENUM(ProofRewriteRule)
    * :math:`\forall X.\> F_i`, or alternatively
    *
    * .. math::
-   *   \forall X.\> ite( C, F_1, F_2) = ite( C, G_1, G_2)
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{G_1}{G_2}
    *
    * where :math:`C` does not have any free variable in :math:`X`.
    *
@@ -2627,7 +2627,7 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Miniscoping ite**
    *
    * .. math::
-   *   \forall X.\> ite( C, F_1, F_2) = ite( C, \forall X.\> F_1, \forall X.\> F_2)
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\> F_2}
    * 
    * where :math:`C` does not have any free variable in :math:`X`.
    *

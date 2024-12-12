@@ -221,7 +221,7 @@
   :conclusion (= (forall x F) G)
 )
 
-;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV_OR
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_OR
 
 ; program: $is_quant_miniscope_or
 ; args:
@@ -247,7 +247,7 @@
 )
 
 ; rule: quant-miniscope-or
-; implements: ProofRewriteRule::QUANT_MINISCOPE_FV_OR
+; implements: ProofRewriteRule::QUANT_MINISCOPE_OR
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
