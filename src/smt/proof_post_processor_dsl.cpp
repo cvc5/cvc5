@@ -47,7 +47,9 @@ void ProofPostprocessDsl::reconstruct(
   ProofNodeUpdater pnu(d_env, *this, false);
   for (std::shared_ptr<ProofNode> p : pfs)
   {
+    Trace("pp-dsl-process") << "BEGIN update" << std::endl;
     pnu.process(p);
+    Trace("pp-dsl-process") << "END update" << std::endl;
     Assert(d_traversing.empty());
   }
 }
@@ -66,6 +68,7 @@ bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if ((id == ProofRule::TRUST || id == ProofRule::TRUST_THEORY_REWRITE)
       && pn->getChildren().empty() && d_traversing.size() < 3)
   {
+    Trace("pp-dsl-process") << "...push " << pn.get() << std::endl;
     d_traversing.push_back(pn);
     return true;
   }
@@ -76,8 +79,11 @@ bool ProofPostprocessDsl::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
                                            const std::vector<Node>& fa)
 {
   // clean up d_traversing at post-traversal
-  if (!d_traversing.empty() && d_traversing.back() == pn)
+  // note we may have pushed multiple copies of pn consecutively if a proof
+  // was updated to another trust step.
+  while (!d_traversing.empty() && d_traversing.back() == pn)
   {
+    Trace("pp-dsl-process") << "...pop " << pn.get() << std::endl;
     d_traversing.pop_back();
   }
   return false;
@@ -147,6 +153,7 @@ bool ProofPostprocessDsl::update(Node res,
   }
   // clean up traversing, since we are setting continueUpdate to false
   Assert (!d_traversing.empty());
+  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get() << std::endl;
   d_traversing.pop_back();
   // otherwise no update
   return false;
