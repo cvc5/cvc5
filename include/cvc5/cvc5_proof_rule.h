@@ -2498,13 +2498,12 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARRAYS_SELECT_CONST),
-
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Macro distinct arrays**
    *
    * .. math::
-   *   (A=B) = \bot
+   *   (A = B) = \bot
    *
    * where :math:`A` and :math:`B` are distinct array values.
    *
