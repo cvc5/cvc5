@@ -64,6 +64,37 @@ const char* toString(InternalSkolemId id);
 /** Writes an internal skolem function name to a stream. */
 std::ostream& operator<<(std::ostream& out, InternalSkolemId id);
 
+/**
+ * Optional flags used to control behavior of skolem creation.
+ * They should be composed with bitwise operators.
+ */
+enum class SkolemFlags : uint8_t
+{
+  /** default behavior */
+  SKOLEM_DEFAULT = 0,
+  /** do not make the name unique by adding the id */
+  SKOLEM_EXACT_NAME = 1,
+};
+
+/*
+ * Performs a bitwise OR operation between two SkolemFlags values.
+ */
+inline SkolemFlags operator|(SkolemFlags lhs, SkolemFlags rhs)
+{
+  return static_cast<SkolemFlags>(
+      static_cast<std::underlying_type_t<SkolemFlags>>(lhs)
+      | static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
+}
+
+/*
+ * Performs a bitwise AND operation between two SkolemFlags values.
+ */
+inline SkolemFlags operator&(SkolemFlags lhs, SkolemFlags rhs)
+{
+  return static_cast<SkolemFlags>(
+      static_cast<std::underlying_type_t<SkolemFlags>>(lhs)
+      & static_cast<std::underlying_type_t<SkolemFlags>>(rhs));
+}
 
 }  // namespace cvc5::internal
 

@@ -1830,6 +1830,26 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Non-linear multiply absolute value comparison**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{F}
+   * 
+   * where :math:`F` is of the form 
+   * :math:`\left| t_1 \cdot t_n \right| \diamond \left| s_1 \cdot s_n \right|`.
+   * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
+   * :math:`\left| t_i \right| = \left| s_i \right|`.
+   *
+   * If :math:`\diamond` is :math:`>`, then
+   * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
+   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`,
+   * and :math:`F_1` is of the former form.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_MULT_ABS_COMPARISON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
    *
    * .. math::
@@ -2381,18 +2401,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arith -- Division by constant elimination**
-   *
-   * .. math::
-   *   t / c = t * 1/c
-   *
-   * where :math:`c` is a constant.
-   *
-   * \endverbatim
-   */
-  EVALUE(ARITH_DIV_BY_CONST_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
@@ -2549,6 +2557,16 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(QUANT_MERGE_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro prenex**
+   *
+   * .. math::
+   *   (\forall X.\> F_1 \vee \cdots \vee (\forall Y.\> F_i) \vee \cdots \vee F_n) = (\forall X Z.\> F_1 \vee \cdots \vee F_i\{ Y \mapsto Z \} \vee \cdots \vee F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro miniscoping**
@@ -3089,6 +3107,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_COTANGENT_ELIM),
   /** Auto-generated from RARE rule arith-pi-not-int */
   EVALUE(ARITH_PI_NOT_INT),
+  /** Auto-generated from RARE rule arith-abs-eq */
+  EVALUE(ARITH_ABS_EQ),
+  /** Auto-generated from RARE rule arith-abs-int-gt */
+  EVALUE(ARITH_ABS_INT_GT),
+  /** Auto-generated from RARE rule arith-abs-real-gt */
+  EVALUE(ARITH_ABS_REAL_GT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3123,20 +3147,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPL_ELIM),
   /** Auto-generated from RARE rule bool-or-true */
   EVALUE(BOOL_OR_TRUE),
-  /** Auto-generated from RARE rule bool-or-false */
-  EVALUE(BOOL_OR_FALSE),
   /** Auto-generated from RARE rule bool-or-flatten */
   EVALUE(BOOL_OR_FLATTEN),
-  /** Auto-generated from RARE rule bool-or-dup */
-  EVALUE(BOOL_OR_DUP),
-  /** Auto-generated from RARE rule bool-and-true */
-  EVALUE(BOOL_AND_TRUE),
   /** Auto-generated from RARE rule bool-and-false */
   EVALUE(BOOL_AND_FALSE),
   /** Auto-generated from RARE rule bool-and-flatten */
   EVALUE(BOOL_AND_FLATTEN),
-  /** Auto-generated from RARE rule bool-and-dup */
-  EVALUE(BOOL_AND_DUP),
   /** Auto-generated from RARE rule bool-and-conf */
   EVALUE(BOOL_AND_CONF),
   /** Auto-generated from RARE rule bool-and-conf2 */
@@ -3151,6 +3167,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPLIES_DE_MORGAN),
   /** Auto-generated from RARE rule bool-and-de-morgan */
   EVALUE(BOOL_AND_DE_MORGAN),
+  /** Auto-generated from RARE rule bool-or-and-distrib */
+  EVALUE(BOOL_OR_AND_DISTRIB),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
@@ -3165,8 +3183,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_XOR_ELIM),
   /** Auto-generated from RARE rule bool-not-xor-elim */
   EVALUE(BOOL_NOT_XOR_ELIM),
-  /** Auto-generated from RARE rule bool-not-eq-elim */
-  EVALUE(BOOL_NOT_EQ_ELIM),
+  /** Auto-generated from RARE rule bool-not-eq-elim1 */
+  EVALUE(BOOL_NOT_EQ_ELIM1),
+  /** Auto-generated from RARE rule bool-not-eq-elim2 */
+  EVALUE(BOOL_NOT_EQ_ELIM2),
   /** Auto-generated from RARE rule ite-neg-branch */
   EVALUE(ITE_NEG_BRANCH),
   /** Auto-generated from RARE rule ite-then-true */
@@ -3185,6 +3205,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
   /** Auto-generated from RARE rule ite-else-lookahead-not-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
+  /** Auto-generated from RARE rule ite-expand */
+  EVALUE(ITE_EXPAND),
   /** Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
   /** Auto-generated from RARE rule ite-true-cond */

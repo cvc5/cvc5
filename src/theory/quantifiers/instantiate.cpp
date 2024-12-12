@@ -293,7 +293,7 @@ bool Instantiate::addInstantiationInternal(
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
   // construct the instantiation, and rewrite the lemma
-  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, q, body);
+  Node lem = NodeManager::mkNode(Kind::IMPLIES, q, body);
 
   // If proofs are enabled, construct the proof, which is of the form:
   // ... free assumption q ...

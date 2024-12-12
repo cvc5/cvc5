@@ -939,8 +939,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               if( !bvs.empty() ){
                 Node bvl =
                     NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, bvs);
-                rsg = NodeManager::currentNM()->mkNode(
-                    Kind::FORALL, bvl, lhs.eqNode(rhs));
+                rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
               }else{
                 rsg = lhs.eqNode( rhs );
               }
@@ -949,8 +948,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );
 
-              Node lem =
-                  NodeManager::currentNM()->mkNode(Kind::OR, rsg.negate(), rsg);
+              Node lem = NodeManager::mkNode(Kind::OR, rsg.negate(), rsg);
               d_qim.addPendingLemma(lem,
                                     InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
               d_qim.addPendingPhaseRequirement(rsg, false);
@@ -1243,8 +1241,7 @@ void ConjectureGenerator::getEnumeratePredUfTerm( Node n, unsigned num, std::vec
   getEnumerateUfTerm( n, num, uf_terms );
   Node p = getPredicateForType( n.getType() );
   for( unsigned i=0; i<uf_terms.size(); i++ ){
-    terms.push_back(
-        NodeManager::currentNM()->mkNode(Kind::APPLY_UF, p, uf_terms[i]));
+    terms.push_back(NodeManager::mkNode(Kind::APPLY_UF, p, uf_terms[i]));
   }
 }
 

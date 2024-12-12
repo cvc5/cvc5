@@ -163,7 +163,7 @@
                                            ))))
       (($run_evaluate (str.prefixof x y)) (eo::define ((ex ($run_evaluate x)))
                                           (eo::define ((ey ($run_evaluate y)))
-                                          (eo::define ((r (eo::find ex ey)))
+                                          (eo::define ((r (eo::find ey ex)))
                                             (eo::ite (eo::is_eq r 0) true
                                             (eo::ite (eo::is_z r) false
                                               (str.prefixof ex ey)))))))

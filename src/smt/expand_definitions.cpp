@@ -107,7 +107,7 @@ Node ExpandDefs::expandDefinitions(TNode n,
       if (node.getNumChildren() > 0)
       {
         // cout << "cons : " << node << std::endl;
-        NodeBuilder nb(node.getKind());
+        NodeBuilder nb(nodeManager(), node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Trace("expand") << "op   : " << node.getOperator() << std::endl;

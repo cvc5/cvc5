@@ -389,8 +389,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::REGEXP_RV:
     /* from quantifiers */
     case Kind::EXISTS:
-    case Kind::INST_CONSTANT:
-    case Kind::ORACLE:
     case Kind::BOUND_VAR_LIST:
     case Kind::INST_PATTERN:
     case Kind::INST_NO_PATTERN:
@@ -398,7 +396,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::INST_POOL:
     case Kind::INST_ADD_TO_POOL:
     case Kind::SKOLEM_ADD_TO_POOL:
-    case Kind::ORACLE_FORMULA_GEN:
     case Kind::INST_PATTERN_LIST:
     {
       return n;

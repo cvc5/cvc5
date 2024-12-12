@@ -14,6 +14,8 @@
 ##
 
 libcvc5_add_sources(
+  aci_norm.cpp
+  aci_norm.h
   algorithm/flatten.h
   annotation_elim_node_converter.cpp
   annotation_elim_node_converter.h

@@ -15,10 +15,10 @@
 
 #include "rewriter/rewrite_db_term_process.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -199,13 +199,14 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
+      d_wktc(Kind::INST_PATTERN_LIST),
       // must rewrite within operators
       d_tpg(env,
             nullptr,
             TConvPolicy::FIXPOINT,
             TConvCachePolicy::NEVER,
             "ProofRewriteDb",
-            nullptr,
+            &d_wktc,
             true),
       d_proof(env)
 {

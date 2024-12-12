@@ -108,6 +108,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PRENEX,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
   // QUANT_MINISCOPE is part of the reconstruction for MACRO_QUANT_MINISCOPE
@@ -177,6 +179,23 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (q != n)
       {
         return q;
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_QUANT_PRENEX:
+    {
+      if (n.getKind() == Kind::FORALL)
+      {
+        std::vector<Node> args, nargs;
+        Node nn = computePrenex(n, n[1], args, nargs, true, false);
+        Assert(nargs.empty());
+        if (!args.empty())
+        {
+          std::vector<Node> qargs(n[0].begin(), n[0].end());
+          qargs.insert(qargs.end(), args.begin(), args.end());
+          Node bvl = d_nm->mkNode(Kind::BOUND_VAR_LIST, qargs);
+          return d_nm->mkNode(Kind::FORALL, bvl, nn);
+        }
       }
     }
     break;
@@ -1038,20 +1057,36 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     }
     if (do_split)
     {
+      // For the sake of proofs, if we are not splitting the first child,
+      // we first rearrange so that it is first, which can be proven by
+      // ACI_NORM.
+      std::vector<Node> splitChildren;
+      if (split_index != 0)
+      {
+        splitChildren.push_back(body[split_index]);
+        for (size_t i = 0; i < size; i++)
+        {
+          if (i != split_index)
+          {
+            splitChildren.push_back(body[i]);
+          }
+        }
+        return nm->mkNode(Kind::OR, splitChildren);
+      }
+      // This is expected to be proven by the RARE rule bool-or-and-distrib.
       std::vector<Node> children;
       for (TNode bc : body)
       {
         children.push_back(bc);
       }
-      std::vector<Node> split_children;
       for (TNode bci : body[split_index])
       {
         children[split_index] = bci;
-        split_children.push_back(nm->mkNode(Kind::OR, children));
+        splitChildren.push_back(nm->mkNode(Kind::OR, children));
       }
       // split the AND child, for example:
       //  ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
-      return nm->mkNode(Kind::AND, split_children);
+      return nm->mkNode(Kind::AND, splitChildren);
     }
   }
 
@@ -1690,8 +1725,8 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
 
 Node QuantifiersRewriter::computePrenex(Node q,
                                         Node body,
-                                        std::unordered_set<Node>& args,
-                                        std::unordered_set<Node>& nargs,
+                                        std::vector<Node>& args,
+                                        std::vector<Node>& nargs,
                                         bool pol,
                                         bool prenexAgg) const
 {
@@ -1732,11 +1767,11 @@ Node QuantifiersRewriter::computePrenex(Node q,
       }
       if (pol)
       {
-        args.insert(subs.begin(), subs.end());
+        args.insert(args.end(), subs.begin(), subs.end());
       }
       else
       {
-        nargs.insert(subs.begin(), subs.end());
+        nargs.insert(nargs.end(), subs.begin(), subs.end());
       }
       Node newBody = body[1];
       newBody = newBody.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
@@ -1985,7 +2020,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder t(Kind::AND);
+      NodeBuilder t(nm, Kind::AND);
       std::vector<Node> argsc;
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
@@ -2332,7 +2367,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
     }
     else
     {
-      std::unordered_set<Node> argsSet, nargsSet;
+      std::vector<Node> argsSet, nargsSet;
       n = computePrenex(f, n, argsSet, nargsSet, true, false);
       Assert(nargsSet.empty());
       args.insert(args.end(), argsSet.begin(), argsSet.end());

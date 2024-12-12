@@ -947,7 +947,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
   Kind oldKind = originalNode.getKind();
-  NodeBuilder builder(oldKind);
+  NodeBuilder builder(nodeManager(), oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << originalNode.getOperator();
