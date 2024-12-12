@@ -56,17 +56,7 @@
 ; - t T: The term in question.
 ; return: true iff t is a constructor symbol.
 (define $dt_is_cons ((T Type :implicit) (t T))
-  (eo::is_z (eo::list_len eo::List::cons (eo::dt_selectors t)))
-)
-
-; define: $dt_of_sel
-; args:
-; - s (-> D T): The selector in question
-; return: the datatype associated with s.
-(define $dt_of_sel ((T Type :implicit) (D Type :implicit) (s (-> D T)))
-  (eo::match ((D1 Type) (T1 Type))
-    (eo::typeof s)
-    (((-> D1 T1) D1))))
+  (eo::is_z (eo::list_len eo::List::cons (eo::dt_selectors t))))
 
 ; define: $dt_arg_nth
 ; args:
