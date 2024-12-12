@@ -124,9 +124,8 @@ void ProofLoggerCpc::logSatRefutation()
 void ProofLoggerCpc::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
-  // TODO: connect to preprocessed
-  std::shared_ptr<ProofNode> spf = pfn;
-  // d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
+  // connect to preprocessed
+  std::shared_ptr<ProofNode> spf = d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
   d_alfp.printNext(d_aout, spf);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
   // for now, to avoid checking failure
