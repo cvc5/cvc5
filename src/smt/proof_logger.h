@@ -29,7 +29,7 @@ namespace smt {
 class Assertions;
 class PfManager;
 class ProofPostprocess;
-}
+}  // namespace smt
 
 /**
  * The purpose of this class is to output proofs for all reasoning the solver
@@ -105,10 +105,10 @@ class ProofLoggerCpc : public ProofLogger
  public:
   /** */
   ProofLoggerCpc(Env& env,
-              std::ostream& out,
-              smt::PfManager* pm,
-              smt::Assertions& as,
-              smt::ProofPostprocess* ppp);
+                 std::ostream& out,
+                 smt::PfManager* pm,
+                 smt::Assertions& as,
+                 smt::ProofPostprocess* ppp);
   ~ProofLoggerCpc();
   /** Log preprocessing input */
   void logCnfPreprocessInputs(const std::vector<Node>& inputs) override;
@@ -123,6 +123,7 @@ class ProofLoggerCpc : public ProofLogger
   void logSatRefutation() override;
   /** Log SAT refutation proof */
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) override;
+
  private:
   /** Pointer to the proof manager, for connecting proofs to inputsw */
   smt::PfManager* d_pm;
@@ -141,7 +142,8 @@ class ProofLoggerCpc : public ProofLogger
   /** The preprocessing proof we were notified of, which we may have created */
   std::shared_ptr<ProofNode> d_ppProof;
   /**
-   * The list of theory lemma proofs we were notified of, which we may have created. 
+   * The list of theory lemma proofs we were notified of, which we may have
+   * created.
    */
   std::vector<std::shared_ptr<ProofNode>> d_lemmaPfs;
 };

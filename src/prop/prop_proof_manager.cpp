@@ -28,8 +28,8 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
-#include "smt/proof_logger.h"
 #include "smt/logic_exception.h"
+#include "smt/proof_logger.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
 

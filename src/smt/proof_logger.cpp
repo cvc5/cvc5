@@ -22,10 +22,10 @@
 namespace cvc5::internal {
 
 ProofLoggerCpc::ProofLoggerCpc(Env& env,
-                         std::ostream& out,
-                         smt::PfManager* pm,
-                         smt::Assertions& as,
-                         smt::ProofPostprocess* ppp)
+                               std::ostream& out,
+                               smt::PfManager* pm,
+                               smt::Assertions& as,
+                               smt::ProofPostprocess* ppp)
     : ProofLogger(env),
       d_pm(pm),
       d_pnm(pm->getProofNodeManager()),
@@ -125,7 +125,8 @@ void ProofLoggerCpc::logSatRefutationProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log SAT refutation proof start" << std::endl;
   // connect to preprocessed
-  std::shared_ptr<ProofNode> spf = d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
+  std::shared_ptr<ProofNode> spf =
+      d_pm->connectProofToAssertions(pfn, d_as, ProofScopeMode::NONE);
   d_alfp.printNext(d_aout, spf);
   Trace("pf-log") << "; log SAT refutation proof end" << std::endl;
   // for now, to avoid checking failure
