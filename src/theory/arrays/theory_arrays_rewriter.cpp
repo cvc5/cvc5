@@ -92,7 +92,7 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
     {
-      if (n.getType().isArray() && n[0].isConst() && n[1].isConst()
+      if (n.getKind() == Kind::STORE && n[0].isConst() && n[1].isConst()
           && n[2].isConst())
       {
         Node nn = normalizeConstant(nodeManager(), n);
