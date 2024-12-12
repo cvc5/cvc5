@@ -2506,7 +2506,8 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   (A=B) = \bot
    *
-   * where :math:`A` and :math:`B` are distinct array values.
+   * where :math:`A` and :math:`B` are distinct array values, that is,
+   * the Node::isConst method returns true for both.
    *
    * \endverbatim
    */
@@ -2519,7 +2520,8 @@ enum ENUM(ProofRewriteRule)
    *   A = B
    *
    * where :math:`B` is the result of normalizing the array value :math:`A`
-   * into a canonical form.
+   * into a canonical form, using the internal method
+   * TheoryArraysRewriter::normalizeConstant.
    *
    * \endverbatim
    */
