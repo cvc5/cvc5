@@ -181,6 +181,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
+    case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
@@ -193,13 +194,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM:
-    {
-      // we don't support bitvectors yet
-      Assert(pargs[0].getKind() == Kind::EQUAL);
-      return pargs[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::ARITH_REDUCTION:
