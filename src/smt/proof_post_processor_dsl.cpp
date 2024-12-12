@@ -47,6 +47,7 @@ void ProofPostprocessDsl::reconstruct(
   ProofNodeUpdater pnu(d_env, *this, false);
   for (std::shared_ptr<ProofNode> p : pfs)
   {
+    d_traversing.clear();
     Trace("pp-dsl-process") << "BEGIN update" << std::endl;
     pnu.process(p);
     Trace("pp-dsl-process") << "END update" << std::endl;
