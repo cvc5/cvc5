@@ -591,6 +591,116 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
 RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
 {
   Trace("arrays-prerewrite")
+      << "Arrays::preRewrite start " << node << std::endl;
+  switch (node.getKind())
+  {
+    case Kind::SELECT:
+    {
+      TNode store = node[0];
+      TNode index = node[1];
+      Node n;
+      bool val;
+      while (store.getKind() == Kind::STORE)
+      {
+        if (index == store[1])
+        {
+          val = true;
+        }
+        else if (index.isConst() && store[1].isConst())
+        {
+          val = false;
+        }
+        else
+        {
+          break;
+        }
+        if (val)
+        {
+          // select(store(a,i,v),j) = v if i = j
+          Trace("arrays-prerewrite")
+              << "Arrays::preRewrite returning " << store[2] << std::endl;
+          return RewriteResponse(REWRITE_AGAIN, store[2]);
+        }
+        // select(store(a,i,v),j) = select(a,j) if i /= j
+        store = store[0];
+      }
+      if (store.getKind() == Kind::STORE_ALL)
+      {
+        // select(store_all(v),i) = v
+        ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
+        n = storeAll.getValue();
+        Trace("arrays-prerewrite")
+            << "Arrays::preRewrite returning " << n << std::endl;
+        Assert(n.isConst());
+        return RewriteResponse(REWRITE_DONE, n);
+      }
+      else if (store != node[0])
+      {
+        n = nodeManager()->mkNode(Kind::SELECT, store, index);
+        Trace("arrays-prerewrite")
+            << "Arrays::preRewrite returning " << n << std::endl;
+        return RewriteResponse(REWRITE_DONE, n);
+      }
+      break;
+    }
+    case Kind::STORE:
+    {
+      TNode store = node[0];
+      TNode value = node[2];
+      // store(a,i,select(a,i)) = a
+      if (value.getKind() == Kind::SELECT && value[0] == store
+          && value[1] == node[1])
+      {
+        Trace("arrays-prerewrite")
+            << "Arrays::preRewrite returning " << store << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, store);
+      }
+      if (store.getKind() == Kind::STORE)
+      {
+        // store(store(a,i,v),j,w)
+        TNode index = node[1];
+        bool val;
+        if (index == store[1])
+        {
+          val = true;
+        }
+        else if (index.isConst() && store[1].isConst())
+        {
+          val = false;
+        }
+        else
+        {
+          break;
+        }
+        NodeManager* nm = nodeManager();
+        if (val)
+        {
+          // store(store(a,i,v),i,w) = store(a,i,w)
+          Node newNode = nm->mkNode(Kind::STORE, store[0], index, value);
+          Trace("arrays-prerewrite")
+              << "Arrays::preRewrite returning " << newNode << std::endl;
+          // We may have more than two nested stores to the same index or the
+          // rule above (store(a,i,select(a,i)) ---> a) may apply after this
+          // rewrite, so we return REWRITE_AGAIN here.
+          return RewriteResponse(REWRITE_AGAIN, newNode);
+        }
+      }
+      break;
+    }
+    case Kind::EQUAL:
+    {
+      if (node[0] == node[1])
+      {
+        Trace("arrays-prerewrite")
+            << "Arrays::preRewrite returning true" << std::endl;
+        return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
+      }
+      break;
+    }
+    default: break;
+  }
+
+  Trace("arrays-prerewrite")
       << "Arrays::preRewrite returning " << node << std::endl;
   return RewriteResponse(REWRITE_DONE, node);
 }
