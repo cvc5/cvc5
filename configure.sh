@@ -372,7 +372,7 @@ fi
 [ $comp_inc != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $safe_opts != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SAFE_OPTS=$safe_opts"
+  && cmake_opts="$cmake_opts -DENABLE_SAFE=$safe_opts"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
