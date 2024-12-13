@@ -44,6 +44,12 @@
   (or (and y2 y3) zs)
   (and (or y1 zs) _))
 
+; Used for diamonds preprocessing
+(define-rule* bool-implies-or-distrib ((y1 Bool) (y2 Bool) (y3 Bool :list) (zs Bool))
+  (=> (or y1 y2 y3) zs)
+  (=> (or y2 y3) zs)
+  (and (=> y1 zs) _))
+
 (define-rule bool-xor-refl ((x Bool)) (xor x x) false)
 (define-rule bool-xor-nrefl ((x Bool)) (xor x (not x)) true)
 (define-rule bool-xor-false ((x Bool)) (xor x false) x)
