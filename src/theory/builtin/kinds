@@ -320,6 +320,7 @@ typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
 variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal only)"
 
+# The following operators and types are used primarily for RARE
 
 constant ABSTRACT_TYPE \
   class \
@@ -340,8 +341,6 @@ parameterized APPLY_INDEXED_SYMBOLIC APPLY_INDEXED_SYMBOLIC_OP 1: "generic index
 typerule APPLY_INDEXED_SYMBOLIC_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule APPLY_INDEXED_SYMBOLIC ::cvc5::internal::theory::builtin::ApplyIndexedSymbolicTypeRule
 
-
-# constants
 constant SORT_TO_TERM \
   class \
   SortToTerm \
@@ -349,5 +348,8 @@ constant SORT_TO_TERM \
   "expr/sort_to_term.h" \
   "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
 typerule SORT_TO_TERM "SimpleTypeRule<RBuiltinOperator>"
+
+operator TYPE_OF 1 "the type of an expression, used internally for RARE"
+typerule TYPE_OF ::cvc5::internal::theory::builtin::TypeOfTypeRule
 
 endtheory

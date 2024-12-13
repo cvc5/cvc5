@@ -3633,6 +3633,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_MINUS),
   /** Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule sets-minus-self */
+  EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-is-empty-elim */
+  EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
@@ -3723,8 +3727,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_EMP),
   /** Auto-generated from RARE rule str-contains-is-emp */
   EVALUE(STR_CONTAINS_IS_EMP),
-  /** Auto-generated from RARE rule str-concat-emp */
-  EVALUE(STR_CONCAT_EMP),
   /** Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
@@ -3841,6 +3843,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule seq-len-empty */
+  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */

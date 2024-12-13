@@ -1246,6 +1246,19 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(retTupleType);
 }
 
+TypeNode SetEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
+{
+  return nm->mkAbstractType(Kind::SET_TYPE);
+}
+
 Cardinality SetsProperties::computeCardinality(TypeNode type)
 {
   Assert(type.getKind() == Kind::SET_TYPE);

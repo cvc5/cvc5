@@ -1147,6 +1147,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::DISTINCT: return "distinct";
     case Kind::SEXPR: break;
 
+    case Kind::TYPE_OF: return "@type_of";
+
     // bool theory
     case Kind::NOT: return "not";
     case Kind::AND: return "and";
@@ -1313,6 +1315,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::RELATION_GROUP: return "rel.group";
     case Kind::RELATION_AGGREGATE: return "rel.aggr";
     case Kind::RELATION_PROJECT: return "rel.project";
+    case Kind::SET_EMPTY_OF_TYPE: return "@set.empty_of_type";
 
     // bag theory
     case Kind::BAG_TYPE: return "Bag";
@@ -1436,6 +1439,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SEQUENCE_TYPE: return "Seq";
     case Kind::SEQ_UNIT: return "seq.unit";
     case Kind::SEQ_NTH: return "seq.nth";
+    case Kind::SEQ_EMPTY_OF_TYPE: return "@seq.empty_of_type";
 
     // sep theory
     case Kind::SEP_STAR: return "sep";

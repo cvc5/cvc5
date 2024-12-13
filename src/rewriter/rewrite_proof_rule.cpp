@@ -37,7 +37,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
                             Node context)
 {
   // not initialized yet
-  Assert(d_cond.empty() && d_obGen.empty() && d_fvs.empty());
+  Assert(d_cond.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
   std::map<Node, Node> condDef;
@@ -49,7 +49,6 @@ void RewriteProofRule::init(ProofRewriteRule id,
           << "Ambiguous context for list variables in condition of rule " << id;
     }
     d_cond.push_back(c);
-    d_obGen.push_back(c);
     if (c.getKind() == Kind::EQUAL && c[0].getKind() == Kind::BOUND_VARIABLE)
     {
       condDef[c[0]] = c[1];
@@ -134,6 +133,24 @@ const std::vector<Node>& RewriteProofRule::getUserVarList() const
   return d_userFvs;
 }
 const std::vector<Node>& RewriteProofRule::getVarList() const { return d_fvs; }
+
+std::vector<Node> RewriteProofRule::getExplicitTypeOfList() const
+{
+  std::vector<Node> ret;
+  Node conc = getConclusion(true);
+  std::unordered_set<Node> ccts;
+  expr::getKindSubterms(conc, Kind::TYPE_OF, true, ccts);
+  for (const Node& c : d_cond)
+  {
+    expr::getKindSubterms(c, Kind::TYPE_OF, true, ccts);
+  }
+  for (const Node& t : ccts)
+  {
+    ret.emplace_back(t);
+  }
+  return ret;
+}
+
 bool RewriteProofRule::isExplicitVar(Node v) const
 {
   Assert(std::find(d_fvs.begin(), d_fvs.end(), v) != d_fvs.end());
@@ -160,7 +177,7 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       std::vector<Node>& vcs) const
 {
   // substitute into each condition
-  for (const Node& c : d_obGen)
+  for (const Node& c : d_cond)
   {
     Node sc = expr::narySubstitute(c, vs, ss);
     vcs.push_back(sc);
