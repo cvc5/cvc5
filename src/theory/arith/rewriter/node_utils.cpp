@@ -33,8 +33,7 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
   {
     return monomial;
   }
-  return NodeManager::currentNM()->mkNode(
-      Kind::MULT, mkConst(multiplicity), monomial);
+  return NodeManager::mkNode(Kind::MULT, mkConst(multiplicity), monomial);
 }
 
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
@@ -105,7 +104,7 @@ Node ensureReal(TNode t)
       return ret;
     }
     Trace("arith-rewriter-debug") << "maybeEnsureReal: " << t << std::endl;
-    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, t);
+    return NodeManager::mkNode(Kind::TO_REAL, t);
   }
   return t;
 }

@@ -150,15 +150,17 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyClause)
   in = d_nodeManager->mkNode(
       Kind::OR,
       {d_fa, d_ga.orNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
-  out = NodeBuilder(Kind::OR) << d_fa << d_ga.orNode(d_c).notNode() << d_hfc
-                              << d_ac << d_d.andNode(d_b);
+  out = NodeBuilder(d_nodeManager, Kind::OR)
+        << d_fa << d_ga.orNode(d_c).notNode() << d_hfc << d_ac
+        << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
   in = d_nodeManager->mkNode(
       Kind::OR,
       {d_fa, d_ga.andNode(d_c).notNode(), d_hfc, d_ac, d_d.andNode(d_b)});
-  out = NodeBuilder(Kind::OR) << d_fa << d_ga.notNode() << d_c.notNode()
-                              << d_hfc << d_ac << d_d.andNode(d_b);
+  out = NodeBuilder(d_nodeManager, Kind::OR)
+        << d_fa << d_ga.notNode() << d_c.notNode() << d_hfc << d_ac
+        << d_d.andNode(d_b);
   test_nodes_equal(out, BooleanSimplification::simplifyClause(in));
 
 #ifdef CVC5_ASSERTIONS
@@ -202,7 +204,7 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyHornClause)
                              d_ga.orNode(d_c).notNode(),
                              d_hfc.orNode(d_ac),
                              d_d.andNode(d_b).notNode()}));
-  out = NodeBuilder(Kind::OR)
+  out = NodeBuilder(d_nodeManager, Kind::OR)
         << d_a.notNode() << d_b.notNode() << d_fa << d_ga.orNode(d_c).notNode()
         << d_hfc << d_ac << d_d.notNode();
   test_nodes_equal(out, BooleanSimplification::simplifyHornClause(in));
@@ -232,8 +234,9 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
                               d_fa,
                               d_hfc.orNode(d_ac),
                               d_d.andNode(d_b)});
-  out = NodeBuilder(Kind::AND) << d_fa << d_ga.notNode() << d_c.notNode()
-                               << d_hfc.orNode(d_ac) << d_d << d_b;
+  out = NodeBuilder(d_nodeManager, Kind::AND)
+        << d_fa << d_ga.notNode() << d_c.notNode() << d_hfc.orNode(d_ac) << d_d
+        << d_b;
   test_nodes_equal(out, BooleanSimplification::simplifyConflict(in));
 
 #ifdef CVC5_ASSERTIONS

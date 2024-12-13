@@ -1830,6 +1830,26 @@ enum ENUM(ProofRule)
   EVALUE(MACRO_ARITH_SCALE_SUM_UB),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Non-linear multiply absolute value comparison**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid -}{F}
+   * 
+   * where :math:`F` is of the form 
+   * :math:`\left| t_1 \cdot t_n \right| \diamond \left| s_1 \cdot s_n \right|`.
+   * If :math:`\diamond` is :math:`=`, then each :math:`F_i` is
+   * :math:`\left| t_i \right| = \left| s_i \right|`.
+   *
+   * If :math:`\diamond` is :math:`>`, then
+   * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
+   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`,
+   * and :math:`F_1` is of the former form.
+   *
+   * \endverbatim
+   */
+  EVALUE(ARITH_MULT_ABS_COMPARISON),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Sum upper bounds**
    *
    * .. math::
@@ -2381,18 +2401,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arith -- Division by constant elimination**
-   *
-   * .. math::
-   *   t / c = t * 1/c
-   *
-   * where :math:`c` is a constant.
-   *
-   * \endverbatim
-   */
-  EVALUE(ARITH_DIV_BY_CONST_ELIM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
@@ -2492,6 +2500,33 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro distinct arrays**
+   *
+   * .. math::
+   *   (A = B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct array values, that is,
+   * the Node::isConst method returns true for both.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_DISTINCT_ARRAYS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize constant**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array value :math:`A`
+   * into a canonical form, using the internal method
+   * TheoryArraysRewriter::normalizeConstant.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_CONSTANT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
    *
    * .. math::
@@ -2551,6 +2586,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_MERGE_PRENEX),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro prenex**
+   *
+   * .. math::
+   *   (\forall X.\> F_1 \vee \cdots \vee (\forall Y.\> F_i) \vee \cdots \vee F_n) = (\forall X Z.\> F_1 \vee \cdots \vee F_i\{ Y \mapsto Z \} \vee \cdots \vee F_n)
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_PRENEX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro miniscoping**
    *
    * .. math::
@@ -2558,14 +2603,19 @@ enum ENUM(ProofRewriteRule)
    *   G_1 \wedge \cdots \wedge G_n
    *
    * where each :math:`G_i` is semantically equivalent to
-   * :math:`\forall X.\> F_i`.
+   * :math:`\forall X.\> F_i`, or alternatively
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{G_1}{G_2}
+   *
+   * where :math:`C` does not have any free variable in :math:`X`.
    *
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping**
+   * **Quantifiers -- Miniscoping and**
    *
    * .. math::
    *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
@@ -2573,10 +2623,10 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE),
+  EVALUE(QUANT_MINISCOPE_AND),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping free variables**
+   * **Quantifiers -- Miniscoping or**
    *
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
@@ -2586,7 +2636,19 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE_FV),
+  EVALUE(QUANT_MINISCOPE_OR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping ite**
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\> F_2}
+   * 
+   * where :math:`C` does not have any free variable in :math:`X`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE_ITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Datatypes Split**
@@ -3089,6 +3151,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_COTANGENT_ELIM),
   /** Auto-generated from RARE rule arith-pi-not-int */
   EVALUE(ARITH_PI_NOT_INT),
+  /** Auto-generated from RARE rule arith-abs-eq */
+  EVALUE(ARITH_ABS_EQ),
+  /** Auto-generated from RARE rule arith-abs-int-gt */
+  EVALUE(ARITH_ABS_INT_GT),
+  /** Auto-generated from RARE rule arith-abs-real-gt */
+  EVALUE(ARITH_ABS_REAL_GT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3565,6 +3633,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_MINUS),
   /** Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule sets-minus-self */
+  EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-is-empty-elim */
+  EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
@@ -3655,8 +3727,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_EMP),
   /** Auto-generated from RARE rule str-contains-is-emp */
   EVALUE(STR_CONTAINS_IS_EMP),
-  /** Auto-generated from RARE rule str-concat-emp */
-  EVALUE(STR_CONCAT_EMP),
   /** Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
@@ -3773,6 +3843,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule seq-len-empty */
+  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */
