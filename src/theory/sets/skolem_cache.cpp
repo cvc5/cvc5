@@ -49,7 +49,7 @@ Node SkolemCache::mkTypedSkolemCached(
     }
     else
     {
-      sk = sm->mkDummySkolem(c, tn, "sets skolem");
+      sk = NodeManager::mkDummySkolem(c, tn, "sets skolem");
     }
     d_skolemCache[a][b][id] = sk;
     d_allSkolems.insert(sk);
@@ -67,8 +67,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
-  SkolemManager* sm = d_nm->getSkolemManager();
-  Node n = sm->mkDummySkolem(c, tn, "sets skolem");
+  Node n = NodeManager::mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;
 }

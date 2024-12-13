@@ -346,8 +346,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   else
   {
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
+    Node skolem = NodeManager::mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
@@ -1362,8 +1361,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  SkolemManager* sm = nodeManager()->getSkolemManager();
-  Node var = sm->mkDummySkolem(
+  Node var = NodeManager::mkDummySkolem(
       "iteSimp", t, "is a variable resulting from ITE simplification");
   d_simpVars[t] = var;
   return var;

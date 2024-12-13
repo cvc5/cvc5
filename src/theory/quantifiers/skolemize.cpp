@@ -197,7 +197,6 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
   {
     argTypes.push_back(v.getType());
   }
-  SkolemManager* sm = nm->getSkolemManager();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -228,7 +227,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
       else
       {
         TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
-        Node op = sm->mkDummySkolem(
+        Node op = NodeManager::mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger

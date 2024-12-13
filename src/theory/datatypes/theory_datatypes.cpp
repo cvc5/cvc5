@@ -1121,7 +1121,6 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
 
 Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   int index = pol ? 0 : 1;
   std::map< TypeNode, Node >::iterator it = d_singleton_lemma[index].find( tn );
   if( it==d_singleton_lemma[index].end() ){
@@ -1133,8 +1132,8 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
                      nm->mkNode(Kind::BOUND_VAR_LIST, v1, v2),
                      v1.eqNode(v2));
     }else{
-      Node v1 = sm->mkDummySkolem("k1", tn);
-      Node v2 = sm->mkDummySkolem("k2", tn);
+      Node v1 = NodeManager::mkDummySkolem("k1", tn);
+      Node v2 = NodeManager::mkDummySkolem("k2", tn);
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
       d_im.lemma(a, InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ);

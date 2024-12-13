@@ -659,7 +659,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
   Trace("brc-macro") << "Remains to prove: " << body1 << " == " << body2
                      << std::endl;
   Node body2ms =
-      rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_FV, body2);
+      rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_OR, body2);
   if (body2ms.isNull())
   {
     // currently fails if we are doing
@@ -670,7 +670,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
     return false;
   }
   Node eqqm = body2.eqNode(body2ms);
-  cdp->addTheoryRewriteStep(eqqm, ProofRewriteRule::QUANT_MINISCOPE_FV);
+  cdp->addTheoryRewriteStep(eqqm, ProofRewriteRule::QUANT_MINISCOPE_OR);
   Node eqqrs = body2.eqNode(body1);
   if (body2ms != body1)
   {
@@ -806,8 +806,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   Node eqq2 = newQuant.eqNode(eq[1]);
   // Then prove
   //   (forall X F1 or ... or Fn) = (forall X1 F1) or ... or (forall Xn Fn)
-  // via ProofRewriteRule::QUANT_MINISCOPE_FV.
-  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_FV))
+  // via ProofRewriteRule::QUANT_MINISCOPE_OR.
+  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_OR))
   {
     Assert(false);
     return false;
@@ -974,13 +974,20 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
                                                        const Node& eq)
 {
+  Trace("brc-macro") << "Expand quant miniscope " << eq[0] << " == " << eq[1]
+                     << std::endl;
   Node q = eq[0];
   Assert(q.getKind() == Kind::FORALL);
   NodeManager* nm = nodeManager();
+  Kind bk = q[1].getKind();
+  Assert(bk == Kind::AND || bk == Kind::ITE);
+  ProofRewriteRule prr = bk == Kind::AND
+                             ? ProofRewriteRule::QUANT_MINISCOPE_AND
+                             : ProofRewriteRule::QUANT_MINISCOPE_ITE;
   theory::Rewriter* rr = d_env.getRewriter();
-  Node mq = rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE, q);
+  Node mq = rr->rewriteViaRule(prr, q);
   Node equiv = q.eqNode(mq);
-  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MINISCOPE);
+  cdp->addTheoryRewriteStep(equiv, prr);
   if (mq == eq[1])
   {
     return true;
@@ -1033,7 +1040,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
     Assert(false) << "Failed ensureProofMacroQuantMiniscope " << eq;
     return false;
   }
-  // add the CONG step to conclude AND terms are equal
+  // add the CONG step to conclude AND or ITE terms are equal
   std::vector<Node> cargs;
   ProofRule cr = expr::getCongRule(mq, cargs);
   cdp->addStep(equiv2, cr, premises, cargs);

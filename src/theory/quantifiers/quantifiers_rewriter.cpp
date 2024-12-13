@@ -112,7 +112,7 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MINISCOPE,
                            TheoryRewriteCtx::PRE_DSL);
-  // QUANT_MINISCOPE is part of the reconstruction for MACRO_QUANT_MINISCOPE
+  // QUANT_MINISCOPE_OR is part of the reconstruction for MACRO_QUANT_MINISCOPE
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV,
                            TheoryRewriteCtx::PRE_DSL);
   // note ProofRewriteRule::QUANT_DT_SPLIT is done by a module dynamically with
@@ -201,7 +201,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
     {
-      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
+      if (n.getKind() != Kind::FORALL)
+      {
+        return Node::null();
+      }
+      Kind k = n[1].getKind();
+      if (k != Kind::AND && k != Kind::ITE)
       {
         return Node::null();
       }
@@ -210,11 +215,13 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       QAttributes qa;
       QuantAttributes::computeQuantAttributes(n, qa);
       Node nret = computeMiniscoping(n, qa, true, false);
-      Assert(nret != n);
-      return nret;
+      if (nret != n)
+      {
+        return nret;
+      }
     }
     break;
-    case ProofRewriteRule::QUANT_MINISCOPE:
+    case ProofRewriteRule::QUANT_MINISCOPE_AND:
     {
       if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::AND)
       {
@@ -252,7 +259,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    case ProofRewriteRule::QUANT_MINISCOPE_OR:
     {
       if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::OR)
       {
@@ -303,6 +310,23 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       return ret;
+    }
+    break;
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE:
+    {
+      if (n.getKind() != Kind::FORALL || n[1].getKind() != Kind::ITE)
+      {
+        return Node::null();
+      }
+      std::vector<Node> args(n[0].begin(), n[0].end());
+      Node body = n[1];
+      if (!expr::hasSubterm(body[0], args))
+      {
+        return d_nm->mkNode(Kind::ITE,
+                            body[0],
+                            d_nm->mkNode(Kind::FORALL, n[0], body[1]),
+                            d_nm->mkNode(Kind::FORALL, n[0], body[2]));
+      }
     }
     break;
     case ProofRewriteRule::QUANT_DT_SPLIT:
@@ -1989,8 +2013,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    SkolemManager* sm = nm->getSkolemManager();
-    Node avar = sm->mkDummySkolem("id", nm->booleanType());
+    Node avar = NodeManager::mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(Kind::INST_ATTRIBUTE, avar));
@@ -2011,16 +2034,26 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
   NodeManager* nm = nodeManager();
   std::vector<Node> args(q[0].begin(), q[0].end());
   Node body = q[1];
-  if (body.getKind() == Kind::AND)
+  Kind k = body.getKind();
+  if (k == Kind::AND || k == Kind::ITE)
   {
+    bool doRewrite = miniscopeConj;
+    if (k == Kind::ITE)
+    {
+      // ITE miniscoping is only valid if condition contains no variables
+      if (expr::hasSubterm(body[0], args))
+      {
+        doRewrite = false;
+      }
+    }
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
-    if (miniscopeConj)
+    if (doRewrite)
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
-      NodeBuilder t(nm, Kind::AND);
+      NodeBuilder t(nm, k);
       std::vector<Node> argsc;
       for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
