@@ -244,7 +244,7 @@ void SynthConjecture::assign(Node q)
   {
     for (const Node& v : d_checkBody[0][0])
     {
-      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      Node sk = NodeManager::mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
       d_innerVars.push_back(v);
       d_innerSks.push_back(sk);

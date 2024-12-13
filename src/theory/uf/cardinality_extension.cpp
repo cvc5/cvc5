@@ -1135,7 +1135,6 @@ void SortModel::debugPrint( const char* c ){
 bool SortModel::checkLastCall()
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
   if( TraceIsOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
@@ -1173,7 +1172,7 @@ bool SortModel::checkLastCall()
       {
         std::stringstream ss;
         ss << "r_" << d_type << "_";
-        Node nn = sm->mkDummySkolem(
+        Node nn = NodeManager::mkDummySkolem(
             ss.str(), d_type, "enumeration to meet negative card constraint");
         d_fresh_aloc_reps.push_back( nn );
       }

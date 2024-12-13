@@ -260,7 +260,7 @@ symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode& old)
 
 symbolicProposition symbolicRoundingMode::valid(void) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getNodeManager();
   Node zero(nm->mkConst(BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, 0u)));
 
   // Is there a better encoding of this?
@@ -290,7 +290,7 @@ template <bool isSigned>
 Node symbolicBitVector<isSigned>::boolNodeToBV(Node node) const
 {
   Assert(node.getType().isBoolean());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getNodeManager();
   return nm->mkNode(Kind::ITE,
                     node,
                     nm->mkConst(BitVector(1U, 1U)),
@@ -302,7 +302,7 @@ Node symbolicBitVector<isSigned>::BVToBoolNode(Node node) const
 {
   Assert(node.getType().isBitVector());
   Assert(node.getType().getBitVectorSize() == 1);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getNodeManager();
   return nm->mkNode(Kind::EQUAL, node, nm->mkConst(BitVector(1U, 1U)));
 }
 
@@ -630,8 +630,8 @@ symbolicBitVector<false> symbolicBitVector<isSigned>::toUnsigned(void) const
 template <>
 symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 {
-  NodeBuilder construct(NodeManager::currentNM(), Kind::BITVECTOR_SIGN_EXTEND);
-  construct << NodeManager::currentNM()->mkConst<BitVectorSignExtend>(
+  NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_SIGN_EXTEND);
+  construct << getNodeManager()->mkConst<BitVectorSignExtend>(
       BitVectorSignExtend(extension))
             << *this;
 
@@ -641,8 +641,8 @@ symbolicBitVector<true> symbolicBitVector<true>::extend(bwt extension) const
 template <>
 symbolicBitVector<false> symbolicBitVector<false>::extend(bwt extension) const
 {
-  NodeBuilder construct(NodeManager::currentNM(), Kind::BITVECTOR_ZERO_EXTEND);
-  construct << NodeManager::currentNM()->mkConst<BitVectorZeroExtend>(
+  NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_ZERO_EXTEND);
+  construct << getNodeManager()->mkConst<BitVectorZeroExtend>(
       BitVectorZeroExtend(extension))
             << *this;
 
@@ -655,8 +655,8 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::contract(
 {
   Assert(this->getWidth() > reduction);
 
-  NodeBuilder construct(NodeManager::currentNM(), Kind::BITVECTOR_EXTRACT);
-  construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
+  NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_EXTRACT);
+  construct << getNodeManager()->template mkConst<BitVectorExtract>(
       BitVectorExtract((this->getWidth() - 1) - reduction, 0))
             << *this;
 
@@ -706,8 +706,8 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::extract(
 {
   Assert(upper >= lower);
 
-  NodeBuilder construct(NodeManager::currentNM(), Kind::BITVECTOR_EXTRACT);
-  construct << NodeManager::currentNM()->mkConst<BitVectorExtract>(
+  NodeBuilder construct(getNodeManager(), Kind::BITVECTOR_EXTRACT);
+  construct << getNodeManager()->template mkConst<BitVectorExtract>(
       BitVectorExtract(upper, lower))
             << *this;
 

@@ -39,13 +39,11 @@ Node ExprMiner::convertToSkolem(Node n)
 {
   if (d_skolems.empty())
   {
-    NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : d_vars)
     {
       std::stringstream ss;
       ss << "k_" << v;
-      Node sk = sm->mkDummySkolem(ss.str(), v.getType());
+      Node sk = NodeManager::mkDummySkolem(ss.str(), v.getType());
       d_skolems.push_back(sk);
       d_fv_to_skolem[v] = sk;
     }
