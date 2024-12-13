@@ -673,7 +673,11 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
       continue;
     }
     processed.insert(currEq);
-    Assert(currEq[0].getKind() == Kind::FORALL);
+    if (currEq[0].getKind() != Kind::FORALL)
+    {
+      Trace("brc-macro") << "Unexpected subgoal" << std::endl;
+      return false;
+    }
     Kind bk = currEq[0][1].getKind();
     ProofRewriteRule prr =
         bk == Kind::ITE
