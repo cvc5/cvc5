@@ -43,7 +43,7 @@ class StringCoreTermContext : public TermContext
  public:
   StringCoreTermContext() {}
   /** The initial value: not nested. */
-  uint32_t initialValue() const override{ return 0; }
+  uint32_t initialValue() const override { return 0; }
   /** Compute the value of the index^th child of t whose hash is tval */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
   {
@@ -51,11 +51,11 @@ class StringCoreTermContext : public TermContext
     {
       Kind k = t.getKind();
       // kinds we wish to substitute beneath
-      if (k ==Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
+      if (k == Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
       {
         return tval;
       }
-      return tval+1;
+      return tval + 1;
     }
     return 2;
   }
@@ -127,23 +127,23 @@ bool InferProofCons::unpackArgs(const std::vector<Node>& args,
 }
 
 /** convert
-  *
-  * This method converts this call to instructions on what the proof rule
-  * step(s) are for concluding the conclusion of the inference. This
-  * information is either:
-  *
-  * (A) stored in the argument ps, which consists of:
-  * - A proof rule identifier (ProofStep::d_rule).
-  * - The premises of the proof step (ProofStep::d_children).
-  * - Arguments to the proof step (ProofStep::d_args).
-  *
-  * (B) If the proof for the inference cannot be captured by a single
-  * step, then the d_rule field of ps is not set, and useBuffer is set to
-  * true. In this case, the argument psb is updated to contain (possibly
-  * multiple) proof steps for how to construct a proof for the given inference.
-  * In particular, psb will contain a set of steps that form a proof
-  * whose conclusion is conc and whose free assumptions are exp.
-  */
+ *
+ * This method converts this call to instructions on what the proof rule
+ * step(s) are for concluding the conclusion of the inference. This
+ * information is either:
+ *
+ * (A) stored in the argument ps, which consists of:
+ * - A proof rule identifier (ProofStep::d_rule).
+ * - The premises of the proof step (ProofStep::d_children).
+ * - Arguments to the proof step (ProofStep::d_args).
+ *
+ * (B) If the proof for the inference cannot be captured by a single
+ * step, then the d_rule field of ps is not set, and useBuffer is set to
+ * true. In this case, the argument psb is updated to contain (possibly
+ * multiple) proof steps for how to construct a proof for the given inference.
+ * In particular, psb will contain a set of steps that form a proof
+ * whose conclusion is conc and whose free assumptions are exp.
+ */
 bool InferProofCons::convert(Env& env,
                              InferenceId infer,
                              bool isRev,
@@ -220,13 +220,14 @@ bool InferProofCons::convert(Env& env,
         idMax = 1;
       }
       // add the rewrites for nested contexts up to idMax.
-      for (size_t i=0; i<=idMax; i++)
+      for (size_t i = 0; i <= idMax; i++)
       {
         for (const Node& s : ps.d_children)
         {
-          Trace("strings-ipc-core") << "--- rewrite " << s << ", id " << i << std::endl;
+          Trace("strings-ipc-core")
+              << "--- rewrite " << s << ", id " << i << std::endl;
           Assert(s.getKind() == Kind::EQUAL);
-          tconv.addRewriteStep(s[0], s[1], pf, false,TrustId::NONE, false, i);
+          tconv.addRewriteStep(s[0], s[1], pf, false, TrustId::NONE, false, i);
         }
       }
       Node res;
@@ -428,7 +429,7 @@ bool InferProofCons::convert(Env& env,
                              ps.d_children.begin() + mainEqIndex);
       Node pmainEq = mainEq;
       // if there are substitutions to apply
-      if (mainEqIndex>0)
+      if (mainEqIndex > 0)
       {
         StringCoreTermContext sctc;
         TConvProofGenerator tconv(env,
@@ -451,9 +452,9 @@ bool InferProofCons::convert(Env& env,
         {
           Trace("strings-ipc-core") << "Rewrites: " << res << std::endl;
           pf->addProof(pfn);
-          // Similar to above, the proof step buffer is tracking unique conclusions, we (dummy) mark
-          // that we have a proof of res via the proof above to ensure we do not
-          // reprove it in the following.
+          // Similar to above, the proof step buffer is tracking unique
+          // conclusions, we (dummy) mark that we have a proof of res via the
+          // proof above to ensure we do not reprove it in the following.
           psb.addStep(ProofRule::ASSUME, {}, {res}, res);
           psb.addStep(ProofRule::EQ_RESOLVE,
                       {pmainEq, res[0].eqNode(res[1])},

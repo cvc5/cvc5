@@ -118,7 +118,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * This method is called when the theory of strings makes an inference
    * described by an InferInfo, whose fields are given by the first four
    * arguments of this method.
-   * 
+   *
    * @param env Reference to the environment.
    * @param infer The inference id.
    * @param isRev Whether this was the reverse form of the inference id.
