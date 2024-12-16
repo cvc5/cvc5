@@ -33,26 +33,33 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringCoreTermContext::StringCoreTermContext() {}
-
-uint32_t StringCoreTermContext::initialValue() const { return 0; }
-
-uint32_t StringCoreTermContext::computeValue(TNode t,
-                                             uint32_t tval,
-                                             size_t index) const
+/**
+ * Counts the number of times we traverse beneath a "non-core" operator.
+ * This is used to reason about substitutions that assume reasoning about
+ * concatentation and (dis)equalities only.
+ */
+class StringCoreTermContext : public TermContext
 {
-  if (tval < 2)
+ public:
+  StringCoreTermContext() {}
+  /** The initial value: not nested. */
+  uint32_t initialValue() const override{ return 0; }
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
   {
-    Kind k = t.getKind();
-    // kinds we wish to substitute beneath
-    if (k ==Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
+    if (tval < 2)
     {
-      return tval;
+      Kind k = t.getKind();
+      // kinds we wish to substitute beneath
+      if (k ==Kind::NOT || k == Kind::EQUAL || k == Kind::STRING_CONCAT)
+      {
+        return tval;
+      }
+      return tval+1;
     }
-    return tval+1;
+    return 2;
   }
-  return 2;
-}
+};
 
 InferProofCons::InferProofCons(Env& env,
                                context::Context* c,

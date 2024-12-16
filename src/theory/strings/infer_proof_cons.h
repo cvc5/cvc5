@@ -36,16 +36,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-class StringCoreTermContext : public TermContext
-{
- public:
-  StringCoreTermContext();
-  /** The initial value: valid. */
-  uint32_t initialValue() const override;
-  /** Compute the value of the index^th child of t whose hash is tval */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-};
-
 /**
  * Converts between the strings-specific (untrustworthy) InferInfo class and
  * information about how to construct a trustworthy proof step
