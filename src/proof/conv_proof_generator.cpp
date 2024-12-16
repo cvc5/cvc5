@@ -241,9 +241,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(conc, ProofRule::REFL, {}, {n});
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
