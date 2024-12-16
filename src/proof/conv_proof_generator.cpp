@@ -188,9 +188,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofFor: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(f, ProofRule::REFL, {}, {f[0]});
   }
   else
