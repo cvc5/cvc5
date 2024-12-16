@@ -185,7 +185,6 @@ bool InferProofCons::convert(Env& env,
   {
     Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
     psb.addStep(ProofRule::ASSUME, {}, {ec}, ec);
-    // pf->addStep(ec, ProofRule::ASSUME, {}, {ec});
   }
   NodeManager* nm = NodeManager::currentNM();
   Node nodeIsRev = nm->mkConst(isRev);
