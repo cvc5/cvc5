@@ -1227,8 +1227,6 @@ bool InferProofCons::convert(Env& env,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // Warning() << "STRINGS-IPC-FAIL: " << infer << std::endl;
-    // AlwaysAssert(false) << "STRINGS-IPC-FAIL: " << infer << std::endl;
     //  untrustworthy conversion, the argument of THEORY_INFERENCE is its
     //  conclusion
     ps.d_args.clear();
