@@ -1833,6 +1833,7 @@ set(regress_0_tests
   regress0/strings/is_digit_simple.smt2
   regress0/strings/issue11164-double-purify.smt2
   regress0/strings/issue11168.smt2
+  regress0/strings/issue11197-str-ipc.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
