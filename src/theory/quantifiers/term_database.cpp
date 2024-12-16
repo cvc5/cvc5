@@ -52,6 +52,9 @@ class DeqCongProofGenerator : protected EnvObj, public ProofGenerator
   DeqCongProofGenerator(Env& env) : EnvObj(env) {}
   virtual ~DeqCongProofGenerator() {}
   /**
+   * The lemma is of the form:
+   * (=> (and (= ti si) .. (= tj sj)) (= (f t1 ... tn) (f s1 ... sn)))
+   * which can be proven by a congruence step.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
