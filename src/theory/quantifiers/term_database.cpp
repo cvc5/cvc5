@@ -58,7 +58,6 @@ class DeqCongProofGenerator : protected EnvObj, public ProofGenerator
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
-    AlwaysAssert(false);
     Assert(fact.getKind() == Kind::IMPLIES);
     Assert(fact[1].getKind() == Kind::EQUAL);
     Node a = fact[1][0];
