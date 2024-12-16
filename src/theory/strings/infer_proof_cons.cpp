@@ -119,6 +119,24 @@ bool InferProofCons::unpackArgs(const std::vector<Node>& args,
   return true;
 }
 
+/** convert
+  *
+  * This method converts this call to instructions on what the proof rule
+  * step(s) are for concluding the conclusion of the inference. This
+  * information is either:
+  *
+  * (A) stored in the argument ps, which consists of:
+  * - A proof rule identifier (ProofStep::d_rule).
+  * - The premises of the proof step (ProofStep::d_children).
+  * - Arguments to the proof step (ProofStep::d_args).
+  *
+  * (B) If the proof for the inference cannot be captured by a single
+  * step, then the d_rule field of ps is not set, and useBuffer is set to
+  * true. In this case, the argument psb is updated to contain (possibly
+  * multiple) proof steps for how to construct a proof for the given inference.
+  * In particular, psb will contain a set of steps that form a proof
+  * whose conclusion is conc and whose free assumptions are exp.
+  */
 bool InferProofCons::convert(Env& env,
                              InferenceId infer,
                              bool isRev,

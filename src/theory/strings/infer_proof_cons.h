@@ -128,22 +128,15 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * This method is called when the theory of strings makes an inference
    * described by an InferInfo, whose fields are given by the first four
    * arguments of this method.
-   *
-   * This method converts this call to instructions on what the proof rule
-   * step(s) are for concluding the conclusion of the inference. This
-   * information is either:
-   *
-   * (A) stored in the argument ps, which consists of:
-   * - A proof rule identifier (ProofStep::d_rule).
-   * - The premises of the proof step (ProofStep::d_children).
-   * - Arguments to the proof step (ProofStep::d_args).
-   *
-   * (B) If the proof for the inference cannot be captured by a single
-   * step, then the d_rule field of ps is not set, and useBuffer is set to
-   * true. In this case, the argument psb is updated to contain (possibly
-   * multiple) proof steps for how to construct a proof for the given inference.
-   * In particular, psb will contain a set of steps that form a proof
-   * whose conclusion is conc and whose free assumptions are exp.
+   * 
+   * @param env Reference to the environment.
+   * @param infer The inference id.
+   * @param isRev Whether this was the reverse form of the inference id.
+   * @param conc The conclusion of the inference.
+   * @param exp The explanation of the inference.
+   * @param pf The proof to add to.
+   * @return true if we successfully added a proof of conc to pf, whose free
+   * assumptions are a subset of exp.
    */
   static bool convert(Env& env,
                       InferenceId infer,
