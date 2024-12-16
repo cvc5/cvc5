@@ -426,38 +426,41 @@ bool InferProofCons::convert(Env& env,
       // we purify the core substitution
       std::vector<Node> pcsr(ps.d_children.begin(),
                              ps.d_children.begin() + mainEqIndex);
-
-      StringCoreTermContext sctc;
-      TConvProofGenerator tconv(env,
-                                nullptr,
-                                TConvPolicy::FIXPOINT,
-                                TConvCachePolicy::NEVER,
-                                "StrTConv",
-                                &sctc);
-      for (size_t i = 0; i < mainEqIndex; i++)
-      {
-        Node s = ps.d_children[i];
-        Trace("strings-ipc-core") << "--- rewrite " << s << std::endl;
-        Assert(s.getKind() == Kind::EQUAL);
-        tconv.addRewriteStep(s[0], s[1], pf);
-      }
-      std::shared_ptr<ProofNode> pfn = tconv.getProofForRewriting(mainEq);
-      Node res = pfn->getResult();
-      Assert(res.getKind() == Kind::EQUAL);
       Node pmainEq = mainEq;
-      if (res[0] != res[1])
+      // if there are substitutions to apply
+      if (mainEqIndex>0)
       {
-        Trace("strings-ipc-core") << "Rewrites: " << res << std::endl;
-        pf->addProof(pfn);
-        // Similar to above, the proof step buffer is tracking unique conclusions, we (dummy) mark
-        // that we have a proof of res via the proof above to ensure we do not
-        // reprove it in the following.
-        psb.addStep(ProofRule::ASSUME, {}, {res}, res);
-        psb.addStep(ProofRule::EQ_RESOLVE,
-                    {pmainEq, res[0].eqNode(res[1])},
-                    {},
-                    res[1]);
-        pmainEq = res[1];
+        StringCoreTermContext sctc;
+        TConvProofGenerator tconv(env,
+                                  nullptr,
+                                  TConvPolicy::FIXPOINT,
+                                  TConvCachePolicy::NEVER,
+                                  "StrTConv",
+                                  &sctc);
+        for (size_t i = 0; i < mainEqIndex; i++)
+        {
+          Node s = ps.d_children[i];
+          Trace("strings-ipc-core") << "--- rewrite " << s << std::endl;
+          Assert(s.getKind() == Kind::EQUAL);
+          tconv.addRewriteStep(s[0], s[1], pf);
+        }
+        std::shared_ptr<ProofNode> pfn = tconv.getProofForRewriting(mainEq);
+        Node res = pfn->getResult();
+        Assert(res.getKind() == Kind::EQUAL);
+        if (res[0] != res[1])
+        {
+          Trace("strings-ipc-core") << "Rewrites: " << res << std::endl;
+          pf->addProof(pfn);
+          // Similar to above, the proof step buffer is tracking unique conclusions, we (dummy) mark
+          // that we have a proof of res via the proof above to ensure we do not
+          // reprove it in the following.
+          psb.addStep(ProofRule::ASSUME, {}, {res}, res);
+          psb.addStep(ProofRule::EQ_RESOLVE,
+                      {pmainEq, res[0].eqNode(res[1])},
+                      {},
+                      res[1]);
+          pmainEq = res[1];
+        }
       }
       Trace("strings-ipc-core")
           << "Main equality after subs " << pmainEq << std::endl;
