@@ -90,6 +90,7 @@ class DeqCongProofGenerator : protected EnvObj, public ProofGenerator
       {
         cdp.addStep(eq, ProofRule::REFL, {}, {a[i]});
       }
+      Assert (std::find(assumps.begin(), assumps.end(), eq)!=assumps.end());
     }
     cdp.addStep(fact[1], cr, premises, cargs);
     std::shared_ptr<ProofNode> pfn = cdp.getProofFor(fact[1]);
