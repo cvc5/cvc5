@@ -280,7 +280,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         while (varIndex < nvars && fvs.find(n[0][varIndex]) != fvs.end())
         {
           // cannot have shadowing
-          if (varsUsed.find(n[0][varIndex])!=varsUsed.end())
+          if (varsUsed.find(n[0][varIndex]) != varsUsed.end())
           {
             return Node::null();
           }

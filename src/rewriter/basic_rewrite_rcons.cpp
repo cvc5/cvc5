@@ -1090,11 +1090,11 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   // term context.
   WithinKindTermContext wktc(Kind::INST_PATTERN_LIST);
   TConvProofGenerator tcpg(d_env,
-            nullptr,
-            TConvPolicy::FIXPOINT,
-            TConvCachePolicy::NEVER,
-            "EnsureProofMacroQuantRewrite",
-            &wktc);
+                           nullptr,
+                           TConvPolicy::FIXPOINT,
+                           TConvCachePolicy::NEVER,
+                           "EnsureProofMacroQuantRewrite",
+                           &wktc);
   theory::quantifiers::QuantifiersRewriter qrew(
       nodeManager(), d_env.getRewriter(), options());
   Node qr = qrew.computeRewriteBody(eq[0], &tcpg);
