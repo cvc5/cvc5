@@ -592,10 +592,11 @@
 ; return: >
 ;   The multiset over-approximation of s, which is a (flattened) concatenation
 ;   term whose components represent an overapproximation of what s may contain.
-(program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)))
+(program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
     ((Seq T)) (Seq T)
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
+      (($str_multiset_overapprox (str.substr s n m))   ($str_to_flat_form s false))
       (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
       (($str_multiset_overapprox s)                    ($str_to_flat_form s false))
     )
