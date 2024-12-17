@@ -144,7 +144,7 @@ bool EqProof::expandTransitivityForDisequalities(
         << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conclusion.getNodeManager();
   Assert(termPos == 0 || termPos == 1);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: found "
                            "offending equality at index "
@@ -595,7 +595,7 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = NodeManager::currentNM()->mkNode(Kind::EQUAL, constChildren);
+  Node constApp = conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -953,13 +953,13 @@ Node EqProof::addToProof(CDProof* p,
       {
         intro = ProofRule::FALSE_INTRO;
         conclusion =
-            d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+            d_node[0].eqNode(d_node.getNodeManager()->mkConst<bool>(false));
       }
       else
       {
         intro = ProofRule::TRUE_INTRO;
         conclusion =
-            d_node.eqNode(NodeManager::currentNM()->mkConst<bool>(true));
+            d_node.eqNode(d_node.getNodeManager()->mkConst<bool>(true));
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
@@ -1007,7 +1007,7 @@ Node EqProof::addToProof(CDProof* p,
     if (d_children.empty())
     {
       Node conclusion =
-          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+          d_node[0].eqNode(d_node.getNodeManager()->mkConst<bool>(false));
       p->addStep(d_node, ProofRule::MACRO_SR_PRED_INTRO, {}, {d_node});
       p->addStep(conclusion, ProofRule::FALSE_INTRO, {d_node}, {});
       visited[d_node] = conclusion;
@@ -1088,7 +1088,7 @@ Node EqProof::addToProof(CDProof* p,
     {
       constChildren.insert(constChildren.begin(), d_node[0].getOperator());
     }
-    Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
+    Node constApp = d_node.getNodeManager()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
                           << ProofRule::MACRO_SR_PRED_INTRO << " step for "
@@ -1123,7 +1123,7 @@ Node EqProof::addToProof(CDProof* p,
     Node conclusion =
         d_node.getKind() != Kind::NOT
             ? d_node
-            : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+            : d_node[0].eqNode(d_node.getNodeManager()->mkConst<bool>(false));
     // If the conclusion is an assumption, its derivation was spurious, so it
     // can be discarded. Moreover, reconstructing the step may lead to cyclic
     // proofs, so we *must* cut here.
@@ -1261,7 +1261,7 @@ Node EqProof::addToProof(CDProof* p,
   // whether the transitivity matrix computed by reduceNestedCongruence contains
   // empty rows
   Node conclusion = d_node;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conclusion.getNodeManager();
   if (isNary)
   {
     unsigned emptyRows = 0;

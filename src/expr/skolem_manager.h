@@ -96,7 +96,7 @@ class SkolemManager
    * @param t The term to purify
    * @return The purification skolem for t
    */
-  Node mkPurifySkolem(Node t);
+  static Node mkPurifySkolem(Node t);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemId. The user of this

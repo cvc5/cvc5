@@ -124,7 +124,6 @@ void MonomialIndex::addTerm(Node n,
 
 MonomialDb::MonomialDb()
 {
-  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
 }
 
 void MonomialDb::registerMonomial(Node n)
@@ -150,8 +149,9 @@ void MonomialDb::registerMonomial(Node n)
     }
     d_m_degree[n] = nchild;
   }
-  else if (n == d_one)
+  else if (n.isConst())
   {
+    Assert(n.getConst<Rational>().isOne());
     d_m_exp[n].clear();
     d_m_vlist[n].clear();
     d_m_degree[n] = 0;

@@ -142,6 +142,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
   Assert(n[0].getKind() != Kind::EQUAL);
   Assert(isRelationOperator(n[0].getKind()));
 
+  NodeManager* nm = n.getNodeManager();
+
   TNode c = n[0];
   Kind k = oldSimplifiedKind(c);
   TNode t = n[1];
@@ -169,8 +171,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
       case Kind::LT:  // (ite (< x y) x y)
       case Kind::LEQ:
       {  // (ite (<= x y) x y)
-        Node nLeqX = NodeBuilder(Kind::LEQ) << n << t;
-        Node nLeqY = NodeBuilder(Kind::LEQ) << n << e;
+        Node nLeqX = NodeBuilder(nm, Kind::LEQ) << n << t;
+        Node nLeqY = NodeBuilder(nm, Kind::LEQ) << n << e;
         Trace("arith::static") << n << "is a min =>" << nLeqX << nLeqY << endl;
         addLearnedLemma(nLeqX, learned);
         addLearnedLemma(nLeqY, learned);
@@ -180,8 +182,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
       case Kind::GT:  // (ite (> x y) x y)
       case Kind::GEQ:
       {  // (ite (>= x y) x y)
-        Node nGeqX = NodeBuilder(Kind::GEQ) << n << t;
-        Node nGeqY = NodeBuilder(Kind::GEQ) << n << e;
+        Node nGeqX = NodeBuilder(nm, Kind::GEQ) << n << t;
+        Node nGeqY = NodeBuilder(nm, Kind::GEQ) << n << e;
         Trace("arith::static") << n << "is a max =>" << nGeqX << nGeqY << endl;
         addLearnedLemma(nGeqX, learned);
         addLearnedLemma(nGeqY, learned);

@@ -100,7 +100,7 @@ size_t MipLibTrick::removeFromConjunction(
         || (sub.getKind() == Kind::AND
             && (subremovals = removeFromConjunction(sub, toRemove)) > 0))
     {
-      NodeBuilder b(Kind::AND);
+      NodeBuilder b(nodeManager(), Kind::AND);
       b.append(n.begin(), j);
       if (subremovals > 0)
       {
@@ -209,7 +209,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConstInt(Rational(0)), one = nm->mkConstInt(Rational(1));
   Node trueNode = nm->mkConst(true);
 
@@ -523,7 +522,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = sm->mkDummySkolem(
+              Node newVar = NodeManager::mkDummySkolem(
                   ss.str(),
                   nm->integerType(),
                   "a variable introduced due to scrubbing a miplib encoding");
@@ -559,7 +558,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Node sum;
           if (pos.getKind() == Kind::AND)
           {
-            NodeBuilder sumb(Kind::ADD);
+            NodeBuilder sumb(nodeManager(), Kind::ADD);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(

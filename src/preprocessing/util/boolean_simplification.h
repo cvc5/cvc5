@@ -84,7 +84,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(Kind::AND);
+    NodeBuilder nb(andNode.getNodeManager(), Kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -111,7 +111,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(Kind::OR);
+    NodeBuilder nb(orNode.getNodeManager(), Kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -131,7 +131,8 @@ class BooleanSimplification
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder(Kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(implication.getNodeManager(), Kind::OR)
+                  << notLeft << right;
 
     return simplifyClause(clause);
   }
