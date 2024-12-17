@@ -1086,7 +1086,15 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
                      << std::endl;
   // Call the utility again with proof tracking and construct the term
   // conversion proof. This proof itself may have trust steps in it.
-  TConvProofGenerator tcpg(d_env, nullptr);
+  // We ensure the proof generator does not rewrite in the pattern list using a
+  // term context.
+  WithinKindTermContext wktc(Kind::INST_PATTERN_LIST);
+  TConvProofGenerator tcpg(d_env,
+            nullptr,
+            TConvPolicy::FIXPOINT,
+            TConvCachePolicy::NEVER,
+            "EnsureProofMacroQuantRewrite",
+            &wktc);
   theory::quantifiers::QuantifiersRewriter qrew(
       nodeManager(), d_env.getRewriter(), options());
   Node qr = qrew.computeRewriteBody(eq[0], &tcpg);
