@@ -341,23 +341,25 @@ Node rename(
                             int id = globalVarCounter++;
                             std::string new_var_name =
                                 "v" + std::string(8 - numDigits(id), '0') + std::to_string(id);
-                            cnodes.push_back(nodeManager->mkConst(String(new_var_name, false)));
-                            // Node gt = nodeManager->mkConst(SortToTerm(current.getType()));
+                            // cnodes.push_back(nodeManager->mkConst(String(new_var_name, false)));
                             // Node gt = nodeManager->mkConst(SortToTerm(
-                            //     normalizedSorts.find(current.getType()) != normalizedSorts.end() ? normalizedSorts[current.getType()] : current.getType())
-                            // );
-                            Node gt = nodeManager->mkConst(SortToTerm(
-                                sortNormalizer->convertType(current.getType())
-                            ));
+                            //     sortNormalizer->convertType(current.getType())
+                            // ));
 
-                            cnodes.push_back(gt);
-                            // Node ret = nodeManager->getSkolemManager()->mkSkolemFunction(
-                            //     SkolemFunId::INPUT_VARIABLE, cnodes);
-                            Node ret = nodeManager->getSkolemManager()->mkInternalSkolemFunction(
-                                InternalSkolemId::NORMALIZE_INPUT_VARIABLE,
+                            // cnodes.push_back(gt);
+                            // Node ret = nodeManager->getSkolemManager()->mkInternalSkolemFunction(
+                            //     InternalSkolemId::NORMALIZE_INPUT_VARIABLE,
+                            //     sortNormalizer->convertType(current.getType()),
+                            //     cnodes
+                            // );
+
+                            Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
+                                new_var_name,
                                 sortNormalizer->convertType(current.getType()),
-                                cnodes
+                                "normalized " + current.toString() + " to " + new_var_name,
+                                SkolemFlags::SKOLEM_EXACT_NAME
                             );
+
                             freeVar2node[current] = ret;
                             normalized[current] = ret;
                             d_preprocContext->addSubstitution(current, ret);
