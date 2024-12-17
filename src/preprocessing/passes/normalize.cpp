@@ -28,6 +28,7 @@
 #include "preprocessing/preprocessing_pass_context.h" 
 #include "expr/cardinality_constraint.h"
 #include "expr/normalize_sort_converter.h"
+#include "expr/skolem_manager.h"
 
 #include <map>
 #include <unordered_map>
@@ -350,8 +351,13 @@ Node rename(
                             ));
 
                             cnodes.push_back(gt);
-                            Node ret = nodeManager->getSkolemManager()->mkSkolemFunction(
-                                SkolemFunId::INPUT_VARIABLE, cnodes);
+                            // Node ret = nodeManager->getSkolemManager()->mkSkolemFunction(
+                            //     SkolemFunId::INPUT_VARIABLE, cnodes);
+                            Node ret = nodeManager->getSkolemManager()->mkInternalSkolemFunction(
+                                InternalSkolemId::NORMALIZE_INPUT_VARIABLE,
+                                sortNormalizer->convertType(current.getType()),
+                                cnodes
+                            );
                             freeVar2node[current] = ret;
                             normalized[current] = ret;
                             d_preprocContext->addSubstitution(current, ret);
@@ -734,7 +740,7 @@ PreprocessingPassResult Normalize::applyInternal(
     }
     
 
-    NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts);
+    NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts, NodeManager::currentNM());
     
     //////////////////////////////////////////////////////////////////////
     // Step 5: Normalize the nodes based on the sorted order
