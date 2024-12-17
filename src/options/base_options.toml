@@ -278,6 +278,8 @@ name   = "Base"
   name = "rare-db-expert"
   help = "upon initialization, print the set of expert RARE rewrite rules as they are defined in the proof signature."
   description = "With ``-o rare-db-expert``, upon initialization, cvc5 prints the entire set of expert RARE rewrite rules as they are defined in the proof signature."
+  help = "upon initialization, print the entire set of RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of RARE rewrite rules as they are defined in the proof signature."
 [[option.mode.NORMALIZE]]
   name = "normalize"
   help = "prints the benchmark after normalization"
