@@ -20,7 +20,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "printer/printer.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -124,7 +123,6 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   std::unordered_set<Node> alreadyPrintedDef;
 
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;
-  
   for (const Node& s : defSyms)
   {
     std::vector<Node> recDefs;
@@ -185,7 +183,6 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
       outDef << std::endl;
     }
   }
-  
 
   // print the remaining declared symbols
   std::unordered_set<Node> unorderedSyms;
@@ -202,7 +199,6 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   std::sort(syms.begin(), syms.end());
   printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
 }
-
 void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& defs,
                                      const std::vector<Node>& assertions)
@@ -236,10 +232,8 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
   for (const Node& f : funs)
   {
     Assert(f.isVar());
-    // do not print selectors, constructors, testers, updaters
-    TypeNode ft = f.getType();
-    if (ft.isDatatypeSelector() || ft.isDatatypeConstructor()
-        || ft.isDatatypeTester() || ft.isDatatypeUpdater())
+    // do not print selectors, constructors
+    if (!f.getType().isFirstClass())
     {
       continue;
     }
@@ -321,15 +315,6 @@ void PrintBenchmark::getConnectedDefinitions(
     return;
   }
   processedDefs.insert(n);
-  // get the symbols in the body
-  std::unordered_set<Node> symsBody;
-  expr::getSymbols(it->second.second, symsBody, visited);
-  for (const Node& s : symsBody)
-  {
-    getConnectedDefinitions(
-        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
-  }
-  // add the symbol after we add the definitions
   if (!it->second.first)
   {
     // an ordinary define-fun symbol
@@ -339,6 +324,14 @@ void PrintBenchmark::getConnectedDefinitions(
   {
     // a recursively defined symbol
     recDefs.push_back(n);
+  }
+  // get the symbols in the body
+  std::unordered_set<Node> symsBody;
+  expr::getSymbols(it->second.second, symsBody, visited);
+  for (const Node& s : symsBody)
+  {
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
 }
 
@@ -360,7 +353,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::mkNode(Kind::LAMBDA, a[0], a[1][1]);
+    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else
