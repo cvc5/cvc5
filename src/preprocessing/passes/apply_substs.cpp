@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "theory/substitutions.h"
 #include "expr/beta_reduce_converter.h"
+#include "options/base_options.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
@@ -43,10 +44,6 @@ PreprocessingPassResult ApplySubsts::applyInternal(
   // TODO(#1255): Substitutions in incremental mode should be managed with a
   // proper data structure.
                         
-  BetaReduceNodeConverter bnc(nodeManager());
-                        
-  theory::SubstitutionMap& sm =
-      d_preprocContext->getTopLevelSubstitutions().get();
   unsigned size = assertionsToPreprocess->size();
   for (unsigned i = 0; i < size; ++i)
   {
@@ -57,10 +54,27 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
-    Node ar = sm.apply((*assertionsToPreprocess)[i]);
-    ar = bnc.convert(ar);
-    assertionsToPreprocess->replace(
-        i, ar);
+    
+
+
+    if (isOutputOn(OutputTag::NORMALIZE))
+    {
+      BetaReduceNodeConverter bnc(nodeManager());
+      theory::SubstitutionMap& sm = d_preprocContext->getTopLevelSubstitutions().get();
+
+      Node ar = sm.apply((*assertionsToPreprocess)[i]);
+      ar = bnc.convert(ar);
+
+      assertionsToPreprocess->replace(
+          i, ar);
+    }
+    else
+    {
+      theory::TrustSubstitutionMap& tlsm = d_preprocContext->getTopLevelSubstitutions();
+      assertionsToPreprocess->replaceTrusted(
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
+    }
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
     // if rewritten to false, we are done
