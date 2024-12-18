@@ -63,7 +63,7 @@ class BoundVarManager
       Assert(n.getAttribute(attr).getType() == tn);
       return n.getAttribute(attr);
     }
-    Node v = NodeManager::currentNM()->mkBoundVar(tn);
+    Node v = NodeManager::mkBoundVar(tn);
     n.setAttribute(attr, v);
     // if we are keeping cache values, insert it to the set
     if (d_keepCacheVals)
