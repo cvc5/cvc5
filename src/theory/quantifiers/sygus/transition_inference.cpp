@@ -198,7 +198,7 @@ void TransitionInference::process(Node n, Node f)
 
 void TransitionInference::process(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;
