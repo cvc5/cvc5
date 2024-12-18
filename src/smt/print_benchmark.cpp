@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "printer/printer.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -51,13 +52,16 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getTypes(a, unorderedTypes, typeVisited);
   }
-  // We want to print declarations in a deterministic order, independent of
-  // the implementation of data structures. Hence, we insert into a vector
-  // and reorder. Note that collecting the types in an std::unordered_map,
-  // then inserting them into a vector and sorting the vector is faster than
-  // immediately using an std::set instead.
   std::vector<TypeNode> types{unorderedTypes.begin(), unorderedTypes.end()};
-  std::sort(types.begin(), types.end());
+  if (d_sorted)
+  {
+    // We want to print declarations in a deterministic order, independent of
+    // the implementation of data structures. Hence, we insert into a vector
+    // and reorder. Note that collecting the types in an std::unordered_map,
+    // then inserting them into a vector and sorting the vector is faster than
+    // immediately using an std::set instead.
+    std::sort(types.begin(), types.end());
+  }
   // print the declared types first
   std::unordered_set<TypeNode> alreadyPrintedDeclSorts;
   for (const TypeNode& st : types)
@@ -135,19 +139,27 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
                             defMap,
                             alreadyPrintedDef,
                             visited);
-    // We want to print declarations in a deterministic order, independent of
-    // the implementation of data structures. Hence, we insert into a vector
-    // and reorder. Note that collecting `syms` in an std::unordered_map,
-    // then inserting them into a vector and sorting the vector is faster than
-    // immediately using an std::set instead.
     std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-    std::sort(syms.begin(), syms.end());
+    if (d_sorted)
+    {
+      // We want to print declarations in a deterministic order, independent of
+      // the implementation of data structures. Hence, we insert into a vector
+      // and reorder. Note that collecting `syms` in an std::unordered_map,
+      // then inserting them into a vector and sorting the vector is faster than
+      // immediately using an std::set instead.
+      std::sort(syms.begin(), syms.end());
+    }
     // print the declarations that are encountered for the first time in this
     // block
     printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
-    // Sort ordinary and recursive definitions for deterministic order.
-    std::sort(recDefs.begin(), recDefs.end());
-    std::sort(ordinaryDefs.begin(), ordinaryDefs.end());
+    if (d_sorted)
+    {
+      // Sort recursive definitions for deterministic order.
+      std::sort(recDefs.begin(), recDefs.end());
+      // In general, we cannot sort the ordinary definitions since they were
+      // added to the vector in an order which ensures the functions they
+      // depend on are defined first.
+    }
     // print the ordinary definitions
     for (const Node& f : ordinaryDefs)
     {
@@ -190,15 +202,19 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
   {
     expr::getSymbols(a, unorderedSyms, visited);
   }
-  // We want to print declarations in a deterministic order, independent of
-  // the implementation of data structures. Hence, we insert into a vector
-  // and reorder. Note that collecting `syms` in an std::unordered_map,
-  // then inserting them into a vector and sorting the vector is faster than
-  // immediately using an std::set instead.
   std::vector<Node> syms{unorderedSyms.begin(), unorderedSyms.end()};
-  std::sort(syms.begin(), syms.end());
+  if (d_sorted)
+  {
+    // We want to print declarations in a deterministic order, independent of
+    // the implementation of data structures. Hence, we insert into a vector
+    // and reorder. Note that collecting `syms` in an std::unordered_map,
+    // then inserting them into a vector and sorting the vector is faster than
+    // immediately using an std::set instead.
+    std::sort(syms.begin(), syms.end());
+  }
   printDeclaredFuns(outDecl, syms, alreadyPrintedDecl);
 }
+
 void PrintBenchmark::printAssertions(std::ostream& out,
                                      const std::vector<Node>& defs,
                                      const std::vector<Node>& assertions)
@@ -228,12 +244,16 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
                                        const std::vector<Node>& funs,
                                        std::unordered_set<Node>& alreadyPrinted)
 {
+  bool printSkolemDefs = options::ioutils::getPrintSkolemDefinitions(out);
+  SkolemManager* sm = d_nm->getSkolemManager();
   BenchmarkNoPrintAttribute bnpa;
   for (const Node& f : funs)
   {
     Assert(f.isVar());
-    // do not print selectors, constructors
-    if (!f.getType().isFirstClass())
+    // do not print selectors, constructors, testers, updaters
+    TypeNode ft = f.getType();
+    if (ft.isDatatypeSelector() || ft.isDatatypeConstructor()
+        || ft.isDatatypeTester() || ft.isDatatypeUpdater())
     {
       continue;
     }
@@ -241,6 +261,15 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
     if (f.getAttribute(bnpa))
     {
       continue;
+    }
+    // if print skolem definitions is true, we shouldn't print declarations for
+    // (exported) skolems, as they are printed as parsable terms.
+    if (printSkolemDefs && f.getKind() == Kind::SKOLEM)
+    {
+      if (sm->getId(f)!= SkolemId::INTERNAL)
+      {
+        continue;
+      }
     }
     if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
@@ -315,6 +344,15 @@ void PrintBenchmark::getConnectedDefinitions(
     return;
   }
   processedDefs.insert(n);
+  // get the symbols in the body
+  std::unordered_set<Node> symsBody;
+  expr::getSymbols(it->second.second, symsBody, visited);
+  for (const Node& s : symsBody)
+  {
+    getConnectedDefinitions(
+        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
+  }
+  // add the symbol after we add the definitions
   if (!it->second.first)
   {
     // an ordinary define-fun symbol
@@ -324,14 +362,6 @@ void PrintBenchmark::getConnectedDefinitions(
   {
     // a recursively defined symbol
     recDefs.push_back(n);
-  }
-  // get the symbols in the body
-  std::unordered_set<Node> symsBody;
-  expr::getSymbols(it->second.second, symsBody, visited);
-  for (const Node& s : symsBody)
-  {
-    getConnectedDefinitions(
-        s, recDefs, ordinaryDefs, syms, defMap, processedDefs, visited);
   }
 }
 
@@ -353,7 +383,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
+    body = NodeManager::mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else
