@@ -580,7 +580,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("crowding-lits") << "..premises: " << children << "\n";
       Trace("crowding-lits") << "..args: " << args << "\n";
       chainConclusion =
-          proof::eliminateCrowdingLits(d_env.getOptions().proof.optResReconSize,
+          proof::eliminateCrowdingLits(nm,
+                                       d_env.getOptions().proof.optResReconSize,
                                        chainConclusionLits,
                                        conclusionLits,
                                        children,
@@ -927,7 +928,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
-          Node mid = mkMethodId(midi);
+          Node mid = mkMethodId(nodeManager(), midi);
           cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }

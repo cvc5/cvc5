@@ -58,7 +58,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_true = nodeManager()->mkConst<bool>(true);
   d_false = nodeManager()->mkConst<bool>(false);
-  d_tiid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tiid = mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE);
   d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SEP);
 
   // indicate we are using the default theory state object

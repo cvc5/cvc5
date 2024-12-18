@@ -310,7 +310,8 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
         // sret = q
         std::vector<Node> pfArgs2;
         pfArgs2.push_back(eq2);
-        addMethodIds(pfArgs2,
+        addMethodIds(nodeManager(),
+                     pfArgs2,
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_EXT_REWRITE);

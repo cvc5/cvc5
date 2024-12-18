@@ -64,7 +64,8 @@ std::ostream& operator<<(std::ostream& out, CrowdingLitInfo info)
   return out;
 }
 
-Node eliminateCrowdingLits(bool reorderPremises,
+Node eliminateCrowdingLits(NodeManager* nm,
+                           bool reorderPremises,
                            const std::vector<Node>& clauseLits,
                            const std::vector<Node>& targetClauseLits,
                            const std::vector<Node>& children,
@@ -76,7 +77,6 @@ Node eliminateCrowdingLits(bool reorderPremises,
   Trace("crowding-lits") << "Clause lits: " << clauseLits << "\n";
   Trace("crowding-lits") << "Target lits: " << targetClauseLits << "\n\n";
   std::vector<Node> newChildren{children}, newArgs{args};
-  NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
   // get crowding lits and the position of the last clause that includes
   // them. The factoring step must be added after the last inclusion and before
