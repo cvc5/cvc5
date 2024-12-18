@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic UFNIA)
 (declare-fun pow2 (Int) Int)
 (declare-fun intor (Int Int Int) Int)
