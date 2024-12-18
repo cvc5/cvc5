@@ -392,7 +392,7 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
                      << endl;
   if (in.getKind() == Kind::EQUAL)
   {
-    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, in);
+    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::MACRO_DT_CONS_EQ, in);
     if (!nn.isNull() && in != nn)
     {
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
