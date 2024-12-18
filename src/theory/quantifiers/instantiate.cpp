@@ -559,7 +559,7 @@ Node Instantiate::getInstantiation(Node q,
   {
     std::vector<Node> pfTerms;
     // Include the list of terms as an SEXPR.
-    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
+    pfTerms.push_back(nodeManager()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.

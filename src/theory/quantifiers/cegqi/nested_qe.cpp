@@ -72,7 +72,7 @@ bool NestedQe::hasNestedQuantification(Node q)
 
 Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   Node qOrig = q;
   bool inputExists = false;
   if (q.getKind() == Kind::EXISTS)

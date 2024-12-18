@@ -102,8 +102,8 @@ ConjectureGenerator::ConjectureGenerator(Env& env,
       d_fullEffortCount(0),
       d_hasAddedLemma(false)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   d_uequalityEngine.addFunctionKind(Kind::APPLY_UF);
   d_uequalityEngine.addFunctionKind(Kind::APPLY_CONSTRUCTOR);
 }
@@ -938,7 +938,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               Node rsg;
               if( !bvs.empty() ){
                 Node bvl =
-                    NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, bvs);
+                    nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
                 rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
               }else{
                 rsg = lhs.eqNode( rhs );
@@ -1115,7 +1115,7 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
     Node op = NodeManager::mkDummySkolem(
         "PE", op_tn, "was created by conjecture ground term enumerator.");
@@ -1205,7 +1205,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             }
             children.push_back( lc );
             Node nenum =
-                NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+                nodeManager()->mkNode(Kind::APPLY_UF, children);
             Trace("sg-gt-enum")
                 << "Ground term enumerate : " << nenum << std::endl;
             terms.push_back(nenum);

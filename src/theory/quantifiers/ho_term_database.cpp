@@ -43,7 +43,6 @@ void HoTermDb::addTermInternal(Node n)
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   Node curr = n;
   std::vector<Node> args;
   while (curr.getKind() == Kind::HO_APPLY)
@@ -59,7 +58,7 @@ void HoTermDb::addTermInternal(Node n)
         continue;
       }
       d_hoFunOpPurify.insert(curr);
-      Node psk = sm->mkPurifySkolem(curr);
+      Node psk = SkolemManager::mkPurifySkolem(curr);
       // we do not add it to d_ops since it is an internal operator
       Node eq = psk.eqNode(curr);
       std::vector<Node> children;
