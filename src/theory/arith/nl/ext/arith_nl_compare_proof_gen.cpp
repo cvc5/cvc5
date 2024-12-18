@@ -15,11 +15,11 @@
 
 #include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 
-#include "smt/env.h"
-#include "proof/proof_checker.h"
 #include "expr/attribute.h"
 #include "proof/proof.h"
+#include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/ext/monomial_check.h"
 
@@ -104,9 +104,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   for (const std::pair<const Node, size_t>& m : mexp[0])
   {
     itmc = mexp[1].find(m.first);
-    if (itmc!=mexp[1].end())
+    if (itmc != mexp[1].end())
     {
-      size_t n = m.second>itmc->second ? itmc->second : m.second;
+      size_t n = m.second > itmc->second ? itmc->second : m.second;
       mcancel[m.first] = n;
       mexp[0][m.first] -= n;
       mexp[1][m.first] -= n;
@@ -183,11 +183,11 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
   // if strict version, we go back and guard zeroes
   if (ck == Kind::GT)
   {
-    // if GT conclusion, ensure the first explanation is GT, which makes checking
-    // simpler
+    // if GT conclusion, ensure the first explanation is GT, which makes
+    // checking simpler
     for (size_t i = 0, nexp = expc.size(); i < nexp; i++)
     {
-      if (expc[i].getKind() == Kind::GT && eexp[i]>0)
+      if (expc[i].getKind() == Kind::GT && eexp[i] > 0)
       {
         if (i > 0)
         {
@@ -215,7 +215,7 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
         Node deqAssump;
         if (eprod[0].size() == 0)
         {
-          Assert (eprod[1].size()==1);
+          Assert(eprod[1].size() == 1);
           Node one = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(1));
           Node zero = nm->mkConstRealOrInt(eprod[1][0].getType(), Rational(0));
           // case where we require showing 1 != 0
@@ -224,7 +224,8 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
           cdp.addStep(ceqf, ProofRule::EVALUATE, {}, {ceq});
           deqAssump = ceq.notNode();
           cdp.addStep(deqAssump, ProofRule::FALSE_ELIM, {ceqf}, {});
-          Trace("arith-nl-compare") << "Prove by evaluation: " << deqAssump << std::endl;
+          Trace("arith-nl-compare")
+              << "Prove by evaluation: " << deqAssump << std::endl;
         }
         else
         {
@@ -260,8 +261,9 @@ std::shared_ptr<ProofNode> ArithNlCompareProofGenerator::getProofFor(Node fact)
       expcFinal.emplace_back(expc[i]);
     }
   }
-  ProofChecker * pc = d_env.getProofNodeManager()->getChecker();
-  Node newConc = pc->checkDebug(ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node newConc =
+      pc->checkDebug(ProofRule::ARITH_MULT_ABS_COMPARISON, expcFinal, {});
   Trace("arith-nl-compare")
       << "...grouped conclusion is " << newConc << std::endl;
   Assert(!newConc.isNull());
