@@ -313,10 +313,14 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
       if (cur.getKind() == Kind::EQUAL)
       {
         // if a reflexive component, it rewrites to true
-        if (cur[0]==cur[1])
+        if (cur[0] == cur[1])
         {
           Node truen = nodeManager()->mkConst(true);
-          tcpg.addRewriteStep(cur, truen, nullptr, true, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          tcpg.addRewriteStep(cur,
+                              truen,
+                              nullptr,
+                              true,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
           continue;
         }
         Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, cur);
@@ -350,7 +354,8 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   // should rewrite via ACI_NORM
   if (!expr::isACINorm(rhs, eq[1]))
   {
-    Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1] << std::endl;
+    Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1]
+                       << std::endl;
     Assert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
     return false;
   }
