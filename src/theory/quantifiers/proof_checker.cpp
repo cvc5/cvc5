@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/quantifiers/skolemize.h"
 
@@ -39,6 +40,8 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::INSTANTIATE, this);
   pc->registerChecker(ProofRule::ALPHA_EQUIV, this);
   pc->registerChecker(ProofRule::QUANT_VAR_REORDERING, this);
+  pc->registerChecker(ProofRule::EXISTS_STRING_LENGTH, this);
+  pc->registerChecker(ProofRule::EXISTS_INV_CONDITION, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -147,6 +150,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
       return Node::null();
     }
     return eq;
+  }
+  else if (id == ProofRule::EXISTS_STRING_LENGTH
+           || id == ProofRule::EXISTS_INV_CONDITION)
+  {
+    Node k = ValidWitnessProofGenerator::mkSkolem(nodeManager(), id, args);
+    Node exists =
+        ValidWitnessProofGenerator::mkAxiom(nodeManager(), k, id, args);
+    return exists;
   }
 
   // no rule

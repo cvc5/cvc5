@@ -256,10 +256,9 @@ Node BvInverter::solveBvLit(Node sv,
      *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
      *       based on index). */
     Node s = dropChild(sv_t, index);
-    Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
-    TypeNode solve_tn = sv_t[index].getType();
-    Node x = getSolveVariable(solve_tn);
-    Node ic;
+    // Try to directly solve for sv_t[index] in (sv_t = t). If so,
+    // set tnext such that this equality is equivalent to
+    // (sv_t[index] = tnext).
     Node tnext;
     if (litk == Kind::EQUAL
         && (k == Kind::BITVECTOR_NOT || k == Kind::BITVECTOR_NEG))
@@ -318,7 +317,7 @@ Node BvInverter::solveBvLit(Node sv,
         tnext = bv::utils::mkExtract(t, upper, lower);
       }
     }
-    // if we didn't solve for t directly, we use a witness term 
+    // If we didn't solve for t directly, we use a witness term.
     if (tnext.isNull())
     {
       /* t = fresh skolem constant */
