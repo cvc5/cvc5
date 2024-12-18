@@ -188,7 +188,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         // s(exp[0]) = s(exp[1])             s(exp[1]) = r
         // --------------------------------------------------- TRANS
         // s(exp[0]) = r
-        Node asn = ProofRuleChecker::mkKindNode(Kind::APPLY_SELECTOR);
+        Node asn = ProofRuleChecker::mkKindNode(nm, Kind::APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
