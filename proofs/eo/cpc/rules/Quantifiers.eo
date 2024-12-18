@@ -127,7 +127,8 @@
   (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
                                               (eo::ite ($contains_subterm F x)
-                                                (eo::ite ($contains_subterm r x) r (eo::cons @list x r))
+                                                ; remove the duplicate of x in r if it exists
+                                                (eo::cons @list x ($nary_remove @list @list.nil x r))
                                                 r)))
   )
 )

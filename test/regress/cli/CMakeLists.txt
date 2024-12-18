@@ -1457,6 +1457,7 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
+  regress0/quantifiers/dd_spark2014-pat.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
   regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
@@ -2918,6 +2919,7 @@ set(regress_1_tests
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
+  regress1/quantifiers/quick-sort-q-rew.smt2
   regress1/quantifiers/qs-has-term.smt2
   regress1/quantifiers/recfact.cvc.smt2
   regress1/quantifiers/rel-trigger-unusable.smt2
