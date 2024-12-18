@@ -482,16 +482,6 @@ Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
   return quantifiers::BoundedIntegers::mkBoundedForall(nm, bvl, body);
 }
 
-/**
- * Mapping to the variable used for binding the witness term for the abstract
- * value below.
- */
-struct StringValueForLengthVarAttributeId
-{
-};
-typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
-    StringValueForLengthVarAttribute;
-
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
   NodeManager* nm = NodeManager::currentNM();
