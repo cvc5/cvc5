@@ -163,7 +163,7 @@
                                            ))))
       (($run_evaluate (str.prefixof x y)) (eo::define ((ex ($run_evaluate x)))
                                           (eo::define ((ey ($run_evaluate y)))
-                                          (eo::define ((r (eo::find ex ey)))
+                                          (eo::define ((r (eo::find ey ex)))
                                             (eo::ite (eo::is_eq r 0) true
                                             (eo::ite (eo::is_z r) false
                                               (str.prefixof ex ey)))))))
@@ -211,11 +211,11 @@
       (($run_evaluate (bvsge xb yb))       (eo::define ((ex ($bv_to_signed_int ($run_evaluate xb))))
                                            (eo::define ((ey ($bv_to_signed_int ($run_evaluate yb))))
                                              (eo::or (eo::gt ex ey) (eo::is_eq ex ey)))))
-      (($run_evaluate (repeat n xb))       ($bv_eval_repeat ($run_evaluate n) ($run_evaluate xb)))
+      (($run_evaluate (repeat n xb))       ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($run_evaluate xb))))
       (($run_evaluate (sign_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
-                                              (eo::concat ($bv_eval_repeat ($run_evaluate n) ($bv_sign_bit ex)) ex)))
+                                              (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($bv_sign_bit ex))) ex)))
       (($run_evaluate (zero_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
-                                              (eo::concat ($bv_eval_repeat ($run_evaluate n) #b0) ex)))
+                                              (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) #b0)) ex)))
       (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
       (($run_evaluate (@bvsize x))         ($bv_bitwidth (eo::typeof x)))
 

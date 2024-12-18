@@ -1936,7 +1936,7 @@ TrustNode TheoryEngine::getExplanation(
   }
   else
   {
-    NodeBuilder conjunction(Kind::AND);
+    NodeBuilder conjunction(nodeManager(), Kind::AND);
     std::set<TNode>::const_iterator it = exp.begin();
     std::set<TNode>::const_iterator it_end = exp.end();
     while (it != it_end)
@@ -2200,8 +2200,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
         if( chres2.first ){
           return std::pair<bool, Node>(
               true,
-              NodeManager::currentNM()->mkNode(
-                  Kind::AND, chres.second, chres2.second));
+              NodeManager::mkNode(Kind::AND, chres.second, chres2.second));
         }else{
           break;
         }

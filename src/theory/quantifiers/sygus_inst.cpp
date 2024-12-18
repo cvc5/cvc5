@@ -503,8 +503,7 @@ Node SygusInst::getCeLiteral(Node q)
   }
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
+  Node sk = NodeManager::mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;

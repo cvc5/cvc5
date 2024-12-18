@@ -43,8 +43,9 @@ SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t)
 {
+  SkolemManager* skm = t.getNodeManager()->getSkolemManager();
   // We do not recursively compute the original form of t here
-  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
+  Node k = skm->mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }

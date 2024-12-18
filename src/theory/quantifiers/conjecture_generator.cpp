@@ -939,8 +939,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               if( !bvs.empty() ){
                 Node bvl =
                     NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, bvs);
-                rsg = NodeManager::currentNM()->mkNode(
-                    Kind::FORALL, bvl, lhs.eqNode(rhs));
+                rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
               }else{
                 rsg = lhs.eqNode( rhs );
               }
@@ -949,8 +948,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );
 
-              Node lem =
-                  NodeManager::currentNM()->mkNode(Kind::OR, rsg.negate(), rsg);
+              Node lem = NodeManager::mkNode(Kind::OR, rsg.negate(), rsg);
               d_qim.addPendingLemma(lem,
                                     InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
               d_qim.addPendingPhaseRequirement(rsg, false);
@@ -1118,9 +1116,8 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
     TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
-    Node op = sm->mkDummySkolem(
+    Node op = NodeManager::mkDummySkolem(
         "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;
     return op;
@@ -1243,8 +1240,7 @@ void ConjectureGenerator::getEnumeratePredUfTerm( Node n, unsigned num, std::vec
   getEnumerateUfTerm( n, num, uf_terms );
   Node p = getPredicateForType( n.getType() );
   for( unsigned i=0; i<uf_terms.size(); i++ ){
-    terms.push_back(
-        NodeManager::currentNM()->mkNode(Kind::APPLY_UF, p, uf_terms[i]));
+    terms.push_back(NodeManager::mkNode(Kind::APPLY_UF, p, uf_terms[i]));
   }
 }
 

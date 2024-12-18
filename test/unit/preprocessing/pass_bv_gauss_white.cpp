@@ -2683,20 +2683,20 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node mult2x = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, zext40x, zext40x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult2x), 32);
 
-  NodeBuilder nbmult3p(Kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3p(d_nodeManager, Kind::BITVECTOR_MULT);
   nbmult3p << zext48p << zext48p << zext48p;
   Node mult3p = nbmult3p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult3p), 11);
-  NodeBuilder nbmult3x(Kind::BITVECTOR_MULT);
+  NodeBuilder nbmult3x(d_nodeManager, Kind::BITVECTOR_MULT);
   nbmult3x << zext48x << zext48x << zext48x;
   Node mult3x = nbmult3x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult3x), 48);
 
-  NodeBuilder nbmult4p(Kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4p(d_nodeManager, Kind::BITVECTOR_MULT);
   nbmult4p << zext48p << zext48p8 << zext48p;
   Node mult4p = nbmult4p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult4p), 11);
-  NodeBuilder nbmult4x(Kind::BITVECTOR_MULT);
+  NodeBuilder nbmult4x(d_nodeManager, Kind::BITVECTOR_MULT);
   nbmult4x << zext48x << zext48x8 << zext48x;
   Node mult4x = nbmult4x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(mult4x), 40);
@@ -2751,29 +2751,29 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node add3x = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, zext48x8, zext48x);
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add3x), 17);
 
-  NodeBuilder nbadd4p(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd4p(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd4p << zext48p << zext48p << zext48p;
   Node add4p = nbadd4p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add4p), 6);
-  NodeBuilder nbadd4x(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd4x(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd4x << zext48x << zext48x << zext48x;
   Node add4x = nbadd4x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add4x), 18);
 
-  NodeBuilder nbadd5p(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd5p(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd5p << zext48p << zext48p8 << zext48p;
   Node add5p = nbadd5p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add5p), 6);
-  NodeBuilder nbadd5x(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd5x(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd5x << zext48x << zext48x8 << zext48x;
   Node add5x = nbadd5x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add5x), 18);
 
-  NodeBuilder nbadd6p(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd6p(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd6p << zext48p << zext48p << zext48p << zext48p;
   Node add6p = nbadd6p;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add6p), 6);
-  NodeBuilder nbadd6x(Kind::BITVECTOR_ADD);
+  NodeBuilder nbadd6x(d_nodeManager, Kind::BITVECTOR_ADD);
   nbadd6x << zext48x << zext48x << zext48x << zext48x;
   Node add6x = nbadd6x;
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(add6x), 18);

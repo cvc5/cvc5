@@ -49,7 +49,7 @@ class LfscNodeConverter : public NodeConverter
    *
    * The returned null terminator is *not* converted to internal form.
    *
-   * For examples of null terminators, see nary_term_utils.h.
+   * For examples of null terminators, see aci_norm.h.
    */
   Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
   /**

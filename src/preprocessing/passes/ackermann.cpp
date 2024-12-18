@@ -209,13 +209,11 @@ void collectUSortsToBV(NodeManager* nm,
                        const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {
-  SkolemManager* sm = nm->getSkolemManager();
-
   for (TNode var : vars)
   {
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
-    Node skolem = sm->mkDummySkolem(
+    Node skolem = NodeManager::mkDummySkolem(
         "ackermann.bv",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "

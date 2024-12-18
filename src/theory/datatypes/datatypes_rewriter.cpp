@@ -1122,7 +1122,7 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
   size_t updateIndex = utils::indexOf(op);
   size_t cindex = utils::cindexOf(op);
   const DTypeConstructor& dc = dt[cindex];
-  NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
+  NodeBuilder b(nm, Kind::APPLY_CONSTRUCTOR);
   if (tn.isParametricDatatype())
   {
     b << dc.getInstantiatedConstructor(n[0].getType());

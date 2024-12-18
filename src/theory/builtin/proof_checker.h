@@ -107,6 +107,13 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static bool getTheoryId(TNode n, TheoryId& tid);
   /** Make a TheoryId into a node */
   static Node mkTheoryIdNode(TheoryId tid);
+  /**
+   * @param nm The node manager.
+   * @param n The term to rewrite via ENCODE_EQ_INTRO.
+   * @return The right hand side of the equality concluded by ENCODE_EQ_INTRO
+   * for n.
+   */
+  static Node getEncodeEqIntro(NodeManager* nm, const Node& n);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
