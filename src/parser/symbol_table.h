@@ -82,8 +82,10 @@ class CVC5_EXPORT SymbolTable
    *
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
+   * @param isUser does this correspond to a user sort
    */
-  void bindType(const std::string& name, cvc5::Sort t);
+  void bindType(const std::string& name, cvc5::Sort t,
+                bool isUser);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -95,10 +97,12 @@ class CVC5_EXPORT SymbolTable
    * @param name an identifier
    * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
+   * @param isUser does this correspond to a user sort
    */
   void bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
-                cvc5::Sort t);
+                cvc5::Sort t,
+                bool isUser);
 
   /**
    * Check whether a name is bound to an expression with bind().

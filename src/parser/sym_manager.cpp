@@ -332,9 +332,10 @@ bool SymManager::bind(const std::string& name, cvc5::Term obj, bool doOverload)
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
 
-void SymManager::bindType(const std::string& name, cvc5::Sort t)
+void SymManager::bindType(const std::string& name, cvc5::Sort t,
+                bool isUser)
 {
-  return d_implementation->getSymbolTable().bindType(name, t);
+  return d_implementation->getSymbolTable().bindType(name, t, isUser);
 }
 
 bool SymManager::bindMutualDatatypeTypes(
@@ -349,11 +350,11 @@ bool SymManager::bindMutualDatatypeTypes(
     if (dt.isParametric())
     {
       std::vector<Sort> paramTypes = dt.getParameters();
-      bindType(name, paramTypes, t);
+      bindType(name, paramTypes, t, true);
     }
     else
     {
-      bindType(name, t);
+      bindType(name, t, true);
     }
     for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
@@ -403,9 +404,10 @@ bool SymManager::bindMutualDatatypeTypes(
 
 void SymManager::bindType(const std::string& name,
                           const std::vector<cvc5::Sort>& params,
-                          cvc5::Sort t)
+                          cvc5::Sort t,
+                bool isUser)
 {
-  return d_implementation->getSymbolTable().bindType(name, params, t);
+  return d_implementation->getSymbolTable().bindType(name, params, t, isUser);
 }
 
 NamingResult SymManager::setExpressionName(cvc5::Term t,

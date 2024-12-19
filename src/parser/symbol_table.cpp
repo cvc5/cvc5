@@ -654,14 +654,14 @@ bool SymbolTable::bind(const string& name, Term obj, bool doOverload)
   return d_implementation->bind(name, obj, doOverload);
 }
 
-void SymbolTable::bindType(const string& name, Sort t)
+void SymbolTable::bindType(const string& name, Sort t, bool isUser)
 {
   d_implementation->bindType(name, t);
 }
 
 void SymbolTable::bindType(const string& name,
                            const vector<Sort>& params,
-                           Sort t)
+                           Sort t, bool isUser)
 {
   d_implementation->bindType(name, params, t);
 }
