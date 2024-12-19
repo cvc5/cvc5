@@ -334,8 +334,7 @@ bool SymManager::bind(const std::string& name, cvc5::Term obj, bool doOverload)
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
 
-bool SymManager::bindType(const std::string& name, cvc5::Sort t,
-                bool isUser)
+bool SymManager::bindType(const std::string& name, cvc5::Sort t, bool isUser)
 {
   if (isUser && !d_termSortOverload)
   {
@@ -422,7 +421,7 @@ bool SymManager::bindMutualDatatypeTypes(
 bool SymManager::bindType(const std::string& name,
                           const std::vector<cvc5::Sort>& params,
                           cvc5::Sort t,
-                bool isUser)
+                          bool isUser)
 {
   if (isUser && !d_termSortOverload)
   {
@@ -533,7 +532,7 @@ bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
 
 void SymManager::setTermSortOverload(bool flag) { d_termSortOverload = flag; }
 bool SymManager::getTermSortOverload() const { return d_termSortOverload; }
-  
+
 void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);
@@ -570,5 +569,5 @@ bool SymManager::isLogicForced() const { return d_logicIsForced; }
 bool SymManager::isLogicSet() const { return d_logicIsSet; }
 
 const std::string& SymManager::getLogic() const { return d_logic; }
-  
+
 }  // namespace cvc5::parser

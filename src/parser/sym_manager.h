@@ -95,8 +95,7 @@ class CVC5_EXPORT SymManager
    * @param isUser does this correspond to a user sort?
    * @return false if the binding was invalid.
    */
-  bool bindType(const std::string& name, cvc5::Sort t,
-                bool isUser);
+  bool bindType(const std::string& name, cvc5::Sort t, bool isUser);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>

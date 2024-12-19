@@ -288,9 +288,7 @@ class CVC5_EXPORT ParserState
    * @param type The type that should be associated with the name
    * @param isUser does this correspond to a user sort
    */
-  void defineType(const std::string& name,
-                  const Sort& type,
-                  bool isUser);
+  void defineType(const std::string& name, const Sort& type, bool isUser);
 
   /**
    * Create a new (parameterized) type definition.

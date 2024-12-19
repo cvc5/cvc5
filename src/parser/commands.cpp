@@ -1081,7 +1081,8 @@ void DeclareSortCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   if (!sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort, true))
   {
     std::stringstream ss;
-    ss << "Cannot bind " << d_symbol << " to sort, maybe it has already been defined?";
+    ss << "Cannot bind " << d_symbol
+       << " to sort, maybe it has already been defined?";
     d_commandStatus = new CommandFailure(ss.str());
     return;
   }
@@ -1133,7 +1134,8 @@ void DefineSortCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   if (!sm->bindType(d_symbol, d_params, d_sort, true))
   {
     std::stringstream ss;
-    ss << "Cannot bind " << d_symbol << " to sort, maybe it has already been defined?";
+    ss << "Cannot bind " << d_symbol
+       << " to sort, maybe it has already been defined?";
     d_commandStatus = new CommandFailure(ss.str());
     return;
   }
