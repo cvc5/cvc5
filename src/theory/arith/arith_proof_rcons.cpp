@@ -18,6 +18,7 @@
 #include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
+#include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_subs.h"
 
@@ -80,7 +81,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
     ArithSubsTermContext astc;
     TConvProofGenerator tcnv(d_env,
                              nullptr,
-                             TConvPolicy::FIXPOINT,
+                             TConvPolicy::ONCE,
                              TConvCachePolicy::NEVER,
                              "ArithRConsTConv",
                              &astc);
@@ -105,7 +106,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
         if (a != as)
         {
           std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-          Assert(pfn.getResult()[1] == as);
+          Assert(pfn->getResult()[1] == as);
           cdp.addProof(pfn);
           cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
         }
@@ -136,7 +137,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
             if (a != as)
             {
               std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-              Assert(pfn.getResult()[1] == as);
+              Assert(pfn->getResult()[1] == as);
               cdp.addProof(pfn);
               cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
             }
@@ -172,7 +173,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
         if (a != as)
         {
           std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-          Assert(pfn.getResult()[1] == as);
+          Assert(pfn->getResult()[1] == as);
           cdp.addProof(pfn);
           cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
         }
