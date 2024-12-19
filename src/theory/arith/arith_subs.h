@@ -47,10 +47,10 @@ class ArithSubs : public Subs
    * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
    */
   Node applyArith(const Node& n, bool traverseNlMult = true) const;
-  /** 
+  /**
    * Should traverse, returns true if the above method traverses n.
    */
-  static bool shouldTraverse(const Node& n, bool traverseNlMult = true); 
+  static bool shouldTraverse(const Node& n, bool traverseNlMult = true);
 };
 
 }  // namespace arith

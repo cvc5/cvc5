@@ -48,6 +48,7 @@ class ArithProofRCons : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
   std::string identify() const override;
+
  private:
   /** The trust id to use if the proof reconstruction fails. */
   TrustId d_id;
