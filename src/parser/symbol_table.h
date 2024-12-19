@@ -74,6 +74,14 @@ class CVC5_EXPORT SymbolTable
   bool bind(const std::string& name, cvc5::Term obj, bool doOverload = false);
 
   /**
+   * @param name an identifier
+   * @param t the expression to bind to <code>name</code>
+   *
+   * Returns false if the binding was invalid.
+   */
+  bool bindDummySortTerm(const std::string& name, cvc5::Term t);
+
+  /**
    * Bind a type to a name in the current scope.  If <code>name</code>
    * is already bound to a type in the current level, then the binding
    * is replaced. If <code>name</code> is bound in a previous level,
@@ -82,10 +90,8 @@ class CVC5_EXPORT SymbolTable
    *
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
-   * @param isUser does this correspond to a user sort
    */
-  void bindType(const std::string& name, cvc5::Sort t,
-                bool isUser);
+  void bindType(const std::string& name, cvc5::Sort t);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -97,12 +103,10 @@ class CVC5_EXPORT SymbolTable
    * @param name an identifier
    * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
-   * @param isUser does this correspond to a user sort
    */
   void bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
-                cvc5::Sort t,
-                bool isUser);
+                cvc5::Sort t);
 
   /**
    * Check whether a name is bound to an expression with bind().

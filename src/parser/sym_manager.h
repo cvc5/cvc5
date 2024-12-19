@@ -79,8 +79,7 @@ class CVC5_EXPORT SymManager
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    * @param doOverload set if the binding can overload the function name.
-   *
-   * Returns false if the binding was invalid.
+   * @return false if the binding was invalid.
    */
   bool bind(const std::string& name, cvc5::Term obj, bool doOverload = false);
 
@@ -94,8 +93,9 @@ class CVC5_EXPORT SymManager
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
    * @param isUser does this correspond to a user sort?
+   * @return false if the binding was invalid.
    */
-  void bindType(const std::string& name, cvc5::Sort t,
+  bool bindType(const std::string& name, cvc5::Sort t,
                 bool isUser);
 
   /**
@@ -109,8 +109,9 @@ class CVC5_EXPORT SymManager
    * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
    * @param isUser does this correspond to a user sort?
+   * @return false if the binding was invalid.
    */
-  void bindType(const std::string& name,
+  bool bindType(const std::string& name,
                 const std::vector<cvc5::Sort>& params,
                 cvc5::Sort t,
                 bool isUser);
@@ -233,6 +234,10 @@ class CVC5_EXPORT SymManager
   void setFreshDeclarations(bool flag);
   /** Get fresh declarations flag. */
   bool getFreshDeclarations() const;
+  /** Set term sort overloading to the value flag. */
+  void setTermSortOverload(bool flag);
+  /** Set term sort overloading to the value flag. */
+  bool getTermSortOverload() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
    * is required since e.g. get-abduct-next must know the name of the
@@ -277,12 +282,16 @@ class CVC5_EXPORT SymManager
    * true.
    */
   bool d_freshDeclarations;
+  /** Whether --term-sort-overload is enabled */
+  bool d_termSortOverload;
   /** Whether the logic has been forced with --force-logic. */
   bool d_logicIsForced;
   /** Whether the logic has been set */
   bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
+  /** A dummy sort for the sort of types, used in bindDummySortTerm. */
+  cvc5::Sort d_dummyType;
 };
 
 }  // namespace parser

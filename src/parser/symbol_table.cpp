@@ -356,6 +356,7 @@ class SymbolTable::Implementation
   ~Implementation() {}
 
   bool bind(const string& name, Term obj, bool doOverload);
+  bool bindDummySortTerm(const std::string& name, Term t);
   void bindType(const string& name, Sort t);
   void bindType(const string& name, const vector<Sort>& params, Sort t);
   bool isBound(const string& name) const;
@@ -383,6 +384,8 @@ class SymbolTable::Implementation
  private:
   /** The context manager for the scope maps. */
   Context d_context;
+  /** A dummy sort for the sort of types, used in bindDummySortTerm. */
+  Sort d_dummyType;
 
   /** A map for expressions. */
   CDHashMap<string, Term> d_exprMap;
@@ -423,6 +426,18 @@ bool SymbolTable::Implementation::bind(const string& name,
   }
   d_exprMap.insert(name, obj);
 
+  return true;
+}
+
+bool SymbolTable::Implementation::bindDummySortTerm(const std::string& name, Term t)
+{
+  if (!bind(name, t, false))
+  {
+    return false;
+  }
+  // remember its sort
+  Assert (d_dummyType.isNull() || d_dummyType==t.getSort());
+  d_dummyType = t.getSort();
   return true;
 }
 
@@ -621,6 +636,12 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
     // the symbol manager.
     if (prev_bound_obj != obj)
     {
+      // If the type of the previous overloaded symbol was d_dummyType, this
+      // indicates it is a sort. We fail unconditionally in this case.
+      if (prev_bound_obj.getSort()==d_dummyType)
+      {
+        return false;
+      }
       return d_overload_trie.bind(name, prev_bound_obj, obj);
     }
   }
@@ -654,14 +675,19 @@ bool SymbolTable::bind(const string& name, Term obj, bool doOverload)
   return d_implementation->bind(name, obj, doOverload);
 }
 
-void SymbolTable::bindType(const string& name, Sort t, bool isUser)
+bool SymbolTable::bindDummySortTerm(const std::string& name, cvc5::Term t)
+{
+  return d_implementation->bindDummySortTerm(name, t);
+}
+
+void SymbolTable::bindType(const string& name, Sort t)
 {
   d_implementation->bindType(name, t);
 }
 
 void SymbolTable::bindType(const string& name,
                            const vector<Sort>& params,
-                           Sort t, bool isUser)
+                           Sort t)
 {
   d_implementation->bindType(name, params, t);
 }
@@ -697,5 +723,5 @@ void SymbolTable::pushScope() { d_implementation->pushScope(); }
 size_t SymbolTable::getLevel() const { return d_implementation->getLevel(); }
 void SymbolTable::reset() { d_implementation->reset(); }
 void SymbolTable::resetAssertions() { d_implementation->resetAssertions(); }
-
+  
 }  // namespace cvc5::internal::parser

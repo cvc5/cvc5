@@ -311,7 +311,7 @@ void ParserState::defineType(const std::string& name,
     Assert(d_symtab->lookupType(name) == type);
     return;
   }
-  d_symtab->bindType(name, type, isUser);
+  d_symman->bindType(name, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
 }
 
@@ -320,7 +320,7 @@ void ParserState::defineType(const std::string& name,
                              const Sort& type,
                              bool isUser)
 {
-  d_symtab->bindType(name, params, type, isUser);
+  d_symman->bindType(name, params, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
 }
 

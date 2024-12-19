@@ -314,10 +314,12 @@ SymManager::SymManager(cvc5::TermManager& tm)
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
       d_freshDeclarations(true),
+      d_termSortOverload(false),
       d_logicIsForced(false),
       d_logicIsSet(false),
       d_logic()
 {
+  d_dummyType = d_tm.mkUninterpretedSort("Type");
 }
 
 SymManager::~SymManager() {}
@@ -332,10 +334,19 @@ bool SymManager::bind(const std::string& name, cvc5::Term obj, bool doOverload)
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
 
-void SymManager::bindType(const std::string& name, cvc5::Sort t,
+bool SymManager::bindType(const std::string& name, cvc5::Sort t,
                 bool isUser)
 {
-  return d_implementation->getSymbolTable().bindType(name, t, isUser);
+  if (isUser && !d_termSortOverload)
+  {
+    cvc5::Term ts = d_tm.mkConst(d_dummyType, name);
+    if (!d_implementation->getSymbolTable().bindDummySortTerm(name, ts))
+    {
+      return false;
+    }
+  }
+  d_implementation->getSymbolTable().bindType(name, t);
+  return true;
 }
 
 bool SymManager::bindMutualDatatypeTypes(
@@ -350,11 +361,17 @@ bool SymManager::bindMutualDatatypeTypes(
     if (dt.isParametric())
     {
       std::vector<Sort> paramTypes = dt.getParameters();
-      bindType(name, paramTypes, t, true);
+      if (!bindType(name, paramTypes, t, true))
+      {
+        return false;
+      }
     }
     else
     {
-      bindType(name, t, true);
+      if (!bindType(name, t, true))
+      {
+        return false;
+      }
     }
     for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
@@ -402,12 +419,21 @@ bool SymManager::bindMutualDatatypeTypes(
   return true;
 }
 
-void SymManager::bindType(const std::string& name,
+bool SymManager::bindType(const std::string& name,
                           const std::vector<cvc5::Sort>& params,
                           cvc5::Sort t,
                 bool isUser)
 {
-  return d_implementation->getSymbolTable().bindType(name, params, t, isUser);
+  if (isUser && !d_termSortOverload)
+  {
+    cvc5::Term ts = d_tm.mkConst(d_dummyType, name);
+    if (!d_implementation->getSymbolTable().bindDummySortTerm(name, ts))
+    {
+      return false;
+    }
+  }
+  d_implementation->getSymbolTable().bindType(name, params, t);
+  return true;
 }
 
 NamingResult SymManager::setExpressionName(cvc5::Term t,
@@ -505,6 +531,9 @@ bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
 bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
 
+void SymManager::setTermSortOverload(bool flag) { d_termSortOverload = flag; }
+bool SymManager::getTermSortOverload() const { return d_termSortOverload; }
+  
 void SymManager::setLastSynthName(const std::string& name)
 {
   d_implementation->setLastSynthName(name);
@@ -541,5 +570,5 @@ bool SymManager::isLogicForced() const { return d_logicIsForced; }
 bool SymManager::isLogicSet() const { return d_logicIsSet; }
 
 const std::string& SymManager::getLogic() const { return d_logic; }
-
+  
 }  // namespace cvc5::parser
