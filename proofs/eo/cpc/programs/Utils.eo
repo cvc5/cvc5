@@ -21,6 +21,19 @@
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 
+; program: $get_fun
+; args:
+; - t S: The term to inspect.
+; return: >
+;   The function at the head of the application of t, or t itself if it is not
+;   an application.
+(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S))
+  (S) U
+  (
+    (($get_fun (f x))  ($get_fun f))
+    (($get_fun y)      y)
+  )
+)
 
 ; program: $get_arg_list_rec
 ; args:
@@ -44,8 +57,6 @@
 ;   The list of arguments provided to the function at the head of t, or the nil
 ;   list if t is not a function application.
 (define $get_arg_list ((T Type :implicit) (t T)) ($get_arg_list_rec t @list.nil))
-
-
 
 ; program: $is_app
 ; args:

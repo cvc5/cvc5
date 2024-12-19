@@ -37,7 +37,7 @@ InferenceManager::InferenceManager(Env& env,
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
-  d_tid = mkTrustId(TrustId::THEORY_INFERENCE);
+  d_tid = mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE);
   d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 

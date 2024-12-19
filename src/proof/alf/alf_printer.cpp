@@ -181,6 +181,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::ACI_NORM:
+    case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
@@ -193,13 +194,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM:
-    {
-      // we don't support bitvectors yet
-      Assert(pargs[0].getKind() == Kind::EQUAL);
-      return pargs[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -270,12 +264,16 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
+    case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::DT_INST:
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
@@ -283,11 +281,13 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());

@@ -77,7 +77,7 @@ void SygusEnumerator::initialize(Node e)
   }
   // Get the statically registered symmetry breaking clauses for e, see if they
   // can be used for speeding up the enumeration.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::vector<Node> sbl;
   d_tds->getSymBreakLemmas(e, sbl);
   Node ag = d_tds->getActiveGuardForEnumerator(e);

@@ -481,7 +481,7 @@ bool EqProof::expandTransitivityForDisequalities(
     p->addStep(congConclusion,
                ProofRule::CONG,
                substPremises,
-               {ProofRuleChecker::mkKindNode(Kind::EQUAL)},
+               {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
                true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
@@ -609,10 +609,11 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
       << "EqProof::expandTransitivityForTheoryDisequalities: adding  "
       << ProofRule::CONG << " step for " << congConclusion << " from "
       << subChildren << "\n";
+  NodeManager* nm = NodeManager::currentNM();
   p->addStep(congConclusion,
              ProofRule::CONG,
              {subChildren},
-             {ProofRuleChecker::mkKindNode(Kind::EQUAL)},
+             {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
              true);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "
@@ -1465,7 +1466,7 @@ Node EqProof::addToProof(CDProof* p,
     p->addStep(conclusion,
                ProofRule::HO_CONG,
                children,
-               {ProofRuleChecker::mkKindNode(Kind::APPLY_UF)},
+               {ProofRuleChecker::mkKindNode(nm, Kind::APPLY_UF)},
                true);
   }
   // If the conclusion of the congruence step changed due to the n-ary handling,

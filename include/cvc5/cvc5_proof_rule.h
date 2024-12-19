@@ -2788,22 +2788,51 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Macro constructor equality**
+   *
+   * .. math::
+   *   (t = s) = (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
+   *
+   * where :math:`t_1, \ldots, t_n` and :math:`s_1, \ldots, s_n` are subterms
+   * of :math:`t` and :math:`s` that occur at the same position respectively
+   * (beneath constructor applications), or alternatively
+   *
+   * .. math::
+   *   (t = s) = false
+   * 
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- constructor equality**
    *
    * .. math::
    *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
    *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
-   *
-   * or alternatively
-   *
-   * .. math::
-   *   (c(t_1, \ldots, t_n) = d(s_1, \ldots, s_m)) = false
-   *
-   * where :math:`c` and :math:`d` are distinct constructors.
+   * 
+   * where :math:`c` is a constructor.
    *
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- constructor equality clash**
+   *
+   * .. math::
+   *   (t = s) = false
+   * 
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct constructor
+   * applications.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CONS_EQ_CLASH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- cycle**
