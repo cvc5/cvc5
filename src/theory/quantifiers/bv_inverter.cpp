@@ -66,16 +66,18 @@ Node BvInverter::mkWitness(const Node& annot) const
       d_nm, ProofRule::MACRO_EXISTS_INV_CONDITION, {annot});
   Trace("bv-invert-witness")
       << "...returned " << w << " for " << annot << std::endl;
-  Assert(!w.isNull());
-  if (d_rewriter != nullptr)
+  if (!w.isNull())
   {
-    Node neww = d_rewriter->rewrite(w);
-    if (neww != w)
+    if (d_rewriter != nullptr)
     {
-      Trace("bv-invert-witness")
-          << "Witness " << w << " was rewritten to " << neww << std::endl;
+      Node neww = d_rewriter->rewrite(w);
+      if (neww != w)
+      {
+        Trace("bv-invert-witness")
+            << "Witness " << w << " was rewritten to " << neww << std::endl;
+      }
+      w = neww;
     }
-    w = neww;
   }
   return w;
 }
