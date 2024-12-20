@@ -51,7 +51,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
         atom,
         rewritten,
         d_env.getProofNodeManager()->mkTrustedNode(
-            TrustId::THEORY_INFERENCE, {}, {}, eq));
+            TrustId::THEORY_INFERENCE_ARITH, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
