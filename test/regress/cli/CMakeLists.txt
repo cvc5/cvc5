@@ -724,6 +724,7 @@ set(regress_0_tests
   regress0/datatypes/pair-real-bool.smt2
   regress0/datatypes/par-updater-type-rule.smt2
   regress0/datatypes/parametric-alt-list.cvc.smt2
+  regress0/datatypes/pf-v2l60078.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/proj-issue578-clash-pf.smt2

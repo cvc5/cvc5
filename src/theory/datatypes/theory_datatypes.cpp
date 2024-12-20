@@ -64,7 +64,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
-      d_checker(nodeManager(), options().datatypes.dtSharedSelectors),
+      d_checker(nodeManager()),
       d_cpacb(*this)
 {
   d_true = nodeManager()->mkConst(true);
