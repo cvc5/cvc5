@@ -17,6 +17,7 @@
 
 #include "expr/sequence.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -34,6 +35,7 @@ void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::ARITH_MULT_SIGN, this);
   pc->registerChecker(ProofRule::ARITH_MULT_TANGENT, this);
+  pc->registerChecker(ProofRule::ARITH_MULT_ABS_COMPARISON, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(ProofRule id,
@@ -149,6 +151,93 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
             nm->mkNode(Kind::AND,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
+  }
+  else if (id == ProofRule::ARITH_MULT_ABS_COMPARISON)
+  {
+    Assert(!children.empty());
+    Assert(args.empty());
+    // the conclusion kind is kind of the first premise
+    Kind k = children[0].getKind();
+    std::vector<Node> concProd[2];
+    for (size_t cindex = 0, nchildren = children.size(); cindex < nchildren;
+         cindex++)
+    {
+      const Node& c = children[cindex];
+      Kind ck = c.getKind();
+      Node zeroGuard;
+      Node lit = c;
+      if (ck == Kind::AND)
+      {
+        zeroGuard = ArithNlCompareProofGenerator::isDisequalZero(c[1]);
+        // it should be a disequality with zero
+        if (c.getNumChildren() == 2 && !zeroGuard.isNull())
+        {
+          lit = c[0];
+        }
+        else
+        {
+          return Node::null();
+        }
+      }
+      ck = lit.getKind();
+      if (k == Kind::EQUAL)
+      {
+        // should be an equality
+        if (ck != Kind::EQUAL)
+        {
+          return Node::null();
+        }
+      }
+      else if (k == Kind::GT)
+      {
+        if (ck != Kind::GT)
+        {
+          // if an equality, needs a disequal to zero guard
+          if (ck == Kind::EQUAL)
+          {
+            // guarded zero disequality should be for LHS
+            if (zeroGuard.isNull() || lit[0].getKind() != Kind::ABS
+                || zeroGuard != lit[0][0])
+            {
+              return Node::null();
+            }
+          }
+          else
+          {
+            return Node::null();
+          }
+        }
+      }
+      Assert(ck == Kind::EQUAL || ck == Kind::GT);
+      if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)
+      {
+        return Node::null();
+      }
+      // add to the product
+      for (size_t j = 0; j < 2; j++)
+      {
+        if (lit[j][0].isConst())
+        {
+          if (!lit[j][0].getConst<Rational>().isOne())
+          {
+            return Node::null();
+          }
+          size_t jj = 1 - j;
+          if (lit[jj][0].isConst())
+          {
+            return Node::null();
+          }
+          // always ensure type matches
+          Node one = nm->mkConstRealOrInt(lit[jj][0].getType(), Rational(1));
+          concProd[j].emplace_back(one);
+          continue;
+        }
+        concProd[j].emplace_back(lit[j][0]);
+      }
+    }
+    Node lhs = ArithNlCompareProofGenerator::mkProduct(nm, concProd[0]);
+    Node rhs = ArithNlCompareProofGenerator::mkProduct(nm, concProd[1]);
+    return ArithNlCompareProofGenerator::mkLit(nm, k, lhs, rhs);
   }
   return Node::null();
 }

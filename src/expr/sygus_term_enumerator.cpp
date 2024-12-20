@@ -39,9 +39,7 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   // grammar, which is important if the grammar involves terms that have
   // user definitions in env.
   theory::datatypes::utils::computeExpandedDefinitionForms(env, tn);
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  d_enum = sm->mkDummySkolem("enum", tn);
+  d_enum = NodeManager::mkDummySkolem("enum", tn);
   d_internal->initialize(d_enum);
   // ensure current is non-null
   if (d_internal->getCurrent().isNull())

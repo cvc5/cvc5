@@ -68,7 +68,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
     const Node& conc)
 {
   std::vector<Node> sargs;
-  sargs.push_back(mkTrustId(id));
+  sargs.push_back(mkTrustId(NodeManager::currentNM(), id));
   sargs.push_back(conc);
   sargs.insert(sargs.end(), args.begin(), args.end());
   return mkNode(ProofRule::TRUST, children, sargs);

@@ -436,7 +436,7 @@ public:
 
 template <class GetNodeIterator>
 inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
-  NodeBuilder nb(k);
+  NodeBuilder nb(NodeManager::currentNM(), k);
 
   while(start != end) {
     nb << (*start).getNode();
@@ -634,7 +634,7 @@ private:
     Assert(!c.isZero());
     Assert(!c.isOne());
     Assert(!vl.empty());
-    return NodeManager::currentNM()->mkNode(
+    return NodeManager::mkNode(
         Kind::MULT, c.getNode(), vl.getNode());
   }
 
@@ -1157,7 +1157,7 @@ public:
 class SumPair : public NodeWrapper {
 private:
   static Node toNode(const Polynomial& p, const Constant& c){
-    return NodeManager::currentNM()->mkNode(
+    return NodeManager::mkNode(
         Kind::ADD, p.getNode(), c.getNode());
   }
 

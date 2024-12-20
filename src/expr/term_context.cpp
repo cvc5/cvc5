@@ -161,4 +161,21 @@ uint32_t BoolSkeletonTermContext::computeValue(TNode t,
   return 1;
 }
 
+uint32_t WithinKindTermContext::initialValue() const { return 0; }
+
+uint32_t WithinKindTermContext::computeValue(TNode t,
+                                             uint32_t tval,
+                                             size_t index) const
+{
+  if (tval == 0)
+  {
+    if (t.getKind() == d_kind)
+    {
+      return 1;
+    }
+    return 0;
+  }
+  return 1;
+}
+
 }  // namespace cvc5::internal

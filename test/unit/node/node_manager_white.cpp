@@ -40,7 +40,7 @@ TEST_F(TestNodeWhiteNodeManager, mkConst_rational)
 
 TEST_F(TestNodeWhiteNodeManager, oversized_node_builder)
 {
-  NodeBuilder nb;
+  NodeBuilder nb(d_nodeManager);
 
   ASSERT_NO_THROW(nb.realloc(15));
   ASSERT_NO_THROW(nb.realloc(25));

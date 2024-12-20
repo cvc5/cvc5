@@ -16,7 +16,7 @@
 (program $str_is_empty ((U Type) (x U))
   (U) Bool
   (
-    (($str_is_empty (seq.empty U)) true)
+    (($str_is_empty (@seq.empty U)) true)
     (($str_is_empty "") true)
     (($str_is_empty x) false)
   )

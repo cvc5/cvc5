@@ -149,7 +149,6 @@ Node DynamicRewriter::toExternal(Node ai)
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> ctypes;
   for (const Node& cn : n)
   {
@@ -181,7 +180,8 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   {
     utype = nm->mkFunctionType(ctypes);
   }
-  Node f = sm->mkDummySkolem("ufd", utype, "internal op for dynamic_rewriter");
+  Node f = NodeManager::mkDummySkolem(
+      "ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
   return f;
 }

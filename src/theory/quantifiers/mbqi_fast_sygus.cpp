@@ -35,7 +35,7 @@ void MVarInfo::initialize(Env& env,
                           const Node& v,
                           const std::vector<Node>& etrules)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   TypeNode tn = v.getType();
   Assert(MQuantInfo::shouldEnumerate(tn));
   TypeNode retType = tn;

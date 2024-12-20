@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 
@@ -91,6 +92,8 @@ class ProofRewriteDbNodeConverter : protected EnvObj
   std::shared_ptr<ProofNode> convert(const Node& n);
 
  private:
+  /** Term context matching the policy for the converter above */
+  WithinKindTermContext d_wktc;
   /** A pointer to a TConvProofGenerator, if proof producing */
   TConvProofGenerator d_tpg;
   /** A CDProof */

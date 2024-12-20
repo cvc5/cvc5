@@ -54,7 +54,6 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   // note that EQUAL is strictly typed so we don't need to handle it here
   if (convertToRealChildren)
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     bool childChanged = false;
     for (const Node& nc : n)
@@ -65,12 +64,12 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         if (nc.isConst())
         {
           // we convert constant integers to constant reals
-          children.push_back(nm->mkConstReal(nc.getConst<Rational>()));
+          children.push_back(d_nm->mkConstReal(nc.getConst<Rational>()));
         }
         else
         {
           // otherwise, use TO_REAL
-          children.push_back(nm->mkNode(Kind::TO_REAL, nc));
+          children.push_back(d_nm->mkNode(Kind::TO_REAL, nc));
         }
       }
       else
@@ -82,13 +81,13 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     {
       return n;
     }
-    return nm->mkNode(k, children);
+    return d_nm->mkNode(k, children);
   }
   // convert skolems as well, e.g. the purify skolem for (> 1 0.0) becomes the
   // purify skolem for (> 1.0 0.0).
   if (n.isVar())
   {
-    SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+    SkolemManager* skm = d_nm->getSkolemManager();
     SkolemId id;
     Node cacheVal;
     if (skm->isSkolemFunction(n, id, cacheVal))

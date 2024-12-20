@@ -130,7 +130,7 @@ TrustNode RemoveTermFormulas::runLemma(
 Node RemoveTermFormulas::runInternal(TNode assertion,
                                      std::vector<theory::SkolemLemma>& output)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TCtxStack ctx(&d_rtfc);
   std::vector<bool> processedChildren;
   ctx.pushInitial(assertion);
@@ -271,8 +271,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             TConvProofGenerator* pg)
 {
   AlwaysAssert (node.getKind()!=Kind::WITNESS) << "WITNESS should never appear in asserted terms";
-  NodeManager *nodeManager = NodeManager::currentNM();
-  SkolemManager* sm = nodeManager->getSkolemManager();
+  SkolemManager* sm = nodeManager()->getSkolemManager();
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -310,7 +309,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // of the lemma is used.
 
       // The new assertion
-      newAssertion = nodeManager->mkNode(
+      newAssertion = nodeManager()->mkNode(
           Kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
 
       // we justify it internally
@@ -444,11 +443,10 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   if (k == Kind::ITE)
   {
-    return nm->mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+    return NodeManager::mkNode(Kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
 }
