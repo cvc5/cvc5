@@ -76,6 +76,9 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
       size_t i = utils::indexOf(n.getOperator());
+      // Note that we set shared selectors to false. This proof rule will
+      // be (unintentionally) unsuccessful when reconstructing proofs of the
+      // rewriter when using shared selectors.
       Node ticons = utils::getInstCons(t, dt, i, false);
       return t.eqNode(ticons);
     }
