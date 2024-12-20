@@ -129,7 +129,7 @@ RewriteResponse breakChain(NodeManager* nm, TNode node, bool isPreRewrite)
   size_t children = node.getNumChildren();
   if (children > 2)
   {
-    NodeBuilder conjunction(Kind::AND);
+    NodeBuilder conjunction(nm, Kind::AND);
 
     for (size_t i = 0; i < children - 1; ++i)
     {
@@ -1697,7 +1697,7 @@ RewriteResponse TheoryFpRewriter::postRewrite(TNode node)
 
   return res;
 }
-TrustNode TheoryFpRewriter::expandDefinition(Node node)
+Node TheoryFpRewriter::expandDefinition(Node node)
 {
   return d_fpExpDef.expandDefinition(node);
 }

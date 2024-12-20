@@ -293,7 +293,7 @@ bool Instantiate::addInstantiationInternal(
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
   // construct the instantiation, and rewrite the lemma
-  Node lem = NodeManager::currentNM()->mkNode(Kind::IMPLIES, q, body);
+  Node lem = NodeManager::mkNode(Kind::IMPLIES, q, body);
 
   // If proofs are enabled, construct the proof, which is of the form:
   // ... free assumption q ...
@@ -559,7 +559,7 @@ Node Instantiate::getInstantiation(Node q,
   {
     std::vector<Node> pfTerms;
     // Include the list of terms as an SEXPR.
-    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
+    pfTerms.push_back(nodeManager()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.

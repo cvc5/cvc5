@@ -278,10 +278,9 @@ bool FunctionProperties::isWellFounded(TypeNode type)
 
 Node FunctionProperties::mkGroundTerm(TypeNode type)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node bvl = nm->getBoundVarListForFunctionType(type);
-  Node ret = nm->mkGroundTerm(type.getRangeType());
-  return nm->mkNode(Kind::LAMBDA, bvl, ret);
+  Node bvl = NodeManager::getBoundVarListForFunctionType(type);
+  Node ret = NodeManager::mkGroundTerm(type.getRangeType());
+  return NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
 }
 
 TypeNode IntToBitVectorOpTypeRule::preComputeType(NodeManager* nm, TNode n)

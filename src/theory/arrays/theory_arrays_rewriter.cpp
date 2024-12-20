@@ -63,11 +63,13 @@ void setMostFrequentValueCount(TNode store, uint64_t count)
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm,
-                                           Rewriter* r,
-                                           EagerProofGenerator* epg)
-    : TheoryRewriter(nm), d_rewriter(r), d_epg(epg)
+TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
+    : TheoryRewriter(nm), d_rewriter(r)
 {
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND,
@@ -78,6 +80,29 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0].isConst() && n[1].isConst()
+          && n[0] != n[1])
+      {
+        Assert(n[0].getType().isArray());
+        return d_nm->mkConst(false);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+    {
+      if (n.getKind() == Kind::STORE && n[0].isConst() && n[1].isConst()
+          && n[2].isConst())
+      {
+        Node nn = normalizeConstant(nodeManager(), n);
+        if (nn != n)
+        {
+          return nn;
+        }
+      }
+    }
+    break;
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     {
       if (n.getKind() == Kind::SELECT && n[0].getKind() == Kind::STORE_ALL)
@@ -717,22 +742,16 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-TrustNode TheoryArraysRewriter::expandDefinition(Node node)
+Node TheoryArraysRewriter::expandDefinition(Node node)
 {
   Kind kind = node.getKind();
 
   if (kind == Kind::EQ_RANGE)
   {
-    Node expandedEqRange = expandEqRange(d_nm, node);
-    if (d_epg)
-    {
-      return d_epg->mkTrustNodeRewrite(
-          node, expandedEqRange, ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND);
-    }
-    return TrustNode::mkTrustRewrite(node, expandedEqRange, nullptr);
+    return expandEqRange(d_nm, node);
   }
 
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace arrays

@@ -218,20 +218,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     TrustId tid;
     getTrustId(args[0], tid);
-    // we don't do this for steps that are already extended theory rewrite
-    // steps, or we would get an infinite loop in reconstruction.
-    if (tid == TrustId::EXT_THEORY_REWRITE)
-    {
-      return Node::null();
-    }
-    // maybe we can show it rewrites to true based on (extended) rewriting
+    // maybe we can show it rewrites to true based on rewriting
     // modulo original forms (MACRO_SR_PRED_INTRO).
     TheoryProofStepBuffer psb(d_pc);
-    if (psb.applyPredIntro(res,
-                           {},
-                           MethodId::SB_DEFAULT,
-                           MethodId::SBA_SEQUENTIAL,
-                           MethodId::RW_EXT_REWRITE))
+    if (psb.applyPredIntro(
+            res, {}, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL))
     {
       cdp->addSteps(psb);
       return res;
@@ -580,7 +571,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("crowding-lits") << "..premises: " << children << "\n";
       Trace("crowding-lits") << "..args: " << args << "\n";
       chainConclusion =
-          proof::eliminateCrowdingLits(d_env.getOptions().proof.optResReconSize,
+          proof::eliminateCrowdingLits(nm,
+                                       d_env.getOptions().proof.optResReconSize,
                                        chainConclusionLits,
                                        conclusionLits,
                                        children,
@@ -927,7 +919,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
-          Node mid = mkMethodId(midi);
+          Node mid = mkMethodId(nodeManager(), midi);
           cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }

@@ -15,11 +15,14 @@
 
 #include "rewriter/rewrite_db_term_process.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
-#include "expr/nary_term_util.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -42,10 +45,8 @@ RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager* nm,
 Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
-  TypeNode tn = n.getType();
   if (k == Kind::CONST_STRING)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" "B" "C")
     const std::vector<unsigned>& vec = n.getConst<String>().getVec();
     if (vec.size() <= 1)
@@ -57,9 +58,9 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     {
       std::vector<unsigned> tmp;
       tmp.push_back(c);
-      children.push_back(nm->mkConst(String(tmp)));
+      children.push_back(d_nm->mkConst(String(tmp)));
     }
-    Node ret = nm->mkNode(Kind::STRING_CONCAT, children);
+    Node ret = d_nm->mkNode(Kind::STRING_CONCAT, children);
     recordProofStep(n, ret, ProofRule::EVALUATE);
     return ret;
   }
@@ -72,12 +73,12 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_BITVECTOR)
   {
     // (_ bv N M) is (bv N M)
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     children.push_back(
-        nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
-    children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
-    Node ret = nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
+        d_nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
+    children.push_back(
+        d_nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
+    Node ret = d_nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
     recordProofStep(n, ret, ProofRule::EVALUATE);
     return ret;
   }
@@ -85,15 +86,15 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   {
     Node ret = theory::uf::FunctionConst::toLambda(n);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
-    return ret;
+    // must convert again
+    return convert(ret);
   }
   else if (k == Kind::FORALL)
   {
     // ignore annotation
     if (n.getNumChildren() == 3)
     {
-      NodeManager* nm = NodeManager::currentNM();
-      Node ret = nm->mkNode(Kind::FORALL, n[0], n[1]);
+      Node ret = d_nm->mkNode(Kind::FORALL, n[0], n[1]);
       recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
       return ret;
     }
@@ -104,15 +105,40 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
+  else if (k == Kind::APPLY_CONSTRUCTOR)
+  {
+    // We apply annotations to parametric datatype constructors, which is
+    // a no-op based on our proof signature.
+    TypeNode tn = n.getType();
+    if (tn.isParametricDatatype())
+    {
+      if (n.getOperator().getKind() != Kind::APPLY_TYPE_ASCRIPTION)
+      {
+        Node op = n.getOperator();
+        size_t index = theory::datatypes::utils::indexOf(op);
+        // get the constructor object
+        const DTypeConstructor& dtc =
+            theory::datatypes::utils::datatypeOf(op)[index];
+        // create ascribed constructor type
+        Node op_new = dtc.getInstantiatedConstructor(tn);
+        // make new node
+        std::vector<Node> children;
+        children.push_back(op_new);
+        children.insert(children.end(), n.begin(), n.end());
+        Node inr = d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+        recordProofStep(n, inr, ProofRule::ENCODE_EQ_INTRO);
+        return inr;
+      }
+    }
+  }
   // convert indexed operators to symbolic
   if (GenericOp::isNumeralIndexedOperatorKind(k))
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    indices.insert(indices.begin(), nm->mkConst(GenericOp(k)));
+    indices.insert(indices.begin(), d_nm->mkConst(GenericOp(k)));
     indices.insert(indices.end(), n.begin(), n.end());
-    Node ret = nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
+    Node ret = d_nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
@@ -170,13 +196,14 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
+      d_wktc(Kind::INST_PATTERN_LIST),
       // must rewrite within operators
       d_tpg(env,
             nullptr,
             TConvPolicy::FIXPOINT,
             TConvCachePolicy::NEVER,
             "ProofRewriteDb",
-            nullptr,
+            &d_wktc,
             true),
       d_proof(env)
 {

@@ -68,7 +68,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_proc(new SynthConjectureProcess(env)),
       d_embConv(new EmbeddingConverter(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, qim, d_tds)),
-      d_exampleInfer(new ExampleInfer(d_tds)),
+      d_exampleInfer(new ExampleInfer(nodeManager(), d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -190,7 +190,7 @@ void SynthConjecture::assign(Node q)
         std::vector<Node> lvars;
         for (const TypeNode& tn : atypes)
         {
-          lvars.push_back(nm->mkBoundVar(tn));
+          lvars.push_back(NodeManager::mkBoundVar(tn));
         }
         s = nm->mkNode(
             Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, lvars), s);
@@ -244,7 +244,7 @@ void SynthConjecture::assign(Node q)
   {
     for (const Node& v : d_checkBody[0][0])
     {
-      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      Node sk = NodeManager::mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
       d_innerVars.push_back(v);
       d_innerSks.push_back(sk);

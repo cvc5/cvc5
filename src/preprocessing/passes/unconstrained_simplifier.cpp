@@ -126,8 +126,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  SkolemManager* sm = nodeManager()->getSkolemManager();
-  Node n = sm->mkDummySkolem(
+  Node n = NodeManager::mkDummySkolem(
       "unconstrained",
       t,
       "a new var introduced because of unconstrained variable "
@@ -858,9 +857,15 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
       Node a = assertions[i];
-      Node as = rewrite(d_substitutions.apply(a));
-      // replace the assertion
-      assertionsToPreprocess->replace(i, as);
+      Node as = d_substitutions.apply(a);
+      // nothing to do if substitutions has no effect, skip
+      if (as != a)
+      {
+        // replace the assertion
+        assertionsToPreprocess->replace(
+            i, as, nullptr, TrustId::PREPROCESS_UNCONSTRAINED_SIMP);
+        assertionsToPreprocess->ensureRewritten(i);
+      }
     }
   }
 

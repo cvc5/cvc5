@@ -85,7 +85,8 @@ class OpPosTrie
    * @param useIndexedName If true, we include the indices in op_pos in the
    * name of unres_tn.
    */
-  bool getOrMakeType(TypeNode tn,
+  bool getOrMakeType(NodeManager* nm,
+                     TypeNode tn,
                      TypeNode& unres_tn,
                      const std::vector<unsigned>& op_pos,
                      unsigned ind = 0,
@@ -151,16 +152,14 @@ class SygusGrammarNorm : protected EnvObj
 
   /* Retrives, or, if none, creates, stores and returns, the node for the
    * identity operator (\lambda x. x) for the given type node */
-  static inline Node getIdOp(TypeNode tn)
+  static inline Node getIdOp(NodeManager* nm, TypeNode tn)
   {
     auto it = d_tn_to_id.find(tn);
     if (it == d_tn_to_id.end())
     {
-      std::vector<Node> vars = {NodeManager::currentNM()->mkBoundVar(tn)};
-      Node n = NodeManager::currentNM()->mkNode(
-          Kind::LAMBDA,
-          NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, vars),
-          vars.back());
+      std::vector<Node> vars = {nm->mkBoundVar(tn)};
+      Node n = nm->mkNode(
+          Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), vars.back());
       d_tn_to_id[tn] = n;
       return n;
     }

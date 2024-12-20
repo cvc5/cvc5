@@ -63,7 +63,7 @@ TrustNode Skolemize::process(Node q)
     ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = d_env.getNodeManager();
     // cache the skolems in d_skolem_constants[q]
     std::vector<Node>& skolems = d_skolem_constants[q];
     skolems = getSkolemConstants(q);
@@ -92,7 +92,7 @@ TrustNode Skolemize::process(Node q)
     // otherwise, we use the more general skolemization with inductive
     // strengthening, which does not support proofs
     Node body = getSkolemizedBodyInduction(q);
-    NodeBuilder nb(Kind::OR);
+    NodeBuilder nb(nodeManager(), Kind::OR);
     nb << q << body.notNode();
     lem = nb;
   }
@@ -197,7 +197,6 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
   {
     argTypes.push_back(v.getType());
   }
-  SkolemManager* sm = nm->getSkolemManager();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -228,7 +227,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
       else
       {
         TypeNode typ = nm->mkFunctionType(argTypes, f[0][i].getType());
-        Node op = sm->mkDummySkolem(
+        Node op = NodeManager::mkDummySkolem(
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger

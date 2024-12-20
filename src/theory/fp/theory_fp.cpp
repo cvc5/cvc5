@@ -126,10 +126,10 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
   // first, see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(node);
+  Node texp = d_rewriter.expandDefinition(node);
   if (!texp.isNull())
   {
-    return texp;
+    return TrustNode::mkTrustRewrite(node, texp, nullptr);
   }
 
   // The following kinds should have been removed by the
@@ -796,7 +796,7 @@ Node TheoryFp::getCandidateModelValue(TNode node)
     }
     else if (!vit->second)
     {
-      NodeBuilder nb(kind);
+      NodeBuilder nb(nodeManager(), kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

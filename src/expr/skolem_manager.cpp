@@ -39,39 +39,13 @@ struct UnpurifiedFormAttributeId
 };
 typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
 
-const char* toString(InternalSkolemId id)
-{
-  switch (id)
-  {
-    case InternalSkolemId::SEQ_MODEL_BASE_ELEMENT:
-      return "SEQ_MODEL_BASE_ELEMENT";
-    case InternalSkolemId::IEVAL_NONE: return "IEVAL_NONE";
-    case InternalSkolemId::IEVAL_SOME: return "IEVAL_SOME";
-    case InternalSkolemId::SYGUS_ANY_CONSTANT: return "SYGUS_ANY_CONSTANT";
-    case InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED:
-      return "QUANTIFIERS_SYNTH_FUN_EMBED";
-    case InternalSkolemId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
-    case InternalSkolemId::MBQI_INPUT: return "MBQI_INPUT";
-    case InternalSkolemId::ABSTRACT_VALUE: return "ABSTRACT_VALUE";
-    case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
-    case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
-      return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, InternalSkolemId id)
-{
-  out << toString(id);
-  return out;
-}
-
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t)
 {
+  SkolemManager* skm = t.getNodeManager()->getSkolemManager();
   // We do not recursively compute the original form of t here
-  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
+  Node k = skm->mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
@@ -187,22 +161,23 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
   return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
 
-bool SkolemManager::isSkolemFunction(TNode k) const
+bool SkolemManager::isSkolemFunction(TNode k)
 {
   return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemId& id,
-                                     Node& cacheVal) const
+                                     Node& cacheVal)
 {
+  SkolemManager* skm = k.getNodeManager()->getSkolemManager();
   if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
   std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  Assert(it != d_skolemFunMap.end());
+      skm->d_skolemFunMap.find(k);
+  Assert(it != skm->d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
@@ -217,6 +192,28 @@ SkolemId SkolemManager::getId(TNode k) const
     return id;
   }
   return SkolemId::NONE;
+}
+
+std::vector<Node> SkolemManager::getIndices(TNode k) const
+{
+  std::vector<Node> vec;
+  SkolemId id;
+  Node cacheVal;
+  if (isSkolemFunction(k, id, cacheVal))
+  {
+    if (!cacheVal.isNull())
+    {
+      if (cacheVal.getKind() == Kind::SEXPR)
+      {
+        vec.insert(vec.end(), cacheVal.begin(), cacheVal.end());
+      }
+      else
+      {
+        vec.push_back(cacheVal);
+      }
+    }
+  }
+  return vec;
 }
 
 InternalSkolemId SkolemManager::getInternalId(TNode k) const
@@ -239,7 +236,7 @@ InternalSkolemId SkolemManager::getInternalId(TNode k) const
 Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const TypeNode& type,
                                   const std::string& comment,
-                                  int flags)
+                                  SkolemFlags flags)
 {
   return mkSkolemNode(Kind::DUMMY_SKOLEM, prefix, type, flags);
 }
@@ -352,19 +349,20 @@ Node SkolemManager::getUnpurifiedForm(Node k)
 Node SkolemManager::mkSkolemNode(Kind k,
                                  const std::string& prefix,
                                  const TypeNode& type,
-                                 int flags)
+                                 SkolemFlags flags)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node n = NodeBuilder(nm, k);
-  if ((flags & SKOLEM_EXACT_NAME) == 0)
+  if ((flags & SkolemFlags::SKOLEM_EXACT_NAME)
+      == SkolemFlags::SKOLEM_EXACT_NAME)
+  {
+    n.setAttribute(expr::VarNameAttr(), prefix);
+  }
+  else
   {
     std::stringstream name;
     name << prefix << '_' << ++d_skolemCounter;
     n.setAttribute(expr::VarNameAttr(), name.str());
-  }
-  else
-  {
-    n.setAttribute(expr::VarNameAttr(), prefix);
   }
   n.setAttribute(expr::TypeAttr(), type);
   n.setAttribute(expr::TypeCheckedAttr(), true);

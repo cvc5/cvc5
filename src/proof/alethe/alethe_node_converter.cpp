@@ -389,8 +389,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::REGEXP_RV:
     /* from quantifiers */
     case Kind::EXISTS:
-    case Kind::INST_CONSTANT:
-    case Kind::ORACLE:
     case Kind::BOUND_VAR_LIST:
     case Kind::INST_PATTERN:
     case Kind::INST_NO_PATTERN:
@@ -398,7 +396,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::INST_POOL:
     case Kind::INST_ADD_TO_POOL:
     case Kind::SKOLEM_ADD_TO_POOL:
-    case Kind::ORACLE_FORMULA_GEN:
     case Kind::INST_PATTERN_LIST:
     {
       return n;
@@ -496,15 +493,15 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
   {
     return it->second;
   }
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbolsMap[key] = sym;
   return sym;
 }
 
 Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
 {
-  return mkInternalSymbol(name, NodeManager::currentNM()->sExprType());
+  return mkInternalSymbol(name, d_nm->sExprType());
 }
 
 const std::string& AletheNodeConverter::getError() { return d_error; }

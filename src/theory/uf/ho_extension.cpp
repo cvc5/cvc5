@@ -209,7 +209,6 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (!TheoryUfRewriter::canUseAsApplyUfOperator(f))
   {
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find(f);
@@ -227,7 +226,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           TypeNode vt = v.getType();
           newTypes.push_back(vt);
-          Node nv = nm->mkBoundVar(vt);
+          Node nv = NodeManager::mkBoundVar(vt);
           vs.push_back(v);
           nvs.push_back(nv);
         }
@@ -237,7 +236,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
         newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
         TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = sm->mkDummySkolem("app_uf", nft);
+        new_f = NodeManager::mkDummySkolem("app_uf", nft);
         for (const Node& v : vs)
         {
           new_f = nm->mkNode(Kind::HO_APPLY, new_f, v);
@@ -251,7 +250,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       else
       {
         // introduce skolem to make a standard APPLY_UF
-        new_f = sm->mkDummySkolem("app_uf", f.getType());
+        new_f = NodeManager::mkDummySkolem("app_uf", f.getType());
         lem = new_f.eqNode(f);
       }
       Trace("uf-ho-lemma")

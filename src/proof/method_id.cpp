@@ -50,10 +50,9 @@ std::ostream& operator<<(std::ostream& out, MethodId id)
   return out;
 }
 
-Node mkMethodId(MethodId id)
+Node mkMethodId(NodeManager* nm, MethodId id)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(id)));
 }
 
 bool getMethodId(TNode n, MethodId& i)
@@ -98,7 +97,8 @@ bool getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-void addMethodIds(std::vector<Node>& args,
+void addMethodIds(NodeManager* nm,
+                  std::vector<Node>& args,
                   MethodId ids,
                   MethodId ida,
                   MethodId idr)
@@ -107,15 +107,15 @@ void addMethodIds(std::vector<Node>& args,
   bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter || ndefApply)
   {
-    args.push_back(mkMethodId(ids));
+    args.push_back(mkMethodId(nm, ids));
   }
   if (ndefApply || ndefRewriter)
   {
-    args.push_back(mkMethodId(ida));
+    args.push_back(mkMethodId(nm, ida));
   }
   if (ndefRewriter)
   {
-    args.push_back(mkMethodId(idr));
+    args.push_back(mkMethodId(nm, idr));
   }
 }
 

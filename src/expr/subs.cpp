@@ -55,9 +55,8 @@ std::optional<Node> Subs::find(TNode v) const
 
 void Subs::add(Node v)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // default, use a fresh skolem of the same type
-  Node s = sm->mkDummySkolem("sk", v.getType());
+  Node s = NodeManager::mkDummySkolem("sk", v.getType());
   add(v, s);
 }
 

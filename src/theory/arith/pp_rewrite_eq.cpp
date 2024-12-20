@@ -37,8 +37,8 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isRealOrInt());
-  Node leq = NodeBuilder(Kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder(Kind::GEQ) << atom[0] << atom[1];
+  Node leq = NodeBuilder(nodeManager(), Kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(nodeManager(), Kind::GEQ) << atom[0] << atom[1];
   Node rewritten = rewrite(leq.andNode(geq));
   Trace("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;

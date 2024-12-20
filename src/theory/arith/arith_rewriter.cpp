@@ -55,8 +55,6 @@ ArithRewriter::ArithRewriter(NodeManager* nm,
 {
   registerProofRewriteRule(ProofRewriteRule::ARITH_POW_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM,
-                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
                            TheoryRewriteCtx::DSL_SUBCALL);
   // we don't register ARITH_STRING_PRED_ENTAIL or
@@ -76,20 +74,6 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         if (!nx.isNull())
         {
           return nx;
-        }
-      }
-    }
-    break;
-    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
-    {
-      if (n.getKind() == Kind::DIVISION && n[1].isConst())
-      {
-        Rational r = n[1].getConst<Rational>();
-        if (r.sgn() != 0)
-        {
-          Rational rinv = Rational(1) / r;
-          NodeManager* nm = nodeManager();
-          return nm->mkNode(Kind::MULT, n[0], nm->mkConstReal(rinv));
         }
       }
     }
@@ -502,7 +486,7 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == Kind::ADD);
-  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(t));
+  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(d_nm, t));
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t)
@@ -1241,13 +1225,17 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-TrustNode ArithRewriter::expandDefinition(Node node)
+Node ArithRewriter::expandDefinition(Node node)
 {
   // call eliminate operators, to eliminate partial operators only
   std::vector<SkolemLemma> lems;
   TrustNode ret = d_opElim.eliminate(node, lems, true);
   Assert(lems.empty());
-  return ret;
+  if (ret.isNull())
+  {
+    return Node::null();
+  }
+  return ret.getNode();
 }
 
 RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
@@ -1392,7 +1380,7 @@ Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
         }
         else
         {
-          NodeBuilder nb(Kind::MULT);
+          NodeBuilder nb(nm, Kind::MULT);
           for (unsigned i = 0; i < num; ++i)
           {
             nb << base;

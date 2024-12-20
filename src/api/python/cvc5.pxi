@@ -4312,8 +4312,12 @@ cdef class Solver:
     def getInterpolant(self, Term conj, Grammar grammar=None):
         """
             Get an interpolant.
-
-            This determines a term :math:`I`, optionally with respect to a
+	    Assuming that :math:`A \\rightarrow B` is valid,
+	    this function
+            determines a term :math:`I`
+	    over the shared variables of 
+            :math:`A` and :math:`B`,
+	    optionally with respect to a
             a given grammar, such that :math:`A \\rightarrow I` and
             :math:`I \\rightarrow B` are valid, if such a term exits.
             :math:`A` is the current set of assertions and :math:`B` is the

@@ -121,7 +121,7 @@ Node ForeignTheoryRewriter::reconstructNode(Node originalNode,
   }
   // re-build the node with the same kind and new children
   Kind k = originalNode.getKind();
-  NodeBuilder builder(k);
+  NodeBuilder builder(originalNode.getNodeManager(), k);
   // special case for parameterized nodes
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -148,8 +148,15 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
        ++i)
   {
+    const Node& a = (*assertionsToPreprocess)[i];
+    Node ar = d_ftr.simplify(a);
+    if (a == ar)
+    {
+      continue;
+    }
     assertionsToPreprocess->replace(
-        i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
+        i, ar, nullptr, TrustId::PREPROCESS_FOREIGN_THEORY_REWRITE);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;

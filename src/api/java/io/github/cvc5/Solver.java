@@ -3122,14 +3122,18 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I} such that {@code A->I} and {@code I->B}
-   * are valid, if such a term exits. {@code A} is the current set of
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I} 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * such that {@code A->I} and {@code I->B}
+   * are valid. {@code A} is the current set of
    * assertions and {@code B} is the conjecture, given as {@code conj}.
    * </p>
    *
    * SMT-LIB:
    * {@code
-   * ( get-interpolant <xsymbol> <conj> )
+   * ( get-interpolant <symbol> <conj> )
    * }
    *
    * @api.note In SMT-LIB, {@code <symbol>} assigns a symbol to the interpolant.
@@ -3154,7 +3158,11 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I}, with respect to a given grammar, such
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I}, 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * with respect to a given grammar, such
    * that {@code A->I} and {@code I->B} are valid, if such a term exits.
    * {@code A} is the current set of assertions and {@code B} is the
    * conjecture, given as {@code conj}.

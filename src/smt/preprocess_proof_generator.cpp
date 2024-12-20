@@ -30,16 +30,16 @@
 namespace cvc5::internal {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(
-    Env& env, context::Context* c, std::string name, TrustId ra, TrustId rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
+                                                   context::Context* c,
+                                                   std::string name)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
       d_helperProofs(env, d_ctx, "PreprocessHelper"),
       d_inputPf(env, c, "InputProof"),
-      d_name(name),
-      d_ra(ra),
-      d_rpp(rpp)
+      d_trustPf(env, c, "PreprocessTrustProof"),
+      d_name(name)
 {
 }
 
@@ -48,7 +48,9 @@ void PreprocessProofGenerator::notifyInput(Node n)
   notifyNewAssert(n, &d_inputPf);
 }
 
-void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
+void PreprocessProofGenerator::notifyNewAssert(Node n,
+                                               ProofGenerator* pg,
+                                               TrustId id)
 {
   if (n.isConst() && n.getConst<bool>())
   {
@@ -63,7 +65,10 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
     // if no proof generator provided for (non-true) assertion
     if (pg == nullptr)
     {
-      checkEagerPedantic(d_ra);
+      Assert(id != TrustId::UNKNOWN_PREPROCESS_LEMMA);
+      // if no proof generator provided, use a trust step
+      d_trustPf.addTrustedStep(n, id, {}, {});
+      pg = &d_trustPf;
     }
     d_src[n] = TrustNode::mkTrustLemma(n, pg);
   }
@@ -73,14 +78,15 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
-void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn)
+void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn, TrustId id)
 {
-  notifyNewAssert(tn.getProven(), tn.getGenerator());
+  notifyNewAssert(tn.getProven(), tn.getGenerator(), id);
 }
 
 void PreprocessProofGenerator::notifyPreprocessed(Node n,
                                                   Node np,
-                                                  ProofGenerator* pg)
+                                                  ProofGenerator* pg,
+                                                  TrustId id)
 {
   // only do anything if indeed it rewrote
   if (n == np)
@@ -88,10 +94,11 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
     return;
   }
   // call the trusted version
-  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg));
+  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg), id);
 }
 
-void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
+void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp,
+                                                         TrustId id)
 {
   if (tnp.isNull())
   {
@@ -106,7 +113,9 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
   {
     if (tnp.getGenerator() == nullptr)
     {
-      checkEagerPedantic(d_rpp);
+      // if no proof generator provided, use a trust step
+      d_trustPf.addTrustedStep(tnp.getProven(), id, {}, {});
+      tnp = TrustNode::mkReplaceGenTrustNode(tnp, &d_trustPf);
     }
     d_src[np] = tnp;
   }
@@ -189,14 +198,19 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Assert(tnk == TrustNodeKind::LEMMA);
       }
 
+      Assert(proofStepProcessed) << "Failed to get proof for preprocess step";
+      // if we had a dynamic failure, e.g. the provided proof generator did
+      // not generate a proof
       if (!proofStepProcessed)
       {
+        // if in production, we get an unknown trust step
+        TrustId id = (tnk == TrustNodeKind::LEMMA)
+                         ? TrustId::UNKNOWN_PREPROCESS_LEMMA
+                         : TrustId::UNKNOWN_PREPROCESS;
         Trace("smt-pppg-debug")
-            << "...justify missing step with "
-            << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp) << std::endl;
+            << "...justify missing step with " << id << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        Node tid = mkTrustId(tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp);
-        cdp.addStep(proven, ProofRule::TRUST, {}, {tid, proven});
+        cdp.addTrustedStep(proven, id, {}, {});
       }
     }
   } while (success);

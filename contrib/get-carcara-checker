@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e -o pipefail
+
 # utility function to download a file
 function download {
   if [ -x "$(command -v wget)" ]; then

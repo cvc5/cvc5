@@ -57,7 +57,7 @@ TypeNode TypeNode::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
+  NodeBuilder nb(getNodeManager(), getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
@@ -399,7 +399,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
     // different arities
     return TypeNode::null();
   }
-  NodeBuilder nb(k);
+  NodeBuilder nb(getNodeManager(), k);
   for (size_t i = 0; i < nchild; i++)
   {
     TypeNode c = (*this)[i];
@@ -532,7 +532,7 @@ bool TypeNode::isInstantiated() const
 
 TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getNodeManager();
   Kind k = getKind();
   TypeNode ret;
   // Note that parametric datatypes we instantiate have an AST where they are
@@ -710,7 +710,7 @@ std::string TypeNode::toString() const {
 
 const DType& TypeNode::getDType() const
 {
-  return NodeManager::currentNM()->getDTypeFor(*this);
+  return getNodeManager()->getDTypeFor(*this);
 }
 
 bool TypeNode::isRelation() const
@@ -761,7 +761,7 @@ TypeNode TypeNode::getRangeType() const
 {
   if (isDatatypeTester())
   {
-    return NodeManager::currentNM()->booleanType();
+    return getNodeManager()->booleanType();
   }
   Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
          || isDatatypeUpdater())

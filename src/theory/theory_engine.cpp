@@ -89,27 +89,6 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-inline void flattenAnd(Node n, std::vector<TNode>& out){
-  Assert(n.getKind() == Kind::AND);
-  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
-    Node curr = *i;
-    if (curr.getKind() == Kind::AND)
-    {
-      flattenAnd(curr, out);
-    }
-    else
-    {
-      out.push_back(curr);
-    }
-  }
-}
-
-inline Node flattenAnd(Node n){
-  std::vector<TNode> out;
-  flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(Kind::AND, out);
-}
-
 /**
  * Compute the string for a given theory id. In this module, we use
  * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
@@ -286,8 +265,8 @@ TheoryEngine::TheoryEngine(Env& env)
     d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -539,7 +518,9 @@ void TheoryEngine::check(Theory::Effort effort) {
             {
               if (!d_tc->buildModel())
               {
-                break;
+                // We don't check if the model building fails, but for
+                // uniformity ask all theories needsCheckLastEffort method.
+                continue;
               }
               theory->check(Theory::EFFORT_LAST_CALL);
             }
@@ -799,7 +780,7 @@ void TheoryEngine::notifyRestart() {
   CVC5_FOR_EACH_THEORY;
 }
 
-void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryEngine::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   // Reset the interrupt flag
   d_interrupted = false;
@@ -1925,7 +1906,7 @@ TrustNode TheoryEngine::getExplanation(
   if (exp.size() == 0)
   {
     // Normalize to true
-    expNode = NodeManager::currentNM()->mkConst<bool>(true);
+    expNode = nodeManager()->mkConst<bool>(true);
   }
   else if (exp.size() == 1)
   {
@@ -1934,7 +1915,7 @@ TrustNode TheoryEngine::getExplanation(
   }
   else
   {
-    NodeBuilder conjunction(Kind::AND);
+    NodeBuilder conjunction(nodeManager(), Kind::AND);
     std::set<TNode>::const_iterator it = exp.begin();
     std::set<TNode>::const_iterator it_end = exp.end();
     while (it != it_end)
@@ -2173,7 +2154,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     }
     if( is_conjunction ){
       return std::pair<bool, Node>(
-          true, NodeManager::currentNM()->mkNode(Kind::AND, children));
+          true, nodeManager()->mkNode(Kind::AND, children));
     }else{
       return std::pair<bool, Node>(false, Node::null());
     }
@@ -2198,8 +2179,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
         if( chres2.first ){
           return std::pair<bool, Node>(
               true,
-              NodeManager::currentNM()->mkNode(
-                  Kind::AND, chres.second, chres2.second));
+              NodeManager::mkNode(Kind::AND, chres.second, chres2.second));
         }else{
           break;
         }

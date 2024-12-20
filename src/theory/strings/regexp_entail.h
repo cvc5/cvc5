@@ -47,24 +47,24 @@ class RegExpEntail
    * the vectors such that the resulting vectors are such that the membership
    * mchildren[n'...n''] in children[m'...m''] is equivalent to the input
    * membership. The argument dir indicates the direction to consider, where
-   * 0 means strip off the front, 1 off the back, and < 0 off of both.
+   * 1 means strip off the front, 0 off the back, and < 0 off of both.
    *
    * If this method returns the false node, then we have inferred that no
-   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=1) or
-   * suffix (when dir!=0) of s1 ++ ... ++ sn. Otherwise, it returns the null
+   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=0) or
+   * suffix (when dir!=1) of s1 ++ ... ++ sn. Otherwise, it returns the null
    * node.
    *
    * For example, given input
-   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
+   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 1,
    * this method updates:
-   *   mchildren = { "b", x }, children = { ("cd")* }
+   *   mchildren = { "b", x }, children = { }
    * and returns null.
    *
    * For example, given input
    *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
    * this method updates:
    *   { "b" }, { [[y]] }
-   * where [[.]] denotes str.to.re, and returns null.
+   * where [[.]] denotes str.to_re, and returns null.
    *
    * Notice that the above requirement for returning false is stronger than
    * determining that s1 ++ ... ++ sn in r1 ++ ... ++ rm is equivalent to false.
@@ -78,12 +78,12 @@ class RegExpEntail
    * For example, given input
    *   { "bb", x }, { "b", ("a")* } and dir=-1,
    * this method updates:
-   *   { "b" }, { ("a")* }
+   *   { "b", x }, { }
    * and returns null.
    *
    * For example, given input
    *   { "cb", x }, { "b", ("a")* } and dir=-1,
-   * this method leaves children and mchildren unchanged and returns false.
+   * this method returns false.
    *
    * Notice that based on this, we can determine that:
    *   "cb" ++ x  in ( "b" ++ ("a")* )*

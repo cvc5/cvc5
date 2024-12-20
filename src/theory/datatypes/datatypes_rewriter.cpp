@@ -49,11 +49,17 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
+  // DT_CONS_EQ and DT_CONS_EQ_CLASH are part of the reconstruction of
+  // MACRO_DT_CONS_EQ.
+  registerProofRewriteRule(ProofRewriteRule::MACRO_DT_CONS_EQ,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_UPDATER_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_MATCH_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::DT_CYCLE,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -72,8 +78,10 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
       size_t i = utils::indexOf(n.getOperator());
-      bool sharedSel = d_opts.datatypes.dtSharedSelectors;
-      Node ticons = utils::getInstCons(t, dt, i, sharedSel);
+      // Note that we set shared selectors to false. This proof rule will
+      // be (unintentionally) unsuccessful when reconstructing proofs of the
+      // rewriter when using shared selectors.
+      Node ticons = utils::getInstCons(t, dt, i, false);
       return t.eqNode(ticons);
     }
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
@@ -84,6 +92,11 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       Node selector = n.getOperator();
+      // shared selectors are not supported
+      if (selector.getSkolemId() == SkolemId::SHARED_SELECTOR)
+      {
+        return Node::null();
+      }
       size_t constructorIndex = utils::indexOf(n[0].getOperator());
       const DType& dt = utils::datatypeOf(selector);
       const DTypeConstructor& c = dt[constructorIndex];
@@ -122,7 +135,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::MACRO_DT_CONS_EQ:
     {
       if (n.getKind() == Kind::EQUAL)
       {
@@ -132,9 +145,13 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           nn = nodeManager()->mkConst(false);
         }
-        else
+        else if (!rew.empty())
         {
           nn = nodeManager()->mkAnd(rew);
+        }
+        else
+        {
+          return Node::null();
         }
         // In the "else" case above will n if this rewrite does not apply. We
         // do not return the reflexive equality in this case.
@@ -142,6 +159,42 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           return nn;
         }
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ:
+    {
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      if (n[0].getOperator() == n[1].getOperator())
+      {
+        Assert(n[0].getNumChildren() == n[1].getNumChildren());
+        std::vector<Node> children;
+        for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
+        {
+          children.push_back(n[0][i].eqNode(n[1][i]));
+        }
+        return nodeManager()->mkAnd(children);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    {
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      // do not look for constant clashing equality between non-datatypes
+      std::vector<Node> rew;
+      if (utils::checkClash(n[0], n[1], rew, false))
+      {
+        return nodeManager()->mkConst(false);
       }
     }
     break;
@@ -153,11 +206,60 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER:
+    {
+      if (n.getKind() != Kind::APPLY_UPDATER
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      Node op = n.getOperator();
+      size_t cindex = utils::indexOf(n[0].getOperator());
+      size_t cuindex = utils::cindexOf(op);
+      if (cindex == cuindex)
+      {
+        size_t updateIndex = utils::indexOf(op);
+        std::vector<Node> children(n[0].begin(), n[0].end());
+        children[updateIndex] = n[1];
+        children.insert(children.begin(), n[0].getOperator());
+        return d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+      }
+      return n[0];
+    }
+    break;
     case ProofRewriteRule::DT_MATCH_ELIM:
     {
       if (n.getKind() == Kind::MATCH)
       {
         return expandMatch(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CYCLE:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0] != n[1])
+      {
+        std::unordered_set<TNode> visited;
+        std::vector<TNode> visit;
+        TNode cur;
+        visit.push_back(n[1]);
+        do
+        {
+          cur = visit.back();
+          visit.pop_back();
+          if (visited.find(cur) == visited.end())
+          {
+            visited.insert(cur);
+            if (cur == n[0])
+            {
+              return d_nm->mkConst(false);
+            }
+            if (cur.getKind() == Kind::APPLY_CONSTRUCTOR)
+            {
+              visit.insert(visit.end(), cur.begin(), cur.end());
+            }
+          }
+        } while (!visit.empty());
       }
     }
     break;
@@ -326,10 +428,6 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Trace("datatypes-rewrite")
           << "Rewrite clashing equality " << in << " to false" << std::endl;
       return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      //}else if( rew.size()==1 && rew[0]!=in ){
-      //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " <<
-      //  rew[0] << std::endl;
-      //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
     }
     else if (in[1] < in[0])
     {
@@ -991,7 +1089,7 @@ Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
   return utils::applySelector(c, selectorIndex, true, n[0]);
 }
 
-TrustNode DatatypesRewriter::expandDefinition(Node n)
+Node DatatypesRewriter::expandDefinition(Node n)
 {
   Node ret;
   switch (n.getKind())
@@ -1016,9 +1114,9 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   }
   if (!ret.isNull() && n != ret)
   {
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+    return ret;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 Node DatatypesRewriter::expandUpdater(const Node& n)
@@ -1032,7 +1130,7 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
   size_t updateIndex = utils::indexOf(op);
   size_t cindex = utils::cindexOf(op);
   const DTypeConstructor& dc = dt[cindex];
-  NodeBuilder b(Kind::APPLY_CONSTRUCTOR);
+  NodeBuilder b(nm, Kind::APPLY_CONSTRUCTOR);
   if (tn.isParametricDatatype())
   {
     b << dc.getInstantiatedConstructor(n[0].getType());

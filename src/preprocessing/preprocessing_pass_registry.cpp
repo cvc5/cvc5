@@ -68,7 +68,8 @@ using namespace cvc5::internal::preprocessing::passes;
 
 PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
-  static PreprocessingPassRegistry* ppReg = new PreprocessingPassRegistry();
+  static thread_local PreprocessingPassRegistry* ppReg =
+      new PreprocessingPassRegistry();
   return *ppReg;
 }
 

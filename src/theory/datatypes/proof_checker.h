@@ -30,7 +30,7 @@ namespace datatypes {
 class DatatypesProofRuleChecker : public ProofRuleChecker
 {
  public:
-  DatatypesProofRuleChecker(NodeManager* nm, bool sharedSel);
+  DatatypesProofRuleChecker(NodeManager* nm);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
@@ -40,8 +40,6 @@ class DatatypesProofRuleChecker : public ProofRuleChecker
   Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /** Whether we are using shared selectors */
-  bool d_sharedSel;
 };
 
 }  // namespace datatypes
