@@ -213,10 +213,11 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   }
   Node eq;
   Node eqConv = ai.eqNode(bi);
+  theory::Rewriter* rr = d_env.getRewriter();
   if (ai[0] == bi[0])
   {
-    ProofRewriteRule prid = d_env.getRewriter()->findRule(
-        ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
+    ProofRewriteRule prid =
+        rr->findRule(ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
     if (prid != ProofRewriteRule::NONE)
     {
       // a simple theory rewrite happens to solve it, do not continue
@@ -277,6 +278,25 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
       {
         cdp->addStep(eqConv, ProofRule::TRANS, {res, eq}, {});
       }
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
+  else if (ai[0].getNumChildren() > bi[0].getNumChildren())
+  {
+    // maybe unused variables on the left hand side
+    Node aiu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, ai);
+    if (!aiu.isNull())
+    {
+      Assert(aiu != ai);
+      Node eqq = ai.eqNode(aiu);
+      cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::QUANT_UNUSED_VARS);
+      // remains to prove the result of removing variables is equal to
+      // the right hand side.
+      eq = aiu.eqNode(bi);
+      cdp->addStep(eqConv, ProofRule::TRANS, {eqq, eq}, {});
     }
     else
     {
