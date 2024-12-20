@@ -218,20 +218,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     TrustId tid;
     getTrustId(args[0], tid);
-    // we don't do this for steps that are already extended theory rewrite
-    // steps, or we would get an infinite loop in reconstruction.
-    if (tid == TrustId::EXT_THEORY_REWRITE)
-    {
-      return Node::null();
-    }
-    // maybe we can show it rewrites to true based on (extended) rewriting
+    // maybe we can show it rewrites to true based on rewriting
     // modulo original forms (MACRO_SR_PRED_INTRO).
     TheoryProofStepBuffer psb(d_pc);
-    if (psb.applyPredIntro(res,
-                           {},
-                           MethodId::SB_DEFAULT,
-                           MethodId::SBA_SEQUENTIAL,
-                           MethodId::RW_EXT_REWRITE))
+    if (psb.applyPredIntro(
+            res, {}, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL))
     {
       cdp->addSteps(psb);
       return res;
