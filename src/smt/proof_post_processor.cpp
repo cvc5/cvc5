@@ -1077,7 +1077,7 @@ ProofPostprocess::ProofPostprocess(Env& env,
                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_cb(env, updateScopedAssumptions),
-      // the update merges subproofs
+      // the update merges subproofs if proofPpMerge is true
       d_updater(env, d_cb, options().proof.proofPpMerge)
 {
   if (rdb != nullptr)
