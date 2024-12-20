@@ -377,7 +377,6 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ADD: return postRewritePlus(t);
       case Kind::MULT:
       case Kind::NONLINEAR_MULT: return postRewriteMult(t);
-      case Kind::POW2: return postRewritePow2(t);
       case Kind::INTS_ISPOW2: return postRewriteIntsIsPow2(t);
       case Kind::INTS_LOG2: return postRewriteIntsLog2(t);
       case Kind::INTS_DIVISION:
@@ -412,7 +411,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ARCSECANT:
       case Kind::ARCCOTANGENT:
       case Kind::SQRT:
-      case Kind::IAND: return postRewriteExpert(t);
+      case Kind::IAND: 
+      case Kind::POW2: return postRewriteExpert(t);
       default: Unreachable();
     }
   }
@@ -440,6 +440,7 @@ RewriteResponse ArithRewriter::postRewriteExpert(TNode t)
     case Kind::ARCCOTANGENT:
     case Kind::SQRT: return postRewriteTranscendental(t);
     case Kind::IAND: return postRewriteIAnd(t);
+    case Kind::POW2: return postRewritePow2(t);
     default: Unreachable();
   }
 }
