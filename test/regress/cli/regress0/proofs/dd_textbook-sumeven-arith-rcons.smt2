@@ -1,3 +1,4 @@
+; COMMAND-LINE: --enum-inst
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun t () Int)
