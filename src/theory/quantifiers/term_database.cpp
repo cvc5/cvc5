@@ -16,6 +16,7 @@
 #include "theory/quantifiers/term_database.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "options/base_options.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
@@ -160,11 +161,11 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   std::unordered_map<TypeNode, Node>::iterator it = d_type_fv.find(tn);
   if (it == d_type_fv.end())
   {
-    SkolemManager* sm = nodeManager()->getSkolemManager();
-    std::stringstream ss;
-    options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
-    ss << "e_" << tn;
-    Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
+    NodeManager* nm = nodeManager();
+    SkolemManager* sm = nm->getSkolemManager();
+    std::vector<Node> cacheVals;
+    cacheVals.push_back(nm->mkConst(SortToTerm(tn)));
+    Node k = sm->mkSkolemFunction(SkolemId::GROUND_TERM, cacheVals);
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
     if (options().quantifiers.instMaxLevel != -1)

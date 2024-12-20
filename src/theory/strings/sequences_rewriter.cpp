@@ -1645,7 +1645,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         Node one = nm->mkConstInt(Rational(1));
         if (flr == one)
         {
-          NodeBuilder nb(Kind::AND);
+          NodeBuilder nb(nodeManager(), Kind::AND);
           for (const Node& xc : x)
           {
             nb << nm->mkNode(Kind::STRING_IN_REGEXP, xc, r);
@@ -2395,7 +2395,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> vec = Word::getChars(node[0]);
         Node emp = Word::mkEmptyWord(t.getType());
-        NodeBuilder nb(Kind::OR);
+        NodeBuilder nb(nodeManager(), Kind::OR);
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
@@ -2441,7 +2441,7 @@ Node SequencesRewriter::rewriteContains(Node node)
       {
         std::vector<Node> nc1;
         utils::getConcat(node[0], nc1);
-        NodeBuilder nb(Kind::OR);
+        NodeBuilder nb(nodeManager(), Kind::OR);
         for (const Node& ncc : nc1)
         {
           nb << nm->mkNode(Kind::STRING_CONTAINS, ncc, node[1]);
@@ -2530,7 +2530,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (nc2.size() > 1)
         {
           Node emp = Word::mkEmptyWord(stype);
-          NodeBuilder nb2(Kind::AND);
+          NodeBuilder nb2(nodeManager(), Kind::AND);
           for (const Node& n2 : nc2)
           {
             if (n2 == n)
@@ -3843,7 +3843,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len,
   else if (len.getKind() == Kind::ADD)
   {
     // x + y -> norm(x) + norm(y)
-    NodeBuilder concatBuilder(Kind::STRING_CONCAT);
+    NodeBuilder concatBuilder(nodeManager(), Kind::STRING_CONCAT);
     for (const auto& n : len)
     {
       Node sn = canonicalStrForSymbolicLength(n, stype);
@@ -3872,7 +3872,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len,
     }
     std::vector<Node> nRepChildren;
     utils::getConcat(nRep, nRepChildren);
-    NodeBuilder concatBuilder(Kind::STRING_CONCAT);
+    NodeBuilder concatBuilder(nodeManager(), Kind::STRING_CONCAT);
     for (size_t i = 0, reps = intReps.getUnsignedInt(); i < reps; i++)
     {
       concatBuilder.append(nRepChildren);

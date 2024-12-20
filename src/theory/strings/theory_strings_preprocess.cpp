@@ -979,20 +979,18 @@ Node StringsPreprocess::reduce(Node t,
     Node x = t[0];
     Node s = t[1];
     //negative contains reduces to existential
-    Node lenx = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, x);
-    Node lens = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, s);
+    Node lenx = NodeManager::mkNode(Kind::STRING_LENGTH, x);
+    Node lens = NodeManager::mkNode(Kind::STRING_LENGTH, s);
     Node b1 = SkolemCache::mkIndexVar(nm, t);
-    Node b1v = NodeManager::currentNM()->mkNode(Kind::BOUND_VAR_LIST, b1);
-    Node body = NodeManager::currentNM()->mkNode(
+    Node b1v = NodeManager::mkNode(Kind::BOUND_VAR_LIST, b1);
+    Node body = NodeManager::mkNode(
         Kind::AND,
-        NodeManager::currentNM()->mkNode(Kind::LEQ, zero, b1),
-        NodeManager::currentNM()->mkNode(
-            Kind::LEQ,
-            b1,
-            NodeManager::currentNM()->mkNode(Kind::SUB, lenx, lens)),
-        NodeManager::currentNM()->mkNode(
+        NodeManager::mkNode(Kind::LEQ, zero, b1),
+        NodeManager::mkNode(
+            Kind::LEQ, b1, NodeManager::mkNode(Kind::SUB, lenx, lens)),
+        NodeManager::mkNode(
             Kind::EQUAL,
-            NodeManager::currentNM()->mkNode(Kind::STRING_SUBSTR, x, b1, lens),
+            NodeManager::mkNode(Kind::STRING_SUBSTR, x, b1, lens),
             s));
     retNode = utils::mkForallInternal(nm, b1v, body.negate()).negate();
   }
@@ -1114,7 +1112,7 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
       }
       Node tmp = t;
       if( changed ){
-        tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
+        tmp = nodeManager()->mkNode( t.getKind(), cc );
       }
       // We cannot statically reduce seq.nth due to it being partial function.
       // Reducing it here would violate the functional property of seq.nth.

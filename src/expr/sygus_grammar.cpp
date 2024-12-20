@@ -203,7 +203,7 @@ Node purifySygusGNode(const Node& n,
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     // it's an indexed operator so we should provide the op
-    internal::NodeBuilder nb(n.getKind());
+    internal::NodeBuilder nb(NodeManager::currentNM(), n.getKind());
     nb << n.getOperator();
     nb.append(pchildren);
     nret = nb.constructNode();

@@ -540,11 +540,6 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_EQ_INTRO)
-        {
-          // just add child
-          visit.push_back(PExpr(cur->getChildren()[0].get()));
-        }
         else if (isLambda)
         {
           Assert(cur->getArguments().size() == 3);

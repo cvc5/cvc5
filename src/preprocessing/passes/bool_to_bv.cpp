@@ -366,7 +366,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 {
   Kind k = n.getKind();
   NodeManager* nm = nodeManager();
-  NodeBuilder builder(new_kind);
+  NodeBuilder builder(nm, new_kind);
 
   Trace("bool-to-bv") << "BoolToBV::rebuildNode with " << n
                       << " and new_kind = " << kindToString(new_kind)

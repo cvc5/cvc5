@@ -62,14 +62,14 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         NodeManager* nm = nodeManager();
         size_t setNodeIndex = n.getNumChildren() - 1;
-        Node elems = nm->mkNode(Kind::SET_SINGLETON, n[0]);
-
-        for (size_t i = 1; i < setNodeIndex; ++i)
+        Node elems = n[setNodeIndex];
+        for (size_t i = 0; i < setNodeIndex; ++i)
         {
-          Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[i]);
-          elems = nm->mkNode(Kind::SET_UNION, elems, singleton);
+          size_t ii = (setNodeIndex-i)-1;
+          Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[ii]);
+          elems = nm->mkNode(Kind::SET_UNION, singleton, elems);
         }
-        return nm->mkNode(Kind::SET_UNION, elems, n[setNodeIndex]);
+        return elems;
       }
     }
     break;

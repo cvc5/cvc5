@@ -224,9 +224,9 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 
 Node mkBounded(Node l, Node a, Node u)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, a, l), nm->mkNode(Kind::LEQ, a, u));
+  return NodeManager::mkNode(Kind::AND,
+                             NodeManager::mkNode(Kind::GEQ, a, l),
+                             NodeManager::mkNode(Kind::LEQ, a, u));
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -235,24 +235,23 @@ Rational greatestIntLessThan(const Rational& q) { return q.ceiling() - 1; }
 
 Node negateProofLiteral(TNode n)
 {
-  auto nm = NodeManager::currentNM();
   switch (n.getKind())
   {
     case Kind::GT:
     {
-      return nm->mkNode(Kind::LEQ, n[0], n[1]);
+      return NodeManager::mkNode(Kind::LEQ, n[0], n[1]);
     }
     case Kind::LT:
     {
-      return nm->mkNode(Kind::GEQ, n[0], n[1]);
+      return NodeManager::mkNode(Kind::GEQ, n[0], n[1]);
     }
     case Kind::LEQ:
     {
-      return nm->mkNode(Kind::GT, n[0], n[1]);
+      return NodeManager::mkNode(Kind::GT, n[0], n[1]);
     }
     case Kind::GEQ:
     {
-      return nm->mkNode(Kind::LT, n[0], n[1]);
+      return NodeManager::mkNode(Kind::LT, n[0], n[1]);
     }
     case Kind::EQUAL:
     case Kind::NOT:
@@ -281,17 +280,22 @@ Node multConstants(const Node& c1, const Node& c2)
 
 Node mkEquality(const Node& a, const Node& b)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Assert(a.getType().isRealOrInt());
   Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
   if (a.getType() == b.getType())
   {
-    return nm->mkNode(Kind::EQUAL, a, b);
+    return NodeManager::mkNode(Kind::EQUAL, a, b);
   }
   // otherwise subtract and set equal to zero
-  Node diff = nm->mkNode(Kind::SUB, a, b);
-  return nm->mkNode(Kind::EQUAL, diff, mkZero(diff.getType()));
+  Node diff = NodeManager::mkNode(Kind::SUB, a, b);
+  return NodeManager::mkNode(Kind::EQUAL, diff, mkZero(diff.getType()));
+}
+
+Node castToReal(NodeManager* nm, const Node& n)
+{
+  return n.isConst() ? nm->mkConstReal(n.getConst<Rational>())
+                     : nm->mkNode(Kind::TO_REAL, n);
 }
 
 std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
@@ -302,13 +306,12 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
   {
     return {a, b};
   }
-  NodeManager* nm = NodeManager::currentNM();
   if (at.isInteger() && bt.isReal())
   {
-    return {nm->mkNode(Kind::TO_REAL, a), b};
+    return {NodeManager::mkNode(Kind::TO_REAL, a), b};
   }
   Assert(at.isReal() && bt.isInteger());
-  return {a, nm->mkNode(Kind::TO_REAL, b)};
+  return {a, NodeManager::mkNode(Kind::TO_REAL, b)};
 }
 
 /* ------------------------------------------------------------------------- */
@@ -358,7 +361,7 @@ Node eliminateInt2Bv(TNode node)
   {
     return v[0];
   }
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(nm, Kind::BITVECTOR_CONCAT);
   result.append(v.rbegin(), v.rend());
   return Node(result);
 }

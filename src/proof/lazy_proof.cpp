@@ -181,7 +181,7 @@ void LazyCDProof::addLazyStep(Node expected,
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
                           << " set (trusted) step " << idNull << "\n";
-    Node tid = mkTrustId(idNull);
+    Node tid = mkTrustId(nodeManager(), idNull);
     addStep(expected, ProofRule::TRUST, {}, {tid, expected});
     return;
   }

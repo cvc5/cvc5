@@ -69,7 +69,7 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
       const std::vector<Node>& vecc = sx.getVec();
       seq.insert(seq.end(), vecc.begin(), vecc.end());
     }
-    return NodeManager::currentNM()->mkConst(
+    return nm->mkConst(
         Sequence(tn.getSequenceElementType(), seq));
   }
   Unimplemented();

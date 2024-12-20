@@ -81,7 +81,10 @@ const char* toString(TrustId id)
     case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
+    case TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM:
+      return "ARITH_NL_COMPARE_LIT_TRANSFORM";
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
+    case TrustId::DIAMONDS: return "DIAMONDS";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
@@ -111,10 +114,9 @@ std::ostream& operator<<(std::ostream& out, TrustId id)
   return out;
 }
 
-Node mkTrustId(TrustId id)
+Node mkTrustId(NodeManager* nm, TrustId id)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(id)));
 }
 
 bool getTrustId(TNode n, TrustId& i)

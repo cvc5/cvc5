@@ -485,7 +485,8 @@ void InferProofCons::convert(InferenceId infer,
         // above. Notice we need both in sequence since ext equality rewriting
         // is not recursive.
         std::vector<Node> argsERew;
-        addMethodIds(argsERew,
+        addMethodIds(nm,
+                     argsERew,
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_REWRITE_EQ_EXT);
@@ -1125,7 +1126,7 @@ void InferProofCons::convert(InferenceId infer,
     // untrustworthy conversion, the argument of THEORY_INFERENCE is its
     // conclusion
     ps.d_args.clear();
-    ps.d_args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
+    ps.d_args.push_back(mkTrustId(nm, TrustId::THEORY_INFERENCE));
     ps.d_args.push_back(conc);
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
     ps.d_args.push_back(t);
@@ -1298,14 +1299,13 @@ bool InferProofCons::purifyCoreSubstitution(
   }
   // To avoid rare issues where purification variables introduced by this method
   // already appear in the inference, we also purify them here.
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   SkolemId id;
   Node cval;
   for (const Node& nc : children)
   {
     // if this is a purification skolem of a term that is being purified,
     // we purify this.
-    if (sm->isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
+    if (SkolemManager::isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
         && termsToPurify.find(cval) != termsToPurify.end())
     {
       termsToPurify.insert(nc[0]);
@@ -1447,8 +1447,7 @@ Node InferProofCons::maybePurifyTerm(
     // did not need to purify
     return n;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node k = sm->mkPurifySkolem(n);
+  Node k = SkolemManager::mkPurifySkolem(n);
   return k;
 }
 

@@ -127,7 +127,7 @@ void InferenceManager::convert(ProofRule& id,
         Assert(false) << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
-      args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
+      args.push_back(mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE));
       args.push_back(conc);
       args.push_back(
           builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARRAYS));

@@ -68,11 +68,10 @@ Node BvInstantiatorUtil::normalizePvMult(
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
-  NodeManager* nm;
-  NodeBuilder nb(Kind::BITVECTOR_MULT);
+  NodeManager* nm = nodeManager();
+  NodeBuilder nb(nm, Kind::BITVECTOR_MULT);
   BvLinearAttribute is_linear;
 
-  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
@@ -164,13 +163,12 @@ Node BvInstantiatorUtil::normalizePvPlus(
     const std::vector<Node>& children,
     std::unordered_map<Node, bool>& contains_pv) const
 {
-  NodeManager* nm;
-  NodeBuilder nb_c(Kind::BITVECTOR_ADD);
-  NodeBuilder nb_l(Kind::BITVECTOR_ADD);
+  NodeManager* nm = nodeManager();
+  NodeBuilder nb_c(nm, Kind::BITVECTOR_ADD);
+  NodeBuilder nb_l(nm, Kind::BITVECTOR_ADD);
   BvLinearAttribute is_linear;
   bool neg;
 
-  nm = nodeManager();
   for (TNode nc : children)
   {
     if (!contains_pv[nc])
