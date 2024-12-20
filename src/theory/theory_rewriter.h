@@ -239,10 +239,10 @@ class TheoryRewriter
  * The null theory rewriter, which does not perform any rewrites. This is used
  * if a theory does not have an (active) rewriter.
  */
-class NullTheoryRewriter : public TheoryRewriter
+class NoOpTheoryRewriter : public TheoryRewriter
 {
  public:
-  NullTheoryRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+  NoOpTheoryRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
   /** Performs a post-rewrite step. */
   RewriteResponse postRewrite(TNode node) override
   {
