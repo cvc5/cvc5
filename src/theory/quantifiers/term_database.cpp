@@ -74,6 +74,8 @@ class DeqCongProofGenerator : protected EnvObj, public ProofGenerator
     CDProof cdp(d_env);
     if (a.getOperator() != b.getOperator())
     {
+      // TODO: wishue #158, likely corresponds to a higher-order term
+      // indexing conflict.
       cdp.addTrustedStep(fact, TrustId::QUANTIFIERS_PREPROCESS, {}, {});
       return cdp.getProofFor(fact);
     }
