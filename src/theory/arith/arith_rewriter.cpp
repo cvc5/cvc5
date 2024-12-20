@@ -57,6 +57,7 @@ ArithRewriter::ArithRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
                            TheoryRewriteCtx::DSL_SUBCALL);
+
   // we don't register ARITH_STRING_PRED_ENTAIL or
   // ARITH_STRING_PRED_SAFE_APPROX, as these are subsumed by
   // MACRO_ARITH_STRING_PRED_ENTAIL.
@@ -376,24 +377,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ADD: return postRewritePlus(t);
       case Kind::MULT:
       case Kind::NONLINEAR_MULT: return postRewriteMult(t);
-      case Kind::IAND: return postRewriteIAnd(t);
       case Kind::POW2: return postRewritePow2(t);
       case Kind::INTS_ISPOW2: return postRewriteIntsIsPow2(t);
       case Kind::INTS_LOG2: return postRewriteIntsLog2(t);
-      case Kind::EXPONENTIAL:
-      case Kind::SINE:
-      case Kind::COSINE:
-      case Kind::TANGENT:
-      case Kind::COSECANT:
-      case Kind::SECANT:
-      case Kind::COTANGENT:
-      case Kind::ARCSINE:
-      case Kind::ARCCOSINE:
-      case Kind::ARCTANGENT:
-      case Kind::ARCCOSECANT:
-      case Kind::ARCSECANT:
-      case Kind::ARCCOTANGENT:
-      case Kind::SQRT: return postRewriteTranscendental(t);
       case Kind::INTS_DIVISION:
       case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, false);
       case Kind::INTS_DIVISION_TOTAL:
@@ -411,10 +397,53 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         return RewriteResponse(REWRITE_DONE, t);
       }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      // expert cases
+      case Kind::EXPONENTIAL:
+      case Kind::SINE:
+      case Kind::COSINE:
+      case Kind::TANGENT:
+      case Kind::COSECANT:
+      case Kind::SECANT:
+      case Kind::COTANGENT:
+      case Kind::ARCSINE:
+      case Kind::ARCCOSINE:
+      case Kind::ARCTANGENT:
+      case Kind::ARCCOSECANT:
+      case Kind::ARCSECANT:
+      case Kind::ARCCOTANGENT:
+      case Kind::SQRT:
+      case Kind::IAND: return postRewriteExpert(t);
       default: Unreachable();
     }
   }
 }
+RewriteResponse ArithRewriter::postRewriteExpert(TNode t)
+{
+  if (!d_expertEnabled)
+  {
+    return RewriteResponse(REWRITE_DONE, t);
+  }
+  switch(t.getKind())
+  {
+    case Kind::EXPONENTIAL:
+    case Kind::SINE:
+    case Kind::COSINE:
+    case Kind::TANGENT:
+    case Kind::COSECANT:
+    case Kind::SECANT:
+    case Kind::COTANGENT:
+    case Kind::ARCSINE:
+    case Kind::ARCCOSINE:
+    case Kind::ARCTANGENT:
+    case Kind::ARCCOSECANT:
+    case Kind::ARCSECANT:
+    case Kind::ARCCOTANGENT:
+    case Kind::SQRT: return postRewriteTranscendental(t);
+    case Kind::IAND: return postRewriteIAnd(t);
+    default: Unreachable();
+  }
+}
+      
 
 RewriteResponse ArithRewriter::rewriteRAN(TNode t)
 {
@@ -867,15 +896,18 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
     Node ret = isPred ? nm->mkConst(true) : Node(t[0]);
     return returnRewrite(t, ret, Rewrite::INT_EXT_INT);
   }
-  if (t[0].getKind() == Kind::PI)
-  {
-    Node ret = isPred ? nm->mkConst(false) : nm->mkConstInt(Rational(3));
-    return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
-  }
-  else if (t[0].getKind() == Kind::TO_REAL)
+  if (t[0].getKind() == Kind::TO_REAL)
   {
     Node ret = nm->mkNode(t.getKind(), t[0][0]);
     return returnRewrite(t, ret, Rewrite::INT_EXT_TO_REAL);
+  }
+  if (d_expertEnabled)
+  {
+    if (t[0].getKind() == Kind::PI)
+    {
+      Node ret = isPred ? nm->mkConst(false) : nm->mkConstInt(Rational(3));
+      return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
+    }
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
@@ -883,10 +915,6 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
 RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 {
   Assert(t.getKind() == Kind::IAND);
-  if (!d_expertEnabled)
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
   uint32_t bsize = t.getOperator().getConst<IntAnd>().d_size;
   NodeManager* nm = nodeManager();
   // if constant, we eliminate
@@ -938,10 +966,6 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 RewriteResponse ArithRewriter::postRewritePow2(TNode t)
 {
   Assert(t.getKind() == Kind::POW2);
-  if (!d_expertEnabled)
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
   NodeManager* nm = nodeManager();
   // if constant, we eliminate
   if (t[0].isConst())
@@ -998,10 +1022,6 @@ RewriteResponse ArithRewriter::postRewriteIntsLog2(TNode t)
 
 RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
 {
-  if (!d_expertEnabled)
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
   Trace("arith-tf-rewrite")
       << "Rewrite transcendental function : " << t << std::endl;
   Assert(t.getTypeOrNull(true).isReal());

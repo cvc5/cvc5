@@ -67,6 +67,9 @@ class ArithRewriter : public TheoryRewriter
   RewriteResponse preRewriteTerm(TNode t);
   /** postRewrite for terms */
   RewriteResponse postRewriteTerm(TNode t);
+  
+  /** Post-rewrites that are only available in expert mode */
+  RewriteResponse postRewriteExpert(TNode t);
 
   /** rewrite real algebraic numbers */
   RewriteResponse rewriteRAN(TNode t);
