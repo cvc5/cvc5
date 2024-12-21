@@ -1899,12 +1899,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
         TrustNode trn = d_im.mkLemmaExp(
-            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }
