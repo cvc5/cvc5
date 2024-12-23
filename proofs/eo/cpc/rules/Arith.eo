@@ -348,3 +348,18 @@
   :args (t)
   :conclusion ($arith_reduction_pred t)
 )
+
+;;;;; ProofRewriteRule::ARITH_POW_ELIM
+
+; rule: arith-pow-elim
+; implements: ProofRewriteRule::ARITH_POW_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: n is integral, and b is the multiplication of a, n times.
+; conclusion: the equality between a and b.
+(declare-rule arith-pow-elim ((T Type) (a T) (n T) (b T))
+  :args ((= (^ a n) b))
+  :requires (((eo::to_q (eo::to_z n)) (eo::to_q n))
+             (($singleton_elim ($arith_unfold_pow (eo::to_z n) a)) b))
+  :conclusion (= (^ a n) b)
+)

@@ -116,18 +116,36 @@
 
 ;;;;; ProofRewriteRule::QUANT_UNUSED_VARS
 
-; program: $is_quant_unused_vars
+; program: $mk_quant_unused_vars_rec
 ; args:
-; - F Bool: The first formula in question.
-; - G Bool: The second formula in question.
-; return: true iff G is the result of removing unused variables from F.
-(program $is_quant_unused_vars ((x @List) (y @List) (F Bool) (Q (-> @List Bool Bool)))
-  (Bool Bool) Bool
+; - x @List: The list of variables of the quantified formula.
+; - F Bool: The body of the quantified formula.
+; return: the sublist of variables in x that should be quantified for F.
+(program $mk_quant_unused_vars_rec ((T Type) (xs @List :list) (x T) (F Bool))
+  (@List Bool) Bool
   (
-  (($is_quant_unused_vars (Q x F) (Q y F)) (eo::not ($contains_subterm_list F ($nary_diff @list @list.nil x y))))
-  (($is_quant_unused_vars (Q x F) F)       (eo::not ($contains_subterm_list F x)))
+  (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
+  (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
+                                              (eo::ite ($contains_subterm F x)
+                                                ; remove the duplicate of x in r if it exists
+                                                (eo::cons @list x ($nary_remove @list @list.nil x r))
+                                                r)))
   )
 )
+
+; program: $mk_quant_unused_vars
+; args:
+; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
+; - x @List: The list of variables of the quantified formula.
+; - F Bool: The body of the quantified formula.
+; return: the result of removing duplicate and unused variables from x.
+(define $mk_quant_unused_vars ((Q (-> @List Bool Bool)) (x @List) (F Bool))
+  (eo::match ((y @List))
+    ($mk_quant_unused_vars_rec x F)
+    (
+      (@list.nil F)
+      (y (Q y F))
+    )))
 
 ; rule: quant-unused-vars
 ; implements: ProofRewriteRule::QUANT_UNUSED_VARS
@@ -136,23 +154,23 @@
 ; requires: >
 ;   The variables removed from the left hand side do not occur in its body.
 ; conclusion: The given equality.
-(declare-rule quant-unused-vars ((F Bool) (G Bool))
-  :args ((= F G))
-  :requires ((($is_quant_unused_vars F G) true))
-  :conclusion (= F G)
+(declare-rule quant-unused-vars ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
+  :args ((= (Q x F) G))
+  :requires ((($mk_quant_unused_vars Q x F) G))
+  :conclusion (= (Q x F) G)
 )
 
 ;;;;; ProofRewriteRule::QUANT_MERGE_PRENEX
 
 ; program: $mk_quant_merge_prenex
 ; args:
-; - Q (-> @List Bool): The binding operator (forall or exists).
+; - Q (-> @List Bool Bool): The binding operator (forall or exists).
 ; - F Bool: The formula for which we are merging prenexes.
 ; return: the result of merging all bound variables bound by Q in F.
-(program $mk_quant_merge_prenex ((Q (-> @List Bool)) (x @List) (F Bool))
-  ((-> @List Bool) Bool) Bool
+(program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool))
+  ((-> @List Bool Bool) Bool) Bool
   (
-  (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool)) (y @List) (G Bool))
+  (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool Bool)) (y @List) (G Bool))
                                          ($mk_quant_merge_prenex Q F)
                                          ; note that since this method returns Q terms only, R is Q
                                          (((R y G) (Q (eo::list_concat @list x y) G)))))
@@ -168,79 +186,95 @@
 ;   The right hand side of the equality is the result of merging quantifier
 ;   prenexes in its left hand side.
 ; conclusion: The given equality.
-(declare-rule quant-merge-prenex ((Q (-> @List Bool)) (x @List) (F Bool) (G Bool))
+(declare-rule quant-merge-prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
   :requires (((eo::or (eo::is_eq Q forall) (eo::is_eq Q exists)) true)
              (($mk_quant_merge_prenex Q (Q x F)) G))
   :conclusion (= (Q x F) G)
 )
 
-;;;;; ProofRewriteRule::QUANT_MINISCOPE
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_AND
 
-; program: $mk_quant_miniscope
+; program: $mk_quant_miniscope_and
 ; args:
 ; - x @List: The list of variables of the formula.
 ; - F Bool: The body of the formula in question.
 ; return: The result of miniscoping (forall x F) based on conjunctions.
-(program $mk_quant_miniscope ((x @List) (f Bool) (fs Bool :list))
+(program $mk_quant_miniscope_and ((x @List) (f Bool) (fs Bool :list))
   (@List Bool) Bool
   (
-  (($mk_quant_miniscope x (and f fs)) (eo::cons and (forall x f) ($mk_quant_miniscope x fs)))
-  (($mk_quant_miniscope x true)       true)
+  (($mk_quant_miniscope_and x (and f fs)) (eo::cons and (forall x f) ($mk_quant_miniscope_and x fs)))
+  (($mk_quant_miniscope_and x true)       true)
   )
 )
 
-; rule: quant-miniscope
-; implements: ProofRewriteRule::QUANT_MINISCOPE
+; rule: quant-miniscope-and
+; implements: ProofRewriteRule::QUANT_MINISCOPE_AND
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
 ;   The right hand side of the equality is the result of miniscoping the
 ;   left hand side.
 ; conclusion: The given equality.
-(declare-rule quant-miniscope ((x @List) (F Bool) (G Bool))
+(declare-rule quant-miniscope-and ((x @List) (F Bool) (G Bool))
   :args ((= (forall x F) G))
-  :requires ((($mk_quant_miniscope x F) G))
+  :requires ((($mk_quant_miniscope_and x F) G))
   :conclusion (= (forall x F) G)
 )
 
-;;;;; ProofRewriteRule::QUANT_MINISCOPE_FV
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_OR
 
-; program: $is_quant_miniscope_fv
+; program: $is_quant_miniscope_or
 ; args:
 ; - x @List: The list of variables of the first formula we have yet to process
 ; - F Bool: The body of the first formula in question.
 ; - G Bool: The second formula in question.
 ; return: >
 ;    True if (forall x F) is equivalent to G based on miniscope reasoning with
-;    free variables.
-(program $is_quant_miniscope_fv ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
+;    free variables over OR.
+(program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_fv x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
-                                                                        ($is_quant_miniscope_fv x fs gs)))
-  (($is_quant_miniscope_fv x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
-                                                                        ($is_quant_miniscope_fv x fs gs)))
-  (($is_quant_miniscope_fv (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_or x fs gs)))
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
+                                                                        ($is_quant_miniscope_or x fs gs)))
+  (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
                                                                       (eo::requires ($contains_subterm gs x) false
-                                                                        ($is_quant_miniscope_fv xs (or f fs) (or (forall ys f) gs))))
-  (($is_quant_miniscope_fv @list.nil false false)                     true)
-  (($is_quant_miniscope_fv x f g)                                     false)
+                                                                        ($is_quant_miniscope_or xs (or f fs) (or (forall ys f) gs))))
+  (($is_quant_miniscope_or @list.nil false false)                     true)
+  (($is_quant_miniscope_or x f g)                                     false)
   )
 )
 
-; rule: quant-miniscope-fv
-; implements: ProofRewriteRule::QUANT_MINISCOPE_FV
+; rule: quant-miniscope-or
+; implements: ProofRewriteRule::QUANT_MINISCOPE_OR
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
 ;   The right hand side of the equality can be shown equivalent to the right
 ;   hand side based on reasoning about the disjuncts of F that contain x.
 ; conclusion: The given equality.
-(declare-rule quant-miniscope-fv ((x @List) (F Bool) (G Bool))
+(declare-rule quant-miniscope-or ((x @List) (F Bool) (G Bool))
   :args ((= (forall x F) G))
-  :requires ((($is_quant_miniscope_fv x F G) true))
+  :requires ((($is_quant_miniscope_or x F G) true))
   :conclusion (= (forall x F) G)
+)
+
+;;;;; ProofRewriteRule::QUANT_MINISCOPE_ITE
+
+; rule: quant-miniscope-ite
+; implements: ProofRewriteRule::QUANT_MINISCOPE_ITE
+; args:
+; - eq Bool: The equality whose left hand side is a quantified formula.
+; requires: >
+;   The right hand side of the equality is the result of miniscoping the
+;   left hand side.
+; conclusion: The given equality.
+(declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
+  :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
+  :requires ((($contains_subterm_list A x) false))
+  :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
 ;;;;; ProofRewriteRule::QUANT_VAR_ELIM_EQ

@@ -30,8 +30,16 @@ enum class TrustId : uint32_t
   NONE,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -141,10 +149,18 @@ enum class TrustId : uint32_t
    * no :math:`x_i` exists that extends the cell and satisfies all assumptions.
    */
   ARITH_NL_COVERING_RECURSIVE,
+  /**
+   * A conversion between a literal used in the inference id lemma
+   * InferenceId::ARITH_NL_COMPARISON and a relation between absolute
+   * values as used by ProofRule::ARITH_MULT_ABS_COMPARISON.
+   */
+  ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
   /** A lemma from the ArithStaticLearner utility */
   ARITH_STATIC_LEARN,
+  /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
+  DIAMONDS,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
@@ -174,6 +190,11 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /**
+   * An existential corresponding to a witness term introduced e.g. in
+   * quantifier instantiation
+   */
+  VALID_WITNESS,
   /** A subtype elimination step that could not be processed */
   SUBTYPE_ELIMINATION,
   /** A rewrite required for showing a macro theory rewrite */
@@ -196,7 +217,7 @@ const char* toString(TrustId id);
 /** Write a trust id to out */
 std::ostream& operator<<(std::ostream& out, TrustId id);
 /** Make a trust id node */
-Node mkTrustId(TrustId id);
+Node mkTrustId(NodeManager* nm, TrustId id);
 /** get a trust identifier from a node, return false if we fail */
 bool getTrustId(TNode n, TrustId& i);
 

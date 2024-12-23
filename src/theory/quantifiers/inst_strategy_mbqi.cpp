@@ -276,7 +276,7 @@ void InstStrategyMbqi::process(Node q)
       Trace("mbqi") << "warning: failed to process model value " << vc
                     << ", from " << v
                     << ", use arbitrary term for instantiation" << std::endl;
-      vc = nm->mkGroundTerm(v.getType());
+      vc = NodeManager::mkGroundTerm(v.getType());
     }
     v = vc;
   }
@@ -295,7 +295,7 @@ void InstStrategyMbqi::process(Node q)
     {
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
-      mvt = nm->mkGroundTerm(ov.getType());
+      mvt = NodeManager::mkGroundTerm(ov.getType());
     }
     Assert(v.getType() == mvt.getType());
     fvToInst.add(v, mvt);

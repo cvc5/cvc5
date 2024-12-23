@@ -78,7 +78,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         std::vector<TNode> args;
         args.push_back(lambdaRew);
         args.insert(args.end(), node.begin(), node.end());
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Node ret = nm->mkNode(Kind::APPLY_UF, args);
         Assert(ret != node);
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
@@ -257,7 +257,7 @@ Node TheoryUfRewriter::getHoApplyForApplyUf(TNode n)
   Node curr = n.getOperator();
   for (unsigned i = 0; i < n.getNumChildren(); i++)
   {
-    curr = NodeManager::currentNM()->mkNode(Kind::HO_APPLY, curr, n[i]);
+    curr = NodeManager::mkNode(Kind::HO_APPLY, curr, n[i]);
   }
   return curr;
 }
@@ -268,7 +268,7 @@ Node TheoryUfRewriter::getApplyUfForHoApply(TNode n)
   // if operator is standard
   if (canUseAsApplyUfOperator(curr))
   {
-    return NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+    return n.getNodeManager()->mkNode(Kind::APPLY_UF, children);
   }
   // cannot construct APPLY_UF if operator is partially applied or is not
   // standard

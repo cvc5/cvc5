@@ -125,26 +125,43 @@
   )
 )
 
-; program: $get_poly_norm
+; program: $get_arith_poly_norm_div
+; args:
+; - a1 T: The numerator to process of type Int or Real.
+; - a1p @Polynomial: The normalization of a1.
+; - a2 T: The denominator to process of type Int or Real.
+; return: >
+;   The polynomial corresponding to the (normalized) form of (/ a1 a2).
+(define $get_arith_poly_norm_div ((U Type :implicit) (V Type :implicit) (a1 U) (a1p @Polynomial) (a2 V))
+  (eo::define ((a2q (eo::to_q a2)))
+  (eo::ite (eo::and (eo::is_q a2q) (eo::not (eo::is_eq a2q 0/1)))
+    ; if division by non-zero constant, we normalize
+    ($poly_mul_mon (@mon 1 (eo::qdiv 1/1 a2q)) a1p)
+    ; otherwise it is treated as a variable
+    (@poly (@mon (* (/ a1 a2)) 1/1)))))
+
+; program: $get_arith_poly_norm
 ; args:
 ; - a T: The arithmetic term to process of type Int or Real.
 ; return: the polynomial corresponding to the (normalized) form of a.
 (program $get_arith_poly_norm ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
   (T) @Polynomial
   (
-    (($get_arith_poly_norm (- a1))        ($poly_neg ($get_arith_poly_norm a1)))
-    (($get_arith_poly_norm (+ a1 a2))     ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
-    (($get_arith_poly_norm (- a1 a2))     ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
-    (($get_arith_poly_norm (* a1 a2))     ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
-    (($get_arith_poly_norm (to_real a1))  ($get_arith_poly_norm a1))
-    (($get_arith_poly_norm a)             (eo::define ((aq (eo::to_q a)))
-                                          ; check if a is a constant (Int or Real)
-                                          (eo::ite (eo::is_q aq)
-                                            ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
-                                            (eo::ite (eo::is_eq aq 0/1)
-                                              @poly.zero
-                                              (@poly (@mon 1 aq)))
-                                          (@poly (@mon (* a) 1/1)))))    ; introduces list
+    (($get_arith_poly_norm (- a1))          ($poly_neg ($get_arith_poly_norm a1)))
+    (($get_arith_poly_norm (+ a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+    (($get_arith_poly_norm (- a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
+    (($get_arith_poly_norm (* a1 a2))       ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+    (($get_arith_poly_norm (/ a1 a2))       ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
+    (($get_arith_poly_norm (/_total a1 a2)) ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
+    (($get_arith_poly_norm (to_real a1))    ($get_arith_poly_norm a1))
+    (($get_arith_poly_norm a)               (eo::define ((aq (eo::to_q a)))
+                                            ; check if a is a constant (Int or Real)
+                                            (eo::ite (eo::is_q aq)
+                                              ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
+                                              (eo::ite (eo::is_eq aq 0/1)
+                                                @poly.zero
+                                                (@poly (@mon 1 aq)))
+                                            (@poly (@mon (* a) 1/1)))))    ; introduces list
   )
 )
 
@@ -239,6 +256,18 @@
   )
 )
 
+; program: $remove_to_real
+; args:
+; - t U: The term to process.
+; return: The result of removing an application of to_real from t, if applicable.
+(program $remove_to_real ((U Type) (x U) (T Type))
+  (U) T
+  (
+  (($remove_to_real (to_real x)) x)
+  (($remove_to_real x)           x)
+  )
+)
+
 ; program: $mk_poly_norm_rel
 ; args:
 ; - t U: The left hand side of the premise of ProofRule::ARITH_POLY_NORM_REL.
@@ -247,14 +276,18 @@
 ; return: >
 ;   The conclusion of ProofRule::ARITH_POLY_NORM_REL. This program does not
 ;   evaluate if the input to this proof rule is invalid.
-(program $mk_poly_norm_rel ((U Type) (r (-> U U Bool)) (x1 U) (x2 U) (y1 U) (y2 U) (cx U) (cy U) 
+(program $mk_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U)
                             (n Int) (c (BitVec n)) (nil (BitVec n) :list) 
                             (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
   (U U (-> U U Bool)) Bool
   (
-    (($mk_poly_norm_rel (* cx (- x1 x2)) (* cy (- y1 y2)) r) 
+    (($mk_poly_norm_rel (* cx x) (* cy y) r)
         (eo::requires ($is_poly_norm_rel_consts (r cx cy)) true
-          (= (r x1 x2) (r y1 y2))))
+        (eo::match ((x1 U) (x2 U) (y1 U) (y2 U))
+          (@pair ($remove_to_real x) ($remove_to_real y))
+          (
+          ((@pair (- x1 x2) (- y1 y2)) (= (r x1 x2) (r y1 y2)))))
+          ))
     (($mk_poly_norm_rel (bvmul c (bvsub xb1 xb2) nil) (bvmul c (bvsub yb1 yb2) nil) =)
         (eo::requires (eo::to_z c) 1
         (eo::requires (eo::to_z nil) 1

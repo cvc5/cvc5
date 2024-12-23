@@ -93,7 +93,6 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
@@ -139,13 +138,13 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(sm->mkDummySkolem(
+          d_input_arg_inj[f].push_back(NodeManager::mkDummySkolem(
               ssf.str(), typ, "op created during fun def fmf"));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
         std::vector<Node> children;
-        Node bv = nm->mkBoundVar("?i", iType);
+        Node bv = NodeManager::mkBoundVar("?i", iType);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bv);
         std::vector<Node> subs;
         std::vector<Node> vars;
@@ -446,7 +445,7 @@ void FunDefFmf::getConstraints(Node n,
       if (it != d_sorts.end())
       {
         // create existential
-        Node z = nm->mkBoundVar("?z", it->second);
+        Node z = NodeManager::mkBoundVar("?z", it->second);
         Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, z);
         std::vector<Node> children;
         for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)

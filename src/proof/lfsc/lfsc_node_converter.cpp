@@ -19,11 +19,11 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -521,7 +521,7 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
     options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     options::ioutils::applyDagThresh(ss, 0);
     ss << op;
-    Node opv = d_nm->mkRawSymbol(ss.str(), op.getType());
+    Node opv = NodeManager::mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);
   }
   aargs.insert(aargs.end(), args.begin(), args.end());
@@ -838,8 +838,8 @@ Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
                                          bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }

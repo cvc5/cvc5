@@ -122,7 +122,7 @@ Node collectSumWithBase(const Sum& sum,
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::ADD);
   for (const auto& summand : sum)
   {
     Assert(!summand.second.isZero());
@@ -193,7 +193,7 @@ Node collectSum(const Sum& sum)
   if (sum.empty()) return mkConst(Rational(0));
   Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::ADD);
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);

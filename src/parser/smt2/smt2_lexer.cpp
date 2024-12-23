@@ -122,7 +122,6 @@ Token Smt2Lexer::computeNextToken()
   pushToToken(ch);
   switch (ch)
   {
-    case '!': return Token::ATTRIBUTE_TOK;
     case '(': return Token::LPAREN_TOK;
     case ')': return Token::RPAREN_TOK;
     case '|':
@@ -321,6 +320,12 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
   Assert(!d_token.empty());
   switch (d_token[0])
   {
+    case '!':
+      if (d_token.size() == 1)
+      {
+        return Token::ATTRIBUTE_TOK;
+      }
+      break;
     case 'a':
       if (d_token.size() == 2 && d_token[1] == 's')
       {

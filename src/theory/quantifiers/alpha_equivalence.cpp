@@ -19,6 +19,7 @@
 #include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
+#include "theory/builtin/proof_checker.h"
 
 using namespace cvc5::internal::kind;
 
@@ -208,6 +209,38 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())
   {
+    NodeManager* nm = nodeManager();
+    Node proveLem = lem;
+    CDProof cdp(d_env);
+    // remove patterns from both sides
+    if (q.getNumChildren() == 3)
+    {
+      Node qo = q;
+      q = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, q);
+      if (q != qo)
+      {
+        Node eqq = qo.eqNode(q);
+        cdp.addStep(eqq, ProofRule::ENCODE_EQ_INTRO, {}, {qo});
+        Node eqqs = q.eqNode(qo);
+        cdp.addStep(eqqs, ProofRule::SYMM, {eqq}, {});
+        Node eqq2 = ret.eqNode(q);
+        cdp.addStep(proveLem, ProofRule::TRANS, {eqq2, eqqs}, {});
+        proveLem = eqq2;
+      }
+    }
+    if (ret.getNumChildren() == 3)
+    {
+      Node reto = ret;
+      ret = builtin::BuiltinProofRuleChecker::getEncodeEqIntro(nm, ret);
+      if (ret != reto)
+      {
+        Node eqq = reto.eqNode(ret);
+        cdp.addStep(eqq, ProofRule::ENCODE_EQ_INTRO, {}, {reto});
+        Node eqq2 = ret.eqNode(q);
+        cdp.addStep(proveLem, ProofRule::TRANS, {eqq, eqq2}, {});
+        proveLem = eqq2;
+      }
+    }
     if (Configuration::isAssertionBuild())
     {
       // all variables should be unique since we are processing rewritten
@@ -217,17 +250,15 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       std::unordered_set<Node> sset(subs.begin(), subs.end());
       Assert(sset.size() == subs.size());
     }
-    CDProof cdp(d_env);
     std::vector<Node> transEq;
     // if there is variable shadowing, we do an intermediate step with fresh
     // variables
     if (expr::hasSubterm(ret, subs))
     {
       std::vector<Node> isubs;
-      NodeManager* nm = nodeManager();
       for (const Node& v : subs)
       {
-        isubs.emplace_back(nm->mkBoundVar(v.getType()));
+        isubs.emplace_back(NodeManager::mkBoundVar(v.getType()));
       }
       // ---------- ALPHA_EQUIV
       // ret = iret
@@ -253,7 +284,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       {
         children.push_back(sret[2]);
       }
-      Node sreorder = nodeManager()->mkNode(Kind::FORALL, children);
+      Node sreorder = nm->mkNode(Kind::FORALL, children);
       Node eqqr = sret.eqNode(sreorder);
       if (cdp.addStep(eqqr, ProofRule::QUANT_VAR_REORDERING, {}, {eqqr}))
       {
@@ -279,7 +310,8 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
         // sret = q
         std::vector<Node> pfArgs2;
         pfArgs2.push_back(eq2);
-        addMethodIds(pfArgs2,
+        addMethodIds(nodeManager(),
+                     pfArgs2,
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_EXT_REWRITE);
@@ -293,7 +325,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       if (transEq.size() > 1)
       {
         // TRANS of ALPHA_EQ and MACRO_SR_PRED_INTRO steps from above
-        cdp.addStep(lem, ProofRule::TRANS, transEq, {});
+        cdp.addStep(proveLem, ProofRule::TRANS, transEq, {});
       }
       std::shared_ptr<ProofNode> pn = cdp.getProofFor(lem);
       Trace("alpha-eq") << "Proof is " << *pn.get() << std::endl;

@@ -1338,7 +1338,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
       continue;
     }
     d_termProcessed.insert(n);
-    Node v = nm->mkBoundVar(n[2].getType());
+    Node v = NodeManager::mkBoundVar(n[2].getType());
     Node body = nm->mkNode(Kind::AND, n[1], v.eqNode(n[2]));
     // must do substitution
     std::vector<Node> vars;
@@ -1346,7 +1346,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
     for (const Node& cv : n[0])
     {
       vars.push_back(cv);
-      Node cvs = nm->mkBoundVar(cv.getType());
+      Node cvs = NodeManager::mkBoundVar(cv.getType());
       subs.push_back(cvs);
     }
     body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
@@ -1524,7 +1524,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     Trace("sets-model") <<m->debugPrintModelEqc();
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map<Node, Node> mvals;
   // If cardinality is enabled, we need to use the ordered equivalence class
   // list computed by the cardinality solver, where sets equivalence classes
@@ -1730,7 +1730,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
   TypeNode setType = A.getType();
   ensureFirstClassSetType(setType);
   // use canonical constant to ensure it can be typed
-  Node mkElem = nm->mkGroundValue(setType);
+  Node mkElem = NodeManager::mkGroundValue(setType);
   // a Null node is used here to get a unique skolem function per set type
   Node uf = sm->mkSkolemFunction(SkolemId::SETS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);

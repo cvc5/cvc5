@@ -247,18 +247,8 @@ void TheoryArith::postCheck(Effort level)
     d_im.clearPending();
     d_im.clearWaitingLemmas();
   }
-  // check with the non-linear solver at last call
-  if (level == Theory::EFFORT_LAST_CALL)
-  {
-    // If we computed lemmas in the last FULL_EFFORT check, send them now.
-    if (d_im.hasPendingLemma())
-    {
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
-      d_im.doPendingPhaseRequirements();
-    }
-    return;
-  }
+  // we don't check at last call
+  Assert (level != Theory::EFFORT_LAST_CALL);
   // otherwise, check with the linear solver
   if (d_internal.postCheck(level))
   {
@@ -332,7 +322,14 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->hasNlTerms();
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
+    {
+      Trace("arith-nl-buffer") << "Send buffered lemmas..." << std::endl; 
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
+    }
   }
   return false;
 }
@@ -356,12 +353,12 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
   // If we have a buffered lemma (from the non-linear extension), then we
   // do not assert model values, since those values are likely incorrect.
   // Moreover, the model does not need to satisfy the assertions, so
-  // arbitrary values can be used for arithmetic terms. Hence, we do
-  // nothing here. The buffered lemmas will be sent immediately
-  // at LAST_CALL effort (see postCheck).
+  // arbitrary values can be used for arithmetic terms. Hence, we just return
+  // false here. The buffered lemmas will be sent immediately when asking if
+  // a LAST_CALL effort should be performed (see needsCheckLastEffort).
   if (d_im.hasPendingLemma())
   {
-    return true;
+    return false;
   }
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);

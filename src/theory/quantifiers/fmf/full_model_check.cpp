@@ -306,8 +306,8 @@ FullModelChecker::FullModelChecker(Env& env,
     : QModelBuilder(env, qs, qim, qr, tr),
       d_fm(new FirstOrderModelFmc(env, qs, qr, tr))
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void FullModelChecker::finishInit() { d_model = d_fm.get(); }
@@ -499,7 +499,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         }
         entry_children.push_back(ri);
       }
-      Node n = NodeManager::currentNM()->mkNode(Kind::APPLY_UF, children);
+      Node n = nodeManager()->mkNode(Kind::APPLY_UF, children);
       Node nv = fm->getRepresentative( v );
       Trace("fmc-model-debug")
           << "Representative of " << v << " is " << nv << std::endl;
@@ -507,7 +507,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
       }
       Node en = hasNonStar ? n
-                           : NodeManager::currentNM()->mkNode(Kind::APPLY_UF,
+                           : nodeManager()->mkNode(Kind::APPLY_UF,
                                                               entry_children);
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
         Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
@@ -1391,7 +1391,7 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
 
 Node FullModelChecker::mkCond(const std::vector<Node>& cond)
 {
-  return NodeManager::currentNM()->mkNode(Kind::APPLY_UF, cond);
+  return nodeManager()->mkNode(Kind::APPLY_UF, cond);
 }
 
 Node FullModelChecker::mkCondDefault( FirstOrderModelFmc * fm, Node f) {
@@ -1466,7 +1466,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
         children.push_back( vals[i] );
       }
     }
-    Node nc = NodeManager::currentNM()->mkNode(n.getKind(), children);
+    Node nc = nodeManager()->mkNode(n.getKind(), children);
     Trace("fmc-eval") << "Evaluate " << nc << " to ";
     nc = rewrite(nc);
     Trace("fmc-eval") << nc << std::endl;
@@ -1493,8 +1493,7 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = nodeManager();
   std::vector<TypeNode> types;
   for (const Node& v : q[0])
   {
@@ -1509,7 +1508,8 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
     types.push_back(tn);
   }
   TypeNode typ = nm->mkFunctionType(types, nm->booleanType());
-  Node op = sm->mkDummySkolem("qfmc", typ, "op for full-model checking");
+  Node op =
+      NodeManager::mkDummySkolem("qfmc", typ, "op for full-model checking");
   d_quant_cond[q] = op;
 }
 

@@ -1022,8 +1022,9 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
-                                                                     nvars);
+    NodeManager* nm = d_env->getNodeManager();
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
+        nm, asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"
@@ -1106,9 +1107,9 @@ void SolverEngine::declareOracleFun(
     const std::vector<TypeNode>& argTypes = tn.getArgTypes();
     for (const TypeNode& t : argTypes)
     {
-      inputs.push_back(nm->mkBoundVar(t));
+      inputs.push_back(NodeManager::mkBoundVar(t));
     }
-    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    outputs.push_back(NodeManager::mkBoundVar(tn.getRangeType()));
     std::vector<Node> appc;
     appc.push_back(var);
     appc.insert(appc.end(), inputs.begin(), inputs.end());
@@ -1116,7 +1117,7 @@ void SolverEngine::declareOracleFun(
   }
   else
   {
-    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    outputs.push_back(NodeManager::mkBoundVar(tn.getRangeType()));
     app = var;
   }
   // makes equality assumption

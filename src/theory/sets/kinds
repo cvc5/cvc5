@@ -186,4 +186,9 @@ parameterized RELATION_TABLE_JOIN RELATION_TABLE_JOIN_OP 2 "relation table join"
 typerule RELATION_TABLE_JOIN_OP        "SimpleTypeRule<RBuiltinOperator>"
 typerule RELATION_TABLE_JOIN  ::cvc5::internal::theory::sets::RelationTableJoinTypeRule
 
+# for RARE
+
+operator SET_EMPTY_OF_TYPE 1  "the empty set whose argument represents its type"
+typerule SET_EMPTY_OF_TYPE ::cvc5::internal::theory::sets::SetEmptyOfTypeTypeRule
+
 endtheory

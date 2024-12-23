@@ -48,8 +48,7 @@ TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
 {}
 ArithVar TempVarMalloc::request(){
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node skolem = sm->mkDummySkolem("tmpVar", nm->realType());
+  Node skolem = NodeManager::mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
 void TempVarMalloc::release(ArithVar v){
