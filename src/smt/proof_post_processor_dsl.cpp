@@ -27,7 +27,7 @@ namespace smt {
 ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
     : EnvObj(env), d_rdbPc(env, rdb)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
   d_tmode = (options().proof.proofGranularityMode
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
                 ? rewriter::TheoryRewriteMode::RESORT

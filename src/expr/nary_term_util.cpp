@@ -17,7 +17,9 @@
 
 #include "expr/aci_norm.h"
 #include "expr/attribute.h"
+#include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/sort_to_term.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
@@ -221,7 +223,40 @@ Node narySubstitute(Node src,
           {
             children.insert(children.begin(), cur.getOperator());
           }
-          ret = nm->mkNode(cur.getKind(), children);
+          Kind k = cur.getKind();
+          // We treat @set.empty_of_type, @seq.empty_of_type, @type_of as
+          // macros in this method, meaning they are immediately evaluated
+          // as soon as RARE rules are instantiated.
+          switch (k)
+          {
+            case Kind::SET_EMPTY_OF_TYPE:
+            case Kind::SEQ_EMPTY_OF_TYPE:
+            {
+              if (children[0].getKind() == Kind::SORT_TO_TERM)
+              {
+                const SortToTerm& st = children[0].getConst<SortToTerm>();
+                TypeNode tn = st.getType();
+                if (k == Kind::SET_EMPTY_OF_TYPE)
+                {
+                  ret = nm->mkConst(EmptySet(tn));
+                }
+                else
+                {
+                  Assert(k == Kind::SEQ_EMPTY_OF_TYPE);
+                  ret = theory::strings::Word::mkEmptyWord(tn);
+                }
+              }
+              else
+              {
+                ret = nm->mkNode(k, children);
+              }
+            }
+            break;
+            case Kind::TYPE_OF:
+              ret = nm->mkConst(SortToTerm(children[0].getType()));
+              break;
+            default: ret = nm->mkNode(k, children); break;
+          }
         }
       }
       visited[cur] = ret;

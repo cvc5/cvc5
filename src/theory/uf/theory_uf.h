@@ -23,6 +23,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
+#include "theory/uf/diamonds_proof_generator.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -80,6 +81,8 @@ private:
   std::unique_ptr<HoExtension> d_ho;
   /** the conversions solver */
   std::unique_ptr<ConversionsSolver> d_csolver;
+  /** Diamonds proof generator */
+  DiamondsProofGenerator d_dpfgen;
 
   /** node for true */
   Node d_true;
