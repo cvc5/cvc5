@@ -177,6 +177,10 @@ if(NOT Poly_FOUND_SYSTEM)
       <SOURCE_DIR>/src/upolynomial/factorization.c
       ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+               -DCMAKE_C_COMPILER=$ENV{CC}
+               -DCMAKE_CXX_COMPILER=$ENV{CXX}
+               -DCMAKE_C_FLAGS=$ENV{CFLAGS}
+               -DCMAKE_CXX_FLAGS=$ENV{CXXFLAGS}
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF

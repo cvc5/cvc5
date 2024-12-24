@@ -91,7 +91,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
   # minimum from the configure script here
-  set(CaDiCaL_CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
+  set(CaDiCaL_CXXFLAGS "$ENV{CXXFLAGS} -fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
   if(CMAKE_CROSSCOMPILING_MACOS)
     set(CaDiCaL_CXXFLAGS "${CaDiCaL_CXXFLAGS} -arch ${CMAKE_OSX_ARCHITECTURES}")
   endif()

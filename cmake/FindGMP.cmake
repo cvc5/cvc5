@@ -101,6 +101,12 @@ if(NOT GMP_FOUND_SYSTEM)
   # Since makeinfo just builds the documentation for GMP,
   # it is possible to get around this issue by just disabling it:
   set(CONFIGURE_ENV env "MAKEINFO=true")
+  
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CONFIGURE_ENV
+      env "CC=$ENV{CC} $ENV{CCFLAGS}"
+      env "CXX=$ENV{CXX} $ENV{CXXFLAGS}")
+  endif()
 
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS

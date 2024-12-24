@@ -97,10 +97,11 @@ jobs:
 
           - name: ubuntu:production-clang
             os: ubuntu-20.04
-            env: CC=clang CXX=clang++
-            config: production --auto-download --no-poly
+            env: CC=clang CXX=clang++ CXXFLAGS='-stdlib=libc++ -I/usr/include/c++/v1'
+            config: production --auto-download -DBUILD_GMP=1
             cache-key: productionclang
             check-examples: true
+            package-name: cvc5-Linux-x86_64-clang
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -115,7 +116,7 @@ jobs:
           - name: ubuntu:production-dbg-clang
             os: ubuntu-20.04
             env: CC=clang CXX=clang++
-            config: production --auto-download --assertions --tracing --cln --gpl
+            config: production --auto-download --assertions --tracing --cln --gpl --no-poly
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
