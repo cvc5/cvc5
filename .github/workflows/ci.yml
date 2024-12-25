@@ -97,7 +97,7 @@ jobs:
 
           - name: ubuntu:production-clang
             os: ubuntu-20.04
-            env: CC=clang CXX=clang++ CXXFLAGS='-stdlib=libc++ -I/usr/include/c++/v1'
+            env: CC=clang CXX=clang++ CXXFLAGS='-stdlib=libc++'
             config: production --auto-download -DBUILD_GMP=1
             cache-key: productionclang
             check-examples: true
