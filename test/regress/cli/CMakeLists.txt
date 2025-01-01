@@ -2093,6 +2093,16 @@ set(regress_0_tests
   regress0/uf/simple.02.cvc.smt2
   regress0/uf/simple.03.cvc.smt2
   regress0/uf/simple.04.cvc.smt2
+  regress0/ufdt/leon-amortize-queue-goal3.smt2
+  regress0/ufdt/leon-bsearch-tree-goal15.smt2
+  regress0/ufdt/leon-heap-goal2.smt2
+  regress0/ufdtlia/clam-goal60.smt2
+  regress0/ufdtlia/clam-goal65.smt2
+  regress0/ufdtlia/hipspec-sg-nichomachus-goal5.smt2
+  regress0/ufdtlia/hipspec-sg-rev-equiv-goal6.smt2
+  regress0/ufdtlia/isaplanner-goal12.smt2
+  regress0/ufdtlia/isaplanner-goal19.smt2
+  regress0/ufdtlia/isaplanner-goal38.smt2
   regress0/uf20-03.cvc.smt2
   regress0/uflia/check01.smt2
   regress0/uflia/check02.smt2
