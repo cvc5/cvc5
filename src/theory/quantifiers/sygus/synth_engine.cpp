@@ -191,6 +191,11 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
 bool SynthEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
+  // if no conjectures, we fail
+  if (d_conjs.empty())
+  {
+    return false;
+  }
   bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {

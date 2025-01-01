@@ -263,7 +263,12 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     if (inferTrivial)
     {
       // must expand definitions first
-      Node ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(body);
+      // We consider free variables in the rewritten form of the *body* of
+      // the existential, not the rewritten form of the existential itself,
+      // which could permit eliminating variables that are equal to terms
+      // involving functions to synthesize.
+      Node ppBody = body.getKind()==Kind::EXISTS ? body[1] : body;
+      ppBody = d_smtSolver.getPreprocessor()->applySubstitutions(ppBody);
       ppBody = rewrite(ppBody);
       std::unordered_set<Node> vs;
       expr::getVariables(ppBody, vs);
