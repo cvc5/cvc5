@@ -587,7 +587,7 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
-                        TrustId::THEORY_PREPROCESS,
+                        TrustId::QUANTIFIERS_INST_REWRITE,
                         true,
                         "Instantiate::getInstantiation:rewrite_inst");
         pf->addStep(newBody, ProofRule::EQ_RESOLVE, {body, proven}, {});
