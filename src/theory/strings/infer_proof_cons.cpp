@@ -15,6 +15,7 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -200,15 +201,6 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_NORMAL_FORM:
     case InferenceId::STRINGS_CODE_PROXY:
     {
-      // Use a string core term context, which counts the nesting of non-core
-      // string applications.
-      StringCoreTermContext sctc;
-      TConvProofGenerator tconv(env,
-                                nullptr,
-                                TConvPolicy::FIXPOINT,
-                                TConvCachePolicy::NEVER,
-                                "StrTConv",
-                                &sctc);
       size_t idMax = 0;
       // These three inference assume the substitution is applied to the
       // *arguments* of extended functions and the length function, so we
@@ -219,43 +211,17 @@ bool InferProofCons::convert(Env& env,
       {
         idMax = 1;
       }
-      // add the rewrites for nested contexts up to idMax.
-      for (size_t i = 0; i <= idMax; i++)
+      // apply the substitution to conclude conc = conc', where conc' is the
+      // result of applying the substitution to conc'. This method further
+      // concludes conc from conc'. It then remains to prove conc' below.
+      Node concr =
+          convertCoreSubs(env, pf, psb, conc, ps.d_children, 0, idMax, true);
+      Trace("strings-ipc-core") << "Rewrote conclusion" << std::endl;
+      Trace("strings-ipc-core") << "- " << conc << std::endl;
+      Trace("strings-ipc-core") << "- to " << concr << std::endl;
+      if (psb.applyPredIntro(concr, {}))
       {
-        for (const Node& s : ps.d_children)
-        {
-          Trace("strings-ipc-core")
-              << "--- rewrite " << s << ", id " << i << std::endl;
-          Assert(s.getKind() == Kind::EQUAL);
-          tconv.addRewriteStep(s[0], s[1], pf, false, TrustId::NONE, false, i);
-        }
-      }
-      Node res;
-      std::shared_ptr<ProofNode> pfn;
-      pfn = tconv.getProofForRewriting(conc);
-      pf->addProof(pfn);
-      res = pfn->getResult();
-      // the proof step buffer is tracking unique conclusions, we (dummy) mark
-      // that we have a proof of res via the proof above to ensure we do not
-      // reprove it in the following.
-      psb.addStep(ProofRule::ASSUME, {}, {res}, res);
-      if (!res.isNull())
-      {
-        Trace("strings-ipc-core") << "Rewrote conclusion" << std::endl;
-        Trace("strings-ipc-core") << "- " << res[0] << std::endl;
-        Trace("strings-ipc-core") << "- to " << res[1] << std::endl;
-        if (psb.applyPredIntro(res[1], {}))
-        {
-          useBuffer = true;
-          psb.addStep(ProofRule::EQ_RESOLVE,
-                      {res[1], res[1].eqNode(res[0])},
-                      {},
-                      res[0]);
-        }
-      }
-      else
-      {
-        Trace("strings-ipc-core") << "...failed to get result" << std::endl;
+        useBuffer = true;
       }
     }
     break;
@@ -294,6 +260,12 @@ bool InferProofCons::convert(Env& env,
             useBuffer = psb.applyPredTransform(psrc, psrco, {});
           }
         }
+        // Maybe involves AND_ELIM?
+        if (!useBuffer)
+        {
+          Node res = psb.applyPredElim(psrc, exps);
+          useBuffer = convertAndElim(nm, res, conc, psb);
+        }
       }
       else
       {
@@ -308,12 +280,15 @@ bool InferProofCons::convert(Env& env,
     {
       // the last child is the predicate we are operating on, move to front
       Node src = ps.d_children[ps.d_children.size() - 1];
-      std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
-      // start with a default rewrite
       Trace("strings-ipc-core")
           << "Generate proof for STRINGS_EXTF_EQ_REW, starting with " << src
           << std::endl;
-      Node mainEqSRew = psb.applyPredElim(src, expe);
+      // apply the substitution using the proper contextual information
+      // using the utility method
+      std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
+      Node mainEqSRew = convertCoreSubs(env, pf, psb, src, expe, 1, 1);
+      Trace("strings-ipc-core") << "...after subs: " << mainEqSRew << std::endl;
+      mainEqSRew = psb.applyPredElim(mainEqSRew, {});
       Trace("strings-ipc-core")
           << "...after pred elim: " << mainEqSRew << std::endl;
       if (mainEqSRew == conc)
@@ -339,7 +314,8 @@ bool InferProofCons::convert(Env& env,
                                            MethodId::RW_REWRITE_EQ_EXT);
       Trace("strings-ipc-core")
           << "...after extended equality rewrite: " << mainEqSRew2 << std::endl;
-      if (mainEqSRew2 == conc)
+      // it may have rewritten to an AND, in which case we get the conjunct
+      if (convertAndElim(nm, mainEqSRew2, conc, psb))
       {
         useBuffer = true;
         break;
@@ -431,42 +407,37 @@ bool InferProofCons::convert(Env& env,
       // if there are substitutions to apply
       if (mainEqIndex > 0)
       {
-        StringCoreTermContext sctc;
-        TConvProofGenerator tconv(env,
-                                  nullptr,
-                                  TConvPolicy::FIXPOINT,
-                                  TConvCachePolicy::NEVER,
-                                  "StrTConv",
-                                  &sctc);
-        for (size_t i = 0; i < mainEqIndex; i++)
+        // Compute which equalities we want to flip their substitution.
+        // Currently this is only an issue if e.g. (= (str.++ a a) (str.++ b c))
+        // where we conclude (= a c) from an explanation (= a b) via
+        // STRINGS_F_UNIFY, which would otherwise conclude (= b c) if a -> b
+        // was processed as a substitution.
+        // In contrast, normal form inferences are truly processed as
+        // substitutions in the strings core solver, whereas flat form
+        // inferences simply consider unification without substitutions, leading
+        // to issues like the one above.
+        std::vector<Node> rexp(ps.d_children.begin(),
+                               ps.d_children.begin() + mainEqIndex);
+        if (infer == InferenceId::STRINGS_F_UNIFY)
         {
-          Node s = ps.d_children[i];
-          Trace("strings-ipc-core") << "--- rewrite " << s << std::endl;
-          Assert(s.getKind() == Kind::EQUAL);
-          tconv.addRewriteStep(s[0], s[1], pf);
+          Assert(conc.getKind() == Kind::EQUAL);
+          // maybe reorient?
+          for (size_t i = 0; i < mainEqIndex; i++)
+          {
+            Assert(rexp[i].getKind() == Kind::EQUAL);
+            if (rexp[i][0] == conc[0] || rexp[i][0] == conc[1])
+            {
+              rexp[i] = rexp[i][1].eqNode(rexp[i][0]);
+            }
+          }
         }
-        std::shared_ptr<ProofNode> pfn = tconv.getProofForRewriting(mainEq);
-        Node res = pfn->getResult();
-        Assert(res.getKind() == Kind::EQUAL);
-        if (res[0] != res[1])
-        {
-          Trace("strings-ipc-core") << "Rewrites: " << res << std::endl;
-          pf->addProof(pfn);
-          // Similar to above, the proof step buffer is tracking unique
-          // conclusions, we (dummy) mark that we have a proof of res via the
-          // proof above to ensure we do not reprove it in the following.
-          psb.addStep(ProofRule::ASSUME, {}, {res}, res);
-          psb.addStep(ProofRule::EQ_RESOLVE,
-                      {pmainEq, res[0].eqNode(res[1])},
-                      {},
-                      res[1]);
-          pmainEq = res[1];
-        }
+        // apply substitution using the util method below
+        pmainEq = convertCoreSubs(env, pf, psb, mainEq, rexp, 0, 0);
       }
       Trace("strings-ipc-core")
           << "Main equality after subs " << pmainEq << std::endl;
       // now, conclude the proper equality
-      Node mainEqSRew = psb.applyPredElim(pmainEq, pcsr);
+      Node mainEqSRew = psb.applyPredElim(pmainEq, {});
       if (mainEqSRew == conc)
       {
         Trace("strings-ipc-core") << "...success after rewrite!" << std::endl;
@@ -563,7 +534,8 @@ bool InferProofCons::convert(Env& env,
         // above. Notice we need both in sequence since ext equality rewriting
         // is not recursive.
         std::vector<Node> argsERew;
-        addMethodIds(argsERew,
+        addMethodIds(nm,
+                     argsERew,
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_REWRITE_EQ_EXT);
@@ -790,7 +762,7 @@ bool InferProofCons::convert(Env& env,
       if (conc.getKind() != Kind::OR)
       {
         // This should never happen. If it does, we resort to using
-        // THEORY_INFERENCE below (in production mode).
+        // THEORY_INFERENCE_STRINGS below (in production mode).
         Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
@@ -927,16 +899,48 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
-        // either equal or rewrites to it
-        std::vector<Node> cexp;
-        if (psb.applyPredTransform(red, conc, cexp))
+        if (red == conc)
         {
           Trace("strings-ipc-red") << "...success!" << std::endl;
           useBuffer = true;
         }
         else
         {
-          Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          std::vector<Node> cexp;
+          // get the equalities where the reduction is different
+          std::vector<Node> matchConds;
+          expr::getMatchConditions(red, conc, matchConds);
+          Trace("strings-ipc-red")
+              << "...need to prove " << matchConds << std::endl;
+          // To simplify the proof transformation step below, we manually
+          // unpurify skolems from the concluded reduction. This
+          // make it more likely the applyPredTransform step does not have to
+          // resort to original forms. In particular, the strings rewriter
+          // currently does not respect the property that if
+          // t ---> c for constant c, then getOriginalForm(t) ---> c. This
+          // means we should attempt to replay the term which was used by the
+          // strings skolem cache to justify k = c, which is its unpurified
+          // form t, not its original form.
+          for (const Node& mc : matchConds)
+          {
+            Node mcu = SkolemManager::getUnpurifiedForm(mc[0]);
+            if (mcu != mc[0])
+            {
+              Node mceq = mc[0].eqNode(mcu);
+              psb.addStep(ProofRule::SKOLEM_INTRO, {}, {mc[0]}, mceq);
+              cexp.push_back(mceq);
+            }
+          }
+          // either equal or rewrites to it
+          if (psb.applyPredTransform(red, conc, cexp))
+          {
+            Trace("strings-ipc-red") << "...success!" << std::endl;
+            useBuffer = true;
+          }
+          else
+          {
+            Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          }
         }
       }
     }
@@ -1193,6 +1197,34 @@ bool InferProofCons::convert(Env& env,
       }
     }
     break;
+    case InferenceId::STRINGS_CTN_DECOMPOSE:
+    {
+      if (ps.d_children.size() != 2)
+      {
+        break;
+      }
+      Node ctn = ps.d_children[0];
+      if (ctn.getKind() != Kind::STRING_CONTAINS)
+      {
+        break;
+      }
+      Node pconc = psb.tryStep(ProofRule::STRING_EAGER_REDUCTION, {}, {ctn});
+      Trace("strings-ipc-cons") << "Eager reduction: " << pconc << std::endl;
+      Node pelim = psb.applyPredElim(pconc, {ctn}, MethodId::SB_LITERAL);
+      Trace("strings-ipc-cons") << "After rewriting: " << pelim << std::endl;
+      if (pelim.getKind() != Kind::EQUAL)
+      {
+        break;
+      }
+      Node tgt = ps.d_children[1];
+      Node pelim2 = psb.applyPredElim(tgt, {pelim});
+      Trace("strings-ipc-cons") << "After elim: " << pelim << std::endl;
+      if (pelim2 == conc)
+      {
+        useBuffer = true;
+      }
+    }
+    break;
     // ========================== unknown and currently unsupported
     case InferenceId::STRINGS_CARDINALITY:
     case InferenceId::STRINGS_I_CYCLE:
@@ -1204,10 +1236,9 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_FLOOP_CONFLICT:
     case InferenceId::STRINGS_DEQ_NORM_EMP:
     case InferenceId::STRINGS_CTN_TRANS:
-    case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to THEORY_INFERENCE below since the
-      // rule is unknown.
+      // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below
+      // since the rule is unknown.
       break;
   }
 
@@ -1255,13 +1286,12 @@ bool InferProofCons::convert(Env& env,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    //  untrustworthy conversion, the argument of THEORY_INFERENCE is its
-    //  conclusion
+    // AlwaysAssert(false);
+    //  untrustworthy conversion, the argument of THEORY_INFERENCE_STRINGS is
+    //  its conclusion
     ps.d_args.clear();
-    ps.d_args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
+    ps.d_args.push_back(mkTrustId(nm, TrustId::THEORY_INFERENCE_STRINGS));
     ps.d_args.push_back(conc);
-    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
-    ps.d_args.push_back(t);
     // use the trust rule
     ps.d_rule = ProofRule::TRUST;
   }
@@ -1364,6 +1394,83 @@ Node InferProofCons::convertTrans(Node eqa,
     }
   }
   return Node::null();
+}
+
+bool InferProofCons::convertAndElim(NodeManager* nm,
+                                    const Node& src,
+                                    const Node& tgt,
+                                    TheoryProofStepBuffer& psb)
+{
+  if (src == tgt)
+  {
+    return true;
+  }
+  if (src.getKind() == Kind::AND)
+  {
+    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    {
+      if (src[i] == tgt)
+      {
+        Node ni = nm->mkConstInt(Rational(i));
+        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, tgt);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Node InferProofCons::convertCoreSubs(Env& env,
+                                     CDProof* pf,
+                                     TheoryProofStepBuffer& psb,
+                                     const Node& src,
+                                     const std::vector<Node>& exp,
+                                     size_t minIndex,
+                                     size_t maxIndex,
+                                     bool proveSrc)
+{
+  // set up the conversion proof generator with string core term context
+  StringCoreTermContext sctc;
+  TConvProofGenerator tconv(env,
+                            nullptr,
+                            TConvPolicy::FIXPOINT,
+                            TConvCachePolicy::NEVER,
+                            "StrTConv",
+                            &sctc);
+  // add the rewrites for nested contexts up to idMax.
+  for (size_t i = minIndex; i <= maxIndex; i++)
+  {
+    for (const Node& s : exp)
+    {
+      Trace("strings-ipc-subs")
+          << "--- rewrite " << s << ", id " << i << std::endl;
+      Assert(s.getKind() == Kind::EQUAL);
+      tconv.addRewriteStep(s[0], s[1], pf, false, TrustId::NONE, false, i);
+    }
+  }
+  std::shared_ptr<ProofNode> pfn = tconv.getProofForRewriting(src);
+  Node res = pfn->getResult();
+  Assert(res.getKind() == Kind::EQUAL);
+  if (res[0] != res[1])
+  {
+    Assert(res[0] == src);
+    Trace("strings-ipc-subs") << "Substitutes: " << res << std::endl;
+    pf->addProof(pfn);
+    // The proof step buffer is tracking unique conclusions, we (dummy) mark
+    // that we have a proof of res via the proof above to ensure we do not
+    // reprove it.
+    psb.addStep(ProofRule::ASSUME, {}, {res}, res);
+    if (proveSrc)
+    {
+      psb.addStep(ProofRule::EQ_RESOLVE, {res[1], res[1].eqNode(src)}, {}, src);
+    }
+    else
+    {
+      psb.addStep(ProofRule::EQ_RESOLVE, {src, res}, {}, res[1]);
+    }
+    return res[1];
+  }
+  return src;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)

@@ -149,7 +149,48 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
-
+  /**
+   * Helper method for convert. Concludes tgt from src, using AND_ELIM
+   * if necessary.
+   * @param nm Pointer to the node manager.
+   * @param src The source predicate, assumed to have a proof in psb.
+   * @param tgt The target predicate.
+   * @param psb The proof step buffer.
+   * @return true if we guarantee psb has a proof of tgt.
+   */
+  static bool convertAndElim(NodeManager* nm,
+                             const Node& src,
+                             const Node& tgt,
+                             TheoryProofStepBuffer& psb);
+  /**
+   * Helper method for convert.
+   * Convert core substitution. This is used to apply a
+   * substitution given by exp to src. The indices determine
+   * which contexts to apply the substitution to apply, based
+   * on the definition of StringCoreTermContext.
+   * We add a proof of src = src' to pf, where src' is the result
+   * of applying the substitution to src'.
+   * If proveSrc is false, we add a proof of src' given free
+   * assumption src' to psb. Otherwise we add a proof of src given
+   * free assumption src' to psb.
+   * @param env Reference to the environment
+   * @param pf Pointer to proof.
+   * @param psb Reference to proof step buffer.
+   * @param src The predicate to apply the substitution to.
+   * @param exp A list of equalities defining the substitution.
+   * @param minIndex The minimum term context value to consider.
+   * @param maxIndex The maximum term context value to consider.
+   * @param proveSrc Whether we prove src from src' or vice versa.
+   * @return The result of applying the substituion to src.
+   */
+  static Node convertCoreSubs(Env& env,
+                              CDProof* pf,
+                              TheoryProofStepBuffer& psb,
+                              const Node& src,
+                              const std::vector<Node>& exp,
+                              size_t minIndex = 0,
+                              size_t maxIndex = 0,
+                              bool proveSrc = false);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */
