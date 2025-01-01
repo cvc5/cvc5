@@ -2500,6 +2500,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize operation**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array operation :math:`A`
+   * into a canonical form, based on commutativity of disjoint indices.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_OP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Macro distinct arrays**
    *
    * .. math::
@@ -3196,6 +3209,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAY_STORE_SELF),
   /** Auto-generated from RARE rule array-read-over-write-split */
   EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
+  /** Auto-generated from RARE rule array-store-swap */
+  EVALUE(ARRAY_STORE_SWAP),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
   /** Auto-generated from RARE rule bool-not-true */
