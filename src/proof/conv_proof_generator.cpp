@@ -23,6 +23,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrites.h"
 
 using namespace cvc5::internal::kind;
 
@@ -110,6 +111,15 @@ void TConvProofGenerator::addRewriteStep(Node t,
   {
     d_proof.addStep(eq, id, children, args);
   }
+}
+
+void TConvProofGenerator::addTheoryRewriteStep(
+    Node t, Node s, ProofRewriteRule id, bool isPre, uint32_t tctx)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(t.eqNode(s));
+  addRewriteStep(t, s, ProofRule::THEORY_REWRITE, {}, sargs, isPre, tctx);
 }
 
 bool TConvProofGenerator::hasRewriteStep(Node t,

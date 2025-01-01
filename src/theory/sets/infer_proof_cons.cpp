@@ -34,7 +34,6 @@ InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
       d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
-  d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyFact(const Node& conc,
@@ -120,7 +119,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // Try to convert.
   if (!convert(cdp, id, assumps, conc))
   {
-    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE_SETS, assumps, {});
   }
   return cdp.getProofFor(fact);
 }

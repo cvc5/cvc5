@@ -24,7 +24,11 @@ RewriteProofGenerator::RewriteProofGenerator(Env& env, MethodId id)
     : EnvObj(env), ProofGenerator(), d_id(id)
 {
   // initialize the proof args
-  addMethodIds(d_pargs, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, d_id);
+  addMethodIds(nodeManager(),
+               d_pargs,
+               MethodId::SB_DEFAULT,
+               MethodId::SBA_SEQUENTIAL,
+               d_id);
 }
 RewriteProofGenerator::~RewriteProofGenerator() {}
 

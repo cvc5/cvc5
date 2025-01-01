@@ -279,6 +279,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         size_t prevVarIndex = varIndex;
         while (varIndex < nvars && fvs.find(n[0][varIndex]) != fvs.end())
         {
+          // cannot have shadowing
+          if (varsUsed.find(n[0][varIndex]) != varsUsed.end())
+          {
+            return Node::null();
+          }
+          varsUsed.insert(n[0][varIndex]);
           varIndex++;
         }
         std::vector<Node> dvs(n[0].begin() + prevVarIndex,

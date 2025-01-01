@@ -51,11 +51,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 }
 
 std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
-    const std::vector<Node>& assertions, uint64_t nvars)
+    NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::vector<TypeNode> ret;
   std::map<TypeNode, TypeNode> tlGrammarTypes =
-      constructTopLevelGrammar(assertions, nvars);
+      constructTopLevelGrammar(nm, assertions, nvars);
   for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
   {
     ret.push_back(ttp.second);
@@ -64,14 +64,13 @@ std::vector<TypeNode> SynthRewRulesPass::getGrammarsFrom(
 }
 
 std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
-    const std::vector<Node>& assertions, uint64_t nvars)
+    NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars)
 {
   std::map<TypeNode, TypeNode> tlGrammarTypes;
   if (assertions.empty())
   {
     return tlGrammarTypes;
   }
-  NodeManager* nm = NodeManager::currentNM();
   // initialize the candidate rewrite
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;

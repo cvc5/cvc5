@@ -30,8 +30,16 @@ enum class TrustId : uint32_t
   NONE,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -207,7 +215,7 @@ const char* toString(TrustId id);
 /** Write a trust id to out */
 std::ostream& operator<<(std::ostream& out, TrustId id);
 /** Make a trust id node */
-Node mkTrustId(TrustId id);
+Node mkTrustId(NodeManager* nm, TrustId id);
 /** get a trust identifier from a node, return false if we fail */
 bool getTrustId(TNode n, TrustId& i);
 

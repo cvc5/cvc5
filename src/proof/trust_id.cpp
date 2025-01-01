@@ -29,7 +29,13 @@ const char* toString(TrustId id)
     case TrustId::NONE: return "NONE";
     // core
     case TrustId::THEORY_LEMMA: return "THEORY_LEMMA";
-    case TrustId::THEORY_INFERENCE: return "THEORY_INFERENCE";
+    case TrustId::THEORY_INFERENCE_ARITH: return "THEORY_INFERENCE_ARITH";
+    case TrustId::THEORY_INFERENCE_ARRAYS: return "THEORY_INFERENCE_ARRAYS";
+    case TrustId::THEORY_INFERENCE_DATATYPES:
+      return "THEORY_INFERENCE_DATATYPES";
+    case TrustId::THEORY_INFERENCE_SEP: return "THEORY_INFERENCE_SEP";
+    case TrustId::THEORY_INFERENCE_SETS: return "THEORY_INFERENCE_SETS";
+    case TrustId::THEORY_INFERENCE_STRINGS: return "THEORY_INFERENCE_STRINGS";
     case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
@@ -114,10 +120,9 @@ std::ostream& operator<<(std::ostream& out, TrustId id)
   return out;
 }
 
-Node mkTrustId(TrustId id)
+Node mkTrustId(NodeManager* nm, TrustId id)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(id)));
 }
 
 bool getTrustId(TNode n, TrustId& i)

@@ -63,7 +63,7 @@ TrustNode Skolemize::process(Node q)
     ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = d_env.getNodeManager();
     // cache the skolems in d_skolem_constants[q]
     std::vector<Node>& skolems = d_skolem_constants[q];
     skolems = getSkolemConstants(q);

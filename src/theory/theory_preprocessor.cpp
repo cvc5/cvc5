@@ -67,7 +67,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
-    d_tpid = mkTrustId(TrustId::THEORY_PREPROCESS);
+    d_tpid = mkTrustId(nodeManager(), TrustId::THEORY_PREPROCESS);
   }
 }
 

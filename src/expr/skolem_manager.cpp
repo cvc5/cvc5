@@ -161,22 +161,23 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
   return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
 
-bool SkolemManager::isSkolemFunction(TNode k) const
+bool SkolemManager::isSkolemFunction(TNode k)
 {
   return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemId& id,
-                                     Node& cacheVal) const
+                                     Node& cacheVal)
 {
+  SkolemManager* skm = k.getNodeManager()->getSkolemManager();
   if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
   std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  Assert(it != d_skolemFunMap.end());
+      skm->d_skolemFunMap.find(k);
+  Assert(it != skm->d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;

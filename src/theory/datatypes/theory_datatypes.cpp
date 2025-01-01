@@ -64,7 +64,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
-      d_checker(nodeManager(), options().datatypes.dtSharedSelectors),
+      d_checker(nodeManager()),
       d_cpacb(*this)
 {
   d_true = nodeManager()->mkConst(true);
@@ -392,7 +392,7 @@ TrustNode TheoryDatatypes::ppStaticRewrite(TNode in)
                      << endl;
   if (in.getKind() == Kind::EQUAL)
   {
-    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, in);
+    Node nn = d_rewriter.rewriteViaRule(ProofRewriteRule::MACRO_DT_CONS_EQ, in);
     if (!nn.isNull() && in != nn)
     {
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
@@ -761,7 +761,7 @@ void TheoryDatatypes::addTester(
           Assert(testerIndex != -1);
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
-          NodeBuilder nb(NodeManager::currentNM(), Kind::AND);
+          NodeBuilder nb(nodeManager(), Kind::AND);
           for (unsigned i = 0; i < n_lbl; i++)
           {
             Node ti = d_labels_data[n][i];
@@ -1696,7 +1696,7 @@ void TheoryDatatypes::checkSplit()
         Trace("dt-split") << "*************Split for possible constructor "
                           << dt[consIndex] << " for " << n << endl;
         test = rewrite(test);
-        NodeBuilder nb(NodeManager::currentNM(), Kind::OR);
+        NodeBuilder nb(nodeManager(), Kind::OR);
         nb << test << test.notNode();
         Node lemma = nb;
         d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);

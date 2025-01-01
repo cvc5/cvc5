@@ -46,7 +46,7 @@ HigherOrderTrigger::HigherOrderTrigger(
     bool isUser)
     : Trigger(env, qs, qim, qr, tr, q, nodes, isUser), d_ho_var_apps(ho_apps)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // process the higher-order variable applications
   for (std::pair<const Node, std::vector<Node> >& as : d_ho_var_apps)
   {
@@ -503,7 +503,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
             Node u = HoTermDb::getHoTypeMatchPredicate(tn);
-            Node au = nm->mkNode(Kind::APPLY_UF, u, f);
+            Node au = NodeManager::mkNode(Kind::APPLY_UF, u, f);
             if (d_qim.addPendingLemma(au,
                                       InferenceId::QUANTIFIERS_HO_MATCH_PRED))
             {
