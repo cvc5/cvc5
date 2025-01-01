@@ -3090,10 +3090,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-mul-one */
-  EVALUE(ARITH_MUL_ONE),
-  /** Auto-generated from RARE rule arith-mul-zero */
-  EVALUE(ARITH_MUL_ZERO),
   /** Auto-generated from RARE rule arith-div-total-real */
   EVALUE(ARITH_DIV_TOTAL_REAL),
   /** Auto-generated from RARE rule arith-div-total-int */
@@ -3108,12 +3104,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_DIV_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-div-total-zero */
   EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-div-total-neg */
+  EVALUE(ARITH_INT_DIV_TOTAL_NEG),
   /** Auto-generated from RARE rule arith-int-mod-total */
   EVALUE(ARITH_INT_MOD_TOTAL),
   /** Auto-generated from RARE rule arith-int-mod-total-one */
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-mod-total-neg */
+  EVALUE(ARITH_INT_MOD_TOTAL_NEG),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -3150,20 +3150,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
   EVALUE(ARITH_MULT_FLATTEN),
-  /** Auto-generated from RARE rule arith-mult-dist */
-  EVALUE(ARITH_MULT_DIST),
   /** Auto-generated from RARE rule arith-abs-elim-int */
   EVALUE(ARITH_ABS_ELIM_INT),
   /** Auto-generated from RARE rule arith-abs-elim-real */
   EVALUE(ARITH_ABS_ELIM_REAL),
   /** Auto-generated from RARE rule arith-to-real-elim */
   EVALUE(ARITH_TO_REAL_ELIM),
+  /** Auto-generated from RARE rule arith-to-int-elim */
+  EVALUE(ARITH_TO_INT_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
   EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
   /** Auto-generated from RARE rule arith-div-elim-to-real1 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-mod-over-mod */
+  EVALUE(ARITH_MOD_OVER_MOD),
   /** Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
   /** Auto-generated from RARE rule arith-sine-pi2 */
