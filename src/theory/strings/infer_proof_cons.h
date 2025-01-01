@@ -171,7 +171,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * We add a proof of src = src' to pf, where src' is the result
    * of applying the substitution to src'.
    * If proveSrc is false, we add a proof of src' given free
-   * assumption src' to psb. Otherwise we add a proof of src given
+   * assumption src to psb. Otherwise we add a proof of src given
    * free assumption src' to psb.
    * @param env Reference to the environment
    * @param pf Pointer to proof.
