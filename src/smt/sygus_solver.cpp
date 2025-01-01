@@ -347,16 +347,19 @@ SynthResult SygusSolver::checkSynth(bool isNext)
   Result r;
   if (usingSygusSubsolver())
   {
+    Trace("smt-sygus") << "SygusSolver: check sat with subsolver..." << std::endl;
     r = d_subsolver->checkSat();
   }
   else
   {
+    Trace("smt-sygus") << "SygusSolver: check sat with main solver..." << std::endl;
     std::vector<Node> query;
     query.push_back(d_conj);
     // use a single call driver
     SmtDriverSingleCall sdsc(d_env, d_smtSolver);
     r = sdsc.checkSat(query);
   }
+  Trace("smt-sygus") << "...got " << r << std::endl;
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
   // successfully. Instead we call getSynthSolutions below. If this returns
@@ -424,14 +427,17 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   {
     ret = getSubsolverSynthSolutions(solMap);
   }
-  // also get solutions for trivial functions to synthesize
-  for (const Node& f : d_trivialFuns)
+  if (ret)
   {
-    Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
-    Trace("smt-debug") << "Got " << sf << " for trivial function " << f
-                       << std::endl;
-    Assert(f.getType() == sf.getType());
-    solMap[f] = sf;
+    // also get solutions for trivial functions to synthesize
+    for (const Node& f : d_trivialFuns)
+    {
+      Node sf = quantifiers::SygusUtils::mkSygusTermFor(f);
+      Trace("smt-debug") << "Got " << sf << " for trivial function " << f
+                        << std::endl;
+      Assert(f.getType() == sf.getType());
+      solMap[f] = sf;
+    }
   }
   return ret;
 }
