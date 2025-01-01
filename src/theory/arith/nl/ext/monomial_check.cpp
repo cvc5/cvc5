@@ -308,12 +308,30 @@ int MonomialCheck::compareSign(
     if (mvaoa.getConst<Rational>().sgn() != status)
     {
       Node zero = mkZero(oa.getType());
-      Node lemma = nm->mkAnd(exp).impNode(mkLit(oa, zero, status * 2));
+      // order the explanation based on the order the variables appear
+      std::map<Node, Node> varToExp;
+      for (const Node& e : exp)
+      {
+        Node v = e.getKind() == Kind::NOT ? e[0][0] : e[0];
+        varToExp[v] = e;
+      }
+      std::vector<Node> expo;
+      Node vc;
+      for (const Node& v : oa)
+      {
+        if (v != vc)
+        {
+          Assert(varToExp.find(v) != varToExp.end());
+          expo.push_back(varToExp[v]);
+          vc = v;
+        }
+      }
+      Node lemma = nm->mkAnd(expo).impNode(mkLit(oa, zero, status * 2));
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();
-        std::vector<Node> args = exp;
+        std::vector<Node> args = expo;
         args.emplace_back(oa);
         proof->addStep(lemma, ProofRule::ARITH_MULT_SIGN, {}, args);
       }

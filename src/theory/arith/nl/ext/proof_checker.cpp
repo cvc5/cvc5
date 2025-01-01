@@ -58,20 +58,41 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     premise.pop_back();
     Assert(mon.getKind() == Kind::MULT
            || mon.getKind() == Kind::NONLINEAR_MULT);
+    std::vector<Node> vars;
     for (const auto& v : mon)
     {
+      if (vars.empty() || v != vars.back())
+      {
+        vars.push_back(v);
+      }
       exps[v]++;
     }
-    std::map<Node, int> signs;
-    for (const auto& f : premise)
+    // unique variables must equal the number of given premises
+    if (vars.size() != premise.size())
     {
+      return Node::null();
+    }
+    std::map<Node, int> signs;
+    for (size_t i = 0, nprem = premise.size(); i < nprem; i++)
+    {
+      const Node& f = premise[i];
       if (f.getKind() == Kind::NOT)
       {
+        // variables must be in order
+        if (f[0][0] != vars[i])
+        {
+          return Node::null();
+        }
         Assert(f[0].getKind() == Kind::EQUAL);
         Assert(f[0][1].isConst() && f[0][1].getConst<Rational>().isZero());
         Assert(signs.find(f[0][0]) == signs.end());
         signs.emplace(f[0][0], 0);
         continue;
+      }
+      // variables must be in order
+      if (f[0] != vars[i])
+      {
+        return Node::null();
       }
       Assert(f.getKind() == Kind::LT || f.getKind() == Kind::GT);
       Assert(f[1].isConst() && f[1].getConst<Rational>().isZero());
@@ -207,6 +228,10 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
             return Node::null();
           }
         }
+      }
+      else
+      {
+        return Node::null();
       }
       Assert(ck == Kind::EQUAL || ck == Kind::GT);
       if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)
