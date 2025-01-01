@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --lfsc-flatten --lfsc-expand-trust
 ; EXPECT: unsat
 
