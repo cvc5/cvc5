@@ -801,15 +801,17 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
       }
       Node eqce = currEq[0].eqNode(ceuv);
       cdp->addTheoryRewriteStep(eqce, ProofRewriteRule::QUANT_UNUSED_VARS);
-      eqqm = ceuv.eqNode(body2ms);
+      Node eqqm1 = ceuv.eqNode(body2ms);
+      cdp->addTheoryRewriteStep(eqqm1, prr);
+      eqqm = currEq[0].eqNode(body2ms);
       cdp->addStep(
-          currEq[0].eqNode(body2ms), ProofRule::TRANS, {eqce, eqqm}, {});
+          eqqm, ProofRule::TRANS, {eqce, eqqm1}, {});
     }
     else
     {
       eqqm = currEq[0].eqNode(body2ms);
+      cdp->addTheoryRewriteStep(eqqm, prr);
     }
-    cdp->addTheoryRewriteStep(eqqm, prr);
     if (body2ms != currEq[1])
     {
       if (body2ms.getKind() != currEq[1].getKind()
