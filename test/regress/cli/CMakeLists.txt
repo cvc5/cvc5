@@ -2774,6 +2774,7 @@ set(regress_1_tests
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
   regress1/quantifiers/dd.bug812-ieval.smt2
+  regress1/quantifiers/dd_ghc_macro_quant_prenex.smt2
   regress1/quantifiers/ddatv-delta2.smt2
   regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
