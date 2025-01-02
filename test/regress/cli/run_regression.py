@@ -199,13 +199,12 @@ class DslProofTester(Tester):
             benchmark_info.benchmark_ext != ".sy"
             and "unsat" in benchmark_info.expected_output.split()
         )
-   # NOTE: can try add ["--safe-options"] + 
+
     def run_internal(self, benchmark_info):
         return super().run_internal(
             benchmark_info._replace(
-                command_line_args=
-                ["--safe-options"] + benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=dsl-rewrite"]
+                command_line_args=benchmark_info.command_line_args +
+                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
             )
         )
 
