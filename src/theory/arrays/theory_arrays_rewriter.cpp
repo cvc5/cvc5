@@ -174,6 +174,10 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           elems.push_back(arr[2]);
           arr = arr[0];
         }
+        else
+        {
+          break;
+        }
       }
       if (indices.empty())
       {
