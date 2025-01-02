@@ -1,4 +1,3 @@
-; COMMAND-LINE: --nl-cov
 ; REQUIRES: poly
 (set-logic QF_NRA)
 (set-info :status sat)

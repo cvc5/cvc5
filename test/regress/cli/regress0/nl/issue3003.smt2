@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext=none --nl-cov
+; COMMAND-LINE: --nl-ext=none
 ; EXPECT: sat
 ; REQUIRES: poly
 (set-logic QF_NRA)

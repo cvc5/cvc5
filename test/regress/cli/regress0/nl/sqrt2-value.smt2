@@ -1,5 +1,4 @@
 ; SCRUBBER: sed -e 's/(_ real_algebraic_number <.*>)/value/'
-; COMMAND-LINE: --nl-cov
 ; REQUIRES: poly
 ; EXPECT: sat
 ; EXPECT: ((x value))
