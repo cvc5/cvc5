@@ -1782,10 +1782,15 @@ Node QuantifiersRewriter::computePrenex(Node q,
         if (!q.isNull())
         {
           // We cache based on the original quantified formula, the subformula
-          // that we are pulling variables from (body), and the variable v.
+          // that we are pulling variables from (body), the variable v and an
+          // index ii.
           // The argument body is required since in rare cases, two subformulas
           // may share the same variables. This is the case for define-fun
           // or inferred substitutions that contain quantified formulas.
+          // The argument ii is required in case we are prenexing the same
+          // subformula multiple times, e.g.
+          // forall x. (forall y. P(y) or forall y. P(y)) --->
+          // forall x z w. (P(z) or P(w)).
           size_t index = 0;
           do
           {
