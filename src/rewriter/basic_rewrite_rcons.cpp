@@ -236,6 +236,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BV_EQ_SOLVE:
+      if (ensureProofMacroBvEqSolve(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -1199,6 +1205,30 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   cdp->addProof(pfn);
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq)
+{
+  Trace("brc-macro") << "Expand bv eq solve " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  Node ns = nodeManager()->mkNode(Kind::BITVECTOR_SUB, eq[0][0], eq[0][1]);
+  Node nsn = theory::arith::PolyNorm::getPolyNorm(ns);
+  Node zero = theory::bv::utils::mkZero(nsn.getType().getBitVectorSize());
+  Node eqn = nsn.eqNode(zero);
+  Node equiv = eq[0].eqNode(eqn);
+  if (!ensureProofArithPolyNormRel(cdp, equiv))
+  {
+    Trace("brc-macro") << "...fail arith poly norm rel" << std::endl;
+    return false;
+  }
+  Node equiv2 = eqn.eqNode(eq[1]);
+  if (!cdp->addStep(equiv2, ProofRule::EVALUATE, {}, {eqn}))
+  {
+    Trace("brc-macro") << "...fail evaluate" << std::endl;
+    return false;
+  }
+  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
   return true;
 }
 
