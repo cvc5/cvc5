@@ -1494,7 +1494,7 @@
   )
 )
 
-; define: $str_re_consume
+; define: $str_re_consume_process
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
@@ -1505,7 +1505,7 @@
 ;   reversing them initially and converting them to flat forms. We then reverse
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
-(define $str_re_consume ((s String) (r RegLan))
+(define $str_re_consume_process ((s String) (r RegLan))
   (eo::define ((ss ($str_to_flat_form s true)))  
   (eo::define ((rr ($re_to_flat_form r true)))
   (eo::match ((s1 String) (r1 RegLan))
@@ -1523,4 +1523,30 @@
         )
       )
   )))
+)
+
+; define: $str_re_consume
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; returns: >
+;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
+;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
+;   prefixes/suffixes from s and r. In addition to the above method
+;   $str_re_consume_process, we additionally handle the case where we reason
+;   about the body of re.*, succeeding if a conflict is found or we full
+;   consume one copy.
+(program $str_re_consume ((s String) (r RegLan))
+  (String RegLan) Bool
+  (
+  (($str_re_consume s (re.* r))
+    (eo::match ((s1 String))
+        ($str_re_consume_process s r)
+        (
+          (false                    false)  ; conflict
+          ((str.in_re s1 @re.empty) (str.in_re s1 (re.* r))) ; one full copy
+        )
+    ))
+  (($str_re_consume s r) ($str_re_consume_process s r))
+  )
 )
