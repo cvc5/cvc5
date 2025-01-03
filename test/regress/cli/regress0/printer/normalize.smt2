@@ -1,0 +1,35 @@
+; COMMAND-LINE: -o normalize --preprocess-only 
+; EXPECT: ;; normalize start
+; EXPECT: (set-logic ALL)
+; EXPECT: (declare-sort S00000000 0)
+; EXPECT: (declare-sort S00000001 0)
+; EXPECT: (declare-fun v00000000 () S00000001)
+; EXPECT: (declare-fun v00000001 () S00000000)
+; EXPECT: (declare-fun v00000002 () Int)
+; EXPECT: (declare-fun v00000003 () Int)
+; EXPECT: (declare-fun v00000004 () Int)
+; EXPECT: (assert (or (= v00000000 v00000000) (not (= v00000001 v00000001))))
+; EXPECT: (assert (> v00000002 v00000003))
+; EXPECT: (assert (> v00000004 v00000003))
+; EXPECT: (assert true)
+; EXPECT: (check-sat)
+; EXPECT: ;; normalize end
+; EXPECT: unknown
+(set-logic ALL)
+(declare-sort Element 0)
+(declare-sort Set 0)
+(define-fun greater_than ((x Int) (y Int)) Bool
+    (> x y)
+)
+(define-fun contains ((e Element) (s Set)) Bool
+    (or (= e e) (not (= s s)))
+)
+(declare-const a Element)
+(declare-const s1 Set)
+(declare-const x Int)
+(declare-const z Int)
+(declare-const y Int)
+(assert (contains a s1))
+(assert (greater_than z x))
+(assert (greater_than y x))
+(check-sat)
