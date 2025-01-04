@@ -1563,31 +1563,36 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
   std::vector<Node> children;
   // if star, we consider the body of the star
   bool isStar = (node[1].getKind()==Kind::REGEXP_STAR);
-  Node r = isStar ? node[1][0] : node[1];
-  utils::getConcat(r, children);
-  std::vector<Node> mchildren;
-  utils::getConcat(node[0], mchildren);
-  Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children);
-  if (!scn.isNull())
+  size_t numIter = isStar ? 2 : 1;
+  for (size_t i=0; i<numIter; i++)
   {
-    return scn;
-  }
-  else if (!isStar || children.empty())
-  {
-    // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
-    // above, we strip components to construct an equivalent membership:
-    // (str.++ xi .. xj) in (re.++ rk ... rl).
-    Node xn = utils::mkConcat(mchildren, node[0].getType());
-    // if we considered the body of the star, we revert to the original RE
-    Node rn = isStar ? node[1] : utils::mkConcat(children, node[1].getType());
-    // construct the updated regular expression
-    Node newMem =
-        nodeManager()->mkNode(Kind::STRING_IN_REGEXP,
-                              xn,
-                              rn);
-    if (newMem != node)
+    int dir = isStar ? (i==0 ? 0 : 1) : -1;
+    Node r = isStar ? node[1][0] : node[1];
+    utils::getConcat(r, children);
+    std::vector<Node> mchildren;
+    utils::getConcat(node[0], mchildren);
+    Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children, dir);
+    if (!scn.isNull())
     {
-      return newMem;
+      return scn;
+    }
+    else if (!isStar || children.empty())
+    {
+      // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
+      // above, we strip components to construct an equivalent membership:
+      // (str.++ xi .. xj) in (re.++ rk ... rl).
+      Node xn = utils::mkConcat(mchildren, node[0].getType());
+      // if we considered the body of the star, we revert to the original RE
+      Node rn = isStar ? node[1] : utils::mkConcat(children, node[1].getType());
+      // construct the updated regular expression
+      Node newMem =
+          nodeManager()->mkNode(Kind::STRING_IN_REGEXP,
+                                xn,
+                                rn);
+      if (newMem != node)
+      {
+        return newMem;
+      }
     }
   }
   return Node::null();
