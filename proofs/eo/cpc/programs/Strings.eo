@@ -1545,7 +1545,7 @@
   (
   (($str_re_consume s (re.* r))
     (eo::match ((s1 String))
-        ($str_re_consume_process s r true)  ; one process in a single direction
+        ($str_re_consume_process s r true)  ; only process in a single direction
         (
           (false                    false)  ; conflict
           ((str.in_re s1 @re.empty) (str.in_re s1 (re.* r))) ; one full copy
