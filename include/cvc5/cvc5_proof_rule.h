@@ -1952,7 +1952,7 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Sign inference**
    *
    * .. math::
-   *   \inferrule{- \mid f_1 \dots f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
+   *   \inferrule{- \mid f_1 \land \dots \land f_k, m}{(f_1 \land \dots \land f_k) \rightarrow m \diamond 0}
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and

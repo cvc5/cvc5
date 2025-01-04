@@ -326,12 +326,14 @@ int MonomialCheck::compareSign(
           vc = v;
         }
       }
-      Node lemma = nm->mkAnd(expo).impNode(mkLit(oa, zero, status * 2));
+      Node antec = nm->mkAnd(expo);
+      Node lemma = antec.impNode(mkLit(oa, zero, status * 2));
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();
-        std::vector<Node> args = expo;
+        std::vector<Node> args;
+        args.emplace_back(antec);
         args.emplace_back(oa);
         proof->addStep(lemma, ProofRule::ARITH_MULT_SIGN, {}, args);
       }
