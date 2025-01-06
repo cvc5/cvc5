@@ -67,6 +67,15 @@
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
 (define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
 
+(define-cond-rule arith-int-eq-conflict ((t Int) (c Real))
+  (not (= (to_real (to_int c)) c))
+  (= (to_real t) c)
+  false)
+
+(define-cond-rule arith-int-geq-tighten ((t Int) (c Real) (cc Int))
+  (and (not (= (to_real (to_int c)) c)) (= cc (+ (to_int c) 1)))
+  (>= (to_real t) c)
+  (>= t cc))
 
 ; trancendentals
 
