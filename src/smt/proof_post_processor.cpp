@@ -16,6 +16,7 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_algorithm.h"
@@ -1076,10 +1077,8 @@ ProofPostprocess::ProofPostprocess(Env& env,
                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_cb(env, updateScopedAssumptions),
-      // the update merges subproofs
-      d_updater(env, d_cb, options().proof.proofPpMerge),
-      d_finalCb(env),
-      d_finalizer(env, d_finalCb)
+      // the update merges subproofs if proofPpMerge is true
+      d_updater(env, d_cb, options().proof.proofPpMerge)
 {
   if (rdb != nullptr)
   {
@@ -1127,19 +1126,6 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     {
       d_ppdsl->reconstruct(tproofs);
     }
-  }
-
-  // take stats and check pedantic
-  d_finalCb.initializeUpdate();
-  d_finalizer.process(pf);
-
-  std::stringstream serr;
-  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
-  if (wasPedanticFailure)
-  {
-    AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostprocess::process: pedantic failure:" << std::endl
-        << serr.str();
   }
 }
 
