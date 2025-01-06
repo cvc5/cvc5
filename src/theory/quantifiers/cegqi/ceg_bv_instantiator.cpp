@@ -645,7 +645,6 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (d_opts.quantifiers.cegqiBvRmExtract)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -694,10 +693,10 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
-        Node var =
-            sm->mkDummySkolem("ek",
-                              ex.getType(),
-                              "variable to represent disjoint extract region");
+        Node var = NodeManager::mkDummySkolem(
+            "ek",
+            ex.getType(),
+            "variable to represent disjoint extract region");
         children.push_back(var);
         vars.push_back(var);
       }

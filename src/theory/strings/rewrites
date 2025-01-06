@@ -39,14 +39,30 @@
   (= (str.++ x2 (str.++ x1 x)) y)
   (= y (str.++ x2 x1 x)))
 
-(define-rule str-substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
-(define-cond-rule str-substr-empty-range ((x String) (n Int) (m Int)) (>= 0 m) (str.substr x n m) "")
-(define-cond-rule str-substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
-(define-cond-rule str-substr-empty-start-neg ((x String) (n Int) (m Int)) (< n 0) (str.substr x n m) "")
-(define-cond-rule str-substr-eq-empty ((s String) (n Int) (m Int))
-  (and (= n 0) (> m n))
-  (= (str.substr s n m) "")
-  (= s ""))
+(define-cond-rule str-substr-empty-str ((x ?Seq) (n Int) (m Int))
+  (= x (@seq.empty_of_type (@type_of x)))
+  (str.substr x n m)
+  x)
+
+(define-cond-rule str-substr-empty-range ((x ?Seq) (n Int) (m Int))
+  (>= 0 m)
+  (str.substr x n m)
+  (@seq.empty_of_type (@type_of x)))
+
+(define-cond-rule str-substr-empty-start ((x ?Seq) (n Int) (m Int))
+  (>= n (str.len x))
+  (str.substr x n m)
+  (@seq.empty_of_type (@type_of x)))
+
+(define-cond-rule str-substr-empty-start-neg ((x ?Seq) (n Int) (m Int)) 
+  (< n 0)
+  (str.substr x n m)
+  (@seq.empty_of_type (@type_of x)))
+
+(define-cond-rule str-substr-eq-empty ((s ?Seq) (r ?Seq) (n Int) (m Int))
+  (and (= n 0) (> m n) (= r (@seq.empty_of_type (@type_of r))))
+  (= (str.substr s n m) r)
+  (= s r))
 
 (define-cond-rule str-len-replace-inv ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (= (str.len s) (str.len r))
@@ -98,12 +114,12 @@
   (= (str.++ s2 s3) (str.++ t2 t3))
   _)
 
-(define-rule str-concat-unify-base ((s String) (t1 String) (t2 String :list))
+(define-rule str-concat-unify-base ((s ?Seq) (t1 ?Seq) (t2 ?Seq :list))
   (= s (str.++ s t1 t2))
-  (= "" (str.++ t1 t2)))
-(define-rule str-concat-unify-base-rev ((s String) (t1 String) (t2 String :list))
+  (= (@seq.empty_of_type (@type_of s)) (str.++ t1 t2)))
+(define-rule str-concat-unify-base-rev ((s ?Seq) (t1 ?Seq) (t2 ?Seq :list))
   (= s (str.++ t1 t2 s))
-  (= "" (str.++ t1 t2)))
+  (= (@seq.empty_of_type (@type_of s)) (str.++ t1 t2)))
 
 (define-cond-rule str-concat-clash-char ((s1 ?Seq) (s2 ?Seq :list) (s3 ?Seq :list) (t1 ?Seq) (t2 ?Seq :list) (t3 ?Seq :list))
   (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
@@ -203,10 +219,6 @@
   (str.contains x y)
   (= x y))
 
-(define-rule str-concat-emp ((xs String :list) (ys String :list)) 
-  (str.++ xs "" ys) 
-  (str.++ xs ys))
-
 (define-rule str-at-elim ((x ?Seq) (n Int)) (str.at x n) (str.substr x n 1))
 
 ; not effective since due to not proving inequalities on length
@@ -228,8 +240,9 @@
   (str.replace t s r)
   t)
 
-(define-rule str-replace-empty ((t ?Seq) (s ?Seq))
-  (str.replace t "" s)
+(define-cond-rule str-replace-empty ((t ?Seq) (s ?Seq) (r ?Seq))
+  (= r (@seq.empty_of_type (@type_of r)))
+  (str.replace t r s)
   (str.++ s t))
 
 (define-cond-rule str-replace-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (r ?Seq))
@@ -255,9 +268,10 @@
   (str.len (str.++ s2 s3))
   (+ (str.len s1) _))
 
-(define-rule str-indexof-self ((t String) (n Int))
+(define-rule str-indexof-self ((t ?Seq) (n Int))
+  (def (emp (@seq.empty_of_type (@type_of t))))
   (str.indexof t t n)
-  (str.indexof "" "" n))
+  (str.indexof emp emp n))
 
 (define-cond-rule str-indexof-no-contains ((t ?Seq) (s ?Seq) (n Int))
   (not (str.contains (str.substr t n (str.len t)) s))
@@ -419,3 +433,8 @@
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
 (define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
 (define-rule seq-rev-unit ((x ?)) (str.rev (seq.unit x)) (seq.unit x))
+
+(define-cond-rule seq-len-empty ((x ?Seq))
+  (= x (@seq.empty_of_type (@type_of x)))
+  (str.len x) 
+  0)

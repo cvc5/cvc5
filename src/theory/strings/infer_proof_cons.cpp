@@ -485,7 +485,8 @@ void InferProofCons::convert(InferenceId infer,
         // above. Notice we need both in sequence since ext equality rewriting
         // is not recursive.
         std::vector<Node> argsERew;
-        addMethodIds(argsERew,
+        addMethodIds(nm,
+                     argsERew,
                      MethodId::SB_DEFAULT,
                      MethodId::SBA_SEQUENTIAL,
                      MethodId::RW_REWRITE_EQ_EXT);
@@ -704,7 +705,7 @@ void InferProofCons::convert(InferenceId infer,
       if (conc.getKind() != Kind::OR)
       {
         // This should never happen. If it does, we resort to using
-        // THEORY_INFERENCE below (in production mode).
+        // THEORY_INFERENCE_STRINGS below (in production mode).
         Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
@@ -1073,8 +1074,8 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_CTN_TRANS:
     case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to THEORY_INFERENCE below since the
-      // rule is unknown.
+      // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below
+      // since the rule is unknown.
       break;
   }
 
@@ -1122,13 +1123,11 @@ void InferProofCons::convert(InferenceId infer,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion, the argument of THEORY_INFERENCE is its
+    // untrustworthy conversion, the argument of THEORY_INFERENCE_STRINGS is its
     // conclusion
     ps.d_args.clear();
-    ps.d_args.push_back(mkTrustId(TrustId::THEORY_INFERENCE));
+    ps.d_args.push_back(mkTrustId(nm, TrustId::THEORY_INFERENCE_STRINGS));
     ps.d_args.push_back(conc);
-    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_STRINGS);
-    ps.d_args.push_back(t);
     // use the trust rule
     ps.d_rule = ProofRule::TRUST;
   }
@@ -1298,14 +1297,13 @@ bool InferProofCons::purifyCoreSubstitution(
   }
   // To avoid rare issues where purification variables introduced by this method
   // already appear in the inference, we also purify them here.
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   SkolemId id;
   Node cval;
   for (const Node& nc : children)
   {
     // if this is a purification skolem of a term that is being purified,
     // we purify this.
-    if (sm->isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
+    if (SkolemManager::isSkolemFunction(nc[0], id, cval) && id == SkolemId::PURIFY
         && termsToPurify.find(cval) != termsToPurify.end())
     {
       termsToPurify.insert(nc[0]);
@@ -1447,8 +1445,7 @@ Node InferProofCons::maybePurifyTerm(
     // did not need to purify
     return n;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node k = sm->mkPurifySkolem(n);
+  Node k = SkolemManager::mkPurifySkolem(n);
   return k;
 }
 

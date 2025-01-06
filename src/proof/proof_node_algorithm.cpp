@@ -272,7 +272,8 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       break;
   }
   // Add the arguments
-  args.push_back(ProofRuleChecker::mkKindNode(k));
+  NodeManager* nm = NodeManager::currentNM();
+  args.push_back(ProofRuleChecker::mkKindNode(nm, k));
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
     args.push_back(n.getOperator());

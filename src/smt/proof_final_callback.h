@@ -54,6 +54,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<ProofRule> d_ruleCount;
   /**
+   * Counts number of proof nodes for each kind of proof rule that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRule> d_ruleEouCount;
+  /**
    * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
    * marked with the given inference id.
    */
@@ -66,6 +71,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * Counts number of postprocessed proof nodes for each kind of THEORY_REWRITE
    */
   HistogramStat<ProofRewriteRule> d_theoryRewriteRuleCount;
+  /**
+   * Counts number of proof nodes for each kind of THEORY_REWRITE that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRewriteRule> d_theoryRewriteEouCount;
   /**
    * Counts number of postprocessed proof nodes for each trusted step
    */

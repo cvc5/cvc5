@@ -241,6 +241,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+      return "macro-arrays-distinct-arrays";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+      return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
@@ -251,8 +255,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_QUANT_PRENEX: return "macro-quant-prenex";
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
       return "macro-quant-miniscope";
-    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
-    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
+    case ProofRewriteRule::QUANT_MINISCOPE_AND: return "quant-miniscope-and";
+    case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
@@ -268,7 +273,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
+    case ProofRewriteRule::MACRO_DT_CONS_EQ: return "macro-dt-cons-eq";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_CONS_EQ_CLASH: return "dt-cons-eq-clash";
     case ProofRewriteRule::DT_CYCLE: return "dt-cycle";
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";

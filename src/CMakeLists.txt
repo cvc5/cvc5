@@ -1263,6 +1263,8 @@ libcvc5_add_sources(
   theory/uf/cardinality_extension.h
   theory/uf/conversions_solver.cpp
   theory/uf/conversions_solver.h
+  theory/uf/diamonds_proof_generator.cpp
+  theory/uf/diamonds_proof_generator.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_iterator.cpp

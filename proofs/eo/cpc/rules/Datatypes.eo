@@ -1,56 +1,5 @@
 (include "../theories/Datatypes.eo")
-
-
-; program: $dt_get_constructors
-; args:
-; - T Type: The datatype to get the constructors for.
-; return: The list of constructors of T, as a eo::List.
-; note: >
-;   (Unit) tuples are treated as a special case of datatypes with a single
-;   constructor. Parametric datatypes must reference the type constructor to
-;   extract their constructors.
-(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
-  (Type) eo::List
-  (
-    (($dt_get_constructors (Tuple T1 T2)) (eo::cons eo::List::cons tuple eo::List::nil))
-    (($dt_get_constructors UnitTuple)     (eo::cons eo::List::cons tuple.unit eo::List::nil))
-    (($dt_get_constructors (DC T))        ($dt_get_constructors DC))   ; user-defined parameteric datatypes, traverse
-    (($dt_get_constructors D)             (eo::dt_constructors D))     ; ordinary user-defined datatypes
-  )
-)
-
-; program: $tuple_get_selectors_rec
-; args:
-; - T Type: The tuple type to get the selectors for.
-; - n Int: The number of component types we have processed so far.
-; return: The list of selectors of T, as a eo::List.
-; note: >
-;   Tuples use a special selector tuple.select indexed by an integer, which is
-;   why they require a special method here.
-(program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
-  (Type Int) Bool
-  (
-    (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
-    (($tuple_get_selectors_rec (Tuple T1 T2) n) (eo::cons eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
-  )
-)
-
-; program: $dt_get_selectors
-; args:
-; - D Type: The type to get the selectors for.
-; - c T: The constructor of D.
-; return: The list of selectors of c, as a eo::List.
-; note: >
-;   (Unit) tuples are treated as a special case of datatypes whose selectors are
-;   tuple.select indexed by an integer, which requires the above method.
-(program $dt_get_selectors ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list))
-  (Type T) eo::List
-  (
-    (($dt_get_selectors (Tuple T1 T2) tuple)  ($tuple_get_selectors_rec (Tuple T1 T2) 0))
-    (($dt_get_selectors UnitTuple tuple.unit) eo::List::nil)
-    (($dt_get_selectors D c)                  (eo::dt_selectors c)) ; user-defined datatypes
-  )
-)
+(include "../programs/Datatypes.eo")
 
 ;;;;; ProofRule::DT_SPLIT
 
@@ -143,4 +92,61 @@
   :args ((= (is c x) (= x t)))
   :requires ((($mk_dt_inst (eo::typeof x) c x) t))
   :conclusion (= (is c x) (= x t))
+)
+
+;;;;; ProofRewriteRule::DT_COLLAPSE_SELECTOR
+
+; rule: dt-collapse-selector
+; implements: ProofRewriteRule::DT_COLLAPSE_SELECTOR.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that the index^th argument of the term t we are selecting from
+;   is the right hand side of the equality, where index is the index of the
+;   selector in the constructor of t.
+; conclusion: The given equality.
+(declare-rule dt-collapse-selector ((D Type) (T Type) (s (-> D T)) (t D) (ti T))
+  :args ((= (s t) ti))
+  :requires (((eo::define ((c ($get_fun t)))
+              (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+              ; note that s must be a selector of the constructor of t, or else index will not evaluate
+              (eo::define ((index (eo::list_find eo::List::cons ss s)))
+                ($dt_arg_nth t index)))) ti))
+  :conclusion (= (s t) ti)
+)
+
+;;;;; ProofRewriteRule::DT_COLLAPSE_TESTER
+
+; rule: dt-collapse-tester
+; implements: ProofRewriteRule::DT_COLLAPSE_TESTER.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   If the right hand side is true, then the function head of the term we are
+;   testing must be the constructor. If the right hand side is false, then the
+;   function head of the term we are testing must be the constructor that is
+;   not the constructor we are testing.
+; conclusion: The given equality.
+(declare-rule dt-collapse-tester ((D Type) (T Type) (c T) (t D) (b Bool))
+  :args ((= (is c t) b))
+  :requires (((eo::define ((f ($get_fun t)))
+              (eo::ite b
+                (eo::is_eq f c)
+                (eo::and ($dt_is_cons f) (eo::not (eo::is_eq f c))))) true))
+  :conclusion (= (is c t) b)
+)
+
+;;;;; ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON
+
+; rule: dt-collapse-tester-singleton
+; implements: ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON.
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   The number of constructors of the type of the term we are testing is one.
+; conclusion: The given equality.
+(declare-rule dt-collapse-tester-singleton ((D Type) (T Type) (c T) (t D))
+  :args ((= (is c t) true))
+  :requires (((eo::list_len eo::List::cons ($dt_get_constructors (eo::typeof t))) 1))
+  :conclusion (= (is c t) true)
 )

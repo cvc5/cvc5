@@ -501,7 +501,7 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
 
 Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
 {
-  return mkInternalSymbol(name, NodeManager::currentNM()->sExprType());
+  return mkInternalSymbol(name, d_nm->sExprType());
 }
 
 const std::string& AletheNodeConverter::getError() { return d_error; }

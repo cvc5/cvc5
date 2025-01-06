@@ -695,6 +695,7 @@ set(regress_0_tests
   regress0/datatypes/datatype4.cvc.smt2
   regress0/datatypes/dd.pair-real-bool-const-conf.smt2
   regress0/datatypes/dt-2.6.smt2
+  regress0/datatypes/dt-cons-eq-simple.smt2
   regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6-print.smt2
@@ -723,6 +724,7 @@ set(regress_0_tests
   regress0/datatypes/pair-real-bool.smt2
   regress0/datatypes/par-updater-type-rule.smt2
   regress0/datatypes/parametric-alt-list.cvc.smt2
+  regress0/datatypes/pf-v2l60078.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/proj-issue578-clash-pf.smt2
@@ -1333,6 +1335,7 @@ set(regress_0_tests
   regress0/proofs/fixed-point-rew.smt2
   regress0/proofs/fixed-point-rew-conc.smt2
   regress0/proofs/indexof-eval-rw_155.smt2
+  regress0/proofs/ios_np_sf.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue10278-pf-clone.smt2
   regress0/proofs/issue8983-trust-subs.smt2
@@ -1357,6 +1360,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/other-optResRecons-corner-case.smt2
+  regress0/proofs/pfcheck-ufdt-distro.smt2
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
@@ -1386,7 +1390,6 @@ set(regress_0_tests
   regress0/proofs/subtype-elim-rare-fail.smt2
   regress0/proofs/str-term-276-indexof-eval.smt2
   regress0/proofs/t1-difficulty-filter.smt2
-  regress0/proofs/t3_rw903.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/proofs/unused-def1.smt2
@@ -1456,6 +1459,8 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
+  regress0/quantifiers/dd_spark2014-pat.smt2
+  regress0/quantifiers/dd_SA10-027-dt-ipc.smt2
   regress0/quantifiers/dd.german169-ieval.smt2
   regress0/quantifiers/dd.german169-lemma-inp.smt2
   regress0/quantifiers/dd.ho-matching-enum.smt2
@@ -1505,6 +1510,7 @@ set(regress_0_tests
   regress0/quantifiers/matching-lia-1arg.smt2
   regress0/quantifiers/mbqi-simple.smt2
   regress0/quantifiers/merge-shadow.smt2
+  regress0/quantifiers/miniscope-ite.smt2
   regress0/quantifiers/mix-complete-strat.smt2
   regress0/quantifiers/mix-match.smt2
   regress0/quantifiers/mix-simp.smt2
@@ -1896,6 +1902,7 @@ set(regress_0_tests
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re-consume-bi-dir.smt2
   regress0/strings/re-consume-inter.smt2
+  regress0/strings/re-consume-star.smt2
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
   regress0/strings/re-include-union.smt2
@@ -1944,6 +1951,7 @@ set(regress_0_tests
   regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
+  regress0/sygus/constval-infeasible.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
@@ -2873,6 +2881,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/pivc-deq-cong.smt2
   regress1/quantifiers/pool-decidable-arrays-1.smt2
   regress1/quantifiers/pool-example.smt2
   regress1/quantifiers/pool-tuple.smt2
@@ -2916,6 +2925,7 @@ set(regress_1_tests
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
+  regress1/quantifiers/quick-sort-q-rew.smt2
   regress1/quantifiers/qs-has-term.smt2
   regress1/quantifiers/recfact.cvc.smt2
   regress1/quantifiers/rel-trigger-unusable.smt2
@@ -3820,6 +3830,8 @@ set(regression_disabled_tests
   regress0/datatypes/repeated-selectors-2769.smt2
   # unknown after change to lemma schema
   regress0/nl/nta/issue8208-red-nred.smt2
+  # times out on various configurations
+  regress0/proofs/t3_rw903.smt2
   # fails with unknown on some builds
   regress0/quantifiers/nl-sqrt2-q.smt2
   # need finite model finding command line in tptp regression

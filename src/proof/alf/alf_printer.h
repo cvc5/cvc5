@@ -186,8 +186,8 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
-  /** List node converter */
-  AlfListNodeConverter d_ltproc;
+  /** */
+  TypeNode d_absType;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /** The empty vector */
@@ -198,6 +198,8 @@ class AlfPrinter : protected EnvObj
   LetBinding* d_lbindUse;
   /** The letification channel. */
   AlfPrintChannelPre d_aletify;
+  /** A cache for explicit type-of variables, for printing DSL_REWRITE steps */
+  std::map<ProofRewriteRule, std::vector<Node>> d_explicitTypeOf;
 };
 
 }  // namespace proof

@@ -52,7 +52,14 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
 
 TheoryBags::~TheoryBags() {}
 
-TheoryRewriter* TheoryBags::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryBags::getTheoryRewriter()
+{
+  if (!options().bags.bags)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryBags::getProofChecker() { return nullptr; }
 

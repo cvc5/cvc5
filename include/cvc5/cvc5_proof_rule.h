@@ -2530,6 +2530,33 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAYS_SELECT_CONST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro distinct arrays**
+   *
+   * .. math::
+   *   (A = B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct array values, that is,
+   * the Node::isConst method returns true for both.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_DISTINCT_ARRAYS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize constant**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array value :math:`A`
+   * into a canonical form, using the internal method
+   * TheoryArraysRewriter::normalizeConstant.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_CONSTANT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Expansion of array range equality**
    *
    * .. math::
@@ -2606,14 +2633,19 @@ enum ENUM(ProofRewriteRule)
    *   G_1 \wedge \cdots \wedge G_n
    *
    * where each :math:`G_i` is semantically equivalent to
-   * :math:`\forall X.\> F_i`.
+   * :math:`\forall X.\> F_i`, or alternatively
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{G_1}{G_2}
+   *
+   * where :math:`C` does not have any free variable in :math:`X`.
    *
    * \endverbatim
    */
   EVALUE(MACRO_QUANT_MINISCOPE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping**
+   * **Quantifiers -- Miniscoping and**
    *
    * .. math::
    *   \forall X.\> F_1 \wedge \ldots \wedge F_n =
@@ -2621,10 +2653,10 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE),
+  EVALUE(QUANT_MINISCOPE_AND),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Miniscoping free variables**
+   * **Quantifiers -- Miniscoping or**
    *
    * .. math::
    *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
@@ -2634,7 +2666,19 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(QUANT_MINISCOPE_FV),
+  EVALUE(QUANT_MINISCOPE_OR),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Miniscoping ite**
+   *
+   * .. math::
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\> F_2}
+   * 
+   * where :math:`C` does not have any free variable in :math:`X`.
+   *
+   * \endverbatim
+   */
+  EVALUE(QUANT_MINISCOPE_ITE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Datatypes Split**
@@ -2774,22 +2818,51 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_COLLAPSE_TESTER_SINGLETON),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- Macro constructor equality**
+   *
+   * .. math::
+   *   (t = s) = (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
+   *
+   * where :math:`t_1, \ldots, t_n` and :math:`s_1, \ldots, s_n` are subterms
+   * of :math:`t` and :math:`s` that occur at the same position respectively
+   * (beneath constructor applications), or alternatively
+   *
+   * .. math::
+   *   (t = s) = false
+   * 
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- constructor equality**
    *
    * .. math::
    *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
    *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
-   *
-   * or alternatively
-   *
-   * .. math::
-   *   (c(t_1, \ldots, t_n) = d(s_1, \ldots, s_m)) = false
-   *
-   * where :math:`c` and :math:`d` are distinct constructors.
+   * 
+   * where :math:`c` is a constructor.
    *
    * \endverbatim
    */
   EVALUE(DT_CONS_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Datatypes -- constructor equality clash**
+   *
+   * .. math::
+   *   (t = s) = false
+   * 
+   * where :math:`t` and :math:`s` have subterms that occur in the same
+   * position (beneath constructor applications) that are distinct constructor
+   * applications.
+   *
+   * \endverbatim
+   */
+  EVALUE(DT_CONS_EQ_CLASH),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- cycle**
@@ -3623,6 +3696,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_MINUS),
   /** Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule sets-minus-self */
+  EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-is-empty-elim */
+  EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
@@ -3713,8 +3790,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_EMP),
   /** Auto-generated from RARE rule str-contains-is-emp */
   EVALUE(STR_CONTAINS_IS_EMP),
-  /** Auto-generated from RARE rule str-concat-emp */
-  EVALUE(STR_CONCAT_EMP),
   /** Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
   /** Auto-generated from RARE rule str-replace-self */
@@ -3831,6 +3906,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_NTH_UNIT),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
+  /** Auto-generated from RARE rule seq-len-empty */
+  EVALUE(SEQ_LEN_EMPTY),
   /** Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
   /** Auto-generated from RARE rule re-in-sigma */
