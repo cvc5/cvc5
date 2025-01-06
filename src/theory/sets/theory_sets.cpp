@@ -32,7 +32,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(env.getNodeManager(), env.getRewriter()),
       d_state(env, valuation, d_skCache),
-      d_rewriter(nodeManager()),
+      d_rewriter(
+          nodeManager(), options().sets.setsCardExp, options().sets.relsExp),
       d_im(env, *this, &d_rewriter, d_state),
       d_cpacb(*this),
       d_internal(

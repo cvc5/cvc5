@@ -142,7 +142,15 @@ Node Rewriter::rewriteEqualityExt(TNode node)
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
                                       TheoryRewriter* trew)
 {
-  d_theoryRewriters[tid] = trew;
+  if (trew == nullptr)
+  {
+    // if nullptr, use the default (null) theory rewriter.
+    d_theoryRewriters[tid] = &d_nullTr;
+  }
+  else
+  {
+    d_theoryRewriters[tid] = trew;
+  }
 }
 
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)

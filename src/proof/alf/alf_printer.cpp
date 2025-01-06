@@ -180,6 +180,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
+    case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
     case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
@@ -496,7 +497,8 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << id;
     return ss.str();
   }
-  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE)
+  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE
+           || r == ProofRule::BV_EAGER_ATOM)
   {
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
