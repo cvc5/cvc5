@@ -319,7 +319,6 @@ SymManager::SymManager(cvc5::TermManager& tm)
       d_logicIsSet(false),
       d_logic()
 {
-  d_dummyType = d_tm.mkUninterpretedSort("Type");
 }
 
 SymManager::~SymManager() {}
@@ -338,7 +337,8 @@ bool SymManager::bindType(const std::string& name, cvc5::Sort t, bool isUser)
 {
   if (isUser && !d_termSortOverload)
   {
-    cvc5::Term ts = d_tm.mkConst(d_dummyType, name);
+    cvc5::Sort dummyType = d_tm.mkUninterpretedSort("Type");
+    cvc5::Term ts = d_tm.mkConst(dummyType, name);
     if (!d_implementation->getSymbolTable().bindDummySortTerm(name, ts))
     {
       return false;
@@ -425,7 +425,8 @@ bool SymManager::bindType(const std::string& name,
 {
   if (isUser && !d_termSortOverload)
   {
-    cvc5::Term ts = d_tm.mkConst(d_dummyType, name);
+    cvc5::Sort dummyType = d_tm.mkUninterpretedSort("Type");
+    cvc5::Term ts = d_tm.mkConst(dummyType, name);
     if (!d_implementation->getSymbolTable().bindDummySortTerm(name, ts))
     {
       return false;

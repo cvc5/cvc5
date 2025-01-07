@@ -289,8 +289,6 @@ class CVC5_EXPORT SymManager
   bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
-  /** A dummy sort for the sort of types, used in bindDummySortTerm. */
-  cvc5::Sort d_dummyType;
 };
 
 }  // namespace parser
