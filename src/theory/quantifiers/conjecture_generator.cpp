@@ -1826,7 +1826,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
           children.push_back( nc );
         }
       }
-      return s->d_cg->nodeManager()->mkNode( s->d_func_kind[f], children );
+      return s->d_cg->nodeManager()->mkNode(s->d_func_kind[f], children);
     }
   }else{
     Assert(false);

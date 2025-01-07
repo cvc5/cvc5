@@ -42,7 +42,8 @@ bool DetTrace::DetTraceTrie::add(Node loc, const std::vector<Node>& val)
   return false;
 }
 
-Node DetTrace::DetTraceTrie::constructFormula(NodeManager* nm, const std::vector<Node>& vars,
+Node DetTrace::DetTraceTrie::constructFormula(NodeManager* nm,
+                                              const std::vector<Node>& vars,
                                               unsigned index)
 {
   if (index == vars.size())

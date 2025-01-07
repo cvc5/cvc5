@@ -224,7 +224,8 @@ void Def::basic_simplify( FirstOrderModelFmc * m ) {
   d_status.clear();
 }
 
-void Def::simplify(NodeManager* nm, FullModelChecker * mc, FirstOrderModelFmc * m) {
+void Def::simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m)
+{
   Trace("fmc-simplify") << "Simplify definition, #cond = " << d_cond.size() << std::endl;
   basic_simplify( m );
   Trace("fmc-simplify") << "post-basic simplify, #cond = " << d_cond.size() << std::endl;
@@ -543,7 +544,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     }
 
     Trace("fmc-model-simplify") << "Simplifying " << op << "..." << std::endl;
-    fm->d_models[op]->simplify( nodeManager(), this, fm );
+    fm->d_models[op]->simplify(nodeManager(), this, fm);
 
     if (TraceIsOn("fmc-model"))
     {

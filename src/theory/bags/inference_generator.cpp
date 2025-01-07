@@ -36,7 +36,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im)
+InferenceGenerator::InferenceGenerator(NodeManager* nm,
+                                       SolverState* state,
+                                       InferenceManager* im)
     : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
 {
   d_true = d_nm->mkConst(true);

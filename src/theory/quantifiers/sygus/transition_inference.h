@@ -83,7 +83,9 @@ class DetTrace
      * and vars is [x,y,z], then this method returns:
      *   ( x=1 ^ y=2 ^ z=3 ) V ( x=2 ^ y=3 ^ z=4 ).
      */
-    Node constructFormula(NodeManager* nm, const std::vector<Node>& vars, unsigned index = 0);
+    Node constructFormula(NodeManager* nm,
+                          const std::vector<Node>& vars,
+                          unsigned index = 0);
   };
   /** The above trie data structure for this class */
   DetTraceTrie d_trie;
