@@ -51,13 +51,13 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::ARITH_MULT_SIGN)
   {
     Assert(children.empty());
-    Assert(args.size() ==2);
+    Assert(args.size() == 2);
     Node mon = args[1];
     std::map<Node, int> exps;
     std::vector<Node> premise;
-    if (args[0].getKind()==Kind::AND)
+    if (args[0].getKind() == Kind::AND)
     {
-      premise.insert(premise.end(),args[0].begin(), args[0].end());
+      premise.insert(premise.end(), args[0].begin(), args[0].end());
     }
     else
     {
@@ -106,7 +106,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       Assert(signs.find(f[0]) == signs.end());
       signs.emplace(f[0], f.getKind() == Kind::LT ? -1 : 1);
     }
-    int sign = 0;
+    int sign = 1;
     for (const auto& ve : exps)
     {
       auto sit = signs.find(ve.first);
@@ -114,22 +114,11 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       if (ve.second % 2 == 0)
       {
         Assert(sit->second == 0);
-        if (sign == 0)
-        {
-          sign = 1;
-        }
       }
       else
       {
         Assert(sit->second != 0);
-        if (sign == 0)
-        {
-          sign = sit->second;
-        }
-        else
-        {
-          sign *= sit->second;
-        }
+        sign *= sit->second;
       }
     }
     Node zero = nm->mkConstRealOrInt(mon.getType(), Rational(0));
@@ -137,11 +126,7 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       case -1:
         return nm->mkNode(
-            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, zero, mon));
-      case 0:
-        return nm->mkNode(Kind::IMPLIES,
-                          nm->mkAnd(premise),
-                          nm->mkNode(Kind::DISTINCT, mon, zero));
+            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::LT, mon, zero));
       case 1:
         return nm->mkNode(
             Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));

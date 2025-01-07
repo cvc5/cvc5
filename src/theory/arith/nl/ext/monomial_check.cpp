@@ -327,7 +327,8 @@ int MonomialCheck::compareSign(
         }
       }
       Node antec = nm->mkAnd(expo);
-      Node lemma = antec.impNode(mkLit(oa, zero, status * 2));
+      Node conc = nm->mkNode(status < 0 ? Kind::LT : Kind::GT, oa, zero);
+      Node lemma = antec.impNode(conc);
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
