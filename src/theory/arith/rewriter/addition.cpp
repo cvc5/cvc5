@@ -130,7 +130,7 @@ Node collectSumWithBase(NodeManager* nm,
     RealAlgebraicNumber mult = summand.second * basemultiplicity;
     std::vector<Node> product = baseproduct;
     rewriter::addToProduct(product, mult, summand.first);
-    nb << mkMultTerm(mult, std::move(product));
+    nb << mkMultTerm(nm, mult, std::move(product));
   }
   if (nb.getNumChildren() == 1)
   {

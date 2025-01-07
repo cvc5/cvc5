@@ -599,7 +599,7 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
         leafs.emplace_back(child);
       }
     }
-    ret = rewriter::mkMultTerm(ran, std::move(leafs));
+    ret = rewriter::mkMultTerm(d_nm, ran, std::move(leafs));
   }
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
   return RewriteResponse(REWRITE_DONE, ret);

@@ -138,7 +138,8 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial);
  * it may be modified in the process.
  *
  */
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
+Node mkMultTerm(NodeManager* nm,
+                const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial);
 
 /**
