@@ -347,6 +347,7 @@ class SymbolTable::Implementation
  public:
   Implementation()
       : d_context(),
+        d_dummySortTerms(&d_context),
         d_exprMap(&d_context),
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
@@ -384,8 +385,8 @@ class SymbolTable::Implementation
  private:
   /** The context manager for the scope maps. */
   Context d_context;
-  /** A dummy sort for the sort of types, used in bindDummySortTerm. */
-  Sort d_dummySortType;
+  /** The set of dummy sort terms we have bound. */
+  CDHashSet<Term> d_dummySortTerms;
 
   /** A map for expressions. */
   CDHashMap<string, Term> d_exprMap;
@@ -436,10 +437,8 @@ bool SymbolTable::Implementation::bindDummySortTerm(const std::string& name,
   {
     return false;
   }
-  // Remember its sort, which should be the same for all terms we call this
-  // method on.
-  Assert(d_dummySortType.isNull() || d_dummySortType == t.getSort());
-  d_dummySortType = t.getSort();
+  // remember that it is a dummy sort term
+  d_dummySortTerms.insert(t);
   return true;
 }
 
@@ -638,9 +637,9 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
     // the symbol manager.
     if (prev_bound_obj != obj)
     {
-      // If the type of the previous overloaded symbol was d_dummySortType, this
-      // indicates it is a sort. We fail unconditionally in this case.
-      if (prev_bound_obj.getSort() == d_dummySortType)
+      // If the previous overloaded symbol was a sort, we fail unconditionally
+      // in this case.
+      if (d_dummySortTerms.find(prev_bound_obj)!=d_dummySortTerms.end())
       {
         return false;
       }
