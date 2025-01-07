@@ -133,7 +133,7 @@ TrustNode EagerProofGenerator::mkTrustNodeTrusted(Node conc,
                                                   bool isConflict)
 {
   std::vector<Node> targs;
-  targs.push_back(mkTrustId(id));
+  targs.push_back(mkTrustId(nodeManager(), id));
   targs.push_back(isConflict ? conc.notNode() : conc);
   targs.insert(targs.end(), args.begin(), args.end());
   return mkTrustNode(conc, ProofRule::TRUST, exp, targs, isConflict);
