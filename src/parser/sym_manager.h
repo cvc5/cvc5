@@ -235,7 +235,7 @@ class CVC5_EXPORT SymManager
   bool getFreshDeclarations() const;
   /** Set term sort overloading to the value flag. */
   void setTermSortOverload(bool flag);
-  /** Set term sort overloading to the value flag. */
+  /** Get term sort overloading flag. */
   bool getTermSortOverload() const;
   /**
    * Set the last abduct or interpolant to synthesize had the given name. This
