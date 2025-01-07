@@ -453,6 +453,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   }
   Node pullc = nm->mkNode(Kind::ITE, conc[0][0], branches[0], branches[1]);
   Node equiv = conc.eqNode(pullc);
+  // should be proven by a RARE rewrite arith-*-ite-lift
   Trace("arith-static-pf") << "- subgoal " << equiv << std::endl;
   cdp.addTrustedStep(equiv, TrustId::ARITH_STATIC_LEARN, {}, {});
   Node trueIte = nm->mkNode(Kind::ITE, conc[0][0], truen, truen);
@@ -461,6 +462,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   ProofRule cr = expr::getCongRule(pullc, cargs);
   cdp.addStep(equiv2, cr, congPremises, cargs);
   Node equiv3 = trueIte.eqNode(truen);
+  // should be proven by RARE rewrite ite-eq-branch
   Trace("arith-static-pf") << "- subgoal " << equiv3 << std::endl;
   cdp.addTrustedStep(equiv3, TrustId::ARITH_STATIC_LEARN, {}, {});
   Node concEqTrue = conc.eqNode(truen);
