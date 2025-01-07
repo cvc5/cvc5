@@ -1524,7 +1524,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     Trace("sets-model") <<m->debugPrintModelEqc();
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map<Node, Node> mvals;
   // If cardinality is enabled, we need to use the ordered equivalence class
   // list computed by the cardinality solver, where sets equivalence classes

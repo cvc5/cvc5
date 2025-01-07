@@ -30,7 +30,7 @@ namespace theory {
 ConflictProcessor::ConflictProcessor(Env& env, bool useExtRewriter)
     : EnvObj(env), d_useExtRewriter(useExtRewriter), d_stats(statisticsRegistry())
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -137,7 +137,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
       return TrustNode::null();
     }
     // just take the OR as target
-    tgtLit = NodeManager::currentNM()->mkOr(tgtLitsNc);
+    tgtLit = nodeManager()->mkOr(tgtLitsNc);
   }
   else
   {
@@ -210,7 +210,7 @@ TrustNode ConflictProcessor::processLemma(const TrustNode& lem)
   if (minimized)
   {
     ++d_stats.d_minLemmas;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     std::vector<Node> clause;
     for (std::pair<const Node, Node>& e : varToExp)
     {

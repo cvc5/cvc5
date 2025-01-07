@@ -30,8 +30,16 @@ enum class TrustId : uint32_t
   NONE,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -149,10 +157,16 @@ enum class TrustId : uint32_t
   ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
+  /** A lemma from the ArithStaticLearner utility */
+  ARITH_STATIC_LEARN,
+  /** A nonlinear comparison lemma that failed proof reconstruction */
+  ARITH_NL_COMPARE_LEMMA,
   /** A conflict coming from the bitblast solver */
   BV_BITBLAST_CONFLICT,
   /** A step from BvPpAssert utility */
   BV_PP_ASSERT,
+  /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
+  DIAMONDS,
   /** An extended theory rewrite */
   EXT_THEORY_REWRITE,
   /** A rewrite whose proof could not be elaborated */
@@ -209,7 +223,7 @@ const char* toString(TrustId id);
 /** Write a trust id to out */
 std::ostream& operator<<(std::ostream& out, TrustId id);
 /** Make a trust id node */
-Node mkTrustId(TrustId id);
+Node mkTrustId(NodeManager* nm, TrustId id);
 /** get a trust identifier from a node, return false if we fail */
 bool getTrustId(TNode n, TrustId& i);
 

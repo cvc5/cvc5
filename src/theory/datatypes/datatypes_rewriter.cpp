@@ -49,7 +49,9 @@ DatatypesRewriter::DatatypesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::DT_CONS_EQ,
+  // DT_CONS_EQ and DT_CONS_EQ_CLASH are part of the reconstruction of
+  // MACRO_DT_CONS_EQ.
+  registerProofRewriteRule(ProofRewriteRule::MACRO_DT_CONS_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DT_COLLAPSE_UPDATER,
                            TheoryRewriteCtx::PRE_DSL);
@@ -76,8 +78,10 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Assert(tn.isDatatype());
       const DType& dt = tn.getDType();
       size_t i = utils::indexOf(n.getOperator());
-      bool sharedSel = d_opts.datatypes.dtSharedSelectors;
-      Node ticons = utils::getInstCons(t, dt, i, sharedSel);
+      // Note that we set shared selectors to false. This proof rule will
+      // be (unintentionally) unsuccessful when reconstructing proofs of the
+      // rewriter when using shared selectors.
+      Node ticons = utils::getInstCons(t, dt, i, false);
       return t.eqNode(ticons);
     }
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
@@ -88,6 +92,11 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       Node selector = n.getOperator();
+      // shared selectors are not supported
+      if (selector.getSkolemId() == SkolemId::SHARED_SELECTOR)
+      {
+        return Node::null();
+      }
       size_t constructorIndex = utils::indexOf(n[0].getOperator());
       const DType& dt = utils::datatypeOf(selector);
       const DTypeConstructor& c = dt[constructorIndex];
@@ -126,7 +135,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::MACRO_DT_CONS_EQ:
     {
       if (n.getKind() == Kind::EQUAL)
       {
@@ -136,9 +145,13 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           nn = nodeManager()->mkConst(false);
         }
-        else
+        else if (!rew.empty())
         {
           nn = nodeManager()->mkAnd(rew);
+        }
+        else
+        {
+          return Node::null();
         }
         // In the "else" case above will n if this rewrite does not apply. We
         // do not return the reflexive equality in this case.
@@ -146,6 +159,42 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         {
           return nn;
         }
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ:
+    {
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      if (n[0].getOperator() == n[1].getOperator())
+      {
+        Assert(n[0].getNumChildren() == n[1].getNumChildren());
+        std::vector<Node> children;
+        for (size_t i = 0, size = n[0].getNumChildren(); i < size; i++)
+        {
+          children.push_back(n[0][i].eqNode(n[1][i]));
+        }
+        return nodeManager()->mkAnd(children);
+      }
+    }
+    break;
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    {
+      if (n.getKind() != Kind::EQUAL
+          || n[0].getKind() != Kind::APPLY_CONSTRUCTOR
+          || n[1].getKind() != Kind::APPLY_CONSTRUCTOR)
+      {
+        return Node::null();
+      }
+      // do not look for constant clashing equality between non-datatypes
+      std::vector<Node> rew;
+      if (utils::checkClash(n[0], n[1], rew, false))
+      {
+        return nodeManager()->mkConst(false);
       }
     }
     break;
@@ -379,10 +428,6 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Trace("datatypes-rewrite")
           << "Rewrite clashing equality " << in << " to false" << std::endl;
       return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
-      //}else if( rew.size()==1 && rew[0]!=in ){
-      //  Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " <<
-      //  rew[0] << std::endl;
-      //  return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
     }
     else if (in[1] < in[0])
     {

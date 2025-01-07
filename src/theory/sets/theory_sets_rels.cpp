@@ -432,7 +432,6 @@ void TheorySetsRels::check(Theory::Effort level)
       }
     }
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
     std::vector< Node > distinct_skolems;
@@ -443,7 +442,7 @@ void TheorySetsRels::check(Theory::Effort level)
           Kind::AND, reason, nm->mkNode(Kind::EQUAL, exp[1], join_image_term));
     }
     for( unsigned int i = 0; i < min_card; i++ ) {
-      Node skolem = sm->mkDummySkolem(
+      Node skolem = NodeManager::mkDummySkolem(
           "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
       distinct_skolems.push_back( skolem );
       conclusion = nm->mkNode(
@@ -979,7 +978,7 @@ void TheorySetsRels::check(Theory::Effort level)
       computeMembersForBinOpRel(n);
       d_rel_nodes.insert(n);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node A = n[0];
     Node B = n[1];
     Node e = exp[0];
@@ -1324,7 +1323,7 @@ void TheorySetsRels::check(Theory::Effort level)
       return;
     }
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     std::vector<Node> aMemberships = d_rReps_memberReps_exp_cache[aRep];
     std::vector<Node> bMemberships = d_rReps_memberReps_exp_cache[bRep];

@@ -142,6 +142,15 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_DT_CONS_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO_DT_CONS_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
    *
    * This takes an equality of the form (r t1 t2) = c, where r is an arithmetic
@@ -180,6 +189,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroQuantMergePrenex(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_PRENEX.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_PRENEX.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantPrenex(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV.

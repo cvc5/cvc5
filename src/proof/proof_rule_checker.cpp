@@ -63,15 +63,14 @@ bool ProofRuleChecker::getKind(TNode n, Kind& k)
   return true;
 }
 
-Node ProofRuleChecker::mkKindNode(Kind k)
+Node ProofRuleChecker::mkKindNode(NodeManager* nm, Kind k)
 {
   if (k == Kind::UNDEFINED_KIND)
   {
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();
   }
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(k)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(k)));
 }
 
 NodeManager* ProofRuleChecker::nodeManager() const { return d_nm; }

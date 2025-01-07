@@ -176,8 +176,8 @@ void SolverState::checkInjectivity(Node n)
   }
 
   TypeNode domainType = f.getType().getArgTypes()[0];
-  Node x = sm->mkDummySkolem("x", domainType);
-  Node y = sm->mkDummySkolem("y", domainType);
+  Node x = NodeManager::mkDummySkolem("x", domainType);
+  Node y = NodeManager::mkDummySkolem("y", domainType);
   Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
   Node f_y = d_nm->mkNode(Kind::APPLY_UF, f, y);
   Node f_x_equals_f_y = f_x.eqNode(f_y);

@@ -357,7 +357,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       {
         TrustId tid;
         getTrustId(pn->getArguments()[0], tid);
-        if (tid == TrustId::THEORY_LEMMA || tid == TrustId::THEORY_INFERENCE)
+        if (tid == TrustId::THEORY_LEMMA)
         {
           return ArgFormat::THEORY_ID;
         }

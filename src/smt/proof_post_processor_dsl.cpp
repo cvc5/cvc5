@@ -27,7 +27,7 @@ namespace smt {
 ProofPostprocessDsl::ProofPostprocessDsl(Env& env, rewriter::RewriteDb* rdb)
     : EnvObj(env), d_rdbPc(env, rdb)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
   d_tmode = (options().proof.proofGranularityMode
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
                 ? rewriter::TheoryRewriteMode::RESORT
@@ -96,8 +96,9 @@ void ProofPostprocessDsl::reconstruct(
     Trace("pp-dsl") << "REM SUBGOALS: " << std::endl;
     for (std::shared_ptr<ProofNode> p : d_subgoals)
     {
-      Warning() << "WARNING: unproven subgoal " << p->getResult() << std::endl;
       Trace("pp-dsl") << "  " << p->getResult() << std::endl;
+      Trace("pp-dsl-warn") << "WARNING: unproven subgoal " << p->getResult()
+                           << std::endl;
     }
     d_subgoals.clear();
   }

@@ -150,11 +150,6 @@ Node InferenceManager::prepareDtInference(Node conc,
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp
                           << " by " << id << std::endl;
-  if (conc.getKind() == Kind::EQUAL && conc[0].getType().isBoolean())
-  {
-    // must turn (= conc false) into (not conc)
-    conc = rewrite(conc);
-  }
   if (isProofEnabled())
   {
     Assert(ipc != nullptr);

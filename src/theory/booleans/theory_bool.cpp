@@ -40,15 +40,18 @@ TheoryBool::TheoryBool(Env& env, OutputChannel& out, Valuation valuation)
 {
 }
 
-Theory::PPAssertStatus TheoryBool::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBool::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
-  if (in.getKind() == Kind::CONST_BOOLEAN && !in.getConst<bool>())
+  if (in.getKind() == Kind::CONST_BOOLEAN)
   {
-    // If we get a false literal, we're in conflict
-    return PP_ASSERT_STATUS_CONFLICT;
+    if (in.getConst<bool>())
+    {
+      return true;
+    }
+    // should not be a false literal, which should be caught by preprocessing
+    Assert(in.getConst<bool>());
   }
 
   // Add the substitution from the variable to its value
@@ -58,7 +61,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
     {
       outSubstitutions.addSubstitutionSolved(
           in[0], nodeManager()->mkConst<bool>(false), tin);
-      return PP_ASSERT_STATUS_SOLVED;
+      return true;
     }
     else if (in[0].getKind() == Kind::EQUAL && in[0][0].getType().isBoolean())
     {
@@ -66,12 +69,12 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
       if (eq[0].isVar() && d_valuation.isLegalElimination(eq[0], eq[1]))
       {
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1].notNode(), tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       else if (eq[1].isVar() && d_valuation.isLegalElimination(eq[1], eq[0]))
       {
         outSubstitutions.addSubstitutionSolved(eq[1], eq[0].notNode(), tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
     }
   }
@@ -79,7 +82,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   {
     outSubstitutions.addSubstitutionSolved(
         in, nodeManager()->mkConst<bool>(true), tin);
-    return PP_ASSERT_STATUS_SOLVED;
+    return true;
   }
 
   // the positive Boolean equality case is handled in the default way

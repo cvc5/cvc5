@@ -70,7 +70,7 @@ Node TheoryFiniteFieldsRewriter::preRewriteFfNeg(TNode t)
 Node TheoryFiniteFieldsRewriter::preRewriteFfAdd(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_ADD);
-  return expr::algorithm::flatten(t);
+  return expr::algorithm::flatten(d_nm, t);
 }
 
 Node TheoryFiniteFieldsRewriter::postRewriteFfAdd(TNode t)
@@ -130,7 +130,7 @@ Node TheoryFiniteFieldsRewriter::postRewriteFfAdd(TNode t)
     else
     {
       Node c = nm->mkConst(summand.second);
-      summands.push_back(expr::algorithm::flatten(
+      summands.push_back(expr::algorithm::flatten(nm,
           nm->mkNode(Kind::FINITE_FIELD_MULT, c, summand.first)));
     }
   }
@@ -145,7 +145,7 @@ Node TheoryFiniteFieldsRewriter::postRewriteFfAdd(TNode t)
 Node TheoryFiniteFieldsRewriter::preRewriteFfMult(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_MULT);
-  return expr::algorithm::flatten(t);
+  return expr::algorithm::flatten(d_nm, t);
 }
 
 Node TheoryFiniteFieldsRewriter::postRewriteFfMult(TNode t)

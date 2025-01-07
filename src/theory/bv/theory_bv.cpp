@@ -180,23 +180,22 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-Theory::PPAssertStatus TheoryBV::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
   if (k == Kind::EQUAL)
   {
-    auto status = Theory::ppAssert(tin, outSubstitutions);
-    if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
+    bool status = Theory::ppAssert(tin, outSubstitutions);
+    if (status)
     {
       return status;
     }
     if (d_ppAssert.ppAssert(tin, outSubstitutions))
     {
-      return Theory::PP_ASSERT_STATUS_SOLVED;
+      return true;
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
