@@ -90,7 +90,9 @@ poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
  * multiplications with one or use NONLINEAR_MULT where regular MULT may be
  * sufficient), so it may be sensible to rewrite it afterwards.
  */
-cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
+cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
+                                       const poly::Polynomial& p,
+                                       VariableMapper& vm);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
