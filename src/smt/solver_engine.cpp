@@ -1542,6 +1542,8 @@ void SolverEngine::checkProof()
     // connect proof to assertions, which will fail if the proof is malformed
     d_pfManager->connectProofToAssertions(
         pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
+    // now check the proof
+    d_pfManager->checkFinalProof(pePfn);
   }
 }
 
