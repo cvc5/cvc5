@@ -390,8 +390,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
-                                        TrustSubstitutionMap& outSubstitutions)
+bool Theory::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
@@ -404,16 +403,16 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
     {
       outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-      return PP_ASSERT_STATUS_SOLVED;
+      return true;
     }
     if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-      return PP_ASSERT_STATUS_SOLVED;
+      return true;
     }
   }
 
-  return PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 std::pair<bool, Node> Theory::entailmentCheck(TNode lit)

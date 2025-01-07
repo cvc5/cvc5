@@ -94,8 +94,7 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   /**
    * Preprocess rewrite terms, return the trust node encapsulating the
    * preprocessed form of n, and the proof generator that can provide the

@@ -108,7 +108,7 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(statisticsRegistry(), userContext()),
+      d_learner(d_env),
       d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
       d_constantIntegerVariables(context()),
@@ -945,8 +945,8 @@ Node TheoryArithPrivate::getCandidateModelValue(TNode term)
   }
 }
 
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArithPrivate::ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   TNode in = tin.getNode();
@@ -1005,7 +1005,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
                           << minVar << " |-> " << elim << endl;
         Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       else
       {
@@ -1032,7 +1032,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       break;
   }
 
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
