@@ -382,6 +382,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   cdp.addStep(ceq, ProofRule::REFL, {}, {cond});
   Node truen = nm->mkConst(true);
   std::map<Node, Node>::iterator ita;
+  // prove the branches
   for (size_t i = 1; i <= 2; i++)
   {
     Node b = nm->mkNode(ck, conc[0][i], conc[1]);
@@ -398,6 +399,12 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
       ita = amap.find(conc[0][i]);
       if (ita != amap.end())
       {
+        // after lifting, the branch may be an antecedant
+        if (ita->second==b)
+        {
+          cdp.addStep(eq, ProofRule::TRUE_INTRO, {ita->second}, {});
+          continue;
+        }
         Trace("arith-static-pf")
             << "- prove " << b << " from " << ita->second << std::endl;
         // To weaken a bound, we do the following:
