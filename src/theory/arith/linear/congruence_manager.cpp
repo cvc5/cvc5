@@ -282,7 +282,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       // Trick for getting correct, opposing signs.
       std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
                               nm->mkConstInt(Rational(cSign))};
-      std::vector<Node> coeffUse = getMacroSumUbCoeff(pfs, coeff);
+      std::vector<Node> coeffUse = getMacroSumUbCoeff(nm, pfs, coeff);
       const auto sumPf =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, pfs, coeffUse);
       const auto botPf = d_pnm->mkNode(

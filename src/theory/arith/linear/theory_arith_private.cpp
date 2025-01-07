@@ -1418,7 +1418,7 @@ TrustNode TheoryArithPrivate::dioCutting()
           d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
       std::vector<Pf> args{pfGt, pfLt};
       std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
-      std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
+      std::vector<Node> coeffsUse = getMacroSumUbCoeff(nm, args, coeffs);
       Pf pfSum =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
       Node falsen = nm->mkConst(false);
@@ -4573,7 +4573,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
             [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
         // ensure correct types
         std::vector<Node> farkasCoefficientsUse =
-            getMacroSumUbCoeff(conflictPfs, farkasCoefficients);
+            getMacroSumUbCoeff(nm, conflictPfs, farkasCoefficients);
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
