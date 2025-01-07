@@ -340,7 +340,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       }
       else
       {
-        Node pi = mkPi();
+        Node pi = mkPi(nm);
 
         // range of the skolem
         Node rlem;

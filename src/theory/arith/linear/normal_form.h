@@ -1133,12 +1133,13 @@ public:
   friend class Comparison;
 
   /** Returns a node that if asserted ensures v is the abs of this polynomial.*/
-  Node makeAbsCondition(Variable v){
-    return makeAbsCondition(v, *this);
+  Node makeAbsCondition(NodeManager* nm, Variable v)
+  {
+    return makeAbsCondition(nm, v, *this);
   }
 
   /** Returns a node that if asserted ensures v is the abs of p.*/
-  static Node makeAbsCondition(Variable v, Polynomial p);
+  static Node makeAbsCondition(NodeManager* nm, Variable v, Polynomial p);
 
 };/* class Polynomial */
 
@@ -1342,7 +1343,7 @@ private:
    * Creates a node in normal form equivalent to (= l 0).
    * All variables in l are integral.
    */
-  static Node mkIntEquality(const Polynomial& l);
+  static Node mkIntEquality(NodeManager* nm, const Polynomial& l);
 
   /**
    * Creates a comparison equivalent to (k l 0).
@@ -1385,7 +1386,10 @@ public:
 
   Kind comparisonKind() const { return comparisonKind(getNode()); }
 
-  static Comparison mkComparison(Kind k, const Polynomial& l, const Polynomial& r);
+  static Comparison mkComparison(NodeManager* nm,
+                                 Kind k,
+                                 const Polynomial& l,
+                                 const Polynomial& r);
 
   /** Returns true if the comparison is a boolean constant. */
   bool isBoolean() const;
