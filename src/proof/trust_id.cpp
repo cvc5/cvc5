@@ -90,6 +90,7 @@ const char* toString(TrustId id)
     case TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM:
       return "ARITH_NL_COMPARE_LIT_TRANSFORM";
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
+    case TrustId::ARITH_STATIC_LEARN: return "ARITH_STATIC_LEARN";
     case TrustId::ARITH_NL_COMPARE_LEMMA: return "ARITH_NL_COMPARE_LEMMA";
     case TrustId::DIAMONDS: return "DIAMONDS";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
