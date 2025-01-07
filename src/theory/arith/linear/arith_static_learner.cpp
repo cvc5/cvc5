@@ -24,12 +24,12 @@
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "proof/proof.h"
-#include "proof/proof_node_algorithm.h"
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/arith_proof_utilities.h"
-#include "smt/env.h"
-#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
+#include "smt/env.h"
+#include "theory/arith/arith_proof_utilities.h"
+#include "theory/arith/arith_utilities.h"
 #include "util/statistics_registry.h"
 
 using namespace std;
@@ -402,7 +402,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
             << "- prove " << b << " from " << ita->second << std::endl;
         // To weaken a bound, we do the following:
         //          ---------- EVALUATE, TRUE_ELIM
-        // c >= n1  n1-n2 >= 0 
+        // c >= n1  n1-n2 >= 0
         // ------------------- MACRO_ARITH_SCALE_SUM_UB
         // c + (n1-n2) >= n1
         // ------------------ MACRO_SR_PRED_TRANSFORM
@@ -410,27 +410,31 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
         // where n1, n2 are numeral constants such that n1 >= n2. The same goes
         // for the other relations.
         Node diff = nm->mkNode(Kind::SUB, ita->second[1], b[1]);
-        Node diffRel = nm->mkNode(ck, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
+        Node diffRel = nm->mkNode(
+            ck, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
         Node dreval = evaluate(diffRel, {}, {}, false);
-        if (dreval==truen)
+        if (dreval == truen)
         {
           Node dreq = diffRel.eqNode(dreval);
           cdp.addStep(dreq, ProofRule::EVALUATE, {}, {diffRel});
           cdp.addStep(diffRel, ProofRule::TRUE_ELIM, {dreq}, {});
-          // by convention, macro sum ub requires negative coefficients for upper bounds
-          Node one = nm->mkConstInt(Rational((ck==Kind::GEQ || ck==Kind::GT) ? -1 : 1));
+          // by convention, macro sum ub requires negative coefficients for
+          // upper bounds
+          Node one = nm->mkConstInt(
+              Rational((ck == Kind::GEQ || ck == Kind::GT) ? -1 : 1));
           Trace("arith-static-pf")
-            << "- add " << ita->second << " with " << diffRel << std::endl;
+              << "- add " << ita->second << " with " << diffRel << std::endl;
           std::vector<Node> premises{ita->second, diffRel};
           std::vector<Node> cpre{one, one};
           std::vector<Node> coeff = getMacroSumUbCoeff(premises, cpre);
           ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
           Trace("arith-static-pf")
-            << "- check " << premises << " " << coeff << std::endl;
-          Node meq = pc->checkDebug(ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
-          cdp.addStep(meq, ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
-          Trace("arith-static-pf")
-            << "- got " << meq << std::endl;
+              << "- check " << premises << " " << coeff << std::endl;
+          Node meq = pc->checkDebug(
+              ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
+          cdp.addStep(
+              meq, ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
+          Trace("arith-static-pf") << "- got " << meq << std::endl;
           cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {meq}, {eq});
           continue;
         }

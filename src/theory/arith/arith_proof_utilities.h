@@ -44,7 +44,7 @@ namespace arith {
  */
 std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs);
-/** 
+/**
  * Same as above, but with proven formulas.
  */
 std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
