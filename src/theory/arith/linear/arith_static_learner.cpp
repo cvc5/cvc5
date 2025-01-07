@@ -26,6 +26,7 @@
 #include "proof/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "util/statistics_registry.h"
+#include "proof/proof_node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -243,7 +244,7 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
             nm->mkConstRealOrInt(n.getType(),
                                  second.getNoninfinitesimalPart())));
       }
-      nGeqMin = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nGeqMin);
+      nGeqMin = conj.empty() ? nGeqMin : nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nGeqMin);
       addLearnedLemma(nGeqMin, learned);
       Trace("arith::static") << n << " iteConstant"  << nGeqMin << endl;
       ++(d_statistics.d_iteConstantApplications);
@@ -281,7 +282,7 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
             nm->mkConstRealOrInt(n.getType(),
                                  second.getNoninfinitesimalPart())));
       }
-      nLeqMax = nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nLeqMax);
+      nLeqMax = conj.empty() ? nLeqMax : nm->mkNode(Kind::IMPLIES, nm->mkAnd(conj), nLeqMax);
       addLearnedLemma(nLeqMax, learned);
       Trace("arith::static") << n << " iteConstant"  << nLeqMax << endl;
       ++(d_statistics.d_iteConstantApplications);
@@ -338,9 +339,67 @@ void ArithStaticLearner::addLearnedLemma(TNode n,
 
 std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
 {
-  // proofs not yet supported
+  Trace("arith-static-pf") << "Prove: " << fact << std::endl;
+  std::vector<Node> antec;
+  Node conc = fact;
+  if (fact.getKind()==Kind::IMPLIES)
+  {
+    if (fact[0].getKind()==Kind::AND)
+    {
+      antec.insert(antec.end(), fact[0].begin(), fact[0].end());
+    }
+    else
+    {
+      antec.push_back(fact[0]);
+    }
+    conc = fact[1];
+  }
+  Kind ck = conc.getKind();
+  Assert (conc.getNumChildren()==2 && conc[0].getKind()==Kind::ITE);
+  NodeManager * nm = nodeManager();
   CDProof cdp(d_env);
-  cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
+  Node cond = conc[0][0];
+  std::vector<Node> branches;
+  std::vector<Node> congPremises;
+  Node ceq = cond.eqNode(cond);
+  congPremises.push_back(ceq);
+  cdp.addStep(ceq, ProofRule::REFL, {}, {cond});
+  Node truen = nm->mkConst(true);
+  for (size_t i=1; i<=2; i++)
+  {
+    Node b = nm->mkNode(ck, conc[0][i], conc[1]);
+    branches.push_back(b);
+    Node beval = evaluate(b, {}, {}, false);
+    Node eq = b.eqNode(truen);
+    congPremises.push_back(eq);
+    if (beval==truen)
+    {
+      cdp.addStep(eq, ProofRule::EVALUATE, {}, {b});
+    }
+    else
+    {
+      // TODO
+      cdp.addTrustedStep(eq, TrustId::ARITH_STATIC_LEARN, {}, {});
+    }
+  }
+  Node pullc = nm->mkNode(Kind::ITE, conc[0][0], branches[0], branches[1]);
+  Node equiv = conc.eqNode(pullc);
+  Trace("arith-static-pf") << "- subgoal " << equiv << std::endl;
+  cdp.addTrustedStep(equiv, TrustId::ARITH_STATIC_LEARN, {}, {});
+  Node trueIte = nm->mkNode(Kind::ITE, conc[0][0], truen, truen);
+  Node equiv2 = pullc.eqNode(trueIte);
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(pullc, cargs);
+  cdp.addStep(equiv2, cr, congPremises, cargs);
+  Node equiv3 = trueIte.eqNode(truen);
+  cdp.addTrustedStep(equiv3, TrustId::ARITH_STATIC_LEARN, {}, {});
+  Node concEqTrue = conc.eqNode(truen);
+  cdp.addStep(concEqTrue, ProofRule::TRANS, {equiv, equiv2, equiv3}, {});
+  cdp.addStep(conc, ProofRule::TRUE_ELIM, {concEqTrue}, {});
+  if (!antec.empty())
+  {
+    cdp.addStep(fact, ProofRule::SCOPE, {conc}, antec);
+  }
   return cdp.getProofFor(fact);
 }
 

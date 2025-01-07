@@ -105,3 +105,21 @@
     (ite (>= y 0/1)
       (> (- x) y)
       (> (- x) (- y)))))
+
+; ITE lifting
+
+(define-rule arith-geq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (>= (ite C t s) r)
+  (ite C (>= t r) (>= s r)))
+
+(define-rule arith-gt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (> (ite C t s) r)
+  (ite C (> t r) (> s r)))
+
+(define-rule arith-leq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (<= (ite C t s) r)
+  (ite C (<= t r) (<= s r)))
+
+(define-rule arith-lt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (< (ite C t s) r)
+  (ite C (< t r) (< s r)))

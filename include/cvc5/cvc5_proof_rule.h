@@ -3186,6 +3186,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_ABS_INT_GT),
   /** Auto-generated from RARE rule arith-abs-real-gt */
   EVALUE(ARITH_ABS_REAL_GT),
+  /** Auto-generated from RARE rule arith-geq-ite-lift */
+  EVALUE(ARITH_GEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-gt-ite-lift */
+  EVALUE(ARITH_GT_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-leq-ite-lift */
+  EVALUE(ARITH_LEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-lt-ite-lift */
+  EVALUE(ARITH_LT_ITE_LIFT),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
