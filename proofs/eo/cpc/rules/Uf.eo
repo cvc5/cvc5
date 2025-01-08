@@ -113,7 +113,7 @@
 )
 
 (declare-rule binder_cong ((T Type) (U Type) (q (-> @List T U)) (xs @List) (t T) (s T))
-    :premiss ((= t s))
+    :premises ((= t s))
     :args ((q xs t))
     :conclusion (= (q xs t) (q xs s))
 )
@@ -151,7 +151,7 @@
 (declare-rule nary_cong ((U Type) (E Bool) (t U))
     :premise-list E and
     :args (t)
-    :conclusion (eo::define ((f ($get_fun t))) (= t ($mk_nary_cong_rhs t E)))
+    :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
 ; rule: true_intro

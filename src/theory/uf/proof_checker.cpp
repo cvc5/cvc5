@@ -116,6 +116,10 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(t[0]);
       rchildren.push_back(t[0]);
     }
+    else
+    {
+      AlwaysAssert(!t.isClosure());
+    }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       Node eqp = children[i];

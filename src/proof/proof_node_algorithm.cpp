@@ -263,6 +263,9 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       // tuples are n-ary, others are fixed
       r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
       break;
+    case Kind::APPLY_SELECTOR:
+      r = n.getOperator().getType()[0].isTuple() ? ProofRule::FO_CONG : ProofRule::CONG;
+      break;
     default:
       if (n.isClosure())
       {

@@ -874,7 +874,7 @@ void AlfPrinter::getChildrenFromProofRule(
   const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
   switch (pn->getRule())
   {
-    case ProofRule::CONG:
+    case ProofRule::BINDER_CONG:
     {
       Node res = pn->getResult();
       if (res[0].isClosure())
