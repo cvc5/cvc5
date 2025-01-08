@@ -99,27 +99,6 @@
     :conclusion (eo::define ((f ($get_fun t))) ($mk_cong f f E))
 )
 
-; program: $mk_nary_cong_lhs
-; args:
-; - f (-> U U U): >
-;   The function we are applying congruence over. This is
-;   assumed to be a right-associative n-ary operator with nil terminator, i.e.
-;   marked with :right-assoc-nil.
-; - E Bool: A conjunction of the remaining equalities we have left to process.
-; return: >
-;   The left hand side of the equality proven by nary_cong for f and
-;   the given premises E.
-; note: >
-;   We use two side conditions for computing each side of the returned
-;   equality. This avoids constructing equalities between intermediate terms.
-(program $mk_nary_cong_lhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U U) Bool) Bool
-    (
-        (($mk_nary_cong_lhs f (and (= s1 s2) tail)) (eo::cons f s1 ($mk_nary_cong_lhs f tail)))
-        (($mk_nary_cong_lhs f true)                 (eo::nil f))
-    )
-)
-
 ; program: $mk_nary_cong_rhs
 ; args:
 ; - f (-> U U U): The function we are applying congruence over.
@@ -127,12 +106,11 @@
 ; return: >
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
-; note: This program is analogous to $mk_nary_cong_lhs.
-(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
+(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
     ((-> U U U) Bool) Bool
     (
-        (($mk_nary_cong_rhs f (and (= s1 s2) tail)) (eo::cons f s2 ($mk_nary_cong_rhs f tail)))
-        (($mk_nary_cong_rhs f true)                 (eo::nil f))
+        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
+        (($mk_nary_cong_rhs nil true)                       nil)
     )
 )
 
@@ -144,8 +122,8 @@
 ; - t U: >
 ;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is right-associative n-ary operator with nil terminator, e.g.
-;   it is marked :right-assoc-nil. It is typically (though not required) to
-;   be the left hand side of the equality we are proving.
+;   it is marked :right-assoc-nil. It is required to be the left hand side of
+;   the equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
@@ -156,7 +134,7 @@
 (declare-rule nary_cong ((U Type) (E Bool) (t U))
     :premise-list E and
     :args (t)
-    :conclusion (eo::define ((f ($get_fun t))) (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E)))
+    :conclusion (eo::define ((f ($get_fun t))) (= t ($mk_nary_cong_rhs t E)))
 )
 
 ; rule: true_intro

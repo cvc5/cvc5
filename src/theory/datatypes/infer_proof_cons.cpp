@@ -23,6 +23,7 @@
 #include "theory/model_manager.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "proof/proof_node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -189,7 +190,9 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         // s(exp[0]) = r
         Node asn = ProofRuleChecker::mkKindNode(nm, Kind::APPLY_SELECTOR);
         Node seq = sl.eqNode(sr);
-        cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(sl, cargs);
+        cdp->addStep(seq, cr, {exp}, cargs);
         Node sceq = sr.eqNode(concEq[1]);
         cdp->addTheoryRewriteStep(sceq, ProofRewriteRule::DT_COLLAPSE_SELECTOR);
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});

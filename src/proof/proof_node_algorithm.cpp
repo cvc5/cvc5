@@ -17,6 +17,7 @@
 
 #include "proof/proof_node.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -264,6 +265,10 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       break;
     default:
       if (n.isClosure())
+      {
+        AlwaysAssert(false);
+      }
+      if (GenericOp::isIndexedOperatorKind(k))
       {
         AlwaysAssert(false);
       }
