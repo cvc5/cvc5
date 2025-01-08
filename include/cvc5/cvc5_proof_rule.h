@@ -1050,7 +1050,8 @@ enum ENUM(ProofRule)
    * ``cvc5::Kind::EQUAL``, as well as indexed functions such as
    * ``cvc5::Kind::BITVECTOR_EXTRACT``.
    *
-   * It is also used for ``cvc5::Kind::APPLY_UF``.
+   * It is also used for ``cvc5::Kind::APPLY_UF``, where :math:`f` is an
+   * uninterpreted function.
    *
    * It is not used for kinds with variadic arity, or for kind
    * ``cvc5::Kind::HO_APPLY``, which use rules
