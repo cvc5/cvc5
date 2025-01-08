@@ -1,5 +1,7 @@
 (include "../theories/Builtin.eo")
 
+;;;;; ProofRule::REFL
+
 ; rule: refl
 ; implements: ProofRule::REFL
 ; args:
@@ -9,6 +11,8 @@
     :args (t)
     :conclusion (= t t)
 )
+
+;;;;; ProofRule::SYMM
 
 ; rule: symm
 ; implements: ProofRule::SYMM
@@ -25,6 +29,8 @@
                 ((not (= t1 t2)) (not (= t2 t1)))
             ))
 )
+
+;;;;; ProofRule::TRANS
 
 ; program: $mk_trans
 ; args:
@@ -60,6 +66,7 @@
         (((and (= t1 t2) tail) ($mk_trans t1 t2 tail))))
 )
 
+;;;;; ProofRule::CONG
 
 ; program: $mk_cong
 ; args:
@@ -98,6 +105,8 @@
     :args (t)
     :conclusion (eo::define ((f ($get_fun t))) ($mk_cong f f E))
 )
+
+;;;;; ProofRule::NARY_CONG
 
 ; program: $mk_nary_cong_rhs
 ; args:
