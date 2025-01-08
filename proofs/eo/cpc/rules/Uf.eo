@@ -128,7 +128,7 @@
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
-    (U Bool) Bool
+    (U Bool) U
     (
         (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
         (($mk_nary_cong_rhs nil true)                       nil)

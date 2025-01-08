@@ -86,12 +86,22 @@
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
 
+; define: $head
+; args:
+; - x S: The term to inspect.
+; return: the head of x, where x is expected to be a function application.
+(define $head ((S Type :implicit) (x S))
+  (eo::match ((T Type) (f (-> T T T)) (x1 T) (x2 T :list))
+    x
+    (((f x1 x2) x1)))
+)
+
 ; define: $tail
 ; args:
 ; - x S: The term to inspect.
 ; return: the tail of x, where x is expected to be a function application.
 (define $tail ((S Type :implicit) (x S))
-  (eo::match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
+  (eo::match ((T Type) (f (-> T T T)) (x1 T) (x2 T :list))
     x
     (((f x1 x2) x2)))
 )
