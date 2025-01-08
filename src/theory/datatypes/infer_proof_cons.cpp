@@ -17,13 +17,13 @@
 
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/model_manager.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
-#include "proof/proof_node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
