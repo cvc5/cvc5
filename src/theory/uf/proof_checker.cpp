@@ -97,7 +97,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     Node t = args[0];
-    Trace("uf-pfcheck") << "congruence " << id << " for " << args[0] << std::endl;
+    Trace("uf-pfcheck") << "congruence " << id << " for " << args[0]
+                        << std::endl;
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
@@ -173,7 +174,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   {
     Kind k = Kind::HO_APPLY;
     // kind argument is optional, defaults to HO_APPLY
-    if (args.size()==1)
+    if (args.size() == 1)
     {
       if (!getKind(args[0], k))
       {

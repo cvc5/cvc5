@@ -480,11 +480,7 @@ bool EqProof::expandTransitivityForDisequalities(
         premises[0][0]);
     std::vector<Node> cargs;
     ProofRule rule = expr::getCongRule(congConclusion[0], cargs);
-    p->addStep(congConclusion,
-               rule,
-               substPremises,
-               cargs,
-               true);
+    p->addStep(congConclusion, rule, substPremises, cargs, true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
                           << congConclusion << "\n";
@@ -613,11 +609,7 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
       << subChildren << "\n";
   std::vector<Node> cargs;
   ProofRule rule = expr::getCongRule(conclusion[termPos], cargs);
-  p->addStep(congConclusion,
-             rule,
-             {subChildren},
-             cargs,
-             true);
+  p->addStep(congConclusion, rule, {subChildren}, cargs, true);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "
                         << congConclusion << "\n";

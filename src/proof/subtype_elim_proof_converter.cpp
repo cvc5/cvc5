@@ -17,9 +17,9 @@
 
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "proof/proof_node_algorithm.h"
 
 namespace cvc5::internal {
 
