@@ -10,10 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Arithmetic static learner
  */
 
 #include "theory/arith/linear/arith_static_learner.h"
@@ -182,7 +179,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
       {  // (ite (<= x y) x y)
         Node nLeqX = NodeBuilder(nm, Kind::LEQ) << n << t;
         Node nLeqY = NodeBuilder(nm, Kind::LEQ) << n << e;
-        Trace("arith::static") << n << "is a min =>" << nLeqX << nLeqY << endl;
+        Trace("arith::static")
+            << n << " is a min =>" << nLeqX << " " << nLeqY << endl;
         addLearnedLemma(nLeqX, learned);
         addLearnedLemma(nLeqY, learned);
         ++(d_statistics.d_iteMinMaxApplications);
@@ -193,7 +191,8 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
       {  // (ite (>= x y) x y)
         Node nGeqX = NodeBuilder(nm, Kind::GEQ) << n << t;
         Node nGeqY = NodeBuilder(nm, Kind::GEQ) << n << e;
-        Trace("arith::static") << n << "is a max =>" << nGeqX << nGeqY << endl;
+        Trace("arith::static")
+            << n << " is a max =>" << nGeqX << " " << nGeqY << endl;
         addLearnedLemma(nGeqX, learned);
         addLearnedLemma(nGeqY, learned);
         ++(d_statistics.d_iteMinMaxApplications);
@@ -375,99 +374,168 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   NodeManager* nm = nodeManager();
   CDProof cdp(d_env);
   Node cond = conc[0][0];
-  std::vector<Node> branches;
-  std::vector<Node> congPremises;
-  Node ceq = cond.eqNode(cond);
-  congPremises.push_back(ceq);
-  cdp.addStep(ceq, ProofRule::REFL, {}, {cond});
   Node truen = nm->mkConst(true);
-  std::map<Node, Node>::iterator ita;
-  // prove the branches
-  for (size_t i = 1; i <= 2; i++)
+  if (cond[0] == conc[0][2] && cond[1] == conc[0][1]
+      && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {
-    Node b = nm->mkNode(ck, conc[0][i], conc[1]);
-    branches.push_back(b);
-    Node beval = evaluate(b, {}, {}, false);
-    Node eq = b.eqNode(truen);
-    congPremises.push_back(eq);
-    if (beval == truen)
+    Trace("arith-static-pf") << "(Flipped) min/max term..." << std::endl;
+    // flip relation, likely a min/max term.
+    // the transformation below turns e.g.
+    // (>= (ite (< s t) t s) t) into (>= (ite (>= s t) s t) t)
+    Kind crk = negateKind(cond.getKind());
+    Node iteFlip = nm->mkNode(
+        Kind::ITE, nm->mkNode(crk, cond[0], cond[1]), conc[0][2], conc[0][1]);
+    Node iteFlipN =
+        nm->mkNode(Kind::ITE, cond.negate(), conc[0][2], conc[0][1]);
+    Node eq1 = conc[0].eqNode(iteFlipN);
+    // shown by RARE rule ite-not-cond
+    cdp.addTrustedStep(eq1, TrustId::ARITH_STATIC_LEARN, {}, {});
+    Trace("arith-static-pf") << "- subgoal " << eq1 << std::endl;
+    Node eq2 = iteFlipN.eqNode(iteFlip);
+    if (rewrite(eq2) == truen)
     {
-      cdp.addStep(eq, ProofRule::EVALUATE, {}, {b});
+      // shown by rewriting
+      cdp.addStep(eq2, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq2});
+      Node eqt = conc[0].eqNode(iteFlip);
+      // ------------------------------------ ite-not-cond, MACRO_SR_PRED_INTRO
+      // (ite (< s t) t s) = (ite (not (< s t)) s t) = (ite (>= s t) s t)
+      // ---------------------------------------------------------------- TRANS
+      // (ite (< s t) t s) = (ite (>= s t) s t)
+      cdp.addStep(eqt, ProofRule::TRANS, {eq1, eq2}, {});
+      Node eqrefl = conc[1].eqNode(conc[1]);
+      cdp.addStep(eqrefl, ProofRule::REFL, {}, {conc[1]});
+      std::vector<Node> congPremises;
+      congPremises.push_back(eqt);
+      congPremises.push_back(eqrefl);
+      Node npred = nm->mkNode(conc.getKind(), iteFlip, conc[1]);
+      std::vector<Node> cargs;
+      ProofRule cr = expr::getCongRule(conc, cargs);
+      Node equiv = conc.eqNode(npred);
+      // ------------------------------------- from above  ------ REFL
+      // (ite (< s t) t s) = (ite (>= s t) s t)             t = t
+      // -------------------------------------------------------- CONG
+      // (>= (ite (< s t) t s) t) = (>= (ite (>= s t) s t) t)
+      cdp.addStep(equiv, cr, congPremises, cargs);
+      Node equivs = npred.eqNode(conc);
+      cdp.addStep(equivs, ProofRule::SYMM, {equiv}, {});
+      // npred can be shown by a RARE rule arith-{min,max}-*
+      cdp.addTrustedStep(npred, TrustId::ARITH_STATIC_LEARN, {}, {});
+      //                          -------------------------- from above
+      //                          (>= (ite (< s t) t s) t) = (>= I t)
+      // ------ arith-{min,max}-* ----------------------------------- SYMM
+      // (>= I t)                 (>= I t) = (>= (ite (< s t) t s) t)
+      // ---------------------------------------------------- EQ_RESOLVE
+      // (>= (ite (< s t) t s) t)
+      // where I is (ite (>= s t) s t).
+      Trace("arith-static-pf") << "- subgoal " << npred << std::endl;
+      cdp.addStep(conc, ProofRule::EQ_RESOLVE, {npred, equivs}, {});
     }
     else
     {
-      ita = amap.find(conc[0][i]);
-      if (ita != amap.end())
-      {
-        // after lifting, the branch may be an antecedant
-        if (ita->second==b)
-        {
-          cdp.addStep(eq, ProofRule::TRUE_INTRO, {ita->second}, {});
-          continue;
-        }
-        Trace("arith-static-pf")
-            << "- prove " << b << " from " << ita->second << std::endl;
-        // To weaken a bound, we do the following:
-        //          ---------- EVALUATE, TRUE_ELIM
-        // c >= n1  n1-n2 >= 0
-        // ------------------- MACRO_ARITH_SCALE_SUM_UB
-        // c + (n1-n2) >= n1
-        // ------------------ MACRO_SR_PRED_TRANSFORM
-        // (c >= n2) = true
-        // where n1, n2 are numeral constants such that n1 >= n2. The same goes
-        // for the other relations.
-        Node diff = nm->mkNode(Kind::SUB, ita->second[1], b[1]);
-        Node diffRel = nm->mkNode(
-            ck, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
-        Node dreval = evaluate(diffRel, {}, {}, false);
-        if (dreval == truen)
-        {
-          Node dreq = diffRel.eqNode(dreval);
-          cdp.addStep(dreq, ProofRule::EVALUATE, {}, {diffRel});
-          cdp.addStep(diffRel, ProofRule::TRUE_ELIM, {dreq}, {});
-          // by convention, macro sum ub requires negative coefficients for
-          // upper bounds
-          Node one = nm->mkConstInt(
-              Rational((ck == Kind::GEQ || ck == Kind::GT) ? -1 : 1));
-          Trace("arith-static-pf")
-              << "- add " << ita->second << " with " << diffRel << std::endl;
-          std::vector<Node> premises{ita->second, diffRel};
-          std::vector<Node> cpre{one, one};
-          std::vector<Node> coeff = getMacroSumUbCoeff(premises, cpre);
-          ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-          Trace("arith-static-pf")
-              << "- check " << premises << " " << coeff << std::endl;
-          Node meq = pc->checkDebug(
-              ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
-          cdp.addStep(
-              meq, ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
-          Trace("arith-static-pf") << "- got " << meq << std::endl;
-          cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {meq}, {eq});
-          continue;
-        }
-      }
-      Trace("arith-static-pf") << "FAILED to prove branch " << b << std::endl;
+      Trace("arith-static-pf") << "...failed rewrite " << eq2 << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
       return cdp.getProofFor(fact);
     }
   }
-  Node pullc = nm->mkNode(Kind::ITE, conc[0][0], branches[0], branches[1]);
-  Node equiv = conc.eqNode(pullc);
-  // should be proven by a RARE rewrite arith-*-ite-lift
-  Trace("arith-static-pf") << "- subgoal " << equiv << std::endl;
-  cdp.addTrustedStep(equiv, TrustId::ARITH_STATIC_LEARN, {}, {});
-  Node trueIte = nm->mkNode(Kind::ITE, conc[0][0], truen, truen);
-  Node equiv2 = pullc.eqNode(trueIte);
-  std::vector<Node> cargs;
-  ProofRule cr = expr::getCongRule(pullc, cargs);
-  cdp.addStep(equiv2, cr, congPremises, cargs);
-  Node equiv3 = trueIte.eqNode(truen);
-  // should be proven by RARE rewrite ite-eq-branch
-  Trace("arith-static-pf") << "- subgoal " << equiv3 << std::endl;
-  cdp.addTrustedStep(equiv3, TrustId::ARITH_STATIC_LEARN, {}, {});
-  Node concEqTrue = conc.eqNode(truen);
-  cdp.addStep(concEqTrue, ProofRule::TRANS, {equiv, equiv2, equiv3}, {});
-  cdp.addStep(conc, ProofRule::TRUE_ELIM, {concEqTrue}, {});
+  else if (cond[0] == conc[0][1] && cond[1] == conc[0][2]
+           && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
+  {
+    Trace("arith-static-pf") << "Min/max term..." << std::endl;
+    cdp.addTrustedStep(conc, TrustId::ARITH_STATIC_LEARN, {}, {});
+  }
+  else
+  {
+    std::vector<Node> branches;
+    std::vector<Node> congPremises;
+    Node ceq = cond.eqNode(cond);
+    congPremises.push_back(ceq);
+    cdp.addStep(ceq, ProofRule::REFL, {}, {cond});
+    std::map<Node, Node>::iterator ita;
+    // prove the branches
+    for (size_t i = 1; i <= 2; i++)
+    {
+      Node b = nm->mkNode(ck, conc[0][i], conc[1]);
+      branches.push_back(b);
+      Node beval = evaluate(b, {}, {}, false);
+      Node eq = b.eqNode(truen);
+      congPremises.push_back(eq);
+      if (beval == truen)
+      {
+        cdp.addStep(eq, ProofRule::EVALUATE, {}, {b});
+      }
+      else
+      {
+        ita = amap.find(conc[0][i]);
+        if (ita != amap.end())
+        {
+          // after lifting, the branch may be an antecedant
+          if (ita->second == b)
+          {
+            cdp.addStep(eq, ProofRule::TRUE_INTRO, {ita->second}, {});
+            continue;
+          }
+          Trace("arith-static-pf")
+              << "- prove " << b << " from " << ita->second << std::endl;
+          // To weaken a bound, we do the following:
+          //          ---------- EVALUATE, TRUE_ELIM
+          // c >= n1  n1-n2 >= 0
+          // ------------------- MACRO_ARITH_SCALE_SUM_UB
+          // c + (n1-n2) >= n1
+          // ------------------ MACRO_SR_PRED_TRANSFORM
+          // (c >= n2) = true
+          // where n1, n2 are numeral constants such that n1 >= n2. The same
+          // goes for the other relations.
+          Node diff = nm->mkNode(Kind::SUB, ita->second[1], b[1]);
+          Node diffRel = nm->mkNode(
+              ck, diff, nm->mkConstRealOrInt(diff.getType(), Rational(0)));
+          Node dreval = evaluate(diffRel, {}, {}, false);
+          if (dreval == truen)
+          {
+            Node dreq = diffRel.eqNode(dreval);
+            cdp.addStep(dreq, ProofRule::EVALUATE, {}, {diffRel});
+            cdp.addStep(diffRel, ProofRule::TRUE_ELIM, {dreq}, {});
+            // by convention, macro sum ub requires negative coefficients for
+            // upper bounds
+            Node one = nm->mkConstInt(
+                Rational((ck == Kind::GEQ || ck == Kind::GT) ? -1 : 1));
+            Trace("arith-static-pf")
+                << "- add " << ita->second << " with " << diffRel << std::endl;
+            std::vector<Node> premises{ita->second, diffRel};
+            std::vector<Node> cpre{one, one};
+            std::vector<Node> coeff = getMacroSumUbCoeff(premises, cpre);
+            ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+            Trace("arith-static-pf")
+                << "- check " << premises << " " << coeff << std::endl;
+            Node meq = pc->checkDebug(
+                ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
+            cdp.addStep(
+                meq, ProofRule::MACRO_ARITH_SCALE_SUM_UB, premises, coeff);
+            Trace("arith-static-pf") << "- got " << meq << std::endl;
+            cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {meq}, {eq});
+            continue;
+          }
+        }
+        Trace("arith-static-pf") << "FAILED to prove branch " << b << std::endl;
+        cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
+        return cdp.getProofFor(fact);
+      }
+    }
+    Node pullc = nm->mkNode(Kind::ITE, conc[0][0], branches[0], branches[1]);
+    Node equiv = conc.eqNode(pullc);
+    Trace("arith-static-pf") << "- subgoal " << equiv << std::endl;
+    cdp.addTrustedStep(equiv, TrustId::ARITH_STATIC_LEARN, {}, {});
+    Node trueIte = nm->mkNode(Kind::ITE, conc[0][0], truen, truen);
+    Node equiv2 = pullc.eqNode(trueIte);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(pullc, cargs);
+    cdp.addStep(equiv2, cr, congPremises, cargs);
+    Node equiv3 = trueIte.eqNode(truen);
+    Trace("arith-static-pf") << "- subgoal " << equiv3 << std::endl;
+    cdp.addTrustedStep(equiv3, TrustId::ARITH_STATIC_LEARN, {}, {});
+    Node concEqTrue = conc.eqNode(truen);
+    cdp.addStep(concEqTrue, ProofRule::TRANS, {equiv, equiv2, equiv3}, {});
+    cdp.addStep(conc, ProofRule::TRUE_ELIM, {concEqTrue}, {});
+  }
   if (!antec.empty())
   {
     cdp.addStep(fact, ProofRule::SCOPE, {conc}, antec);
