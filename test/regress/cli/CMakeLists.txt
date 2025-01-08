@@ -3292,6 +3292,7 @@ set(regress_1_tests
   regress1/strings/non_termination_regular_expression4.smt2
   regress1/strings/non-terminating-rewrite-aent.smt2
   regress1/strings/norn-13.smt2
+  regress1/strings/norn-153-consume.smt2
   regress1/strings/norn-360.smt2
   regress1/strings/norn-ab.smt2
   regress1/strings/norn-re-inter-none.smt2
