@@ -132,7 +132,9 @@ StringEnumLen::StringEnumLen(NodeManager* nm,
                              uint32_t startLength,
                              uint32_t endLength,
                              uint32_t card)
-    : SEnumLen(nm->stringType(), startLength, endLength), d_nm(nm), d_cardinality(card)
+    : SEnumLen(nm->stringType(), startLength, endLength),
+      d_nm(nm),
+      d_cardinality(card)
 {
   mkCurr();
 }
@@ -189,7 +191,8 @@ SeqEnumLen::SeqEnumLen(NodeManager* nm,
 }
 
 SeqEnumLen::SeqEnumLen(const SeqEnumLen& wenum)
-    : SEnumLen(wenum), d_nm(wenum.d_nm),
+    : SEnumLen(wenum),
+      d_nm(wenum.d_nm),
       d_elementEnumerator(new TypeEnumerator(*wenum.d_elementEnumerator)),
       d_elementDomain(wenum.d_elementDomain)
 {
