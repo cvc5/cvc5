@@ -565,7 +565,7 @@ Node Instantiate::getInstantiation(Node q,
     // to track which trigger caused an instantiation.
     if (id != InferenceId::UNKNOWN)
     {
-      pfTerms.push_back(mkInferenceIdNode(id));
+      pfTerms.push_back(mkInferenceIdNode(nodeManager(), id));
       if (!pfArg.isNull())
       {
         pfTerms.push_back(pfArg);
