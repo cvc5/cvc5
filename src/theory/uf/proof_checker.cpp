@@ -165,7 +165,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Assert (args.empty());
+    Assert(args.empty());
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)

@@ -199,10 +199,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     std::vector<Node> cargs;
     ProofRule cr = expr::getCongRule(oldn, cargs);
     Node congEq = oldn.eqNode(n);
-    addStep(cr,
-            childrenEqs,
-            cargs,
-            congEq);
+    addStep(cr, childrenEqs, cargs, congEq);
     // add an equality resolution step to derive normalize clause
     addStep(ProofRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
   }
