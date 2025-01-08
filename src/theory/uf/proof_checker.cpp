@@ -92,32 +92,20 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
-    Assert(args.size() >= 1 && args.size() <= 2);
+    if (args.size() != 1)
+    {
+      return Node::null();
+    }
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    // get the kind encoded as args[0]
-    Kind k;
-    if (!getKind(args[0], k))
-    {
-      return Node::null();
-    }
-    // cannot use HO_APPLY
-    if (k == Kind::UNDEFINED_KIND || k == Kind::HO_APPLY)
-    {
-      return Node::null();
-    }
-    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
-                        << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (args.size() == 2)
+    Trace("uf-pfcheck") << "congruence for " << args[0] << std::endl;
+    Kind k = args[0].getKind();
+    if (t.getMetaKind() == metakind::PARAMETERIZED)
     {
       // parameterized kinds require the operator
-      lchildren.push_back(args[1]);
-      rchildren.push_back(args[1]);
-    }
-    else if (args.size() > 2)
-    {
-      return Node::null();
+      lchildren.push_back(t.getOperator());
+      rchildren.push_back(t.getOperator());
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
@@ -176,11 +164,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Kind k;
-    if (!getKind(args[0], k))
-    {
-      return Node::null();
-    }
+    Assert (args.empty());
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
     for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
@@ -194,8 +178,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = nodeManager();
-    Node l = nm->mkNode(k, lchildren);
-    Node r = nm->mkNode(k, rchildren);
+    Node l = nm->mkNode(kind::HO_APPLY, lchildren);
+    Node r = nm->mkNode(kind::HO_APPLY, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)

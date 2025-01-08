@@ -901,8 +901,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CONG:
-    case ProofRule::NARY_CONG:
     case ProofRule::ARITH_POLY_NORM_REL:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0], true);
@@ -910,11 +908,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
-    case ProofRule::HO_CONG:
-    {
-      // argument is ignored
-      return;
-    }
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector

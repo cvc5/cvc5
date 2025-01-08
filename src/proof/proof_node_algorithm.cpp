@@ -263,6 +263,10 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
       break;
     default:
+      if (n.isClosure())
+      {
+        AlwaysAssert(false);
+      }
       if (NodeManager::isNAryKind(k))
       {
         // n-ary operators that are not handled as exceptions above use
@@ -271,17 +275,10 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       }
       break;
   }
-  // Add the arguments
-  NodeManager* nm = NodeManager::currentNM();
-  args.push_back(ProofRuleChecker::mkKindNode(nm, k));
-  if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+  // Add the arguments, which is just the term itself
+  if (r != ProofRule::HO_CONG)
   {
-    args.push_back(n.getOperator());
-  }
-  else if (n.isClosure())
-  {
-    // bound variable list is an argument for closure over congruence
-    args.push_back(n[0]);
+    args.push_back(n);
   }
   return r;
 }
