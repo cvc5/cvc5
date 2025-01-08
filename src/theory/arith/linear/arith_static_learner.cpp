@@ -375,7 +375,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   CDProof cdp(d_env);
   Node cond = conc[0][0];
   Node truen = nm->mkConst(true);
-  if (cond[0] == conc[0][2] && cond[1] == conc[0][1]
+  if (cond.getNumChildren()==2 && cond[0] == conc[0][2] && cond[1] == conc[0][1]
       && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {
     Trace("arith-static-pf") << "(Flipped) min/max term..." << std::endl;
@@ -437,7 +437,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
       return cdp.getProofFor(fact);
     }
   }
-  else if (cond[0] == conc[0][1] && cond[1] == conc[0][2]
+  else if (cond.getNumChildren()==2 && cond[0] == conc[0][1] && cond[1] == conc[0][2]
            && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {
     Trace("arith-static-pf") << "Min/max term..." << std::endl;

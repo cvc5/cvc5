@@ -3198,14 +3198,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_MIN_LT1),
   /** Auto-generated from RARE rule arith-min-lt2 */
   EVALUE(ARITH_MIN_LT2),
-  /** Auto-generated from RARE rule arith-min-leq1 */
-  EVALUE(ARITH_MIN_LEQ1),
-  /** Auto-generated from RARE rule arith-min-leq2 */
-  EVALUE(ARITH_MIN_LEQ2),
-  /** Auto-generated from RARE rule arith-max-gt1 */
-  EVALUE(ARITH_MAX_GT1),
-  /** Auto-generated from RARE rule arith-max-gt2 */
-  EVALUE(ARITH_MAX_GT2),
   /** Auto-generated from RARE rule arith-max-geq1 */
   EVALUE(ARITH_MAX_GEQ1),
   /** Auto-generated from RARE rule arith-max-geq2 */

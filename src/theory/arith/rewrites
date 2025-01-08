@@ -134,21 +134,23 @@
   (<= (ite (< t s) t s) s)
   true)
 
-(define-rule arith-min-leq1 ((t ?) (s ?))
-  (<= (ite (<= t s) t s) t)
-  true)
+; The rules for leq, gt are not applied if the arith static learner
+; is applied only to rewritten terms.
+;(define-rule arith-min-leq1 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) t)
+;  true)
 
-(define-rule arith-min-leq2 ((t ?) (s ?))
-  (<= (ite (<= t s) t s) s)
-  true)
+;(define-rule arith-min-leq2 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) s)
+;  true)
 
-(define-rule arith-max-gt1 ((t ?) (s ?))
-  (>= (ite (> t s) t s) t)
-  true)
+;(define-rule arith-max-gt1 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) t)
+;  true)
 
-(define-rule arith-max-gt2 ((t ?) (s ?))
-  (>= (ite (> t s) t s) s)
-  true)
+;(define-rule arith-max-gt2 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) s)
+;  true)
 
 (define-rule arith-max-geq1 ((t ?) (s ?))
   (>= (ite (>= t s) t s) t)
