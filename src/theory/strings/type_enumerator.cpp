@@ -132,7 +132,7 @@ StringEnumLen::StringEnumLen(NodeManager* nm,
                              uint32_t startLength,
                              uint32_t endLength,
                              uint32_t card)
-    : SEnumLen(nm->stringType(), startLength, endLength), d_cardinality(card)
+    : SEnumLen(nm->stringType(), startLength, endLength), d_nm(nm), d_cardinality(card)
 {
   mkCurr();
 }
