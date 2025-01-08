@@ -96,6 +96,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
+    Node t = args[0];
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
@@ -178,8 +179,8 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       rchildren.push_back(eqp[1]);
     }
     NodeManager* nm = nodeManager();
-    Node l = nm->mkNode(kind::HO_APPLY, lchildren);
-    Node r = nm->mkNode(kind::HO_APPLY, rchildren);
+    Node l = nm->mkNode(Kind::HO_APPLY, lchildren);
+    Node r = nm->mkNode(Kind::HO_APPLY, rchildren);
     return l.eqNode(r);
   }
   else if (id == ProofRule::HO_APP_ENCODE)

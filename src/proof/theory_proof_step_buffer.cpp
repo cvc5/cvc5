@@ -16,6 +16,7 @@
 #include "proof/theory_proof_step_buffer.h"
 
 #include "proof/proof.h"
+#include "proof/proof_node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -195,10 +196,12 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     // steps are added, which, since double negation is eliminated in a
     // pre-rewrite in the Boolean rewriter, will always hold under the
     // standard rewriter.
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(oldn, cargs);
     Node congEq = oldn.eqNode(n);
-    addStep(ProofRule::NARY_CONG,
+    addStep(cr,
             childrenEqs,
-            {ProofRuleChecker::mkKindNode(nm, Kind::OR)},
+            cargs,
             congEq);
     // add an equality resolution step to derive normalize clause
     addStep(ProofRule::EQ_RESOLVE, {oldn, congEq}, {}, n);
