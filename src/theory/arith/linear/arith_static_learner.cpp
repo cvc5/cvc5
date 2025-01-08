@@ -369,8 +369,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
     }
   }
   Kind ck = conc.getKind();
-  Assert(conc.getNumChildren() == 2 && conc[0].getKind() == Kind::ITE
-         && conc[1].isConst());
+  Assert(conc.getNumChildren() == 2 && conc[0].getKind() == Kind::ITE);
   NodeManager* nm = nodeManager();
   CDProof cdp(d_env);
   Node cond = conc[0][0];
