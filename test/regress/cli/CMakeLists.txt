@@ -18,6 +18,7 @@ set(regress_0_tests
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
   regress0/arith/arith-min-max-static-learn.smt2
+  regress0/arith/arith-min-max-static-learn-real.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
   regress0/arith/arith-mixed-types-tighten.smt2
   regress0/arith/arith-strict-relaxed.smt2

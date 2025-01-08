@@ -727,6 +727,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
+        options::ioutils::applyPrintArithLitToken(outDef, true);
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
         out << outDecl.str();
         // [2] print the definitions
