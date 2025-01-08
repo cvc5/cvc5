@@ -189,7 +189,7 @@ SeqEnumLen::SeqEnumLen(NodeManager* nm,
 }
 
 SeqEnumLen::SeqEnumLen(const SeqEnumLen& wenum)
-    : SEnumLen(wenum),
+    : SEnumLen(wenum), d_nm(wenum.d_nm),
       d_elementEnumerator(new TypeEnumerator(*wenum.d_elementEnumerator)),
       d_elementDomain(wenum.d_elementDomain)
 {
