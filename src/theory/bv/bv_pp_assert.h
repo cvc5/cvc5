@@ -41,7 +41,7 @@ class BvPpAssert : protected EnvObj, public ProofGenerator
   BvPpAssert(Env& env, Valuation val);
   ~BvPpAssert();
   /**
-   * Handles specific cases of ppAssert for theory of bitvectors. Currently
+   * Handles specific cases of ppAssert for theory of bit-vectors. Currently
    * this is limited to solving based on extract applied to variables e.g.:
    * (= (extract 3 1 x) #b00) becomes the substitution
    * x -> (concat (extract 7 4 x) #b00 (extract 0 0 x))
@@ -82,7 +82,7 @@ class BvPpAssert : protected EnvObj, public ProofGenerator
    */
   context::CDHashMap<Node, TrustNode> d_ppsolves;
   /**
-   * Maps terms introduced by ppAssert to their original for that can be used
+   * Maps terms introduced by ppAssert to their original form that can be used
    * in justification, e.g.
    * (concat purifyX31 #b0) --> (concat (extract 3 1 x) #b0).
    */
