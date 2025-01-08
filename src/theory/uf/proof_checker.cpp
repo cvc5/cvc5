@@ -35,8 +35,10 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::TRUE_ELIM, this);
   pc->registerChecker(ProofRule::FALSE_INTRO, this);
   pc->registerChecker(ProofRule::FALSE_ELIM, this);
+  pc->registerChecker(ProofRule::FO_CONG, this);
   pc->registerChecker(ProofRule::HO_CONG, this);
   pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
+  pc->registerChecker(ProofRule::BINDER_CONG, this);
 }
 
 Node UfProofRuleChecker::checkInternal(ProofRule id,
@@ -89,7 +91,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::FO_CONG || id == ProofRule::NARY_CONG || id == ProofRule::BINDER_CONG)
   {
     Assert(children.size() > 0);
     if (args.size() != 1)
@@ -97,16 +99,22 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     Node t = args[0];
+    Trace("uf-pfcheck") << "congruence " << id << " for " << args[0] << std::endl;
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    Trace("uf-pfcheck") << "congruence for " << args[0] << std::endl;
     Kind k = args[0].getKind();
     if (t.getMetaKind() == metakind::PARAMETERIZED)
     {
       // parameterized kinds require the operator
       lchildren.push_back(t.getOperator());
       rchildren.push_back(t.getOperator());
+    }
+    if (id == ProofRule::BINDER_CONG)
+    {
+      Assert (t.isClosure());
+      lchildren.push_back(t[0]);
+      rchildren.push_back(t[0]);
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {

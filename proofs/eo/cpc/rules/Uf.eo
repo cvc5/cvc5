@@ -106,6 +106,18 @@
     :conclusion (eo::define ((f ($get_fun t))) ($mk_cong f f E))
 )
 
+(declare-rule fo_cong ((U Type) (E Bool) (f U))
+    :premise-list E and
+    :args (f)
+    :conclusion ($mk_cong f f E)
+)
+
+(declare-rule binder_cong ((T Type) (U Type) (q (-> @List T U)) (xs @List) (t T) (s T))
+    :premiss ((= t s))
+    :args ((q xs t))
+    :conclusion (= (q xs t) (q xs s))
+)
+
 ;;;;; ProofRule::NARY_CONG
 
 ; program: $mk_nary_cong_rhs

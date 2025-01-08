@@ -611,11 +611,12 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
       << "EqProof::expandTransitivityForTheoryDisequalities: adding  "
       << ProofRule::CONG << " step for " << congConclusion << " from "
       << subChildren << "\n";
-  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> cargs;
+  ProofRule rule = expr::getCongRule(conclusion[termPos], cargs);
   p->addStep(congConclusion,
-             ProofRule::CONG,
+             rule,
              {subChildren},
-             {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
+             cargs,
              true);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "

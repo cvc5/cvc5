@@ -266,13 +266,13 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     default:
       if (n.isClosure())
       {
-        AlwaysAssert(false);
+        r = ProofRule::BINDER_CONG;
       }
       if (GenericOp::isIndexedOperatorKind(k))
       {
-        AlwaysAssert(false);
+        r = ProofRule::FO_CONG;
       }
-      if (NodeManager::isNAryKind(k))
+      else if (NodeManager::isNAryKind(k))
       {
         // n-ary operators that are not handled as exceptions above use
         // NARY_CONG
@@ -280,15 +280,14 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       }
       break;
   }
-  // Add the arguments, which is just the term itself
-  if (r != ProofRule::HO_CONG)
-  {
-    args.push_back(n);
-  }
-  else
+  if (r == ProofRule::HO_CONG)
   {
     NodeManager* nm = NodeManager::currentNM();
     args.push_back(ProofRuleChecker::mkKindNode(nm, k));
+  }
+  else
+  {
+    args.push_back(n);
   }
   return r;
 }

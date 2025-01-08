@@ -77,6 +77,8 @@ Node SubtypeElimConverterCallback::convert(Node res,
   {
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
+    case ProofRule::FO_CONG:
+    case ProofRule::BINDER_CONG:
     {
       success = true;
       Node lhs = resc[0];

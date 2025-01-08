@@ -103,12 +103,14 @@ const char* toString(ProofRule rule)
     case ProofRule::TRANS: return "TRANS";
     case ProofRule::CONG: return "CONG";
     case ProofRule::NARY_CONG: return "NARY_CONG";
+    case ProofRule::FO_CONG: return "FO_CONG";
     case ProofRule::TRUE_INTRO: return "TRUE_INTRO";
     case ProofRule::TRUE_ELIM: return "TRUE_ELIM";
     case ProofRule::FALSE_INTRO: return "FALSE_INTRO";
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
+    case ProofRule::BINDER_CONG: return "BINDER_CONG";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:

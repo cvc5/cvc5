@@ -901,6 +901,7 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
+    case ProofRule::FO_CONG:
     case ProofRule::ARITH_POLY_NORM_REL:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0], true);
