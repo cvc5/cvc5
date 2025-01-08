@@ -68,23 +68,12 @@
 
 ;;;;; ProofRule::CONG
 
-; program: $mk_cong
+; program: $mk_cong_rhs
 ; args:
-; - t1 U: The current left hand side of the equality we have proven.
-; - t2 U: The current right hand side of the equality we have proven.
-; - E Bool: A conjunction of the remaining equalities we have left to process.
+; - t U: The left hand side of the equality we have yet to process.
+; - E Bool: A conjunction of the remaining equalities we have left to process, in reverse order.
 ; return: >
-;   An equality where the original terms are applied to the left and
-;   right hand sides of the equalities given by E.
-(program $mk_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
-    (U U Bool) Bool
-    (
-        (($mk_cong f1 f2 (and (= t1 t2) tail)) ($mk_cong (f1 t1) (f2 t2) tail))
-        (($mk_cong t1 t2 true)                 (= t1 t2))
-        (($mk_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
-    )
-)
-
+;   The right hand side of the equality.
 (program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (t3 U) (tail Bool :list))
     (U Bool) U
     (
@@ -101,8 +90,6 @@
 ; - t U: >
 ;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is not n-ary, e.g. it is not marked :right-assoc-nil.
-;   It is typically (though not required) to be the left hand side of the
-;   equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
@@ -112,12 +99,6 @@
     :premise-list E and
     :args (t)
     :conclusion (= t ($mk_cong_rhs t ($nary_reverse E)))
-)
-
-(declare-rule fo_cong ((U Type) (E Bool) (f U))
-    :premise-list E and
-    :args (f)
-    :conclusion ($mk_cong f f E)
 )
 
 ;;;;; ProofRule::NARY_CONG
@@ -156,6 +137,8 @@
     :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
+;;;;; ProofRule::TRUE_INTRO
+
 ; rule: true_intro
 ; implements: ProofRule::TRUE_INTRO
 ; premises:
@@ -165,6 +148,8 @@
     :premises (F)
     :conclusion (= F true)
 )
+
+;;;;; ProofRule::TRUE_ELIM
 
 ; rule: true_elim
 ; implements: ProofRule::TRUE_ELIM
@@ -176,6 +161,8 @@
     :conclusion F
 )
 
+;;;;; ProofRule::FALSE_INTRO
+
 ; rule: false_intro
 ; implements: ProofRule::FALSE_INTRO
 ; premises:
@@ -186,6 +173,7 @@
     :conclusion (= F false)
 )
 
+;;;;; ProofRule::FALSE_ELIM
 
 ; rule: false_elim
 ; implements: ProofRule::FALSE_ELIM
@@ -195,6 +183,25 @@
 (declare-rule false_elim ((F Bool))
     :premises ((= F false))
     :conclusion (not F)
+)
+
+;;;;; ProofRule::HO_CONG
+
+; program: $mk_ho_cong
+; args:
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   An equality where the original terms are applied to the left and
+;   right hand sides of the equalities given by E.
+(program $mk_ho_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
+    (U U Bool) Bool
+    (
+        (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
+        (($mk_ho_cong t1 t2 true)                 (= t1 t2))
+        (($mk_ho_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
+    )
 )
 
 ; rule: ho_cong
@@ -212,7 +219,7 @@
     :conclusion
         (eo::match ((t1 U) (t2 U) (tail Bool :list))
         E
-        (((and (= t1 t2) tail) ($mk_cong t1 t2 tail))))
+        (((and (= t1 t2) tail) ($mk_ho_cong t1 t2 tail))))
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
