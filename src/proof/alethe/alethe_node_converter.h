@@ -73,7 +73,7 @@ class AletheNodeConverter : public BaseAlfNodeConverter
                         TypeNode tn,
                         bool useRawSym = true) override;
 
-  Node getOperatorOfTerm(Node n, bool reqCast = false) override
+  Node getOperatorOfTerm(Node n) override
   {
     return Node::null();
   };

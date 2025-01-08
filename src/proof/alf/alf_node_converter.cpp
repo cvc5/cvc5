@@ -455,7 +455,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
+Node AlfNodeConverter::getOperatorOfTerm(Node n)
 {
   Assert(n.hasOperator());
   Kind k = n.getKind();
@@ -586,60 +586,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    bool isParameterized = false;
-    if (reqCast)
-    {
-      // If the operator is a parameterized constant and reqCast is true,
-      // then we must apply the parameters of the operator, e.g. such that
-      // bvor becomes (eo::_ bvor 32) where 32 is the bitwidth of the first
-      // argument.
-      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
-          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
-          || k == Kind::BITVECTOR_XOR)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getBitVectorSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
-               || k == Kind::FINITE_FIELD_MULT)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getFfSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::STRING_CONCAT)
-      {
-        // String concatenation is parameterized by the character type, which
-        // is the "Char" type in the ALF signature for String (which note does
-        // not exist internally in cvc5). Otherwise it is the sequence element
-        // type.
-        TypeNode tna = n[0].getType();
-        Node cht;
-        if (tna.isString())
-        {
-          cht = mkInternalSymbol("Char", d_sortType);
-        }
-        else
-        {
-          cht = typeAsNode(tna.getSequenceElementType());
-        }
-        indices.push_back(cht);
-        isParameterized = true;
-      }
-    }
-    if (isParameterized)
-    {
-      opName << "eo::_";
-      std::stringstream oppName;
-      oppName << printer::smt2::Smt2Printer::smtKindString(k);
-      Node opp = mkInternalSymbol(oppName.str(), n.getType());
-      indices.insert(indices.begin(), opp);
-    }
-    else
-    {
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
-    }
+    opName << printer::smt2::Smt2Printer::smtKindString(k);
   }
   std::vector<Node> args(n.begin(), n.end());
   Node app = mkInternalApp(opName.str(), args, n.getType());
@@ -661,17 +608,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   else
   {
     ret = args.empty() ? app : app.getOperator();
-  }
-  if (reqCast)
-  {
-    // - prints as e.g. (eo::as - (-> Int Int)).
-    if (k == Kind::NEG || k == Kind::SUB)
-    {
-      std::vector<Node> asChildren;
-      asChildren.push_back(ret);
-      asChildren.push_back(typeAsNode(ret.getType()));
-      ret = mkInternalApp("eo::as", asChildren, n.getType());
-    }
   }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
