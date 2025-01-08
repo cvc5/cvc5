@@ -285,6 +285,11 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
   {
     args.push_back(n);
   }
+  else
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    args.push_back(ProofRuleChecker::mkKindNode(nm, k));
+  }
   return r;
 }
 

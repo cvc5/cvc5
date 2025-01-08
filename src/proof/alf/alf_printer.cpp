@@ -908,6 +908,11 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       return;
     }
     break;
+    case ProofRule::HO_CONG:
+    {
+      // argument is ignored
+      return;
+    }
     case ProofRule::INSTANTIATE:
     {
       // ignore arguments past the term vector

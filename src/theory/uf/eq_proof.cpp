@@ -478,10 +478,12 @@ bool EqProof::expandTransitivityForDisequalities(
         Kind::EQUAL,
         nm->mkNode(Kind::EQUAL, substPremises[0][0], substPremises[1][0]),
         premises[0][0]);
+    std::vector<Node> cargs;
+    ProofRule rule = expr::getCongRule(congConclusion[0], cargs);
     p->addStep(congConclusion,
-               ProofRule::CONG,
+               rule,
                substPremises,
-               {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
+               cargs,
                true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
