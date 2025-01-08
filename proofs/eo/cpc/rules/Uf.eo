@@ -83,21 +83,20 @@
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply congruence to.
 ; args:
-; - f (-> T U): >
-;   The function to apply congruence to. This is assumed to be
+; - t U: >
+;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is not n-ary, e.g. it is not marked :right-assoc-nil.
-;   Congruence for n-ary operators requires a different rule (nary_cong) below.
+;   It is typically (though not required) to be the left hand side of the
+;   equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
-; disclaimer: >
-;   This proof rule takes only the function to do congruence over,
-;   whereas the internal proof calculus takes an internal value denoting its
-;   cvc5::Kind along with an (optional) function if the kind if parameterized.
-(declare-rule cong ((T Type) (U Type) (E Bool) (f (-> T U)))
+; note: >
+;   Congruence for n-ary operators requires a different rule (nary_cong) below.
+(declare-rule cong ((U Type) (E Bool) (t U))
     :premise-list E and
-    :args (f)
-    :conclusion ($mk_cong f f E)
+    :args (t)
+    :conclusion (eo::define ((f ($get_fun t))) ($mk_cong f f E))
 )
 
 ; program: $mk_nary_cong_lhs
@@ -142,10 +141,11 @@
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply nary-congruence to.
 ; args:
-; - f (-> T U): >
-;   The function to apply congruence to. This is assumed to be
+; - t U: >
+;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is right-associative n-ary operator with nil terminator, e.g.
-;   it is marked :right-assoc-nil.
+;   it is marked :right-assoc-nil. It is typically (though not required) to
+;   be the left hand side of the equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
@@ -153,10 +153,10 @@
 ;   This proof rule takes as argument the function to do congruence
 ;   over, whereas the internal proof calculus takes an internal value denoting its
 ;   cvc5::Kind.
-(declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
+(declare-rule nary_cong ((U Type) (E Bool) (t U))
     :premise-list E and
-    :args (f)
-    :conclusion (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E))
+    :args (t)
+    :conclusion (eo::define ((f ($get_fun t))) (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E)))
 )
 
 ; rule: true_intro
