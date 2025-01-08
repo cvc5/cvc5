@@ -1078,8 +1078,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(NARY_CONG),
-  EVALUE(FO_CONG),
-  EVALUE(BINDER_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Equality -- True intro**

@@ -77,7 +77,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     case ProofRule::HO_CONG:
-    case ProofRule::FO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
     case ProofRule::FALSE_INTRO:
@@ -902,7 +901,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::FO_CONG:
     case ProofRule::ARITH_POLY_NORM_REL:
     {
       Node op = d_tproc.getOperatorOfTerm(res[0], true);

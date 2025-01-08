@@ -263,15 +263,8 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       // tuples are n-ary, others are fixed
       r = n.getType().isTuple() ? ProofRule::NARY_CONG : ProofRule::CONG;
       break;
-    case Kind::APPLY_SELECTOR:
-      r = n.getOperator().getType()[0].isTuple() ? ProofRule::FO_CONG : ProofRule::CONG;
-      break;
     default:
-      if (GenericOp::isIndexedOperatorKind(k))
-      {
-        r = ProofRule::FO_CONG;
-      }
-      else if (NodeManager::isNAryKind(k))
+      if (NodeManager::isNAryKind(k))
       {
         // n-ary operators that are not handled as exceptions above use
         // NARY_CONG
@@ -279,12 +272,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       }
       break;
   }
-  if (r == ProofRule::HO_CONG)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    args.push_back(ProofRuleChecker::mkKindNode(nm, k));
-  }
-  else
+  if (r != ProofRule::HO_CONG)
   {
     args.push_back(n);
   }

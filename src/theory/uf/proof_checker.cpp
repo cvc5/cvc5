@@ -35,10 +35,8 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::TRUE_ELIM, this);
   pc->registerChecker(ProofRule::FALSE_INTRO, this);
   pc->registerChecker(ProofRule::FALSE_ELIM, this);
-  pc->registerChecker(ProofRule::FO_CONG, this);
   pc->registerChecker(ProofRule::HO_CONG, this);
   pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
-  pc->registerChecker(ProofRule::BINDER_CONG, this);
 }
 
 Node UfProofRuleChecker::checkInternal(ProofRule id,
@@ -91,7 +89,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG || id == ProofRule::FO_CONG || id == ProofRule::NARY_CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
     if (args.size() != 1)
@@ -110,6 +108,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(t.getOperator());
       rchildren.push_back(t.getOperator());
     }
+    // congruence automatically adds variable lists
     if (t.isClosure())
     {
       lchildren.push_back(t[0]);
@@ -172,10 +171,14 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Kind k;
-    if (!getKind(args[0], k))
+    Kind k = Kind::HO_APPLY;
+    // kind argument is optional, defaults to HO_APPLY
+    if (args.size()==1)
     {
-      return Node::null();
+      if (!getKind(args[0], k))
+      {
+        return Node::null();
+      }
     }
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
