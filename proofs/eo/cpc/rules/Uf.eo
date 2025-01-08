@@ -110,13 +110,13 @@
 
 ; program: $mk_nary_cong_rhs
 ; args:
-; - f (-> U U U): The function we are applying congruence over.
+; - t U: The term (left hand side of the equality) we are applying congruence over.
 ; - E Bool: A conjunction of the remaining equalities we have left to process.
 ; return: >
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
-    ((-> U U U) Bool) Bool
+    (U Bool) Bool
     (
         (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
         (($mk_nary_cong_rhs nil true)                       nil)
@@ -136,10 +136,6 @@
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
-; disclaimer: >
-;   This proof rule takes as argument the function to do congruence
-;   over, whereas the internal proof calculus takes an internal value denoting its
-;   cvc5::Kind.
 (declare-rule nary_cong ((U Type) (E Bool) (t U))
     :premise-list E and
     :args (t)
