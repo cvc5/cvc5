@@ -267,10 +267,6 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
       r = n.getOperator().getType()[0].isTuple() ? ProofRule::FO_CONG : ProofRule::CONG;
       break;
     default:
-      if (n.isClosure())
-      {
-        r = ProofRule::BINDER_CONG;
-      }
       if (GenericOp::isIndexedOperatorKind(k))
       {
         r = ProofRule::FO_CONG;

@@ -77,6 +77,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONG:
     case ProofRule::NARY_CONG:
     case ProofRule::HO_CONG:
+    case ProofRule::FO_CONG:
     case ProofRule::TRUE_INTRO:
     case ProofRule::TRUE_ELIM:
     case ProofRule::FALSE_INTRO:
@@ -874,7 +875,7 @@ void AlfPrinter::getChildrenFromProofRule(
   const std::vector<std::shared_ptr<ProofNode>>& cc = pn->getChildren();
   switch (pn->getRule())
   {
-    case ProofRule::BINDER_CONG:
+    case ProofRule::CONG:
     {
       Node res = pn->getResult();
       if (res[0].isClosure())

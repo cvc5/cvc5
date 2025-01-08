@@ -91,7 +91,7 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     return first.eqNode(curr);
   }
-  else if (id == ProofRule::CONG || id == ProofRule::FO_CONG || id == ProofRule::NARY_CONG || id == ProofRule::BINDER_CONG)
+  else if (id == ProofRule::CONG || id == ProofRule::FO_CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
     if (args.size() != 1)
@@ -110,15 +110,10 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
       lchildren.push_back(t.getOperator());
       rchildren.push_back(t.getOperator());
     }
-    if (id == ProofRule::BINDER_CONG)
+    if (t.isClosure())
     {
-      Assert (t.isClosure());
       lchildren.push_back(t[0]);
       rchildren.push_back(t[0]);
-    }
-    else
-    {
-      AlwaysAssert(!t.isClosure());
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
