@@ -783,6 +783,7 @@ set(regress_0_tests
   regress0/deep-restart/dd.issue4735.smt2
   regress0/deep-restart/dd.wrong-sat-020322.smt2
   regress0/define-fun-model.smt2
+  regress0/define-fun-rec-shadow.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
   regress0/distinct.smtv1.smt2

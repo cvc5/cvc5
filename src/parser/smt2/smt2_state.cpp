@@ -708,7 +708,7 @@ void Smt2State::pushDefineFunRecScope(
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, Sort>& svn : sortedVarNames)
   {
-    Term v = bindBoundVar(svn.first, svn.second);
+    Term v = bindBoundVar(svn.first, svn.second, d_freshBinders);
     bvs.push_back(v);
   }
 
