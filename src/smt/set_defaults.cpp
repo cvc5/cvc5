@@ -1294,17 +1294,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     }
     SET_AND_NOTIFY(smt, learnedRewrite, false, "unsat cores");
   }
-  // most static learning techniques are local, although arithmetic static
-  // learning is not.
-  if (opts.arith.arithStaticLearning)
-  {
-    if (opts.arith.arithStaticLearningWasSetByUser)
-    {
-      reason << "arith static learning";
-      return true;
-    }
-    SET_AND_NOTIFY(arith, arithStaticLearning, false, "unsat cores");
-  }
 
   if (opts.arith.pbRewrites)
   {

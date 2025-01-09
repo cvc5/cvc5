@@ -1036,6 +1036,9 @@ set(regress_0_tests
   regress0/nl/combined-uf.smt2
   regress0/nl/dd.fuzz01.smtv1-to-real-idem.smt2
   regress0/nl/dd.iand-wrong-0513-pp.smt2
+  regress0/nl/dd.polypaver-bench-exp-3d-chunk-0067.smt2
+  regress0/nl/dd.sin-cos-346-b-chunk-0210.smt2
+  regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue3003.smt2
@@ -1825,6 +1828,7 @@ set(regress_0_tests
   regress0/strings/escchar.smt2
   regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/from-int-eval.smt2
   regress0/strings/gen-esc-seq.smt2
   regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
@@ -1903,6 +1907,7 @@ set(regress_0_tests
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/re-consume-bi-dir.smt2
   regress0/strings/re-consume-inter.smt2
+  regress0/strings/re-consume-star.smt2
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
   regress0/strings/re-include-union.smt2
@@ -1951,6 +1956,7 @@ set(regress_0_tests
   regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
+  regress0/sygus/constval-infeasible.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/declare-var-grammar-err.sy
   regress0/sygus/dt-no-syntax.sy
@@ -2950,6 +2956,7 @@ set(regress_1_tests
   regress1/quantifiers/sygus-inst-lambda.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
+  regress1/quantifiers/ufdt-solve-model-built.smt2
   regress1/quantifiers/var-eq-trigger.smt2
   regress1/quantifiers/var-eq-trigger-simple.smt2
   regress1/quantifiers/z3.620661-no-fv-trigger.smt2
@@ -3286,6 +3293,7 @@ set(regress_1_tests
   regress1/strings/non_termination_regular_expression4.smt2
   regress1/strings/non-terminating-rewrite-aent.smt2
   regress1/strings/norn-13.smt2
+  regress1/strings/norn-153-consume.smt2
   regress1/strings/norn-360.smt2
   regress1/strings/norn-ab.smt2
   regress1/strings/norn-re-inter-none.smt2

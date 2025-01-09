@@ -246,9 +246,9 @@ class QuantAttributes
   Node getQuantIdNumNode( Node q );
 
   /** Make the instantiation attribute that marks "quantifier elimination" */
-  static Node mkAttrQuantifierElimination();
+  static Node mkAttrQuantifierElimination(NodeManager* nm);
   /** Make the instantiation attribute that marks to perserve its structure */
-  static Node mkAttrPreserveStructure();
+  static Node mkAttrPreserveStructure(NodeManager* nm);
   /**
    * Set instantiation level attribute for all subterms without an instantiation
    * level in n to level.
@@ -275,7 +275,7 @@ class QuantAttributes
     ATTR_QUANT_ELIM
   };
   /** Make attribute internal, helper for mkAttrX methods above. */
-  static Node mkAttrInternal(AttrType at);
+  static Node mkAttrInternal(NodeManager* nm, AttrType at);
   /** cache of attributes */
   std::map< Node, QAttributes > d_qattr;
   /** function definitions */

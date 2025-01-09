@@ -100,9 +100,10 @@ void InferProofCons::packArgs(Node conc,
                               const std::vector<Node>& exp,
                               std::vector<Node>& args)
 {
+  NodeManager* nm = NodeManager::currentNM();
   args.push_back(conc);
-  args.push_back(mkInferenceIdNode(infer));
-  args.push_back(NodeManager::currentNM()->mkConst(isRev));
+  args.push_back(mkInferenceIdNode(nm, infer));
+  args.push_back(nm->mkConst(isRev));
   // The vector exp is stored as arguments; its flatten form are premises. We
   // need both since the grouping of exp is important, e.g. { (and a b), c }
   // is different from { a, b, c } in the convert routine, since positions

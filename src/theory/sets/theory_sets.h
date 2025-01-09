@@ -81,8 +81,7 @@ class TheorySets : public Theory
    * and is_singleton.
    */
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   void presolve() override;
   bool isEntailed(Node n, bool pol);
 

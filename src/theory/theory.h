@@ -589,16 +589,6 @@ class Theory : protected EnvObj
    */
   virtual void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) {}
 
-  enum PPAssertStatus
-  {
-    /** Atom has been solved  */
-    PP_ASSERT_STATUS_SOLVED,
-    /** Atom has not been solved */
-    PP_ASSERT_STATUS_UNSOLVED,
-    /** Atom is inconsistent */
-    PP_ASSERT_STATUS_CONFLICT
-  };
-
   /**
    * Given a literal and its proof generator (encapsulated by trust node tin),
    * add the solved substitutions to the map, if any. The method should return
@@ -607,9 +597,13 @@ class Theory : protected EnvObj
    * Note that tin has trust node kind LEMMA. Its proof generator should be
    * taken into account when adding a substitution to outSubstitutions when
    * proofs are enabled.
+   *
+   * @param tin The literal and its proof generator.
+   * @param outSubstitutions The substitution map to add to, if applicable.
+   * @return true iff the literal can be removed from the input, e.g. when
+   * the substitution it entails is added to outSubstitutions.
    */
-  virtual PPAssertStatus ppAssert(TrustNode tin,
-                                  TrustSubstitutionMap& outSubstitutions);
+  virtual bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
 
   /**
    * Given a term of the theory coming from the input formula or
@@ -812,20 +806,6 @@ inline std::ostream& operator<<(std::ostream& out,
                                 const cvc5::internal::theory::Theory& theory)
 {
   return out << theory.identify();
-}
-
-inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertStatus status) {
-  switch (status) {
-  case theory::Theory::PP_ASSERT_STATUS_SOLVED:
-    out << "SOLVE_STATUS_SOLVED"; break;
-  case theory::Theory::PP_ASSERT_STATUS_UNSOLVED:
-    out << "SOLVE_STATUS_UNSOLVED"; break;
-  case theory::Theory::PP_ASSERT_STATUS_CONFLICT:
-    out << "SOLVE_STATUS_CONFLICT"; break;
-  default:
-    Unhandled();
-  }
-  return out;
 }
 
 }  // namespace theory

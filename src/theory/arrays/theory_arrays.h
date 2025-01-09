@@ -190,8 +190,7 @@ class TheoryArrays : public Theory {
   InferenceManager d_im;
 
  public:
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
 
   /////////////////////////////////////////////////////////////////////////////
