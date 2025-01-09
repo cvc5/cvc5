@@ -30,7 +30,7 @@ jobs:
             os: ubuntu-latest
             arch: aarch64
             shell: bash
-            cibw_skip: "cp37-* cp38-*"
+            cibw_skip: "cp37-* pp37-*"
           - name: macos-x86_64
             os: macos-13
             macos-target: 10.13
