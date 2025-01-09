@@ -1571,7 +1571,8 @@ Node SequencesRewriter::rewriteViaStrInReConsume(const Node& node)
     utils::getConcat(r, children);
     std::vector<Node> mchildren;
     utils::getConcat(node[0], mchildren);
-    Node scn = RegExpEntail::simpleRegexpConsume(mchildren, children, dir);
+    Node scn =
+        RegExpEntail::simpleRegexpConsume(d_nm, mchildren, children, dir);
     if (!scn.isNull())
     {
       return scn;
