@@ -19,7 +19,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLazyPreproc"
-  category   = "expert"
+  category   = "regular"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
