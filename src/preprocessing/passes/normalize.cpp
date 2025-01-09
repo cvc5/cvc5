@@ -641,9 +641,14 @@ PreprocessingPassResult Normalize::applyInternal(
     // Step 4: Sort within equivalence classes
     std::map<std::string, std::vector<int32_t>> pattern; // Cache of patterns
 
+    size_t totalSize = 0;
+    for (auto &eqClassInner : eqClasses) {
+        totalSize += eqClassInner.size();
+    }
+
     for (auto& eqClass : eqClasses) {
         std::sort(eqClass.begin(), eqClass.end(),
-            [&eqClasses, &pattern](NodeInfo* a, NodeInfo* b) {
+            [&eqClasses, &pattern, &totalSize](NodeInfo* a, NodeInfo* b) {
                 // Since all nodes in eqClass have the same encoding, we don't need to compare 'encoding'
 
                 // std::cout << "Comparing" << std::endl;
@@ -659,27 +664,36 @@ PreprocessingPassResult Normalize::applyInternal(
                     const std::string& symbolB = itB->first; // varNames stores pairs, first is the symbol
 
                     // Compute or retrieve patterns only once for each symbol
-                    auto getOrComputePattern = [&](const std::string& symbol) -> const std::vector<int32_t>& {
+                    auto getOrComputePattern = [&](const std::string &symbol)
+                        -> const std::vector<int32_t> & 
+                    {
+                        // Check if it's already computed
                         auto it = pattern.find(symbol);
                         if (it != pattern.end()) {
                             return it->second;
                         }
 
+                        // Build the vector in place
                         std::vector<int32_t> pat;
-                        for (const auto& eqClassInner : eqClasses) {
-                            std::vector<int32_t> roles;
-                            for (const NodeInfo* ni : eqClassInner) {
+                        pat.reserve(totalSize);
+
+                        for (const auto &eqClassInner : eqClasses) {
+                            const size_t oldSize = pat.size();
+                            pat.resize(oldSize + eqClassInner.size());
+
+                            size_t idx = oldSize;
+                            for (const NodeInfo *ni : eqClassInner) {
                                 auto roleIt = ni->role.find(symbol);
-                                roles.push_back(roleIt != ni->role.end() ? roleIt->second : static_cast<int32_t>(-1));
+                                pat[idx++] = (roleIt != ni->role.end()) ? roleIt->second : -1;
                             }
 
-                            std::sort(roles.begin(), roles.end());
-                            pat.insert(pat.end(), roles.begin(), roles.end());
+                            // Sort the newly appended segment
+                            std::sort(pat.begin() + oldSize, pat.end());
                         }
 
-                        // Cache the computed pattern
-                        pattern[symbol] = std::move(pat);
-                        return pattern[symbol];
+                        auto &ret = pattern[symbol];
+                        ret = std::move(pat);
+                        return ret;
                     };
 
                     // Retrieve patterns for both symbols
