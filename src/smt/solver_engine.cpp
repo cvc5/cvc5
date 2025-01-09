@@ -487,7 +487,7 @@ void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
     {
       std::stringstream ss;
       ss << "All formal arguments to defined functions must be "
-            "unique, but a duplicate variable was used in the\n"
+            "unique, but a duplicate variable was used in the "
          << "definition of function " << func;
       throw TypeCheckingExceptionPrivate(func, ss.str());
     }
