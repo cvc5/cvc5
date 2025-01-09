@@ -65,10 +65,10 @@ bool InferInfo::isFact() const
          && d_noExplain.empty();
 }
 
-Node InferInfo::getPremises() const
+Node InferInfo::getPremises(NodeManager* nm) const
 {
   // d_noExplain is a subset of d_ant
-  return utils::mkAnd(d_premises);
+  return utils::mkAnd(nm, d_premises);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)

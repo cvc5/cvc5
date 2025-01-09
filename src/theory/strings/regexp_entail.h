@@ -35,7 +35,7 @@ namespace strings {
 class RegExpEntail
 {
  public:
-  RegExpEntail(Rewriter* r);
+  RegExpEntail(NodeManager* nm, Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -91,7 +91,8 @@ class RegExpEntail
    *   "bb" ++ x  in ( "b" ++ ("a")* )*
    * is equivalent to false.
    */
-  static Node simpleRegexpConsume(std::vector<Node>& mchildren,
+  static Node simpleRegexpConsume(NodeManager* nm,
+                                  std::vector<Node>& mchildren,
                                   std::vector<Node>& children,
                                   int dir = -1);
   /**
