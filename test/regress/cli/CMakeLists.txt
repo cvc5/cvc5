@@ -1016,6 +1016,7 @@ set(regress_0_tests
   regress0/ite2.smt2
   regress0/ite3.smt2
   regress0/ite4.smt2
+  regress0/lambda-shadow-sem.smt2
   regress0/lang_opts_2_6_1.smt2
   regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smtv1.smt2
   regress0/lemmas/fs_not_sc_seen.induction.smtv1.smt2
