@@ -593,14 +593,6 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR)
         {
-          // may have to flip
-          Assert(conc.getKind() == Kind::AND && conc[0].getKind() == Kind::OR
-                 && conc[0][0].getKind() == Kind::EQUAL);
-          if (conc[0][0][0] != t0)
-          {
-            applySym = true;
-            std::swap(t0, s0);
-          }
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkNode(Kind::STRING_LENGTH, s0))
@@ -927,24 +919,7 @@ bool InferProofCons::convert(Env& env,
     // ========================== unit injectivity
     case InferenceId::STRINGS_UNIT_INJ:
     {
-      Assert(conc.getKind() == Kind::EQUAL);
-      Assert(ps.d_children.size() == 1
-             && ps.d_children[0].getKind() == Kind::EQUAL);
-      Node concS =
-          psb.tryStep(ProofRule::STRING_SEQ_UNIT_INJ, ps.d_children, {});
-      if (!concS.isNull())
-      {
-        // may need to apply symmetry
-        if (concS != conc)
-        {
-          Node ss = psb.tryStep(ProofRule::SYMM, {concS}, {});
-          useBuffer = (ss == conc);
-        }
-        else
-        {
-          useBuffer = true;
-        }
-      }
+      ps.d_rule = ProofRule::STRING_SEQ_UNIT_INJ;
     }
     break;
     // ========================== prefix conflict
@@ -1135,67 +1110,9 @@ bool InferProofCons::convert(Env& env,
       }
     }
     break;
-    case InferenceId::STRINGS_I_CYCLE_E:
-    {
-      Assert(ps.d_children.size() == 1);
-      Node concE = psb.applyPredElim(ps.d_children[0],
-                                     {},
-                                     MethodId::SB_DEFAULT,
-                                     MethodId::SBA_SEQUENTIAL,
-                                     MethodId::RW_EXT_REWRITE);
-      Trace("strings-ipc-debug") << "... elim to " << concE << std::endl;
-      if (concE != conc)
-      {
-        if (concE.getKind() == Kind::AND)
-        {
-          for (size_t i = 0, nchild = concE.getNumChildren(); i < nchild; i++)
-          {
-            if (concE[i] == conc)
-            {
-              Node ni = nm->mkConstInt(Rational(i));
-              psb.addStep(ProofRule::AND_ELIM, {concE}, {ni}, conc);
-              useBuffer = true;
-              break;
-            }
-          }
-        }
-      }
-      else
-      {
-        useBuffer = true;
-      }
-    }
-    break;
-    case InferenceId::STRINGS_CTN_DECOMPOSE:
-    {
-      if (ps.d_children.size() != 2)
-      {
-        break;
-      }
-      Node ctn = ps.d_children[0];
-      if (ctn.getKind() != Kind::STRING_CONTAINS)
-      {
-        break;
-      }
-      Node pconc = psb.tryStep(ProofRule::STRING_EAGER_REDUCTION, {}, {ctn});
-      Trace("strings-ipc-cons") << "Eager reduction: " << pconc << std::endl;
-      Node pelim = psb.applyPredElim(pconc, {ctn}, MethodId::SB_LITERAL);
-      Trace("strings-ipc-cons") << "After rewriting: " << pelim << std::endl;
-      if (pelim.getKind() != Kind::EQUAL)
-      {
-        break;
-      }
-      Node tgt = ps.d_children[1];
-      Node pelim2 = psb.applyPredElim(tgt, {pelim});
-      Trace("strings-ipc-cons") << "After elim: " << pelim << std::endl;
-      if (pelim2 == conc)
-      {
-        useBuffer = true;
-      }
-    }
-    break;
     // ========================== unknown and currently unsupported
     case InferenceId::STRINGS_CARDINALITY:
+    case InferenceId::STRINGS_I_CYCLE_E:
     case InferenceId::STRINGS_I_CYCLE:
     case InferenceId::STRINGS_INFER_EMP:
     case InferenceId::STRINGS_RE_DELTA:
@@ -1205,6 +1122,7 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_FLOOP_CONFLICT:
     case InferenceId::STRINGS_DEQ_NORM_EMP:
     case InferenceId::STRINGS_CTN_TRANS:
+    case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
       // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below
       // since the rule is unknown.
