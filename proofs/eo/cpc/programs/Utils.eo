@@ -91,7 +91,7 @@
 ; - x S: The term to inspect.
 ; return: >
 ;   The tail of x, where x is expected to be an application of an n-ary
-;   function.
+;   function marked :right-assoc-nil.
 (define $tail ((U Type :implicit) (x U))
   (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
     x
