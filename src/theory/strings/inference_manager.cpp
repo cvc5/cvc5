@@ -370,11 +370,12 @@ void InferenceManager::processConflict(const InferInfo& ii)
 
 void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
 {
-  Trace("strings-assert") << "(assert (=> " << ii.getPremises() << " "
-                          << ii.d_conc << ")) ; fact " << ii.getId() << std::endl;
+  Trace("strings-assert") << "(assert (=> " << ii.getPremises(nodeManager())
+                          << " " << ii.d_conc << ")) ; fact " << ii.getId()
+                          << std::endl;
   Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
-                         << ii.getPremises() << " by " << ii.getId()
-                         << std::endl;
+                         << ii.getPremises(nodeManager()) << " by "
+                         << ii.getId() << std::endl;
   if (d_ipc != nullptr)
   {
     // ensure the proof generator is ready to explain this fact in the

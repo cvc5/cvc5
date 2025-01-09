@@ -363,8 +363,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   return TrustNode::null();
 }
 
-Theory::PPAssertStatus TheoryArrays::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArrays::ppAssert(TrustNode tin,
+                            TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   switch(in.getKind()) {
@@ -375,12 +375,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
       if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       break;
     }
@@ -398,7 +398,7 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
     default:
       break;
   }
-  return PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 

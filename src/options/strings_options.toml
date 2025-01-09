@@ -235,3 +235,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "eager reduction of positive membership into concatenation"
+
+[[option]]
+  name       = "stringRegexpDeriveConflicts"
+  category   = "expert"
+  long       = "strings-re-derive-conf"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expression derive for conflict finding"

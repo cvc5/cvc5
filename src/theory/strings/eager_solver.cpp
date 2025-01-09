@@ -30,7 +30,7 @@ EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
       d_state(state),
       d_treg(treg),
       d_aent(env.getRewriter()),
-      d_rent(env.getRewriter())
+      d_rent(env.getNodeManager(), env.getRewriter())
 {
 }
 
