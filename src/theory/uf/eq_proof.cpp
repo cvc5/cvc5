@@ -1437,7 +1437,7 @@ Node EqProof::addToProof(CDProof* p,
     // Get node of the function operator over which congruence is being
     // applied.
     std::vector<Node> args;
-    ProofRule r = expr::getCongRule(d_node[0], args);
+    ProofRule r = expr::getCongRule(conclusion[0], args);
     // Add congruence step
     if (TraceIsOn("eqproof-conv"))
     {
