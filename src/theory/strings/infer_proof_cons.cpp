@@ -408,30 +408,6 @@ bool InferProofCons::convert(Env& env,
       // if there are substitutions to apply
       if (mainEqIndex > 0)
       {
-        // Compute which equalities we want to flip their substitution.
-        // Currently this is only an issue if e.g. (= (str.++ a a) (str.++ b c))
-        // where we conclude (= a c) from an explanation (= a b) via
-        // STRINGS_F_UNIFY, which would otherwise conclude (= b c) if a -> b
-        // was processed as a substitution.
-        // In contrast, normal form inferences are truly processed as
-        // substitutions in the strings core solver, whereas flat form
-        // inferences simply consider unification without substitutions, leading
-        // to issues like the one above.
-        std::vector<Node> rexp(ps.d_children.begin(),
-                               ps.d_children.begin() + mainEqIndex);
-        if (infer == InferenceId::STRINGS_F_UNIFY)
-        {
-          Assert(conc.getKind() == Kind::EQUAL);
-          // maybe reorient?
-          for (size_t i = 0; i < mainEqIndex; i++)
-          {
-            Assert(rexp[i].getKind() == Kind::EQUAL);
-            if (rexp[i][0] == conc[0] || rexp[i][0] == conc[1])
-            {
-              rexp[i] = rexp[i][1].eqNode(rexp[i][0]);
-            }
-          }
-        }
         // apply substitution using the util method below
         pmainEq = convertCoreSubs(env, pf, psb, mainEq, rexp, 0, 0);
       }
