@@ -183,6 +183,10 @@
                                                (str.to_code ex))))))
       (($run_evaluate (str.from_code x))   (eo::define ((ex ($run_evaluate x)))
                                              (eo::ite ($str_is_code_point ex) (eo::to_str x) "")))
+      (($run_evaluate (str.to_int x))      (eo::define ((ex ($run_evaluate x)))
+                                             ($str_to_int_eval ex)))
+      (($run_evaluate (str.from_int n))    (eo::define ((en ($run_evaluate n)))
+                                             ($str_from_int_eval en)))
 
       ; bitvectors
       (($run_evaluate (bvnot xb))          (eo::not ($run_evaluate xb)))

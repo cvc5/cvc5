@@ -520,6 +520,8 @@
           (= (str.len x) 1)
           (and (>= t 0) (< t 196608))
           (= t (eo::neg 1)))))
+    (($mk_str_eager_reduction (str.to_int x))
+        (>= (str.to_int x) -1))
     (($mk_str_eager_reduction (str.contains x y))
         (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
         (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
@@ -1554,3 +1556,66 @@
   (($str_re_consume s r) ($str_re_consume_process s r false))
   )
 )
+
+; program: $str_from_int_eval_rec
+; args:
+; - n Int: The integer to process, expected to be non-negative.
+; - s String: The accumulated return value.
+; returns: >
+;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
+(program $str_from_int_eval_rec ((s String) (n Int))
+  (Int String) Bool
+  (
+  (($str_from_int_eval_rec n s) (eo::ite (eo::is_eq n 0)
+                                  (eo::ite (eo::is_eq s "") "0" s)
+                                  ($str_from_int_eval_rec
+                                    (eo::zdiv n 10)
+                                    (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s))))
+  )
+)
+
+; define: $str_from_int_eval
+; args:
+; - n Int: The integer to process.
+; returns: >
+;   The result of evaluating `(str.from_int n)` if `n` is an integer literal,
+;   or the term `(str.from_int n)` otherwise.
+(define $str_from_int_eval ((n Int))
+  (eo::ite (eo::is_z n)
+    (eo::ite (eo::is_neg n)
+      ""
+      ($str_from_int_eval_rec n ""))
+    (str.from_int n)))
+
+; program: $str_to_int_eval_rec
+; args:
+; - s String: The string to process, expected to be in reversed flat form.
+; - e Int: The exponent.
+; - n Int: The accumulated return value.
+; returns: >
+;   The result of evaluating `(str.to_int s)` given the current exponent and
+;   accumulated return value.
+(program $str_to_int_eval_rec ((s1 String) (s2 String :list) (e Int) (n Int))
+  (String Int Int) Bool
+  (
+  (($str_to_int_eval_rec (str.++ s1 s2) e n)  (eo::define ((c (eo::add (eo::to_z s1) -48)))
+                                              (eo::ite (eo::and (eo::gt 10 c) (eo::not (eo::is_neg c)))
+                                                ($str_to_int_eval_rec s2 (eo::mul e 10) (eo::add (eo::mul c e) n))
+                                                -1)))
+  (($str_to_int_eval_rec "" e n)              n)
+  )
+)
+
+; define: $str_to_int_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_int s)` if `s` is a string literal,
+;   or the term `(str.to_int s)` otherwise.
+(define $str_to_int_eval ((s String))
+  (eo::ite (eo::is_str s)
+    (eo::ite (eo::is_eq s "")
+      -1
+      ; consider characters in reverse order
+      ($str_to_int_eval_rec ($str_to_flat_form s true) 1 0))
+    (str.to_int s)))
