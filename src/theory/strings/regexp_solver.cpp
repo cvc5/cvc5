@@ -614,7 +614,7 @@ bool RegExpSolver::deriveRegExp(Node x,
                          << ", r= " << r << std::endl;
   cvc5::internal::String s = getHeadConst(x);
   // only allow RE_DERIVE for concrete constant regular expressions
-  if (!s.empty()
+  if (options().strings.stringRegexpDeriveConflicts && !s.empty()
       && d_regexp_opr.getRegExpConstType(r) == RE_C_CONCRETE_CONSTANT)
   {
     Node conc = Node::null();
