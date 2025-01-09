@@ -408,6 +408,8 @@ bool InferProofCons::convert(Env& env,
       // if there are substitutions to apply
       if (mainEqIndex > 0)
       {
+        std::vector<Node> rexp(ps.d_children.begin(),
+                               ps.d_children.begin() + mainEqIndex);
         // apply substitution using the util method below
         pmainEq = convertCoreSubs(env, pf, psb, mainEq, rexp, 0, 0);
       }
