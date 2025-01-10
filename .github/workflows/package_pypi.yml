@@ -88,10 +88,14 @@ jobs:
         mkdir -p build/src/api/python
         if [ "${{ matrix.gpl }}" == "true" ]; then
           sed -e 's/^name="cvc5"$/name="cvc5-gpl"/' \
+              -e 's/^\(description=".*\)"/\1 (GPL version)"/' \
+              -e 's/^\(readme = {text = ".*\)\(", content-type = "text\/plain"\)/\1 (GPL version)\2/' \
               -e 's/^license = {text = "/license = {text = "GPL-2.0-or-later AND GPL-3.0-or-later AND /' \
               ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
         else
-          cp src/api/python/pyproject.toml build/src/api/python/
+          sed -e 's/^\(description=".*\)"/\1 (BSD version)"/' \
+              -e 's/^\(readme = {text = ".*\)\(", content-type = "text\/plain"\)/\1 (BSD version)\2/' \
+              ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
         fi
         echo "::endgroup::"
 
