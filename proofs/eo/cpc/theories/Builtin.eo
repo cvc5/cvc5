@@ -59,7 +59,7 @@
 (declare-const @const (-> (! Type :var U :implicit) (! U :opaque) (! Type :opaque :var T) T))
 
 ; @var is an alias of eo::var to ensure the cpc proof is user-facing
-(define @var ((s String) (T Type)) (eo::var s T))
+(define @var ((U Type :implicit) (s U) (T Type)) (eo::var s T))
 
 ; The purification skolem.
 (declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))
