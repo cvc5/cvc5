@@ -261,7 +261,8 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` A formula of the form ``(exists x. (x <op> s) <rel> t)``
-   *            or ``(exists x. x <rel> t)``.
+   *            or ``(exists x. x <rel> t)``, where s and t are ground
+   *            (bitvector) terms.
    * - Sort: The sort of x is given by the formula in the first index.
    */
   EVALUE(WITNESS_INV_CONDITION),
