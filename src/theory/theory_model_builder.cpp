@@ -1337,7 +1337,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   TypeNode rangeType = f.getType().getRangeType();
   if (dfvm == options::DefaultFunctionValueMode::HOLE)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
@@ -1389,7 +1389,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   Node curr, currPre;
   if (dfvm == options::DefaultFunctionValueMode::HOLE)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));

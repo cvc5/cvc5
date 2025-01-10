@@ -185,6 +185,19 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   return cn.getType();
 }
 
+TypeNode TypeOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  return nodeManager->builtinOperatorType();
+}
+
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
   // we typically use this method for sorts, although there are other types

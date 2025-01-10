@@ -39,7 +39,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   Assert(atom[0].getType().isRealOrInt());
   Node leq = NodeBuilder(nodeManager(), Kind::LEQ) << atom[0] << atom[1];
   Node geq = NodeBuilder(nodeManager(), Kind::GEQ) << atom[0] << atom[1];
-  Node rewritten = rewrite(leq.andNode(geq));
+  Node rewritten = leq.andNode(geq);
   Trace("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op
@@ -51,7 +51,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
         atom,
         rewritten,
         d_env.getProofNodeManager()->mkTrustedNode(
-            TrustId::THEORY_INFERENCE, {}, {}, eq));
+            TrustId::THEORY_INFERENCE_ARITH, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

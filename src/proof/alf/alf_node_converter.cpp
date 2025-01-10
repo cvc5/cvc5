@@ -25,6 +25,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/sequence.h"
+#include "expr/sort_to_term.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -294,6 +295,13 @@ Node AlfNodeConverter::postConvert(Node n)
       return mkInternalApp("to_fp_bv", children, tn);
     }
   }
+  else if (k == Kind::BITVECTOR_EAGER_ATOM)
+  {
+    // For now, we explicity remove the application.
+    // https://github.com/cvc5/cvc5-wishues/issues/156: if the smt2 printer
+    // is refactored to silently ignore this kind, this case can be deleted.
+    return n[0];
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
     TypeNode tn = n.getType();
@@ -545,22 +553,30 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else if (k == Kind::APPLY_SELECTOR)
     {
       // maybe a shared selector
-      ret = maybeMkSkolemFun(op);
-      if (!ret.isNull())
+      if (op.getSkolemId() == SkolemId::SHARED_SELECTOR)
       {
-        return ret;
-      }
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      if (dt.isTuple())
-      {
-        indices.push_back(d_nm->mkConstInt(index));
-        opName << "tuple.select";
+        std::vector<Node> kindices = op.getSkolemIndices();
+        opName << "@shared_selector";
+        indices.push_back(
+            typeAsNode(kindices[0].getConst<SortToTerm>().getType()));
+        indices.push_back(
+            typeAsNode(kindices[1].getConst<SortToTerm>().getType()));
+        indices.push_back(kindices[2]);
       }
       else
       {
-        unsigned cindex = DType::cindexOf(op);
-        opName << dt[cindex][index].getSelector();
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        if (dt.isTuple())
+        {
+          indices.push_back(d_nm->mkConstInt(index));
+          opName << "tuple.select";
+        }
+        else
+        {
+          unsigned cindex = DType::cindexOf(op);
+          opName << dt[cindex][index].getSelector();
+        }
       }
     }
     else

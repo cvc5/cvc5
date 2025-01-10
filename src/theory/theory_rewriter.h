@@ -118,21 +118,21 @@ class TheoryRewriter
   virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
-   * Performs a pre-rewrite step.
+   * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
-   * Performs a pre-rewrite step, with proofs.
+   * Performs a post-rewrite step, with proofs.
    *
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse postRewriteWithProof(TNode node);
 
   /**
-   * Performs a post-rewrite step.
+   * Performs a pre-rewrite step.
    *
    * @param node The node to rewrite
    */
@@ -233,6 +233,26 @@ class TheoryRewriter
   std::map<TheoryRewriteCtx, std::vector<ProofRewriteRule>> d_pfTheoryRewrites;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
+};
+
+/**
+ * The null theory rewriter, which does not perform any rewrites. This is used
+ * if a theory does not have an (active) rewriter.
+ */
+class NoOpTheoryRewriter : public TheoryRewriter
+{
+ public:
+  NoOpTheoryRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+  /** Performs a post-rewrite step. */
+  RewriteResponse postRewrite(TNode node) override
+  {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+  /** Performs a pre-rewrite step. */
+  RewriteResponse preRewrite(TNode node) override
+  {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
 };
 
 }  // namespace theory
