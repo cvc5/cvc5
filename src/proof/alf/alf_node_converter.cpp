@@ -687,7 +687,6 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
 
 size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
 {
-  Assert(v.isVar());
   std::map<Node, size_t>::iterator it = d_constIndex.find(v);
   if (it != d_constIndex.end())
   {
