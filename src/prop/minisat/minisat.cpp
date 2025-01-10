@@ -33,8 +33,8 @@ namespace prop {
 
 MinisatSatSolver::MinisatSatSolver(Env& env, StatisticsRegistry& registry)
     : EnvObj(env),
-      d_minisat(NULL),
-      d_context(NULL),
+      d_minisat(nullptr),
+      d_context(context()),
       d_assumptions(),
       d_statistics(registry)
 {}
@@ -106,13 +106,8 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(context::Context* context,
-                                  TheoryProxy* theoryProxy,
-                                  context::UserContext* userContext,
-                                  PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
 {
-  d_context = context;
-
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
     verbose(1) << "minisat: Incremental solving is forced on (to avoid "
@@ -124,8 +119,8 @@ void MinisatSatSolver::initialize(context::Context* context,
   d_minisat =
       new Minisat::SimpSolver(d_env,
                               theoryProxy,
-                              d_context,
-                              userContext,
+                              context(),
+                              userContext(),
                               ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
