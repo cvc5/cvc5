@@ -2471,8 +2471,18 @@ enum ENUM(ProofRewriteRule)
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
    *   \ldots, x_n \mapsto t_n\}
    *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via ``Node::substitute``.
+   * or alternatively
+   *
+   * .. math::
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\> t)\{x_1 \mapsto t_1\}
+   *
+   * In the former case, the left hand side may either be a term of kind
+   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`. The latter case is used
+   * only if the term has kind `cvc5::Kind::HO_APPLY`.
+   *
+   * In either case, the right hand side of the equality in the conclusion is
+   * computed using standard substitution via ``Node::substitute``.
+   *
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
