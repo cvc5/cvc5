@@ -146,7 +146,7 @@ class PfManager : protected EnvObj
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   /**
    * Start proof logging. This is called when the SMT solver is initialized
-   * with and --proof-log is enabled.
+   * and --proof-log is enabled.
    * @param out The output stream to log proofs on.
    * @param as Reference to the assertions.
    */
