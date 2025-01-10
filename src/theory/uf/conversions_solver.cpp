@@ -79,12 +79,12 @@ void ConversionsSolver::checkReduction(Node n)
   }
   if (options().uf.modelBasedArithBvConv)
   {
-    NodeManager* nm = NodeManager::currentNM();
     Node argval = d_state.getModel()->getValue(n[0]);
     Trace("bv-convs-debug") << "  arg value = " << argval << std::endl;
-    Node eval = rewrite(nm->mkNode(n.getOperator(), argval));
+    Node eval = rewrite(NodeManager::mkNode(n.getOperator(), argval));
     Trace("bv-convs-debug") << "  evaluated = " << eval << std::endl;
-    Node lem = nm->mkNode(Kind::IMPLIES, n[0].eqNode(argval), n.eqNode(eval));
+    Node lem =
+        NodeManager::mkNode(Kind::IMPLIES, n[0].eqNode(argval), n.eqNode(eval));
     d_im.lemma(lem, InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE);
     return;
   }

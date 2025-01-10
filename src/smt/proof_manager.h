@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "options/proof_options.h"
 #include "smt/env_obj.h"
+#include "smt/proof_final_callback.h"
 
 namespace cvc5::internal {
 
@@ -145,8 +146,14 @@ class PfManager : protected EnvObj
       Assertions& as,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   /**
+   * Check proof. This call runs the final proof callback, which checks for
+   * pedantic failures and takes statistics.
+   * @param pfn The proof to check.
+   */
+  void checkFinalProof(std::shared_ptr<ProofNode> pfn);
+  /**
    * Start proof logging. This is called when the SMT solver is initialized
-   * with and --proof-log is enabled.
+   * and --proof-log is enabled.
    * @param out The output stream to log proofs on.
    * @param as Reference to the assertions.
    */
@@ -188,6 +195,13 @@ class PfManager : protected EnvObj
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
   /** The preprocess proof generator. */
   std::unique_ptr<PreprocessProofGenerator> d_pppg;
+  /** The post process callback for finalization */
+  ProofFinalCallback d_finalCb;
+  /**
+   * The finalizer, which is responsible for taking stats and checking for
+   * (lazy) pedantic failures.
+   */
+  ProofNodeUpdater d_finalizer;
 }; /* class SolverEngine */
 
 }  // namespace smt

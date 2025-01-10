@@ -24,6 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "proof/trust_proof_generator.h"
 #include "theory/care_pair_argument_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
@@ -306,6 +307,8 @@ class TheoryStrings : public Theory {
   size_t d_strGapModelCounter;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
+  /** For proof of ppStaticRewrite */
+  std::shared_ptr<TrustProofGenerator> d_psrewPg;
 };/* class TheoryStrings */
 
 }  // namespace strings

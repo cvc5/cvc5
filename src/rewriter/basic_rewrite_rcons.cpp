@@ -182,6 +182,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_DT_CONS_EQ:
+      if (ensureProofMacroDtConsEq(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
       if (ensureProofMacroArithStringPredEntail(cdp, eq))
       {
@@ -271,6 +277,93 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("brc-macro") << "Expand dt cons eq for " << eq << std::endl;
+  TConvProofGenerator tcpg(d_env);
+  theory::Rewriter* rr = d_env.getRewriter();
+  if (eq[1].isConst())
+  {
+    // DT_CONS_EQ_CLASH may suffice if it is purely datatypes
+    Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ_CLASH, eq[0]);
+    if (curRew == eq[1])
+    {
+      cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_CONS_EQ_CLASH);
+      return true;
+    }
+    // otherwise, we require proving the non-datatype constants are distinct
+    // this case is not yet handled.
+    return false;
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(eq[0]);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == Kind::EQUAL)
+      {
+        // if a reflexive component, it rewrites to true
+        if (cur[0] == cur[1])
+        {
+          Node truen = nodeManager()->mkConst(true);
+          tcpg.addRewriteStep(cur,
+                              truen,
+                              nullptr,
+                              true,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          continue;
+        }
+        Node curRew = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, cur);
+        if (!curRew.isNull())
+        {
+          tcpg.addTheoryRewriteStep(
+              cur, curRew, ProofRewriteRule::DT_CONS_EQ, true);
+          visit.push_back(curRew);
+        }
+      }
+      else
+      {
+        // traverse AND
+        Assert(cur.getKind() == Kind::AND);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  } while (!visit.empty());
+  // get proof for rewriting, which should expand equalities
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  Node res = pfn->getResult();
+  Assert(res.getKind() == Kind::EQUAL);
+  // the right hand side should rewrite to the other side
+  Node rhs = res[1];
+  if (rhs == eq[1])
+  {
+    // no rewrite needed, e.g. one step
+    cdp->addProof(pfn);
+    return true;
+  }
+  // should rewrite via ACI_NORM
+  if (!expr::isACINorm(rhs, eq[1]))
+  {
+    Trace("brc-macro") << "Failed to show " << rhs << " == " << eq[1]
+                       << std::endl;
+    Assert(false) << "Failed to show " << rhs << " == " << eq[1] << std::endl;
+    return false;
+  }
+  // use ACI_NORM
+  cdp->addProof(pfn);
+  Node eqa = rhs.eqNode(eq[1]);
+  cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
+  cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
   return true;
 }
 
@@ -650,7 +743,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
       rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, umergeq);
   if (mergeq != eq[1])
   {
-    Trace("brc-macro") << "Failed merge step";
+    Trace("brc-macro") << "Failed merge step" << std::endl;
     return false;
   }
   Node eqq2 = umergeq.eqNode(mergeq);
@@ -658,56 +751,86 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
   cdp->addStep(eq, ProofRule::TRANS, {eqq, eqq2}, {});
   Trace("brc-macro") << "Remains to prove: " << body1 << " == " << body2
                      << std::endl;
-  Node body2ms =
-      rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_FV, body2);
-  if (body2ms.isNull())
-  {
-    // currently fails if we are doing
-    //   forall x. ite(C, forall Y. t, s) =
-    //   forall xy. ite(C, t, s)
-    // since we don't miniscope over ITE.
-    Trace("brc-macro") << "Failed miniscope";
-    return false;
-  }
-  Node eqqm = body2.eqNode(body2ms);
-  cdp->addTheoryRewriteStep(eqqm, ProofRewriteRule::QUANT_MINISCOPE_FV);
+  // add the symmetry of the equality to the process vector, we will recursively
+  // prove it via miniscoping steps below.
   Node eqqrs = body2.eqNode(body1);
-  if (body2ms != body1)
+  std::vector<Node> toProcess;
+  std::unordered_set<Node> processed;
+  toProcess.push_back(eqqrs);
+  while (!toProcess.empty())
   {
-    if (body2ms.getKind() != body1.getKind()
-        || body2ms.getNumChildren() != body1.getNumChildren())
+    Node currEq = toProcess.back();
+    toProcess.pop_back();
+    if (processed.find(currEq) != processed.end())
     {
-      Trace("brc-macro") << "Failed after miniscope";
+      continue;
+    }
+    processed.insert(currEq);
+    if (currEq[0].getKind() != Kind::FORALL)
+    {
+      Trace("brc-macro") << "Unexpected subgoal" << std::endl;
       return false;
     }
-    // We may have used alpha equivalence to rename variables, thus we
-    // introduce a CONG step where children that are disequal are given as
-    // subgoals.
-    std::vector<Node> cpremises;
-    for (size_t i = 0, nchildren = body2ms.getNumChildren(); i < nchildren; i++)
+    Kind bk = currEq[0][1].getKind();
+    ProofRewriteRule prr =
+        bk == Kind::ITE
+            ? ProofRewriteRule::QUANT_MINISCOPE_ITE
+            : (bk == Kind::OR ? ProofRewriteRule::QUANT_MINISCOPE_OR
+                              : ProofRewriteRule::QUANT_MINISCOPE_AND);
+    Node body2ms = rr->rewriteViaRule(prr, currEq[0]);
+    if (body2ms.isNull())
     {
-      Node eqc = body2ms[i].eqNode(body1[i]);
-      if (body2ms[i] == body1[i])
-      {
-        cdp->addStep(eqc, ProofRule::REFL, {}, {body2ms[i]});
-      }
-      else
-      {
-        Trace("brc-macro") << "...subgoal " << eqc << std::endl;
-        // otherwise just add subgoal, likely alpha equivalence
-        // Some of these goals cannot be currently proven since they involve
-        // multiple nested steps of miniscoping, combined with alpha
-        // equivalence.
-        cdp->addTrustedStep(
-            eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
-      }
-      cpremises.push_back(eqc);
+      Trace("brc-macro") << "Failed miniscope" << std::endl;
+      return false;
     }
-    cargs.clear();
-    cr = expr::getCongRule(body2ms, cargs);
-    Node eqqb = body2ms.eqNode(body1);
-    cdp->addStep(eqqb, cr, cpremises, cargs);
-    cdp->addStep(eqqrs, ProofRule::TRANS, {eqqm, eqqb}, {});
+    Node eqqm = currEq[0].eqNode(body2ms);
+    cdp->addTheoryRewriteStep(eqqm, prr);
+    if (body2ms != currEq[1])
+    {
+      if (body2ms.getKind() != currEq[1].getKind()
+          || body2ms.getNumChildren() != currEq[1].getNumChildren())
+      {
+        Trace("brc-macro") << "Failed after miniscope" << std::endl;
+        return false;
+      }
+      // We may have used alpha equivalence to rename variables, thus we
+      // introduce a CONG step where children that are disequal are given as
+      // subgoals.
+      std::vector<Node> cpremises;
+      for (size_t i = 0, nchildren = body2ms.getNumChildren(); i < nchildren;
+           i++)
+      {
+        Node eqc = body2ms[i].eqNode(currEq[1][i]);
+        cpremises.push_back(eqc);
+        if (eqc[0] == eqc[1])
+        {
+          cdp->addStep(eqc, ProofRule::REFL, {}, {eqc[0]});
+          continue;
+        }
+        if (eqc[1].getKind() == Kind::FORALL)
+        {
+          // just add subgoal, likely alpha equivalence
+          cdp->addTrustedStep(
+              eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+          continue;
+        }
+        // maybe the result of QUANT_UNUSED_VARS?
+        Node buv =
+            rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, eqc[0]);
+        if (buv == eqc[1])
+        {
+          cdp->addTheoryRewriteStep(eqc, ProofRewriteRule::QUANT_UNUSED_VARS);
+          continue;
+        }
+        // otherwise recursely prove
+        toProcess.push_back(eqc);
+      }
+      cargs.clear();
+      cr = expr::getCongRule(body2ms, cargs);
+      Node eqqb = body2ms.eqNode(currEq[1]);
+      cdp->addStep(eqqb, cr, cpremises, cargs);
+      cdp->addStep(currEq, ProofRule::TRANS, {eqqm, eqqb}, {});
+    }
   }
   cdp->addStep(beq, ProofRule::SYMM, {eqqrs}, {});
   return true;
@@ -806,8 +929,8 @@ bool BasicRewriteRCons::ensureProofMacroQuantPartitionConnectedFv(
   Node eqq2 = newQuant.eqNode(eq[1]);
   // Then prove
   //   (forall X F1 or ... or Fn) = (forall X1 F1) or ... or (forall Xn Fn)
-  // via ProofRewriteRule::QUANT_MINISCOPE_FV.
-  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_FV))
+  // via ProofRewriteRule::QUANT_MINISCOPE_OR.
+  if (!cdp->addTheoryRewriteStep(eqq2, ProofRewriteRule::QUANT_MINISCOPE_OR))
   {
     Assert(false);
     return false;
@@ -974,13 +1097,20 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
 bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
                                                        const Node& eq)
 {
+  Trace("brc-macro") << "Expand quant miniscope " << eq[0] << " == " << eq[1]
+                     << std::endl;
   Node q = eq[0];
   Assert(q.getKind() == Kind::FORALL);
   NodeManager* nm = nodeManager();
+  Kind bk = q[1].getKind();
+  Assert(bk == Kind::AND || bk == Kind::ITE);
+  ProofRewriteRule prr = bk == Kind::AND
+                             ? ProofRewriteRule::QUANT_MINISCOPE_AND
+                             : ProofRewriteRule::QUANT_MINISCOPE_ITE;
   theory::Rewriter* rr = d_env.getRewriter();
-  Node mq = rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE, q);
+  Node mq = rr->rewriteViaRule(prr, q);
   Node equiv = q.eqNode(mq);
-  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MINISCOPE);
+  cdp->addTheoryRewriteStep(equiv, prr);
   if (mq == eq[1])
   {
     return true;
@@ -1033,7 +1163,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
     Assert(false) << "Failed ensureProofMacroQuantMiniscope " << eq;
     return false;
   }
-  // add the CONG step to conclude AND terms are equal
+  // add the CONG step to conclude AND or ITE terms are equal
   std::vector<Node> cargs;
   ProofRule cr = expr::getCongRule(mq, cargs);
   cdp->addStep(equiv2, cr, premises, cargs);
@@ -1049,7 +1179,15 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
                      << std::endl;
   // Call the utility again with proof tracking and construct the term
   // conversion proof. This proof itself may have trust steps in it.
-  TConvProofGenerator tcpg(d_env, nullptr);
+  // We ensure the proof generator does not rewrite in the pattern list using a
+  // term context.
+  WithinKindTermContext wktc(Kind::INST_PATTERN_LIST);
+  TConvProofGenerator tcpg(d_env,
+                           nullptr,
+                           TConvPolicy::FIXPOINT,
+                           TConvCachePolicy::NEVER,
+                           "EnsureProofMacroQuantRewrite",
+                           &wktc);
   theory::quantifiers::QuantifiersRewriter qrew(
       nodeManager(), d_env.getRewriter(), options());
   Node qr = qrew.computeRewriteBody(eq[0], &tcpg);
@@ -1083,7 +1221,7 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
     Trace("brc-macro") << "...fail premise" << std::endl;
     return false;
   }
-  Node kn = ProofRuleChecker::mkKindNode(eq[0].getKind());
+  Node kn = ProofRuleChecker::mkKindNode(nodeManager(), eq[0].getKind());
   if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {kn}))
   {
     Trace("brc-macro") << "...fail application" << std::endl;

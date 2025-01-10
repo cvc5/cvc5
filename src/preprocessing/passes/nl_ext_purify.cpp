@@ -35,7 +35,6 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 bool beneathMult)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
@@ -72,9 +71,10 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = sm->mkDummySkolem("__purifyNl_var",
-                                n.getType(),
-                                "Variable introduced in purifyNl pass");
+        ret =
+            NodeManager::mkDummySkolem("__purifyNl_var",
+                                       n.getType(),
+                                       "Variable introduced in purifyNl pass");
         Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
         var_eq.push_back(np.eqNode(ret));
         Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np

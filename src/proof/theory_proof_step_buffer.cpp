@@ -38,7 +38,7 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
 {
   std::vector<Node> args;
   args.push_back(src);
-  addMethodIds(args, ids, ida, idr);
+  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
   bool added;
   Node expected = src.eqNode(tgt);
   Node res = tryStep(added,
@@ -84,7 +84,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  addMethodIds(args, ids, ida, idr);
+  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
   Node res = tryStep(ProofRule::MACRO_SR_PRED_TRANSFORM,
                      children,
                      args,
@@ -108,7 +108,7 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  addMethodIds(args, ids, ida, idr);
+  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
   Node res = tryStep(ProofRule::MACRO_SR_PRED_INTRO,
                      exp,
                      args,
@@ -131,7 +131,7 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  addMethodIds(args, ids, ida, idr);
+  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
   bool added;
   Node srcRew = tryStep(added, ProofRule::MACRO_SR_PRED_ELIM, children, args);
   if (d_autoSym && added && CDProof::isSame(src, srcRew))
@@ -198,7 +198,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
     Node congEq = oldn.eqNode(n);
     addStep(ProofRule::NARY_CONG,
             childrenEqs,
-            {ProofRuleChecker::mkKindNode(Kind::OR)},
+            {ProofRuleChecker::mkKindNode(nm, Kind::OR)},
             congEq);
     // add an equality resolution step to derive normalize clause
     addStep(ProofRule::EQ_RESOLVE, {oldn, congEq}, {}, n);

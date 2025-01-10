@@ -30,7 +30,13 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESSED_INPUT: return "PREPROCESSED_INPUT";
     // core
     case TrustId::THEORY_LEMMA: return "THEORY_LEMMA";
-    case TrustId::THEORY_INFERENCE: return "THEORY_INFERENCE";
+    case TrustId::THEORY_INFERENCE_ARITH: return "THEORY_INFERENCE_ARITH";
+    case TrustId::THEORY_INFERENCE_ARRAYS: return "THEORY_INFERENCE_ARRAYS";
+    case TrustId::THEORY_INFERENCE_DATATYPES:
+      return "THEORY_INFERENCE_DATATYPES";
+    case TrustId::THEORY_INFERENCE_SEP: return "THEORY_INFERENCE_SEP";
+    case TrustId::THEORY_INFERENCE_SETS: return "THEORY_INFERENCE_SETS";
+    case TrustId::THEORY_INFERENCE_STRINGS: return "THEORY_INFERENCE_STRINGS";
     case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
@@ -85,6 +91,9 @@ const char* toString(TrustId id)
     case TrustId::ARITH_NL_COMPARE_LIT_TRANSFORM:
       return "ARITH_NL_COMPARE_LIT_TRANSFORM";
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
+    case TrustId::ARITH_STATIC_LEARN: return "ARITH_STATIC_LEARN";
+    case TrustId::ARITH_NL_COMPARE_LEMMA: return "ARITH_NL_COMPARE_LEMMA";
+    case TrustId::DIAMONDS: return "DIAMONDS";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
     case TrustId::FLATTENING_REWRITE: return "FLATTENING_REWRITE";
@@ -94,6 +103,8 @@ const char* toString(TrustId id)
     case TrustId::ARITH_PRED_CAST_TYPE: return "ARITH_PRED_CAST_TYPE";
     case TrustId::RE_ELIM: return "RE_ELIM";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
+    case TrustId::QUANTIFIERS_INST_REWRITE: return "QUANTIFIERS_INST_REWRITE";
+    case TrustId::STRINGS_PP_STATIC_REWRITE: return "STRINGS_PP_STATIC_REWRITE";
     case TrustId::VALID_WITNESS: return "VALID_WITNESS";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";
     case TrustId::MACRO_THEORY_REWRITE_RCONS:
@@ -114,10 +125,9 @@ std::ostream& operator<<(std::ostream& out, TrustId id)
   return out;
 }
 
-Node mkTrustId(TrustId id)
+Node mkTrustId(NodeManager* nm, TrustId id)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(id)));
 }
 
 bool getTrustId(TNode n, TrustId& i)

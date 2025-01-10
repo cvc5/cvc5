@@ -559,13 +559,13 @@ Node Instantiate::getInstantiation(Node q,
   {
     std::vector<Node> pfTerms;
     // Include the list of terms as an SEXPR.
-    pfTerms.push_back(NodeManager::currentNM()->mkNode(Kind::SEXPR, terms));
+    pfTerms.push_back(nodeManager()->mkNode(Kind::SEXPR, terms));
     // additional arguments: if the inference id is not unknown, include it,
     // followed by the proof argument if non-null. The latter is used e.g.
     // to track which trigger caused an instantiation.
     if (id != InferenceId::UNKNOWN)
     {
-      pfTerms.push_back(mkInferenceIdNode(id));
+      pfTerms.push_back(mkInferenceIdNode(nodeManager(), id));
       if (!pfArg.isNull())
       {
         pfTerms.push_back(pfArg);
@@ -587,7 +587,7 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
-                        TrustId::THEORY_PREPROCESS,
+                        TrustId::QUANTIFIERS_INST_REWRITE,
                         true,
                         "Instantiate::getInstantiation:rewrite_inst");
         pf->addStep(newBody, ProofRule::EQ_RESOLVE, {body, proven}, {});

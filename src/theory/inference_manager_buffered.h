@@ -168,6 +168,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    */
   void notifyInConflict() override;
 
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return nodeManager(); }
+
  protected:
   /** A set of pending inferences to be processed as lemmas */
   std::vector<std::unique_ptr<TheoryInference>> d_pendingLem;

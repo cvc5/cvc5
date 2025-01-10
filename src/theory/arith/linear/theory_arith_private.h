@@ -471,8 +471,7 @@ private:
                           std::map<Node, Node>& arithModelIllTyped);
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TrustNode tin,
-                                  TrustSubstitutionMap& outSubstitutions);
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
   void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

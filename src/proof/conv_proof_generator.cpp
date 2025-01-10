@@ -23,6 +23,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrites.h"
 
 using namespace cvc5::internal::kind;
 
@@ -112,6 +113,15 @@ void TConvProofGenerator::addRewriteStep(Node t,
   }
 }
 
+void TConvProofGenerator::addTheoryRewriteStep(
+    Node t, Node s, ProofRewriteRule id, bool isPre, uint32_t tctx)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(t.eqNode(s));
+  addRewriteStep(t, s, ProofRule::THEORY_REWRITE, {}, sargs, isPre, tctx);
+}
+
 bool TConvProofGenerator::hasRewriteStep(Node t,
                                          uint32_t tctx,
                                          bool isPre) const
@@ -188,9 +198,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofFor: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(f, ProofRule::REFL, {}, {f[0]});
   }
   else
@@ -244,9 +251,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(conc, ProofRule::REFL, {}, {n});
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);

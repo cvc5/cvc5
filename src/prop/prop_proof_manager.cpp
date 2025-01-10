@@ -369,7 +369,7 @@ void PropPfManager::presolve()
                         << (d_plog != nullptr) << std::endl;
   if (d_plog != nullptr)
   {
-    // TODO: in incremental mode, only get the new assertions
+    // TODO (wishues #157): in incremental mode, only get the new assertions
     std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
     for (const Node& a : d_assumptions)
     {

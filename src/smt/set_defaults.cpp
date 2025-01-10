@@ -1162,11 +1162,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   if (opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
     // symmetry breaking does not have proof support
-    SET_AND_NOTIFY_VAL_SYM(uf, ufSymmetryBreaker, false, "full strict proofs");
+    SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "full strict proofs");
     // CEGQI with deltas and infinities is not supported
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfInt, false, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfReal, false, "full strict proofs");
+    // shared selectors are not supported
+    SET_AND_NOTIFY(datatypes, dtSharedSelectors, false, "full strict proofs");
   }
   return false;
 }
@@ -1321,17 +1323,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       return true;
     }
     SET_AND_NOTIFY(smt, learnedRewrite, false, "unsat cores");
-  }
-  // most static learning techniques are local, although arithmetic static
-  // learning is not.
-  if (opts.arith.arithStaticLearning)
-  {
-    if (opts.arith.arithStaticLearningWasSetByUser)
-    {
-      reason << "arith static learning";
-      return true;
-    }
-    SET_AND_NOTIFY(arith, arithStaticLearning, false, "unsat cores");
   }
 
   if (opts.arith.pbRewrites)

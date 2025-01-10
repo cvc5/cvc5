@@ -254,7 +254,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
   Node csrc = nm->mkNode(src.getKind(), conv[0], conv[1]);
   if (tgt.getKind() == Kind::EQUAL)
   {
-    Node nk = ProofRuleChecker::mkKindNode(Kind::TO_REAL);
+    Node nk = ProofRuleChecker::mkKindNode(nm, Kind::TO_REAL);
     cdp->addStep(csrc, ProofRule::CONG, {src}, {nk});
     Trace("pf-subtype-elim") << "...via " << csrc << std::endl;
     if (csrc != tgt)
@@ -295,7 +295,7 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
     if (csrc != tgt)
     {
       Node congEq = csrc.eqNode(tgt);
-      Node nk = ProofRuleChecker::mkKindNode(csrc.getKind());
+      Node nk = ProofRuleChecker::mkKindNode(nm, csrc.getKind());
       cdp->addStep(congEq, ProofRule::CONG, {convEq[0], convEq[1]}, {nk});
       cdp->addStep(fullEq, ProofRule::TRANS, {rewriteEq, congEq}, {});
     }
