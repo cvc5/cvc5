@@ -236,6 +236,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW:
+      if (ensureProofMacroLambdaAppElimShadow(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -1200,6 +1206,48 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   cdp->addProof(pfn);
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
+                                                            const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro lambda app elim shadow for " << eq
+                     << std::endl;
+  Node eqf;
+  Kind k = eq[0].getKind();
+  // get the equality between operators
+  if (k==Kind::APPLY_UF)
+  {
+    Assert (eq[1].getKind()==Kind::APPLY_UF);
+    eqf = eq[0].getOperator().eqNode(eq[1].getOperator());
+  }
+  else
+  {
+    Assert (k==Kind::HO_APPLY);
+    eqf = eq[0][0].eqNode(eq[1][0]);
+  }
+  // use conversion proof, must rewrite ops
+  TConvProofGenerator tcpg(d_env,
+                           nullptr,
+                           TConvPolicy::ONCE,
+                           TConvCachePolicy::NEVER,
+                           "MacroLambdaAppElimShadow",
+                           nullptr, true);
+  // the step eqf should be shown by alpha-equivalance
+  tcpg.addRewriteStep(eqf[0],
+                      eqf[1],
+                      nullptr,
+                      true,
+                      TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  Node res = pfn->getResult();
+  if (res[1]==eq[1])
+  {
+    cdp->addProof(pfn);
+    return true;
+  }
+  Assert (false);
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,

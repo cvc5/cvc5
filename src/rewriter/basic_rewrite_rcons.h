@@ -240,6 +240,16 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofMacroQuantRewriteBody(CDProof* cdp, const Node& eq);
   /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroLambdaAppElimShadow(CDProof* cdp, const Node& eq);
+  /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.
    * @return true if added a closed proof of eq to cdp.

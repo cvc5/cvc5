@@ -40,6 +40,8 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter* rr)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW,
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
@@ -81,32 +83,21 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
         Trace("uf-ho-beta") << "Lift " << node << " to HO " << ret << std::endl;
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
+      // see if we need to eliminate shadowing
+      Node nes =
+          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW, node);
+      if (!nes.isNull())
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, nes);
+      }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
                           << lambda << " for " << node << "\n";
       std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
       std::vector<TNode> subs(node.begin(), node.end());
-      std::unordered_set<Node> fvs;
-      for (TNode s : subs)
-      {
-        expr::getFreeVariables(s, fvs);
-      }
       Node new_body = lambda[1];
       Trace("uf-ho-beta") << "... body is " << new_body << std::endl;
-      if (!fvs.empty())
-      {
-        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
-        new_body = esnc.convert(new_body);
-        Trace("uf-ho-beta")
-            << "... elim shadow body is " << new_body << std::endl;
-      }
-      else
-      {
-        Trace("uf-ho-beta") << "... no free vars in substitution for " << vars
-                            << " -> " << subs << std::endl;
-      }
       Node ret = new_body.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
-
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     if (!canUseAsApplyUfOperator(node.getOperator()))
@@ -123,6 +114,14 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing one argument of : "
                           << lambda << " with " << node[1] << "\n";
 
+      // see if we need to eliminate shadowing
+      Node nes =
+          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW, node);
+      if (!nes.isNull())
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, nes);
+      }
+
       // reconstruct the lambda first to avoid variable shadowing
       Node new_body = lambda[1];
       if (lambda[0].getNumChildren() > 1)
@@ -137,13 +136,6 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       }
 
       TNode arg = node[1];
-      std::unordered_set<Node> fvs;
-      expr::getFreeVariables(arg, fvs);
-      if (!fvs.empty())
-      {
-        ElimShadowNodeConverter esnc(nodeManager(), node, fvs);
-        new_body = esnc.convert(new_body);
-      }
       TNode var = lambda[0][0];
       new_body = new_body.substitute(var, arg);
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
@@ -267,6 +259,74 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
+    case ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW:
+    {
+      Kind k = n.getKind();
+      Node lambda;
+      std::vector<TNode> args;
+      if (k == Kind::APPLY_UF)
+      {
+        lambda = uf::FunctionConst::toLambda(n.getOperator());
+        args.insert(args.end(), n.begin(), n.end());
+      }
+      else if (k == Kind::HO_APPLY)
+      {
+        lambda = uf::FunctionConst::toLambda(n[0]);
+        args.push_back(n[1]);
+      }
+      if (lambda.isNull())
+      {
+        return Node::null();
+      }
+      Node body = lambda[1];
+      NodeManager* nm = nodeManager();
+      if (k == Kind::HO_APPLY && lambda[0].getNumChildren() > 1)
+      {
+        std::vector<Node> nvars(lambda[0].begin() + 1, lambda[0].end());
+        std::vector<Node> largs;
+        largs.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, nvars));
+        largs.push_back(body);
+        body = nm->mkNode(Kind::LAMBDA, largs);
+      }
+      std::unordered_set<Node> fvs;
+      for (TNode a : args)
+      {
+        expr::getFreeVariables(a, fvs);
+      }
+      if (!fvs.empty())
+      {
+        ElimShadowNodeConverter esnc(nm, n, fvs);
+        Node bodyc = esnc.convert(body);
+        if (bodyc != body)
+        {
+          Node lambdac;
+          if (k == Kind::HO_APPLY && lambda[0].getNumChildren() > 1)
+          {
+            Assert(bodyc.getKind() == Kind::LAMBDA);
+            std::vector<Node> nvars;
+            nvars.push_back(lambda[0][0]);
+            nvars.insert(nvars.end(), bodyc[0].begin(), bodyc[0].end());
+            std::vector<Node> largs;
+            largs.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, nvars));
+            largs.push_back(bodyc[1]);
+            lambdac = nm->mkNode(Kind::LAMBDA, largs);
+          }
+          else
+          {
+            lambdac = nm->mkNode(Kind::LAMBDA, lambda[0], bodyc);
+          }
+          Assert(lambdac != lambda);
+          std::vector<Node> aargs;
+          aargs.push_back(lambdac);
+          aargs.insert(aargs.end(), args.begin(), args.end());
+          Node ret = nm->mkNode(k, aargs);
+          Trace("uf-elim-shadow")
+              << "Elim shadow " << n << " to " << ret << std::endl;
+          return ret;
+        }
+      }
+    }
+    break;
     default: break;
   }
   return Node::null();
@@ -330,6 +390,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
   if (retElimShadow != node)
   {
+    Trace("builtin-rewrite") << "...rewrites to " << retElimShadow << std::endl;
     return retElimShadow;
   }
   Node anode = FunctionConst::toArrayConst(node);
