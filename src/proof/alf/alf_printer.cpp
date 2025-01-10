@@ -239,7 +239,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         return opts.strings.stringsAlphaCard == String::num_codes();
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
-             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
+             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP
+             || k == Kind::STRING_STOI;
     }
     break;
     //
@@ -374,6 +375,8 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
         case Kind::STRING_PREFIX:
+        case Kind::STRING_ITOS:
+        case Kind::STRING_STOI:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -727,6 +730,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
+        options::ioutils::applyPrintArithLitToken(outDef, true);
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
         out << outDecl.str();
         // [2] print the definitions

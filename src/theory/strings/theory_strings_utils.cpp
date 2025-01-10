@@ -46,7 +46,7 @@ uint32_t getDefaultAlphabetCardinality()
   return 196608;
 }
 
-Node mkAnd(const std::vector<Node>& a)
+Node mkAnd(NodeManager* nm, const std::vector<Node>& a)
 {
   std::vector<Node> au;
   for (const Node& ai : a)
@@ -58,13 +58,13 @@ Node mkAnd(const std::vector<Node>& a)
   }
   if (au.empty())
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nm->mkConst(true);
   }
   else if (au.size() == 1)
   {
     return au[0];
   }
-  return NodeManager::currentNM()->mkNode(Kind::AND, au);
+  return nm->mkNode(Kind::AND, au);
 }
 
 void flattenOp(Kind k, Node n, std::vector<Node>& conj)

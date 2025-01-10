@@ -38,7 +38,8 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     // must mark that the quantified formula cannot be eliminated by rewriting,
     // so that the form of the quantified formula is preserved for the
     // introduction below.
-    Node psan = theory::quantifiers::QuantAttributes::mkAttrPreserveStructure();
+    Node psan =
+        theory::quantifiers::QuantAttributes::mkAttrPreserveStructure(nm);
     Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, psan);
     nchildren.push_back(ipl);
     // make the quantified formula

@@ -42,10 +42,10 @@ bool DetTrace::DetTraceTrie::add(Node loc, const std::vector<Node>& val)
   return false;
 }
 
-Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
+Node DetTrace::DetTraceTrie::constructFormula(NodeManager* nm,
+                                              const std::vector<Node>& vars,
                                               unsigned index)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (index == vars.size())
   {
     return nm->mkConst(true);
@@ -56,7 +56,7 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
     Node eq = vars[index].eqNode(p.first);
     if (index < vars.size() - 1)
     {
-      Node conc = p.second.constructFormula(vars, index + 1);
+      Node conc = p.second.constructFormula(nm, vars, index + 1);
       disj.push_back(nm->mkNode(Kind::AND, eq, conc));
     }
     else
@@ -81,9 +81,9 @@ bool DetTrace::increment(Node loc, std::vector<Node>& vals)
   return false;
 }
 
-Node DetTrace::constructFormula(const std::vector<Node>& vars)
+Node DetTrace::constructFormula(NodeManager* nm, const std::vector<Node>& vars)
 {
-  return d_trie.constructFormula(vars);
+  return d_trie.constructFormula(nm, vars);
 }
 
 void DetTrace::print(const char* c) const
@@ -582,7 +582,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt, bool fwd)
 
 Node TransitionInference::constructFormulaTrace(DetTrace& dt) const
 {
-  return dt.constructFormula(d_vars);
+  return dt.constructFormula(nodeManager(), d_vars);
 }
 
 }  // namespace quantifiers

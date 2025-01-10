@@ -216,7 +216,7 @@ Result CegSingleInv::solve()
   if (siq.getKind() == Kind::FORALL)
   {
     // get the INST_ATTRIBUTE term marking quantifier elimination
-    n_attr = QuantAttributes::mkAttrQuantifierElimination();
+    n_attr = QuantAttributes::mkAttrQuantifierElimination(nm);
     n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
     siq = nm->mkNode(Kind::FORALL, siq[0], siq[1], n_attr);
   }

@@ -2471,8 +2471,18 @@ enum ENUM(ProofRewriteRule)
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
    *   \ldots, x_n \mapsto t_n\}
    *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via ``Node::substitute``.
+   * or alternatively
+   *
+   * .. math::
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\> t)\{x_1 \mapsto t_1\}
+   *
+   * In the former case, the left hand side may either be a term of kind
+   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`. The latter case is used
+   * only if the term has kind `cvc5::Kind::HO_APPLY`.
+   *
+   * In either case, the right hand side of the equality in the conclusion is
+   * computed using standard substitution via ``Node::substitute``.
+   *
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
@@ -2498,6 +2508,19 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARRAYS_SELECT_CONST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize operation**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array operation :math:`A`
+   * into a canonical form, based on commutativity of disjoint indices.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_OP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Macro distinct arrays**
@@ -3196,6 +3219,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAY_STORE_SELF),
   /** Auto-generated from RARE rule array-read-over-write-split */
   EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
+  /** Auto-generated from RARE rule array-store-swap */
+  EVALUE(ARRAY_STORE_SWAP),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
   /** Auto-generated from RARE rule bool-not-true */

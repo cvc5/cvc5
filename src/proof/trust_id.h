@@ -157,6 +157,10 @@ enum class TrustId : uint32_t
   ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
+  /** A lemma from the ArithStaticLearner utility */
+  ARITH_STATIC_LEARN,
+  /** A nonlinear comparison lemma that failed proof reconstruction */
+  ARITH_NL_COMPARE_LEMMA,
   /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
   DIAMONDS,
   /** An extended theory rewrite */
@@ -188,6 +192,10 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term substitution */
+  QUANTIFIERS_INST_REWRITE,
+  /** A rewrite performed at TheoryStrings::ppStaticRewrite */
+  STRINGS_PP_STATIC_REWRITE,
   /**
    * An existential corresponding to a witness term introduced e.g. in
    * quantifier instantiation

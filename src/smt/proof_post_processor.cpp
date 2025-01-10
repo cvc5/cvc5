@@ -467,10 +467,15 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("smt-proof-pp-debug")
           << "transform finish (" << r << ")" << std::endl;
     }
-
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
-
+    if (eq.isNull())
+    {
+      Assert(false) << "Failed proof for MACRO_SR_PRED_TRANSFORM";
+      Trace("smt-proof-pp-debug")
+          << "Failed transitivity from " << tchildren << std::endl;
+      return Node::null();
+    }
     cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
@@ -970,8 +975,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::convertAndAddProofTo(
-              cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::convert(
+              d_env, iid, isRev, conc, exp, cdp))
       {
         return conc;
       }
