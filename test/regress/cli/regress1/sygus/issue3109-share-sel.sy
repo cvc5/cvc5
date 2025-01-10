@@ -1,21 +1,21 @@
 ; EXPECT: feasible
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --term-sort-overload --sygus-out=status
 (set-logic ALL)
 
 (declare-datatypes ((IntRange 0)) 
-   (((IntRangec (lower Int) (upper Int)))))
+   (((IntRange (lower Int) (upper Int)))))
 
 (declare-datatypes ((Loc 0)) 
-   (((Locc (x Int) (y Int)))))
+   (((Loc (x Int) (y Int)))))
 
 (declare-datatypes ((LocRange 0)) 
-   (((LocRangec (xD IntRange) (yD IntRange)))))
+   (((LocRange (xD IntRange) (yD IntRange)))))
 
 (declare-datatypes ((Ship 0)) 
-   (((Shipc (shipCapacity Int) (shipLoc Loc)))))
+   (((Ship (shipCapacity Int) (shipLoc Loc)))))
 
 (declare-datatypes ((ShipRange 0)) 
-   (((ShipRangec (shipCapacityD IntRange) (shipLocD LocRange)))))
+   (((ShipRange (shipCapacityD IntRange) (shipLocD LocRange)))))
 
 (define-fun betweenInt ((x Int) (r IntRange)) Bool
     (and (< (lower r) x) (< x (upper r)))

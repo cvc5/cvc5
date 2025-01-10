@@ -314,7 +314,7 @@ SymManager::SymManager(cvc5::TermManager& tm)
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
       d_freshDeclarations(true),
-      d_termSortOverload(false),
+      d_termSortOverload(true),
       d_logicIsForced(false),
       d_logicIsSet(false),
       d_logic()
