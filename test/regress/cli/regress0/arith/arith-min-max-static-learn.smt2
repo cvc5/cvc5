@@ -1,0 +1,13 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-fun a () Int)
+(define-fun b () Int 1)
+(declare-fun d () Int)
+(define-fun c () Int 2)
+(declare-fun f () Int)
+(define-fun e () Int 3)
+(declare-fun g () Int)
+(define-fun h () Int 4)
+(assert (let ((x (ite (< a b) a b)) (y (ite (<= c d) c d)) (z (ite (> e f) e f)) (w (ite (>= g h) g h)))
+  (or (> x a) (> x b) (> y c) (> y d) (< z e) (< z f) (< w g) (< w h))))
+(check-sat)
