@@ -100,7 +100,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_strat(d_env),
       d_absModelCounter(0),
       d_strGapModelCounter(0),
-      d_cpacb(*this)
+      d_cpacb(*this),
+      d_psrewPg(env.isTheoryProofProducing() ? new TrustProofGenerator(
+                    env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
+                                             : nullptr)
 {
   d_termReg.finishInit(&d_im);
 
@@ -1228,7 +1231,7 @@ TrustNode TheoryStrings::ppStaticRewrite(TNode atom)
     Node ret = d_rewriter.rewriteEqualityExt(atom);
     if (ret != atom)
     {
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+      return TrustNode::mkTrustRewrite(atom, ret, d_psrewPg.get());
     }
   }
   return TrustNode::null();
