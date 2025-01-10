@@ -65,7 +65,7 @@ name   = "Parser"
   category   = "expert"
   long       = "term-sort-overload"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "allow overloading of terms and sorts"
 
 # this is to support security in the online version, and in other similar
