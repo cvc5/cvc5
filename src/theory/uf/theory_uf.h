@@ -153,6 +153,8 @@ private:
 
   std::string identify() const override { return "THEORY_UF"; }
  private:
+  /** Called when preregistering terms of kind APPLY_UF or HO_APPLY */
+  void preRegisterFunctionTerm(TNode node);
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 

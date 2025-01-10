@@ -1669,7 +1669,7 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::NONE);
+    lemma(tconf, id, LemmaProperty::NONE, theoryId);
   }
   else
   {
