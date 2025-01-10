@@ -239,7 +239,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
       TypeNode tret = ret[0].getType();
       if (tret.isInteger())
       {
-        theory::strings::ArithEntail ae(d_nm);
+        theory::strings::ArithEntail ae(&d_rew);
         new_ret = ae.rewritePredViaEntailment(ret);
         if (!new_ret.isNull())
         {
@@ -264,7 +264,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     if (ret[0].getType().isInteger())
     {
-      theory::strings::ArithEntail ae(d_nm);
+      theory::strings::ArithEntail ae(&d_rew);
       new_ret = ae.rewritePredViaEntailment(ret);
       if (!new_ret.isNull())
       {
@@ -1754,7 +1754,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   {
     NodeManager* nm = d_nm;
     Node tot_len = d_rew.rewrite(nm->mkNode(Kind::STRING_LENGTH, node[0]));
-    strings::ArithEntail aent(d_nm);
+    strings::ArithEntail aent(&d_rew);
     // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
     Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(Kind::LT, node[1], tot_len));
     if (aent.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
@@ -1786,8 +1786,8 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   {
     if (node[0] == node[2])
     {
-      theory::strings::ArithEntail ae(d_nm);
-      theory::strings::StringsEntail se(d_nm, ae, nullptr);
+      theory::strings::ArithEntail ae(&d_rew);
+      theory::strings::StringsEntail se(&d_rew, ae, nullptr);
       // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
       // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
       if (se.checkLengthOne(node[0]))
