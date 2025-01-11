@@ -228,13 +228,13 @@ std::unique_ptr<NodeInfo> Normalize::getNodeInfo(const Node& node)
     std::map<std::string, int32_t> role;
     generateEncoding(node, encoding, role);
 
-    std::vector<std::pair<std::string, int32_t>> elements(role.begin(), role.end());
-        std::sort(elements.begin(), elements.end(), 
+    std::vector<std::pair<std::string, int32_t>> varNames(role.begin(), role.end());
+        std::sort(varNames.begin(), varNames.end(), 
             [](const std::pair<std::string, int32_t>& A, const std::pair<std::string, int32_t>& B) {
                 return A.second > B.second;
             });
 
-    return std::make_unique<NodeInfo>(node, encoding, 0, role, elements);
+    return std::make_unique<NodeInfo>(node, encoding, 0, role, varNames);
 }
 
 
@@ -582,6 +582,23 @@ PreprocessingPassResult Normalize::applyInternal(
         nodeInfos.push_back(std::move(ni));
     }
 
+
+    /////////////////////////////////////////////////////////////
+
+
+    /////////////////////////////////////////////////////////////
+    // Step 2: Store assertions in which every symbol occurs (will be used for super-pattern computation)
+    std::unordered_map<std::string, std::vector<std::shared_ptr<NodeInfo>>> symbolOccurrences;
+    for (const auto& nodeInfo : nodeInfos) {
+        for (const auto& [symbol, _] : nodeInfo->varNames) {
+            symbolOccurrences[symbol].push_back(nodeInfo);
+        }
+    }
+
+    /////////////////////////////////////////////////////////////
+
+
+
     // std::cout << "Got NodeInfo for all assertions" << std::endl;
     // for (const auto&ni: nodeInfos)
     // {
@@ -615,6 +632,38 @@ PreprocessingPassResult Normalize::applyInternal(
             return a[0]->encoding > b[0]->encoding;
         });
 
+    // Set IDs for all nodes. Used for super-pattern computation
+    uint32_t idCnt = 0;
+    for (const auto& eqClass : eqClasses)
+    {
+        for (const auto& ni : eqClass)
+        {
+            ni->setId(idCnt++);
+        }
+    }
+
+    // print eqClasses
+    // for (const auto& eqClass : eqClasses)
+    // {
+    //     for (const auto& ni : eqClass)
+    //     {
+    //         std::cout << ni->id << " " << ni->node << std::endl;
+    //     }
+    // }
+    // std::cout << std::endl;
+
+    // print symbol occurrences
+    // for (const auto& [symbol, occs] : symbolOccurrences)
+    // {
+    //     std::cout << symbol << " : ";
+    //     for (const auto& ni : occs)
+    //     {
+    //         std::cout << ni->id << " , ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+
     // Set equivalence class IDs (never used)
     // for (uint32_t i = 0; i < eqClasses.size(); ++i) {
     //     for (const auto& ni : eqClasses[i]) {
@@ -639,7 +688,7 @@ PreprocessingPassResult Normalize::applyInternal(
     
     /////////////////////////////////////////////////////////////
     // Step 4: Sort within equivalence classes
-    std::map<std::string, std::vector<int32_t>> pattern; // Cache of patterns
+    std::unordered_map<std::string, std::vector<int32_t>> pattern; // Cache of patterns
 
     size_t totalSize = 0;
     for (auto &eqClassInner : eqClasses) {
@@ -648,47 +697,37 @@ PreprocessingPassResult Normalize::applyInternal(
 
     for (auto& eqClass : eqClasses) {
         std::sort(eqClass.begin(), eqClass.end(),
-            [&eqClasses, &pattern, &totalSize](NodeInfo* a, NodeInfo* b) {
-                // Since all nodes in eqClass have the same encoding, we don't need to compare 'encoding'
+            [&eqClasses, &pattern, &totalSize, &symbolOccurrences](NodeInfo* a, NodeInfo* b) {
 
-                // std::cout << "Comparing" << std::endl;
-                // std::cout << "Node A: " << a->node << std::endl;
-                // std::cout << "Node B: " << b->node << std::endl;
-
-                // Iterate over varNames in parallel
                 auto itA = a->varNames.begin();
                 auto itB = b->varNames.begin();
 
                 while (itA != a->varNames.end() && itB != b->varNames.end()) {
-                    const std::string& symbolA = itA->first; // varNames stores pairs, first is the symbol
-                    const std::string& symbolB = itB->first; // varNames stores pairs, first is the symbol
+                    const std::string& symbolA = itA->first; 
+                    const std::string& symbolB = itB->first; 
 
-                    // Compute or retrieve patterns only once for each symbol
-                    auto getOrComputePattern = [&](const std::string &symbol)
-                        -> const std::vector<int32_t> & 
-                    {
-                        // Check if it's already computed
+                    auto getOrComputePattern = [&](const std::string &symbol) -> const std::vector<int32_t> & {
                         auto it = pattern.find(symbol);
                         if (it != pattern.end()) {
                             return it->second;
                         }
 
-                        // Build the vector in place
-                        std::vector<int32_t> pat;
-                        pat.reserve(totalSize);
 
-                        for (const auto &eqClassInner : eqClasses) {
-                            const size_t oldSize = pat.size();
-                            pat.resize(oldSize + eqClassInner.size());
+                        std::vector<int32_t> pat(totalSize, -1);
 
-                            size_t idx = oldSize;
-                            for (const NodeInfo *ni : eqClassInner) {
-                                auto roleIt = ni->role.find(symbol);
-                                pat[idx++] = (roleIt != ni->role.end()) ? roleIt->second : -1;
-                            }
+                        auto symbolIt = symbolOccurrences.find(symbol);
+                        Assert(symbolIt != symbolOccurrences.end());
+                        for (const auto& nodeInfo : symbolIt->second) {
+                            auto roleIt = nodeInfo->role.find(symbol);
+                            Assert(roleIt != nodeInfo->role.end());
+                            pat[nodeInfo->id] = roleIt->second;
+                        }
 
-                            // Sort the newly appended segment
-                            std::sort(pat.begin() + oldSize, pat.end());
+                        size_t startIdx = 0;
+                        for (const auto& ec : eqClasses) {
+                            size_t endIdx = startIdx + ec.size();
+                            std::sort(pat.begin() + startIdx, pat.begin() + endIdx);
+                            startIdx = endIdx;
                         }
 
                         auto &ret = pattern[symbol];
@@ -696,7 +735,11 @@ PreprocessingPassResult Normalize::applyInternal(
                         return ret;
                     };
 
-                    // Retrieve patterns for both symbols
+                    if (symbolA == symbolB) {
+                        ++itA;
+                        ++itB;
+                        continue;
+                    }
                     const std::vector<int32_t>& pat_a = getOrComputePattern(symbolA);
                     const std::vector<int32_t>& pat_b = getOrComputePattern(symbolB);
 
