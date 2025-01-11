@@ -3069,7 +3069,9 @@ enum ENUM(ProofRewriteRule)
    *   (A = B) = \bot
    *
    * where :math:`A` and :math:`B` are distinct set values, that is,
-   * the Node::isConst method returns true for both.
+   * the Node::isConst method returns true for both. This rule
+   * verifies that this returns true for both terms and that these
+   * terms are distinct.
    *
    * \endverbatim
    */
