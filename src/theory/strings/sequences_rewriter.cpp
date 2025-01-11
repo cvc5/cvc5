@@ -186,17 +186,6 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
     }
   }
 
-  // ( len( s ) != len( t ) ) => ( s == t ---> false )
-  // This covers cases like str.++( x, x ) == "a" ---> false
-  Node len0 = nodeManager()->mkNode(Kind::STRING_LENGTH, node[0]);
-  Node len1 = nodeManager()->mkNode(Kind::STRING_LENGTH, node[1]);
-  Node len_eq = len0.eqNode(len1);
-  len_eq = d_rr->rewrite(len_eq);
-  if (len_eq.isConst() && !len_eq.getConst<bool>())
-  {
-    return returnRewrite(node, len_eq, Rewrite::EQ_LEN_DEQ);
-  }
-
   std::vector<Node> c[2];
   for (unsigned i = 0; i < 2; i++)
   {
@@ -3035,31 +3024,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       return returnRewrite(node, node[0], Rewrite::RPL_RPL_LEN_ID);
     }
-
-    // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
-    // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
-    if (d_stringsEntail.checkLengthOne(node[0]))
-    {
-      Node empty = Word::mkEmptyWord(stype);
-      Node rn1 = d_rr->rewrite(
-          rewriteEqualityExt(nm->mkNode(Kind::EQUAL, node[1], empty)));
-      if (rn1 != node[1])
-      {
-        std::vector<Node> emptyNodes;
-        bool allEmptyEqs;
-        std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(rn1);
-
-        if (allEmptyEqs)
-        {
-          Node nn1 = utils::mkConcat(emptyNodes, stype);
-          if (node[1] != nn1)
-          {
-            Node ret = nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
-            return returnRewrite(node, ret, Rewrite::RPL_X_Y_X_SIMP);
-          }
-        }
-      }
-    }
   }
 
   std::vector<Node> children1;
@@ -3113,58 +3077,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       // ~contains( t, s ) => ( replace( t, s, r ) ----> t )
       return returnRewrite(node, node[0], Rewrite::RPL_NCTN);
-    }
-  }
-  else if (cmp_conr.getKind() == Kind::EQUAL || cmp_conr.getKind() == Kind::AND)
-  {
-    // Rewriting the str.contains may return equalities of the form (= x "").
-    // In that case, we can substitute the variables appearing in those
-    // equalities with the empty string in the third argument of the
-    // str.replace. For example:
-    //
-    // (str.replace x (str.++ x y) y) --> (str.replace x (str.++ x y) "")
-    //
-    // This can be done because str.replace changes x iff (str.++ x y) is in x
-    // but that means that y must be empty in that case. Thus, we can
-    // substitute y with "" in the third argument. Note that the third argument
-    // does not matter when the str.replace does not apply.
-    //
-    Node empty = Word::mkEmptyWord(stype);
-
-    std::vector<Node> emptyNodes;
-    bool allEmptyEqs;
-    std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(cmp_conr);
-
-    if (emptyNodes.size() > 0)
-    {
-      // Perform the substitutions
-      std::vector<TNode> substs(emptyNodes.size(), TNode(empty));
-      Node nn2 = node[2].substitute(
-          emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
-
-      // If the contains rewrites to a conjunction of empty-string equalities
-      // and we are doing the replacement in an empty string, we can rewrite
-      // the string-to-replace with a concatenation of all the terms that must
-      // be empty:
-      //
-      // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
-      // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
-      if (node[0] == empty && allEmptyEqs)
-      {
-        std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
-        Node nn1 = utils::mkConcat(emptyNodesList, stype);
-        if (nn1 != node[1] || nn2 != node[2])
-        {
-          Node res = nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, nn2);
-          return returnRewrite(node, res, Rewrite::RPL_EMP_CNTS_SUBSTS);
-        }
-      }
-
-      if (nn2 != node[2])
-      {
-        Node res = nm->mkNode(Kind::STRING_REPLACE, node[0], node[1], nn2);
-        return returnRewrite(node, res, Rewrite::RPL_CNTS_SUBSTS);
-      }
     }
   }
 
