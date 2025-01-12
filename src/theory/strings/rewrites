@@ -78,6 +78,13 @@
   (str.len (str.update t n r))
   (str.len t))
 
+(define-cond-rule str-update-in-first-concat ((t ?Seq) (ts ?Seq :list) (s ?Seq) (n Int) (tpre ?Seq) (tpost ?Seq))
+  (and (>= n 0) (< (+ n (str.len s)) (str.len t))
+       (= tpre (str.substr t 0 n))
+       (= tpost (str.substr t (+ n (str.len s)) (str.len t))))
+  (str.update (str.++ t ts) n s)
+  (str.++ tpre s tpost ts))
+
 (define-cond-rule str-len-substr-in-range ((s ?Seq) (n Int) (m Int))
   (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
@@ -250,15 +257,21 @@
   (str.replace t s r)
   t)
 
-(define-cond-rule str-replace-find-base ((t ?Seq) (s ?Seq) (r ?Seq) (n Int)) 
-  (and (= n (str.indexof t s 0)) (>= n 0))
+(define-cond-rule str-replace-find-base ((t ?Seq) (s ?Seq) (r ?Seq) (tpre ?Seq) (tpost ?Seq))
+  (def (n (str.indexof t s 0)))
+  (and (>= n 0)
+       (= tpre (str.substr t 0 n))
+       (= tpost (str.substr t (+ n (str.len s)) (str.len t))))
   (str.replace t s r)
-  (str.++ (str.substr t 0 n) r (str.substr t (+ n (str.len s)) (str.len t))))
+  (str.++ tpre r tpost))
 
-(define-cond-rule str-replace-find-first-concat ((t ?Seq) (ts ?Seq :list) (s ?Seq) (r ?Seq) (n Int)) 
-  (and (= n (str.indexof t s 0)) (>= n 0))
+(define-cond-rule str-replace-find-first-concat ((t ?Seq) (ts ?Seq :list) (s ?Seq) (r ?Seq) (tpre ?Seq) (tpost ?Seq))
+  (def (n (str.indexof t s 0)))
+  (and (>= n 0)
+       (= tpre (str.substr t 0 n))
+       (= tpost (str.substr t (+ n (str.len s)) (str.len t))))
   (str.replace (str.++ t ts) s r)
-  (str.++ (str.substr t 0 n) r (str.substr t (+ n (str.len s)) (str.len t)) ts))
+  (str.++ tpre r tpost ts))
 
 (define-cond-rule str-replace-empty ((t ?Seq) (s ?Seq) (r ?Seq))
   (= r (@seq.empty_of_type (@type_of r)))
@@ -269,6 +282,12 @@
   (str.contains t1 s)
   (str.replace (str.++ t1 t2) s r)
   (str.++ (str.replace t1 s r) t2))
+
+
+(define-cond-rule str-replace-one-pre ((t ?Seq) (s ?Seq) (r ?Seq) (ts ?Seq :list) (ss ?Seq :list))
+  (= (str.len s) 1)
+  (str.replace (str.++ ts t ss t) s r)
+  (str.++ (str.replace (str.++ ts t ss) s r) t))
 
 (define-cond-rule str-replace-all-no-contains ((t ?Seq) (s ?Seq) (r ?Seq))
   (not (str.contains t s))
@@ -511,6 +530,11 @@
   (not (= y z))
   (= (str.replace x y z) x)
   (not (str.contains x y)))
+
+(define-cond-rule str-eq-repl-len-one-emp-prefix ((x ?Seq) (y ?Seq) (emp ?Seq))
+  (and (= emp (@seq.empty_of_type (@type_of x))) (= (str.len y) 1))
+  (= (str.replace x y emp) emp)
+  (str.prefixof x y))
 
 ; =============== Sequences-specific rules
 

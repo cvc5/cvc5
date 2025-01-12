@@ -3721,6 +3721,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEN_REPLACE_ALL_INV),
   /** Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-update-in-first-concat */
+  EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
   EVALUE(STR_LEN_SUBSTR_IN_RANGE),
   /** Auto-generated from RARE rule str-len-substr-ub1 */
@@ -3803,6 +3805,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_EMPTY),
   /** Auto-generated from RARE rule str-replace-contains-pre */
   EVALUE(STR_REPLACE_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-replace-one-pre */
+  EVALUE(STR_REPLACE_ONE_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-re-none */
@@ -3931,6 +3935,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_EQ_REPL_SELF_EMP),
   /** Auto-generated from RARE rule str-eq-repl-no-change */
   EVALUE(STR_EQ_REPL_NO_CHANGE),
+  /** Auto-generated from RARE rule str-eq-repl-len-one-emp-prefix */
+  EVALUE(STR_EQ_REPL_LEN_ONE_EMP_PREFIX),
   /** Auto-generated from RARE rule seq-len-unit */
   EVALUE(SEQ_LEN_UNIT),
   /** Auto-generated from RARE rule seq-nth-unit */
