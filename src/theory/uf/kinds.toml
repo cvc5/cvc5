@@ -35,10 +35,7 @@ header   = "theory/uf/theory_uf_type_rules.h"
 wellfoundedness-computer = "::cvc5::internal::theory::uf::FunctionProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::uf::FunctionProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/uf/theory_uf_type_rules.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "FUNCTION_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::uf::FunctionEnumerator"
 header = "theory/uf/type_enumerator.h"
 

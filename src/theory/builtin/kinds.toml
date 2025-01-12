@@ -278,10 +278,7 @@ computer = "Cardinality(Cardinality::INTEGERS)"
 wellfoundedness-computer = "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/builtin/theory_builtin_type_rules.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "SORT_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::builtin::UninterpretedSortEnumerator"
 header = "theory/builtin/type_enumerator.h"
 
@@ -297,10 +294,7 @@ computer = "Cardinality(Cardinality::INTEGERS)"
 wellfoundedness-computer = "::cvc5::internal::theory::builtin::SortProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/builtin/theory_builtin_type_rules.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "INSTANTIATED_SORT_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::builtin::UninterpretedSortEnumerator"
 header = "theory/builtin/type_enumerator.h"
 

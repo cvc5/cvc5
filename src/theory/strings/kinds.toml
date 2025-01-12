@@ -205,6 +205,9 @@ well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkConst(::cvc5::internal::String())"
 header        = "util/string.h"
 comment       = "String type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::strings::StringEnumerator"
+header = "theory/strings/type_enumerator.h"
 
 [[kinds]]
 type          = "sort"
@@ -214,16 +217,7 @@ well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkNode(Kind::REGEXP_NONE)"
 header        = "util/string.h"
 comment       = "RegExp type"
-
-[[kinds]]
-type   = "enumerator"
-name   = "STRING_TYPE"
-class  = "::cvc5::internal::theory::strings::StringEnumerator"
-header = "theory/strings/type_enumerator.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "REGEXP_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::strings::RegExpEnumerator"
 header = "theory/strings/regexp_enumerator.h"
 
@@ -250,10 +244,7 @@ header   = "theory/strings/theory_strings_type_rules.h"
 wellfoundedness-computer = "::cvc5::internal::theory::strings::SequenceProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/strings/theory_strings_type_rules.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "SEQUENCE_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::strings::SequenceEnumerator"
 header = "theory/strings/type_enumerator.h"
 

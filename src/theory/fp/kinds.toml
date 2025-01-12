@@ -41,17 +41,14 @@ typerule  = "::cvc5::internal::theory::fp::RoundingModeConstantTypeRule"
 # types...
 
 [[kinds]]
-type         = "sort"
-name         = "ROUNDINGMODE_TYPE"
-cardinality  = 5
-well_founded = true
-ground-term  = "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())"
-header       = "expr/node_manager.h"
-comment      = "floating-point rounding mode"
-
-[[kinds]]
-type   = "enumerator"
-name   = "ROUNDINGMODE_TYPE"
+type = "sort"
+name                     = "ROUNDINGMODE_TYPE"
+cardinality              = 5
+well_founded             = true
+ground-term              = "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())"
+header                   = "expr/node_manager.h"
+comment                  = "floating-point rounding mode"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::fp::RoundingModeEnumerator"
 header = "theory/fp/type_enumerator.h"
 
@@ -66,14 +63,10 @@ comment   = "floating-point type"
 [kinds.cardinality]
 computer = "::cvc5::internal::theory::fp::CardinalityComputer::computeCardinality(%TYPE%)"
 header   = "theory/fp/theory_fp_type_rules.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "FLOATINGPOINT_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::fp::FloatingPointEnumerator"
 header = "theory/fp/type_enumerator.h"
 [kinds.well-founded]
-name                     = "FLOATINGPOINT_TYPE"
 wellfoundedness-computer = true
 ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
 header                   = "theory/type_enumerator.h"

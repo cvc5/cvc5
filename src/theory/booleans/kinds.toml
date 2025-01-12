@@ -23,6 +23,9 @@ well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkConst(false)"
 header        = "expr/node_manager.h"
 comment       = "Boolean type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::booleans::BooleanEnumerator"
+header = "theory/booleans/type_enumerator.h"
 
 [[kinds]]
 type      = "constant"
@@ -33,12 +36,6 @@ hasher    = "::cvc5::internal::BoolHashFunction"
 header    = "util/bool.h"
 comment   = "truth and falsity; payload is a (C++) bool"
 typerule  = "::cvc5::internal::theory::boolean::BooleanTypeRule"
-
-[[kinds]]
-type   = "enumerator"
-name   = "BOOLEAN_TYPE"
-class  = "::cvc5::internal::theory::booleans::BooleanEnumerator"
-header = "theory/booleans/type_enumerator.h"
 
 [[kinds]]
 type     = "operator"

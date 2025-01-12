@@ -251,6 +251,9 @@ well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkConstReal(Rational(0))"
 header        = "expr/node_manager.h"
 comment       = "real type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::arith::RationalEnumerator"
+header = "theory/arith/type_enumerator.h"
 
 [[kinds]]
 type          = "sort"
@@ -260,6 +263,9 @@ well_founded  = true
 ground-term   = "NodeManager::currentNM()->mkConstInt(Rational(0))"
 header        = "expr/node_manager.h"
 comment       = "integer type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::arith::IntegerEnumerator"
+header = "theory/arith/type_enumerator.h"
 
 [[kinds]]
 type      = "constant"
@@ -300,19 +306,7 @@ comment  = "a real algebraic number constant; payload is an instance of the cvc5
 typerule = "::cvc5::internal::theory::arith::ArithRealAlgebraicNumberTypeRule"
 
 [[kinds]]
-type   = "enumerator"
-name   = "REAL_TYPE"
-class  = "::cvc5::internal::theory::arith::RationalEnumerator"
-header = "theory/arith/type_enumerator.h"
-
-[[kinds]]
-type   = "enumerator"
-name   = "INTEGER_TYPE"
-class  = "::cvc5::internal::theory::arith::IntegerEnumerator"
-header = "theory/arith/type_enumerator.h"
-
-[[kinds]]
-type     = "operator"
+type = "operator"
 name     = "LT"
 children = 2
 comment  = "less than, x < y"
