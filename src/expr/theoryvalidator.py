@@ -31,7 +31,7 @@ class TheoryValidator:
                 exit(1)
     
     def check_not_allowed_fields(self, filename, struct, input_fields, allowed_fields):
-        support_structs = ["type", "cardinality", "well-founded", "typerule", "construle"]
+        support_structs = ["type", "cardinality", "well-founded", "typerule", "construle", "enumerator"]
         for input_field in input_fields:
             if input_field not in support_structs and input_field not in allowed_fields:
                 print(f"{filename}: error: {struct} contains a not allowed field '{input_field}'")
@@ -105,6 +105,9 @@ class TheoryValidator:
         
         if "well-founded" in kind:
             self.validate_well_founded(filename, kind["well-founded"])
+        
+        if "enumerator" in kind:
+            self.validate_enumerator(filename, kind["enumerator"])
 
     def validate_operator(self, filename, operator):
         required_fields = ["name", "children"]
@@ -156,7 +159,7 @@ class TheoryValidator:
         self.check_not_allowed_fields(filename, "well-founded", well_founded, required_fields + optional_fields)
 
     def validate_enumerator(self, filename, enumerator):
-        required_fields = ["name", "class", "header"]
+        required_fields = ["class", "header"]
         optional_fields = ["comment"]
         
         self.check_required_fields(filename, "enumerator", enumerator, required_fields)
@@ -172,8 +175,6 @@ class TheoryValidator:
 
         if kind_type == "constant":
             self.validate_constant(filename, kind)
-        elif kind_type == "enumerator":
-            self.validate_enumerator(filename, kind)
         elif kind_type == "nullaryoperator":
             self.validate_nullary_operator(filename, kind)
         elif kind_type == "operator":
