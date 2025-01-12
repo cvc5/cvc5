@@ -106,10 +106,7 @@ header   = "expr/dtype.h"
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "DATATYPE_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "theory/datatypes/type_enumerator.h"
 
@@ -125,10 +122,7 @@ header   = "expr/dtype.h"
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "PARAMETRIC_DATATYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "theory/datatypes/type_enumerator.h"
 
@@ -144,10 +138,7 @@ header   = "expr/dtype.h"
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "TUPLE_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "expr/dtype.h"
 
@@ -290,10 +281,7 @@ header   = "expr/dtype.h"
 wellfoundedness-computer = "%TYPE%.getDType().isWellFounded()"
 ground-term-computer     = "%TYPE%.getDType().mkGroundTerm(%TYPE%)"
 header                   = "expr/dtype.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "NULLABLE_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "expr/dtype.h"
 

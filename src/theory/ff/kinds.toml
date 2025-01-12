@@ -27,14 +27,10 @@ comment   = "finite field type"
 [kinds.cardinality]
 computer = "::cvc5::internal::theory::ff::FiniteFieldProperties::computeCardinality(%TYPE%)"
 header   = "theory/ff/theory_ff_type_rules.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "FINITE_FIELD_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::ff::FiniteFieldEnumerator"
 header = "theory/ff/type_enumerator.h"
 [kinds.well-founded]
-name                     = "FINITE_FIELD_TYPE"
 wellfoundedness-computer = true
 ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
 header                   = "theory/type_enumerator.h"

@@ -40,10 +40,7 @@ header   = "theory/bags/theory_bags_type_rules.h"
 wellfoundedness-computer = "::cvc5::internal::theory::bags::BagsProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::bags::BagsProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/bags/theory_bags_type_rules.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "BAG_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::bags::BagEnumerator"
 header = "theory/bags/theory_bags_type_enumerator.h"
 

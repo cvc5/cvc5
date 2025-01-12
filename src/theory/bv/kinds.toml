@@ -26,6 +26,13 @@ comment   = "bit-vector type"
 [kinds.cardinality]
 computer = "::cvc5::internal::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)"
 header   = "theory/bv/theory_bv_type_rules.h"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::bv::BitVectorEnumerator"
+header = "theory/bv/type_enumerator.h"
+[kinds.well-founded]
+wellfoundedness-computer = true
+ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
+header                   = "theory/type_enumerator.h"
 
 [[kinds]]
 type      = "constant"
@@ -38,16 +45,7 @@ comment   = "a fixed-width bit-vector constant; payload is an instance of the cv
 [kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::bv::BitVectorConstantTypeRule"
 
-[[kinds]]
-type = "enumerator"
-name   = "BITVECTOR_TYPE"
-class  = "::cvc5::internal::theory::bv::BitVectorEnumerator"
-header = "theory/bv/type_enumerator.h"
-[kinds.well-founded]
-name                     = "BITVECTOR_TYPE"
-wellfoundedness-computer = true
-ground-term-computer     = "(*cvc5::internal::theory::TypeEnumerator(%TYPE%))"
-header                   = "theory/type_enumerator.h"
+
 
 ### non-parameterized operator kinds ------------------------------------------
 

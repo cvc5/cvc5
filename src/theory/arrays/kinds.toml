@@ -16,7 +16,7 @@ class  = "::cvc5::internal::theory::arrays::TheoryArraysRewriter"
 header = "theory/arrays/theory_arrays_rewriter.h"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "ARRAY_TYPE"
 children = 2
 comment  = "array type"
@@ -27,10 +27,7 @@ header   = "theory/arrays/theory_arrays_type_rules.h"
 wellfoundedness-computer = "::cvc5::internal::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)"
 ground-term-computer     = "::cvc5::internal::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)"
 header                   = "theory/arrays/theory_arrays_type_rules.h"
-
-[[kinds]]
-type = "enumerator"
-name   = "ARRAY_TYPE"
+[kinds.enumerator]
 class  = "::cvc5::internal::theory::arrays::ArrayEnumerator"
 header = "theory/arrays/type_enumerator.h"
 
