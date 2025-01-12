@@ -432,3 +432,10 @@ hasher    = "::cvc5::internal::SortToTermHashFunction"
 header    = "expr/sort_to_term.h"
 comment   = "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
 typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "operator"
+name     = "TYPE_OF"
+children = 1
+comment  = "the type of an expression, used internally for RARE"
+typerule = "::cvc5::internal::theory::builtin::TypeOfTypeRule"
