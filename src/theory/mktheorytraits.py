@@ -83,19 +83,18 @@ class CodeGenerator:
     def generate_file_header(self):
         self.fill_template(self.template_file_path_replacement_pattern, self.theory_traits_template)
 
-    def register_enumerator(self, enumerator, theory_id, filename):
+    def register_enumerator(self, enumerator, kind_name, theory_id, filename):
         header = enumerator["header"]
-        name = enumerator["name"]
         enumerator_class = enumerator["class"]
         
         self.type_enumerator_includes += f"#include \"{header}\"\n"
 
-        if re.search(rf"\b{re.escape(name)}\b", self.type_constants): 
-            self.mk_type_enumerator_type_constant_cases += f"        case {name}:\n          return new {enumerator_class}(type, tep);\n\n"
-        elif re.search(rf"\b{re.escape(name)}\b", self.type_kinds): 
-            self.mk_type_enumerator_cases += f"      case Kind::{name}:\n        return new {enumerator_class}(type, tep);\n\n"
+        if re.search(rf"\b{re.escape(kind_name)}\b", self.type_constants): 
+            self.mk_type_enumerator_type_constant_cases += f"        case {kind_name}:\n          return new {enumerator_class}(type, tep);\n\n"
+        elif re.search(rf"\b{re.escape(kind_name)}\b", self.type_kinds): 
+            self.mk_type_enumerator_cases += f"      case Kind::{kind_name}:\n        return new {enumerator_class}(type, tep);\n\n"
         else: 
-            print(f"{filename}:{theory_id}: error: don't know anything about {name}; enumerator must appear after definition")
+            print(f"{filename}:{theory_id}: error: don't know anything about {kind_name}; enumerator must appear after definition")
             print(f"type_constants: {self.type_constants}")
             print(f"type_kinds : {self.type_kinds}")
             sys.exit(1)
@@ -116,8 +115,9 @@ class CodeGenerator:
                 self.type_kinds += f"{kind_name} "
             elif kind_type in target_constant_types:
                 self.type_constants += f"{kind_name} "
-            elif kind_type == "enumerator":
-                self.register_enumerator(kind, theory_id, kind)
+            
+            if "enumerator" in kind:
+                self.register_enumerator(kind["enumerator"], kind_name, theory_id, kind)
 
     def generate_code_for_theory(self, theory, rewriter):
         self.generate_code_for_theory_includes(theory["base_class_header"])
