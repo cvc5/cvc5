@@ -72,12 +72,12 @@ Node mkFalse<Node>() {
 
 template <> inline
 Node mkNot<Node>(Node a) {
-  return NodeManager::currentNM()->mkNode(Kind::NOT, a);
+  return NodeManager::mkNode(Kind::NOT, a);
 }
 
 template <> inline
 Node mkOr<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::OR, a, b);
+  return NodeManager::mkNode(Kind::OR, a, b);
 }
 
 template <> inline
@@ -90,7 +90,7 @@ Node mkOr<Node>(const std::vector<Node>& children) {
 
 template <> inline
 Node mkAnd<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::AND, a, b);
+  return NodeManager::mkNode(Kind::AND, a, b);
 }
 
 template <> inline
@@ -103,17 +103,17 @@ Node mkAnd<Node>(const std::vector<Node>& children) {
 
 template <> inline
 Node mkXor<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::XOR, a, b);
+  return NodeManager::mkNode(Kind::XOR, a, b);
 }
 
 template <> inline
 Node mkIff<Node>(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::EQUAL, a, b);
+  return NodeManager::mkNode(Kind::EQUAL, a, b);
 }
 
 template <> inline
 Node mkIte<Node>(Node cond, Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::ITE, cond, a, b);
+  return NodeManager::mkNode(Kind::ITE, cond, a, b);
 }
 
 /*

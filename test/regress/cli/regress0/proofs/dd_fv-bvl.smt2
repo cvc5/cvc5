@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic ALL)
 (define-fun b ((bv (_ BitVec 4))) (_ BitVec 4) bv)

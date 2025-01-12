@@ -140,7 +140,7 @@ class NodeManager
   const DType& getDTypeFor(Node n) const;
 
   /** get the canonical bound variable list for function type tn */
-  Node getBoundVarListForFunctionType(TypeNode tn);
+  static Node getBoundVarListForFunctionType(TypeNode tn);
 
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
@@ -459,7 +459,7 @@ class NodeManager
   TypeNode mkFiniteFieldType(const Integer& modulus);
 
   /** Make the type of arrays with the given parameterization */
-  TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
+  static TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
   /** Make the type of set with the given parameterization */
   TypeNode mkSetType(TypeNode elementType);
@@ -556,20 +556,21 @@ class NodeManager
   Node mkOr(const std::vector<NodeTemplate<ref_count> >& children);
 
   /** Create a node (with no children) by operator. */
-  Node mkNode(TNode opNode);
+  static Node mkNode(TNode opNode);
 
   /** Create a node with one child by operator. */
-  Node mkNode(TNode opNode, TNode child1);
+  static Node mkNode(TNode opNode, TNode child1);
 
   /** Create a node with two children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2);
+  static Node mkNode(TNode opNode, TNode child1, TNode child2);
 
   /** Create a node with three children by operator. */
-  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
+  static Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
 
   /** Create a node by applying an operator to the children. */
   template <bool ref_count>
-  Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+  static Node mkNode(TNode opNode,
+                     const std::vector<NodeTemplate<ref_count>>& children);
 
   /**
    * Create a node by applying an operator to an arbitrary number of children.
@@ -1095,7 +1096,8 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
   Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
   Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
-  return mkTypeNode(Kind::ARRAY_TYPE, indexType, constituentType);
+  NodeManager* nm = indexType.getNodeManager();
+  return nm->mkTypeNode(Kind::ARRAY_TYPE, indexType, constituentType);
 }
 
 inline TypeNode NodeManager::mkSetType(TypeNode elementType)

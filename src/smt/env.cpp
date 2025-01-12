@@ -109,6 +109,11 @@ context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 smt::PfManager* Env::getProofManager() { return d_pfManager; }
 
+ProofLogger* Env::getProofLogger()
+{
+  return d_pfManager ? d_pfManager->getProofLogger() : nullptr;
+}
+
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
 bool Env::isSatProofProducing() const

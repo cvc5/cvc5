@@ -34,6 +34,9 @@ ${holder_ref_inits}$
 // clang-format on
         d_handler(std::make_unique<options::OptionsHandler>(this))
   {
+#ifdef CVC5_SAFE_MODE
+    d_base->safeOptions = true;
+#endif
   }
 
   Options::~Options() {}

@@ -165,8 +165,6 @@ class TheoryPreprocessor : protected EnvObj
    * contexts.
    */
   RtfTermContext d_rtfc;
-  /** Trust id */
-  Node d_tpid;
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.

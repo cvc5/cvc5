@@ -34,7 +34,7 @@ uint32_t getDefaultAlphabetCardinality();
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.
  */
-Node mkAnd(const std::vector<Node>& a);
+Node mkAnd(NodeManager* nm, const std::vector<Node>& a);
 
 /**
  * Adds all (non-duplicate) children of <k> applications from n to conj. For

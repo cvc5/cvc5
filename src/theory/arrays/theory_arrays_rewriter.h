@@ -40,8 +40,6 @@ uint64_t getMostFrequentValueCount(TNode store);
 void setMostFrequentValue(TNode store, TNode value);
 void setMostFrequentValueCount(TNode store, uint64_t count);
 
-static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
-
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
@@ -88,6 +86,13 @@ class TheoryArraysRewriter : public TheoryRewriter
    * be removed.
    */
   Rewriter* d_rewriter;
+  /**
+   * Make rewritten equality.
+   * @param a The first term.
+   * @param b The second term.
+   * @return the rewritten form of the equality between a and b.
+   */
+  Node mkEqNode(const Node& a, const Node& b) const;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays

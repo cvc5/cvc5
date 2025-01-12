@@ -63,7 +63,7 @@ class ProofRuleChecker
   /** get a Kind from a node, return false if we fail */
   static bool getKind(TNode n, Kind& k);
   /** Make a Kind into a node */
-  static Node mkKindNode(Kind k);
+  static Node mkKindNode(NodeManager* nm, Kind k);
 
   /** Register all rules owned by this rule checker into pc. */
   virtual void registerTo(ProofChecker* pc) {}

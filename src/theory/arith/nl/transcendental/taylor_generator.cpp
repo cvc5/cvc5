@@ -29,7 +29,7 @@ namespace nl {
 namespace transcendental {
 
 TaylorGenerator::TaylorGenerator()
-    : d_taylor_real_fv(NodeManager::currentNM()->mkBoundVar(
+    : d_taylor_real_fv(NodeManager::mkBoundVar(
         "x", NodeManager::currentNM()->realType()))
 {
 }

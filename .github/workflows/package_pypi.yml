@@ -30,6 +30,7 @@ jobs:
             os: ubuntu-latest
             arch: aarch64
             shell: bash
+            cibw_skip: "cp37-* pp37-*"
           - name: macos-x86_64
             os: macos-13
             macos-target: 10.13
@@ -87,10 +88,14 @@ jobs:
         mkdir -p build/src/api/python
         if [ "${{ matrix.gpl }}" == "true" ]; then
           sed -e 's/^name="cvc5"$/name="cvc5-gpl"/' \
+              -e 's/^\(description=".*\)"/\1 (GPL version)"/' \
+              -e 's/^\(readme = {text = ".*\)\(", content-type = "text\/plain"\)/\1 (GPL version)\2/' \
               -e 's/^license = {text = "/license = {text = "GPL-2.0-or-later AND GPL-3.0-or-later AND /' \
               ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
         else
-          cp src/api/python/pyproject.toml build/src/api/python/
+          sed -e 's/^\(description=".*\)"/\1 (BSD version)"/' \
+              -e 's/^\(readme = {text = ".*\)\(", content-type = "text\/plain"\)/\1 (BSD version)\2/' \
+              ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
         fi
         echo "::endgroup::"
 
@@ -101,11 +106,11 @@ jobs:
       run: echo "bin=$(cygpath -m $(dirname $(which gcc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v2.17.0
+      uses: pypa/cibuildwheel@v2.22.0
       with:
         package-dir: ./build/src/api/python/
       env:
-        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
+        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_* ${{ matrix.cibw_skip }}"
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
         CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}

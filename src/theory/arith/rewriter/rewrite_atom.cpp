@@ -254,9 +254,9 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   }
   if (negate)
   {
-    return NodeManager::currentNM()->mkNode(kind, left, right).notNode();
+    return NodeManager::mkNode(kind, left, right).notNode();
   }
-  return NodeManager::currentNM()->mkNode(kind, left, right);
+  return NodeManager::mkNode(kind, left, right);
 }
 
 Node buildIntegerEquality(Sum&& sum)

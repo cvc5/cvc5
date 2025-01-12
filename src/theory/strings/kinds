@@ -189,4 +189,9 @@ typerule CONST_SEQUENCE ::cvc5::internal::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::cvc5::internal::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::cvc5::internal::theory::strings::SeqNthTypeRule
 
+# for RARE
+
+operator SEQ_EMPTY_OF_TYPE 1  "the empty sequence whose argument represents its type"
+typerule SEQ_EMPTY_OF_TYPE ::cvc5::internal::theory::strings::SeqEmptyOfTypeTypeRule
+
 endtheory
