@@ -361,6 +361,14 @@ type = "parameterized"
 K1       = "RELATION_TABLE_JOIN"
 K2       = "RELATION_TABLE_JOIN_OP"
 children = 2
-comment  ="relation table join"
+comment  = "relation table join"
 [kinds.typerule]
 type_checker_class = "::cvc5::internal::theory::sets::RelationTableJoinTypeRule"
+
+[[kinds]]
+type = "operator"
+name     = "SET_EMPTY_OF_TYPE"
+children = 1
+comment  = "the empty set whose argument represents its type"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::sets::SetEmptyOfTypeTypeRule"

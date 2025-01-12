@@ -440,3 +440,11 @@ header    = "expr/sort_to_term.h"
 comment   = "term representing a sort; payload is an instance of the cvc5::internal::SortToTerm class"
 [kinds.typerule]
 type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "operator"
+name     = "TYPE_OF"
+children = 1
+comment  = "the type of an expression, used internally for RARE"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::builtin::TypeOfTypeRule"

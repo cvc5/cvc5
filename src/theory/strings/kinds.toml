@@ -457,3 +457,11 @@ children = 1
 comment  = "regexp rv (internal use only)"
 [kinds.typerule]
 type_checker_class = "SimpleTypeRule<RRegExp, AInteger>"
+
+[[kinds]]
+type = "operator"
+name     = "SEQ_EMPTY_OF_TYPE"
+children = 1
+comment  = "the empty sequence whose argument represents its type"
+[kinds.typerule]
+type_checker_class = "::cvc5::internal::theory::strings::SeqEmptyOfTypeTypeRule"
