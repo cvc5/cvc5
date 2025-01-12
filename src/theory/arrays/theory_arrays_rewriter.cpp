@@ -66,16 +66,45 @@ void setMostFrequentValueCount(TNode store, uint64_t count)
 TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
     : TheoryRewriter(nm), d_rewriter(r)
 {
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP,
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0].isConst() && n[1].isConst()
+          && n[0] != n[1])
+      {
+        Assert(n[0].getType().isArray());
+        return d_nm->mkConst(false);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+    {
+      if (n.getKind() == Kind::STORE && n[0].isConst() && n[1].isConst()
+          && n[2].isConst())
+      {
+        Node nn = normalizeConstant(nodeManager(), n);
+        if (nn != n)
+        {
+          return nn;
+        }
+      }
+    }
+    break;
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     {
       if (n.getKind() == Kind::SELECT && n[0].getKind() == Kind::STORE_ALL)
@@ -91,6 +120,88 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return expandEqRange(d_nm, n);
       }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP:
+    {
+      Kind k = n.getKind();
+      if (k != Kind::SELECT && k != Kind::STORE)
+      {
+        return Node::null();
+      }
+      Node index = n[1];
+      bool iconst = index.isConst();
+      Node arr = n[0];
+      std::vector<Node> indices;
+      std::vector<Node> elems;
+      bool success = false;
+      while (arr.getKind() == Kind::STORE)
+      {
+        if (arr[1] == index)
+        {
+          // process being equal:
+          // if store, we are redundant, remove and break
+          // if select, we return the element directly
+          if (k == Kind::STORE)
+          {
+            arr = arr[0];
+          }
+          else
+          {
+            return arr[2];
+          }
+          break;
+        }
+        // store orders indices only
+        if (k == Kind::STORE && arr[1] < index)
+        {
+          break;
+        }
+        // success if we can move past
+        success = false;
+        if (iconst)
+        {
+          success = arr[1].isConst();
+        }
+        else
+        {
+          Node eq = mkEqNode(arr[1], index);
+          success = (eq.isConst() && !eq.getConst<bool>());
+        }
+        if (success)
+        {
+          indices.push_back(arr[1]);
+          elems.push_back(arr[2]);
+          arr = arr[0];
+        }
+        else
+        {
+          break;
+        }
+      }
+      if (indices.empty())
+      {
+        return Node::null();
+      }
+      NodeManager* nm = nodeManager();
+      Node ret;
+      if (k == Kind::STORE)
+      {
+        ret = nm->mkNode(Kind::STORE, arr, n[1], n[2]);
+        // add back those we traversed over
+        while (!indices.empty())
+        {
+          ret = nm->mkNode(Kind::STORE, ret, indices.back(), elems.back());
+          indices.pop_back();
+          elems.pop_back();
+        }
+      }
+      else
+      {
+        Assert(k == Kind::SELECT);
+        ret = nm->mkNode(Kind::SELECT, arr, n[1]);
+      }
+      return ret;
     }
     break;
     default: break;
@@ -403,7 +514,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          n = d_rewriter->rewrite(mkEqNode(store[1], index));
+          n = mkEqNode(store[1], index);
           if (n.getKind() != Kind::CONST_BOOLEAN)
           {
             break;
@@ -475,7 +586,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
+          Node eqRewritten = mkEqNode(store[1], index);
           if (eqRewritten.getKind() != Kind::CONST_BOOLEAN)
           {
             Trace("arrays-postrewrite")
@@ -515,7 +626,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             }
             else
             {
-              n = d_rewriter->rewrite(mkEqNode(store[1], index));
+              n = mkEqNode(store[1], index);
               if (n.getKind() != Kind::CONST_BOOLEAN)
               {
                 break;
@@ -612,12 +723,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         }
         else
         {
-          n = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (n.getKind() != Kind::CONST_BOOLEAN)
-          {
-            break;
-          }
-          val = n.getConst<bool>();
+          break;
         }
         if (val)
         {
@@ -675,12 +781,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         }
         else
         {
-          Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
-          if (eqRewritten.getKind() != Kind::CONST_BOOLEAN)
-          {
-            break;
-          }
-          val = eqRewritten.getConst<bool>();
+          break;
         }
         NodeManager* nm = nodeManager();
         if (val)
@@ -727,6 +828,12 @@ Node TheoryArraysRewriter::expandDefinition(Node node)
   return Node::null();
 }
 
+Node TheoryArraysRewriter::mkEqNode(const Node& a, const Node& b) const
+{
+  Node eq = a.eqNode(b);
+  return d_rewriter->rewrite(eq);
+}
+  
 }  // namespace arrays
 }  // namespace theory
 }  // namespace cvc5::internal

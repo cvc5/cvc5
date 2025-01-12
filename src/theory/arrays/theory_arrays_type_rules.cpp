@@ -112,7 +112,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    return NodeManager::currentNM()->mkArrayType(indexjoin, valuejoin);
+    return nodeManager->mkArrayType(indexjoin, valuejoin);
   }
   else
   {

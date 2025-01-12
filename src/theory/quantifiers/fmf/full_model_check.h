@@ -75,7 +75,7 @@ public:
   bool addEntry( FirstOrderModelFmc * m, Node c, Node v);
   Node evaluate( FirstOrderModelFmc * m, std::vector<Node>& inst );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst );
-  void simplify( FullModelChecker * mc, FirstOrderModelFmc * m );
+  void simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m);
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
 };/* class Def */
 

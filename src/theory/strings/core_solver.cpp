@@ -262,7 +262,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             conc_c.push_back(b[d_flat_form_index[b][j]].eqNode(emp));
           }
           Assert(!conc_c.empty());
-          conc = utils::mkAnd(conc_c);
+          conc = utils::mkAnd(nodeManager(), conc_c);
           infType = InferenceId::STRINGS_F_ENDPOINT_EMP;
           Assert(count > 0);
           // swap, will enforce is empty past current
@@ -302,7 +302,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
             conc_c.push_back(a[d_flat_form_index[a][j]].eqNode(emp));
           }
           Assert(!conc_c.empty());
-          conc = utils::mkAnd(conc_c);
+          conc = utils::mkAnd(nodeManager(), conc_c);
           infType = InferenceId::STRINGS_F_ENDPOINT_EMP;
           Assert(count > 0);
           break;
@@ -366,7 +366,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
                 lexpc.insert(lexpc.end(), lexp.begin(), lexp.end());
                 lexpc.insert(lexpc.end(), lexp2.begin(), lexp2.end());
                 d_im.addToExplanation(lcurr, lcc, lexpc);
-                lant = utils::mkAnd(lexpc);
+                lant = utils::mkAnd(nodeManager(), lexpc);
                 conc = ac.eqNode(bc);
                 infType = InferenceId::STRINGS_F_UNIFY;
                 break;
@@ -590,7 +590,7 @@ void CoreSolver::checkNormalFormsEqProp()
       std::vector<Node> nf_exp(nfe.d_exp.begin(), nfe.d_exp.end());
       if (!nfe_eq.d_exp.empty())
       {
-        nf_exp.push_back(utils::mkAnd(nfe_eq.d_exp));
+        nf_exp.push_back(utils::mkAnd(nodeManager(), nfe_eq.d_exp));
       }
       Node eq = nfe.d_base.eqNode(nfe_eq.d_base);
       d_im.sendInference(nf_exp, eq, InferenceId::STRINGS_NORMAL_FORM);
@@ -1337,7 +1337,7 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node eq = x.eqNode(y);
       d_im.addToExplanation(xLenTerm, yLenTerm, lenExp);
       // set the explanation for length
-      Node lant = utils::mkAnd(lenExp);
+      Node lant = utils::mkAnd(nodeManager(), lenExp);
       ant.push_back(lant);
       d_im.sendInference(ant, eq, InferenceId::STRINGS_N_UNIFY, isRev);
       break;
@@ -1740,7 +1740,7 @@ bool CoreSolver::processSimpleNEq(NormalForm& nfi,
           nodeManager(), y, x, ProofRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     // add the length constraint(s) as the last antecedant
-    Node lc = utils::mkAnd(lcVec);
+    Node lc = utils::mkAnd(nodeManager(), lcVec);
     iinfo.d_premises.push_back(lc);
     iinfo.d_idRev = isRev;
     pinfer.push_back(info);

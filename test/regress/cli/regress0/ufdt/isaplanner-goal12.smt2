@@ -1,0 +1,15 @@
+; COMMAND-LINE: --dt-stc-ind
+; EXPECT: unsat
+(set-logic UFDT)
+(declare-datatype Nat ((zero) (succ (pred Nat))))
+(declare-datatype Lst ((nil) (cons (head Nat) (tail Lst))))
+(declare-fun f (Nat) Nat)
+(declare-fun drop (Nat Lst) Lst)
+(assert (forall ((x Nat)) (= (drop x nil) nil)))
+(assert (forall ((x Lst)) (= (drop zero x) x)))
+(assert (forall ((x Nat) (y Nat) (z Lst)) (= (drop (succ x) (cons y z)) (drop x z))))
+(declare-fun lmap (Lst) Lst)
+(assert (= (lmap nil) nil))
+(assert (forall ((x Nat) (y Lst)) (= (lmap (cons x y)) (cons (f x) (lmap y)))))
+(assert (not (forall ((n Nat) (xs Lst)) (= (drop n (lmap xs)) (lmap (drop n xs))))))
+(check-sat)

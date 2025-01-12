@@ -57,7 +57,14 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
   d_inferManager = &d_im;
 }
 
-TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryFp::getTheoryRewriter()
+{
+  if (!options().fp.fp)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 

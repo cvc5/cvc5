@@ -64,7 +64,7 @@ Node FunctionConst::toLambda(TNode n)
     Assert(tn.isFunction());
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector<Node> bvs;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = n.getNodeManager();
     BoundVarManager* bvm = nm->getBoundVarManager();
     // associate a unique bound variable list with the value
     for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
@@ -94,7 +94,7 @@ TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
     atn = atn.getArrayConstituentType();
   }
   children.push_back(atn);
-  return NodeManager::currentNM()->mkFunctionType(children);
+  return bvl.getNodeManager()->mkFunctionType(children);
 }
 
 TypeNode FunctionConst::getArrayTypeForFunctionType(TypeNode ftn)
@@ -106,7 +106,7 @@ TypeNode FunctionConst::getArrayTypeForFunctionType(TypeNode ftn)
   for (size_t i = 0; i < nchildren - 1; i++)
   {
     size_t ii = nchildren - i - 2;
-    ret = NodeManager::currentNM()->mkArrayType(ftn[ii], ret);
+    ret = NodeManager::mkArrayType(ftn[ii], ret);
   }
   return ret;
 }
@@ -142,7 +142,7 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
           Assert(a[1].getType() == bvl[bvlIndex].getType());
           Assert(val.getType() == body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
-          ret = NodeManager::currentNM()->mkNode(Kind::ITE, cond, val, body);
+          ret = NodeManager::mkNode(Kind::ITE, cond, val, body);
         }
       }
     }
@@ -174,7 +174,7 @@ Node FunctionConst::getLambdaForArrayRepresentation(TNode a, TNode bvl)
   {
     Trace("builtin-rewrite-debug")
         << "...got lambda body " << body << std::endl;
-    return NodeManager::currentNM()->mkNode(Kind::LAMBDA, bvl, body);
+    return NodeManager::mkNode(Kind::LAMBDA, bvl, body);
   }
   Trace("builtin-rewrite-debug") << "...failed to get lambda body" << std::endl;
   return Node::null();
@@ -184,7 +184,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
                                                        TypeNode retType)
 {
   Assert(n.getKind() == Kind::LAMBDA);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Trace("builtin-rewrite-debug")
       << "Get array representation for : " << n << std::endl;
 

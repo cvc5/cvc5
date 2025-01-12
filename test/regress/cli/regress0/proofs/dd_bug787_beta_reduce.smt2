@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const _vp1-1 (_ BitVec 1))

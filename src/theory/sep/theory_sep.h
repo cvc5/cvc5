@@ -55,7 +55,6 @@ class TheorySep : public Theory {
 
   /** Trust id (for proofs) */
   Node d_tiid;
-  Node d_tsid;
 
   //whether bounds have been initialized
   bool d_bounds_init;

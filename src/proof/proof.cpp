@@ -267,7 +267,7 @@ bool CDProof::addTrustedStep(Node expected,
                              CDPOverwrite opolicy)
 {
   std::vector<Node> sargs;
-  sargs.push_back(mkTrustId(id));
+  sargs.push_back(mkTrustId(nodeManager(), id));
   sargs.push_back(expected);
   sargs.insert(sargs.end(), args.begin(), args.end());
   return addStep(

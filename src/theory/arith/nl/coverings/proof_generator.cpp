@@ -75,14 +75,14 @@ std::pair<std::size_t, std::size_t> getRootIDs(
  * @param poly The polynomial whose root shall be considered
  * @param vm A variable mapper from cvc5 to libpoly variables
  */
-Node mkIRP(const Node& var,
+Node mkIRP(NodeManager* nm,
+           const Node& var,
            Kind rel,
            const Node& zero,
            std::size_t k,
            const poly::Polynomial& poly,
            VariableMapper& vm)
 {
-  auto* nm = NodeManager::currentNM();
   auto op = nm->mkConst<IndexedRootPredicate>(IndexedRootPredicate(k));
   return nm->mkNode(Kind::INDEXED_ROOT_PREDICATE,
                     op,
@@ -96,8 +96,8 @@ CoveringsProofGenerator::CoveringsProofGenerator(Env& env,
                                                  context::Context* ctx)
     : EnvObj(env), d_proofs(env, ctx), d_current(nullptr)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  d_false = nodeManager()->mkConst(false);
+  d_zero = nodeManager()->mkConstReal(Rational(0));
 }
 
 void CoveringsProofGenerator::startNewProof()
@@ -157,7 +157,7 @@ void CoveringsProofGenerator::addDirect(Node var,
     auto ids = getRootIDs(roots, get_lower(interval));
     Assert(ids.first == ids.second);
     res.emplace_back(
-        mkIRP(var, Kind::EQUAL, mkZero(var.getType()), ids.first, poly, vm));
+        mkIRP(nodeManager(), var, Kind::EQUAL, mkZero(var.getType()), ids.first, poly, vm));
   }
   else
   {
@@ -168,7 +168,7 @@ void CoveringsProofGenerator::addDirect(Node var,
       auto ids = getRootIDs(roots, get_lower(interval));
       Assert(ids.first == ids.second);
       Kind rel = poly::get_lower_open(interval) ? Kind::GT : Kind::GEQ;
-      res.emplace_back(mkIRP(var, rel, d_zero, ids.first, poly, vm));
+      res.emplace_back(mkIRP(nodeManager(), var, rel, d_zero, ids.first, poly, vm));
     }
     if (!is_plus_infinity(get_upper(interval)))
     {
@@ -176,7 +176,7 @@ void CoveringsProofGenerator::addDirect(Node var,
       auto ids = getRootIDs(roots, get_upper(interval));
       Assert(ids.first == ids.second);
       Kind rel = poly::get_upper_open(interval) ? Kind::LT : Kind::LEQ;
-      res.emplace_back(mkIRP(var, rel, d_zero, ids.first, poly, vm));
+      res.emplace_back(mkIRP(nodeManager(), var, rel, d_zero, ids.first, poly, vm));
     }
   }
   // Add to proof manager
@@ -214,7 +214,7 @@ std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
     if (ids.first == ids.second)
     {
       // Excludes a single point only
-      res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
+      res.emplace_back(mkIRP(nodeManager(), var, Kind::EQUAL, d_zero, ids.first, poly, vm));
     }
     else
     {
@@ -222,12 +222,12 @@ std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
       if (ids.first > 0)
       {
         // Interval has lower bound that is not -inf
-        res.emplace_back(mkIRP(var, Kind::GT, d_zero, ids.first, poly, vm));
+        res.emplace_back(mkIRP(nodeManager(), var, Kind::GT, d_zero, ids.first, poly, vm));
       }
       if (ids.second <= roots.size())
       {
         // Interval has upper bound that is not inf
-        res.emplace_back(mkIRP(var, Kind::LT, d_zero, ids.second, poly, vm));
+        res.emplace_back(mkIRP(nodeManager(), var, Kind::LT, d_zero, ids.second, poly, vm));
       }
     }
   }

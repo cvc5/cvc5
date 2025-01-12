@@ -209,7 +209,7 @@ Node mkSygusTerm(const Node& op,
   }
   else
   {
-    ret = NodeManager::currentNM()->mkNode(tok, schildren);
+    ret = nm->mkNode(tok, schildren);
   }
   Trace("dt-sygus-util") << "...return " << ret << std::endl;
   return ret;

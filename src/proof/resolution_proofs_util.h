@@ -107,7 +107,8 @@ namespace proof {
  * @return The resulting node of transforming MACRO_RESOLUTION into
  * CHAIN_RESOLUTION according to the above idea.
  */
-Node eliminateCrowdingLits(bool reorderPremises,
+Node eliminateCrowdingLits(NodeManager* nm,
+                           bool reorderPremises,
                            const std::vector<Node>& clauseLits,
                            const std::vector<Node>& targetClauseLits,
                            const std::vector<Node>& children,

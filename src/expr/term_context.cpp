@@ -167,11 +167,15 @@ uint32_t WithinKindTermContext::computeValue(TNode t,
                                              uint32_t tval,
                                              size_t index) const
 {
-  if (tval == 0 && t.getKind() == d_kind)
+  if (tval == 0)
   {
-    return 1;
+    if (t.getKind() == d_kind)
+    {
+      return 1;
+    }
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 }  // namespace cvc5::internal

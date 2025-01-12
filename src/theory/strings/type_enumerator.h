@@ -45,7 +45,8 @@ namespace strings {
  * @return A string whose characters have the code points corresponding
  * to vec in the standard model construction described above.
  */
-Node makeStandardModelConstant(const std::vector<unsigned>& vec,
+Node makeStandardModelConstant(NodeManager* nm,
+                               const std::vector<unsigned>& vec,
                                uint32_t cardinality);
 
 /**
@@ -123,14 +124,19 @@ class StringEnumLen : public SEnumLen
 {
  public:
   /** For strings */
-  StringEnumLen(uint32_t startLength, uint32_t card);
-  StringEnumLen(uint32_t startLength, uint32_t endLength, uint32_t card);
+  StringEnumLen(NodeManager* nm, uint32_t startLength, uint32_t card);
+  StringEnumLen(NodeManager* nm,
+                uint32_t startLength,
+                uint32_t endLength,
+                uint32_t card);
   /** destructor */
   ~StringEnumLen() {}
   /** increment */
   bool increment() override;
 
  private:
+  /** The associated node manager */
+  NodeManager* d_nm;
   /** The cardinality of the alphabet */
   uint32_t d_cardinality;
   /** Make the current term from d_data */
@@ -144,8 +150,12 @@ class SeqEnumLen : public SEnumLen
 {
  public:
   /** For sequences */
-  SeqEnumLen(TypeNode tn, TypeEnumeratorProperties* tep, uint32_t startLength);
-  SeqEnumLen(TypeNode tn,
+  SeqEnumLen(NodeManager* nm,
+             TypeNode tn,
+             TypeEnumeratorProperties* tep,
+             uint32_t startLength);
+  SeqEnumLen(NodeManager* nm,
+             TypeNode tn,
              TypeEnumeratorProperties* tep,
              uint32_t startLength,
              uint32_t endLength);
@@ -157,6 +167,8 @@ class SeqEnumLen : public SEnumLen
   bool increment() override;
 
  private:
+  /** The associated node manager */
+  NodeManager* d_nm;
   /** an enumerator for the elements' type */
   std::unique_ptr<TypeEnumerator> d_elementEnumerator;
   /** The domain */

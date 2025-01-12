@@ -209,7 +209,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   SubstitutionMap& top_level_substs = tlsm.get();
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConstInt(Rational(0)), one = nm->mkConstInt(Rational(1));
   Node trueNode = nm->mkConst(true);
 
@@ -523,7 +522,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               stringstream ss;
               ss << "mipvar_" << *ii;
-              Node newVar = sm->mkDummySkolem(
+              Node newVar = NodeManager::mkDummySkolem(
                   ss.str(),
                   nm->integerType(),
                   "a variable introduced due to scrubbing a miplib encoding");
@@ -537,15 +536,13 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                   n, false, nullptr, TrustId::PREPROCESS_MIPLIB_TRICK_LEMMA);
               TrustSubstitutionMap tnullMap(d_env, &fakeContext);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
-              Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
+              bool status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
-                  << "unexpected solution from arith's ppAssert()";
+              Assert(!status) << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
               status = te->solve(tleq, tnullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
-                  << "unexpected solution from arith's ppAssert()";
+              Assert(!status) << "unexpected solution from arith's ppAssert()";
               Assert(nullMap.empty())
                   << "unexpected substitution from arith's ppAssert()";
               newVars.push_back(newVar);
