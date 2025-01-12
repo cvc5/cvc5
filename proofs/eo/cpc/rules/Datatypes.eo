@@ -17,7 +17,7 @@
 )
 
 ; rule: dt_split
-; implements: ProofRule::DT_SPLIT.
+; implements: ProofRule::DT_SPLIT
 ; args:
 ; - x D: The datatype term to split on.
 ; conclusion: >
@@ -81,7 +81,7 @@
 )
 
 ; rule: dt-inst
-; implements: ProofRewriteRule::DT_INST.
+; implements: ProofRewriteRule::DT_INST
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
@@ -97,7 +97,7 @@
 ;;;;; ProofRewriteRule::DT_COLLAPSE_SELECTOR
 
 ; rule: dt-collapse-selector
-; implements: ProofRewriteRule::DT_COLLAPSE_SELECTOR.
+; implements: ProofRewriteRule::DT_COLLAPSE_SELECTOR
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
@@ -118,7 +118,7 @@
 ;;;;; ProofRewriteRule::DT_COLLAPSE_TESTER
 
 ; rule: dt-collapse-tester
-; implements: ProofRewriteRule::DT_COLLAPSE_TESTER.
+; implements: ProofRewriteRule::DT_COLLAPSE_TESTER
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
@@ -149,4 +149,148 @@
   :args ((= (is c t) true))
   :requires (((eo::list_len eo::List::cons ($dt_get_constructors (eo::typeof t))) 1))
   :conclusion (= (is c t) true)
+)
+
+;;;;; ProofRewriteRule::DT_CONS_EQ
+
+; define: $mk_dt_cons_eq
+; args:
+; - ts @List: The list of arguments to the left hand side of the equality.
+; - ss @List: The list of arguments to the right hand side of the equality.
+; return: >
+;   The conjunction of equalities between the arguments of ts and ss.
+(program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
+  (@List @List) Bool
+  (
+  (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
+  (($mk_dt_cons_eq @list.nil @list.nil)       true)
+  )
+)
+
+; rule: dt-cons-eq
+; implements: ProofRewriteRule::DT_CONS_EQ
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   The right hand side of the equality is the conjunction of equalities
+;   the arguments of the terms in the equality on the left hand side, which
+;   are applications of constructors.
+; conclusion: The given equality.
+(declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
+  :args ((= (= t s) B))
+  :requires (((eo::define ((c ($get_fun t))) 
+              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)
+             (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
+  :conclusion (= (= t s) B)
+)
+
+;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
+
+; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
+(program $dt_cons_eq_find_clash_list () (@List @List) Bool)
+
+; define: $dt_cons_eq_find_clash
+; args:
+; - t T: The left hand side of the equality.
+; - s T: The right hand side of the equality.
+; return: >
+;   True if we can derive a conflict based on finding subterms (beneath
+;   constructor applications) that have distinct constructor symbols.
+(define $dt_cons_eq_find_clash ((T Type :implicit) (t T) (s T))
+  (eo::define ((ct ($get_fun t)))
+  (eo::define ((cs ($get_fun s)))
+  (eo::ite ($dt_is_cons ct)
+    (eo::ite (eo::is_eq ct cs)
+      ; recurse on each argument
+      ($dt_cons_eq_find_clash_list ($dt_arg_list t) ($dt_arg_list s))
+      ; otherwise conflicting only if cs is also a constructor
+      ($dt_is_cons cs))
+    false)))
+)
+
+; program: $dt_cons_eq_find_clash_list
+; args:
+; - ts @List: The list of arguments to the left hand side of the equality left to process.
+; - ss @List: The list of arguments to the right hand side of the equality left to process.
+; return: >
+;   True if we can derive a conflict based on finding subterms (beneath
+;   constructor applications) that have distinct constructor symbols.
+(program $dt_cons_eq_find_clash_list ((U Type) (t U) (s U) (ts @List :list) (ss @List :list))
+  (@List @List) Bool
+  (
+  (($dt_cons_eq_find_clash_list (@list t ts) (@list s ss))  (eo::ite ($dt_cons_eq_find_clash t s)
+                                                              true
+                                                              ($dt_cons_eq_find_clash_list ts ss)))
+  (($dt_cons_eq_find_clash_list @list.nil @list.nil)        false)
+  )
+)
+
+; rule: dt-cons-eq
+; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   The equality on the left hand side is conflicting based on finding
+;   subterms (beneath constructor applications) that have distinct constructor
+;   symbols on either side.
+; conclusion: The given equality.
+(declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
+  :args ((= (= t s) false))
+  :requires ((($dt_cons_eq_find_clash t s) true))
+  :conclusion (= (= t s) false)
+)
+
+;;;;; ProofRewriteRule::DT_CYCLE
+
+; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
+; note: >
+;   Since forward declarations must have a ground type signature, we wrap
+;   the term to find (the s argument of dt-cycle) in a list.
+(program $dt_find_cycle_list () (@List @List) Bool)
+
+; define: $dt_find_cycle
+; args:
+; - t T: The term.
+; - s @List: A list containing the term to find.
+; return: >
+;   True iff t contains s as a strict subterm beneath constructor applications.
+(define $dt_find_cycle ((T Type :implicit) (t T) (s @List))
+  (eo::define ((ct ($get_fun t)))
+  (eo::ite ($dt_is_cons ct)
+    ; recurse on each argument
+    ($dt_find_cycle_list ($dt_arg_list t) s)
+    false))
+)
+
+; program: $dt_find_cycle_list
+; args:
+; - ts @List: The list of terms to process.
+; - s @List: A list containing the term to find.
+; return: >
+;   True iff a term in ts is s, or contains s as a strict subterm beneath
+;   constructor applications.
+(program $dt_find_cycle_list ((U Type) (t U) (s U) (ts @List :list) (ss @List))
+  (@List @List) Bool
+  (
+  (($dt_find_cycle_list (@list s ts) (@list s)) true)
+  (($dt_find_cycle_list (@list t ts) ss)        (eo::ite ($dt_find_cycle t ss)
+                                                  true
+                                                  ($dt_find_cycle_list ts ss)))
+  (($dt_find_cycle_list @list.nil ss)           false)
+  )
+)
+
+; rule: dt-cycle
+; implements: ProofRewriteRule::DT_CYCLE
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   The equality on the left hand side is conflicting based on finding
+;   subterms (beneath constructor applications) that have different constructor
+;   symbols on either side.
+; conclusion: The given equality.
+(declare-rule dt-cycle ((D Type) (s D) (t D))
+  :args ((= (= s t) false))
+  :requires ((($dt_find_cycle t (@list s)) true)) 
+  :conclusion (= (= s t) false)
 )
