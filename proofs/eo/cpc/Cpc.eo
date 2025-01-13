@@ -149,6 +149,8 @@
       (($run_evaluate (str.len x))         (eo::len ($run_evaluate x)))
       (($run_evaluate (str.substr x n m))  (eo::define ((r ($run_evaluate n)))
                                              (eo::extract ($run_evaluate x) r (eo::add r ($run_evaluate m) -1))))
+      (($run_evaluate (str.at x n))         (eo::define ((r ($run_evaluate n)))
+                                             (eo::extract ($run_evaluate x) r r)))
       (($run_evaluate (str.contains x y))  (eo::not (eo::is_neg (eo::find ($run_evaluate x) ($run_evaluate y)))))
       (($run_evaluate (str.replace x y z)) (eo::define ((ex ($run_evaluate x)))
                                            (eo::define ((ey ($run_evaluate y)))

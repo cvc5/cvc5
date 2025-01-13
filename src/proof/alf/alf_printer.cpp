@@ -383,6 +383,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_TO_LOWER:
         case Kind::STRING_TO_UPPER:
         case Kind::STRING_REV:
+        case Kind::STRING_AT:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
