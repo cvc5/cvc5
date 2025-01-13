@@ -786,7 +786,7 @@ void getMatchConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
       // holds trivially
       continue;
     }
-    Assert (curr.first.getType()==curr.second.getType());
+    Assert(curr.first.getType() == curr.second.getType());
     it = visited.find(curr);
     if (it != visited.end())
     {
@@ -795,14 +795,16 @@ void getMatchConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
     }
     visited.insert(curr);
     bool rec = false;
-    if (curr.first.getNumChildren() > 0 && curr.first.getNumChildren() == curr.second.getNumChildren())
+    if (curr.first.getNumChildren() > 0
+        && curr.first.getNumChildren() == curr.second.getNumChildren())
     {
       size_t prevSize = stack.size();
       if (curr.first.getOperator() == curr.second.getOperator())
       {
         rec = true;
       }
-      else if (isHo && curr.first.getKind()==Kind::APPLY_UF && curr.second.getKind()==Kind::APPLY_UF)
+      else if (isHo && curr.first.getKind() == Kind::APPLY_UF
+               && curr.second.getKind() == Kind::APPLY_UF)
       {
         rec = true;
         // if isHo, we recurse on distinct operators with the same type

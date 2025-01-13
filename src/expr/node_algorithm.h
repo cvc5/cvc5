@@ -260,7 +260,7 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 /**
  * For each subterm of n1 and n2 at the same position that have different
  * operators, we add the corresponding equality to eqs.
- * 
+ *
  * Additionally, we use an isHo flag to determine if we are considering
  * HO matching. As an example of the difference:
  * Given n1 = (f (g a) b), n2 = (f (h b) c),
@@ -275,7 +275,10 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * an APPLY_UF with distinct operators with the same type will be added as
  * a match condition.
  */
-void getMatchConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo=false);
+void getMatchConditions(Node n1,
+                        Node n2,
+                        std::vector<Node>& eqs,
+                        bool isHo = false);
 
 /** Is the top symbol of cur a Boolean connective? */
 bool isBooleanConnective(TNode cur);

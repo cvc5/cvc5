@@ -1227,7 +1227,7 @@ bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
                            true);
   for (const Node& mc : matchConds)
   {
-    Assert (mc.getKind()==Kind::EQUAL);
+    Assert(mc.getKind() == Kind::EQUAL);
     // the step should be shown by alpha-equivalance
     tcpg.addRewriteStep(mc[0],
                         mc[1],
