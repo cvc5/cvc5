@@ -801,7 +801,15 @@ void getMatchConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
       size_t prevSize = stack.size();
       if (curr.first.getOperator() == curr.second.getOperator())
       {
-        rec = true;
+        if (curr.first.isClosure())
+        {
+          // only recurse if equal variable lists
+          rec = (curr.first[0]==curr.second[0]);
+        }
+        else
+        {
+          rec = true;
+        }
       }
       else if (isHo && curr.first.getKind() == Kind::APPLY_UF
                && curr.second.getKind() == Kind::APPLY_UF)
