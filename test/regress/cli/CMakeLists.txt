@@ -1848,6 +1848,7 @@ set(regress_0_tests
   regress0/strings/escchar_25.smt2
   regress0/strings/escchar.smt2
   regress0/strings/eval-leading-zeroes.smt2
+  regress0/strings/ext-op-re-eval-simple-test.smt2
   regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
   regress0/strings/from-int-eval.smt2
