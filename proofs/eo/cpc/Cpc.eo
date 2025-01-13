@@ -187,6 +187,12 @@
                                              ($str_to_int_eval ex)))
       (($run_evaluate (str.from_int n))    (eo::define ((en ($run_evaluate n)))
                                              ($str_from_int_eval en)))
+      (($run_evaluate (str.to_lower x))    (eo::define ((ex ($run_evaluate x)))
+                                             ($str_to_lower_eval ex)))
+      (($run_evaluate (str.to_upper x))    (eo::define ((ex ($run_evaluate x)))
+                                             ($str_to_upper_eval ex)))
+      (($run_evaluate (str.rev x))         (eo::define ((ex ($run_evaluate x)))
+                                             ($str_rev_eval ex)))
 
       ; bitvectors
       (($run_evaluate (bvnot xb))          (eo::not ($run_evaluate xb)))
