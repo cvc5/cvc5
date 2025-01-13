@@ -1213,19 +1213,10 @@ bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
 {
   Trace("brc-macro") << "Expand macro lambda app elim shadow for " << eq
                      << std::endl;
-  Node eqf;
-  Kind k = eq[0].getKind();
-  // get the equality between operators
-  if (k == Kind::APPLY_UF)
-  {
-    Assert(eq[1].getKind() == Kind::APPLY_UF);
-    eqf = eq[0].getOperator().eqNode(eq[1].getOperator());
-  }
-  else
-  {
-    Assert(k == Kind::HO_APPLY);
-    eqf = eq[0][0].eqNode(eq[1][0]);
-  }
+  // Get equalities between subterms that are disequal in LHS/RHS. These will
+  // be added as rewrite steps below.
+  std::vector<Node> matchConds;
+  expr::getMatchConditions(eq[0], eq[1], matchConds, true);
   // use conversion proof, must rewrite ops
   TConvProofGenerator tcpg(d_env,
                            nullptr,
@@ -1234,12 +1225,16 @@ bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
                            "MacroLambdaAppElimShadow",
                            nullptr,
                            true);
-  // the step eqf should be shown by alpha-equivalance
-  tcpg.addRewriteStep(eqf[0],
-                      eqf[1],
-                      nullptr,
-                      true,
-                      TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+  for (const Node& mc : matchConds)
+  {
+    Assert (mc.getKind()==Kind::EQUAL);
+    // the step should be shown by alpha-equivalance
+    tcpg.addRewriteStep(mc[0],
+                        mc[1],
+                        nullptr,
+                        true,
+                        TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+  }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
   Node res = pfn->getResult();
   if (res[1] == eq[1])
