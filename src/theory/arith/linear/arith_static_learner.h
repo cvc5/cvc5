@@ -22,21 +22,20 @@
 #define CVC5__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include "context/cdhashmap.h"
+#include "proof/proof_generator.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "util/statistics_stats.h"
-#include "proof/trust_node.h"
-
-namespace cvc5::context {
-class Context;
-}
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class ArithStaticLearner {
-private:
+class ArithStaticLearner : protected EnvObj, public ProofGenerator
+{
+ private:
 
   /**
    * Map from a node to it's minimum and maximum.
@@ -46,14 +45,22 @@ private:
  CDNodeToMinMaxMap d_maxMap;
 
 public:
- ArithStaticLearner(StatisticsRegistry& sr, context::Context* userContext);
+ ArithStaticLearner(Env& env);
  ~ArithStaticLearner();
  void staticLearning(TNode n, std::vector<TrustNode>& learned);
 
  void addBound(TNode n);
+ /**
+  * Get proof for fact
+  */
+ std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+ /** identify this proof generator */
+ std::string identify() const override;
 
 private:
- void process(TNode n, std::vector<TrustNode>& learned, const TNodeSet& defTrue);
+ void process(TNode n,
+              std::vector<TrustNode>& learned,
+              const TNodeSet& defTrue);
 
  void iteMinMax(TNode n, std::vector<TrustNode>& learned);
  void iteConstant(TNode n, std::vector<TrustNode>& learned);
@@ -74,7 +81,7 @@ private:
 
   Statistics d_statistics;
 
-};/* class ArithStaticLearner */
+}; /* class ArithStaticLearner */
 
 }  // namespace arith
 }  // namespace theory

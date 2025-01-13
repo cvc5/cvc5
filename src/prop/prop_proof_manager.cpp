@@ -29,6 +29,7 @@
 #include "prop/sat_solver_factory.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/proof_logger.h"
 #include "util/resource_manager.h"
 #include "util/string.h"
 
@@ -60,6 +61,7 @@ PropPfManager::PropPfManager(Env& env,
           env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_pfpp(new ProofPostprocess(env, &d_proof)),
       d_pfCnfStream(env, cnf, this),
+      d_plog(nullptr),
       d_satSolver(satSolver),
       d_assertions(userContext()),
       d_cnfStream(cnf),
@@ -338,7 +340,68 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     d_satPm->registerSatAssumptions({normClauseNode});
   }
+  // if proof logging, make the call now
+  if (d_plog != nullptr)
+  {
+    if (!input)
+    {
+      if (d_env.isTheoryProofProducing())
+      {
+        // if theory proof producing, we get the proof to log
+        std::shared_ptr<ProofNode> pfn = d_proof.getProofFor(normClauseNode);
+        d_plog->logTheoryLemmaProof(pfn);
+      }
+      else
+      {
+        // otherwise we just notify the clause
+        d_plog->logTheoryLemma(normClauseNode);
+      }
+    }
+  }
   return normClauseNode;
+}
+
+void PropPfManager::presolve()
+{
+  // get the proof logger now
+  d_plog = d_env.getProofLogger();
+  Trace("pf-log-debug") << "PropPfManager::presolve, plog="
+                        << (d_plog != nullptr) << std::endl;
+  if (d_plog != nullptr)
+  {
+    // TODO (wishues #157): in incremental mode, only get the new assertions
+    std::vector<std::shared_ptr<ProofNode>> icp = getInputClausesProofs();
+    for (const Node& a : d_assumptions)
+    {
+      icp.emplace_back(d_proof.getProofFor(a));
+    }
+    Trace("pf-log-debug") << "PropPfManager::presolve, we have "
+                          << d_inputClauses.size() << " inputs and "
+                          << d_assumptions.size() << " assumptions"
+                          << std::endl;
+    d_plog->logCnfPreprocessInputProofs(icp);
+  }
+}
+
+void PropPfManager::postsolve(SatValue result)
+{
+  if (d_plog != nullptr)
+  {
+    if (result == SAT_VALUE_FALSE)
+    {
+      if (d_env.isSatProofProducing())
+      {
+        // if SAT proof producing, log the proof
+        std::shared_ptr<ProofNode> satPf = getProof(true);
+        d_plog->logSatRefutationProof(satPf);
+      }
+      else
+      {
+        // otherwise just mark the refutation
+        d_plog->logSatRefutation();
+      }
+    }
+  }
 }
 
 LazyCDProof* PropPfManager::getCnfProof() { return &d_proof; }

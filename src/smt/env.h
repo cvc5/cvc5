@@ -38,6 +38,7 @@ namespace cvc5::internal {
 class NodeManager;
 class StatisticsRegistry;
 class Plugin;
+class ProofLogger;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -94,6 +95,12 @@ class Env
    * this environment is initialized, and only non-null if proofs are enabled.
    */
   smt::PfManager* getProofManager();
+  /**
+   * Get the underlying proof logger. Note since proofs depend on option
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
+   */
+  ProofLogger* getProofLogger();
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SolverEngine that owns

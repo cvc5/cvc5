@@ -535,7 +535,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             bei.d_base = n;
             if (!exp.empty())
             {
-              bei.d_exp = utils::mkAnd(exp);
+              bei.d_exp = utils::mkAnd(nodeManager(), exp);
             }
             Trace("strings-debug")
                 << "Set eqc best content " << n << " to " << nct
@@ -556,7 +556,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
         {
           bei.d_bestContent = c;
           bei.d_base = n;
-          bei.d_exp = utils::mkAnd(exp);
+          bei.d_exp = utils::mkAnd(nodeManager(), exp);
           Trace("strings-debug")
               << "Set eqc const " << n << " to " << c
               << ", explanation = " << bei.d_exp << std::endl;

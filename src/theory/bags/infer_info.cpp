@@ -38,7 +38,7 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
 
 Node InferInfo::getLemma() const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_im->getNodeManager();
   std::vector<Node> nodes;
   Node premises = nm->mkAnd(d_premises);
   Node lemma = nm->mkNode(Kind::IMPLIES, premises, d_conclusion);

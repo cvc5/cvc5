@@ -263,9 +263,13 @@ class TheoryEngine : protected EnvObj
    * Solve the given literal with a theory that owns it. The proof of tliteral
    * is carried in the trust node. The proof added to substitutionOut should
    * take this proof into account (when proofs are enabled).
+   *
+   * @param tin The literal and its proof generator.
+   * @param outSubstitutions The substitution map to add to, if applicable.
+   * @return true iff the literal can be removed from the input, e.g. when
+   * the substitution it entails is added to outSubstitutions.
    */
-  theory::Theory::PPAssertStatus solve(
-      TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
+  bool solve(TrustNode tliteral, theory::TrustSubstitutionMap& substitutionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or

@@ -89,9 +89,11 @@
 ; define: $tail
 ; args:
 ; - x S: The term to inspect.
-; return: the tail of x, where x is expected to be a function application.
-(define $tail ((S Type :implicit) (x S))
-  (eo::match ((T Type) (U Type) (S Type) (f (-> T U S)) (x1 T) (x2 T :list))
+; return: >
+;   The tail of x, where x is expected to be an application of an n-ary
+;   function marked :right-assoc-nil.
+(define $tail ((U Type :implicit) (x U))
+  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
     x
     (((f x1 x2) x2)))
 )

@@ -56,8 +56,7 @@ class TheoryQuantifiers : public Theory {
   /**
    * Preprocess assert, which solves for quantifier macros when enabled.
    */
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
