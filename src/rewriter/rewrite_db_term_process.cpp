@@ -86,8 +86,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   {
     Node ret = theory::uf::FunctionConst::toLambda(n);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
-    // must convert again
-    return convert(ret);
+    return ret;
   }
   else if (k == Kind::FORALL)
   {

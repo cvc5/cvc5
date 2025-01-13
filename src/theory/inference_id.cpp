@@ -580,7 +580,7 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
   return out;
 }
 
-Node mkInferenceIdNode(InferenceId i)
+Node mkInferenceIdNode(NodeManager* nm, InferenceId i)
 {
   return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(i)));

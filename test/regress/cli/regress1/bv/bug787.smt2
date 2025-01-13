@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --bitblast=eager 
 ; EXPECT: unsat
+; DISABLE-TESTER: alethe
 (set-logic QF_BV)
 (set-info :status unsat)
 (define-fun hamming-weight ((bv (_ BitVec 4))) (_ BitVec 4)

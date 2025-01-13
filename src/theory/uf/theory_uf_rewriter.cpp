@@ -69,18 +69,16 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     {
       // Note that the rewriter does not rewrite inside of operators, so the
       // lambda we receive here may not be in rewritten form, and thus may
-      // contain variable shadowing. We rewrite the operator explicitly here.
+      // contain variable shadowing. We first check if the lambda can be
+      // rewritten.
       Node lambdaRew = d_rr->rewrite(lambda);
       // We compare against the original operator, if it is different, then
-      // we rewrite again.
+      // we convert to its HO_APPLY form, after which the lambda will occur
+      // in an ordinary term position and thus will be rewritten.
       if (lambdaRew != node.getOperator())
       {
-        std::vector<TNode> args;
-        args.push_back(lambdaRew);
-        args.insert(args.end(), node.begin(), node.end());
-        NodeManager* nm = nodeManager();
-        Node ret = nm->mkNode(Kind::APPLY_UF, args);
-        Assert(ret != node);
+        Node ret = getHoApplyForApplyUf(node);
+        Trace("uf-ho-beta") << "Lift " << node << " to HO " << ret << std::endl;
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
@@ -194,27 +192,50 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::BETA_REDUCE:
     {
-      if (n.getKind() != Kind::APPLY_UF)
+      Kind k = n.getKind();
+      Node lambda;
+      if (k == Kind::APPLY_UF)
       {
-        return Node::null();
+        lambda = uf::FunctionConst::toLambda(n.getOperator());
       }
-      Node lambda = uf::FunctionConst::toLambda(n.getOperator());
+      else if (k == Kind::HO_APPLY)
+      {
+        lambda = uf::FunctionConst::toLambda(n[0]);
+      }
       if (lambda.isNull())
       {
         return Node::null();
       }
-      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-      std::vector<TNode> subs(n.begin(), n.end());
-      if (vars.size() != subs.size())
+      std::vector<Node> vars;
+      std::vector<Node> subs;
+      Node body = lambda[1];
+      if (k == Kind::APPLY_UF)
       {
-        return Node::null();
+        vars.insert(vars.end(), lambda[0].begin(), lambda[0].end());
+        subs.insert(subs.end(), n.begin(), n.end());
+        if (vars.size() != subs.size())
+        {
+          return Node::null();
+        }
+      }
+      else
+      {
+        Assert(k == Kind::HO_APPLY);
+        vars.push_back(lambda[0][0]);
+        subs.push_back(n[1]);
+        if (lambda[0].getNumChildren() > 1)
+        {
+          std::vector<Node> newVars(lambda[0].begin() + 1, lambda[0].end());
+          Node bvl = d_nm->mkNode(Kind::BOUND_VAR_LIST, newVars);
+          body = d_nm->mkNode(Kind::LAMBDA, bvl, body);
+        }
       }
       // Note that we do not check for variable shadowing in the lambda here.
       // This rule will only be used to express valid instances of beta
       // reduction. If a beta reduction had to eliminate shadowing, then it
       // will not be inferred by this rule as is.
-      Node ret = lambda[1].substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node ret =
+          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       return ret;
     }
     break;

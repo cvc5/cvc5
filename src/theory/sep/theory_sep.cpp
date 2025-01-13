@@ -89,7 +89,14 @@ void TheorySep::initializeHeapTypes()
   }
 }
 
-TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheorySep::getTheoryRewriter()
+{
+  if (!options().sep.sep)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheorySep::getProofChecker() { return nullptr; }
 

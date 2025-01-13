@@ -35,7 +35,7 @@ class SolverState;
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(SolverState* state, InferenceManager* im);
+  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
 
   /**
    * @param n a node of the form (bag.count e A)
