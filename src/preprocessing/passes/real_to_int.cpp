@@ -228,7 +228,9 @@ PreprocessingPassResult RealToInt::applyInternal(
       // this pass is refutation unsound, "unsat" will be "unknown"
       assertionsToPreprocess->markRefutationUnsound();
       Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
-      assertionsToPreprocess->replace(i, rewrite(ac));
+      assertionsToPreprocess->replace(
+          i, ac, nullptr, TrustId::PREPROCESS_REAL_TO_INT);
+      assertionsToPreprocess->ensureRewritten(i);
       if (assertionsToPreprocess->isInConflict())
       {
         return PreprocessingPassResult::CONFLICT;
