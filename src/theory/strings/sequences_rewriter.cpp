@@ -65,6 +65,12 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_INDEXOF_RE_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -91,6 +97,21 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       StringsEntail sent(nullptr, ae, nullptr);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    {
+      return rewriteViaStrIndexofReEval(n);
+    }
+    break;
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    {
+      return rewriteViaStrReplaceReEval(n);
+    }
+    break;
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+    {
+      return rewriteViaStrReplaceReAllEval(n);
+    }
+    break;
     default: break;
   }
   return Node::null();
@@ -184,17 +205,6 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         //  str.++( x, "a" ) == "a"  ----> x = ""
       }
     }
-  }
-
-  // ( len( s ) != len( t ) ) => ( s == t ---> false )
-  // This covers cases like str.++( x, x ) == "a" ---> false
-  Node len0 = nodeManager()->mkNode(Kind::STRING_LENGTH, node[0]);
-  Node len1 = nodeManager()->mkNode(Kind::STRING_LENGTH, node[1]);
-  Node len_eq = len0.eqNode(len1);
-  len_eq = d_rr->rewrite(len_eq);
-  if (len_eq.isConst() && !len_eq.getConst<bool>())
-  {
-    return returnRewrite(node, len_eq, Rewrite::EQ_LEN_DEQ);
   }
 
   std::vector<Node> c[2];
@@ -1479,6 +1489,91 @@ Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
   std::vector<Node> ch1;
   std::vector<Node> ch2;
   return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
+}
+
+
+Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_INDEXOF_RE && n[0].isConst() && n[2].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    Rational nrat = n[2].getConst<Rational>();
+    String s = n[0].getConst<String>();
+    Rational rsize(s.size());
+    if (nrat > rsize || nrat.sgn() < 0)
+    {
+      Node negone = nm->mkConstInt(Rational(-1));
+      return negone;
+    }
+    uint32_t start = nrat.getNumerator().toUnsignedInt();
+    Node rem = nm->mkConst(s.substr(start));
+    std::pair<size_t, size_t> match = firstMatch(rem, n[1]);
+    Node ret = nm->mkConstInt(
+        Rational(match.first == string::npos
+                     ? -1
+                     : static_cast<int64_t>(start + match.first)));
+    return ret;
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaStrReplaceReEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_REPLACE_RE && n[0].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    // str.replace_re("ZABCZ", re.++("A", _*, "C"), y) ---> "Z" ++ y ++ "Z"
+    std::pair<size_t, size_t> match = firstMatch(n[0], n[1]);
+    if (match.first != string::npos)
+    {
+      String s = n[0].getConst<String>();
+      Node ret = nm->mkNode(Kind::STRING_CONCAT,
+                            nm->mkConst(s.substr(0, match.first)),
+                            n[2],
+                            nm->mkConst(s.substr(match.second)));
+      return ret;
+    }
+    return n[0];
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaStrReplaceReAllEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_REPLACE_RE_ALL && n[0].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    // str.replace_re_all("ZABCZAB", re.++("A", _*, "C"), y) --->
+    //   "Z" ++ y ++ "Z" ++ y
+    TypeNode t = n[0].getType();
+    Assert(t.isString());
+    Node emp = Word::mkEmptyWord(t);
+    Node yp = nm->mkNode(Kind::REGEXP_INTER,
+                         n[1],
+                         nm->mkNode(Kind::REGEXP_COMPLEMENT,
+                                    nm->mkNode(Kind::STRING_TO_REGEXP, emp)));
+    std::vector<Node> res;
+    String rem = n[0].getConst<String>();
+    std::pair<size_t, size_t> match(0, 0);
+    while (rem.size() != 0)
+    {
+      match = firstMatch(nm->mkConst(rem), yp);
+      if (match.first == string::npos)
+      {
+        break;
+      }
+      res.push_back(nm->mkConst(rem.substr(0, match.first)));
+      res.push_back(n[2]);
+      rem = rem.substr(match.second);
+    }
+    res.push_back(nm->mkConst(rem));
+    Node ret = utils::mkConcat(res, t);
+    return ret;
+  }
+  return Node::null();
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)
@@ -3035,31 +3130,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       return returnRewrite(node, node[0], Rewrite::RPL_RPL_LEN_ID);
     }
-
-    // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
-    // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
-    if (d_stringsEntail.checkLengthOne(node[0]))
-    {
-      Node empty = Word::mkEmptyWord(stype);
-      Node rn1 = d_rr->rewrite(
-          rewriteEqualityExt(nm->mkNode(Kind::EQUAL, node[1], empty)));
-      if (rn1 != node[1])
-      {
-        std::vector<Node> emptyNodes;
-        bool allEmptyEqs;
-        std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(rn1);
-
-        if (allEmptyEqs)
-        {
-          Node nn1 = utils::mkConcat(emptyNodes, stype);
-          if (node[1] != nn1)
-          {
-            Node ret = nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
-            return returnRewrite(node, ret, Rewrite::RPL_X_Y_X_SIMP);
-          }
-        }
-      }
-    }
   }
 
   std::vector<Node> children1;
@@ -3113,58 +3183,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       // ~contains( t, s ) => ( replace( t, s, r ) ----> t )
       return returnRewrite(node, node[0], Rewrite::RPL_NCTN);
-    }
-  }
-  else if (cmp_conr.getKind() == Kind::EQUAL || cmp_conr.getKind() == Kind::AND)
-  {
-    // Rewriting the str.contains may return equalities of the form (= x "").
-    // In that case, we can substitute the variables appearing in those
-    // equalities with the empty string in the third argument of the
-    // str.replace. For example:
-    //
-    // (str.replace x (str.++ x y) y) --> (str.replace x (str.++ x y) "")
-    //
-    // This can be done because str.replace changes x iff (str.++ x y) is in x
-    // but that means that y must be empty in that case. Thus, we can
-    // substitute y with "" in the third argument. Note that the third argument
-    // does not matter when the str.replace does not apply.
-    //
-    Node empty = Word::mkEmptyWord(stype);
-
-    std::vector<Node> emptyNodes;
-    bool allEmptyEqs;
-    std::tie(allEmptyEqs, emptyNodes) = utils::collectEmptyEqs(cmp_conr);
-
-    if (emptyNodes.size() > 0)
-    {
-      // Perform the substitutions
-      std::vector<TNode> substs(emptyNodes.size(), TNode(empty));
-      Node nn2 = node[2].substitute(
-          emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
-
-      // If the contains rewrites to a conjunction of empty-string equalities
-      // and we are doing the replacement in an empty string, we can rewrite
-      // the string-to-replace with a concatenation of all the terms that must
-      // be empty:
-      //
-      // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
-      // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
-      if (node[0] == empty && allEmptyEqs)
-      {
-        std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
-        Node nn1 = utils::mkConcat(emptyNodesList, stype);
-        if (nn1 != node[1] || nn2 != node[2])
-        {
-          Node res = nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, nn2);
-          return returnRewrite(node, res, Rewrite::RPL_EMP_CNTS_SUBSTS);
-        }
-      }
-
-      if (nn2 != node[2])
-      {
-        Node res = nm->mkNode(Kind::STRING_REPLACE, node[0], node[1], nn2);
-        return returnRewrite(node, res, Rewrite::RPL_CNTS_SUBSTS);
-      }
     }
   }
 

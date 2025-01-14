@@ -1619,3 +1619,57 @@
       ; consider characters in reverse order
       ($str_to_int_eval_rec ($str_to_flat_form s true) 1 0))
     (str.to_int s)))
+
+; program: $str_case_conv_rec
+; args:
+; - s String: The string to process, expected to be in flat form.
+; - isLower Bool: Whether we computing `str.to_lower` (resp. `str.to_upper`).
+; returns: >
+;   The result of evaluating `(str.to_lower s)` (resp. `(str.to_upper s)`).
+(program $str_case_conv_rec ((s1 String) (s2 String :list) (isLower Bool))
+  (String Bool) String
+  (
+  (($str_case_conv_rec (str.++ s1 s2) true)  (eo::define ((c (eo::to_z s1)))
+                                              (eo::concat
+                                                (eo::to_str (eo::add c (eo::ite (eo::and (eo::gt 91 c) (eo::gt c 64)) 32 0)))
+                                                ($str_case_conv_rec s2 true))))
+  (($str_case_conv_rec (str.++ s1 s2) false)   (eo::define ((c (eo::to_z s1)))
+                                              (eo::concat
+                                                (eo::to_str (eo::add c (eo::ite (eo::and (eo::gt 123 c) (eo::gt c 96)) -32 0)))
+                                                ($str_case_conv_rec s2 false))))
+  (($str_case_conv_rec "" isLower)              "")
+  )
+)
+
+; define: $str_to_lower_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_lower s)` if `s` is a string literal,
+;   or the term `(str.to_lower s)` otherwise.
+(define $str_to_lower_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_case_conv_rec ($str_to_flat_form s false) true)
+    (str.to_lower s)))
+
+; define: $str_to_upper_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_upper s)` if `s` is a string literal,
+;   or the term `(str.to_upper s)` otherwise.
+(define $str_to_upper_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_case_conv_rec ($str_to_flat_form s false) false)
+    (str.to_upper s)))
+
+; define: $str_rev_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.rev s)` if `s` is a string literal,
+;   or the term `(str.rev s)` otherwise.
+(define $str_rev_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_from_flat_form ($str_to_flat_form s true) false) ; make reverse flat form and then convert back
+    (str.rev s)))

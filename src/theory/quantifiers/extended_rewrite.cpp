@@ -25,6 +25,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 
 using namespace cvc5::internal::kind;
@@ -233,13 +234,29 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     {
       debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
     }
-    else if (ret[0].getType().isInteger())
+    else
     {
-      theory::strings::ArithEntail ae(&d_rew);
-      new_ret = ae.rewritePredViaEntailment(ret);
-      if (!new_ret.isNull())
+      TypeNode tret = ret[0].getType();
+      if (tret.isInteger())
       {
-        debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+        theory::strings::ArithEntail ae(&d_rew);
+        new_ret = ae.rewritePredViaEntailment(ret);
+        if (!new_ret.isNull())
+        {
+          debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+        }
+      }
+      else if (tret.isStringLike())
+      {
+        Node len0 = d_nm->mkNode(Kind::STRING_LENGTH, ret[0]);
+        Node len1 = d_nm->mkNode(Kind::STRING_LENGTH, ret[1]);
+        Node len_eq = len0.eqNode(len1);
+        len_eq = d_rew.rewrite(len_eq);
+        if (len_eq.isConst() && !len_eq.getConst<bool>())
+        {
+          new_ret = len_eq;
+          debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+        }
       }
     }
   }
@@ -1763,6 +1780,95 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_GEQ_ZERO_START_ENTAILS_EMP_S");
       return ret;
+    }
+  }
+  else if (k == Kind::STRING_REPLACE)
+  {
+    if (node[0] == node[2])
+    {
+      theory::strings::ArithEntail ae(&d_rew);
+      theory::strings::StringsEntail se(&d_rew, ae, nullptr);
+      // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
+      // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
+      if (se.checkLengthOne(node[0]))
+      {
+        TypeNode stype = node.getType();
+        Node empty = strings::Word::mkEmptyWord(stype);
+        Node rn1 = d_rew.rewrite(
+            d_rew.rewriteEqualityExt(d_nm->mkNode(Kind::EQUAL, node[1], empty)));
+        if (rn1 != node[1])
+        {
+          std::vector<Node> emptyNodes;
+          bool allEmptyEqs;
+          std::tie(allEmptyEqs, emptyNodes) = strings::utils::collectEmptyEqs(rn1);
+
+          if (allEmptyEqs)
+          {
+            Node nn1 = strings::utils::mkConcat(emptyNodes, stype);
+            if (node[1] != nn1)
+            {
+              Node ret = d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
+              debugExtendedRewrite(node, ret, "RPL_X_Y_X_SIMP");
+              return ret;
+            }
+          }
+        }
+      }
+    }
+    Node cmp_con = d_nm->mkNode(Kind::STRING_CONTAINS, node[0], node[1]);
+    Node cmp_conr = d_rew.rewrite(cmp_con);
+    if (cmp_conr.getKind() == Kind::EQUAL || cmp_conr.getKind() == Kind::AND)
+    {
+      TypeNode stype = node.getType();
+      // Rewriting the str.contains may return equalities of the form (= x "").
+      // In that case, we can substitute the variables appearing in those
+      // equalities with the empty string in the third argument of the
+      // str.replace. For example:
+      //
+      // (str.replace x (str.++ x y) y) --> (str.replace x (str.++ x y) "")
+      //
+      // This can be done because str.replace changes x iff (str.++ x y) is in x
+      // but that means that y must be empty in that case. Thus, we can
+      // substitute y with "" in the third argument. Note that the third argument
+      // does not matter when the str.replace does not apply.
+      //
+      Node empty = strings::Word::mkEmptyWord(stype);
+      std::vector<Node> emptyNodes;
+      bool allEmptyEqs;
+      std::tie(allEmptyEqs, emptyNodes) = strings::utils::collectEmptyEqs(cmp_conr);
+      if (emptyNodes.size() > 0)
+      {
+        // Perform the substitutions
+        std::vector<TNode> substs(emptyNodes.size(), TNode(empty));
+        Node nn2 = node[2].substitute(
+            emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
+
+        // If the contains rewrites to a conjunction of empty-string equalities
+        // and we are doing the replacement in an empty string, we can rewrite
+        // the string-to-replace with a concatenation of all the terms that must
+        // be empty:
+        //
+        // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
+        // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
+        if (node[0] == empty && allEmptyEqs)
+        {
+          std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
+          Node nn1 = strings::utils::mkConcat(emptyNodesList, stype);
+          if (nn1 != node[1] || nn2 != node[2])
+          {
+            Node res = d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, nn2);
+            debugExtendedRewrite(node, res, "RPL_EMP_CNTS_SUBSTS");
+            return res;
+          }
+        }
+
+        if (nn2 != node[2])
+        {
+          Node res = d_nm->mkNode(Kind::STRING_REPLACE, node[0], node[1], nn2);
+          debugExtendedRewrite(node, res, "RPL_CNTS_SUBSTS");
+          return res;
+        }
+      }
     }
   }
 
