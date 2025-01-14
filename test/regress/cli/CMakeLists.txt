@@ -896,6 +896,9 @@ set(regress_0_tests
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
   regress0/fp/proj-issue509-fp-set-comprehension.smt2
+  regress0/fp/proj-issue744-safe.smt2
+  regress0/fp/proj-issue745-safe.smt2
+  regress0/fp/proj-issue746-safe.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2

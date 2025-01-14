@@ -176,8 +176,8 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
-  /** No-op theory rewriter, used when theory does not provide a rewriter */
-  NoOpTheoryRewriter d_nullTr;
+  /** No-op theory rewriters, used when theory does not provide a rewriter */
+  std::vector<std::unique_ptr<NoOpTheoryRewriter>> d_nullTr;
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

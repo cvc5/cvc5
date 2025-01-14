@@ -2167,8 +2167,10 @@ void SolverEngine::setOption(const std::string& key,
       // by omitting.
       if (getOption(key) == value)
       {
+        // note this is not the case for options which safe-options explicitly
+        // disables.
         ss << " The value for " << key << " is already its current value ("
-           << value << "). Omitting this option will avoid this exception.";
+           << value << "). Omitting this option may avoid this exception.";
       }
       throw OptionException(ss.str());
     }
@@ -2197,9 +2199,11 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
+            // note this is not the case for options which safe-options explicitly
+            // disables.
             ss << " The value for " << rkey
                << " is already its current value (" << rvalue
-               << "). Omitting this option will avoid this exception.";
+               << "). Omitting this option may avoid this exception.";
           }
         }
         throw OptionException(ss.str());
