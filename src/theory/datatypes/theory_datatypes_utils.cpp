@@ -167,7 +167,10 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
   return checkClash(n1, n2, rew, checkNdtConst, path);
 }
 
-bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst,
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst,
                 std::vector<size_t>& path)
 {
   Trace("datatypes-rewrite-debug")

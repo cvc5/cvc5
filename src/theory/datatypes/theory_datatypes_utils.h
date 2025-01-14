@@ -125,7 +125,7 @@ bool checkClash(Node n1,
  * In particular, path contains the child index to follow in n1 and n2 to
  * find a conflicting value, e.g.
  *    C( x, D( y, z, 7 ) ) = C( w, D( 2, 3, 4) )
- * would return path = { 1, 2 }, referencing the conflicting equality 7=4. 
+ * would return path = { 1, 2 }, referencing the conflicting equality 7=4.
  */
 bool checkClash(Node n1,
                 Node n2,
