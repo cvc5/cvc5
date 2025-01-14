@@ -85,7 +85,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       }
       else if (options().ff.ffSolver == options::FfSolver::GB)
       {
-        CocoaEncoder enc(size());
+        CocoaEncoder enc(nodeManager(), size());
         // collect leaves
         for (const Node& node : d_facts)
         {
