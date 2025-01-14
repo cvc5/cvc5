@@ -27,9 +27,9 @@
 #include "smt/logic_exception.h"
 #include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/output_channel.h"
 #include "theory/theory_model.h"
-#include "theory/fp/theory_fp_utils.h"
 #include "util/floatingpoint.h"
 
 using namespace std;

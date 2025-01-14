@@ -2199,11 +2199,10 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            // note this is not the case for options which safe-options explicitly
-            // disables.
-            ss << " The value for " << rkey
-               << " is already its current value (" << rvalue
-               << "). Omitting this option may avoid this exception.";
+            // note this is not the case for options which safe-options
+            // explicitly disables.
+            ss << " The value for " << rkey << " is already its current value ("
+               << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
         throw OptionException(ss.str());

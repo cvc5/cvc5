@@ -57,8 +57,8 @@ void checkExperimentalFloatingPointType(const Node& n)
     {
       std::stringstream ss;
       ss << "FP term " << n << " with type whose size is " << exp_sz << "/"
-          << sig_sz
-          << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
+         << sig_sz
+         << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
             "are supported in default mode. Try the experimental solver via "
             "--fp-exp. Note: There are known issues with the experimental "
             "solver, use at your own risk.";

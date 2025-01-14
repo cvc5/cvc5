@@ -247,7 +247,8 @@ class NoOpTheoryRewriter : public TheoryRewriter
   RewriteResponse postRewrite(TNode node) override;
   /** Performs a pre-rewrite step. */
   RewriteResponse preRewrite(TNode node) override;
-private:
+
+ private:
   /** The theory id */
   TheoryId d_tid;
 };

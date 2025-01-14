@@ -39,8 +39,8 @@
 #include "base/check.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/fp/fp_word_blaster.h"
-#include "util/floatingpoint.h"
 #include "theory/fp/theory_fp_utils.h"
+#include "util/floatingpoint.h"
 
 using namespace cvc5::internal::kind;
 
@@ -1143,7 +1143,9 @@ RewriteResponse roundingModeBitBlast(NodeManager* nm,
 /**
  * Initialize the rewriter.
  */
-TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm, context::UserContext* u, bool fpExp)
+TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm,
+                                   context::UserContext* u,
+                                   bool fpExp)
     : TheoryRewriter(nm), d_fpExpDef(nm), d_fpExpEnabled(fpExp)
 {
   /* Set up the pre-rewrite dispatch table */
@@ -1540,10 +1542,11 @@ TheoryFpRewriter::TheoryFpRewriter(NodeManager* nm, context::UserContext* u, boo
 RewriteResponse TheoryFpRewriter::preRewrite(TNode node)
 {
   Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node
-                      << std::endl;  
+                      << std::endl;
   if (!d_fpExpEnabled)
   {
-    // if --fp-exp is not enabled, immediately check if this has an experimental floating point type
+    // if --fp-exp is not enabled, immediately check if this has an experimental
+    // floating point type
     utils::checkExperimentalFloatingPointType(node);
   }
   RewriteResponse res =
