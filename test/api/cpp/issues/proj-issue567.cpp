@@ -24,6 +24,7 @@ int main(void)
   solver.setOption("preregister-mode", "lazy");
   solver.setOption("produce-abducts", "true");
   solver.setOption("preprocess-only", "true");
+  solver.setOption("fp-exp", "true");
   Sort s0 = tm.mkFloatingPointSort(5, 11);
   Term t1 = tm.mkFloatingPointPosZero(5, 11);
   Op o2 = tm.mkOp(Kind::FLOATINGPOINT_NEG);
