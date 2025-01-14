@@ -29,8 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm, Rewriter* rr)
-    : TheoryRewriter(nm), d_rr(rr)
+TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   registerProofRewriteRule(ProofRewriteRule::BETA_REDUCE,
                            TheoryRewriteCtx::PRE_DSL);
@@ -69,25 +68,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
     {
-      // Note that the rewriter does not rewrite inside of operators, so the
-      // lambda we receive here may not be in rewritten form, and thus may
-      // contain variable shadowing. We first check if the lambda can be
-      // rewritten.
-      Node lambdaRew = d_rr->rewrite(lambda);
-      // We compare against the original operator, if it is different, then
-      // we convert to its HO_APPLY form, after which the lambda will occur
-      // in an ordinary term position and thus will be rewritten.
-      if (lambdaRew != node.getOperator())
-      {
-        Node ret = getHoApplyForApplyUf(node);
-        Trace("uf-ho-beta") << "Lift " << node << " to HO " << ret << std::endl;
-        return RewriteResponse(REWRITE_AGAIN_FULL, ret);
-      }
       // see if we need to eliminate shadowing
       Node nes =
           rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW, node);
       if (!nes.isNull())
       {
+        Trace("uf-ho-beta") << "uf-ho-beta : eliminate shadowing : " << nes
+                            << " for " << node << "\n";
         return RewriteResponse(REWRITE_AGAIN_FULL, nes);
       }
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
@@ -264,22 +251,43 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Kind k = n.getKind();
       Node lambda;
       std::vector<TNode> args;
+      NodeManager* nm = nodeManager();
       if (k == Kind::APPLY_UF)
       {
         lambda = uf::FunctionConst::toLambda(n.getOperator());
         args.insert(args.end(), n.begin(), n.end());
+        // First, see if we need to eliminate shadowing in the lambda itself
+        if (!lambda.isNull())
+        {
+          // We compare against the original operator, if it is different, then
+          // we use the version of the lambda instead.
+          Node lambdaElimS = ElimShadowNodeConverter::eliminateShadow(lambda);
+          // Note that a more comprehensive test here would be to check if the
+          // lambda rewrites at all and convert to HO_APPLY for uniformity.
+          // This is not necessary as we only need to be sure that the topmost
+          // variables are not shadowed. Moreover, we avoid "value
+          // normalization" for lambdas in first-order logics by allowing beta
+          // reduction to apply to non-rewritten lambdas.
+          if (lambdaElimS != lambda)
+          {
+            std::vector<Node> newChildren;
+            newChildren.push_back(lambdaElimS);
+            newChildren.insert(newChildren.end(), n.begin(), n.end());
+            return nm->mkNode(Kind::APPLY_UF, newChildren);
+          }
+        }
       }
       else if (k == Kind::HO_APPLY)
       {
         lambda = uf::FunctionConst::toLambda(n[0]);
         args.push_back(n[1]);
+        // We assume lambda is rewritten, and thus a similar check is not necessary.
       }
       if (lambda.isNull())
       {
         return Node::null();
       }
       Node body = lambda[1];
-      NodeManager* nm = nodeManager();
       if (k == Kind::HO_APPLY && lambda[0].getNumChildren() > 1)
       {
         std::vector<Node> nvars(lambda[0].begin() + 1, lambda[0].end());
