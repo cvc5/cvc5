@@ -2972,6 +2972,46 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_REPEAT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string indexof regex evaluation**
+   *
+   * .. math::
+   *   str.indexof\_re(s,r,n) = m
+   *
+   * where :math:`s` is a string values, :math:`n` is an integer value, :math:`r` is a
+   * ground regular expression and :math:`m` is the result of evaluating the left hand
+   * side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_INDEXOF_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string replace regex evaluation**
+   *
+   * .. math::
+   *   str.replace\_re(s,r,t) = u
+   *
+   * where :math:`s,t` are string values, :math:`r` is a ground regular expression
+   * and :math:`u` is the result of evaluating the left hand side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_REPLACE_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string replace regex all evaluation**
+   *
+   * .. math::
+   *   str.replace\_re\_all(s,r,t) = u
+   *
+   * where :math:`s,t` are string values, :math:`r` is a ground regular expression
+   * and :math:`u` is the result of evaluating the left hand side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_REPLACE_RE_ALL_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression loop elimination**
    *
    * .. math::

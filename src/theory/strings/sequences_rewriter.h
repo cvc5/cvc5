@@ -158,6 +158,12 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaMacroSubstrStripSymLength(const Node& n,
                                            Rewrite& rule,
                                            StringsEntail& sent);
+  /** Rewrite based on STR_INDEXOF_RE_EVAL */
+  Node rewriteViaStrIndexofReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_EVAL */
+  Node rewriteViaStrReplaceReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_ALL_EVAL */
+  Node rewriteViaStrReplaceReAllEval(const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

@@ -284,6 +284,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+      return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";
