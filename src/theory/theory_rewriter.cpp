@@ -141,6 +141,7 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
   ss << "The theory " << d_tid
      << " is disabled in this configuration, but got a constraint in that "
         "theory.";
+  // hardcoded, for better error messages.
   switch (d_tid)
   {
     case THEORY_FF: ss << " Try --ff."; break;
