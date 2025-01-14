@@ -47,7 +47,7 @@ using FfModel = std::unordered_map<Node, FiniteFieldValue>;
 class FieldObj
 {
  public:
-  FieldObj(const FfSize& size);
+  FieldObj(NodeManager* nm, const FfSize& size);
   /** create a sum (with as few as 0 elements); accepts Nodes or TNodes */
   template <bool ref_count>
   Node mkAdd(const std::vector<NodeTemplate<ref_count>>& summands);

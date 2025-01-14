@@ -75,7 +75,7 @@ void CircuitPropagator::assertTrue(TNode assertion)
   else if (assertion.getKind() == Kind::AND)
   {
     ProofCircuitPropagatorBackward prover{
-        d_env.getProofNodeManager(), assertion, true};
+        d_env.getNodeManager(), d_env.getProofNodeManager(), assertion, true};
     if (isProofEnabled())
     {
       addProof(assertion, prover.assume(assertion));
@@ -167,7 +167,8 @@ void CircuitPropagator::makeConflict(Node n)
     {
       return;
     }
-    ProofCircuitPropagator pcp(d_env.getProofNodeManager());
+    ProofCircuitPropagator pcp(d_env.getNodeManager(),
+                               d_env.getProofNodeManager());
     if (n == bfalse)
     {
       d_epg->setProofFor(bfalse, pcp.assume(bfalse));
@@ -239,8 +240,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
 {
   Trace("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent
                         << ", " << parentAssignment << ")" << endl;
-  ProofCircuitPropagatorBackward prover{
-      d_env.getProofNodeManager(), parent, parentAssignment};
+  ProofCircuitPropagatorBackward prover{d_env.getNodeManager(),
+                                        d_env.getProofNodeManager(),
+                                        parent,
+                                        parentAssignment};
 
   // backward rules
   switch (parent.getKind())
@@ -452,8 +455,11 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
     Trace("circuit-prop") << "Parent: " << parent << endl;
     Assert(expr::hasSubterm(parent, child));
 
-    ProofCircuitPropagatorForward prover{
-        d_env.getProofNodeManager(), child, childAssignment, parent};
+    ProofCircuitPropagatorForward prover{d_env.getNodeManager(),
+                                         d_env.getProofNodeManager(),
+                                         child,
+                                         childAssignment,
+                                         parent};
 
     // Forward rules
     switch (parent.getKind())
