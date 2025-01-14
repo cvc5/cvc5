@@ -37,18 +37,20 @@ void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
       TheoryId tid = env.theoryOf(cur);
-      if (std::find(theories.begin(), theories.end(), tid)==theories.end())
+      if (std::find(theories.begin(), theories.end(), tid) == theories.end())
       {
         theories.push_back(tid);
       }
       tid = env.theoryOf(cur.getType());
-      if (std::find(theories.begin(), theories.end(), tid)==theories.end())
+      if (std::find(theories.begin(), theories.end(), tid) == theories.end())
       {
         theories.push_back(tid);
       }
@@ -56,7 +58,7 @@ void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
     }
   } while (!visit.empty());
 }
-  
+
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
 void CheckModels::checkModel(TheoryModel* m,
@@ -163,20 +165,21 @@ void CheckModels::checkModel(TheoryModel* m,
     ss << "SolverEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL";
     std::stringstream ssdet;
-    ssdet << ":" << std::endl << "assertion:     " << assertion << std::endl
-       << "simplifies to: " << nval << std::endl
-       << "expected `true'." << std::endl
-       << "Run with `--check-models -v' for additional diagnostics.";
+    ssdet << ":" << std::endl
+          << "assertion:     " << assertion << std::endl
+          << "simplifies to: " << nval << std::endl
+          << "expected `true'." << std::endl
+          << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
       // compute the theories involved
       // to ensure minimality, if this is a topmost AND, miniscope
       Node nmin = n;
-      while (nmin.getKind()==Kind::AND)
+      while (nmin.getKind() == Kind::AND)
       {
         for (const Node& nc : nmin)
         {
-          if (m->getValue(nc)==nval)
+          if (m->getValue(nc) == nval)
           {
             nmin = nc;
             break;
@@ -190,7 +193,7 @@ void CheckModels::checkModel(TheoryModel* m,
       ss << " {";
       for (TheoryId tid : theories)
       {
-        if (tid!=THEORY_BOOL)
+        if (tid != THEORY_BOOL)
         {
           ss << " " << tid;
         }
