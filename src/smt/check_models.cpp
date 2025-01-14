@@ -44,15 +44,19 @@ void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
+      // get the theories of the term and its type
       TheoryId tid = env.theoryOf(cur);
       if (std::find(theories.begin(), theories.end(), tid) == theories.end())
       {
         theories.push_back(tid);
       }
-      tid = env.theoryOf(cur.getType());
-      if (std::find(theories.begin(), theories.end(), tid) == theories.end())
+      TheoryId ttid = env.theoryOf(cur.getType());
+      if (ttid!=tid)
       {
-        theories.push_back(tid);
+        if (std::find(theories.begin(), theories.end(), ttid) == theories.end())
+        {
+          theories.push_back(ttid);
+        }
       }
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
@@ -172,7 +176,7 @@ void CheckModels::checkModel(TheoryModel* m,
           << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
-      // compute the theories involved
+      // compute the theories involved, e.g. for the sake of issue tracking.
       // to ensure minimality, if this is a topmost AND, miniscope
       Node nmin = n;
       while (nmin.getKind() == Kind::AND)
