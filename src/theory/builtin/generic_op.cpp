@@ -267,11 +267,12 @@ bool convertToNumeralList(const std::vector<Node>& indices,
   return true;
 }
 
-Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
+Node GenericOp::getOperatorForIndices(NodeManager* nm,
+                                      Kind k,
+                                      const std::vector<Node>& indices)
 {
   // all indices should be constant!
   Assert(isIndexedOperatorKind(k));
-  NodeManager* nm = NodeManager::currentNM();
   if (isNumeralIndexedOperatorKind(k))
   {
     std::vector<uint32_t> numerals;
@@ -400,7 +401,8 @@ Node GenericOp::getConcreteApp(const Node& app)
   // usually one, but we handle cases where it is >1.
   size_t nargs = metakind::getMinArityForKind(okind);
   std::vector<Node> indices(app.begin(), app.end() - nargs);
-  Node op = getOperatorForIndices(okind, indices);
+  NodeManager* nm = NodeManager::currentNM();
+  Node op = getOperatorForIndices(nm, okind, indices);
   // could have a bad index, in which case we don't rewrite
   if (op.isNull())
   {
@@ -409,7 +411,7 @@ Node GenericOp::getConcreteApp(const Node& app)
   std::vector<Node> args;
   args.push_back(op);
   args.insert(args.end(), app.end() - nargs, app.end());
-  Node ret = NodeManager::currentNM()->mkNode(okind, args);
+  Node ret = nm->mkNode(okind, args);
   // could be ill typed, in which case we don't rewrite
   if (ret.getTypeOrNull(true).isNull())
   {

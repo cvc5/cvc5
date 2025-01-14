@@ -53,7 +53,9 @@ class GenericOp
    * Return the operator of kind k whose indices are the constants in the
    * given vector.
    */
-  static Node getOperatorForIndices(Kind k, const std::vector<Node>& indices);
+  static Node getOperatorForIndices(NodeManager* nm,
+                                    Kind k,
+                                    const std::vector<Node>& indices);
   /**
    * Get the concrete term corresponding to the application of
    * APPLY_INDEXED_SYMBOLIC. Requires all indices to be constant.
