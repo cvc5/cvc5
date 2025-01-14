@@ -295,27 +295,27 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
       cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_CONS_EQ_CLASH);
       return true;
     }
-    Assert (eq[0].getKind()==Kind::EQUAL);
+    Assert(eq[0].getKind() == Kind::EQUAL);
     // otherwise, we require proving the non-datatype constants are distinct
     std::vector<size_t> path;
     std::vector<Node> rew;
     theory::datatypes::utils::checkClash(eq[0][0], eq[0][1], rew, true, path);
-    Trace("brc-macro") << "clash " << eq[0] << " with path " << path.size() << std::endl;
+    Trace("brc-macro") << "clash " << eq[0] << " with path " << path.size()
+                       << std::endl;
     Node currEq = eq[0];
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     Node falsen = nm->mkConst(false);
-    for (size_t i=0, npath = path.size(); i<npath; i++)
+    for (size_t i = 0, npath = path.size(); i < npath; i++)
     {
       Trace("brc-macro") << "- unify eq " << currEq << std::endl;
       // e.g C(t1...tn)=C(s1...sn) = (and (t1=s1) ... (tn=sn))
       Node currConj = rr->rewriteViaRule(ProofRewriteRule::DT_CONS_EQ, currEq);
-      Assert (!currConj.isNull());
-      tcpg.addTheoryRewriteStep(
-          currEq, currConj, ProofRewriteRule::DT_CONS_EQ);
-      size_t p = path[npath-i-1];
-      Assert (p<currEq[0].getNumChildren());
-      Assert (p<currEq[1].getNumChildren());
-      if (currConj.getKind()==Kind::AND)
+      Assert(!currConj.isNull());
+      tcpg.addTheoryRewriteStep(currEq, currConj, ProofRewriteRule::DT_CONS_EQ);
+      size_t p = path[npath - i - 1];
+      Assert(p < currEq[0].getNumChildren());
+      Assert(p < currEq[1].getNumChildren());
+      if (currConj.getKind() == Kind::AND)
       {
         // (and (t1=s1) ... false .... (tn=sn)) = false
         // should be proven by a RARE rule.
@@ -334,7 +334,8 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
     // base case, we have a conflicting value.
     // should be proven by evaluation or by an ad-hoc rewrite.
     Trace("brc-macro") << "- conflicting values " << currEq << std::endl;
-    Assert (currEq[0].isConst() && currEq[1].isConst() && currEq[0]!=currEq[1]);
+    Assert(currEq[0].isConst() && currEq[1].isConst()
+           && currEq[0] != currEq[1]);
     tcpg.addRewriteStep(currEq,
                         falsen,
                         nullptr,
