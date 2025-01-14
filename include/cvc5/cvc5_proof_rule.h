@@ -3126,6 +3126,67 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- distinct sets**
+   *
+   * .. math::
+   *   (A = B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct set values, that is,
+   * the Node::isConst method returns true for both. This rule
+   * verifies that this returns true for both terms and that these
+   * terms are distinct.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_DISTINCT_SETS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets intersection evaluate**
+   *
+   * .. math::
+   *   \mathit{set.inter}(t_1, t_2) = t
+   *
+   * where :math:`t_1` and :math:`t_2` are set values, that is,
+   * the Node::isConst method returns true for both, and
+   * where :math:`t` is an intersection of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_INTER_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets minus evaluate**
+   *
+   * .. math::
+   *   \mathit{set.minus}(t_1, t_2) = t
+   *
+   * where :math:`t_1` and :math:`t_2` are set values, that is,
+   * the Node::isConst method returns true for both, and
+   * where :math:`t` is the difference of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_MINUS_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets union normalize**
+   *
+   * .. math::
+   *   \mathit{set.union}(t_1, t_2) = t
+   * 
+   * where :math:`t` is a union of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   * 
+   * Note we use this rule only when :math:`t_1` and :math:`t_2` are set values,
+   * that is, the Node::isConst method returns true for both.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_UNION_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- empty tester evaluation**
    *
    * .. math::
