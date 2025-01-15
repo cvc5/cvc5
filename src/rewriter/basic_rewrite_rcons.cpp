@@ -1226,33 +1226,15 @@ bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
                            "MacroLambdaAppElimShadow",
                            nullptr,
                            true);
-  size_t i = 0;
-  while (i < matchConds.size())
+  for (const Node& mc : matchConds)
   {
-    Assert(mc.getKind() == Kind::EQUAL);
-    Node mc = matchConds[i];
-    i++;
-    if (mc[0].getKind() == mc[1].getKind() && mc[0].isClosure())
-    {
-      Subs s;
-      for (size_t v = 0, nvars = mc[0][0].getNumChildren(); v < nvars; v++)
-      {
-        if (mc[0][0][v] != mc[1][0][v])
-        {
-          s.add(mc[0][0][v], mc[1][0][v]);
-        }
-      }
-      Node mcr = s.apply(mc[0]);
-      Trace("brc-macro") << "- subgoal " << mc[0].eqNode(mcr) << std::endl;
-      // the step should be shown by alpha-equivalance
-      tcpg.addRewriteStep(mc[0],
-                          mcr,
-                          nullptr,
-                          true,
-                          TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
-      // also get match conditions in the bodies of lambdas
-      expr::getMatchConditions(mcr[1], mc[1][1], matchConds, true);
-    }
+    Trace("brc-macro") << "- subgoal " << mc << std::endl;
+    // the step should be shown by alpha-equivalance
+    tcpg.addRewriteStep(mc[0],
+                        mc[1],
+                        nullptr,
+                        true,
+                        TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
   Node res = pfn->getResult();
