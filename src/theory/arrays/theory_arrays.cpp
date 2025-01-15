@@ -301,7 +301,7 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   Kind k = term.getKind();
   if (!options().arrays.arraysExp)
   {
-    if (k == Kind::EQ_RANGE)
+    if (k == Kind::EQ_RANGE || k == Kind::STORE_ALL)
     {
       std::stringstream ss;
       ss << "Term of kind `" << k
