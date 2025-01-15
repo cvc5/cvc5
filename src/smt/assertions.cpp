@@ -148,11 +148,12 @@ void Assertions::addFormula(TNode n,
         {
           d_defFunRewPf = std::make_shared<LazyCDProof>(d_env);
         }
+        // A define-fun is an assumption in the overall proof, thus
+        // we justify the substitution with ASSUME here.
+        d_defFunRewPf->addStep(n, ProofRule::ASSUME, {}, {n});
+        // If changed, prove the rewrite
         if (defRew != n[1])
         {
-          // A define-fun is an assumption in the overall proof, thus
-          // we justify the substitution with ASSUME here.
-          d_defFunRewPf->addStep(n, ProofRule::ASSUME, {}, {n});
           Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
           Node eqRew = n[1].eqNode(defRew);
