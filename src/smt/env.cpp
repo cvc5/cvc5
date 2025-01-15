@@ -116,6 +116,8 @@ ProofLogger* Env::getProofLogger()
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
+bool Env::isProofProducing() const { return d_proofNodeManager != nullptr; }
+
 bool Env::isSatProofProducing() const
 {
   return d_proofNodeManager != nullptr

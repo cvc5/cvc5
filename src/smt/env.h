@@ -109,6 +109,12 @@ class Env
   ProofNodeManager* getProofNodeManager();
 
   /**
+   * Check whether proofs are enabled at all, i.e. the proof node manager is
+   * set.
+   */
+  bool isProofProducing() const;
+
+  /**
    * Check whether the SAT solver should produce proofs. Other than whether
    * the proof node manager is set, SAT proofs are only generated if the proof
    * mode is not PP_ONLY.
