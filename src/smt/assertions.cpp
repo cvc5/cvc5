@@ -137,11 +137,14 @@ void Assertions::addFormula(TNode n,
       // global let. We should not eagerly rewrite in these cases.
       if (n[1].getKind() == Kind::LAMBDA)
       {
+        // Rewrite the body of the lambda.
         defRewBody = tsm.applyTrusted(n[1][1], d_env.getRewriter());
       }
       Node defRew = n[1];
+      // If we rewrote the body
       if (!defRewBody.isNull())
       {
+        // The rewritten form is the rewritten body with original variable list.
         defRew = defRewBody.getNode();
         defRew = nm->mkNode(Kind::LAMBDA, n[1][0], defRew);
       }
