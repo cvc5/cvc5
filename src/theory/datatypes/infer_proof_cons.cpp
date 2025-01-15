@@ -267,6 +267,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
     {
       // partition to substitution / testers
       std::vector<Node> expvs;
+      // placeholder for MACRO_SR_PRED_TRANSFORM below.
+      expvs.push_back(Node::null());
       std::vector<Node> expvt;
       std::map<Node, Node> tmap;
       for (const Node& e : expv)
@@ -288,10 +290,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       // is-cons(x) or is-nil(x)            ~is-cons(x)
       // ---------------------------------------------- CHAIN_RESOLUTION
       // is-nil(x)
-      Node tst = expvt[0];
-      Assert(tst.getKind() == Kind::NOT
-             && tst[0].getKind() == Kind::APPLY_TESTER);
-      Node t = tst[0][0];
+      Assert(conc.getKind() == Kind::APPLY_TESTER);
+      Node t = conc[0];
       ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
       Node sconc = pc->checkDebug(ProofRule::DT_SPLIT, {}, {t});
       if (!sconc.isNull())
@@ -307,6 +307,10 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         std::map<Node, Node>::iterator itt;
         for (const Node& e : sconc)
         {
+          if (e==conc)
+          {
+            continue;
+          }
           Node en = e.notNode();
           premises.push_back(en);
           pols.emplace_back(truen);
@@ -323,8 +327,17 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
             }
             else
             {
-              // otherwise maybe equal modulo rewriting?
+              // otherwise maybe provable modulo equality?
+              // This is to handle e.g.
+              // (and (not (is-cons x)) (= x y)) => (is-nil y)
+              expvs[0] = itt->second;
               Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en << ", substitution " << expvs << std::endl;
+              Node res = pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+              if (res==en)
+              {
+                cdp->addStep(res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                successLit = true;
+              }
             }
           }
           if (!successLit)
