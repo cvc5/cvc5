@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic ALL)
 (define-fun l ((s Int) (x Int) (t Int) (x0 Int)) Bool (= x 0))
