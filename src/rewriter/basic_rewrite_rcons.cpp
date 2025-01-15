@@ -28,6 +28,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_utilities.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -233,6 +234,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
       break;
     case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
       if (ensureProofMacroQuantRewriteBody(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP:
+      if (ensureProofMacroArraysNormalizeOp(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1247,6 +1254,25 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   cdp->addProof(pfn);
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroArraysNormalizeOp(CDProof* cdp,
+                                                          const Node& eq)
+{
+  Trace("brc-macro") << "Expand arrays normalize op " << eq << std::endl;
+  TConvProofGenerator tcpg(d_env, nullptr, TConvPolicy::FIXPOINT);
+  theory::arrays::TheoryArraysRewriter arew(nodeManager(), d_env.getRewriter());
+  Node nr = arew.computeNormalizeOp(eq[0], &tcpg);
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  if (pfn->getResult() == eq)
+  {
+    Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
+    cdp->addProof(pfn);
+    return true;
+  }
+  Trace("brc-macro") << "...failed, got " << pfn->getResult()[1] << std::endl;
+  Assert(false);
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,

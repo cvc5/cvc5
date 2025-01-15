@@ -240,6 +240,16 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofMacroQuantRewriteBody(CDProof* cdp, const Node& eq);
   /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroArraysNormalizeOp(CDProof* cdp, const Node& eq);
+  /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.
    * @return true if added a closed proof of eq to cdp.
