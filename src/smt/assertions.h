@@ -26,6 +26,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class LazyCDProof;
+
 namespace smt {
 
 class AbstractValues;
@@ -141,6 +144,8 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
+  /** Proof generator storing proofs of rewriting for defined functions */
+  std::shared_ptr<LazyCDProof> d_defFunRewPf;
 };
 
 }  // namespace smt

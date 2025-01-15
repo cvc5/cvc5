@@ -39,7 +39,7 @@ namespace booleans {
 class ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagator(ProofNodeManager* pnm);
+  ProofCircuitPropagator(NodeManager* nm, ProofNodeManager* pnm);
 
   /** Assuming the given node */
   std::shared_ptr<ProofNode> assume(Node n);
@@ -117,6 +117,8 @@ class ProofCircuitPropagator
   /** Apply NOT_NOT_ELIM rule if n.getResult() is a nested negation */
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n);
 
+  /** The associated node manager */
+  NodeManager* d_nm;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };
@@ -128,7 +130,8 @@ class ProofCircuitPropagator
 class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagatorBackward(ProofNodeManager* pnm,
+  ProofCircuitPropagatorBackward(NodeManager* nm,
+                                 ProofNodeManager* pnm,
                                  TNode parent,
                                  bool parentAssignment);
 
@@ -172,7 +175,8 @@ class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagatorForward(ProofNodeManager* pnm,
+  ProofCircuitPropagatorForward(NodeManager* nm,
+                                ProofNodeManager* pnm,
                                 Node child,
                                 bool childAssignment,
                                 Node parent);
