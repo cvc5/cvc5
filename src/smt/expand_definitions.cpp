@@ -86,7 +86,8 @@ Node ExpandDefs::expandDefinitions(TNode n,
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
-      Trace("expand") << "Expand definition on " << nr << " (from " << n << ")" << std::endl;
+      Trace("expand") << "Expand definition on " << nr << " (from " << n << ")"
+                      << std::endl;
       Node nre = tr->expandDefinition(nr);
       Trace("expand") << "...returns " << nre << std::endl;
       node = nre.isNull() ? nr : nre;
