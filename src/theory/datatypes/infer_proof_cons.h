@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
 #define CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
 
+#include "proof/proof.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
@@ -83,6 +84,11 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * information is stored in cdp.
    */
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
+  /**
+   * Add a step a=b to cdp using ProofRewriteRule rule r if possible, or a
+   * trust step otherwise.
+   */
+  void tryRewriteRule(TNode a, TNode b, ProofRewriteRule r, CDProof* cdp);
   /**
    * Adds a step concluding t_i = s_i from C(t_1 ... t_n) = C(s_1 ... s_n),
    * where i is stored in the node narg.
