@@ -126,13 +126,14 @@ void Assertions::addFormula(TNode n,
     {
       Trace("smt-define-fun")
           << "Define fun: " << n[0] << " = " << n[1] << std::endl;
-      bool isLambda = n[1].getKind()==Kind::LAMBDA;
+      bool isLambda = n[1].getKind() == Kind::LAMBDA;
       NodeManager* nm = nodeManager();
       TrustSubstitutionMap& tsm = d_env.getTopLevelSubstitutions();
       // If it is a lambda, we rewrite the body, otherwise we rewrite itself.
       // For lambdas, we prefer rewriting only the body since we don't want
       // higher-order rewrites (e.g. value normalization) to apply by default.
-      TrustNode defRewBody = tsm.applyTrusted(isLambda ? n[1][1] : n[1], d_env.getRewriter());
+      TrustNode defRewBody =
+          tsm.applyTrusted(isLambda ? n[1][1] : n[1], d_env.getRewriter());
       Node defRew = n[1];
       if (!defRewBody.isNull())
       {
@@ -143,7 +144,7 @@ void Assertions::addFormula(TNode n,
       if (d_env.isProofProducing())
       {
         // initialize the proof generator if not already done so
-        if (d_defFunRewPf==nullptr)
+        if (d_defFunRewPf == nullptr)
         {
           d_defFunRewPf = std::make_shared<LazyCDProof>(d_env);
         }
@@ -164,7 +165,7 @@ void Assertions::addFormula(TNode n,
           }
           else
           {
-            Assert (eqRew==eqBody);
+            Assert(eqRew == eqBody);
           }
           // Proof is:
           //                            ------ from tsm
@@ -173,7 +174,8 @@ void Assertions::addFormula(TNode n,
           // n = lambda x. t            lambda x. t = lambda x. t'
           // ------------------------------------------------------ TRANS
           // n = lambda x. t'
-          // where the CONG step is unecessary if not a lambda (i.e. a defined constant).
+          // where the CONG step is unecessary if not a lambda (i.e. a defined
+          // constant).
           Node eqFinal = n[0].eqNode(defRew);
           d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, {n, eqRew}, {});
         }
