@@ -18,9 +18,9 @@
 #ifndef CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
 #define CVC5__THEORY__DATATYPES__INFER_PROOF_CONS_H
 
-#include "proof/proof.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/datatypes/inference.h"

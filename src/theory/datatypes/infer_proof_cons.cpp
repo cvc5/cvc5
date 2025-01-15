@@ -192,7 +192,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node seq = sl.eqNode(sr);
         cdp->addStep(seq, ProofRule::CONG, {exp}, {asn, sop});
         Node sceq = sr.eqNode(concEq[1]);
-        tryRewriteRule(sr, concEq[1], ProofRewriteRule::DT_COLLAPSE_SELECTOR, cdp);
+        tryRewriteRule(
+            sr, concEq[1], ProofRewriteRule::DT_COLLAPSE_SELECTOR, cdp);
         cdp->addStep(sl.eqNode(concEq[1]), ProofRule::TRANS, {seq, sceq}, {});
         if (conc.getKind() != Kind::EQUAL)
         {
@@ -278,12 +279,12 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           expvt.push_back(e);
           tmap[e[0].getOperator()] = e;
         }
-        else if (e.getKind()==Kind::EQUAL)
+        else if (e.getKind() == Kind::EQUAL)
         {
           expvs.push_back(e);
         }
       }
-      
+
       // Exhausted labels. For example, this proves ~is-cons(x) => is-nil(x)
       // We prove this by:
       // ------------------------ DT_SPLIT
@@ -307,7 +308,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         std::map<Node, Node>::iterator itt;
         for (const Node& e : sconc)
         {
-          if (e==conc)
+          if (e == conc)
           {
             continue;
           }
@@ -316,12 +317,12 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
           pols.emplace_back(truen);
           lits.emplace_back(e);
           // must ensure we have a proof of en
-          Assert (e.getKind()==Kind::APPLY_TESTER);
+          Assert(e.getKind() == Kind::APPLY_TESTER);
           bool successLit = false;
           itt = tmap.find(e.getOperator());
-          if (itt!=tmap.end())
+          if (itt != tmap.end())
           {
-            if (itt->second==en)
+            if (itt->second == en)
             {
               successLit = true;
             }
@@ -331,11 +332,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
               // This is to handle e.g.
               // (and (not (is-cons x)) (= x y)) => (is-nil y)
               expvs[0] = itt->second;
-              Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en << ", substitution " << expvs << std::endl;
-              Node res = pc->checkDebug(ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
-              if (res==en)
+              Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en
+                              << ", substitution " << expvs << std::endl;
+              Node res = pc->checkDebug(
+                  ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+              if (res == en)
               {
-                cdp->addStep(res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                cdp->addStep(
+                    res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
                 successLit = true;
               }
             }
@@ -428,11 +432,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
   }
 }
 
-void InferProofCons::tryRewriteRule(TNode a, TNode b, ProofRewriteRule r, CDProof* cdp)
+void InferProofCons::tryRewriteRule(TNode a,
+                                    TNode b,
+                                    ProofRewriteRule r,
+                                    CDProof* cdp)
 {
   Node eq = a.eqNode(b);
   Node ar = d_env.getRewriter()->rewriteViaRule(r, a);
-  if (ar==b)
+  if (ar == b)
   {
     cdp->addTheoryRewriteStep(eq, r);
   }
