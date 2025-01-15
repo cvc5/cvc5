@@ -65,6 +65,12 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_INDEXOF_RE_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
+                           TheoryRewriteCtx::POST_DSL);
 }
 
 Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
@@ -91,6 +97,21 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       StringsEntail sent(nullptr, ae, nullptr);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    {
+      return rewriteViaStrIndexofReEval(n);
+    }
+    break;
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    {
+      return rewriteViaStrReplaceReEval(n);
+    }
+    break;
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+    {
+      return rewriteViaStrReplaceReAllEval(n);
+    }
+    break;
     default: break;
   }
   return Node::null();
@@ -1468,6 +1489,91 @@ Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
   std::vector<Node> ch1;
   std::vector<Node> ch2;
   return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
+}
+
+
+Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_INDEXOF_RE && n[0].isConst() && n[2].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    Rational nrat = n[2].getConst<Rational>();
+    String s = n[0].getConst<String>();
+    Rational rsize(s.size());
+    if (nrat > rsize || nrat.sgn() < 0)
+    {
+      Node negone = nm->mkConstInt(Rational(-1));
+      return negone;
+    }
+    uint32_t start = nrat.getNumerator().toUnsignedInt();
+    Node rem = nm->mkConst(s.substr(start));
+    std::pair<size_t, size_t> match = firstMatch(rem, n[1]);
+    Node ret = nm->mkConstInt(
+        Rational(match.first == string::npos
+                     ? -1
+                     : static_cast<int64_t>(start + match.first)));
+    return ret;
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaStrReplaceReEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_REPLACE_RE && n[0].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    // str.replace_re("ZABCZ", re.++("A", _*, "C"), y) ---> "Z" ++ y ++ "Z"
+    std::pair<size_t, size_t> match = firstMatch(n[0], n[1]);
+    if (match.first != string::npos)
+    {
+      String s = n[0].getConst<String>();
+      Node ret = nm->mkNode(Kind::STRING_CONCAT,
+                            nm->mkConst(s.substr(0, match.first)),
+                            n[2],
+                            nm->mkConst(s.substr(match.second)));
+      return ret;
+    }
+    return n[0];
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaStrReplaceReAllEval(const Node& n)
+{
+  if (n.getKind() == Kind::STRING_REPLACE_RE_ALL && n[0].isConst()
+      && RegExpEntail::isConstRegExp(n[1]))
+  {
+    NodeManager* nm = nodeManager();
+    // str.replace_re_all("ZABCZAB", re.++("A", _*, "C"), y) --->
+    //   "Z" ++ y ++ "Z" ++ y
+    TypeNode t = n[0].getType();
+    Assert(t.isString());
+    Node emp = Word::mkEmptyWord(t);
+    Node yp = nm->mkNode(Kind::REGEXP_INTER,
+                         n[1],
+                         nm->mkNode(Kind::REGEXP_COMPLEMENT,
+                                    nm->mkNode(Kind::STRING_TO_REGEXP, emp)));
+    std::vector<Node> res;
+    String rem = n[0].getConst<String>();
+    std::pair<size_t, size_t> match(0, 0);
+    while (rem.size() != 0)
+    {
+      match = firstMatch(nm->mkConst(rem), yp);
+      if (match.first == string::npos)
+      {
+        break;
+      }
+      res.push_back(nm->mkConst(rem.substr(0, match.first)));
+      res.push_back(n[2]);
+      rem = rem.substr(match.second);
+    }
+    res.push_back(nm->mkConst(rem));
+    Node ret = utils::mkConcat(res, t);
+    return ret;
+  }
+  return Node::null();
 }
 
 Node SequencesRewriter::rewriteRepeatRegExp(TNode node)

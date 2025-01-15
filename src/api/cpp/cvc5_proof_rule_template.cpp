@@ -284,6 +284,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+      return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";
@@ -295,6 +299,13 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
+    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
+      return "macro-sets-distinct-sets";
+    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
+      return "macro-sets-inter-eval";
+    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
+      return "macro-sets-minus-eval";
+    case ProofRewriteRule::SETS_UNION_NORM: return "sets-union-norm";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
     case ProofRewriteRule::SETS_INSERT_ELIM:
