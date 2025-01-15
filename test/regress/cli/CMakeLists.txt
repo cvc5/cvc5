@@ -1320,6 +1320,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
   regress0/proj-issue645-abs-value-subs.smt2
+  regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/cyclic-ucp.smt2
