@@ -83,6 +83,7 @@ void AstPrinter::toStream(std::ostream& out,
   {
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
+      out << ' ';
       // body is re-letified
       if (i == 1)
       {

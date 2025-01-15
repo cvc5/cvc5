@@ -15,7 +15,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "expr/nary_term_util.h"
+#include "expr/aci_norm.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -497,10 +497,9 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
   return true;
 }
 
-Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
+Node BuiltinProofRuleChecker::mkTheoryIdNode(NodeManager* nm, TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(tid)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(tid)));
 }
 
 }  // namespace builtin

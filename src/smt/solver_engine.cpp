@@ -1022,8 +1022,9 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
-                                                                     nvars);
+    NodeManager* nm = d_env->getNodeManager();
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
+        nm, asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"
@@ -1541,6 +1542,8 @@ void SolverEngine::checkProof()
     // connect proof to assertions, which will fail if the proof is malformed
     d_pfManager->connectProofToAssertions(
         pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
+    // now check the proof
+    d_pfManager->checkFinalProof(pePfn);
   }
 }
 

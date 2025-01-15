@@ -178,8 +178,7 @@ void LetBinding::updateCounts(Node n)
       {
         SkolemId skid;
         Node cacheVal;
-        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        if (sm->isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
         {
           if (cacheVal.getKind() == Kind::SEXPR)
           {

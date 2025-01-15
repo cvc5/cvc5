@@ -227,8 +227,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
-    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
-      return "arith-div-by-const-elim";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -239,6 +237,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+      return "macro-arrays-distinct-arrays";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+      return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
@@ -249,8 +252,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_QUANT_PRENEX: return "macro-quant-prenex";
     case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
       return "macro-quant-miniscope";
-    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
-    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
+    case ProofRewriteRule::QUANT_MINISCOPE_AND: return "quant-miniscope-and";
+    case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
@@ -266,7 +270,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
+    case ProofRewriteRule::MACRO_DT_CONS_EQ: return "macro-dt-cons-eq";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_CONS_EQ_CLASH: return "dt-cons-eq-clash";
     case ProofRewriteRule::DT_CYCLE: return "dt-cycle";
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
@@ -284,6 +290,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+      return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";
@@ -295,6 +305,13 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
+    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
+      return "macro-sets-distinct-sets";
+    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
+      return "macro-sets-inter-eval";
+    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
+      return "macro-sets-minus-eval";
+    case ProofRewriteRule::SETS_UNION_NORM: return "sets-union-norm";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
     case ProofRewriteRule::SETS_INSERT_ELIM:

@@ -38,7 +38,7 @@ BagSolver::BagSolver(Env& env,
                      TermRegistry& tr)
     : EnvObj(env),
       d_state(s),
-      d_ig(&s, &im),
+      d_ig(env.getNodeManager(), &s, &im),
       d_im(im),
       d_termReg(tr),
       d_mapCache(userContext())

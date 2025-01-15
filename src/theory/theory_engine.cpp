@@ -89,27 +89,6 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-inline void flattenAnd(Node n, std::vector<TNode>& out){
-  Assert(n.getKind() == Kind::AND);
-  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
-    Node curr = *i;
-    if (curr.getKind() == Kind::AND)
-    {
-      flattenAnd(curr, out);
-    }
-    else
-    {
-      out.push_back(curr);
-    }
-  }
-}
-
-inline Node flattenAnd(Node n){
-  std::vector<TNode> out;
-  flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(Kind::AND, out);
-}
-
 /**
  * Compute the string for a given theory id. In this module, we use
  * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
@@ -286,8 +265,8 @@ TheoryEngine::TheoryEngine(Env& env)
     d_cp.reset(new ConflictProcessor(env, useExtRewriter));
   }
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -882,8 +861,8 @@ bool TheoryEngine::isLegalElimination(TNode x, TNode val)
   return tm->isLegalElimination(x, val);
 }
 
-theory::Theory::PPAssertStatus TheoryEngine::solve(
-    TrustNode tliteral, TrustSubstitutionMap& substitutionOut)
+bool TheoryEngine::solve(TrustNode tliteral,
+                         TrustSubstitutionMap& substitutionOut)
 {
   Assert(tliteral.getKind() == TrustNodeKind::LEMMA);
   // Reset the interrupt flag
@@ -906,8 +885,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
     throw LogicException(ss.str());
   }
 
-  Theory::PPAssertStatus solveStatus =
-      d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
+  bool solveStatus = d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
@@ -947,7 +925,8 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     if (tskl.getGenerator() == nullptr)
     {
       Node proven = tskl.getProven();
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(), tid);
       d_lazyProof->addTrustedStep(
           proven, TrustId::THEORY_PREPROCESS_LEMMA, {}, {tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
@@ -1338,7 +1317,8 @@ TrustNode TheoryEngine::getExplanation(TNode node)
       {
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), tid);
         d_lazyProof->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
@@ -1529,7 +1509,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
     if (tlemma.getGenerator() == nullptr)
     {
       // add theory lemma step to proof
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(), from);
       d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
@@ -1630,7 +1611,8 @@ void TheoryEngine::conflict(TrustNode tconflict,
       else
       {
         // add theory lemma step
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), theoryId);
         Node conf = tconflict.getProven();
         d_lazyProof->addTrustedStep(conf, TrustId::THEORY_LEMMA, {}, {tidn});
       }
@@ -1691,7 +1673,7 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::NONE);
+    lemma(tconf, id, LemmaProperty::NONE, theoryId);
   }
   else
   {
@@ -1927,7 +1909,7 @@ TrustNode TheoryEngine::getExplanation(
   if (exp.size() == 0)
   {
     // Normalize to true
-    expNode = NodeManager::currentNM()->mkConst<bool>(true);
+    expNode = nodeManager()->mkConst<bool>(true);
   }
   else if (exp.size() == 1)
   {
@@ -2029,7 +2011,8 @@ TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), ttid);
         lcp->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       std::vector<Node> pfChildren;
@@ -2175,7 +2158,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     }
     if( is_conjunction ){
       return std::pair<bool, Node>(
-          true, NodeManager::currentNM()->mkNode(Kind::AND, children));
+          true, nodeManager()->mkNode(Kind::AND, children));
     }else{
       return std::pair<bool, Node>(false, Node::null());
     }
@@ -2200,8 +2183,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
         if( chres2.first ){
           return std::pair<bool, Node>(
               true,
-              NodeManager::currentNM()->mkNode(
-                  Kind::AND, chres.second, chres2.second));
+              NodeManager::mkNode(Kind::AND, chres.second, chres2.second));
         }else{
           break;
         }

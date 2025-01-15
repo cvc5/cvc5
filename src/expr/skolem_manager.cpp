@@ -43,8 +43,9 @@ SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkPurifySkolem(Node t)
 {
+  SkolemManager* skm = t.getNodeManager()->getSkolemManager();
   // We do not recursively compute the original form of t here
-  Node k = mkSkolemFunction(SkolemId::PURIFY, {t});
+  Node k = skm->mkSkolemFunction(SkolemId::PURIFY, {t});
   Trace("sk-manager-skolem") << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
@@ -160,22 +161,23 @@ Node SkolemManager::mkSkolemFunctionTyped(SkolemId id,
   return mkSkolemFunctionTyped(id, tn, cacheVal);
 }
 
-bool SkolemManager::isSkolemFunction(TNode k) const
+bool SkolemManager::isSkolemFunction(TNode k)
 {
   return k.getKind() == Kind::SKOLEM;
 }
 
 bool SkolemManager::isSkolemFunction(TNode k,
                                      SkolemId& id,
-                                     Node& cacheVal) const
+                                     Node& cacheVal)
 {
+  SkolemManager* skm = k.getNodeManager()->getSkolemManager();
   if (k.getKind() != Kind::SKOLEM)
   {
     return false;
   }
   std::map<Node, std::tuple<SkolemId, TypeNode, Node>>::const_iterator it =
-      d_skolemFunMap.find(k);
-  Assert(it != d_skolemFunMap.end());
+      skm->d_skolemFunMap.find(k);
+  Assert(it != skm->d_skolemFunMap.end());
   id = std::get<0>(it->second);
   cacheVal = std::get<2>(it->second);
   return true;
@@ -453,6 +455,24 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       size_t i = r.getNumerator().toUnsignedInt();
       Assert(i < cacheVals[0][0].getNumChildren());
       return cacheVals[0][0][i].getType();
+    }
+    break;
+    case SkolemId::WITNESS_STRING_LENGTH:
+    {
+      Assert(cacheVals.size() == 3);
+      Assert(cacheVals[0].getKind() == Kind::SORT_TO_TERM);
+      Assert(cacheVals[1].getKind() == Kind::CONST_INTEGER);
+      Assert(cacheVals[2].getKind() == Kind::CONST_INTEGER);
+      TypeNode t = cacheVals[0].getConst<SortToTerm>().getType();
+      return t;
+    }
+    break;
+    case SkolemId::WITNESS_INV_CONDITION:
+    {
+      Assert(cacheVals.size() == 1);
+      Assert(cacheVals[0].getKind() == Kind::EXISTS);
+      Assert(cacheVals[0][0].getNumChildren() == 1);
+      return cacheVals[0][0][0].getType();
     }
     break;
     // skolems that return the set element type

@@ -106,7 +106,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);
   /** Make a TheoryId into a node */
-  static Node mkTheoryIdNode(TheoryId tid);
+  static Node mkTheoryIdNode(NodeManager* nm, TheoryId tid);
   /**
    * @param nm The node manager.
    * @param n The term to rewrite via ENCODE_EQ_INTRO.

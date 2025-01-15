@@ -87,10 +87,14 @@
 ;   whose arguments have been partially accumulated into ss.
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
-(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (xs @List) (ss @List :list))
+(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list))
   (U @List) U
   (
-  (($beta_reduce (lambda xs t) ss) ($substitute_simul t xs ss))
-  (($beta_reduce (f a) ss)         ($beta_reduce f (@list a ss)))
+  ; handle higher-order case: if lambda is applied to one argument, it may be a partial application
+  (($beta_reduce (_ (lambda (@list x xs) t) a) @list.nil)
+                                    (eo::define ((st ($substitute x a t)))
+                                      (eo::ite (eo::is_eq xs @list.nil) st (lambda xs st))))
+  (($beta_reduce (lambda xs t) ss)  ($substitute_simul t xs ss))
+  (($beta_reduce (f a) ss)          ($beta_reduce f (@list a ss)))
   )
 )

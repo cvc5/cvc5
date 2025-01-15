@@ -48,7 +48,6 @@ AlfPrinter::AlfPrinter(Env& env,
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
-      d_ltproc(nodeManager(), atp),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders
       // due to the way we print global declare-var, since terms beneath
@@ -61,6 +60,7 @@ AlfPrinter::AlfPrinter(Env& env,
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
+  d_absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 
 bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
@@ -180,7 +180,9 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
+    case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
+    case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
@@ -193,13 +195,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM:
-    {
-      // we don't support bitvectors yet
-      Assert(pargs[0].getKind() == Kind::EQUAL);
-      return pargs[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -244,7 +239,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         return opts.strings.stringsAlphaCard == String::num_codes();
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
-             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
+             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP
+             || k == Kind::STRING_STOI;
     }
     break;
     //
@@ -270,23 +266,33 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
+    case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::DT_INST:
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    case ProofRewriteRule::DT_CYCLE:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
-    case ProofRewriteRule::QUANT_MINISCOPE:
-    case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    case ProofRewriteRule::QUANT_MINISCOPE_AND:
+    case ProofRewriteRule::QUANT_MINISCOPE_OR:
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
       // only strings are supported, since it is non-trivial to show
@@ -376,6 +382,12 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
         case Kind::STRING_PREFIX:
+        case Kind::STRING_ITOS:
+        case Kind::STRING_STOI:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        case Kind::STRING_REV:
+        case Kind::STRING_CHARAT:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -383,6 +395,11 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_NEG:
         case Kind::BITVECTOR_NOT:
         case Kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_SHL:
+        case Kind::BITVECTOR_LSHR:
+        case Kind::BITVECTOR_ASHR:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
         case Kind::BITVECTOR_XOR:
@@ -499,7 +516,8 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << id;
     return ss.str();
   }
-  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE)
+  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE
+           || r == ProofRule::BV_EAGER_ATOM)
   {
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
@@ -533,6 +551,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   std::stringstream ssExplicit;
   std::map<std::string, size_t> nameCount;
   std::vector<Node> uviList;
+  std::map<Node, Node> adtcConvMap;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -561,6 +580,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
     Node uvtp = adtc.process(uvt);
+    adtcConvMap[uvi] = uvtp;
     ssExplicit << uvtp;
     if (expr::isListVar(uv))
     {
@@ -576,6 +596,9 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   {
     out << "(" << p << " " << p.getType() << ") ";
   }
+  // carry the mapping from symbols to their types, which is used when
+  // eliminating internal-only operators for representing empty set and sequence
+  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
   // now print variables of the proof rule
   out << ssExplicit.str();
   out << ")" << std::endl;
@@ -595,23 +618,39 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
       }
       // note we apply list conversion to premises as well.
       Node cc = d_tproc.convert(su.apply(c));
-      cc = d_ltproc.convert(cc);
+      cc = ltproc.convert(cc);
       out << cc;
     }
     out << ")" << std::endl;
   }
   out << "  :args (";
-  for (size_t i = 0, nvars = uviList.size(); i < nvars; i++)
+  bool printedArg = false;
+  for (const Node& v : uviList)
   {
-    if (i > 0)
-    {
-      out << " ";
-    }
-    out << uviList[i];
+    out << (printedArg ? " " : "");
+    printedArg = true;
+    out << v;
+  }
+  // Special case: must print explicit types.
+  // This is to handle rules where Kind::TYPE_OF appears in the conclusion
+  // or in the premises. Since RARE rules do not take types as arguments,
+  // we must add them here. The printer for proof steps will add them in
+  // a similar manner.
+  std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
+  std::map<Node, Node>::iterator itet;
+  for (const Node& et : explictTypeOf)
+  {
+    out << (printedArg ? " " : "");
+    printedArg = true;
+    Assert(et.getKind() == Kind::TYPE_OF);
+    Node v = su.apply(et[0]);
+    itet = adtcConvMap.find(v);
+    Assert(itet != adtcConvMap.end());
+    out << itet->second;
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = d_ltproc.convert(sconc);
+  sconc = ltproc.convert(sconc);
   Assert(sconc.getKind() == Kind::EQUAL);
   out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
   out << ")" << std::endl;
@@ -707,6 +746,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
+        options::ioutils::applyPrintArithLitToken(outDef, true);
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
         out << outDecl.str();
         // [2] print the definitions
@@ -911,7 +951,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       std::vector<Node> ss(pargs.begin() + 1, pargs.end());
       std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
       rpr.getConclusionFor(ss, witnessTerms);
-      TypeNode absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
       // the arguments are the computed witness terms
       for (const std::pair<Kind, std::vector<Node>>& w : witnessTerms)
       {
@@ -930,7 +969,28 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
           args.push_back(d_tproc.mkInternalApp(
               printer::smt2::Smt2Printer::smtKindString(w.first),
               wargs,
-              absType));
+              d_absType));
+        }
+      }
+      // special case: explicit type-of terms, which require explicit type
+      // arguments
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator it =
+          d_explicitTypeOf.find(dr);
+      if (it == d_explicitTypeOf.end())
+      {
+        d_explicitTypeOf[dr] = rpr.getExplicitTypeOfList();
+        it = d_explicitTypeOf.find(dr);
+      }
+      if (!it->second.empty())
+      {
+        const std::vector<Node>& fvs = rpr.getVarList();
+        AlwaysAssert(fvs.size() == ss.size());
+        for (const Node& t : it->second)
+        {
+          Assert(t.getKind() == Kind::TYPE_OF);
+          Node tts =
+              t[0].substitute(fvs.begin(), fvs.end(), ss.begin(), ss.end());
+          args.push_back(d_tproc.typeAsNode(tts.getType()));
         }
       }
       return;

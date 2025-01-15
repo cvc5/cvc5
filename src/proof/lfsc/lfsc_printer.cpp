@@ -540,11 +540,6 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_EQ_INTRO)
-        {
-          // just add child
-          visit.push_back(PExpr(cur->getChildren()[0].get()));
-        }
         else if (isLambda)
         {
           Assert(cur->getArguments().size() == 3);
@@ -677,7 +672,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   for (const Node& a : args)
   {
     Node ac = d_tproc.convert(a);
-    Assert(!ac.isNull());
+    Assert(!ac.isNull()) << "Could not convert " << a << " in " << r;
     as.push_back(ac);
   }
   // The proof expression stream, which packs the next expressions (proofs,
