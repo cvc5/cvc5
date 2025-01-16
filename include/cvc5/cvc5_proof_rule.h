@@ -2972,6 +2972,49 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_REPEAT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String contains multiset subset**
+   *
+   * .. math::
+   *    contains(s,t) = \bot
+   *
+   * where the multiset overapproximation of :math:`s` can be shown to not
+   * contain the multiset abstraction of :math:`t` based on the reasoning
+   * described in the paper Reynolds et al, CAV 2019, "High-Level Abstractions
+   * for Simplifying Extended String Constraints in SMT".
+   * \endverbatim
+   */
+  EVALUE(STR_CTN_MULTISET_SUBSET),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String equality length unify prefix**
+   *
+   * .. math::
+   *    (s = \mathit{str}.\text{++}(t_1, \ldots, t_n)) = 
+   *    (s = \mathit{str}.\text{++}(t_1, \ldots t_i)) \wedge
+   *    t_{i+1} = \epsilon \wedge \ldots \wedge t_n = \epsilon
+   *
+   * where we can show :math:`s` has a length that is at least the length
+   * of :math:`\text{++}(t_1, \ldots t_i)`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_EQ_LEN_UNIFY_PREFIX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String equality length unify**
+   *
+   * .. math::
+   *    (\mathit{str}.\text{++}(s_1, \ldots, s_n) = \mathit{str}.\text{++}(t_1, \ldots, t_m)) =
+   *    (r_1 = u_1 \wedge \ldots r_k = u_k)
+   *
+   * where for each :math:`i = 1, \ldots, k`, we can show the length of
+   * :math:`r_i` and :math:`u_i` are equal,
+   * :math:`s_1, \ldots, s_n` is :math:`r_1, \ldots, r_k`, and
+   * :math:`t_1, \ldots, t_m` is :math:`u_1, \ldots, u_k`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_EQ_LEN_UNIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- string indexof regex evaluation**
    *
    * .. math::

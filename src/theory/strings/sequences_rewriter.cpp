@@ -65,6 +65,12 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::STR_CTN_MULTISET_SUBSET,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_INDEXOF_RE_EVAL,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_EVAL,
@@ -97,6 +103,34 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       StringsEntail sent(nullptr, ae, nullptr);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+    {
+      if (n.getKind() == Kind::STRING_CONTAINS)
+      {
+        if (d_stringsEntail.checkMultisetSubset(n[0], n[1]))
+        {
+          return d_nm->mkConst(false);
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        return rewriteViaStrEqLenUnifyPrefix(n);
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
+    {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        Rewrite rule;
+        return rewriteViaStrEqLenUnify(n, rule);
+      }
+    }
+    break;
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
     {
       return rewriteViaStrIndexofReEval(n);
@@ -296,7 +330,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       // We generally don't apply the extended equality rewriter if the
       // original node was an equality but we may be able to do additional
       // rewriting here, e.g.,
-      // x++y = "" --> x = "" and y = ""
+      // x++y = "" --> x = "" and y = ""   
       new_ret = returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY);
       return rewriteStrEqualityExt(new_ret);
     }
@@ -509,133 +543,29 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   //
   // where yi' and yi'' correspond to some yj and
   //   (<= (str.len x) (str.++ y1' ... ym'))
-  for (unsigned i = 0; i < 2; i++)
+  new_ret = rewriteViaStrEqLenUnifyPrefix(node);
+  if (!new_ret.isNull())
   {
-    if (node[1 - i].getKind() == Kind::STRING_CONCAT)
-    {
-      new_ret = d_stringsEntail.inferEqsFromContains(node[i], node[1 - i]);
-      if (!new_ret.isNull())
-      {
-        return returnRewrite(node, new_ret, Rewrite::STR_EQ_CONJ_LEN_ENTAIL);
-      }
-    }
+    return returnRewrite(node, new_ret, Rewrite::STR_EQ_CONJ_LEN_ENTAIL);
   }
 
-  if (node[0].getKind() == Kind::STRING_CONCAT
-      && node[1].getKind() == Kind::STRING_CONCAT)
+  // (= (str.++ x_1 ... x_i x_{i + 1} ... x_n)
+  //    (str.++ y_1 ... y_j y_{j + 1} ... y_m)) --->
+  //  (and (= (str.++ x_1 ... x_i) (str.++ y_1 ... y_j))
+  //       (= (str.++ x_{i + 1} ... x_n) (str.++ y_{j + 1} ... y_m)))
+  //
+  // if (str.len (str.++ x_1 ... x_i)) = (str.len (str.++ y_1 ... y_j))
+  //
+  // This rewrite performs length-based equality splitting: If we can show
+  // that two prefixes have the same length, we can split an equality into
+  // two equalities, one over the prefixes and another over the suffixes.
+  Rewrite rule;
+  new_ret = rewriteViaStrEqLenUnify(node, rule);
+  if (!new_ret.isNull())
   {
-    // (= (str.++ x_1 ... x_i x_{i + 1} ... x_n)
-    //    (str.++ y_1 ... y_j y_{j + 1} ... y_m)) --->
-    //  (and (= (str.++ x_1 ... x_i) (str.++ y_1 ... y_j))
-    //       (= (str.++ x_{i + 1} ... x_n) (str.++ y_{j + 1} ... y_m)))
-    //
-    // if (str.len (str.++ x_1 ... x_i)) = (str.len (str.++ y_1 ... y_j))
-    //
-    // This rewrite performs length-based equality splitting: If we can show
-    // that two prefixes have the same length, we can split an equality into
-    // two equalities, one over the prefixes and another over the suffixes.
-    std::vector<Node> v0, v1;
-    utils::getConcat(node[0], v0);
-    utils::getConcat(node[1], v1);
-    size_t startRhs = 0;
-    for (size_t i = 0, size0 = v0.size(); i <= size0; i++)
-    {
-      const std::vector<Node> pfxv0(v0.begin(), v0.begin() + i);
-      Node pfx0 = utils::mkConcat(pfxv0, stype);
-      for (size_t j = startRhs, size1 = v1.size(); j <= size1; j++)
-      {
-        if (!(i == 0 && j == 0) && !(i == v0.size() && j == v1.size()))
-        {
-          std::vector<Node> pfxv1(v1.begin(), v1.begin() + j);
-          Node pfx1 = utils::mkConcat(pfxv1, stype);
-          Node lenPfx0 = nm->mkNode(Kind::STRING_LENGTH, pfx0);
-          Node lenPfx1 = nm->mkNode(Kind::STRING_LENGTH, pfx1);
-
-          if (d_arithEntail.checkEq(lenPfx0, lenPfx1))
-          {
-            std::vector<Node> sfxv0(v0.begin() + i, v0.end());
-            std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-            Node ret = nm->mkNode(Kind::AND,
-                                  pfx0.eqNode(pfx1),
-                                  utils::mkConcat(sfxv0, stype)
-                                      .eqNode(utils::mkConcat(sfxv1, stype)));
-            return returnRewrite(node, ret, Rewrite::SPLIT_EQ);
-          }
-          else if (d_arithEntail.check(lenPfx1, lenPfx0, true))
-          {
-            // The prefix on the right-hand side is strictly longer than the
-            // prefix on the left-hand side, so we try to strip the right-hand
-            // prefix by the length of the left-hand prefix
-            //
-            // Example:
-            // (= (str.++ "A" x y) (str.++ x "AB" z)) --->
-            //   (and (= (str.++ "A" x) (str.++ x "A")) (= y (str.++ "B" z)))
-            std::vector<Node> rpfxv1;
-            if (d_stringsEntail.stripSymbolicLength(
-                    pfxv1, rpfxv1, 1, lenPfx0, true))
-            {
-              // The rewrite requires the full left-hand prefix length to be
-              // stripped (otherwise we would have to keep parts of the
-              // left-hand prefix).
-              if (lenPfx0.isConst() && lenPfx0.getConst<Rational>().isZero())
-              {
-                std::vector<Node> sfxv0(v0.begin() + i, v0.end());
-                pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
-                Node ret =
-                    nm->mkNode(Kind::AND,
-                               pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
-                               utils::mkConcat(sfxv0, stype)
-                                   .eqNode(utils::mkConcat(pfxv1, stype)));
-                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_R);
-              }
-            }
-
-            // If the prefix of the right-hand side is (strictly) longer than
-            // the prefix of the left-hand side, we can advance the left-hand
-            // side (since the length of the right-hand side is only increasing
-            // in the inner loop)
-            break;
-          }
-          else if (d_arithEntail.check(lenPfx0, lenPfx1, true))
-          {
-            // The prefix on the left-hand side is strictly longer than the
-            // prefix on the right-hand side, so we try to strip the left-hand
-            // prefix by the length of the right-hand prefix
-            //
-            // Example:
-            // (= (str.++ x "AB" z) (str.++ "A" x y)) --->
-            //   (and (= (str.++ x "A") (str.++ "A" x)) (= (str.++ "B" z) y))
-            std::vector<Node> sfxv0 = pfxv0;
-            std::vector<Node> rpfxv0;
-            if (d_stringsEntail.stripSymbolicLength(
-                    sfxv0, rpfxv0, 1, lenPfx1, true))
-            {
-              // The rewrite requires the full right-hand prefix length to be
-              // stripped (otherwise we would have to keep parts of the
-              // right-hand prefix).
-              if (lenPfx1.isConst() && lenPfx1.getConst<Rational>().isZero())
-              {
-                sfxv0.insert(sfxv0.end(), v0.begin() + i, v0.end());
-                std::vector<Node> sfxv1(v1.begin() + j, v1.end());
-                Node ret =
-                    nm->mkNode(Kind::AND,
-                               utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
-                               utils::mkConcat(sfxv0, stype)
-                                   .eqNode(utils::mkConcat(sfxv1, stype)));
-                return returnRewrite(node, ret, Rewrite::SPLIT_EQ_STRIP_L);
-              }
-            }
-
-            // If the prefix of the left-hand side is (strictly) longer than
-            // the prefix of the right-hand side, then we don't need to check
-            // that right-hand prefix for future left-hand prefixes anymore
-            // (since they are increasing in length)
-            startRhs = j + 1;
-          }
-        }
-      }
-    }
+    return returnRewrite(node, new_ret, rule);
   }
+
   return node;
 }
 
@@ -1332,6 +1262,137 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   retNode = rewriteViaReLoopElim(node);
   Assert(!retNode.isNull() && retNode != node);
   return returnRewrite(node, retNode, Rewrite::RE_LOOP);
+}
+
+Node SequencesRewriter::rewriteViaStrEqLenUnifyPrefix(const Node& node)
+{
+  Node newRet;
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (node[1 - i].getKind() == Kind::STRING_CONCAT)
+    {
+      newRet = d_stringsEntail.inferEqsFromContains(node[i], node[1 - i]);
+      if (!newRet.isNull())
+      {
+        return newRet;
+      }
+    }
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaStrEqLenUnify(const Node& node, Rewrite& rule)
+{
+  if (node[0].getKind() == Kind::STRING_CONCAT
+      && node[1].getKind() == Kind::STRING_CONCAT)
+  {
+    std::vector<Node> v0, v1;
+    utils::getConcat(node[0], v0);
+    utils::getConcat(node[1], v1);
+    size_t startRhs = 0;
+    TypeNode stype = node[0].getType();
+    for (size_t i = 0, size0 = v0.size(); i <= size0; i++)
+    {
+      const std::vector<Node> pfxv0(v0.begin(), v0.begin() + i);
+      Node pfx0 = utils::mkConcat(pfxv0, stype);
+      for (size_t j = startRhs, size1 = v1.size(); j <= size1; j++)
+      {
+        if (!(i == 0 && j == 0) && !(i == v0.size() && j == v1.size()))
+        {
+          std::vector<Node> pfxv1(v1.begin(), v1.begin() + j);
+          Node pfx1 = utils::mkConcat(pfxv1, stype);
+          Node lenPfx0 = d_nm->mkNode(Kind::STRING_LENGTH, pfx0);
+          Node lenPfx1 = d_nm->mkNode(Kind::STRING_LENGTH, pfx1);
+
+          if (d_arithEntail.checkEq(lenPfx0, lenPfx1))
+          {
+            std::vector<Node> sfxv0(v0.begin() + i, v0.end());
+            std::vector<Node> sfxv1(v1.begin() + j, v1.end());
+            Node ret = d_nm->mkNode(Kind::AND,
+                                    pfx0.eqNode(pfx1),
+                                    utils::mkConcat(sfxv0, stype)
+                                        .eqNode(utils::mkConcat(sfxv1, stype)));
+            rule = Rewrite::SPLIT_EQ;
+            return ret;
+          }
+          else if (d_arithEntail.check(lenPfx1, lenPfx0, true))
+          {
+            // The prefix on the right-hand side is strictly longer than the
+            // prefix on the left-hand side, so we try to strip the right-hand
+            // prefix by the length of the left-hand prefix
+            //
+            // Example:
+            // (= (str.++ "A" x y) (str.++ x "AB" z)) --->
+            //   (and (= (str.++ "A" x) (str.++ x "A")) (= y (str.++ "B" z)))
+            std::vector<Node> rpfxv1;
+            if (d_stringsEntail.stripSymbolicLength(
+                    pfxv1, rpfxv1, 1, lenPfx0, true))
+            {
+              // The rewrite requires the full left-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // left-hand prefix).
+              if (lenPfx0.isConst() && lenPfx0.getConst<Rational>().isZero())
+              {
+                std::vector<Node> sfxv0(v0.begin() + i, v0.end());
+                pfxv1.insert(pfxv1.end(), v1.begin() + j, v1.end());
+                Node ret =
+                    d_nm->mkNode(Kind::AND,
+                                 pfx0.eqNode(utils::mkConcat(rpfxv1, stype)),
+                                 utils::mkConcat(sfxv0, stype)
+                                     .eqNode(utils::mkConcat(pfxv1, stype)));
+                rule = Rewrite::SPLIT_EQ_STRIP_R;
+                return ret;
+              }
+            }
+
+            // If the prefix of the right-hand side is (strictly) longer than
+            // the prefix of the left-hand side, we can advance the left-hand
+            // side (since the length of the right-hand side is only increasing
+            // in the inner loop)
+            break;
+          }
+          else if (d_arithEntail.check(lenPfx0, lenPfx1, true))
+          {
+            // The prefix on the left-hand side is strictly longer than the
+            // prefix on the right-hand side, so we try to strip the left-hand
+            // prefix by the length of the right-hand prefix
+            //
+            // Example:
+            // (= (str.++ x "AB" z) (str.++ "A" x y)) --->
+            //   (and (= (str.++ x "A") (str.++ "A" x)) (= (str.++ "B" z) y))
+            std::vector<Node> sfxv0 = pfxv0;
+            std::vector<Node> rpfxv0;
+            if (d_stringsEntail.stripSymbolicLength(
+                    sfxv0, rpfxv0, 1, lenPfx1, true))
+            {
+              // The rewrite requires the full right-hand prefix length to be
+              // stripped (otherwise we would have to keep parts of the
+              // right-hand prefix).
+              if (lenPfx1.isConst() && lenPfx1.getConst<Rational>().isZero())
+              {
+                sfxv0.insert(sfxv0.end(), v0.begin() + i, v0.end());
+                std::vector<Node> sfxv1(v1.begin() + j, v1.end());
+                Node ret =
+                    d_nm->mkNode(Kind::AND,
+                                 utils::mkConcat(rpfxv0, stype).eqNode(pfx1),
+                                 utils::mkConcat(sfxv0, stype)
+                                     .eqNode(utils::mkConcat(sfxv1, stype)));
+                rule = Rewrite::SPLIT_EQ_STRIP_L;
+                return ret;
+              }
+            }
+
+            // If the prefix of the left-hand side is (strictly) longer than
+            // the prefix of the right-hand side, then we don't need to check
+            // that right-hand prefix for future left-hand prefixes anymore
+            // (since they are increasing in length)
+            startRhs = j + 1;
+          }
+        }
+      }
+    }
+  }
+  return Node::null();
 }
 
 Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
