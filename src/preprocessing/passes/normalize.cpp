@@ -691,14 +691,10 @@ PreprocessingPassResult Normalize::applyInternal(
     // Step 4: Sort within equivalence classes
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>> patternCache; // Cache of superpatterns
 
-    size_t totalSize = 0;
-    for (const auto& eqClass : eqClasses) {
-        totalSize += eqClass.size(); // Compute the total size of the pattern
-    }
 
     for (auto& eqClass : eqClasses) {
         std::sort(eqClass.begin(), eqClass.end(),
-            [&eqClasses, &patternCache, &totalSize, &symbolOccurrences](NodeInfo* a, NodeInfo* b) {
+            [&eqClasses, &patternCache, &symbolOccurrences](NodeInfo* a, NodeInfo* b) {
 
                 auto itA = a->varNames.begin();
                 auto itB = b->varNames.begin();
