@@ -1353,6 +1353,55 @@ enum ENUM(ProofRule)
   EVALUE(QUANT_VAR_REORDERING),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists string length**
+   *
+   * .. math::
+   *   \inferrule{-\mid T n i} {\mathit{len}(k) = n}
+   *
+   * where :math:`k` is a skolem of string or sequence type :math:`T` and
+   * :math:`n` is a non-negative integer. The argument :math:`i` is an
+   * identifier for :math:`k`. These three arguments are the indices of
+   * :math:`k`, whose skolem identifier is
+   * :cpp:enumerator:`WITNESS_STRING_LENGTH <cvc5::SkolemId::WITNESS_STRING_LENGTH>`.
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_STRING_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists invertibility condition**
+   *
+   * .. math::
+   *   \inferrule{-\mid \exists x.\> R[x]} {C \rightarrow R[k]}
+   * 
+   * where :math:`k` is the skolem with identifier
+   * :cpp:enumerator:`WITNESS_INV_CONDITION <cvc5::SkolemId::WITNESS_INV_CONDITION>`
+   * indexed by the argument of this proof rule.
+   * 
+   * This rule expects :math:`\exists x.\> R[x]` an equation that is handled 
+   * as a case in the paper Niemetz et al, CAV 2018, "Solving Quantified
+   * Bit-Vectors using Invertibility Conditions".
+   * 
+   * Note that :math:`\exists x.\> C \rightarrow R[x]` is a valid formula.
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_INV_CONDITION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro exists invertibility condition**
+   *
+   * .. math::
+   *   \inferrule{-\mid s} {C \rightarrow R[k]}
+   * 
+   * where :math:`s` is the internal specification of an existential
+   * :math:`\exists x.\> R[x]`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_EXISTS_INV_CONDITION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Singleton injectivity**
    *
    * .. math::
