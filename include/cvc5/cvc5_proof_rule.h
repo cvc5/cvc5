@@ -2520,8 +2520,18 @@ enum ENUM(ProofRewriteRule)
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
    *   \ldots, x_n \mapsto t_n\}
    *
-   * The right hand side of the equality in the conclusion is computed using
-   * standard substitution via ``Node::substitute``.
+   * or alternatively
+   *
+   * .. math::
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\> t)\{x_1 \mapsto t_1\}
+   *
+   * In the former case, the left hand side may either be a term of kind
+   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`. The latter case is used
+   * only if the term has kind `cvc5::Kind::HO_APPLY`.
+   *
+   * In either case, the right hand side of the equality in the conclusion is
+   * computed using standard substitution via ``Node::substitute``.
+   *
    * \endverbatim
    */
   EVALUE(BETA_REDUCE),
@@ -2547,6 +2557,19 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(ARRAYS_SELECT_CONST),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arrays -- Macro normalize operation**
+   *
+   * .. math::
+   *   A = B
+   *
+   * where :math:`B` is the result of normalizing the array operation :math:`A`
+   * into a canonical form, based on commutativity of disjoint indices.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARRAYS_NORMALIZE_OP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Macro distinct arrays**
@@ -2998,6 +3021,89 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_REPEAT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String contains multiset subset**
+   *
+   * .. math::
+   *    contains(s,t) = \bot
+   *
+   * where the multiset overapproximation of :math:`s` can be shown to not
+   * contain the multiset abstraction of :math:`t` based on the reasoning
+   * described in the paper Reynolds et al, CAV 2019, "High-Level Abstractions
+   * for Simplifying Extended String Constraints in SMT".
+   * \endverbatim
+   */
+  EVALUE(STR_CTN_MULTISET_SUBSET),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String equality length unify prefix**
+   *
+   * .. math::
+   *    (s = \mathit{str}.\text{++}(t_1, \ldots, t_n)) = 
+   *    (s = \mathit{str}.\text{++}(t_1, \ldots t_i)) \wedge
+   *    t_{i+1} = \epsilon \wedge \ldots \wedge t_n = \epsilon
+   *
+   * where we can show :math:`s` has a length that is at least the length
+   * of :math:`\text{++}(t_1, \ldots t_i)`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_EQ_LEN_UNIFY_PREFIX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- String equality length unify**
+   *
+   * .. math::
+   *    (\mathit{str}.\text{++}(s_1, \ldots, s_n) = \mathit{str}.\text{++}(t_1, \ldots, t_m)) =
+   *    (r_1 = u_1 \wedge \ldots r_k = u_k)
+   *
+   * where for each :math:`i = 1, \ldots, k`, we can show the length of
+   * :math:`r_i` and :math:`u_i` are equal,
+   * :math:`s_1, \ldots, s_n` is :math:`r_1, \ldots, r_k`, and
+   * :math:`t_1, \ldots, t_m` is :math:`u_1, \ldots, u_k`.
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_EQ_LEN_UNIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string indexof regex evaluation**
+   *
+   * .. math::
+   *   str.indexof\_re(s,r,n) = m
+   *
+   * where :math:`s` is a string values, :math:`n` is an integer value, :math:`r` is a
+   * ground regular expression and :math:`m` is the result of evaluating the left hand
+   * side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_INDEXOF_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string replace regex evaluation**
+   *
+   * .. math::
+   *   str.replace\_re(s,r,t) = u
+   *
+   * where :math:`s,t` are string values, :math:`r` is a ground regular expression
+   * and :math:`u` is the result of evaluating the left hand side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_REPLACE_RE_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- string replace regex all evaluation**
+   *
+   * .. math::
+   *   str.replace\_re\_all(s,r,t) = u
+   *
+   * where :math:`s,t` are string values, :math:`r` is a ground regular expression
+   * and :math:`u` is the result of evaluating the left hand side.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_REPLACE_RE_ALL_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression loop elimination**
    *
    * .. math::
@@ -3110,6 +3216,67 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- distinct sets**
+   *
+   * .. math::
+   *   (A = B) = \bot
+   *
+   * where :math:`A` and :math:`B` are distinct set values, that is,
+   * the Node::isConst method returns true for both. This rule
+   * verifies that this returns true for both terms and that these
+   * terms are distinct.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_DISTINCT_SETS),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets intersection evaluate**
+   *
+   * .. math::
+   *   \mathit{set.inter}(t_1, t_2) = t
+   *
+   * where :math:`t_1` and :math:`t_2` are set values, that is,
+   * the Node::isConst method returns true for both, and
+   * where :math:`t` is an intersection of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_INTER_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets minus evaluate**
+   *
+   * .. math::
+   *   \mathit{set.minus}(t_1, t_2) = t
+   *
+   * where :math:`t_1` and :math:`t_2` are set values, that is,
+   * the Node::isConst method returns true for both, and
+   * where :math:`t` is the difference of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_SETS_MINUS_EVAL),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Sets -- sets union normalize**
+   *
+   * .. math::
+   *   \mathit{set.union}(t_1, t_2) = t
+   * 
+   * where :math:`t` is a union of the component elements of
+   * :math:`t_1` and :math:`t_2`.
+   * 
+   * Note we use this rule only when :math:`t_1` and :math:`t_2` are set values,
+   * that is, the Node::isConst method returns true for both.
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_UNION_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets -- empty tester evaluation**
@@ -3245,6 +3412,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARRAY_STORE_SELF),
   /** Auto-generated from RARE rule array-read-over-write-split */
   EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
+  /** Auto-generated from RARE rule array-store-swap */
+  EVALUE(ARRAY_STORE_SWAP),
   /** Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
   /** Auto-generated from RARE rule bool-not-true */

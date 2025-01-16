@@ -249,7 +249,7 @@ enum ENUM(SkolemId)
    * distinct modulo :math:`A` to the power of their length (given by their second index),
    * where :math:`A` is the cardinality of the characters of their sort.
    *
-   * - Number of skolem indices: ``1``
+   * - Number of skolem indices: ``3``
    *   - ``1:`` A term that represents the sort of the term.
    *   - ``2:`` The assumed length of this term, expected to be a non-negative integer.
    *   - ``3:`` A numeral identifier.
@@ -261,8 +261,9 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` A formula of the form ``(exists x. (x <op> s) <rel> t)``
-   *            or ``(exists x. x <rel> t)``.
-   * - Sort: The sort of x in given by the formula in the first index.
+   *            or ``(exists x. x <rel> t)``, where s and t are ground
+   *            (bitvector) terms.
+   * - Sort: The sort of x is given by the formula in the first index.
    */
   EVALUE(WITNESS_INV_CONDITION),
   /**

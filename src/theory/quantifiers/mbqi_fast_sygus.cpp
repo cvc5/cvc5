@@ -83,9 +83,8 @@ void MVarInfo::initialize(Env& env,
   d_senum.reset(new SygusTermEnumerator(env, tng));
 }
 
-Node MVarInfo::getEnumeratedTerm(size_t i)
+Node MVarInfo::getEnumeratedTerm(NodeManager* nm, size_t i)
 {
-  NodeManager* nm = NodeManager::currentNM();
   size_t nullCount = 0;
   while (i >= d_enum.size())
   {
@@ -252,7 +251,7 @@ bool MbqiFastSygus::constructInstantiation(
     bool successEnum;
     do
     {
-      Node ret = vi.getEnumeratedTerm(cindex);
+      Node ret = vi.getEnumeratedTerm(nodeManager(), cindex);
       cindex++;
       Node retc;
       if (!ret.isNull())

@@ -67,7 +67,6 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
-    d_tpid = mkTrustId(nodeManager(), TrustId::THEORY_PREPROCESS);
   }
 }
 
@@ -479,29 +478,21 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
   Node eq = trn.getProven();
   Node term = eq[0];
   Node termr = eq[1];
+  Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
+                     << term << " -> " << termr << std::endl;
   if (trn.getGenerator() != nullptr)
   {
-    Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
-                       << term << " -> " << termr << std::endl;
     trn.debugCheckClosed(
         options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
-    // always use term context hash 0 (default)
-    pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, TrustId::NONE, true, tctx);
   }
-  else
-  {
-    Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
-                       << term << " -> " << termr << std::endl;
-    // small step trust
-    pg->addRewriteStep(term,
-                       termr,
-                       ProofRule::TRUST,
-                       {},
-                       {d_tpid, term.eqNode(termr)},
-                       isPre,
-                       tctx);
-  }
+  // always use term context hash 0 (default)
+  pg->addRewriteStep(term,
+                     termr,
+                     trn.getGenerator(),
+                     isPre,
+                     TrustId::THEORY_PREPROCESS,
+                     true,
+                     tctx);
 }
 
 }  // namespace theory

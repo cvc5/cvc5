@@ -155,7 +155,6 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   {
     return false;
   }
-  exp.push_back(a.eqNode(b));
   // operators might be disequal
   Node af = getMatchOperator(a);
   Node bf = getMatchOperator(b);
@@ -163,7 +162,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   {
     if (a.getKind() == Kind::APPLY_UF && b.getKind() == Kind::APPLY_UF)
     {
-      exp.push_back(af.eqNode(bf).negate());
+      exp.push_back(af.eqNode(bf));
       Assert(d_qstate.areEqual(af, bf))
           << af << " and " << bf << " are not equal";
     }
