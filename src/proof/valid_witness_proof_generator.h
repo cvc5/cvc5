@@ -48,6 +48,9 @@ class ValidWitnessProofGenerator : protected EnvObj, public ProofGenerator
   std::string identify() const override;
   /** 
    * Make the appropriate witness term for proof rule r with arguments args.
+   * This is a term (WITNESS (BOUND_VAR_LIST v) F (INST_PATTERN_LIST attr))
+   * where v is a canonical variable for (r, args), F is mkAxiom(nm, v, r args),
+   * and attr is a "proof spec" attribute node storing (r, args).
    * @param nm Pointer to the node manager.
    * @param r The proof rule.
    * @param args The arguments to the proof rule.
