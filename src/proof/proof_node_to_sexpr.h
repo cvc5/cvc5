@@ -37,7 +37,7 @@ class ProofNode;
 class ProofNodeToSExpr
 {
  public:
-  ProofNodeToSExpr();
+  ProofNodeToSExpr(NodeManager* nm);
   ~ProofNodeToSExpr() {}
   /** Convert the given proof node to an s-expression
    *
@@ -80,6 +80,8 @@ class ProofNodeToSExpr
   Node getArgument(Node arg, ArgFormat f);
 
  private:
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** map proof rules to a variable */
   std::map<ProofRule, Node> d_pfrMap;
   /** map kind to a variable displaying the kind they represent */
