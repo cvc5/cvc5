@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
+#include "proof/trust_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_stats.h"
-#include "proof/trust_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {

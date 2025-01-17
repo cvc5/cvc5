@@ -53,8 +53,8 @@ InstStrategySubConflict::InstStrategySubConflict(
   // initialize the trust proof generator if necessary
   if (d_env.isTheoryProofProducing())
   {
-    d_tpg.reset(new TrustProofGenerator(
-                    env, TrustId::QUANTIFIERS_SUB_CBQI_LEMMA, {}));
+    d_tpg.reset(
+        new TrustProofGenerator(env, TrustId::QUANTIFIERS_SUB_CBQI_LEMMA, {}));
   }
 }
 

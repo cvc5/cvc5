@@ -194,7 +194,8 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
-  /** A quantifiers rewriting step for instantiations, e.g. virtual term substitution */
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
   QUANTIFIERS_INST_REWRITE,
   /** A quantifiers from the --sub-cbqi module */
   QUANTIFIERS_SUB_CBQI_LEMMA,
