@@ -26,6 +26,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
 #include "util/statistics_stats.h"
+#include "proof/trust_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -202,6 +203,8 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getCounterexampleLiteral(Node q);
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
+  /** For lemmas from the nested qe module */
+  std::shared_ptr<TrustProofGenerator> d_nqetpg;
   /** The nested quantifier elimination utility */
   std::unique_ptr<NestedQe> d_nestedQe;
 };
