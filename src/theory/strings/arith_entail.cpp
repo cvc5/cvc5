@@ -33,7 +33,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r, bool recApprox) : d_rr(r), d_recApprox(recApprox)
+ArithEntail::ArithEntail(Rewriter* r, bool recApprox)
+    : d_rr(r), d_recApprox(recApprox)
 {
   d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
