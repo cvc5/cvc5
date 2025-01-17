@@ -1043,22 +1043,20 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k, f?}{k(f?, t_1,\dots, t_n) =
-   *   k(f?, s_1,\dots, s_n)}
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
-   * where :math:`k` is the application kind. Notice that :math:`f` must be
-   * provided iff :math:`k` is a parameterized kind, e.g.
-   * `cvc5::Kind::APPLY_UF`. The actual node for
-   * :math:`k` is constructible via ``ProofRuleChecker::mkKindNode``.
-   * If :math:`k` is a binder kind (e.g. ``cvc5::Kind::FORALL``) then :math:`f`
-   * is a term of kind ``cvc5::Kind::VARIABLE_LIST``
-   * denoting the variables bound by both sides of the conclusion.
-   * This rule is used for kinds that have a fixed arity, such as
-   * ``cvc5::Kind::ITE``, ``cvc5::Kind::EQUAL``, and so on. It is also used for
-   * ``cvc5::Kind::APPLY_UF`` where :math:`f` must be provided.
-   * It is not used for equality between
-   * ``cvc5::Kind::HO_APPLY`` terms, which should
-   * use the :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` proof rule.
+   * This rule is used when the kind of :math:`f(t_1,\dots, t_n)` has a fixed
+   * arity. This includes kinds such as ``cvc5::Kind::ITE``,
+   * ``cvc5::Kind::EQUAL``, as well as indexed functions such as
+   * ``cvc5::Kind::BITVECTOR_EXTRACT``.
+   *
+   * It is also used for ``cvc5::Kind::APPLY_UF``, where :math:`f` is an
+   * uninterpreted function.
+   *
+   * It is not used for kinds with variadic arity, or for kind
+   * ``cvc5::Kind::HO_APPLY``, which respectively use the rules
+   * :cpp:enumerator:`NARY_CONG <cvc5::ProofRule::NARY_CONG>` and
+   * :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` below.
    * \endverbatim
    */
   EVALUE(CONG),
@@ -1068,12 +1066,10 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid k}{k(t_1,\dots, t_n) =
-   *   k(s_1,\dots, s_n)}
+   *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
-   * where :math:`k` is the application kind. The actual node for :math:`k` is
-   * constructible via ``ProofRuleChecker::mkKindNode``. This rule is used for
-   * kinds that have variadic arity, such as ``cvc5::Kind::AND``,
+   * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
+   * :math:`k` have variadic arity, such as ``cvc5::Kind::AND``,
    * ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
