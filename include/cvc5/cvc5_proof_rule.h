@@ -1054,7 +1054,7 @@ enum ENUM(ProofRule)
    * uninterpreted function.
    *
    * It is not used for kinds with variadic arity, or for kind
-   * ``cvc5::Kind::HO_APPLY``, which use rules
+   * ``cvc5::Kind::HO_APPLY``, which respectively use the rules
    * :cpp:enumerator:`NARY_CONG <cvc5::ProofRule::NARY_CONG>` and
    * :cpp:enumerator:`HO_CONG <cvc5::ProofRule::HO_CONG>` below.
    * \endverbatim
@@ -1069,7 +1069,7 @@ enum ENUM(ProofRule)
    *   \inferrule{t_1=s_1,\dots,t_n=s_n\mid f(t_1,\dots, t_n)}{f(t_1,\dots, t_n) = f(s_1,\dots, s_n)}
    *
    * This rule is used for terms :math:`f(t_1,\dots, t_n)` whose kinds
-   * :math:`k` that have variadic arity, such as ``cvc5::Kind::AND``,
+   * :math:`k` have variadic arity, such as ``cvc5::Kind::AND``,
    * ``cvc5::Kind::PLUS`` and so on.
    * \endverbatim
    */
