@@ -2501,15 +2501,14 @@ enum ENUM(ProofRewriteRule)
    * **Equality -- Macro lambda application eliminate shadow**
    *
    * .. math::
-   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = ((\lambda y_1 \ldots y_n.\> t \sigma) \ t_1 \ldots t_n)
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = ((\lambda y_1 \ldots y_n.\> t') \ t_1 \ldots t_n)
    *
-   * where :math:`\sigma` replaces :math:`x_1, \dots, x_n` by
-   * :math:`y_1, \dots, y_n`. The terms may either be of kind
+   * The terms may either be of kind
    * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
-   * This rule ensures that :math:`y_1, \dots, y_n` are not in the free
-   * variables of :math:`t_1 \ldots t_n` and
+   * This rule ensures that the free variables of :math:`t_1 \ldots t_n`
+   * do not occur in binders within :math:`t'`, and
    * :math:`(\lambda x_1 \ldots x_n.\> t)` is alpha-equivalent to
-   * :math:`(\lambda y_1 \ldots y_n.\> t \sigma)`.
+   * :math:`(\lambda y_1 \ldots y_n.\> t')`.
    *
    * \endverbatim
    */
