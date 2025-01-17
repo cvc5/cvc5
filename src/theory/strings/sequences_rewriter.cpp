@@ -39,12 +39,13 @@ namespace strings {
 
 SequencesRewriter::SequencesRewriter(NodeManager* nm,
                                      Rewriter* r,
+                                     ArithEntail& ae,
                                      HistogramStat<Rewrite>* statistics)
     : TheoryRewriter(nm),
       d_statistics(statistics),
       d_rr(r),
-      d_arithEntail(r),
-      d_stringsEntail(r, d_arithEntail, this)
+      d_arithEntail(ae),
+      d_stringsEntail(r, ae, this)
 {
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
@@ -2946,6 +2947,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
   {
     fstr = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[2], len0);
+    fstr = d_rr->rewrite(fstr);
   }
 
   Node cmp_conr = d_stringsEntail.checkContains(fstr, node[1]);
