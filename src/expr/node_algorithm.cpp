@@ -769,7 +769,7 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
   return true;
 }
 
-void getMatchConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
+void getConversionConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
 {
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator

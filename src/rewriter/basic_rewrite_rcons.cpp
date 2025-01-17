@@ -1264,7 +1264,7 @@ bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
   // Get equalities between subterms that are disequal in LHS/RHS. These will
   // be added as rewrite steps below.
   std::vector<Node> matchConds;
-  expr::getMatchConditions(eq[0], eq[1], matchConds, true);
+  expr::getConversionConditions(eq[0], eq[1], matchConds, true);
   // use conversion proof, must rewrite ops
   TConvProofGenerator tcpg(d_env,
                            nullptr,

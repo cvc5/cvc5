@@ -261,11 +261,15 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * For each subterm of n1 and n2 at the same position that have different
  * operators, we add the corresponding equality to eqs.
  *
- * Additionally, we use an isHo flag to determine if we are considering
- * HO matching. As an example of the difference:
+ * Additionally, we use an isHo flag to determine if we are traversing
+ * operators. As an example of the difference:
  * Given n1 = (f (g a) b), n2 = (f (h b) c),
  * If isHo is false, we return eqs = { b = c, (g a) = (h b) }.
  * If isHo is true, we return eqs = { b = c, g = h, a = b }.
+ * 
+ * Intuitively, this method returns a set of equalities that suffices to
+ * show that n1 rewrites to n2 using the "term conversion proof generator"
+ * which is configured to rewrite operators iff isHo is true.
  *
  * @param n1 the term (containing free vars) to compare an instance term
  * against
@@ -275,7 +279,7 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * an APPLY_UF with distinct operators with the same type will be added as
  * a match condition.
  */
-void getMatchConditions(Node n1,
+void getConversionConditions(Node n1,
                         Node n2,
                         std::vector<Node>& eqs,
                         bool isHo = false);
