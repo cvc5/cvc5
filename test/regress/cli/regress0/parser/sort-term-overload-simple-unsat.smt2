@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sort-term-overload
+; COMMAND-LINE: --term-sort-overload
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
