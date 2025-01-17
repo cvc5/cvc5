@@ -91,8 +91,8 @@
 ;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is not n-ary, e.g. it is not marked :right-assoc-nil.
 ; conclusion: >
-;   An equality between applications of f whose arguments are given
-;   by the equalities in E.
+;   An equality between applications of the operator of t whose arguments are
+;   given by the equalities in E.
 ; note: >
 ;   Congruence for n-ary operators requires a different rule (nary_cong) below.
 (declare-rule cong ((U Type) (E Bool) (t U))
@@ -125,9 +125,9 @@
 ; args:
 ; - t U: >
 ;   The term to apply congruence to. This is assumed to be an application of
-;   a function that is right-associative n-ary operator with nil terminator, e.g.
-;   it is marked :right-assoc-nil. It is required to be the left hand side of
-;   the equality we are proving.
+;   a function that is a right-associative n-ary operator with nil terminator,
+;   i.e. it is marked :right-assoc-nil. It is required to be the left hand side
+;   of the equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
