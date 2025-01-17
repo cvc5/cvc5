@@ -637,7 +637,8 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
     // the symbol manager.
     if (prev_bound_obj != obj)
     {
-      // If the previous overloaded symbol was a sort, we fail unconditionally
+      // If the previous overloaded symbol was a dummy symbol denoting a sort
+      // (as tracked by d_dummySortTerms), we fail unconditionally
       // in this case.
       if (d_dummySortTerms.find(prev_bound_obj)!=d_dummySortTerms.end())
       {

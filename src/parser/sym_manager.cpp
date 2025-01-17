@@ -337,7 +337,7 @@ bool SymManager::bindType(const std::string& name, cvc5::Sort t, bool isUser)
 {
   if (isUser && !d_termSortOverload)
   {
-    // if a user sort and d_termSortOverload is false, we bind a dummy symbol
+    // if a user sort and d_termSortOverload is false, we bind a dummy constant
     // to the term symbol table.
     cvc5::Sort dummyType = d_tm.mkUninterpretedSort("Type");
     cvc5::Term ts = d_tm.mkConst(dummyType, name);
