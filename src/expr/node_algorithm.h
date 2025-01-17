@@ -266,7 +266,7 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * Given n1 = (f (g a) b), n2 = (f (h b) c),
  * If isHo is false, we return eqs = { b = c, (g a) = (h b) }.
  * If isHo is true, we return eqs = { b = c, g = h, a = b }.
- * 
+ *
  * Intuitively, this method returns a set of equalities that suffices to
  * show that n1 rewrites to n2 using the "term conversion proof generator"
  * which is configured to rewrite operators iff isHo is true.
@@ -280,9 +280,9 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * a match condition.
  */
 void getConversionConditions(Node n1,
-                        Node n2,
-                        std::vector<Node>& eqs,
-                        bool isHo = false);
+                             Node n2,
+                             std::vector<Node>& eqs,
+                             bool isHo = false);
 
 /** Is the top symbol of cur a Boolean connective? */
 bool isBooleanConnective(TNode cur);

@@ -769,7 +769,10 @@ bool match(Node x, Node y, std::unordered_map<Node, Node>& subs)
   return true;
 }
 
-void getConversionConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo)
+void getConversionConditions(Node n1,
+                             Node n2,
+                             std::vector<Node>& eqs,
+                             bool isHo)
 {
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
@@ -804,7 +807,7 @@ void getConversionConditions(Node n1, Node n2, std::vector<Node>& eqs, bool isHo
         if (curr.first.isClosure())
         {
           // only recurse if equal variable lists
-          rec = (curr.first[0]==curr.second[0]);
+          rec = (curr.first[0] == curr.second[0]);
         }
         else
         {

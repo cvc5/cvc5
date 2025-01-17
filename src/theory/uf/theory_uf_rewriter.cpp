@@ -284,7 +284,8 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         lambda = uf::FunctionConst::toLambda(n[0]);
         args.push_back(n[1]);
-        // We assume lambda is rewritten, and thus a similar check is not necessary.
+        // We assume lambda is rewritten, and thus a similar check is not
+        // necessary.
       }
       if (lambda.isNull())
       {
