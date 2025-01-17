@@ -291,6 +291,10 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       // is-cons(x) or is-nil(x)            ~is-cons(x)
       // ---------------------------------------------- CHAIN_RESOLUTION
       // is-nil(x)
+      // The elaboration may be complicated by the fact that the testers are
+      // considered modulo equality of their argument.
+      // For instance, x=y ^ ~is-cons(x) => is-nil(y) would be another
+      // valid input to this elaboration. this is handled below.
       Assert(conc.getKind() == Kind::APPLY_TESTER);
       Node t = conc[0];
       ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
