@@ -267,6 +267,8 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
  * If isHo is false, we return eqs = { b = c, (g a) = (h b) }.
  * If isHo is true, we return eqs = { b = c, g = h, a = b }.
  *
+ * This method will never traverse binders that have disequal variable lists.
+ *
  * Intuitively, this method returns a set of equalities that suffices to
  * show that n1 rewrites to n2 using the "term conversion proof generator"
  * which is configured to rewrite operators iff isHo is true.
