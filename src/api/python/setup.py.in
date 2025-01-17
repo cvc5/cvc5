@@ -20,10 +20,10 @@
 ##
 
 import os
+import sysconfig
 from setuptools import setup
 
-ext_suffix = 'pyd' if os.name == 'nt' else 'so'
-ext_filename = 'cvc5_python_base.' + ext_suffix
+ext_filename = 'cvc5_python_base' + sysconfig.get_config_var('EXT_SUFFIX')
 
 packages=['cvc5', 'cvc5.pythonic']
 license_files=["COPYING", "licenses/*"]
@@ -44,8 +44,6 @@ else:
     import sys
     import sysconfig
     from setuptools.extension import Extension
-
-    from Cython.Distutils import build_ext
     from Cython.Build import cythonize
 
     if sys.platform == 'darwin':
@@ -90,19 +88,7 @@ else:
     ext_module = Extension(mod_name, mod_src_files, **ext_options)
     ext_module.cython_directives = {"embedsignature": True}
 
-    class ExtensionBuilder(build_ext):
-        def get_ext_filename(self, ext_name):
-            # Do not include the python version, the ABI tag, and
-            # the platform name in the extension module name.
-            # This facilitates specifying the dependencies of
-            # the module in CMake.
-            filename = super().get_ext_filename(ext_name)
-            suffix = sysconfig.get_config_var('EXT_SUFFIX')
-            ext = os.path.splitext(filename)[1]
-            return filename.replace(suffix, "") + ext
-
     setup(
-        cmdclass={'build_ext': ExtensionBuilder},
         ext_modules=cythonize([ext_module], compiler_directives=compiler_directives),
         packages=packages,
         license_files=license_files

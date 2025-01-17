@@ -140,6 +140,10 @@ class SequencesRewriter : public TheoryRewriter
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
   //-------------------- ProofRewriteRule
+  /** Rewrite based on STR_EQ_LEN_UNIFY_PREFIX */
+  Node rewriteViaStrEqLenUnifyPrefix(const Node& n);
+  /** Rewrite based on STR_EQ_LEN_UNIFY */
+  Node rewriteViaStrEqLenUnify(const Node& n, Rewrite& rule);
   /** Rewrite based on RE_LOOP_ELIM */
   Node rewriteViaReLoopElim(const Node& n);
   /** Rewrite based on RE_INTER_UNION_INCLUSION */
@@ -158,6 +162,12 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaMacroSubstrStripSymLength(const Node& n,
                                            Rewrite& rule,
                                            StringsEntail& sent);
+  /** Rewrite based on STR_INDEXOF_RE_EVAL */
+  Node rewriteViaStrIndexofReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_EVAL */
+  Node rewriteViaStrReplaceReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_ALL_EVAL */
+  Node rewriteViaStrReplaceReAllEval(const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

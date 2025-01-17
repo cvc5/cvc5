@@ -124,6 +124,8 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: >
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
+        CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
+        CIBW_TEST_SKIP: "*-*linux_aarch64"
 
     # - uses: actions/upload-artifact@v4
     #   with:

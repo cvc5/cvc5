@@ -276,6 +276,9 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     case ProofRewriteRule::DT_COLLAPSE_TESTER:
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    case ProofRewriteRule::DT_CYCLE:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
@@ -291,6 +294,10 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+      // only strings are supported, since it is non-trivial to show
+      // distinctness of sequence characters.
+      return n[0][0].getType().isString();
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
@@ -377,6 +384,10 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_PREFIX:
         case Kind::STRING_ITOS:
         case Kind::STRING_STOI:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        case Kind::STRING_REV:
+        case Kind::STRING_CHARAT:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -384,6 +395,11 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_NEG:
         case Kind::BITVECTOR_NOT:
         case Kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_SHL:
+        case Kind::BITVECTOR_LSHR:
+        case Kind::BITVECTOR_ASHR:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
         case Kind::BITVECTOR_XOR:

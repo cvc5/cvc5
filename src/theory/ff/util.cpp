@@ -30,9 +30,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-FieldObj::FieldObj(const FfSize& size)
+FieldObj::FieldObj(NodeManager* nm, const FfSize& size)
     : d_size(size),
-      d_nm(NodeManager::currentNM()),
+      d_nm(nm),
       d_zero(d_nm->mkConst(FiniteFieldValue(0, d_size))),
       d_one(d_nm->mkConst(FiniteFieldValue(1, d_size)))
 #ifdef CVC5_USE_COCOA

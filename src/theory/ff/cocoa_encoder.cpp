@@ -76,7 +76,10 @@ CoCoA::symbol cocoaSym(const std::string& varName, std::optional<size_t> index)
   return index.has_value() ? CoCoA::symbol(s, *index) : CoCoA::symbol(s);
 }
 
-CocoaEncoder::CocoaEncoder(const FfSize& size) : FieldObj(size) {}
+CocoaEncoder::CocoaEncoder(NodeManager* nm, const FfSize& size)
+    : FieldObj(nm, size)
+{
+}
 
 CoCoA::symbol CocoaEncoder::freshSym(const std::string& varName,
                                      std::optional<size_t> index)

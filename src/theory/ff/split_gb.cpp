@@ -41,7 +41,7 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
     const std::vector<Node>& facts, const FfSize& size, const Env& env)
 {
   std::unordered_set<Node> bits{};
-  CocoaEncoder enc(size);
+  CocoaEncoder enc(env.getNodeManager(), size);
   for (const auto& fact : facts)
   {
     enc.addFact(fact);
