@@ -53,7 +53,8 @@ void AssertionPipeline::clear()
 void AssertionPipeline::push_back(Node n,
                                   bool isInput,
                                   ProofGenerator* pgen,
-                                  TrustId trustId)
+                                  TrustId trustId,
+                 bool ensureRew)
 {
   if (d_conflict)
   {
@@ -111,13 +112,17 @@ void AssertionPipeline::push_back(Node n,
     // add each conjunct
     for (const Node& nc : conjs)
     {
-      push_back(nc, false, d_andElimEpg.get());
+      push_back(nc, false, d_andElimEpg.get(), TrustId::UNKNOWN_PREPROCESS_LEMMA, ensureRew);
     }
     return;
   }
   else
   {
     d_nodes.push_back(n);
+    if (ensureRew)
+    {
+      ensureRewritten(d_node.size()-1);
+    }
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
@@ -137,11 +142,11 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId)
+void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId, bool ensureRew)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, trn.getGenerator(), trustId);
+  push_back(trn.getProven(), false, trn.getGenerator(), trustId, ensureRew);
 }
 
 void AssertionPipeline::replace(size_t i,

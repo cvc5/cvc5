@@ -60,8 +60,9 @@ PreprocessingPassResult StaticLearning::applyInternal(
     // add the lemmas to the end
     for (const TrustNode& trn : tlems)
     {
+      // ensure all learned lemmas are rewritten
       assertionsToPreprocess->pushBackTrusted(
-          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA);
+          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA, true);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
