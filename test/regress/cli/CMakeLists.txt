@@ -1287,6 +1287,7 @@ set(regress_0_tests
   regress0/preprocess/proj-issue683.smt2
   regress0/preprocess/proj-issue684.smt2
   regress0/preprocess/proj-issue685-gn.smt2
+  regress0/preprocess/proj-issue749-ensureRew.smt2
   regress0/preprocess/real-as-int-unk.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2

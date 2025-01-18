@@ -121,7 +121,7 @@ void AssertionPipeline::push_back(Node n,
     d_nodes.push_back(n);
     if (ensureRew)
     {
-      ensureRewritten(d_node.size()-1);
+      ensureRewritten(d_nodes.size()-1);
     }
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
@@ -230,12 +230,11 @@ void AssertionPipeline::addSubstitutionNode(Node n,
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == Kind::EQUAL);
   size_t prevNodeSize = d_nodes.size();
-  push_back(n, false, pg, trustId);
+  // ensure rewritten here
+  push_back(n, false, pg, trustId, true);
   // remember this is a substitution index
   for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
-    // ensure rewritten
-    replace(i, rewrite(d_nodes[i]), d_rewpg.get());
     d_substsIndices.insert(i);
   }
 }
