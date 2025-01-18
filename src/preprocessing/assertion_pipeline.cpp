@@ -50,11 +50,8 @@ void AssertionPipeline::clear()
   d_substsIndices.clear();
 }
 
-void AssertionPipeline::push_back(Node n,
-                                  bool isInput,
-                                  ProofGenerator* pgen,
-                                  TrustId trustId,
-                 bool ensureRew)
+void AssertionPipeline::push_back(
+    Node n, bool isInput, ProofGenerator* pgen, TrustId trustId, bool ensureRew)
 {
   if (d_conflict)
   {
@@ -112,7 +109,11 @@ void AssertionPipeline::push_back(Node n,
     // add each conjunct
     for (const Node& nc : conjs)
     {
-      push_back(nc, false, d_andElimEpg.get(), TrustId::UNKNOWN_PREPROCESS_LEMMA, ensureRew);
+      push_back(nc,
+                false,
+                d_andElimEpg.get(),
+                TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                ensureRew);
     }
     return;
   }
@@ -121,7 +122,7 @@ void AssertionPipeline::push_back(Node n,
     d_nodes.push_back(n);
     if (ensureRew)
     {
-      ensureRewritten(d_nodes.size()-1);
+      ensureRewritten(d_nodes.size() - 1);
     }
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
@@ -142,7 +143,9 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId, bool ensureRew)
+void AssertionPipeline::pushBackTrusted(TrustNode trn,
+                                        TrustId trustId,
+                                        bool ensureRew)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven

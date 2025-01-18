@@ -83,7 +83,7 @@ class AssertionPipeline : protected EnvObj
   /** Same as above, with TrustNode */
   void pushBackTrusted(TrustNode trn,
                        TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
-                 bool ensureRew = false);
+                       bool ensureRew = false);
 
   /**
    * Get the constant reference to the underlying assertions. It is only
