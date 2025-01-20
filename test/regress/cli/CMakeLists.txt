@@ -1227,11 +1227,13 @@ set(regress_0_tests
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
+  regress0/parser/sort-term-overload-simple-unsat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
   regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
+  regress0/parser/term-sort-overload.smt2
   regress0/parser/to_fp.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2

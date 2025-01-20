@@ -1,13 +1,12 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes
-  ((MsgResult 0) (MsgTree 0) (TreeResult 0) (MsgTree_Node_recd 0)) (
+  ((MsgResult 0) (MsgTree 0) (TreeResult 0) (MsgTree_Node_recdT 0)) (
     ((MsgResult_MsgOK (destMsgResult_MsgOK Real))
       (MsgResult_MsgAudit (destMsgResult_MsgAudit Real)))
     ((MsgTree_Leaf)
-      (MsgTree_Node (destMsgTree_Node MsgTree_Node_recd)))
+      (MsgTree_Node (destMsgTree_Node MsgTree_Node_recdT)))
     ((TreeResult_TreeOK (destTreeResult_TreeOK MsgTree))
       (TreeResult_TreeAudit (destTreeResult_TreeAudit Real)))
     ((MsgTree_Node_recd (MsgTree_Node_recd_Value Real)
@@ -17,7 +16,7 @@
 (declare-fun Input () MsgTree)
 (declare-fun M () Real)
 (declare-fun f (Real) MsgResult)
-(declare-fun n () MsgTree_Node_recd)
+(declare-fun n () MsgTree_Node_recdT)
 (declare-fun ARB () Bool)
 (declare-fun Guard_Checkfn (MsgTree) Bool)
 (define-fun DWS_Idempotentfn ((M1 Real)) Bool
