@@ -352,6 +352,8 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     }
   }
   Node cln = nodeManager()->mkOr(clauseNodes);
+  // notify the prop engine regardless whether sharable
+  d_propEngine->notifySatClause(cln);
   // get the sharable form of cln
   Node clns = d_env.getSharableFormula(cln);
   if (!clns.isNull())
