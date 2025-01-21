@@ -104,6 +104,10 @@ const char* toString(TrustId id)
     case TrustId::RE_ELIM: return "RE_ELIM";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     case TrustId::QUANTIFIERS_INST_REWRITE: return "QUANTIFIERS_INST_REWRITE";
+    case TrustId::QUANTIFIERS_SUB_CBQI_LEMMA:
+      return "QUANTIFIERS_SUB_CBQI_LEMMA";
+    case TrustId::QUANTIFIERS_NESTED_QE_LEMMA:
+      return "QUANTIFIERS_NESTED_QE_LEMMA";
     case TrustId::STRINGS_PP_STATIC_REWRITE: return "STRINGS_PP_STATIC_REWRITE";
     case TrustId::VALID_WITNESS: return "VALID_WITNESS";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";

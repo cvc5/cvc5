@@ -891,6 +891,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
       }
+      else if (key == "term-sort-overload")
+      {
+        d_state.getSymbolManager()->setTermSortOverload(ss == "true");
+      }
     }
     break;
     // (simplify <term>)

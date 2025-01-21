@@ -296,10 +296,10 @@ void Smt2State::addSepOperators()
 
 void Smt2State::addCoreSymbols()
 {
-  defineType("Bool", d_tm.getBooleanSort(), true);
+  defineType("Bool", d_tm.getBooleanSort(), false);
   Sort tupleSort = d_tm.mkTupleSort({});
-  defineType("Relation", d_tm.mkSetSort(tupleSort), true);
-  defineType("Table", d_tm.mkBagSort(tupleSort), true);
+  defineType("Relation", d_tm.mkSetSort(tupleSort), false);
+  defineType("Table", d_tm.mkBagSort(tupleSort), false);
   defineVar("true", d_tm.mkTrue(), true);
   defineVar("false", d_tm.mkFalse(), true);
   addOperator(Kind::AND, "and");
@@ -799,7 +799,7 @@ void Smt2State::setLogic(std::string name)
   {
     if (d_logic.areIntegersUsed())
     {
-      defineType("Int", d_tm.getIntegerSort(), true);
+      defineType("Int", d_tm.getIntegerSort(), false);
       addArithmeticOperators();
       if (!strictModeEnabled() || !d_logic.isLinear())
       {
@@ -817,7 +817,7 @@ void Smt2State::setLogic(std::string name)
 
     if (d_logic.areRealsUsed())
     {
-      defineType("Real", d_tm.getRealSort(), true);
+      defineType("Real", d_tm.getRealSort(), false);
       addArithmeticOperators();
       addOperator(Kind::DIVISION, "/");
       if (!strictModeEnabled())
@@ -872,7 +872,7 @@ void Smt2State::setLogic(std::string name)
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
   {
     const std::vector<Sort> types;
-    defineType("UnitTuple", d_tm.mkTupleSort(types), true);
+    defineType("UnitTuple", d_tm.mkTupleSort(types), false);
     addDatatypesOperators();
   }
 
@@ -956,9 +956,9 @@ void Smt2State::setLogic(std::string name)
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
-    defineType("String", d_tm.getStringSort(), true);
-    defineType("RegLan", d_tm.getRegExpSort(), true);
-    defineType("Int", d_tm.getIntegerSort(), true);
+    defineType("String", d_tm.getStringSort(), false);
+    defineType("RegLan", d_tm.getRegExpSort(), false);
+    defineType("Int", d_tm.getIntegerSort(), false);
 
     defineVar("re.none", d_tm.mkRegexpNone());
     defineVar("re.allchar", d_tm.mkRegexpAllchar());
@@ -976,11 +976,11 @@ void Smt2State::setLogic(std::string name)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
-    defineType("RoundingMode", d_tm.getRoundingModeSort(), true);
-    defineType("Float16", d_tm.mkFloatingPointSort(5, 11), true);
-    defineType("Float32", d_tm.mkFloatingPointSort(8, 24), true);
-    defineType("Float64", d_tm.mkFloatingPointSort(11, 53), true);
-    defineType("Float128", d_tm.mkFloatingPointSort(15, 113), true);
+    defineType("RoundingMode", d_tm.getRoundingModeSort(), false);
+    defineType("Float16", d_tm.mkFloatingPointSort(5, 11), false);
+    defineType("Float32", d_tm.mkFloatingPointSort(8, 24), false);
+    defineType("Float64", d_tm.mkFloatingPointSort(11, 53), false);
+    defineType("Float128", d_tm.mkFloatingPointSort(15, 113), false);
 
     defineVar("RNE",
               d_tm.mkRoundingMode(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
