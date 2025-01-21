@@ -251,11 +251,11 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // This ensures we won't have variable capturing during beta reduction.
       // Examples of this rule:
       // (_ (lambda x. forall x. P(x)) a) ---> (_ (lambda y. forall x. P(x)) a).
-      // (_ (lambda y. forall x. P(y)) (f x)) ---> 
+      // (_ (lambda y. forall x. P(y)) (f x)) --->
       //   (_ (lambda y. forall z. P(y)) (f x)).
-      // (_ (lambda y. forall xu. P(y, u)) (f x)) ---> 
+      // (_ (lambda y. forall xu. P(y, u)) (f x)) --->
       //   (_ (lambda y. forall zu. P(y, u)) (f x)).
-      // (_ (lambda y. forall x. P(y) ^ forall x. Q(y)) (f x)) ---> 
+      // (_ (lambda y. forall x. P(y) ^ forall x. Q(y)) (f x)) --->
       //   (_ (lambda y. forall u. P(y) ^ forall v. Q(y)) (f x)).
       Kind k = n.getKind();
       Node lambda;

@@ -1256,7 +1256,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
 }
 
 bool BasicRewriteRCons::ensureProofMacroLambdaCaptureAvoid(CDProof* cdp,
-                                                            const Node& eq)
+                                                           const Node& eq)
 
 {
   Trace("brc-macro") << "Expand macro lambda app elim shadow for " << eq
