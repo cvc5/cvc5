@@ -39,7 +39,7 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID,
                            TheoryRewriteCtx::PRE_DSL);
 }
 
@@ -70,7 +70,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     {
       // see if we need to eliminate shadowing
       Node nes =
-          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW, node);
+          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID, node);
       if (!nes.isNull())
       {
         Trace("uf-ho-beta") << "uf-ho-beta : eliminate shadowing : " << nes
@@ -103,7 +103,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 
       // see if we need to eliminate shadowing
       Node nes =
-          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW, node);
+          rewriteViaRule(ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID, node);
       if (!nes.isNull())
       {
         return RewriteResponse(REWRITE_AGAIN_FULL, nes);
@@ -246,8 +246,17 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW:
+    case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
     {
+      // This ensures we won't have variable capturing during beta reduction.
+      // Examples of this rule:
+      // (_ (lambda x. forall x. P(x)) a) ---> (_ (lambda y. forall x. P(x)) a).
+      // (_ (lambda y. forall x. P(y)) (f x)) ---> 
+      //   (_ (lambda y. forall z. P(y)) (f x)).
+      // (_ (lambda y. forall xu. P(y, u)) (f x)) ---> 
+      //   (_ (lambda y. forall zu. P(y, u)) (f x)).
+      // (_ (lambda y. forall x. P(y) ^ forall x. Q(y)) (f x)) ---> 
+      //   (_ (lambda y. forall u. P(y) ^ forall v. Q(y)) (f x)).
       Kind k = n.getKind();
       Node lambda;
       std::vector<TNode> args;

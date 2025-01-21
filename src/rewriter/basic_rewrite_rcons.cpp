@@ -237,8 +237,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
-    case ProofRewriteRule::MACRO_LAMBDA_APP_ELIM_SHADOW:
-      if (ensureProofMacroLambdaAppElimShadow(cdp, eq))
+    case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
+      if (ensureProofMacroLambdaCaptureAvoid(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1255,7 +1255,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofMacroLambdaAppElimShadow(CDProof* cdp,
+bool BasicRewriteRCons::ensureProofMacroLambdaCaptureAvoid(CDProof* cdp,
                                                             const Node& eq)
 
 {

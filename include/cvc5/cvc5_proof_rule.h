@@ -2498,7 +2498,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(LAMBDA_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Equality -- Macro lambda application eliminate shadow**
+   * **Equality -- Macro lambda application capture avoid**
    *
    * .. math::
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = ((\lambda y_1 \ldots y_n.\> t') \ t_1 \ldots t_n)
@@ -2508,11 +2508,12 @@ enum ENUM(ProofRewriteRule)
    * This rule ensures that the free variables of :math:`y_1, \ldots, y_n, t_1 \ldots t_n`
    * do not occur in binders within :math:`t'`, and
    * :math:`(\lambda x_1 \ldots x_n.\> t)` is alpha-equivalent to
-   * :math:`(\lambda y_1 \ldots y_n.\> t')`.
+   * :math:`(\lambda y_1 \ldots y_n.\> t')`. This rule is applied prior to
+   * beta reduction to ensure there is no variable capturing.
    *
    * \endverbatim
    */
-  EVALUE(MACRO_LAMBDA_APP_ELIM_SHADOW),
+  EVALUE(MACRO_LAMBDA_CAPTURE_AVOID),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Constant array select**
