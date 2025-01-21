@@ -1673,3 +1673,31 @@
   (eo::ite (eo::is_str s)
     ($str_from_flat_form ($str_to_flat_form s true) false) ; make reverse flat form and then convert back
     (str.rev s)))
+
+; program: $str_leq_eval_rec
+; args:
+; - s String: The first string to compare, expected to be a literal in flat form.
+; - t String: The second string to compare, expected to be a literal in flat form.
+; returns: The result of evaluating `(str.<= s t)`.
+(program $str_leq_eval_rec ((s1 String) (s2 String :list) (t1 String) (t2 String :list) )
+  (String String) Bool
+  (
+  (($str_leq_eval_rec (str.++ s1 s2) (str.++ t1 t2))  (eo::ite (eo::is_eq s1 t1)
+                                                        ($str_leq_eval_rec s2 t2)
+                                                        (eo::gt (eo::to_z t1) (eo::to_z s1))))
+  (($str_leq_eval_rec "" t1)                          true)
+  (($str_leq_eval_rec s1 t1)                          false)
+  )
+)
+
+; define: $str_leq_eval
+; args:
+; - s String: The first string to compare.
+; - t String: The second string to compare.
+; returns: >
+;   The result of evaluating `(str.<= s t)` if `s` and `t` are string literals,
+;   or the term `(str.<= s t)` otherwise.
+(define $str_leq_eval ((s String) (t String))
+  (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
+    ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
+    (str.<= s t)))
