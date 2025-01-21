@@ -31,11 +31,11 @@ namespace cvc5::internal {
  * (1) When preprocessing has completed, determining the set of input clauses.
  * (2) When theory lemmas are learned
  * (3) When a SAT refutation is derived.
- * 
+ *
  * Depending on the proof mode, the notifications for the above three things
  * may be in the form of ProofNode (if proofs are enabled for that component),
  * or Node (if proofs are disabled for that component).
- * 
+ *
  * As with dumped proofs, the granularity of the proofs is subject to the
  * option `proof-granularity`.
  */

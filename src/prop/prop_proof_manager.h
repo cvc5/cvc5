@@ -173,7 +173,7 @@ class PropPfManager : protected EnvObj
   /**
    * Notify SAT clause. This should be called whenever the SAT solver learns
    * a SAT clause.
-   * 
+   *
    * @param clause The (node representation) of the clause.
    */
   void notifySatClause(const Node& clause);

@@ -328,7 +328,7 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
 {
   ProofLogger* pl = d_env.getProofLogger();
   const std::vector<Plugin*>& plugins = d_env.getPlugins();
-  if (pl==nullptr && plugins.empty())
+  if (pl == nullptr && plugins.empty())
   {
     // nothing to do if no proof logger, or plugins
     return;
