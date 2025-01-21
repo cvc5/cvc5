@@ -60,15 +60,6 @@ jobs:
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
 
-    # cibuildwheel only supports arm64 Linux wheels through emulation.
-    # It works fine, but it is slow. Cross-compilation is not supported yet,
-    # see: https://github.com/pypa/cibuildwheel/issues/598
-    - name: Set up QEMU for arm64 Linux builds
-      if: runner.os == 'Linux' && matrix.arch == 'aarch64'
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: "linux/arm64"
-
     - uses: msys2/setup-msys2@v2
       if: runner.os == 'Windows'
       with:
