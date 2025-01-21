@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(NodeManager* nm, Rewriter* rr);
+  TheoryUfRewriter(NodeManager* nm);
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -86,12 +86,6 @@ class TheoryUfRewriter : public TheoryRewriter
    * @return the result of eliminating n, if possible, or null otherwise.
    */
   static Node canEliminateLambda(const Node& n);
-  /**
-   * Pointer to the rewriter, required for rewriting lambdas that appear
-   * inside of operators that are not in rewritten form. NOTE this is a cyclic
-   * dependency, and should be removed.
-   */
-  Rewriter* d_rr;
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
   /** rewrite bv2nat */

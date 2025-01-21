@@ -237,6 +237,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
+      if (ensureProofMacroLambdaCaptureAvoid(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -1247,6 +1253,45 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   cdp->addProof(pfn);
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroLambdaCaptureAvoid(CDProof* cdp,
+                                                           const Node& eq)
+
+{
+  Trace("brc-macro") << "Expand macro lambda app elim shadow for " << eq
+                     << std::endl;
+  // Get equalities between subterms that are disequal in LHS/RHS. These will
+  // be added as rewrite steps below.
+  std::vector<Node> matchConds;
+  expr::getConversionConditions(eq[0], eq[1], matchConds, true);
+  // use conversion proof, must rewrite ops
+  TConvProofGenerator tcpg(d_env,
+                           nullptr,
+                           TConvPolicy::ONCE,
+                           TConvCachePolicy::NEVER,
+                           "MacroLambdaAppElimShadow",
+                           nullptr,
+                           true);
+  for (const Node& mc : matchConds)
+  {
+    Trace("brc-macro") << "- subgoal " << mc << std::endl;
+    // the step should be shown by alpha-equivalance
+    tcpg.addRewriteStep(mc[0],
+                        mc[1],
+                        nullptr,
+                        true,
+                        TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+  }
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  Node res = pfn->getResult();
+  if (res[1] == eq[1])
+  {
+    cdp->addProof(pfn);
+    return true;
+  }
+  Assert(false);
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
