@@ -82,7 +82,7 @@
 ;   other internally introduced terms, and extensions.
 
 ; note: >
-;   @const corresponds generic free constants, which correspond to internally
+;   @const corresponds to generic abstract constants, which correspond to internally
 ;   introduced terms that do not have a formal definition in the signature.
 (declare-const @const (-> (! Int :opaque) (! Type :opaque :var T) T))
 
