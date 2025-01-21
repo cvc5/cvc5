@@ -19,7 +19,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLazyPreproc"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
@@ -107,7 +107,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "regExpElim"
-  category   = "regular"
+  category   = "expert"
   long       = "re-elim=MODE"
   type       = "RegExpElimMode"
   default    = "OFF"

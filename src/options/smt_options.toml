@@ -275,7 +275,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "regular"
+  category   = "expert"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
