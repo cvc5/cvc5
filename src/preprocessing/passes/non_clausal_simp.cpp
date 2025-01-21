@@ -81,10 +81,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    AlwaysAssert(rewrite((*assertionsToPreprocess)[i])
-                 == (*assertionsToPreprocess)[i])
-        << (*assertionsToPreprocess)[i] << " "
-        << rewrite((*assertionsToPreprocess)[i]);
+    Assert(rewrite((*assertionsToPreprocess)[i])
+           == (*assertionsToPreprocess)[i]) << (*assertionsToPreprocess)[i];
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
     {
