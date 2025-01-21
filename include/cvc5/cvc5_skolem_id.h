@@ -244,6 +244,29 @@ enum ENUM(SkolemId)
    */
   EVALUE(QUANTIFIERS_SKOLEMIZE),
   /**
+   * A witness for a string or sequence of a given length. Skolems in this family can
+   * be assumed to be distinct if their identifiers (given by their third index) are
+   * distinct modulo :math:`A` to the power of their length (given by their second index),
+   * where :math:`A` is the cardinality of the characters of their sort.
+   *
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` A term that represents the sort of the term.
+   *   - ``2:`` The assumed length of this term, expected to be a non-negative integer.
+   *   - ``3:`` A numeral identifier.
+   * - Sort: The sort given by the first index.
+   */
+  EVALUE(WITNESS_STRING_LENGTH),
+  /**
+   * A witness for an invertibility condition.
+   *
+   * - Number of skolem indices: ``1``
+   *   - ``1:`` A formula of the form ``(exists x. (x <op> s) <rel> t)``
+   *            or ``(exists x. x <rel> t)``, where s and t are ground
+   *            (bitvector) terms.
+   * - Sort: The sort of x is given by the formula in the first index.
+   */
+  EVALUE(WITNESS_INV_CONDITION),
+  /**
    * An integer corresponding to the number of times a string occurs in another
    * string. This is used to reason about str.replace_all.
    *

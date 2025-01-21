@@ -583,3 +583,61 @@
   :requires ((($str_mk_str_in_re_sigma_star s r) b))
   :conclusion (= (str.in_re s (re.* r)) b)
 )
+
+;;;;; ProofRewriteRule::STR_CTN_MULTISET_SUBSET
+
+; program: $str_multiset_overapprox
+; args:
+; - s (Seq T): the term.
+; return: >
+;   The multiset over-approximation of s, which is a (flattened) concatenation
+;   term whose components represent an overapproximation of what s may contain.
+(program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
+    ((Seq T)) (Seq T)
+    (
+      (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
+      (($str_multiset_overapprox (str.substr s n m))   ($str_to_flat_form s false))
+      (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
+      (($str_multiset_overapprox s)                    ($str_to_flat_form s false))
+    )
+)
+
+; program: $str_is_multiset_subset_strict
+; args:
+; - s (Seq T): the multiset approximation of a string term.
+; - t (Seq T): the multiset (over)approximation of a string term.
+; - b Bool: whether we have found that a character from s was not contained in t.
+; return: >
+;   True if the string approximated by s is definitely not contained in the string
+;   approximated by t. We compute this by iteratively removing the components of
+;   s from t, remembering if we have removed a character.
+; note: This method only supports strings currently.
+(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
+    ((Seq T) (Seq T) Bool) Bool
+    (
+      (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
+                                                            (eo::define ((nrem (eo::is_eq t tr)))
+                                                              ($str_is_multiset_subset_strict ss tr 
+                                                                ; we update b to true if we successfully remove a character from s
+                                                                (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
+      (($str_is_multiset_subset_strict s t b)             (eo::ite b 
+                                                            ; remaining characters in t must be constants only
+                                                            (eo::is_str ($str_from_flat_form t false))
+                                                            false))
+    )
+)
+
+; rule: str-ctn-multiset-subset
+; implements: ProofRewriteRule::STR_CTN_MULTISET_SUBSET
+; args:
+; - eq Bool: The equality between a contains predicate and false
+; requires: >
+;   The contains predicate can be shown false by multiset reasoning
+; conclusion: The given equality.
+(declare-rule str-ctn-multiset-subset ((T Type) (t (Seq T)) (s (Seq T)))
+  :args ((= (str.contains t s) false))
+  :requires ((($str_is_multiset_subset_strict
+                ($str_to_flat_form s false)
+                ($str_multiset_overapprox t) false) true))
+  :conclusion (= (str.contains t s) false)
+)

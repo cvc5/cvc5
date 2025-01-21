@@ -92,32 +92,28 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   else if (id == ProofRule::CONG || id == ProofRule::NARY_CONG)
   {
     Assert(children.size() > 0);
-    Assert(args.size() >= 1 && args.size() <= 2);
+    if (args.size() != 1)
+    {
+      return Node::null();
+    }
+    Node t = args[0];
+    Trace("uf-pfcheck") << "congruence " << id << " for " << args[0]
+                        << std::endl;
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    // get the kind encoded as args[0]
-    Kind k;
-    if (!getKind(args[0], k))
-    {
-      return Node::null();
-    }
-    // cannot use HO_APPLY
-    if (k == Kind::UNDEFINED_KIND || k == Kind::HO_APPLY)
-    {
-      return Node::null();
-    }
-    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
-                        << ", metakind=" << kind::metaKindOf(k) << std::endl;
-    if (args.size() == 2)
+    Kind k = args[0].getKind();
+    if (t.getMetaKind() == metakind::PARAMETERIZED)
     {
       // parameterized kinds require the operator
-      lchildren.push_back(args[1]);
-      rchildren.push_back(args[1]);
+      lchildren.push_back(t.getOperator());
+      rchildren.push_back(t.getOperator());
     }
-    else if (args.size() > 2)
+    // congruence automatically adds variable lists
+    if (t.isClosure())
     {
-      return Node::null();
+      lchildren.push_back(t[0]);
+      rchildren.push_back(t[0]);
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
@@ -176,10 +172,14 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
   }
   if (id == ProofRule::HO_CONG)
   {
-    Kind k;
-    if (!getKind(args[0], k))
+    Kind k = Kind::HO_APPLY;
+    // kind argument is optional, defaults to HO_APPLY
+    if (args.size() == 1)
     {
-      return Node::null();
+      if (!getKind(args[0], k))
+      {
+        return Node::null();
+      }
     }
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;

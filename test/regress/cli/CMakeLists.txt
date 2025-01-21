@@ -734,6 +734,7 @@ set(regress_0_tests
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/proj-issue578-clash-pf.smt2
+  regress0/datatypes/proj-issue752-ipc.smt2
   regress0/datatypes/proj-issue754-check-model.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
@@ -1228,11 +1229,13 @@ set(regress_0_tests
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
+  regress0/parser/sort-term-overload-simple-unsat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
   regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
+  regress0/parser/term-sort-overload.smt2
   regress0/parser/to_fp.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
@@ -1321,6 +1324,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
   regress0/proj-issue645-abs-value-subs.smt2
+  regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/cyclic-ucp.smt2
@@ -1953,6 +1957,7 @@ set(regress_0_tests
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/rw_545.smt2 
+  regress0/strings/rw_65.smt2
   regress0/strings/sigma-star-mod-3.smt2
   regress0/strings/simple-include-mem.smt2
   regress0/strings/simple-include-subrange.smt2
