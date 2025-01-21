@@ -521,7 +521,7 @@ void PropPfManager::notifySatClause(const Node& clause)
 {
   if (d_plog != nullptr)
   {
-    d_plog->notifySatClause(clause);
+    d_plog->logSatLearnedClause(clause);
   }
 }
 
