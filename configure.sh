@@ -13,6 +13,7 @@ Build types:
   testing
   competition
   competition-inc
+  safe-mode
 
 
 General options;
