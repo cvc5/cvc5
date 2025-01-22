@@ -31,7 +31,7 @@ To use it, download the appropriate JAR file for your platform. For example,
 if your computer runs Linux x86_64, download `cvc5-Linux-x86_64-java-api.jar` to
 a working directory.
 
-To compile the `QuickStart.java`` example provided in
+To compile the `QuickStart.java` example provided in
 the :doc:`quickstart guide <quickstart>`, ensure the file is in
 the same directory as the JAR. Then, run:
 
@@ -43,7 +43,7 @@ After compilation, execute the example with:
 
 .. code-block:: bash
 
-     $ java -cp "cvc5-Linux-x86_64-java-api.jar:." QuickStart
+     $ java -cp "cvc5-Linux-x86_64-java-api.jar:." QuickStart # Replace : with ; on Windows
        expected: sat
        result: sat
        value for x: 1/6
