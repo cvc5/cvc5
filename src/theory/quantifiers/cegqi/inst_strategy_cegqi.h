@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
+#include "proof/trust_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
@@ -202,6 +203,8 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getCounterexampleLiteral(Node q);
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
+  /** For lemmas from the nested qe module */
+  std::shared_ptr<TrustProofGenerator> d_nqetpg;
   /** The nested quantifier elimination utility */
   std::unique_ptr<NestedQe> d_nestedQe;
 };

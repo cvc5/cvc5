@@ -47,7 +47,10 @@ namespace theory {
 namespace ff {
 
 SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
-    : EnvObj(env), FieldObj(modulus), d_facts(context()), d_stats(stats)
+    : EnvObj(env),
+      FieldObj(nodeManager(), modulus),
+      d_facts(context()),
+      d_stats(stats)
 {
   AlwaysAssert(modulus.isProbablePrime()) << "non-prime fields are unsupported";
   // must be initialized before using CoCoA.
@@ -85,7 +88,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       }
       else if (options().ff.ffSolver == options::FfSolver::GB)
       {
-        CocoaEncoder enc(size());
+        CocoaEncoder enc(nodeManager(), size());
         // collect leaves
         for (const Node& node : d_facts)
         {

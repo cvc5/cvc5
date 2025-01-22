@@ -230,6 +230,8 @@ libcvc5_add_sources(
   proof/trust_id.h
   proof/trust_node.cpp
   proof/trust_node.h
+  proof/trust_proof_generator.cpp
+  proof/trust_proof_generator.h
   proof/theory_proof_step_buffer.cpp
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp

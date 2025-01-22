@@ -39,12 +39,9 @@ class BaseAlfNodeConverter : public NodeConverter
   /**
    * Returns the operator of node n.
    * @param n The term whose operator we wish to retrieve.
-   * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
-   * overloading.
    * @return the operator.
    */
-  virtual Node getOperatorOfTerm(Node n, bool reqCast = false) = 0;
+  virtual Node getOperatorOfTerm(Node n) = 0;
   /**
    * Type as node, returns a node that prints in the form that ALF will
    * interpret as the type tni. This method is required since types can be
@@ -87,12 +84,9 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.
    * @param n The term whose operator we wish to retrieve.
-   * @param reqCast Will the operator be printed in a context where it needs
-   * disambiguation (eo::as)? This makes a difference e.g. for symbols with
-   * overloading.
    * @return the operator.
    */
-  Node getOperatorOfTerm(Node n, bool reqCast = false) override;
+  Node getOperatorOfTerm(Node n) override;
   /** Make generic list */
   Node mkList(const std::vector<Node>& args);
   /**

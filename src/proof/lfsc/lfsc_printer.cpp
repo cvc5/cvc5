@@ -672,7 +672,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   for (const Node& a : args)
   {
     Node ac = d_tproc.convert(a);
-    Assert(!ac.isNull());
+    Assert(!ac.isNull()) << "Could not convert " << a << " in " << r;
     as.push_back(ac);
   }
   // The proof expression stream, which packs the next expressions (proofs,

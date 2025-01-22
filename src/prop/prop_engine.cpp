@@ -106,15 +106,14 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
-  bool satProofs = d_env.isSatProofProducing();
-  if (satProofs)
+  // if proof producing at all
+  if (options().smt.produceProofs)
   {
     d_ppm.reset(
         new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions));
   }
   // connect SAT solver
-  d_satSolver->initialize(
-      d_env.getContext(), d_theoryProxy, d_env.getUserContext(), d_ppm.get());
+  d_satSolver->initialize(d_theoryProxy, d_ppm.get());
 }
 
 void PropEngine::finishInit()
@@ -235,7 +234,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::InferenceId id,
   // if we are producing proofs for the SAT solver but not for theory engine,
   // then we need to prevent the lemma of being added as an assumption (since
   // the generator will be null). We use the default proof generator for lemmas.
-  if (isProofEnabled() && !d_env.isTheoryProofProducing()
+  if (d_env.isSatProofProducing() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
     Node actualNode = negated ? node.notNode() : node;
@@ -347,8 +346,10 @@ void PropEngine::assertLemmasInternal(
 
 void PropEngine::notifyExplainedPropagation(TrustNode texp)
 {
-  Assert(d_ppm != nullptr);
-  d_ppm->notifyExplainedPropagation(texp);
+  if (d_ppm != nullptr)
+  {
+    d_ppm->notifyExplainedPropagation(texp);
+  }
 }
 
 void PropEngine::preferPhase(TNode n, bool phase)
@@ -441,22 +442,30 @@ Result PropEngine::checkSat() {
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
 
+  // add the assumptions
+  std::vector<SatLiteral> assumptions;
+  for (const Node& node : d_assumptions)
+  {
+    assumptions.push_back(d_cnfStream->getLiteral(node));
+  }
+
+  // now presolve with prop proof manager
+  if (d_ppm != nullptr)
+  {
+    d_ppm->presolve();
+  }
+
   // Reset the interrupted flag
   d_interrupted = false;
 
   // Check the problem
   SatValue result;
-  if (d_assumptions.size() == 0)
+  if (assumptions.empty())
   {
     result = d_satSolver->solve();
   }
   else
   {
-    std::vector<SatLiteral> assumptions;
-    for (const Node& node : d_assumptions)
-    {
-      assumptions.push_back(d_cnfStream->getLiteral(node));
-    }
     result = d_satSolver->solve(assumptions);
   }
 
@@ -497,6 +506,12 @@ Result PropEngine::checkSat() {
                            d_theoryProxy->getRefutationUnsoundId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
+
+  if (d_ppm != nullptr)
+  {
+    d_ppm->postsolve(result);
+  }
+
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
 

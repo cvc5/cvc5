@@ -30,8 +30,16 @@ enum class TrustId : uint32_t
   NONE,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
-  /** An internal inference made by a theory without a proof */
-  THEORY_INFERENCE,
+  /**
+   * An internal inference made by a theory without a proof. These are split
+   * per theory, and introduced as needed.
+   */
+  THEORY_INFERENCE_ARITH,
+  THEORY_INFERENCE_ARRAYS,
+  THEORY_INFERENCE_DATATYPES,
+  THEORY_INFERENCE_SEP,
+  THEORY_INFERENCE_SETS,
+  THEORY_INFERENCE_STRINGS,
   /** A ppStaticRewrite step */
   PP_STATIC_REWRITE,
   /** A rewrite of the input formula made by a theory during preprocessing
@@ -87,6 +95,8 @@ enum class TrustId : uint32_t
   PREPROCESS_UNCONSTRAINED_SIMP,
   /** QuantifiersPreprocess preprocessing pass */
   PREPROCESS_QUANTIFIERS_PP,
+  /** RealToInt preprocessing pass */
+  PREPROCESS_REAL_TO_INT,
   /** SortInferencePass preprocessing pass */
   PREPROCESS_SORT_INFER,
   PREPROCESS_SORT_INFER_LEMMA,
@@ -149,6 +159,10 @@ enum class TrustId : uint32_t
   ARITH_NL_COMPARE_LIT_TRANSFORM,
   /** A lemma from the DIO solver */
   ARITH_DIO_LEMMA,
+  /** A lemma from the ArithStaticLearner utility */
+  ARITH_STATIC_LEARN,
+  /** A nonlinear comparison lemma that failed proof reconstruction */
+  ARITH_NL_COMPARE_LEMMA,
   /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
   DIAMONDS,
   /** An extended theory rewrite */
@@ -180,6 +194,15 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
+  QUANTIFIERS_INST_REWRITE,
+  /** A quantifiers from the --sub-cbqi module */
+  QUANTIFIERS_SUB_CBQI_LEMMA,
+  /** A quantifiers from the nested quantifier elimination module */
+  QUANTIFIERS_NESTED_QE_LEMMA,
+  /** A rewrite performed at TheoryStrings::ppStaticRewrite */
+  STRINGS_PP_STATIC_REWRITE,
   /**
    * An existential corresponding to a witness term introduced e.g. in
    * quantifier instantiation

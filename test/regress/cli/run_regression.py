@@ -224,6 +224,7 @@ class LfscTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
+                "--no-dt-share-sel",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
                 "--proof-check=lazy",

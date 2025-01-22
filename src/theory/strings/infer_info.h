@@ -137,7 +137,7 @@ class InferInfo : public TheoryInference
    */
   bool isFact() const;
   /** Get premises */
-  Node getPremises() const;
+  Node getPremises(NodeManager* nm) const;
 };
 
 /**

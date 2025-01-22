@@ -116,14 +116,20 @@ copy_file_from_src(py_plugin.h)
 copy_file_from_src(py_plugin.cpp)
 copy_file_from_src(pyproject.toml)
 
+# Get python extension filename
+execute_process(COMMAND
+  ${Python_EXECUTABLE} -c
+    "import sysconfig;\
+     print('cvc5_python_base' + sysconfig.get_config_var('EXT_SUFFIX'))"
+  OUTPUT_VARIABLE PYTHON_EXT_FILENAME
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 # Set include_dirs and library_dirs variables that are used in setup.cfg.in
 if (WIN32)
-  set(PYTHON_EXT "pyd")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include;${CMAKE_BINARY_DIR}/include")
   set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src;${CMAKE_BINARY_DIR}/src/parser")
   set(SETUP_COMPILER "[build]\ncompiler=mingw32")
 else()
-  set(PYTHON_EXT "so")
   set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include")
   set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src:${CMAKE_BINARY_DIR}/src/parser")
   # On Linux and macOS, set rpath variable too
@@ -153,20 +159,20 @@ set(PYTHON_EXT_SRC_FILES
 
 if(NOT ONLY_PYTHON_EXT_SRC)
   set(CVC5_PYTHON_BASE_LIB
-    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/cvc5_python_base.${PYTHON_EXT}")
+    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/${PYTHON_EXT_FILENAME}")
 
   add_custom_command(
     OUTPUT
       ${CVC5_PYTHON_BASE_LIB}
     COMMAND
       # Force a new build if any dependency has changed
-      ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp cvc5/cvc5_python_base.${PYTHON_EXT}
+      ${CMAKE_COMMAND} -E remove cvc5_python_base.cpp cvc5/${PYTHON_EXT_FILENAME}
     COMMAND
       "${Python_EXECUTABLE}" setup.py build_ext --inplace
     DEPENDS
       cvc5 cvc5parser
       ${PYTHON_EXT_SRC_FILES}
-    COMMENT "Generating cvc5_python_base.${PYTHON_EXT}"
+    COMMENT "Generating ${PYTHON_EXT_FILENAME}"
   )
 endif()
 

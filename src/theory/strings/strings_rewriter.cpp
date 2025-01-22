@@ -29,9 +29,10 @@ namespace strings {
 
 StringsRewriter::StringsRewriter(NodeManager* nm,
                                  Rewriter* r,
+                                 ArithEntail& ae,
                                  HistogramStat<Rewrite>* statistics,
                                  uint32_t alphaCard)
-    : SequencesRewriter(nm, r, statistics), d_alphaCard(alphaCard)
+    : SequencesRewriter(nm, r, ae, statistics), d_alphaCard(alphaCard)
 {
 }
 
