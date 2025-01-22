@@ -788,6 +788,7 @@ set(regress_0_tests
   regress0/deep-restart/dd.issue4735.smt2
   regress0/deep-restart/dd.wrong-sat-020322.smt2
   regress0/define-fun-model.smt2
+  regress0/define-fun-rec-shadow.smt2
   regress0/difficulty-simple.smt2
   regress0/difficulty-model-ex.smt2
   regress0/distinct.smtv1.smt2
@@ -1021,6 +1022,7 @@ set(regress_0_tests
   regress0/ite2.smt2
   regress0/ite3.smt2
   regress0/ite4.smt2
+  regress0/lambda-shadow-sem.smt2
   regress0/lang_opts_2_6_1.smt2
   regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smtv1.smt2
   regress0/lemmas/fs_not_sc_seen.induction.smtv1.smt2
@@ -1173,6 +1175,7 @@ set(regress_0_tests
   regress0/parser/dd.define-named.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/define_sort.smt2
+  regress0/parser/define-fun-shadow-dec.smt2
   regress0/parser/double-bind.smt2
   regress0/parser/fp_value.smt2
   regress0/parser/force_logic_set_logic.smt2

@@ -4,8 +4,6 @@
 ; EXPECT: All formal arguments to defined functions must be unique
 ; EXIT: 1
 (set-logic ALL)
-(declare-const x2 Bool)
-(define-fun s ((a Int) (b Int) (z Int) (z Int)) Bool (= 0 0))
-(define-fun p ((a Int) (b Int) (c Int)) Bool (exists ((x Int) (y Int)) (and false (s 0 0 b c) (forall ((z Int)) false))))
-(assert (p 0 0 0))
+(define-fun-rec f ((x Int) (x Int)) Int (ite (= x 0) 0 (f (- x 1) (- x 1))))
+(assert (= (f 0 1) 0))
 (check-sat)
