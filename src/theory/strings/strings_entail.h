@@ -41,6 +41,7 @@ class SequencesRewriter;
 class StringsEntail
 {
   friend class SequencesRewriter;
+
  public:
   StringsEntail(Rewriter* r, ArithEntail& aent);
 

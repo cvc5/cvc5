@@ -30,8 +30,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsEntail::StringsEntail(Rewriter* r,
-                             ArithEntail& aent)
+StringsEntail::StringsEntail(Rewriter* r, ArithEntail& aent)
     : d_rr(r), d_arithEntail(aent)
 {
 }
