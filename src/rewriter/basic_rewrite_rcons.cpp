@@ -635,7 +635,7 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   theory::strings::Rewrite rule;
   // call the same utility that proved it
   theory::strings::ArithEntail ae(nullptr);
-  theory::strings::StringsEntail sent(nullptr, ae, nullptr);
+  theory::strings::StringsEntail sent(nullptr, ae);
   std::vector<Node> ch1;
   std::vector<Node> ch2;
   Node rhs = sent.rewriteViaMacroSubstrStripSymLength(lhs, rule, ch1, ch2);

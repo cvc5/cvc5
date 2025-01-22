@@ -252,6 +252,8 @@ class TheoryStrings : public Theory {
   TermRegistry d_termReg;
   /** An arithmetic entailment utility */
   ArithEntail d_arithEntail;
+  /** A string entailment utility */
+  StringsEntail d_strEntail;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The eager solver */

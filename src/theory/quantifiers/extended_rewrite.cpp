@@ -1749,7 +1749,8 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   {
     // allow recursive approximations
     strings::ArithEntail ae(&d_rew, true);
-    strings::SequencesRewriter sr(d_nm, &d_rew, ae, nullptr);
+    strings::StringsEntail se(&d_rew, ae);
+    strings::SequencesRewriter sr(d_nm, ae, se, nullptr);
     return sr.rewriteEqualityExt(node);
   }
   else if (k == Kind::STRING_SUBSTR)
@@ -1789,7 +1790,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
     if (node[0] == node[2])
     {
       theory::strings::ArithEntail ae(&d_rew);
-      theory::strings::StringsEntail se(&d_rew, ae, nullptr);
+      theory::strings::StringsEntail se(&d_rew, ae);
       // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
       // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
       if (se.checkLengthOne(node[0]))

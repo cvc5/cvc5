@@ -31,9 +31,8 @@ namespace theory {
 namespace strings {
 
 StringsEntail::StringsEntail(Rewriter* r,
-                             ArithEntail& aent,
-                             SequencesRewriter* rewriter)
-    : d_rr(r), d_arithEntail(aent), d_rewriter(rewriter)
+                             ArithEntail& aent)
+    : d_rr(r), d_arithEntail(aent)
 {
 }
 
@@ -667,16 +666,12 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
+Node StringsEntail::checkContains(Node a, Node b)
 {
   Node ctn = NodeManager::mkNode(Kind::STRING_CONTAINS, a, b);
 
-  if (fullRewriter)
+  if (d_rr != nullptr)
   {
-    if (d_rr == nullptr)
-    {
-      return Node::null();
-    }
     ctn = d_rr->rewrite(ctn);
   }
   else

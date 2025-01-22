@@ -28,11 +28,11 @@ namespace theory {
 namespace strings {
 
 StringsRewriter::StringsRewriter(NodeManager* nm,
-                                 Rewriter* r,
                                  ArithEntail& ae,
+                                 StringsEntail& se,
                                  HistogramStat<Rewrite>* statistics,
                                  uint32_t alphaCard)
-    : SequencesRewriter(nm, r, ae, statistics), d_alphaCard(alphaCard)
+    : SequencesRewriter(nm, ae, se, statistics), d_alphaCard(alphaCard)
 {
 }
 
