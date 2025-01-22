@@ -153,6 +153,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these are disabled by default but are listed here in case they are
     // enabled by default later
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
     // specific options that are disabled
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");

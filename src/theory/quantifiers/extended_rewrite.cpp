@@ -1747,7 +1747,9 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   Kind k = node.getKind();
   if (k == Kind::EQUAL)
   {
-    strings::SequencesRewriter sr(d_nm, &d_rew, nullptr);
+    // allow recursive approximations
+    strings::ArithEntail ae(&d_rew, true);
+    strings::SequencesRewriter sr(d_nm, &d_rew, ae, nullptr);
     return sr.rewriteEqualityExt(node);
   }
   else if (k == Kind::STRING_SUBSTR)

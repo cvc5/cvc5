@@ -470,18 +470,25 @@ std::string SolverEngine::getInfo(const std::string& key) const
 void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
                                      Node func)
 {
-  for (std::vector<Node>::const_iterator i = formals.begin();
-       i != formals.end();
-       ++i)
+  std::unordered_set<Node> vars;
+  for (const Node& v : formals)
   {
-    if ((*i).getKind() != Kind::BOUND_VARIABLE)
+    if (v.getKind() != Kind::BOUND_VARIABLE)
     {
-      stringstream ss;
+      std::stringstream ss;
       ss << "All formal arguments to defined functions must be "
             "BOUND_VARIABLEs, but in the\n"
          << "definition of function " << func << ", formal\n"
-         << "  " << *i << "\n"
-         << "has kind " << (*i).getKind();
+         << "  " << v << "\n"
+         << "has kind " << v.getKind();
+      throw TypeCheckingExceptionPrivate(func, ss.str());
+    }
+    if (!vars.insert(v).second)
+    {
+      std::stringstream ss;
+      ss << "All formal arguments to defined functions must be "
+            "unique, but a duplicate variable was used in the "
+         << "definition of function " << func;
       throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   }

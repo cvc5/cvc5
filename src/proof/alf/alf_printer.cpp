@@ -284,6 +284,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
     case ProofRewriteRule::QUANT_MINISCOPE_ITE:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::SETS_INSERT_ELIM:
@@ -382,12 +383,15 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
         case Kind::STRING_PREFIX:
+        case Kind::STRING_SUFFIX:
         case Kind::STRING_ITOS:
         case Kind::STRING_STOI:
         case Kind::STRING_TO_LOWER:
         case Kind::STRING_TO_UPPER:
         case Kind::STRING_REV:
         case Kind::STRING_CHARAT:
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:

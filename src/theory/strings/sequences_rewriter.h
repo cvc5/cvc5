@@ -36,6 +36,7 @@ class SequencesRewriter : public TheoryRewriter
  public:
   SequencesRewriter(NodeManager* nm,
                     Rewriter* r,
+                    ArithEntail& ae,
                     HistogramStat<Rewrite>* statistics);
   /** The underlying entailment utilities */
   ArithEntail& getArithEntail();
