@@ -419,8 +419,11 @@ bool InferProofCons::convert(Env& env,
         // to issues like the one above.
         std::vector<Node> rexp(ps.d_children.begin(),
                                ps.d_children.begin() + mainEqIndex);
-        if (infer == InferenceId::STRINGS_F_UNIFY)
+        if (infer == InferenceId::STRINGS_F_UNIFY
+            || infer == InferenceId::STRINGS_F_ENDPOINT_EQ)
         {
+          Trace("strings-ipc-core")
+              << "...check reorient substitution" << std::endl;
           Assert(conc.getKind() == Kind::EQUAL);
           // maybe reorient?
           for (size_t i = 0; i < mainEqIndex; i++)
@@ -429,6 +432,8 @@ bool InferProofCons::convert(Env& env,
             if (rexp[i][0] == conc[0] || rexp[i][0] == conc[1])
             {
               rexp[i] = rexp[i][1].eqNode(rexp[i][0]);
+              Trace("strings-ipc-core")
+                  << "...reorient to " << rexp[i] << std::endl;
             }
           }
         }
@@ -900,16 +905,48 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
-        // either equal or rewrites to it
-        std::vector<Node> cexp;
-        if (psb.applyPredTransform(red, conc, cexp))
+        if (red == conc)
         {
           Trace("strings-ipc-red") << "...success!" << std::endl;
           useBuffer = true;
         }
         else
         {
-          Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          std::vector<Node> cexp;
+          // get the equalities where the reduction is different
+          std::vector<Node> matchConds;
+          expr::getConversionConditions(red, conc, matchConds);
+          Trace("strings-ipc-red")
+              << "...need to prove " << matchConds << std::endl;
+          // To simplify the proof transformation step below, we manually
+          // unpurify skolems from the concluded reduction. This
+          // make it more likely the applyPredTransform step does not have to
+          // resort to original forms. In particular, the strings rewriter
+          // currently does not respect the property that if
+          // t ---> c for constant c, then getOriginalForm(t) ---> c. This
+          // means we should attempt to replay the term which was used by the
+          // strings skolem cache to justify k = c, which is its unpurified
+          // form t, not its original form.
+          for (const Node& mc : matchConds)
+          {
+            Node mcu = SkolemManager::getUnpurifiedForm(mc[0]);
+            if (mcu != mc[0])
+            {
+              Node mceq = mc[0].eqNode(mcu);
+              psb.addStep(ProofRule::SKOLEM_INTRO, {}, {mc[0]}, mceq);
+              cexp.push_back(mceq);
+            }
+          }
+          // either equal or rewrites to it
+          if (psb.applyPredTransform(red, conc, cexp))
+          {
+            Trace("strings-ipc-red") << "...success!" << std::endl;
+            useBuffer = true;
+          }
+          else
+          {
+            Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          }
         }
       }
     }
@@ -1373,17 +1410,52 @@ bool InferProofCons::convertAndElim(NodeManager* nm,
   {
     return true;
   }
-  if (src.getKind() == Kind::AND)
+  Trace("strings-ipc-debug")
+      << "AND_ELIM " << src << " => " << tgt << "?" << std::endl;
+  Node stgt;
+  if (src.getKind() == Kind::NOT && src[0].getKind() == Kind::OR)
   {
-    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    // handles case of ~(L1 or ... or Ln) where tgt is ~Li.
+    for (size_t i = 0, nchild = src[0].getNumChildren(); i < nchild; i++)
     {
-      if (src[i] == tgt)
+      Node sn = src[0][i].negate();
+      if (CDProof::isSame(sn, tgt))
       {
+        Node snn = src[0][i].notNode();
         Node ni = nm->mkConstInt(Rational(i));
-        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, tgt);
-        return true;
+        psb.addStep(ProofRule::NOT_OR_ELIM, {src}, {ni}, snn);
+        // double negation elimination if necessary
+        if (snn != sn)
+        {
+          psb.addStep(ProofRule::NOT_NOT_ELIM, {snn}, {}, sn);
+        }
+        stgt = sn;
+        break;
       }
     }
+  }
+  else if (src.getKind() == Kind::AND)
+  {
+    // otherwise check case of (L1 and ... and Ln) => Li
+    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    {
+      if (CDProof::isSame(src[i], tgt))
+      {
+        Node ni = nm->mkConstInt(Rational(i));
+        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, src[i]);
+        stgt = src[i];
+        break;
+      }
+    }
+  }
+  if (!stgt.isNull())
+  {
+    Assert(CDProof::isSame(stgt, tgt));
+    if (stgt != tgt)
+    {
+      psb.addStep(ProofRule::SYMM, {stgt}, {}, tgt);
+    }
+    return true;
   }
   return false;
 }

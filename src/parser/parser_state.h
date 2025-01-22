@@ -286,13 +286,9 @@ class CVC5_EXPORT ParserState
    *
    * @param name The name of the type
    * @param type The type that should be associated with the name
-   * @param skipExisting If true, the type definition is ignored if the same
-   *                     symbol has already been defined. It is assumed that
-   *                     the definition is the exact same as the existing one.
+   * @param isUser does this correspond to a user sort
    */
-  void defineType(const std::string& name,
-                  const Sort& type,
-                  bool skipExisting = false);
+  void defineType(const std::string& name, const Sort& type, bool isUser);
 
   /**
    * Create a new (parameterized) type definition.
@@ -300,16 +296,12 @@ class CVC5_EXPORT ParserState
    * @param name The name of the type
    * @param params The type parameters
    * @param type The type that should be associated with the name
+   * @param isUser does this correspond to a user sort
    */
   void defineType(const std::string& name,
                   const std::vector<Sort>& params,
-                  const Sort& type);
-
-  /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
-  void defineParameterizedType(const std::string& name,
-                               const std::vector<Sort>& params,
-                               const Sort& type);
-
+                  const Sort& type,
+                  bool isUser);
   /**
    * Creates a new sort with the given name.
    */

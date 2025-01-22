@@ -60,6 +60,14 @@ name   = "Parser"
   default    = "false"
   help       = "construct fresh variables always when parsing binders"
 
+[[option]]
+  name       = "termSortOverloading"
+  category   = "expert"
+  long       = "term-sort-overload"
+  type       = "bool"
+  default    = "true"
+  help       = "allow overloading of terms and sorts"
+
 # this is to support security in the online version, and in other similar
 # contexts (--no-include-file disables filesystem access in TPTP and SMT2
 # parsers) the name --no-include-file is legacy: it also now limits any

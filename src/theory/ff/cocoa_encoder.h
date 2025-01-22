@@ -64,7 +64,7 @@ class CocoaEncoder : public FieldObj
 {
  public:
   /** Create a new encoder, for this field. */
-  CocoaEncoder(const FfSize& size);
+  CocoaEncoder(NodeManager* nm, const FfSize& size);
   /** Add a fact (one must call this twice per fact, once per stage). */
   void addFact(const Node& fact);
   /** Start Stage::Encode. */

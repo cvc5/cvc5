@@ -236,6 +236,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
     case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
+    case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
+      return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
     case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
@@ -284,6 +286,12 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+      return "str-ctn-multiset-subset";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
+      return "macro-str-eq-len-unify-prefix";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
+      return "macro-str-eq-len-unify";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:

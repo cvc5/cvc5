@@ -43,8 +43,10 @@ class ArithEntail
   /**
    * @param r The rewriter, used for rewriting arithmetic terms. If none
    * is provided, we rely on the ArithPolyNorm utility.
+   * @param recApprox Whether to use recursive arithmetic approxiations in this
+   * class.
    */
-  ArithEntail(Rewriter* r);
+  ArithEntail(Rewriter* r, bool recApprox = false);
   /**
    * Returns the rewritten form of a term, which must be an integer term.
    * This method invokes the rewriter, if one is provided, and uses the
@@ -287,6 +289,8 @@ class ArithEntail
   static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
   /** The underlying rewriter, if one exists */
   Rewriter* d_rr;
+  /** Whether we are using recursive arithmetic approximations */
+  bool d_recApprox;
   /** Constant zero */
   Node d_zero;
   Node d_one;

@@ -70,15 +70,17 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
     bool matchRecursive(TNode t, TNode n);
 
   public:
-    Template();
-    bool match(TNode n);
-    std::unordered_map<TNode, std::set<TNode>>& partitions() { return d_sets; }
-    Node assertions() {
-      switch(d_assertions.getNumChildren()) {
-      case 0: return Node::null();
-      case 1: return d_assertions[0];
-      default: return Node(d_assertions);
-      }
+   Template(NodeManager* nm);
+   bool match(TNode n);
+   std::unordered_map<TNode, std::set<TNode>>& partitions() { return d_sets; }
+   Node assertions()
+   {
+     switch (d_assertions.getNumChildren())
+     {
+       case 0: return Node::null();
+       case 1: return d_assertions[0];
+       default: return Node(d_assertions);
+     }
     }
     void reset();
   };/* class SymmetryBreaker::Template */

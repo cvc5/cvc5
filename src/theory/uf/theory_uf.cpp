@@ -53,7 +53,7 @@ TheoryUF::TheoryUF(Env& env,
       d_dpfgen(env),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
-      d_rewriter(nodeManager(), env.getRewriter()),
+      d_rewriter(nodeManager()),
       d_checker(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
@@ -229,16 +229,22 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     ss << "Cannot process term of abstract type " << node;
     throw LogicException(ss.str());
   }
-  if (k == Kind::HO_APPLY)
+  if (k == Kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
     {
-      if (!node.getType().isFunction())
+      std::stringstream ss;
+      if (k == Kind::HO_APPLY)
       {
-        // If not HO logic, we convert to APPLY_UF
-        Node ret = TheoryUfRewriter::getApplyUfForHoApply(node);
-        return TrustNode::mkTrustRewrite(node, ret);
+        ss << "Higher-order function applications";
       }
+      else
+      {
+        ss << "Function terms";
+      }
+      ss << " are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
+      throw LogicException(ss.str());
     }
   }
   else if (k == Kind::APPLY_UF)

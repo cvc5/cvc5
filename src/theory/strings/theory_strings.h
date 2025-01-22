@@ -250,6 +250,8 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** An arithmetic entailment utility */
+  ArithEntail d_arithEntail;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The eager solver */
