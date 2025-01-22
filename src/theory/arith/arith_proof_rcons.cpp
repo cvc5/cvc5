@@ -21,6 +21,7 @@
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_subs.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -58,6 +59,92 @@ ArithProofRCons::ArithProofRCons(Env& env, TrustId id) : EnvObj(env), d_id(id)
 
 ArithProofRCons::~ArithProofRCons() {}
 
+bool ArithProofRCons::solveEquality(CDProof& cdp,
+                                    TConvProofGenerator& tcnv,
+                                    ArithSubs& asubs,
+                                    const Node& as)
+{
+  Assert(as.getKind() == Kind::EQUAL);
+  Node asr = rewrite(as);
+  Trace("arith-proof-rcons") << "...under subs+rewrite: " << asr << std::endl;
+  // see if there is a variable to solve for
+  std::map<Node, Node> msum;
+  // Use rewritten form to get the monomial, we will prove a = as by tcnv
+  // and as = (v = val) by MACRO_SR_PRED_TRANSFORM below.
+  if (!ArithMSum::getMonomialSumLit(asr, msum))
+  {
+    Trace("arith-proof-rcons") << "......failed msum" << std::endl;
+    return false;
+  }
+  for (const std::pair<const Node, Node>& m : msum)
+  {
+    if (m.first.isNull() || !m.second.isNull())
+    {
+      Trace("arith-proof-rcons") << "......nonfactor " << m.first << " ("
+                                 << m.second << ")" << std::endl;
+      continue;
+    }
+    Node veq_c, val;
+    int ires = ArithMSum::isolate(m.first, msum, veq_c, val, Kind::EQUAL);
+    if (ires == 0 || !veq_c.isNull())
+    {
+      Trace("arith-proof-rcons") << "......no isolate " << m.first << std::endl;
+      continue;
+    }
+    Trace("arith-proof-rcons")
+        << "SUBS: " << m.first << " = " << val << std::endl;
+    Node eq = m.first.eqNode(val);
+    if (as != eq)
+    {
+      cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
+    }
+    // to ensure a fixed point substitution, we apply the current
+    // substitution to the range of previous substitutions
+    if (!asubs.empty())
+    {
+      ArithSubs stmp;
+      stmp.add(m.first, val);
+      for (size_t i = 0, ns = asubs.d_subs.size(); i < ns; i++)
+      {
+        asubs.d_subs[i] = stmp.applyArith(asubs.d_subs[i]);
+      }
+    }
+    asubs.add(m.first, val);
+    tcnv.addRewriteStep(m.first, val, &cdp);
+    return true;
+  }
+  Trace("arith-proof-rcons") << "...failed solve equality (no factor)" << std::endl;
+  return false;
+}
+
+Node ArithProofRCons::applySR(ArithSubs& asubs, const Node& a)
+{
+  Node as = asubs.applyArith(a);
+  return rewrite(as);
+}
+
+Node ArithProofRCons::applySR(CDProof& cdp,
+                              TConvProofGenerator& tcnv,
+                              ArithSubs& asubs,
+                              const Node& a)
+{
+  Node as = asubs.applyArith(a);
+  Node asr = rewrite(as);
+  Trace("arith-proof-rcons") << "...have " << asr << std::endl;
+  if (a != as)
+  {
+    std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
+    Assert(pfn->getResult()[1] == as)
+        << "no-solve: got " << pfn->getResult()[1] << ", expected " << as;
+    cdp.addProof(pfn);
+    cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
+  }
+  if (as != asr)
+  {
+    cdp.addStep(asr, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {asr});
+  }
+  return asr;
+}
 std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
 {
   Trace("arith-proof-rcons") << "ArithProofRCons: prove " << fact << std::endl;
@@ -81,113 +168,76 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
     ArithSubsTermContext astc;
     TConvProofGenerator tcnv(d_env,
                              nullptr,
-                             TConvPolicy::ONCE,
+                             TConvPolicy::FIXPOINT,
                              TConvCachePolicy::NEVER,
                              "ArithRConsTConv",
                              &astc);
-    Node tgtAssump;
-    // prove false
-    for (const Node& a : assumps)
+    // if we have not yet found a contradiction, we look for contradictions, or
+    // further entailed equalities.
+    bool addedSubs = true;
+    std::unordered_set<Node> solved;
+    while (!success && addedSubs)
     {
-      Trace("arith-proof-rcons") << "Assumption: " << a << std::endl;
-      if (a.getKind() != Kind::EQUAL)
+      Trace("arith-proof-rcons") << "==== Iterate" << std::endl;
+      addedSubs = false;
+      // check if two unsolved literals rewrite to the negation of one another
+      std::map<Node, bool> pols;
+      std::map<Node, Node> psrc;
+      std::map<Node, bool>::iterator itp;
+      std::map<Node, Node> boundingLits[2];
+      for (const Node& a : assumps)
       {
-        Trace("arith-proof-rcons") << "...not solved" << std::endl;
-        assumpsNoSolve.push_back(a);
-        continue;
-      }
-      Node as = asubs.applyArith(a);
-      Node asr = rewrite(as);
-      Trace("arith-proof-rcons")
-          << "...under subs+rewrite: " << asr << std::endl;
-      if (asr == d_false)
-      {
-        Trace("arith-proof-rcons") << "...success!" << std::endl;
-        if (a != as)
+        if (solved.find(a)!=solved.end())
         {
-          std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-          Assert(pfn->getResult()[1] == as);
-          cdp.addProof(pfn);
-          cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
+          // already solved
+          continue;
         }
-        cdp.addStep(
-            d_false, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {d_false});
-        success = true;
-        break;
-      }
-      // see if there is a variable to solve for
-      std::map<Node, Node> msum;
-      bool solved = false;
-      if (ArithMSum::getMonomialSumLit(as, msum))
-      {
-        for (const std::pair<const Node, Node>& m : msum)
+        Trace("arith-proof-rcons") << "- process " << a << std::endl;
+        Node as = asubs.applyArith(a);
+        Node asr = rewrite(as);
+        Trace("arith-proof-rcons") << "  - SR to " << asr << std::endl;
+        if (asr == d_false)
         {
-          if (m.first.isNull() || !m.second.isNull())
+          Trace("arith-proof-rcons") << "...success!" << std::endl;
+          // apply substitution + rewriting again, with proofs
+          applySR(cdp, tcnv, asubs, a);
+          success = true;
+          break;
+        }
+        // if its an equality, try to turn it into a substitution
+        if (asr.getKind()==Kind::EQUAL)
+        {
+          // must remember the proof prior to changing the substitution
+          std::shared_ptr<ProofNode> pfn;
+          if (a != as)
           {
-            continue;
+            pfn = tcnv.getProofForRewriting(a);
           }
-          Node veq_c, val;
-          int ires = ArithMSum::isolate(m.first, msum, veq_c, val, Kind::EQUAL);
-          if (ires != 0 && veq_c.isNull())
+          if (solveEquality(cdp, tcnv, asubs, as))
           {
-            solved = true;
-            Trace("arith-proof-rcons")
-                << "...solved " << m.first << " = " << val << std::endl;
-            Node eq = m.first.eqNode(val);
-            if (a != as)
+            addedSubs = true;
+            solved.insert(a);
+            if (pfn != nullptr)
             {
-              std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-              Assert(pfn->getResult()[1] == as);
               cdp.addProof(pfn);
               cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
             }
-            if (as != eq)
-            {
-              cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
-            }
-            asubs.add(m.first, val);
-            tcnv.addRewriteStep(m.first, val, &cdp);
-            break;
           }
-        }
-      }
-      if (!solved)
-      {
-        Trace("arith-proof-rcons") << "...not solved" << std::endl;
-        assumpsNoSolve.push_back(a);
-      }
-    }
-    if (!success)
-    {
-      Trace("arith-proof-rcons")
-          << "Not solved by rewriting single literal" << std::endl;
-      // check if two unsolved literals rewrite to the negation of one another
-      std::vector<Node> sassumps;
-      std::map<Node, bool> pols;
-      std::map<Node, bool>::iterator itp;
-      for (const Node& a : assumpsNoSolve)
-      {
-        Node as = asubs.applyArith(a);
-        Node asr = rewrite(as);
-        Trace("arith-proof-rcons") << "...have " << asr << std::endl;
-        if (a != as)
-        {
-          std::shared_ptr<ProofNode> pfn = tcnv.getProofForRewriting(a);
-          Assert(pfn->getResult()[1] == as);
-          cdp.addProof(pfn);
-          cdp.addStep(as, ProofRule::EQ_RESOLVE, {a, a.eqNode(as)}, {});
-        }
-        if (as != asr)
-        {
-          cdp.addStep(asr, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {asr});
+          continue;
         }
         bool pol = asr.getKind() != Kind::NOT;
         Node aslit = pol ? asr : asr[0];
         itp = pols.find(aslit);
+        // look for conflicting atoms
         if (itp != pols.end())
         {
           if (itp->second != pol)
           {
+            // apply substitution + rewriting again, with proofs
+            Node a1 = applySR(cdp, tcnv, asubs, a);
+            Assert(a1 == asr);
+            Node a2 = applySR(cdp, tcnv, asubs, psrc[aslit]);
+            Assert(a2 == asr.negate());
             Node asn = aslit.notNode();
             cdp.addStep(d_false, ProofRule::CONTRA, {aslit, asn}, {});
             success = true;
@@ -198,6 +248,73 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
         else
         {
           pols[aslit] = pol;
+          psrc[aslit] = a;
+        }
+        // otherwise remember bounds
+        if (aslit.getKind() == Kind::GEQ)
+        {
+          boundingLits[pol ? 0 : 1][aslit[0]] = a;
+        }
+      }
+      // if not successful, see if we can use trichotomy to infer that
+      // upper, lower bounds entail an equality.
+      if (!success)
+      {
+        std::map<Node, Node>& bl0 = boundingLits[0];
+        std::map<Node, Node>& bl1 = boundingLits[1];
+        std::map<Node, Node>::iterator itb;
+        Rational negone(-1);
+        NodeManager* nm = nodeManager();
+        for (const std::pair<const Node, Node>& bl : bl0)
+        {
+          itb = bl1.find(bl.first);
+          if (itb == bl1.end())
+          {
+            continue;
+          }
+          // reconstruct the literals of the form
+          // (>= t c1) and (not (>= t c2)).
+          Node l1 = applySR(asubs, bl.second);
+          Assert(l1.getKind() != Kind::NOT);
+          Node l2 = applySR(asubs, itb->second);
+          Assert(l2.getKind() == Kind::NOT);
+          l2 = l2[0];
+          Trace("arith-proof-rcons") << "......dual binding lits " << l1
+                                     << ", not " << l2 << std::endl;
+          Assert(l1.getKind() == Kind::GEQ && l2.getKind() == Kind::GEQ);
+          Assert(l1[1].getKind() == Kind::CONST_INTEGER
+                 && l2[1].getKind() == Kind::CONST_INTEGER);
+          Assert(l1[0] == l2[0]);
+          Rational c1 = l1[1].getConst<Rational>();
+          Rational c2m1 = l2[1].getConst<Rational>() + negone;
+          // if c1 == c2-1, then this implies t = c1.
+          if (c1 == c2m1)
+          {
+            // apply substitution + rewriting with proofs now
+            applySR(cdp, tcnv, asubs, bl.second);
+            applySR(cdp, tcnv, asubs, itb->second);
+            Node l2strict =
+                nm->mkNode(Kind::GT, l2[0], nm->mkConstInt(c2m1)).notNode();
+            Node l2n = l2.notNode();
+            Node equiv = l2n.eqNode(l2strict);
+            cdp.addStep(equiv, ProofRule::MACRO_SR_PRED_INTRO, {}, {equiv});
+            cdp.addStep(l2strict, ProofRule::EQ_RESOLVE, {l2n, equiv}, {});
+            Node eq = l1[0].eqNode(l1[1]);
+            cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {l1, l2strict}, {});
+            Trace("arith-proof-rcons")
+                << ".......solves to " << eq << " by trichotomy" << std::endl;
+            if (solveEquality(cdp, tcnv, asubs, eq))
+            {
+              addedSubs = true;
+              solved.insert(bl.second);
+              solved.insert(itb->second);
+              break;
+            }
+          }
+          else if (c1 > c2m1)
+          {
+            // if c1 > c2-1, this implies a contradiction
+          }
         }
       }
     }
@@ -208,6 +325,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
   }
   if (!success)
   {
+    Trace("arith-proof-rcons") << "...failed!" << std::endl;
     cdp.addTrustedStep(fact, d_id, {}, {});
   }
   return cdp.getProofFor(fact);

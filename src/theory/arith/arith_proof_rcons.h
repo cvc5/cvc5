@@ -25,8 +25,10 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+class TConvProofGenerator;
 namespace theory {
 namespace arith {
+class ArithSubs;
 
 /**
  * Proof generator that is used for reconstructing lemmas coming from
@@ -50,6 +52,32 @@ class ArithProofRCons : protected EnvObj, public ProofGenerator
   std::string identify() const override;
 
  private:
+  /**
+   * If returns true, then as is equivalent to an equality (= x t). We do
+   * the following:
+   * (1) Add a proof of (= x t) with free assumption as to cdp.
+   * (2) Add a rewrite step x --> t to tconv referencing cdp.
+   * (3) Apply the substitution x --> t to the range of asubs and add x --> t
+   * to it.
+   */
+  bool solveEquality(CDProof& cdp,
+                     TConvProofGenerator& tconv,
+                     ArithSubs& asubs,
+                     const Node& as);
+  /**
+   * Returns the result of applying asubs to a and then rewriting.
+   */
+  Node applySR(ArithSubs& asubs, const Node& a);
+  /**
+   * Returns the result of applying asubs to a and then rewriting, where a
+   * is a predicate. Furthermore ensures that a proof of the returned predicate
+   * is added to cdp with free assumption a. Note that if we return a unchanged,
+   * then no proof is added to cdp.
+   */
+  Node applySR(CDProof& cdp,
+               TConvProofGenerator& tcnv,
+               ArithSubs& asubs,
+               const Node& a);
   /** The trust id to use if the proof reconstruction fails. */
   TrustId d_id;
   /** False node */
