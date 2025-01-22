@@ -2171,7 +2171,7 @@ void SolverEngine::setOption(const std::string& key,
       ss << "expert option " << key
          << " cannot be set when safeOptions is true.";
       // If we are setting to a default value, the exception can be avoided
-      // by omitting.
+      // by omitting the expert option.
       if (getOption(key) == value)
       {
         // note this is not the case for options which safe-options explicitly
