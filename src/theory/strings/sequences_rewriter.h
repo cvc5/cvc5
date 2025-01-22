@@ -36,6 +36,7 @@ class SequencesRewriter : public TheoryRewriter
  public:
   SequencesRewriter(NodeManager* nm,
                     Rewriter* r,
+                    ArithEntail& ae,
                     HistogramStat<Rewrite>* statistics);
   /** The underlying entailment utilities */
   ArithEntail& getArithEntail();
@@ -140,6 +141,10 @@ class SequencesRewriter : public TheoryRewriter
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
   //-------------------- ProofRewriteRule
+  /** Rewrite based on STR_EQ_LEN_UNIFY_PREFIX */
+  Node rewriteViaStrEqLenUnifyPrefix(const Node& n);
+  /** Rewrite based on STR_EQ_LEN_UNIFY */
+  Node rewriteViaStrEqLenUnify(const Node& n, Rewrite& rule);
   /** Rewrite based on RE_LOOP_ELIM */
   Node rewriteViaReLoopElim(const Node& n);
   /** Rewrite based on RE_INTER_UNION_INCLUSION */

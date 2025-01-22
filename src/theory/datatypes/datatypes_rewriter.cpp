@@ -1096,7 +1096,10 @@ Node DatatypesRewriter::expandDefinition(Node n)
   {
     case Kind::APPLY_SELECTOR:
     {
+      Trace("dt-expand") << "expand selector, share sel = "
+                         << d_opts.datatypes.dtSharedSelectors << std::endl;
       ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
+      Trace("dt-expand") << "...returns " << ret << std::endl;
     }
     break;
     case Kind::APPLY_UPDATER:

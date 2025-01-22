@@ -478,11 +478,9 @@ bool EqProof::expandTransitivityForDisequalities(
         Kind::EQUAL,
         nm->mkNode(Kind::EQUAL, substPremises[0][0], substPremises[1][0]),
         premises[0][0]);
-    p->addStep(congConclusion,
-               ProofRule::CONG,
-               substPremises,
-               {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
-               true);
+    std::vector<Node> cargs;
+    ProofRule rule = expr::getCongRule(congConclusion[0], cargs);
+    p->addStep(congConclusion, rule, substPremises, cargs, true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
                           << congConclusion << "\n";
@@ -609,12 +607,9 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
       << "EqProof::expandTransitivityForTheoryDisequalities: adding  "
       << ProofRule::CONG << " step for " << congConclusion << " from "
       << subChildren << "\n";
-  NodeManager* nm = NodeManager::currentNM();
-  p->addStep(congConclusion,
-             ProofRule::CONG,
-             {subChildren},
-             {ProofRuleChecker::mkKindNode(nm, Kind::EQUAL)},
-             true);
+  std::vector<Node> cargs;
+  ProofRule rule = expr::getCongRule(conclusion[termPos], cargs);
+  p->addStep(congConclusion, rule, {subChildren}, cargs, true);
   Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                            "congruence derived "
                         << congConclusion << "\n";
@@ -1442,7 +1437,7 @@ Node EqProof::addToProof(CDProof* p,
     // Get node of the function operator over which congruence is being
     // applied.
     std::vector<Node> args;
-    ProofRule r = expr::getCongRule(d_node[0], args);
+    ProofRule r = expr::getCongRule(conclusion[0], args);
     // Add congruence step
     if (TraceIsOn("eqproof-conv"))
     {

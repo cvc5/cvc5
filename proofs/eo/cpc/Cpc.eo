@@ -81,6 +81,15 @@
 ;   and are used to model cvc5's internal symbols, including its skolems,
 ;   other internally introduced terms, and extensions.
 
+; note: >
+;   @const corresponds to generic abstract constants, which correspond to internally
+;   introduced terms that do not have a formal definition in the signature.
+(declare-const @const (-> (! Int :opaque) (! Type :opaque :var T) T))
+
+; note: >
+;   @var is an alias of eo::var to ensure the cpc proof does not use eo::var.
+(define @var ((s String) (T Type)) (eo::var s T))
+
 ; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
 ; disclaimer: this function is not in SMT-LIB.
@@ -165,10 +174,15 @@
                                            ))))
       (($run_evaluate (str.prefixof x y)) (eo::define ((ex ($run_evaluate x)))
                                           (eo::define ((ey ($run_evaluate y)))
-                                          (eo::define ((r (eo::find ey ex)))
-                                            (eo::ite (eo::is_eq r 0) true
-                                            (eo::ite (eo::is_z r) false
-                                              (str.prefixof ex ey)))))))
+                                          (eo::define ((r (eo::extract ey 0 (eo::add (eo::len ex) -1))))
+                                            (eo::is_eq ex r)))))
+      (($run_evaluate (str.suffixof x y)) (eo::define ((ex ($run_evaluate x)))
+                                          (eo::define ((ey ($run_evaluate y)))
+                                          (eo::define ((eyl (eo::len ey)))
+                                          (eo::define ((r (eo::extract ey
+                                                            (eo::add eyl (eo::neg (eo::len ex))) 
+                                                            (eo::add eyl -1))))
+                                            (eo::is_eq ex r))))))
       (($run_evaluate (str.indexof x y n)) (eo::define ((en ($run_evaluate n)))
                                            (eo::ite (eo::is_neg en) -1
                                              (eo::define ((ex ($run_evaluate x)))
@@ -189,12 +203,26 @@
                                              ($str_to_int_eval ex)))
       (($run_evaluate (str.from_int n))    (eo::define ((en ($run_evaluate n)))
                                              ($str_from_int_eval en)))
+      (($run_evaluate (str.<= x y))        (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
+                                             ($str_leq_eval ex ey))))
       (($run_evaluate (str.to_lower x))    (eo::define ((ex ($run_evaluate x)))
                                              ($str_to_lower_eval ex)))
       (($run_evaluate (str.to_upper x))    (eo::define ((ex ($run_evaluate x)))
                                              ($str_to_upper_eval ex)))
       (($run_evaluate (str.rev x))         (eo::define ((ex ($run_evaluate x)))
                                              ($str_rev_eval ex)))
+      (($run_evaluate (str.update x n y))  (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((en ($run_evaluate n)))
+                                           (eo::define ((exl (eo::len ex)))
+                                           (eo::ite (eo::or (eo::gt 0 en) (eo::gt en exl))
+                                             ex
+                                             (eo::define ((ey ($run_evaluate y)))
+                                             (eo::define ((rc (eo::add (eo::neg en) exl)))
+                                             (eo::concat
+                                               (eo::extract ex 0 (eo::add en -1))
+                                               (eo::extract ey 0 (eo::add rc -1))
+                                               (eo::extract ex (eo::add en (eo::len ey)) exl)))))))))
 
       ; bitvectors
       (($run_evaluate (bvnot xb))          (eo::not ($run_evaluate xb)))

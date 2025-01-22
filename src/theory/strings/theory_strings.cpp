@@ -57,8 +57,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
+      d_arithEntail(env.getRewriter(), options().strings.stringRecArithApprox),
       d_rewriter(env.getNodeManager(),
                  env.getRewriter(),
+                 d_arithEntail,
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
@@ -101,9 +103,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_absModelCounter(0),
       d_strGapModelCounter(0),
       d_cpacb(*this),
-      d_psrewPg(env.isTheoryProofProducing() ? new TrustProofGenerator(
-                    env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
-                                             : nullptr)
+      d_psrewPg(env.isTheoryProofProducing()
+                    ? new TrustProofGenerator(
+                          env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
+                    : nullptr)
 {
   d_termReg.finishInit(&d_im);
 
@@ -685,8 +688,13 @@ bool TheoryStrings::collectModelInfoType(
               AlwaysAssert(!len_splits.empty());
               for (const std::pair<size_t, size_t>& sl : len_splits)
               {
-                Node s1 = nm->mkNode(Kind::STRING_LENGTH, col[sl.first][0]);
-                Node s2 = nm->mkNode(Kind::STRING_LENGTH, col[sl.second][0]);
+                // ensure we use proxy variables or else the split may be rewritten away
+                Node k1 = col[sl.first][0];
+                Node kp1 = d_termReg.getProxyVariableFor(k1);
+                Node k2 = col[sl.second][0];
+                Node kp2 = d_termReg.getProxyVariableFor(k2);
+                Node s1 = nm->mkNode(Kind::STRING_LENGTH, kp1.isNull() ? k1 : kp1);
+                Node s2 = nm->mkNode(Kind::STRING_LENGTH, kp2.isNull() ? k2 : kp2);
                 Node eq = s1.eqNode(s2);
                 Node spl = nm->mkNode(Kind::OR, eq, eq.negate());
                 d_im.lemma(spl, InferenceId::STRINGS_CMI_SPLIT);
