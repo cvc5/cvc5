@@ -77,6 +77,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
                            TheoryRewriteCtx::POST_DSL);
+  // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
 
@@ -2325,15 +2326,14 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 
   Node slenRew =
       d_arithEntail.rewriteArith(nm->mkNode(Kind::STRING_LENGTH, node[0]));
-  if (node[2] != slenRew)
+  // make strict to avoid infinite loops
+  if (d_arithEntail.check(node[2], slenRew, true))
   {
-    if (d_arithEntail.check(node[2], slenRew))
-    {
-      // end point beyond end point of string, map to slenRew
-      Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], slenRew);
-      return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
-    }
+    // end point beyond end point of string, map to slenRew
+    Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], slenRew);
+    return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
   }
+  
 
   // Rewrite based on symbolic length analysis, using the strings entailment
   // utility that is owned by this rewriter. This handles three rewrite rules
@@ -3663,8 +3663,10 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
       //   "Z" ++ y ++ "Z" ++ y
       TypeNode t = x.getType();
       Node emp = Word::mkEmptyWord(t);
-      Node yp = d_rr->rewrite(nm->mkNode(
-          Kind::REGEXP_DIFF, y, nm->mkNode(Kind::STRING_TO_REGEXP, emp)));
+      Node yp = nm->mkNode(Kind::REGEXP_INTER,
+                           y,
+                           nm->mkNode(Kind::REGEXP_COMPLEMENT,
+                                      nm->mkNode(Kind::STRING_TO_REGEXP, emp)));
       std::vector<Node> res;
       String rem = x.getConst<String>();
       std::pair<size_t, size_t> match(0, 0);
@@ -3849,7 +3851,8 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
 Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = nodeManager();
-  Node len = d_rr->rewrite(nm->mkNode(Kind::STRING_LENGTH, n));
+  Node len = d_arithEntail.rewriteLengthIntro(nm->mkNode(Kind::STRING_LENGTH, n));
+  len = d_arithEntail.rewriteArith(len);
   Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
 }

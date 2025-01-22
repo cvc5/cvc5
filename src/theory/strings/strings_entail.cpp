@@ -697,17 +697,25 @@ Node StringsEntail::checkContains(Node a, Node b)
 
 bool StringsEntail::checkNonEmpty(Node a)
 {
+  if (a.isConst())
+  {
+    return Word::getLength(a)!=0;
+  }
   Node len = NodeManager::mkNode(Kind::STRING_LENGTH, a);
-  len = d_rr->rewrite(len);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(len, true);
 }
 
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
+  if (s.isConst())
+  {
+    return Word::getLength(s)!=0;
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(Kind::STRING_LENGTH, s);
-  len = d_rr->rewrite(len);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(one, len)
          && (!strict || d_arithEntail.check(len, true));
 }
