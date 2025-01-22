@@ -188,6 +188,11 @@
 ; - C2 Bool: The desired reordered form of C1.
 ; requires: Showing that C1 can be reordered to obtain C2.
 ; conclusion: The desired clause C2.
+; note: >
+;   The implementation here checks only that C1 is a subset of C2, making the
+;   rule sound. The internal proof checker in cvc5 ensures this rule is only
+;   applied when C1 and C2 have exactly the same literals when considered as
+;   a multiset.
 (declare-rule reordering ((C1 Bool) (C2 Bool))
     :premises (C1)
     :args (C2)

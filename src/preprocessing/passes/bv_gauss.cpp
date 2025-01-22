@@ -755,7 +755,8 @@ PreprocessingPassResult BVGauss::applyInternal(
       if (ret == BVGauss::Result::NONE)
       {
         Node n = nm->mkConst<bool>(false);
-        assertionsToPreprocess->push_back(n);
+        assertionsToPreprocess->push_back(
+            n, false, nullptr, TrustId::PREPROCESS_BV_GUASS_LEMMA);
         return PreprocessingPassResult::CONFLICT;
       }
       else
@@ -770,7 +771,8 @@ PreprocessingPassResult BVGauss::applyInternal(
           Node a = nm->mkNode(Kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
           // add new assertion
-          assertionsToPreprocess->push_back(a);
+          assertionsToPreprocess->push_back(
+              a, false, nullptr, TrustId::PREPROCESS_BV_GUASS_LEMMA);
         }
       }
     }
@@ -785,7 +787,8 @@ PreprocessingPassResult BVGauss::applyInternal(
       Node a = aref[i];
       Node as = a.substitute(subst.begin(), subst.end());
       // replace the assertion
-      assertionsToPreprocess->replace(i, as);
+      assertionsToPreprocess->replace(
+          i, as, nullptr, TrustId::PREPROCESS_BV_GUASS);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

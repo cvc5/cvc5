@@ -33,6 +33,7 @@
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
+#include "smt/proof_logger.h"
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
@@ -45,7 +46,10 @@ PfManager::PfManager(Env& env)
       d_rewriteDb(nullptr),
       d_pchecker(nullptr),
       d_pnm(nullptr),
-      d_pfpp(nullptr)
+      d_pfpp(nullptr),
+      d_pppg(nullptr),
+      d_finalCb(env),
+      d_finalizer(env, d_finalCb)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
@@ -75,6 +79,7 @@ PfManager::PfManager(Env& env)
       output(OutputTag::RARE_DB) << ss.str();
     }
   }
+
   // enable the proof checker and the proof node manager
   d_pchecker.reset(
       new ProofChecker(statisticsRegistry(),
@@ -140,6 +145,9 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::TRUST);
   }
   d_false = nodeManager()->mkConst(false);
+
+  d_pppg = std::make_unique<PreprocessProofGenerator>(
+      d_env, userContext(), "smt::PreprocessProofGenerator");
 }
 
 PfManager::~PfManager() {}
@@ -156,12 +164,14 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
   return r;
 }
 
-std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
-    std::shared_ptr<ProofNode> pfn, SmtSolver& smt, ProofScopeMode scopeMode)
+void PfManager::startProofLogging(std::ostream& out, Assertions& as)
 {
-  Assertions& as = smt.getAssertions();
-  PreprocessProofGenerator* pppg =
-      smt.getPreprocessor()->getPreprocessProofGenerator();
+  Unimplemented() << "Not yet implemented" << std::endl;
+}
+
+std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
+    std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
+{
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
   Trace("smt-proof")
@@ -210,7 +220,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   {
     d_pfpp->setAssertions(assertions, false);
   }
-  d_pfpp->process(pfn, pppg);
+  d_pfpp->process(pfn, d_pppg.get());
 
   switch (scopeMode)
   {
@@ -265,12 +275,29 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   }
 }
 
+void PfManager::checkFinalProof(std::shared_ptr<ProofNode> pfn)
+{
+  // take stats and check pedantic
+  d_finalCb.initializeUpdate();
+  d_finalizer.process(pfn);
+
+  std::stringstream serr;
+  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
+  if (wasPedanticFailure)
+  {
+    AlwaysAssert(!wasPedanticFailure)
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
+        << serr.str();
+  }
+}
+
 void PfManager::printProof(std::ostream& out,
                            std::shared_ptr<ProofNode> fp,
                            options::ProofFormatMode mode,
+                           ProofScopeMode scopeMode,
                            const std::map<Node, std::string>& assertionNames)
 {
-  Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
+  Trace("smt-proof") << "PfManager::printProof: start " << mode << std::endl;
   // We don't want to invalidate the proof nodes in fp, since these may be
   // reused in further check-sat calls, or they may be used again if the
   // user asks for the proof again (in non-incremental mode). We don't need to
@@ -290,10 +317,9 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
-    Assert(fp->getRule() == ProofRule::SCOPE);
     proof::AlfNodeConverter atp(nodeManager());
     proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
-    alfp.print(out, fp);
+    alfp.print(out, fp, scopeMode);
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {
@@ -332,7 +358,7 @@ void PfManager::printProof(std::ostream& out,
 }
 
 void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
-                                       SmtSolver& smt)
+                                       Assertions& as)
 {
   Trace("difficulty-proc") << "Translate difficulty start" << std::endl;
   Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
@@ -361,7 +387,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   cdp.addStep(fnode, ProofRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;
-  std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
+  std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, as);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   // We are typically a SCOPE here, although if we are not, then the proofs
   // have no free assumptions. If this is the case, then the only difficulty
@@ -403,9 +429,16 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
+ProofLogger* PfManager::getProofLogger() const { return d_plog.get(); }
+
 rewriter::RewriteDb* PfManager::getRewriteDatabase() const
 {
   return d_rewriteDb.get();
+}
+
+PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
+{
+  return d_pppg.get();
 }
 
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)

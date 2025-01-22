@@ -31,6 +31,38 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
+void getTheoriesOf(Env& env, const Node& n, std::vector<TheoryId>& theories)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      // get the theories of the term and its type
+      TheoryId tid = env.theoryOf(cur);
+      if (std::find(theories.begin(), theories.end(), tid) == theories.end())
+      {
+        theories.push_back(tid);
+      }
+      TheoryId ttid = env.theoryOf(cur.getType());
+      if (ttid!=tid)
+      {
+        if (std::find(theories.begin(), theories.end(), ttid) == theories.end())
+        {
+          theories.push_back(ttid);
+        }
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
 CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
 void CheckModels::checkModel(TheoryModel* m,
@@ -94,11 +126,11 @@ void CheckModels::checkModel(TheoryModel* m,
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
     // altered by simplification below.
-    n = m->getValue(n);
+    Node nval = m->getValue(n);
     verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
                << std::endl;
 
-    if (n.isConst() && n.getConst<bool>())
+    if (nval.isConst() && nval.getConst<bool>())
     {
       // assertion is true, everything is fine
       continue;
@@ -119,14 +151,14 @@ void CheckModels::checkModel(TheoryModel* m,
     // Note that warnings like these can be avoided for quantified formulas
     // by making preprocessing passes explicitly record how they
     // rewrite quantified formulas (see cvc4-wishues#43).
-    if (!n.isConst())
+    if (!nval.isConst())
     {
       // Not constant, print a less severe warning message here.
       warning()
           << "Warning : SolverEngine::checkModel(): cannot check simplified "
              "assertion : "
-          << n << std::endl;
-      noCheckList.push_back(n);
+          << nval << std::endl;
+      noCheckList.push_back(nval);
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
@@ -135,19 +167,48 @@ void CheckModels::checkModel(TheoryModel* m,
                << std::endl;
     std::stringstream ss;
     ss << "SolverEngine::checkModel(): "
-       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << std::endl
-       << "assertion:     " << assertion << std::endl
-       << "simplifies to: " << n << std::endl
-       << "expected `true'." << std::endl
-       << "Run with `--check-models -v' for additional diagnostics.";
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL";
+    std::stringstream ssdet;
+    ssdet << ":" << std::endl
+          << "assertion:     " << assertion << std::endl
+          << "simplifies to: " << nval << std::endl
+          << "expected `true'." << std::endl
+          << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
+      // compute the theories involved, e.g. for the sake of issue tracking.
+      // to ensure minimality, if this is a topmost AND, miniscope
+      Node nmin = n;
+      while (nmin.getKind() == Kind::AND)
+      {
+        for (const Node& nc : nmin)
+        {
+          if (m->getValue(nc) == nval)
+          {
+            nmin = nc;
+            break;
+          }
+        }
+      }
+      // collect the theories of the assertion
+      std::vector<TheoryId> theories;
+      getTheoriesOf(d_env, nmin, theories);
+      std::sort(theories.begin(), theories.end());
+      ss << " {";
+      for (TheoryId tid : theories)
+      {
+        if (tid != THEORY_BOOL)
+        {
+          ss << " " << tid;
+        }
+      }
+      ss << " }";
       // internal error if hardFailure is true
-      InternalError() << ss.str();
+      InternalError() << ss.str() << ssdet.str();
     }
     else
     {
-      warning() << ss.str() << std::endl;
+      warning() << ss.str() << ssdet.str() << std::endl;
     }
   }
   if (noCheckList.empty())

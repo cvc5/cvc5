@@ -250,8 +250,10 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
   for (const Node& f : funs)
   {
     Assert(f.isVar());
-    // do not print selectors, constructors
-    if (!f.getType().isFirstClass())
+    // do not print selectors, constructors, testers, updaters
+    TypeNode ft = f.getType();
+    if (ft.isDatatypeSelector() || ft.isDatatypeConstructor()
+        || ft.isDatatypeTester() || ft.isDatatypeUpdater())
     {
       continue;
     }
@@ -381,7 +383,7 @@ bool PrintBenchmark::decomposeDefinition(Node a,
   {
     isRecDef = true;
     sym = a[1][0].getOperator();
-    body = NodeManager::currentNM()->mkNode(Kind::LAMBDA, a[0], a[1][1]);
+    body = NodeManager::mkNode(Kind::LAMBDA, a[0], a[1][1]);
     return true;
   }
   else

@@ -52,7 +52,9 @@ PreprocessingPassResult BVToBool::applyInternal(
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(
+        i, new_assertions[i], nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
@@ -221,7 +223,7 @@ Node BVToBool::convertBvTerm(TNode node)
     default: Unhandled();
   }
 
-  NodeBuilder builder(new_kind);
+  NodeBuilder builder(nm, new_kind);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
   {
     builder << convertBvTerm(node[i]);
@@ -255,7 +257,7 @@ Node BVToBool::liftNode(TNode current)
     }
     else
     {
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();

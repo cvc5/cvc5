@@ -194,7 +194,9 @@ class CegisCoreConnective : public Cegis
   class Component
   {
    public:
-    Component() : d_numFalseCores(0), d_numRefPoints(0) {}
+    Component() : d_numFalseCores(0), d_numRefPoints(0)
+    {
+    }
     /** initialize
      *
      * This initializes this component with pre/post condition given by n

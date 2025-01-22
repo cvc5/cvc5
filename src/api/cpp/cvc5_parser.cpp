@@ -230,6 +230,11 @@ void InputParser::initialize()
   {
     sm->setFreshDeclarations(info.boolValue());
   }
+  info = d_solver->getOptionInfo("term-sort-overload");
+  if (info.setByUser)
+  {
+    sm->setTermSortOverload(info.boolValue());
+  }
   // notice that we don't create the parser object until the input is set.
 }
 

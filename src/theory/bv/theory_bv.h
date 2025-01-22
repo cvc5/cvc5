@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__BV__THEORY_BV_H
 #define CVC5__THEORY__BV__THEORY_BV_H
 
+#include "theory/bv/proof_checker.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -84,14 +85,13 @@ class TheoryBV : public Theory
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TrustNode in,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode in, TrustSubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
   TrustNode ppStaticRewrite(TNode atom) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) override;
 
   void presolve() override;
 
@@ -135,6 +135,8 @@ class TheoryBV : public Theory
     IntStat d_solveSubstitutions;
   } d_stats;
 
+  /** Proof rule checker */
+  BVProofRuleChecker d_checker;
 }; /* class TheoryBV */
 
 }  // namespace bv

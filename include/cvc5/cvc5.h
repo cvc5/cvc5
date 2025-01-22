@@ -6403,51 +6403,67 @@ class CVC5_EXPORT Solver
   void pop(uint32_t nscopes = 1) const;
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. @f$A@f$ is the
+   * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpolant <conj>)
+   *     (get-interpolant <symbol> <conj>)
    *
-   * Requires option
-   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
-   * a mode different from `none`. \endverbatim
+   * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+   *
+   * .. note:: Requires option
+   *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
+   *          be set to a mode different from `none`.
+   * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
-   * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
-   *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
-   *         current set of assertions and @f$B@f$ is given in the input by
-   *         `conj`, or the null term if such a term cannot be found.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   Term getInterpolant(const Term& conj) const;
 
   /**
-   * Get an interpolant
+   * Get an interpolant.
+   *
+   *
+   *
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I@f$ is constructed from the given grammar.
+   * @f$A@f$ is the
+   * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-interpolant <conj> <grammar>)
+   *     (get-interpolant <symbol> <conj> <grammar>)
    *
-   * Requires option
-   * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
-   * a mode different from `none`. \endverbatim
+   * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+   *
+   * .. note:: Requires option
+   *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
+   *          be set to a mode different from `none`.
+   * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
    *
    * @param conj The conjecture term.
    * @param grammar The grammar for the interpolant I.
-   * @return A Term @f$I@f$ such that @f$A \rightarrow I@f$ and
-   *         @f$I \rightarrow B@f$ are valid, where @f$A@f$ is the
-   *         current set of assertions and @f$B@f$ is given in the input by
-   *         `conj`, or the null term if such a term cannot be found.
+   * @return The interpolant, if an interpolant exists, else the null term.
    */
   Term getInterpolant(const Term& conj, Grammar& grammar) const;
 

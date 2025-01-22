@@ -36,8 +36,7 @@ class TheoryBool : public Theory {
   /** get the proof checker of this theory */
   ProofRuleChecker* getProofChecker() override;
 
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
 
   std::string identify() const override;
 

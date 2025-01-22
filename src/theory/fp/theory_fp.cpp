@@ -57,7 +57,14 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
   d_inferManager = &d_im;
 }
 
-TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryFp::getTheoryRewriter()
+{
+  if (!options().fp.fp)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 
@@ -119,10 +126,10 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
   // first, see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(node);
+  Node texp = d_rewriter.expandDefinition(node);
   if (!texp.isNull())
   {
-    return texp;
+    return TrustNode::mkTrustRewrite(node, texp, nullptr);
   }
 
   // The following kinds should have been removed by the
@@ -577,6 +584,13 @@ bool TheoryFp::isRegistered(TNode node)
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
+  if (!options().fp.fp)
+  {
+    std::stringstream ss;
+    ss << "Floating points not available in this configuration, try "
+          "--fp.";
+    throw LogicException(ss.str());
+  }
   if (!options().fp.fpExp)
   {
     TypeNode tn = node.getType();
@@ -782,7 +796,7 @@ Node TheoryFp::getCandidateModelValue(TNode node)
     }
     else if (!vit->second)
     {
-      NodeBuilder nb(kind);
+      NodeBuilder nb(nodeManager(), kind);
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

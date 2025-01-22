@@ -185,7 +185,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());
@@ -194,13 +193,13 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   {
     std::stringstream ss;
     ss << "s_" << j;
-    Node si_v = nm->mkBoundVar(ss.str(), d_arg_types[j]);
+    Node si_v = NodeManager::mkBoundVar(ss.str(), d_arg_types[j]);
     d_si_vars.push_back(si_v);
   }
   Assert(d_si_vars.size() == d_arg_types.size());
   for (const Node& inf : d_input_funcs)
   {
-    Node sk = sm->mkDummySkolem("_sik", inf.getType());
+    Node sk = NodeManager::mkDummySkolem("_sik", inf.getType());
     d_input_func_sks.push_back(sk);
   }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;

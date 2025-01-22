@@ -27,7 +27,6 @@
 #include "proof/proof_node_updater.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
-#include "smt/proof_final_callback.h"
 #include "smt/proof_post_processor_dsl.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
@@ -72,7 +71,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * that were encountered in the last call to process, collected at
    * post-order traversal.
    */
-  std::unordered_set<std::shared_ptr<ProofNode>>& getTrustedProofs();
+  std::vector<std::shared_ptr<ProofNode>>& getTrustedProofs();
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
@@ -111,7 +110,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /** Whether we are collecting all trusted rules */
   bool d_collectAllTrusted;
   /** Set of all proofs to attempt to reconstruct */
-  std::unordered_set<std::shared_ptr<ProofNode>> d_trustedPfs;
+  std::vector<std::shared_ptr<ProofNode>> d_trustedPfs;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
@@ -241,13 +240,6 @@ class ProofPostprocess : protected EnvObj
    * and connecting preprocessed assumptions to input assumptions.
    */
   ProofNodeUpdater d_updater;
-  /** The post process callback for finalization */
-  ProofFinalCallback d_finalCb;
-  /**
-   * The finalizer, which is responsible for taking stats and checking for
-   * (lazy) pedantic failures.
-   */
-  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt

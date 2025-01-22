@@ -28,7 +28,7 @@ Node AnnotationElimNodeConverter::postConvert(Node n)
 {
   if (n.isClosure() && n.getNumChildren() == 3)
   {
-    return NodeManager::currentNM()->mkNode(n.getKind(), n[0], n[1]);
+    return NodeManager::mkNode(n.getKind(), n[0], n[1]);
   }
   return n;
 }

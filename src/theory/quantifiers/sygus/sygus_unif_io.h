@@ -36,7 +36,7 @@ class SygusUnifIo;
 class UnifContextIo : public UnifContext
 {
  public:
-  UnifContextIo();
+  UnifContextIo(NodeManager* nm);
   /** get current role */
   NodeRole getCurrentRole() override;
 
@@ -126,6 +126,8 @@ class UnifContextIo : public UnifContext
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
  private:
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** true and false nodes */
   Node d_true;
   Node d_false;

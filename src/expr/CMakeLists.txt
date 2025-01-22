@@ -14,6 +14,8 @@
 ##
 
 libcvc5_add_sources(
+  aci_norm.cpp
+  aci_norm.h
   algorithm/flatten.h
   annotation_elim_node_converter.cpp
   annotation_elim_node_converter.h
@@ -43,6 +45,8 @@ libcvc5_add_sources(
   free_var_cache.h
   function_array_const.cpp
   function_array_const.h
+  internal_skolem_id.cpp
+  internal_skolem_id.h
   kind_map.h
   match_trie.cpp
   match_trie.h

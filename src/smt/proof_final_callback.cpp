@@ -18,6 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
+#include "proof/alf/alf_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -37,6 +38,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
     : EnvObj(env),
       d_ruleCount(statisticsRegistry().registerHistogram<ProofRule>(
           "finalProof::ruleCount")),
+      d_ruleEouCount(statisticsRegistry().registerHistogram<ProofRule>(
+          "finalProof::ruleUnhandledEoCount")),
       d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "finalProof::instRuleId")),
       d_dslRuleCount(statisticsRegistry().registerHistogram<ProofRewriteRule>(
@@ -44,11 +47,17 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
       d_theoryRewriteRuleCount(
           statisticsRegistry().registerHistogram<ProofRewriteRule>(
               "finalProof::theoryRewriteRuleCount")),
+      d_theoryRewriteEouCount(
+          statisticsRegistry().registerHistogram<ProofRewriteRule>(
+              "finalProof::theoryRewriteRuleUnhandledEoCount")),
       d_trustIds(statisticsRegistry().registerHistogram<TrustId>(
           "finalProof::trustCount")),
-      d_trustTheoryIdCount(
+      d_trustTheoryRewriteCount(
           statisticsRegistry().registerHistogram<theory::TheoryId>(
-              "finalProof::trustTheoryIdCount")),
+              "finalProof::trustTheoryRewriteCount")),
+      d_trustTheoryLemmaCount(
+          statisticsRegistry().registerHistogram<theory::TheoryId>(
+              "finalProof::trustTheoryLemmaCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -95,68 +104,76 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     d_minPedanticLevel.minAssign(plevel);
   }
-  // record stats for the rule
-  d_ruleCount << r;
-  ++d_totalRuleCount;
-  // if a DSL rewrite, take DSL stat
-  if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
+  // if not taking statistics, don't bother computing the following
+  if (options().base.statisticsInternal)
   {
-    const std::vector<Node>& args = pn->getArguments();
-    ProofRewriteRule di;
-    if (rewriter::getRewriteRule(args[0], di))
+    // record stats for the rule
+    d_ruleCount << r;
+    bool isHandled = proof::AlfPrinter::isHandled(options(), pn.get());
+    if (!isHandled)
     {
+      d_ruleEouCount << r;
+    }
+    ++d_totalRuleCount;
+    // if a DSL rewrite, take DSL stat
+    if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
+    {
+      const std::vector<Node>& args = pn->getArguments();
+      ProofRewriteRule di = ProofRewriteRule::NONE;
+      rewriter::getRewriteRule(args[0], di);
+      Assert(di != ProofRewriteRule::NONE);
       if (r == ProofRule::DSL_REWRITE)
       {
         d_dslRuleCount << di;
       }
       else
       {
+        if (!isHandled)
+        {
+          d_theoryRewriteEouCount << di;
+        }
         d_theoryRewriteRuleCount << di;
       }
     }
-  }
-  // take stats on the instantiations in the proof
-  else if (r == ProofRule::INSTANTIATE)
-  {
-    Node q = pn->getChildren()[0]->getResult();
-    const std::vector<Node>& args = pn->getArguments();
-    if (args.size() > 1)
+    // take stats on the instantiations in the proof
+    else if (r == ProofRule::INSTANTIATE)
     {
-      InferenceId id;
-      if (getInferenceId(args[1], id))
+      Node q = pn->getChildren()[0]->getResult();
+      const std::vector<Node>& args = pn->getArguments();
+      if (args.size() > 1)
       {
-        d_instRuleIds << id;
+        InferenceId id;
+        if (getInferenceId(args[1], id))
+        {
+          d_instRuleIds << id;
+        }
       }
     }
-  }
-  else if (r == ProofRule::TRUST)
-  {
-    TrustId id;
-    Trace("final-pf-hole") << "hole TRUST";
-    if (getTrustId(pn->getArguments()[0], id))
+    else if (r == ProofRule::TRUST)
     {
-      d_trustIds << id;
-      Trace("final-pf-hole") << " " << id;
+      TrustId id;
+      if (getTrustId(pn->getArguments()[0], id))
+      {
+        d_trustIds << id;
+        if (id == TrustId::THEORY_LEMMA)
+        {
+          const std::vector<Node>& args = pn->getArguments();
+          TheoryId tid = THEORY_BUILTIN;
+          if (args.size() >= 3)
+          {
+            builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+          }
+          d_trustTheoryLemmaCount << tid;
+        }
+      }
     }
-    Trace("final-pf-hole") << ": " << pn->getResult() << std::endl;
-  }
-  else if (r == ProofRule::TRUST_THEORY_REWRITE)
-  {
-    const std::vector<Node>& args = pn->getArguments();
-    Node eq = args[0];
-    TheoryId tid = THEORY_BUILTIN;
-    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-    Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
-                           << " ---> " << eq[1] << std::endl;
-    d_trustTheoryIdCount << tid;
-  }
-  else if (r == ProofRule::MACRO_REWRITE)
-  {
-    if (TraceIsOn("final-pf-hole"))
+    else if (r == ProofRule::TRUST_THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
-      Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      d_trustTheoryRewriteCount << tid;
     }
   }
 
@@ -178,11 +195,44 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
         premises.push_back(pncc->getResult());
       }
       NodeManager* nm = nodeManager();
-      Node query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), conc);
+      Node query = conc;
+      if (!premises.empty())
+      {
+        query = nm->mkNode(Kind::IMPLIES, nm->mkAnd(premises), query);
+      }
+      // print the trusted step information
       if (isOutputOn(OutputTag::TRUSTED_PROOF_STEPS))
       {
         output(OutputTag::TRUSTED_PROOF_STEPS)
-            << "(trusted-proof-step " << query << ")" << std::endl;
+            << "(trusted-proof-step " << query;
+        output(OutputTag::TRUSTED_PROOF_STEPS) << " :rule " << r;
+        TheoryId tid = THEORY_LAST;
+        if (r == ProofRule::TRUST)
+        {
+          TrustId id;
+          if (getTrustId(pn->getArguments()[0], id))
+          {
+            output(OutputTag::TRUSTED_PROOF_STEPS) << " :trust-id " << id;
+            if (id == TrustId::THEORY_LEMMA)
+            {
+              const std::vector<Node>& args = pn->getArguments();
+              if (args.size() >= 3)
+              {
+                builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+              }
+            }
+          }
+        }
+        else if (r == ProofRule::TRUST_THEORY_REWRITE)
+        {
+          const std::vector<Node>& args = pn->getArguments();
+          builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+        }
+        if (tid != THEORY_LAST)
+        {
+          output(OutputTag::TRUSTED_PROOF_STEPS) << " :theory " << tid;
+        }
+        output(OutputTag::TRUSTED_PROOF_STEPS) << ")" << std::endl;
       }
       if (options().proof.checkProofSteps)
       {

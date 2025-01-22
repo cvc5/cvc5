@@ -67,7 +67,14 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
 
 TheoryFiniteFields::~TheoryFiniteFields() {}
 
-TheoryRewriter* TheoryFiniteFields::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryFiniteFields::getTheoryRewriter()
+{
+  if (!options().ff.ff)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryFiniteFields::getProofChecker() { return nullptr; }
 
@@ -176,11 +183,10 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
     Assert(node.getKind() == Kind::EQUAL);
     fieldTy = node[0].getType();
   }
-  else if (!options().ff.ffExp)
+  else if (!options().ff.ff)
   {
     std::stringstream ss;
-    ss << "Finite fields not available in this configuration, try "
-          "--ff-exp.";
+    ss << "Finite fields not available in this configuration, try --ff.";
     throw LogicException(ss.str());
   }
   if (d_subTheories.count(fieldTy) == 0)

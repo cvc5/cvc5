@@ -43,7 +43,8 @@ TheoryBV::TheoryBV(Env& env,
       d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats(statisticsRegistry(), "theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::"),
+      d_checker(nodeManager())
 {
   switch (options().bv.bvSolver)
   {
@@ -63,15 +64,7 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-ProofRuleChecker* TheoryBV::getProofChecker()
-{
-  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
-  {
-    return static_cast<BVSolverBitblastInternal*>(d_internal.get())
-        ->getProofChecker();
-  }
-  return nullptr;
-}
+ProofRuleChecker* TheoryBV::getProofChecker() { return &d_checker; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
@@ -187,14 +180,13 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-Theory::PPAssertStatus TheoryBV::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
   if (k == Kind::EQUAL)
   {
-    auto status = Theory::ppAssert(tin, outSubstitutions);
-    if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
+    bool status = Theory::ppAssert(tin, outSubstitutions);
+    if (status)
     {
       return status;
     }
@@ -246,15 +238,15 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 
         Node concat = utils::mkConcat(children);
         Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-        if (isLegalElimination(extract[0], concat))
+        if (d_valuation.isLegalElimination(extract[0], concat))
         {
           outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
-          return Theory::PP_ASSERT_STATUS_SOLVED;
+          return true;
         }
       }
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
@@ -350,7 +342,7 @@ void TheoryBV::notifySharedTerm(TNode t)
   d_internal->notifySharedTerm(t);
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
+void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
 {
   if (in.getKind() == Kind::EQUAL)
   {
@@ -386,7 +378,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 
           Node dis = nodeManager()->mkNode(Kind::OR, b_eq_0, c_eq_0, b_eq_c);
           Node imp = in.impNode(dis);
-          learned << imp;
+          TrustNode trn = TrustNode::mkTrustLemma(imp, nullptr);
+          learned.emplace_back(trn);
         }
       }
     }
@@ -446,7 +439,7 @@ Node TheoryBV::getValue(TNode node)
     }
     else if (it->second.isNull())
     {
-      NodeBuilder nb(cur.getKind());
+      NodeBuilder nb(nodeManager(), cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         nb << cur.getOperator();

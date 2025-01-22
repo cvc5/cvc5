@@ -33,14 +33,14 @@ class OperatorElim;
 class ArithRewriter : public TheoryRewriter
 {
  public:
-  ArithRewriter(NodeManager* nm, OperatorElim& oe);
+  ArithRewriter(NodeManager* nm, OperatorElim& oe, bool expertEnabled = true);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
   /**
    * Expand definition, which eliminates extended operators like div/mod in
    * the given node.
    */
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
   /**
    * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
    * if possible, return an equivalent formula involving a bitvector inequality.
@@ -67,6 +67,9 @@ class ArithRewriter : public TheoryRewriter
   RewriteResponse preRewriteTerm(TNode t);
   /** postRewrite for terms */
   RewriteResponse postRewriteTerm(TNode t);
+
+  /** Post-rewrites that are only available in expert mode */
+  RewriteResponse postRewriteExpert(TNode t);
 
   /** rewrite real algebraic numbers */
   RewriteResponse rewriteRAN(TNode t);
@@ -108,14 +111,15 @@ class ArithRewriter : public TheoryRewriter
   /** postRewrite INTS_LOG2 */
   RewriteResponse postRewriteIntsLog2(TNode t);
 
-  /** preRewrite transcendental functions */
-  RewriteResponse preRewriteTranscendental(TNode t);
   /** postRewrite transcendental functions */
   RewriteResponse postRewriteTranscendental(TNode t);
 
   /** return rewrite */
   RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
-
+  /**
+   * Return the result of expanding (^ x c) for constant c.
+   */
+  static Node expandPowConst(NodeManager* nm, const Node& n);
   /**
    * Rewrite inequality to bv. If applicable, return
    * the bitvector inequality that is the rewritten form of the arithmetic
@@ -124,6 +128,8 @@ class ArithRewriter : public TheoryRewriter
   Node rewriteIneqToBv(Kind k, const rewriter::Sum& sum, const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
+  /** Whether we permit reasoning about expert extensions of arithmetic */
+  bool d_expertEnabled;
 }; /* class ArithRewriter */
 
 }  // namespace arith

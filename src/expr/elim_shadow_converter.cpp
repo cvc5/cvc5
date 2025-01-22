@@ -123,7 +123,7 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   {
     children.push_back(esnc.convert(q[i]));
   }
-  return NodeManager::currentNM()->mkNode(q.getKind(), children);
+  return nm->mkNode(q.getKind(), children);
 }
 
 }  // namespace cvc5::internal

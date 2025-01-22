@@ -118,21 +118,21 @@ class TheoryRewriter
   virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
-   * Performs a pre-rewrite step.
+   * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
-   * Performs a pre-rewrite step, with proofs.
+   * Performs a post-rewrite step, with proofs.
    *
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse postRewriteWithProof(TNode node);
 
   /**
-   * Performs a post-rewrite step.
+   * Performs a pre-rewrite step.
    *
    * @param node The node to rewrite
    */
@@ -169,11 +169,8 @@ class TheoryRewriter
 
   /**
    * Expand definitions in the term node. This returns a term that is
-   * equivalent to node. It wraps this term in a TrustNode of kind
-   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
-   * null TrustNode may be returned. This is an optimization to avoid
-   * constructing the trivial equality (= node node) internally within
-   * TrustNode.
+   * equivalent to node. If node is unchanged by this method, the
+   * null Node may be returned.
    *
    * The purpose of this method is typically to eliminate the operators in node
    * that are syntax sugar that cannot otherwise be eliminated during rewriting.
@@ -188,8 +185,11 @@ class TheoryRewriter
    * Where possible rewrite rules should be used, definitions should only be
    * used when rewrites are not possible, for example in handling
    * under-specified operations using partially defined functions.
+   *
+   * @param node The node to expand.
+   * @return the expanded form of node.
    */
-  virtual TrustNode expandDefinition(Node node);
+  virtual Node expandDefinition(Node node);
 
   /**
    * Rewrite n based on the proof rewrite rule id.
@@ -230,10 +230,29 @@ class TheoryRewriter
    * The proof rewrite rules implemented by this rewriter, for each context.
    * This caches the calls to registerProofRewriteRule.
    */
-  std::map<TheoryRewriteCtx, std::unordered_set<ProofRewriteRule>>
-      d_pfTheoryRewrites;
+  std::map<TheoryRewriteCtx, std::vector<ProofRewriteRule>> d_pfTheoryRewrites;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
+};
+
+/**
+ * The null theory rewriter, which does not perform any rewrites. This is used
+ * if a theory does not have an (active) rewriter.
+ */
+class NoOpTheoryRewriter : public TheoryRewriter
+{
+ public:
+  NoOpTheoryRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+  /** Performs a post-rewrite step. */
+  RewriteResponse postRewrite(TNode node) override
+  {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+  /** Performs a pre-rewrite step. */
+  RewriteResponse preRewrite(TNode node) override
+  {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
 };
 
 }  // namespace theory

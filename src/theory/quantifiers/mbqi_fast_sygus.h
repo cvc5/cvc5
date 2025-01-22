@@ -56,7 +56,7 @@ class MVarInfo
    * continue the sygus enumeration if i is greater than the number of terms
    * enumerated so far.
    */
-  Node getEnumeratedTerm(size_t i);
+  Node getEnumeratedTerm(NodeManager* nm, size_t i);
 
  private:
   /** The underlying sygus enumerator utility */

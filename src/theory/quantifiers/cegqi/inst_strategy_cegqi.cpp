@@ -64,6 +64,12 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
   d_check_vts_lemma_lc = false;
   if (options().quantifiers.cegqiNestedQE)
   {
+    // initialize the trust proof generator if necessary
+    if (d_env.isTheoryProofProducing())
+    {
+      d_nqetpg.reset(new TrustProofGenerator(
+          env, TrustId::QUANTIFIERS_NESTED_QE_LEMMA, {}));
+    }
     d_nestedQe.reset(new NestedQe(d_env));
   }
 }
@@ -491,8 +497,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
     return it->second;
   }
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node g = sm->mkDummySkolem("g", nm->booleanType());
+  Node g = NodeManager::mkDummySkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
   Node ceLit = d_qstate.getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;
@@ -528,7 +533,10 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_CEGQI_NESTED_QE);
+        d_qim.addPendingLemma(lem,
+                              InferenceId::QUANTIFIERS_CEGQI_NESTED_QE,
+                              LemmaProperty::NONE,
+                              d_nqetpg.get());
       }
       // don't need to process this, since it has been reduced
       return true;

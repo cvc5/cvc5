@@ -88,24 +88,25 @@ class AlfPrinter : protected EnvObj
    */
   LetBinding* getLetBinding();
 
- private:
   /** Return true if it is possible to trust the topmost application in pfn */
-  bool isHandled(const ProofNode* pfn) const;
+  static bool isHandled(const Options& opts, const ProofNode* pfn);
+
+ private:
   /** Return true if id is handled as a theory rewrite for term n */
-  bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n) const;
+  static bool isHandledTheoryRewrite(ProofRewriteRule id, const Node& n);
   /** Return if the equality is handled as a bitblast step */
-  bool isHandledBitblastStep(const Node& eq) const;
+  static bool isHandledBitblastStep(const Node& eq);
   /**
    * Return true if it is possible to evaluate n using the evaluation side
    * condition in the ALF signature. Notice this requires that all subterms of n
    * are handled. This method is used for determining if an application of
    * ProofRule::EVALUATE can be applied.
    */
-  bool canEvaluate(Node n) const;
+  static bool canEvaluate(Node n);
   /**
    * Whether we support evaluating (str.in_re s r) for any constant string s.
    */
-  bool canEvaluateRegExp(Node r) const;
+  static bool canEvaluateRegExp(Node r);
   /* Returns the normalized name of the proof rule of pfn */
   std::string getRuleName(const ProofNode* pfn) const;
 
@@ -185,8 +186,8 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
-  /** List node converter */
-  AlfListNodeConverter d_ltproc;
+  /** */
+  TypeNode d_absType;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /** The empty vector */
@@ -197,6 +198,8 @@ class AlfPrinter : protected EnvObj
   LetBinding* d_lbindUse;
   /** The letification channel. */
   AlfPrintChannelPre d_aletify;
+  /** A cache for explicit type-of variables, for printing DSL_REWRITE steps */
+  std::map<ProofRewriteRule, std::vector<Node>> d_explicitTypeOf;
 };
 
 }  // namespace proof

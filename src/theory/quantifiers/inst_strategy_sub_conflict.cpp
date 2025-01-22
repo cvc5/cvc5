@@ -50,6 +50,12 @@ InstStrategySubConflict::InstStrategySubConflict(
   d_subOptions.write_smt().produceUnsatCores = true;
   // don't do this strategy
   d_subOptions.write_quantifiers().quantSubCbqi = false;
+  // initialize the trust proof generator if necessary
+  if (d_env.isTheoryProofProducing())
+  {
+    d_tpg.reset(
+        new TrustProofGenerator(env, TrustId::QUANTIFIERS_SUB_CBQI_LEMMA, {}));
+  }
 }
 
 void InstStrategySubConflict::reset_round(Theory::Effort e) {}
@@ -156,10 +162,11 @@ void InstStrategySubConflict::check(Theory::Effort e, QEffort quant_e)
         << addedLemmas << "/" << triedLemmas << " instantiated" << std::endl;
     // Add the computed unsat core as a conflict, which will cause a backtrack.
     UnsatCore uc = findConflict->getUnsatCore();
-    Node ucc = NodeManager::currentNM()->mkAnd(uc.getCore());
+    Node ucc = nodeManager()->mkAnd(uc.getCore());
     Trace("qscf-engine-debug") << "Unsat core is " << ucc << std::endl;
     Trace("qscf-engine") << "Core size = " << uc.getCore().size() << std::endl;
-    d_qim.lemma(ucc.notNode(), InferenceId::QUANTIFIERS_SUB_UC);
+    TrustNode trn = TrustNode::mkTrustLemma(ucc.notNode(), d_tpg.get());
+    d_qim.trustedLemma(trn, InferenceId::QUANTIFIERS_SUB_UC);
     // also mark conflicting instance
     d_qstate.notifyConflictingInst();
   }

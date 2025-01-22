@@ -54,6 +54,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<ProofRule> d_ruleCount;
   /**
+   * Counts number of proof nodes for each kind of proof rule that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRule> d_ruleEouCount;
+  /**
    * Counts number of postprocessed proof nodes of rule INSTANTIATE that were
    * marked with the given inference id.
    */
@@ -67,13 +72,22 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    */
   HistogramStat<ProofRewriteRule> d_theoryRewriteRuleCount;
   /**
+   * Counts number of proof nodes for each kind of THEORY_REWRITE that cannot be
+   * printed in CPC+Eunoia.
+   */
+  HistogramStat<ProofRewriteRule> d_theoryRewriteEouCount;
+  /**
    * Counts number of postprocessed proof nodes for each trusted step
    */
   HistogramStat<TrustId> d_trustIds;
   /**
    * Counts number of theory ids in TRUST_THEORY_REWRITE steps.
    */
-  HistogramStat<theory::TheoryId> d_trustTheoryIdCount;
+  HistogramStat<theory::TheoryId> d_trustTheoryRewriteCount;
+  /**
+   * Counts number of theory ids in TRUST / THEORY_LEMMA steps.
+   */
+  HistogramStat<theory::TheoryId> d_trustTheoryLemmaCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

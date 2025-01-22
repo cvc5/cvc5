@@ -227,8 +227,13 @@ class QuantAttributes
   bool isOracleInterface(Node q);
   /** get instantiation level */
   int64_t getQuantInstLevel(Node q);
+  /**
+   * Is q a quantified formula we are performing quantifier elimination for?
+   * This also true if we are performing partial quantifier elimination on q.
+   */
+  bool isQuantElim(Node q) const;
   /** is quant elim partial */
-  bool isQuantElimPartial( Node q );
+  bool isQuantElimPartial(Node q) const;
   /** is internal quantifier */
   bool isQuantBounded(Node q) const;
   /** get quant name, which is used for :qid */
@@ -241,9 +246,9 @@ class QuantAttributes
   Node getQuantIdNumNode( Node q );
 
   /** Make the instantiation attribute that marks "quantifier elimination" */
-  static Node mkAttrQuantifierElimination();
+  static Node mkAttrQuantifierElimination(NodeManager* nm);
   /** Make the instantiation attribute that marks to perserve its structure */
-  static Node mkAttrPreserveStructure();
+  static Node mkAttrPreserveStructure(NodeManager* nm);
   /**
    * Set instantiation level attribute for all subterms without an instantiation
    * level in n to level.
@@ -270,7 +275,7 @@ class QuantAttributes
     ATTR_QUANT_ELIM
   };
   /** Make attribute internal, helper for mkAttrX methods above. */
-  static Node mkAttrInternal(AttrType at);
+  static Node mkAttrInternal(NodeManager* nm, AttrType at);
   /** cache of attributes */
   std::map< Node, QAttributes > d_qattr;
   /** function definitions */

@@ -110,7 +110,7 @@ Node LetBinding::convert(Node n, bool letTop) const
         // make the let variable
         std::stringstream ss;
         ss << d_prefix << id;
-        visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+        visited[cur] = NodeManager::mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
       {
@@ -178,8 +178,7 @@ void LetBinding::updateCounts(Node n)
       {
         SkolemId skid;
         Node cacheVal;
-        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        if (sm->isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
         {
           if (cacheVal.getKind() == Kind::SEXPR)
           {

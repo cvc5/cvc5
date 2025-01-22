@@ -34,7 +34,6 @@ InferProofCons::InferProofCons(Env& env, TheorySetsRewriter* tsr)
       d_expMap(context())
 {
   d_false = nodeManager()->mkConst(false);
-  d_tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 void InferProofCons::notifyFact(const Node& conc,
@@ -120,7 +119,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // Try to convert.
   if (!convert(cdp, id, assumps, conc))
   {
-    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE, assumps, {d_tid});
+    cdp.addTrustedStep(conc, TrustId::THEORY_INFERENCE_SETS, assumps, {});
   }
   return cdp.getProofFor(fact);
 }
@@ -381,9 +380,19 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(success);
     }
     break;
-    case InferenceId::SETS_EQ_CONFLICT:
     case InferenceId::SETS_EQ_MEM_CONFLICT:
     case InferenceId::SETS_EQ_MEM:
+    {
+      // Handles cases:
+      // (and (= S set.empty) (set.member x S)) => false
+      // (and (= S (set.singleton y)) (set.member x S)) => (= x y)
+      Assert(assumps.size()==2);
+      Assert(assumps[0].getKind() == Kind::EQUAL);
+      Assert(assumps[1].getKind() == Kind::SET_MEMBER);
+      success = psb.applyPredTransform(assumps[1], conc, {assumps[0]});
+    }
+      break;
+    case InferenceId::SETS_EQ_CONFLICT:
     default: Trace("sets-ipc") << "Unhandled " << id; break;
   }
   if (success)

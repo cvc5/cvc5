@@ -72,7 +72,7 @@ bool NestedQe::hasNestedQuantification(Node q)
 
 Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   Node qOrig = q;
   bool inputExists = false;
   if (q.getKind() == Kind::EXISTS)
@@ -138,8 +138,7 @@ Node NestedQe::doQe(Env& env, Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
   Trace("cegqi-nested-qe") << "  Apply qe to " << q << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  q = nm->mkNode(Kind::EXISTS, q[0], q[1].negate());
+  q = NodeManager::mkNode(Kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SolverEngine> smt_qe;
   Options subOptions;
   subOptions.copyValues(env.getOptions());

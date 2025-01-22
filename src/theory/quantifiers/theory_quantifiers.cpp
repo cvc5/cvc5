@@ -107,8 +107,8 @@ void TheoryQuantifiers::presolve() {
   }
 }
 
-Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryQuantifiers::ppAssert(TrustNode tin,
+                                 TrustSubstitutionMap& outSubstitutions)
 {
   if (d_qmacros != nullptr)
   {
@@ -118,17 +118,18 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
     if (!eq.isNull())
     {
       // must be legal
-      if (isLegalElimination(eq[0], eq[1]))
+      if (d_valuation.isLegalElimination(eq[0], eq[1]))
       {
         // add substitution solved, which ensures we track that eq depends on
         // tin, which can impact unsat cores.
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
+
 void TheoryQuantifiers::ppNotifyAssertions(
     const std::vector<Node>& assertions) {
   Trace("quantifiers-presolve")

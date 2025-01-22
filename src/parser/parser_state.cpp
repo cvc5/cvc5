@@ -304,50 +304,31 @@ void ParserState::defineVar(const std::string& name,
 
 void ParserState::defineType(const std::string& name,
                              const Sort& type,
-                             bool skipExisting)
+                             bool isUser)
 {
-  if (skipExisting && isDeclared(name, SYM_SORT))
+  if (!isUser && isDeclared(name, SYM_SORT))
   {
     Assert(d_symtab->lookupType(name) == type);
     return;
   }
-  d_symtab->bindType(name, type);
+  d_symman->bindType(name, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
 }
 
 void ParserState::defineType(const std::string& name,
                              const std::vector<Sort>& params,
-                             const Sort& type)
+                             const Sort& type,
+                             bool isUser)
 {
-  d_symtab->bindType(name, params, type);
+  d_symman->bindType(name, params, type, isUser);
   Assert(isDeclared(name, SYM_SORT));
-}
-
-void ParserState::defineParameterizedType(const std::string& name,
-                                          const std::vector<Sort>& params,
-                                          const Sort& type)
-{
-  if (TraceIsOn("parser"))
-  {
-    Trace("parser") << "defineParameterizedType(" << name << ", "
-                    << params.size() << ", [";
-    if (params.size() > 0)
-    {
-      copy(params.begin(),
-           params.end() - 1,
-           ostream_iterator<Sort>(Trace("parser"), ", "));
-      Trace("parser") << params.back();
-    }
-    Trace("parser") << "], " << type << ")" << std::endl;
-  }
-  defineType(name, params, type);
 }
 
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
   Sort type = d_tm.mkUninterpretedSort(name);
-  defineType(name, type);
+  defineType(name, type, true);
   return type;
 }
 
@@ -356,14 +337,14 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
   Sort type = d_tm.mkUninterpretedSortConstructorSort(arity, name);
-  defineType(name, vector<Sort>(arity), type);
+  defineType(name, vector<Sort>(arity), type, true);
   return type;
 }
 
 Sort ParserState::mkUnresolvedType(const std::string& name)
 {
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name);
-  defineType(name, unresolved);
+  defineType(name, unresolved, true);
   return unresolved;
 }
 
@@ -371,7 +352,7 @@ Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name, arity);
-  defineType(name, vector<Sort>(arity), unresolved);
+  defineType(name, vector<Sort>(arity), unresolved, true);
   return unresolved;
 }
 
@@ -381,7 +362,7 @@ Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
   Sort unresolved = d_tm.mkUnresolvedDatatypeSort(name, params.size());
-  defineType(name, params, unresolved);
+  defineType(name, params, unresolved, true);
   Sort t = getParametricSort(name, params);
   return unresolved;
 }

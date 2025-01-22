@@ -44,7 +44,7 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
    * Run the DSL reconstruction on each proof in pfs. This updates pfs
    * in-place based on the rewrite rule reconstruction algorithm.
    */
-  void reconstruct(std::unordered_set<std::shared_ptr<ProofNode>>& pfs);
+  void reconstruct(std::vector<std::shared_ptr<ProofNode>>& pfs);
 
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,

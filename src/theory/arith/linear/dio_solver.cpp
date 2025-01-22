@@ -32,10 +32,10 @@ namespace arith::linear {
 
 inline Node makeIntegerVariable(NodeManager* nm)
 {
-  SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkDummySkolem("intvar",
-                           nm->integerType(),
-                           "is an integer variable created by the dio solver");
+  return NodeManager::mkDummySkolem(
+      "intvar",
+      nm->integerType(),
+      "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(Env& env)
@@ -187,7 +187,7 @@ Node DioSolver::proveIndex(TrailIndex i){
   const Polynomial& proof = d_trail[i].d_proof;
   Assert(!proof.isConstant());
 
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nodeManager(), Kind::AND);
   for(Polynomial::iterator iter = proof.begin(), end = proof.end(); iter!= end; ++iter){
     Monomial m = (*iter);
     Assert(!m.isConstant());

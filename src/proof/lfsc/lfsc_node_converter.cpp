@@ -19,11 +19,11 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -332,6 +332,13 @@ Node LfscNodeConverter::postConvert(Node n)
            || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
            || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
            || k == Kind::NEG || k == Kind::POW
+           || k == Kind::FLOATINGPOINT_COMPONENT_NAN
+           || k == Kind::FLOATINGPOINT_COMPONENT_INF
+           || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGN
+           || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
+           || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
+           || k == Kind::ROUNDINGMODE_BITBLAST
            || GenericOp::isIndexedOperatorKind(k))
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
@@ -514,7 +521,7 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
     options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     options::ioutils::applyDagThresh(ss, 0);
     ss << op;
-    Node opv = d_nm->mkRawSymbol(ss.str(), op.getType());
+    Node opv = NodeManager::mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);
   }
   aargs.insert(aargs.end(), args.begin(), args.end());
@@ -831,8 +838,8 @@ Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
                                          bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
@@ -1088,22 +1095,37 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
   {
     opName << "f_";
   }
-  // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT
-      || k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT
-      || k == Kind::SUB || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-      || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
-      || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-      || k == Kind::NEG || k == Kind::POW)
+  if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
+      || k == Kind::FLOATINGPOINT_COMPONENT_INF
+      || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
+      || k == Kind::FLOATINGPOINT_COMPONENT_SIGN
+      || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
+      || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND
+      || k == Kind::ROUNDINGMODE_BITBLAST)
   {
-    // currently allow subtyping
-    opName << "a.";
+    // remove @fp.
+    std::string str = printer::smt2::Smt2Printer::smtKindString(k);
+    opName << str.substr(4);
   }
-  if (k == Kind::NEG)
+  else
   {
-    opName << "u";
+    // all arithmetic kinds must explicitly deal with real vs int subtyping
+    if (k == Kind::ADD || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+        || k == Kind::GEQ || k == Kind::GT || k == Kind::LEQ || k == Kind::LT
+        || k == Kind::SUB || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
+        || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
+        || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
+        || k == Kind::NEG || k == Kind::POW)
+    {
+      // currently allow subtyping
+      opName << "a.";
+    }
+    if (k == Kind::NEG)
+    {
+      opName << "u";
+    }
+    opName << printer::smt2::Smt2Printer::smtKindString(k);
   }
-  opName << printer::smt2::Smt2Printer::smtKindString(k);
   return getSymbolInternal(k, ftype, opName.str());
 }
 

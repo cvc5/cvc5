@@ -121,8 +121,7 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
     // Sorts are always interpreted as non-empty, thus we add a single element.
     // We use mkGroundValue here, since domain elements must all be
     // of UNINTERPRETED_SORT_VALUE kind.
-    NodeManager* nm = nodeManager();
-    elements.push_back(nm->mkGroundValue(tn));
+    elements.push_back(NodeManager::mkGroundValue(tn));
     return elements;
   }
   return *type_refs;
@@ -350,7 +349,7 @@ Node TheoryModel::getModelValue(TNode n) const
         vector<Node> args;
         for (unsigned i = 0, size = argTypes.size(); i < size; ++i)
         {
-          args.push_back(nm->mkBoundVar(argTypes[i]));
+          args.push_back(NodeManager::mkBoundVar(argTypes[i]));
         }
         Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, args);
         TypeEnumerator te(t.getRangeType());
