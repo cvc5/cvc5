@@ -31,7 +31,7 @@ cvc5 1.2.1 prerelease
 - Renamed the flag `--sets-ext` to `--sets-exp`, which enables non-standard
   extensions of the sets theory.
 
-- Fixed a bug involved in the solver for `set.filter`.
+- Fixed a soundness bug in the solver for `set.filter`.
 
 cvc5 1.2.0
 ==========
