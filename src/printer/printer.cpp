@@ -26,6 +26,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
+#include "theory/uf/function_const.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
@@ -303,12 +304,15 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   std::stringstream vs;
   vs << v;
   std::vector<Node> formals;
-  Node body = lambda;
   TypeNode rangeType = v.getType();
-  if (body.getKind() == Kind::LAMBDA)
+  // could be a function constant
+  Node lam = theory::uf::FunctionConst::toLambda(lambda);
+  Node body = lambda;
+  if (!lam.isNull())
   {
-    formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
-    body = lambda[1];
+    Assert(lam.getKind() == Kind::LAMBDA);
+    formals.insert(formals.end(), lam[0].begin(), lam[0].end());
+    body = lam[1];
     Assert(rangeType.isFunction());
     rangeType = rangeType.getRangeType();
   }

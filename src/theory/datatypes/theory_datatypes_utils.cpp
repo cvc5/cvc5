@@ -163,6 +163,16 @@ bool isNullaryConstructor(const DTypeConstructor& c)
 
 bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
 {
+  std::vector<size_t> path;
+  return checkClash(n1, n2, rew, checkNdtConst, path);
+}
+
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst,
+                std::vector<size_t>& path)
+{
   Trace("datatypes-rewrite-debug")
       << "Check clash : " << n1 << " " << n2 << std::endl;
   if (n1.getKind() == Kind::APPLY_CONSTRUCTOR
@@ -178,8 +188,9 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
     Assert(n1.getNumChildren() == n2.getNumChildren());
     for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
     {
-      if (checkClash(n1[i], n2[i], rew, checkNdtConst))
+      if (checkClash(n1[i], n2[i], rew, checkNdtConst, path))
       {
+        path.push_back(i);
         return true;
       }
     }

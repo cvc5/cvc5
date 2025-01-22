@@ -496,7 +496,8 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     ProofGenerator* pg = trn.getGenerator();
     if (pg == nullptr)
     {
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_nm, theoryId);
       // add small step trusted rewrite
       Node rid = mkMethodId(d_nm,
                             isPre ? MethodId::RW_REWRITE_THEORY_PRE

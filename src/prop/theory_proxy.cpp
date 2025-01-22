@@ -292,14 +292,11 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (d_env.isSatProofProducing())
-  {
-    Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
-    // notify the prop engine of the explanation, which is only relevant if
-    // we are proof producing for the purposes of storing the CNF of the
-    // explanation.
-    d_propEngine->notifyExplainedPropagation(tte);
-  }
+  Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
+  // notify the prop engine of the explanation, which is only relevant if
+  // we are proof producing for the purposes of storing the CNF of the
+  // explanation.
+  d_propEngine->notifyExplainedPropagation(tte);
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);

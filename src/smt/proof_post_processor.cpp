@@ -881,7 +881,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+              nodeManager(), theoryId);
           cdp->addStep(
               eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -975,8 +976,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::convertAndAddProofTo(
-              cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::convert(
+              d_env, iid, isRev, conc, exp, cdp))
       {
         return conc;
       }
