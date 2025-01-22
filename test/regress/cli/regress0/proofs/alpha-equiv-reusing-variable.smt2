@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
 (set-logic AUFLIA)
 (declare-sort A$ 0)
 (declare-sort B$ 0)

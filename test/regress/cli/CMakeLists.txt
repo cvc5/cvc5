@@ -1328,6 +1328,7 @@ set(regress_0_tests
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/alpha-equiv-reusing-variable.smt2
+  regress0/proofs/alpha-equiv-reusing-variable2.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
