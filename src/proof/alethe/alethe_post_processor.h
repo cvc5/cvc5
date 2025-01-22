@@ -154,9 +154,6 @@ class AletheProofPostprocessCallback : protected EnvObj,
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
-
-  /**  */
-  uint_32 d_varIdCount;
 };
 
 /**

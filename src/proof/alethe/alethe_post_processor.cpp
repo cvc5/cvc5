@@ -1620,6 +1620,9 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
       }
+      bool success = true;
+      Node lhsQ = res[0];
+      std::vector<Node> transEqs;
       if (hasClash)
       {
         // create the variables to substitute the lhs variables
@@ -1628,104 +1631,58 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           freshRenaming.emplace_back(NodeManager::mkBoundVar(v.getType()));
         }
-
-        {
-
-          std::vector<Node> vars{res[0][0].begin(),
-                                   res[0][0].end()};
-          Node resRenamed = res[0].substitute(vars.begin(),
-                                              vars.end(),
-                                              freshRenaming.begin(),
-                                              freshRenaming.end());
-        }
+        std::vector<Node> vars{res[0][0].begin(), res[0][0].end()};
+        Node lhsRenamed = res[0].substitute(vars.begin(),
+                                            vars.end(),
+                                            freshRenaming.begin(),
+                                            freshRenaming.end());
         // Reflexivity over the quantified bodies
-        Node reflConc = nm->mkNode(
-            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, res[1], resRenamed[1]));
+        Node reflConc =
+            nm->mkNode(Kind::SEXPR, d_cl, res[0][1].eqNode(lhsRenamed[1]));
         addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
         // Collect RHS variables first for arguments, then add the entries for
         // the substitution. In a "bind" rule we must always list all the
         // variables
-        std::vector<Node> bindArgs{freshRenaming[0].begin(), freshRenaming[0].end()};
+        std::vector<Node> bindArgs{freshRenaming.begin(), freshRenaming.end()};
         for (size_t i = 0, size = freshRenaming.size(); i < size; ++i)
         {
           bindArgs.push_back(vars[i].eqNode(freshRenaming[i]));
         }
-        Node freshRenamingConc = binds.push_back(lhsQ.eqNode(rhsQ));
+        transEqs.push_back(res[0].eqNode(lhsRenamed));
         success &= addAletheStep(AletheRule::ANCHOR_BIND,
-                                 freshRenamingConc,
-                                 nm->mkNode(Kind::SEXPR, d_cl, binds.back()),
+                                 transEqs.back(),
+                                 nm->mkNode(Kind::SEXPR, d_cl, transEqs.back()),
                                  {reflConc},
                                  bindArgs,
                                  *cdp);
-
+        lhsQ = lhsRenamed;
       }
-      Node lhsQ = res[0];
-
-
-        Node rhsQ;
-        {
-          Assert(renamingEndingPos <= lhsQ[0].getNumChildren());
-          std::vector<Node> subLhs{res[0][0].begin() + prefixStart,
-                                   res[0][0].begin() + renamingEndingPos};
-          std::vector<Node> subRhs{res[1][0].begin() + prefixStart,
-                                   res[1][0].begin() + renamingEndingPos};
-          rhsQ = lhsQ.substitute(
-              subLhs.begin(), subLhs.end(), subRhs.begin(), subRhs.end());
-        }
-        // Reflexivity over the quantified bodies
-        Node reflConc = nm->mkNode(
-            Kind::SEXPR, d_cl, nm->mkNode(Kind::EQUAL, lhsQ[1], rhsQ[1]));
-        addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
-        // Collect RHS variables first for arguments, then add the entries for
-        // the substitution. In a "bind" rule we must always list all the
-        // variables
-        std::vector<Node> bindArgs{rhsQ[0].begin(), rhsQ[0].end()};
-        for (size_t i = 0; i < rhsQ[0].getNumChildren(); ++i)
-        {
-          bindArgs.push_back(lhsQ[0][i].eqNode(rhsQ[0][i]));
-        }
-        binds.push_back(lhsQ.eqNode(rhsQ));
-        success &= addAletheStep(AletheRule::ANCHOR_BIND,
-                                 binds.back(),
-                                 nm->mkNode(Kind::SEXPR, d_cl, binds.back()),
-                                 {reflConc},
-                                 bindArgs,
-                                 *cdp);
-        // get next valid segment. Note that this will be a no-op when the first
-        // check in the beginning of the translation did not find an invalid
-        // renaming, so the whole quantifier has already been processed above.
-        lhsQ = rhsQ;
-        lhsNames.clear();
-        bool hasInvalidRenaming = false;
-        prefixStart = renamingEndingPos;
-        Trace("alethe-proof") << "\tcheck from " << renamingEndingPos << " to "
-                              << res[0][0].getNumChildren() << "\n";
-        for (size_t i = renamingEndingPos, size = res[0][0].getNumChildren();
-             i < size;
-             ++i)
-        {
-          Node v0 = res[0][0][i], v1 = res[1][0][i];
-          if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
-              != lhsNames.end())
-          {
-            Assert(i > 0);
-            hasInvalidRenaming = true;
-            renamingEndingPos = i;
-            break;
-          }
-          lhsNames.push_back(v0.getName());
-        }
-        renamingEndingPos =
-            hasInvalidRenaming ? renamingEndingPos : res[0][0].getNumChildren();
-
-      // if we added more than one "bind" step, we connect them via transitivity
-      if (binds.size() > 1)
+      // Reflexivity over the quantified bodies
+      Node reflConc = nm->mkNode(Kind::SEXPR, d_cl, lhsQ[1].eqNode(res[1][1]));
+      addAletheStep(AletheRule::REFL, reflConc, reflConc, {}, {}, *cdp);
+      // Collect RHS variables first for arguments, then add the entries for
+      // the substitution. In a "bind" rule we must always list all the
+      // variables
+      std::vector<Node> bindArgs{res[1][0].begin(), res[1][0].end()};
+      for (size_t i = 0, size = res[1][0].getNumChildren(); i < size; ++i)
+      {
+        bindArgs.push_back(lhsQ[0][i].eqNode(res[1][0][i]));
+      }
+      transEqs.push_back(lhsQ.eqNode(res[1]));
+      success &= addAletheStep(AletheRule::ANCHOR_BIND,
+                               transEqs.back(),
+                               nm->mkNode(Kind::SEXPR, d_cl, transEqs.back()),
+                               {reflConc},
+                               bindArgs,
+                               *cdp);
+      Assert(!hasClash || transEqs.size() == 2);
+      if (hasClash)
       {
         return success
                && addAletheStep(AletheRule::TRANS,
                                 res,
                                 nm->mkNode(Kind::SEXPR, d_cl, res),
-                                binds,
+                                transEqs,
                                 {},
                                 *cdp);
       }

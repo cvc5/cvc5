@@ -1,4 +1,4 @@
-; --full-saturate-quant --inst-when=full-last-call --inst-no-entail --term-db-mode=relevant --multi-trigger-linear --no-stats --random-seed=1 --lang=smt2 --tlimit 300000
+; EXPECT: unsat
 (set-logic AUFLIA)
 (declare-sort Index$ 0)
 (declare-sort State1$ 0)
