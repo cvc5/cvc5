@@ -145,7 +145,9 @@ void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
   if (trew == nullptr)
   {
     // if nullptr, use the default (null) theory rewriter.
-    d_theoryRewriters[tid] = &d_nullTr;
+    d_nullTr.emplace_back(
+        std::unique_ptr<NoOpTheoryRewriter>(new NoOpTheoryRewriter(d_nm, tid)));
+    d_theoryRewriters[tid] = d_nullTr.back().get();
   }
   else
   {

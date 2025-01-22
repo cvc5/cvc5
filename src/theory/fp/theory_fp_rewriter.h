@@ -33,7 +33,7 @@ typedef RewriteResponse (*RewriteFunction)(NodeManager* nm, TNode, bool);
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter(NodeManager* nm, context::UserContext* u);
+  TheoryFpRewriter(NodeManager* nm, context::UserContext* u, bool fpExp);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
@@ -56,6 +56,8 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteFunction d_constantFoldTable[static_cast<uint32_t>(Kind::LAST_KIND)];
   /** The expand definitions module. */
   FpExpandDefs d_fpExpDef;
+  /** True if --fp-exp is enabled */
+  bool d_fpExpEnabled;
 }; /* class TheoryFpRewriter */
 
 }  // namespace fp

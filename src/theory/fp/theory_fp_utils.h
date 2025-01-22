@@ -33,6 +33,13 @@ namespace utils {
  */
 Integer getCardinality(const TypeNode& type);
 
+/**
+ * Check whether the node has a type that is disallowed by --fp-exp and throw
+ * an exception.
+ * @param n The node to check.
+ */
+void checkForExperimentalFloatingPointType(const Node& n);
+
 }  // namespace utils
 }  // namespace fp
 }  // namespace theory
