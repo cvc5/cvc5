@@ -1327,8 +1327,6 @@ set(regress_0_tests
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
-  regress0/proofs/alpha-equiv-reusing-variable.smt2
-  regress0/proofs/alpha-equiv-reusing-variable2.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
@@ -2726,6 +2724,7 @@ set(regress_1_tests
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2
+  regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
