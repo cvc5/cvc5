@@ -243,3 +243,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use regular expression derive for conflict finding"
+
+[[option]]
+  name       = "stringRecArithApprox"
+  category   = "expert"
+  long       = "strings-rec-arith-approx"
+  type       = "bool"
+  default    = "false"
+  help       = "use possibly recursive reasoning when finding approximations for arithmetic string terms"
