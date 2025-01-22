@@ -56,7 +56,7 @@ class TheoryFpRewriter : public TheoryRewriter
   RewriteFunction d_constantFoldTable[static_cast<uint32_t>(Kind::LAST_KIND)];
   /** The expand definitions module. */
   FpExpandDefs d_fpExpDef;
-  /** If --fp-exp is enabled */
+  /** True if --fp-exp is enabled */
   bool d_fpExpEnabled;
 }; /* class TheoryFpRewriter */
 
