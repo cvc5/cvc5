@@ -3671,7 +3671,7 @@ Term Term::getRealAlgebraicNumberLowerBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_lower(ran));
+  return Term(d_tm, internal::PolyConverter::ran_to_lower(d_tm->d_nm, ran));
 #else
   return Term();
 #endif
@@ -3696,7 +3696,7 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_upper(ran));
+  return Term(d_tm, internal::PolyConverter::ran_to_upper(d_tm->d_nm, ran));
 #else
   return Term();
 #endif

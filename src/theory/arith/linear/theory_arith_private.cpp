@@ -1355,7 +1355,7 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   TNode var = d_partialModel.asNode(v);
   Polynomial varAsPolynomial = Polynomial::parsePolynomial(var);
   return Comparison::mkComparison(
-      Kind::EQUAL, varAsPolynomial, betaAsPolynomial);
+      nodeManager(), Kind::EQUAL, varAsPolynomial, betaAsPolynomial);
 }
 
 TrustNode TheoryArithPrivate::dioCutting()
@@ -1393,8 +1393,8 @@ TrustNode TheoryArithPrivate::dioCutting()
     Assert(c.isIntegral());
     Assert(gcd > 1);
     Assert(!gcd.divides(c.asConstant().getNumerator()));
-    Comparison leq = Comparison::mkComparison(Kind::LEQ, p, c);
-    Comparison geq = Comparison::mkComparison(Kind::GEQ, p, c);
+    Comparison leq = Comparison::mkComparison(nodeManager(), Kind::LEQ, p, c);
+    Comparison geq = Comparison::mkComparison(nodeManager(), Kind::GEQ, p, c);
     Node lemma = nodeManager()->mkNode(Kind::OR, leq.getNode(), geq.getNode());
     Node rewrittenLemma = rewrite(lemma);
     Trace("arith::dio::ex") << "dioCutting found the plane: " << plane.getNode() << endl;
@@ -1418,7 +1418,7 @@ TrustNode TheoryArithPrivate::dioCutting()
           d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
       std::vector<Pf> args{pfGt, pfLt};
       std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
-      std::vector<Node> coeffsUse = getMacroSumUbCoeff(args, coeffs);
+      std::vector<Node> coeffsUse = getMacroSumUbCoeff(nm, args, coeffs);
       Pf pfSum =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
       Node falsen = nm->mkConst(false);
@@ -1455,11 +1455,11 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = Constraint::externalExplainByAssertions({lb});
+      orig = Constraint::externalExplainByAssertions(nodeManager(), {lb});
     }else if(ub->isEquality()){
-      orig = Constraint::externalExplainByAssertions({ub});
+      orig = Constraint::externalExplainByAssertions(nodeManager(), {ub});
     }else {
-      orig = Constraint::externalExplainByAssertions(ub, lb);
+      orig = Constraint::externalExplainByAssertions(nodeManager(), ub, lb);
     }
 
     Assert(d_partialModel.assignmentIsConsistent(v));
@@ -1549,7 +1549,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
   } else {
     Trace("arith::constraint")
         << "already has proof: "
-        << Constraint::externalExplainByAssertions({constraint});
+        << Constraint::externalExplainByAssertions(nodeManager(), {constraint});
   }
 
   if(TraceIsOn("arith::negatedassumption") && inConflict){
@@ -2646,7 +2646,8 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
       Node cutConstraint = cutToLiteral(approx, *cut);
       if(!cutConstraint.isNull()){
         const ConstraintCPVec& exp = cut->getExplanation();
-        Node asLemma = Constraint::externalExplainByAssertions(exp);
+        Node asLemma =
+            Constraint::externalExplainByAssertions(nodeManager(), exp);
 
         Node implied = rewrite(cutConstraint);
         anythingnew = anythingnew || !isSatLiteral(implied);
@@ -4538,7 +4539,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           constraint->printProofTree(Trace("arith::prop::pf"));
         }
       }
-      Node implication = implied->externalImplication(explain);
+      Node implication = implied->externalImplication(nodeManager(), explain);
       Node clause = flattenImplication(implication);
       std::shared_ptr<ProofNode> clausePf{nullptr};
 
@@ -4572,7 +4573,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
             [nm](const Rational& r) { return nm->mkConstRealOrInt(r); });
         // ensure correct types
         std::vector<Node> farkasCoefficientsUse =
-            getMacroSumUbCoeff(conflictPfs, farkasCoefficients);
+            getMacroSumUbCoeff(nm, conflictPfs, farkasCoefficients);
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB,
@@ -5050,7 +5051,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
   Assert(Polynomial::isMember(tp));
   if (tp.isConst())
   {
-    tmp.first = mkBoolNode(true);
+    tmp.first = mkBoolNode(nodeManager(), true);
     tmp.second = DeltaRational(tp.getConst<Rational>());
   }
   else if (d_partialModel.hasArithVar(tp))
@@ -5062,7 +5063,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
     if(c != NullConstraint){
-      tmp.first = Constraint::externalExplainByAssertions({c});
+      tmp.first = Constraint::externalExplainByAssertions(nodeManager(), {c});
       tmp.second = c->getValue();
     }
   }

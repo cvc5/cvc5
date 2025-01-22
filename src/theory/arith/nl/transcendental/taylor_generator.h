@@ -43,7 +43,7 @@ class TaylorGenerator
     Node d_upperPos;
   };
 
-  TaylorGenerator();
+  TaylorGenerator(NodeManager* nm);
 
   /**
    * Return the variable used as x in getTaylor().
@@ -107,6 +107,9 @@ class TaylorGenerator
 
  private:
   const Node d_taylor_real_fv;
+
+  /** the associated node manager */
+  NodeManager* d_nm;
 
   /**
    * For every kind (EXP or SINE) and every degree we store the taylor series up
