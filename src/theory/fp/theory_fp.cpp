@@ -597,7 +597,7 @@ void TheoryFp::preRegisterTerm(TNode node)
     // check whether it is using an experimental type. This should be
     // (almost) fully subsumed by the check in the rewriter, but is required
     // e.g. for terms with 0 children which are not rewritten.
-    utils::checkExperimentalFloatingPointType(node);
+    utils::checkForExperimentalFloatingPointType(node);
   }
   Trace("fp-preRegisterTerm")
       << "TheoryFp::preRegisterTerm(): " << node << std::endl;

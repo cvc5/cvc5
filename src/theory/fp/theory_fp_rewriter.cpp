@@ -1547,7 +1547,7 @@ RewriteResponse TheoryFpRewriter::preRewrite(TNode node)
   {
     // if --fp-exp is not enabled, immediately check if this has an experimental
     // floating point type
-    utils::checkExperimentalFloatingPointType(node);
+    utils::checkForExperimentalFloatingPointType(node);
   }
   RewriteResponse res =
       d_preRewriteTable[static_cast<uint32_t>(node.getKind())](

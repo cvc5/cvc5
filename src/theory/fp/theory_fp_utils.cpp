@@ -46,7 +46,7 @@ Integer getCardinality(const TypeNode& type)
                * (Integer(2).pow(fps.exponentWidth()) - Integer(1));
 }
 
-void checkExperimentalFloatingPointType(const Node& n)
+void checkForExperimentalFloatingPointType(const Node& n)
 {
   TypeNode type = n.getType();
   if (type.isFloatingPoint())

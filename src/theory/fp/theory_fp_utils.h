@@ -38,7 +38,7 @@ Integer getCardinality(const TypeNode& type);
  * an exception.
  * @param n The node to check.
  */
-void checkExperimentalFloatingPointType(const Node& n);
+void checkForExperimentalFloatingPointType(const Node& n);
 
 }  // namespace utils
 }  // namespace fp
