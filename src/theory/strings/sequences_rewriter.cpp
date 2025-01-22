@@ -2333,7 +2333,6 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     Node ret = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[1], slenRew);
     return returnRewrite(node, ret, Rewrite::SS_END_PT_NORM);
   }
-  
 
   // Rewrite based on symbolic length analysis, using the strings entailment
   // utility that is owned by this rewriter. This handles three rewrite rules
@@ -3851,7 +3850,8 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
 Node SequencesRewriter::lengthPreserveRewrite(Node n)
 {
   NodeManager* nm = nodeManager();
-  Node len = d_arithEntail.rewriteLengthIntro(nm->mkNode(Kind::STRING_LENGTH, n));
+  Node len =
+      d_arithEntail.rewriteLengthIntro(nm->mkNode(Kind::STRING_LENGTH, n));
   len = d_arithEntail.rewriteArith(len);
   Node res = canonicalStrForSymbolicLength(len, n.getType());
   return res.isNull() ? n : res;
