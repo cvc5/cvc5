@@ -166,6 +166,10 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
     ArithSubs asubs;
     std::vector<Node> assumpsNoSolve;
     ArithSubsTermContext astc;
+    // This proof generator is intended to provide proofs for asubs.applyArith.
+    // In particular, we maintain the invariant that if
+    // asubs.applyArith(a) = as, then tcnv.getProofForRewriting(a) returns a
+    // proof of (= a as).
     TConvProofGenerator tcnv(d_env,
                              nullptr,
                              TConvPolicy::FIXPOINT,
