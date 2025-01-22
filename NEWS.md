@@ -8,8 +8,15 @@ cvc5 1.2.1 prerelease
 - Added support for `SymbolManager::getNamedTerms()` to retrieve the set of
   terms that have been given names by the SMT-LIB attribute `:named`.
 
+- Added option `--parsing-mode` to allow configuration of both more strict but
+  also more lenient parsing than default. Already existing option
+  `--strict-parsing` is an alias `--parsing-mode=strict`.
+  Parsing symbols that start with `.` or `@` (used for internally freshly
+  introduced symbols) in lenient parsing mode (`--parsing-mode=lenient`).
+
 ## Changes
-- The option `--safe-options` now disables experimental theories and their
+
+- The option `--safe-options` now **disables experimental** theories and their
   extensions in cvc5. This includes the theory of bags, the theory of finite
   fields, the theory of separation logic, higher-order extensions to the theory
   of equality, as well as extensions of the theory of arithmetic for
@@ -20,6 +27,12 @@ cvc5 1.2.1 prerelease
 
 - Renamed the flag `--sets-ext` to `--sets-exp`, which enables non-standard
   extensions of the sets theory.
+
+- When printing with tags `-o pre-asserts` or `-o post-asserts`, by default we
+  now ensure that declarations are printed in a deterministic order.
+
+- Bumped CaDiCaL to version 2.0.0.
+
 
 cvc5 1.2.0
 ==========
