@@ -149,25 +149,25 @@ public class Utils
     {
       try
       {
-        System.loadLibrary("cvc5jni");
+        // Try to extract the libraries from a JAR in the classpath
+        List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
+
+        // Create a temporary directory to store the libraries
+        Path tempDir = Files.createTempDirectory("cvc5-libs");
+        tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
+
+        for (String filename : filenames)
+        {
+          loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
+        }
       }
-      catch (UnsatisfiedLinkError jni_ex)
+      catch (Exception ex)
       {
         try
         {
-          // Try to extract the libraries from a JAR in the classpath
-          List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
-
-          // Create a temporary directory to store the libraries
-          Path tempDir = Files.createTempDirectory("cvc5-libs");
-          tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
-
-          for (String filename : filenames)
-          {
-            loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
-          }
+          System.loadLibrary("cvc5jni");
         }
-        catch (Exception ex)
+        catch (UnsatisfiedLinkError jni_ex)
         {
           throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
         }
