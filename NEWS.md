@@ -28,8 +28,8 @@ cvc5 1.2.1 prerelease
 - Renamed the flag `--sets-ext` to `--sets-exp`, which enables non-standard
   extensions of the sets theory.
 
-- When printing, by default we now ensure that declarations are printed in a
-  deterministic order.
+- When printing with tags `-o pre-asserts` or `-o post-asserts`, by default we
+  now ensure that declarations are printed in a deterministic order.
 
 - Bumped CaDiCaL to version 2.0.0.
 
