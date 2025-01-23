@@ -120,7 +120,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::DT_SYGUS_EVAL)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
