@@ -18,6 +18,19 @@
   )
 )
 
+; define: $dt_inst_cons_of
+; args:
+; - D Type: The datatype to get the instantiated constructor for.
+; - c Type: The constructor.
+; return: >
+;   The version of c that has been annotated with its type, if necessary. For
+;   example, given (List Int) and nil, this returns (_ nil (List Int)).
+(define $dt_inst_cons_of ((D Type) (T Type :implicit) (c T))
+  (eo::list_nth
+    eo::List::cons
+    (eo::dt_constructors D)
+    (eo::list_find eo::List::cons ($dt_get_constructors D) c)))
+
 ; program: $tuple_get_selectors_rec
 ; args:
 ; - T Type: The tuple type to get the selectors for.
