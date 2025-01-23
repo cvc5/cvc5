@@ -100,6 +100,10 @@ bool getListVarContext(TNode n, std::map<Node, Node>& context)
           itc = context.find(cn);
           if (itc == context.end())
           {
+            if (!NodeManager::isNAryKind(cur.getKind()))
+            {
+              return false;
+            }
             context[cn] = cur;
           }
           else if (itc->second.getKind() != cur.getKind())
