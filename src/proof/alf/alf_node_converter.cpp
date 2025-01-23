@@ -231,9 +231,22 @@ Node AlfNodeConverter::postConvert(Node n)
     Assert(!lam.isNull());
     return convert(lam);
   }
+  else if (k == Kind::APPLY_CONSTRUCTOR)
+  {
+    Node opc = getOperatorOfTerm(n);
+    if (n.getNumChildren() == 0)
+    {
+      return opc;
+    }
+    std::vector<Node> newArgs;
+    newArgs.push_back(opc);
+    newArgs.insert(newArgs.end(), n.begin(), n.end());
+    Node ret = d_nm->mkNode(Kind::APPLY_UF, newArgs);
+    return convert(ret);
+  }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-           || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
+           || k == Kind::INTS_MODULUS_TOTAL
            || k == Kind::APPLY_SELECTOR
            || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
   {
