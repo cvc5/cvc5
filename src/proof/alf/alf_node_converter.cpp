@@ -609,7 +609,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   Node ret;
   if (!indices.empty())
   {
-    ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
+    Node op = args.empty() ? app : app.getOperator();
+    ret = mkInternalApp(opName.str(), indices, op.getType());
   }
   else if (n.isClosure())
   {
