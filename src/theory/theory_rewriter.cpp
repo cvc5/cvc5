@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
  */
 
 #include "theory/theory_rewriter.h"
+
+#include "smt/logic_exception.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -123,6 +125,34 @@ void TheoryRewriter::registerProofRewriteRule(ProofRewriteRule id,
 }
 
 NodeManager* TheoryRewriter::nodeManager() const { return d_nm; }
+
+NoOpTheoryRewriter::NoOpTheoryRewriter(NodeManager* nm, TheoryId tid)
+    : TheoryRewriter(nm), d_tid(tid)
+{
+}
+
+RewriteResponse NoOpTheoryRewriter::postRewrite(TNode node)
+{
+  return RewriteResponse(REWRITE_DONE, node);
+}
+RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
+{
+  std::stringstream ss;
+  ss << "The theory " << d_tid
+     << " is disabled in this configuration, but got a constraint in that "
+        "theory.";
+  // hardcoded, for better error messages.
+  switch (d_tid)
+  {
+    case THEORY_FF: ss << " Try --ff."; break;
+    case THEORY_FP: ss << " Try --fp."; break;
+    case THEORY_BAGS: ss << " Try --bags."; break;
+    case THEORY_SEP: ss << " Try --sep."; break;
+    default: break;
+  }
+  throw LogicException(ss.str());
+  return RewriteResponse(REWRITE_DONE, node);
+}
 
 }  // namespace theory
 }  // namespace cvc5::internal
