@@ -553,13 +553,17 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
           opName << "tuple";
         }
       }
+      else if (dt.isParametric() && isAmbiguousDtConstructor(dt[index].getConstructor()))
+      {
+        opName << "as";
+        indices.push_back(dt[index].getConstructor());
+        // tn is the return type
+        TypeNode tn = n.getType();
+        indices.push_back(typeAsNode(tn));
+      }
       else
       {
         opName << dt[index].getConstructor();
-      }
-      if (dt.isParametric() && isAmbiguousDtConstructor(dt[index].getConstructor()))
-      {
-        
       }
     }
     else if (k == Kind::APPLY_SELECTOR)
