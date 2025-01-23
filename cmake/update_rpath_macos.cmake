@@ -10,10 +10,17 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
+# Update the RPATH of a macOS dynamic library to make it relocatable
 #
-# [[ Add lengthier description here ]]
-# \todo document this file
+# This script updates RPATH if not already set, replaces ${DEPS_BASE}/lib with 
+# @rpath in the install name and in the paths of all library dependencies to
+# ensure the dynamic library is relocatable.
+#
+# Input variables:
+# RPATH - The rpath to use in the dynamic library
+# INSTALL_NAME_TOOL - Path to the install_name tool
+# DYLIB_PATH - Path to the dynamic library
+# DEPS_BASE - Path to the cvc5 dependencies directory
 ##
 # If RPATH is provided, add it unless it already exists
 if(RPATH)
