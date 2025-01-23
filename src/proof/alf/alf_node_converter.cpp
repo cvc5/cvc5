@@ -557,6 +557,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
       {
         opName << dt[index].getConstructor();
       }
+      if (dt.isParametric() && isAmbiguousDtConstructor(dt[index].getConstructor()))
+      {
+        
+      }
     }
     else if (k == Kind::APPLY_SELECTOR)
     {
@@ -631,6 +635,39 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   size_t id = d_constIndex.size();
   d_constIndex[v] = id;
   return id;
+}
+
+bool AlfNodeConverter::isAmbiguousDtConstructor(const Node& op)
+{
+  std::map<Node, bool>::iterator it = d_ambDt.find(op);
+  if (it!=d_ambDt.end())
+  {
+    return it->second;
+  }
+  bool ret = false;
+  TypeNode tn = op.getType();
+  Trace("alf-amb-dt") << "Ambiguous datatype constructor? " << op << " " << tn << std::endl;
+  size_t nchild = tn.getNumChildren();
+  Assert (nchild>0);
+  std::unordered_set<TypeNode> atypes;
+  for (size_t i=0; i<nchild-1; i++)
+  {
+    expr::getComponentTypes(tn[i], atypes);
+  }
+  const DType& dt = DType::datatypeOf(op);
+  std::vector<TypeNode> params = dt.getParameters();
+  for (const TypeNode& p : params)
+  {
+    if (atypes.find(p)==atypes.end())
+    {
+      Trace("alf-amb-dt") << "...yes since " << p << " not contained" << std::endl;
+      ret = true;
+      break;
+    }
+  }
+  Trace("alf-amb-dt") << "...returns " << ret << std::endl;
+  d_ambDt[op] = ret;
+  return ret;
 }
 
 bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
