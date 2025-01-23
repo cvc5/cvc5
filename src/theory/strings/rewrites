@@ -323,8 +323,13 @@
   (str.indexof t1 s n))
 
 (define-cond-rule str-indexof-find ((t ?Seq) (s ?Seq) (n Int))
-  (str.prefixof s (str.substr t n (str.len t)))
+  (and (not (= s (@seq.empty_of_type (@type_of t)))) (str.prefixof s (str.substr t n (str.len t))))
   (str.indexof t s n)
+  n)
+
+(define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
+  (and (= emp (@seq.empty_of_type (@type_of t))) (>= (str.len t) n))
+  (str.indexof t emp n)
   n)
 
 (define-rule str-indexof-re-none ((t ?Seq) (n Int))
@@ -402,6 +407,7 @@
   (str.< s t)
   (and (not (= s t)) (str.<= s t)))
 
+; if t contains only digits, it cannot contain a string s containing a non-digit
 (define-cond-rule str-from-int-no-ctn-nondigit ((n Int) (s String))
   (and (not (= s "")) (= (str.to_int s) (- 1)))
   (str.contains (str.from_int n) s)

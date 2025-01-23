@@ -3823,6 +3823,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-find */
   EVALUE(STR_INDEXOF_FIND),
+  /** Auto-generated from RARE rule str-indexof-find-emp */
+  EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-re-none */
   EVALUE(STR_INDEXOF_RE_NONE),
   /** Auto-generated from RARE rule str-to-lower-concat */
