@@ -566,8 +566,10 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
           opName << "tuple";
         }
       }
-      else if (dt.isParametric() && isAmbiguousDtConstructor(dt[index].getConstructor()))
+      else if ((dt.isNullable() && index==0) || (dt.isParametric() && isAmbiguousDtConstructor(dt[index].getConstructor())))
       {
+        // ambiguous if nullable.null or a user provided ambiguous datatype
+        // constructor
         opName << "as";
         indices.push_back(dt[index].getConstructor());
         // tn is the return type
