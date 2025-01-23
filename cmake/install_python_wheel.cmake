@@ -10,10 +10,19 @@
 # directory for licensing information.
 # #############################################################################
 #
-# [[ Add one-line brief description here ]]
+# Build, repair, and install a cvc5 Python wheel
 #
-# [[ Add lengthier description here ]]
-# \todo document this file
+# This script first removes any existing wheel build directories,
+# builds an initial Python wheel, repairs the wheel to include
+# all required shared library dependencies, and finally prepares
+# an installation command to install the repaired wheel.
+#
+# Input variables:
+# Python_EXECUTABLE - Path to the Python executable
+# Repairwheel_EXECUTABLE - Path to the repairwheel tool
+# BUILD_DIR - Path to the cvc5 build directory 
+# DEPS_BASE - Path to the cvc5 dependencies directory
+# INSTALL_CMD - Command to install the wheel
 ##
 set(UNREPAIRED_WHEEL_DIR ${BUILD_DIR}/unrepaired-wheel)
 set(REPAIRED_WHEEL_DIR ${BUILD_DIR}/repaired-wheel)
