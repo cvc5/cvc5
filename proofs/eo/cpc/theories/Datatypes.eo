@@ -60,4 +60,4 @@
 (declare-const nullable.lift (-> (! Type :var F :implicit) F ($get_type_nullable_lift F)))
 
 ; shared selector
-(declare-const @shared_selector (-> (! Type :var D) (! Type :var T) Int D T))
+(declare-const @shared_selector (-> (! Type :opaque :var D) (! Type :opaque :var T) (! Int :opaque) D T))

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,7 +53,9 @@ class GenericOp
    * Return the operator of kind k whose indices are the constants in the
    * given vector.
    */
-  static Node getOperatorForIndices(Kind k, const std::vector<Node>& indices);
+  static Node getOperatorForIndices(NodeManager* nm,
+                                    Kind k,
+                                    const std::vector<Node>& indices);
   /**
    * Get the concrete term corresponding to the application of
    * APPLY_INDEXED_SYMBOLIC. Requires all indices to be constant.

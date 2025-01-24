@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,6 +33,7 @@
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
+#include "smt/proof_logger.h"
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
@@ -161,6 +162,11 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
   typename std::vector<T, Alloc>::size_type r = std::distance(it, c.end());
   c.erase(it, c.end());
   return r;
+}
+
+void PfManager::startProofLogging(std::ostream& out, Assertions& as)
+{
+  Unimplemented() << "Not yet implemented" << std::endl;
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
@@ -422,6 +428,8 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
+
+ProofLogger* PfManager::getProofLogger() const { return d_plog.get(); }
 
 rewriter::RewriteDb* PfManager::getRewriteDatabase() const
 {

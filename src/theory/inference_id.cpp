@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -580,7 +580,7 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
   return out;
 }
 
-Node mkInferenceIdNode(InferenceId i)
+Node mkInferenceIdNode(NodeManager* nm, InferenceId i)
 {
   return NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(i)));

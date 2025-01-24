@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,7 +74,7 @@ Node OpArgIndex::getGroundTerm( ConjectureGenerator * s, std::vector< TNode >& a
     args2.push_back( d_ops[0] );
   }
   args2.insert(args2.end(), args.begin(), args.end());
-  return NodeManager::currentNM()->mkNode(d_op_terms[0].getKind(), args2);
+  return s->nodeManager()->mkNode(d_op_terms[0].getKind(), args2);
 }
 
 void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& terms ) {
@@ -1826,7 +1826,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
           children.push_back( nc );
         }
       }
-      return NodeManager::currentNM()->mkNode( s->d_func_kind[f], children );
+      return s->d_cg->nodeManager()->mkNode(s->d_func_kind[f], children);
     }
   }else{
     Assert(false);
