@@ -710,7 +710,8 @@ bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
   if (s.isConst())
   {
-    return Word::getLength(s) != 0;
+    size_t len = Word::getLength(s);
+    return strict ? (len==1) : (len<=1);
   }
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConstInt(Rational(1));
