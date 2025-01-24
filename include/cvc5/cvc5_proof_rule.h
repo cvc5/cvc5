@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Abdalrhman Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1952,9 +1952,11 @@ enum ENUM(ProofRule)
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
-   * :math:`\diamond` is the comparison (less or equal) that results from the
-   * signs of the variables. All variables with even exponent in :math:`m`
-   * should be given as not equal to zero while all variables with odd exponent
+   * :math:`\diamond` is the comparison (less or greater) that results from the
+   * signs of the variables. In particular, :math:`\diamond` is :math`<`
+   * if :math:`f_1 \dots f_k` contains an odd number of :math`<`. Otherwise
+   * :math:`\diamond` is :math`>`. All variables with even exponent in :math:`m`
+   * are given as not equal to zero while all variables with odd exponent
    * in :math:`m` should be given as less or greater than zero.
    * \endverbatim
    */
