@@ -711,7 +711,7 @@ bool StringsEntail::checkLengthOne(Node s, bool strict)
   if (s.isConst())
   {
     size_t len = Word::getLength(s);
-    return strict ? (len==1) : (len<=1);
+    return strict ? (len == 1) : (len <= 1);
   }
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConstInt(Rational(1));
