@@ -63,7 +63,7 @@ namespace smt {
     std::stringstream ss;                                                     \
     ss << "Cannot use --" << options::domain::longName::optName << " due to " \
        << reason << ".";                                                      \
-    throw FatalOptionException(ss.str());                                          \
+    throw FatalOptionException(ss.str());                                     \
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.

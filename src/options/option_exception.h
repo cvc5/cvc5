@@ -54,7 +54,10 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
 class CVC5_EXPORT FatalOptionException : public cvc5::internal::Exception
 {
  public:
-  FatalOptionException(const std::string& s) : cvc5::internal::Exception(s_errPrefix + s) {}
+  FatalOptionException(const std::string& s)
+      : cvc5::internal::Exception(s_errPrefix + s)
+  {
+  }
 
   /**
    * Get the error message without the prefix that is automatically added for
