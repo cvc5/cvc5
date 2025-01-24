@@ -1952,9 +1952,11 @@ enum ENUM(ProofRule)
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
-   * :math:`\diamond` is the comparison (less or equal) that results from the
-   * signs of the variables. All variables with even exponent in :math:`m`
-   * should be given as not equal to zero while all variables with odd exponent
+   * :math:`\diamond` is the comparison (less or greater) that results from the
+   * signs of the variables. In particular, :math:`\diamond` is :math`<`
+   * if :math:`f_1 \dots f_k` contains an odd number of :math`<`. Otherwise
+   * :math:`\diamond` is :math`>`. All variables with even exponent in :math:`m`
+   * are given as not equal to zero while all variables with odd exponent
    * in :math:`m` should be given as less or greater than zero.
    * \endverbatim
    */
