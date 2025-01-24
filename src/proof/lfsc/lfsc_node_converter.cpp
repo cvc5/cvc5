@@ -1159,7 +1159,6 @@ Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 
 size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(fv.isVar());
   std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
   if (it != d_fvarIndex.end())
   {
