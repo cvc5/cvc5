@@ -49,7 +49,23 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
 
 /**
  * Class representing an option-parsing exception such as badly-typed
- * or missing arguments, arguments out of bounds, etc.
+ * or missing arguments, arguments out of bounds, etc. This class is identical
+ * to the above one but is treated as an unrecoverable exception in the API.
+ *
+ * At a high level, this exception is used when the user requests a legal
+ * combination of options. It is *not* used in other cases, e.g. where the
+ * user requests an option that does not exist.
+ *
+ * In particular, we use this exception in two places:
+ * (1) If the SetDefaults detects an options misconfiguration e.g. at the
+ * beginning of a `check-sat` command, in which case any exception is treated
+ * as unrecoverable.
+ * (2) If we discover an illegal combination of options during a `set-option`
+ * command (e.g. due to restrictions on `safe-options`).
+ *
+ * The latter is made a fatal exception for consistency, since some
+ * options misconfigurations are discovered during SetDefaults and others
+ * are detected eagerly, where in either case we should abort.
  */
 class CVC5_EXPORT FatalOptionException : public cvc5::internal::Exception
 {
