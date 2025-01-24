@@ -48,9 +48,9 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
 }; /* class OptionException */
 
 /**
- * Class representing an option-parsing exception such as badly-typed
- * or missing arguments, arguments out of bounds, etc. This class is identical
- * to the above one but is treated as an unrecoverable exception in the API.
+ * Class representing an option-parsing exception involving an illegal
+ * combination of options. In contrast to OptionsException, it is treated as an
+ * unrecoverable exception in the API.
  *
  * At a high level, this exception is used when the user requests a legal
  * combination of options. It is *not* used in other cases, e.g. where the
