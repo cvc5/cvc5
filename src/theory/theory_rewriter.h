@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -242,17 +242,15 @@ class TheoryRewriter
 class NoOpTheoryRewriter : public TheoryRewriter
 {
  public:
-  NoOpTheoryRewriter(NodeManager* nm) : TheoryRewriter(nm) {}
+  NoOpTheoryRewriter(NodeManager* nm, TheoryId tid);
   /** Performs a post-rewrite step. */
-  RewriteResponse postRewrite(TNode node) override
-  {
-    return RewriteResponse(REWRITE_DONE, node);
-  }
+  RewriteResponse postRewrite(TNode node) override;
   /** Performs a pre-rewrite step. */
-  RewriteResponse preRewrite(TNode node) override
-  {
-    return RewriteResponse(REWRITE_DONE, node);
-  }
+  RewriteResponse preRewrite(TNode node) override;
+
+ private:
+  /** The theory id */
+  TheoryId d_tid;
 };
 
 }  // namespace theory

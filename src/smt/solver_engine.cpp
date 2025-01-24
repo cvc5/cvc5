@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -2171,11 +2171,13 @@ void SolverEngine::setOption(const std::string& key,
       ss << "expert option " << key
          << " cannot be set when safeOptions is true.";
       // If we are setting to a default value, the exception can be avoided
-      // by omitting.
+      // by omitting the expert option.
       if (getOption(key) == value)
       {
+        // note this is not the case for options which safe-options explicitly
+        // disables.
         ss << " The value for " << key << " is already its current value ("
-           << value << "). Omitting this option will avoid this exception.";
+           << value << "). Omitting this option may avoid this exception.";
       }
       throw OptionException(ss.str());
     }
@@ -2204,9 +2206,10 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            ss << " The value for " << rkey
-               << " is already its current value (" << rvalue
-               << "). Omitting this option will avoid this exception.";
+            // note this is not the case for options which safe-options
+            // explicitly disables.
+            ss << " The value for " << rkey << " is already its current value ("
+               << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
         throw OptionException(ss.str());

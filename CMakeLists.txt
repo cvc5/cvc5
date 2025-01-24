@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#   Aina Niemetz, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -253,9 +253,12 @@ if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
 
-# Changing the default linker on MSYS prevents the build system from
-# using the GMP system library if available
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND NOT USE_DEFAULT_LINKER)
+# Keep the default linker on MSYS, as switching it prevents the build system from
+# using the GMP system library if available. For Linux ARM64, the default linker is
+# also required due to a bug in the gold linker specific to ARM64 architectures.
+if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
+    NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND
+    NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
   # Use ld.mold if available, otherwise use ld.gold if available
 

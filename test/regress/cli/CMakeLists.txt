@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -827,6 +827,7 @@ set(regress_0_tests
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
   regress0/ff/proj-issue705.smt2
+  regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
   regress0/ff/randcompile-sound-3i-5t-zokcirc.smt2
   regress0/ff/randcompile-sound-3i-5t-zokref.smt2
@@ -904,6 +905,9 @@ set(regress_0_tests
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
   regress0/fp/proj-issue509-fp-set-comprehension.smt2
+  regress0/fp/proj-issue744-safe.smt2
+  regress0/fp/proj-issue745-safe.smt2
+  regress0/fp/proj-issue746-safe.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
