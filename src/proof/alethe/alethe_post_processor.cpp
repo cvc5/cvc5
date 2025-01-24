@@ -1539,29 +1539,24 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Alpha Equivalence
     //
-    // Given the formula F := (forall ((y1 A1) ... (yn An)) G) and the
-    // substitution sigma is {y1 -> z1, ..., yn -> zn}, the step is represented
-    // as
+    // Given the formula F := (forall ((y1 A1) ... (yn An)) G) and a
+    // substitution sigma, the resulting Alethe steps justifying the conclusion
+    // (= F F*sigma) depend on a number of conditions, which are detailed below.
     //
-    //  ------------------ refl
-    //  (cl (= G G*sigma))
-    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
-    //  (cl (= F (forall ((z1 A1) ... (zn An)) G*sigma)))
-    //
-    // unless sigma is the identity, in which case this step is converted to
+    // If sigma is the identity, F*sigma is the same as F, and the resulting
+    // step is
     //
     //  ------------------ refl
     //  (cl (= F F))
     //
-    // When F := (forall ((y1 A1) ... (yk Ak)) G) and sigma is the substitution
-    // {y1 -> z1, ..., yk -> zk, ..., yn -> zn}, this represents the case where
-    // G has quantifiers whose variables are yk+1 ... yn and they will be
-    // renamed to zk+1 ... zn. The generated Alethe proof is
+    // When sigma is the substitution {y1->z1, ..., yn->zn, ..., yn+k->zn+k}, we
+    // are in the case where G has quantifiers whose variables are yn+1 ... yn+k
+    // and they will be renamed to zn+1 ... zn+k. The generated Alethe proof is
     //
     //  --------------------------------------- refl
-    //  (cl (= G G*{y1 -> z1, ..., yk -> zk}))
-    // --------------------------------- bind, z1 ... zk (= y1 z1) ... (= yk zk)
-    //  (cl (= F (forall ((z1 A1) ... (zk Ak)) G*{y1 -> z1, ..., yk -> zk})))
+    //  (cl (= G G*{y1 -> z1, ..., yn -> zn}))
+    // --------------------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (cl (= F (forall ((z1 A1) ... (zn An)) G*{y1 -> z1, ..., yn -> zn})))
     //
     // i.e., we drop the suffix of the substitution beyond the variables of the
     // outermost quantifier. This is valid in Alethe because the validity of
@@ -1569,14 +1564,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     // tested modulo alpha-equivalence. An alternative would be to use the rest
     // of the substitution to do new "bind" steps for the innermost quantifiers.
     //
-    // Finally, if the substitution being used is such that it contains more
-    // than one variable with the same name but with different types (which
-    // makes them different for cvc5 but not in the substitution induced by
-    // Alethe's context), we introduce an intermediate alpha equivalence step
-    // with fresh variables. For example if F := (forall ((y1 A1) (y2 A2)) G)
-    // and sigma is the substitution {y1 -> z1, y2 -> y1}, where the "y1" in the
-    // right hand side has another type "T" other than "A2", then the resulting
-    // steps are
+    // If sigma contains more than one variable with the same name but with
+    // different types (which makes them different for cvc5 but not in the
+    // substitution induced by Alethe's context), we introduce an intermediate
+    // alpha equivalence step with fresh variables. For example if F := (forall
+    // ((y1 A1) (y2 A2)) G) and sigma is the substitution {y1 -> z1, y2 -> y1},
+    // where the "y1" in the right hand side has another type "T" other than
+    // "A2", then the resulting steps are
     //
     //  --------------------------------------- refl
     //  (cl (= G G*{y1 -> @v1, y2 -> @v2})
@@ -1592,6 +1586,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // and finally a transitivity step to conclude an equality between F and
     // (forall ((z1 A1) (y1 A2)) (G*{y1->@v1, y2->@v2})*{@v1->z1, @v1->y1}).
+    //
+    // If none of the conditions above applies, the resulting Alethe steps are
+    //
+    //  ------------------ refl
+    //  (cl (= G G*sigma))
+    // -------------------- bind, z1 ... zn (= y1 z1) ... (= yn zn)
+    //  (cl (= F (forall ((z1 A1) ... (zn An)) G*sigma)))
     case ProofRule::ALPHA_EQUIV:
     {
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
