@@ -198,7 +198,7 @@ class TestBlackOptions : public TestApi
               [this, &name](const OptionInfo::ModeInfo& v) {
                 if (!v.modes.empty())
                 {
-                  d_solver->setOption(name, v.modes.first);
+                  d_solver->setOption(name, v.modes[0]);
                 }
               },
           },
