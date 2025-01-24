@@ -47,6 +47,29 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
   static const std::string s_errPrefix;
 }; /* class OptionException */
 
+/**
+ * Class representing an option-parsing exception such as badly-typed
+ * or missing arguments, arguments out of bounds, etc.
+ */
+class CVC5_EXPORT FatalOptionException : public cvc5::internal::Exception
+{
+ public:
+  FatalOptionException(const std::string& s) : cvc5::internal::Exception(s_errPrefix + s) {}
+
+  /**
+   * Get the error message without the prefix that is automatically added for
+   * OptionExceptions.
+   */
+  std::string getRawMessage() const
+  {
+    return getMessage().substr(s_errPrefix.size());
+  }
+
+ private:
+  /** The string to be added in front of the actual error message */
+  static const std::string s_errPrefix;
+}; /* class OptionException */
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__OPTION_EXCEPTION_H */
