@@ -102,7 +102,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                         << children << " / " << args << std::endl;
 
   NodeManager* nm = nodeManager();
-  std::vector<Node> new_args;
+  std::vector<Node> new_args = std::vector<Node>();
 
   switch (id)
   {
