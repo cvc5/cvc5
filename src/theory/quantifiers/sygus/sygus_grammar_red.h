@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * sygus_grammar_red
+ * Sygus grammar reduction.
  */
 
 #include "cvc5_private.h"
@@ -18,10 +18,10 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
-#include <map>
-#include <vector>
+#include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/sygus_grammar.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -30,65 +30,26 @@ namespace quantifiers {
 
 class TermDbSygus;
 
-/** SygusRedundantCons
+/** SygusGrammarReduce
  *
- * This class computes the subset of indices of the constructors of a sygus type
- * that are redundant. To use this class, first call initialize( qe, tn ),
- * where tn is a sygus tn. Then, use getRedundant and/or isRedundant to get the
- * indicies of the constructors of tn that are redundant.
+ * This class minimizes the production rules of a sygus grammar based on
+ * dropping production rules whose terms are alpha-equivalent to others.
  */
-class SygusRedundantCons : protected EnvObj
+class SygusGrammarReduce : protected EnvObj
 {
  public:
-  SygusRedundantCons(Env& env) : EnvObj(env) {}
-  ~SygusRedundantCons() {}
-  /** register type tn
-   *
-   * qe : pointer to the quantifiers engine,
-   * tn : the (sygus) type to compute redundant constructors for
-   */
-  void initialize(TermDbSygus* tds, TypeNode tn);
-  /** Get the indices of the redundant constructors of the register type */
-  void getRedundant(std::vector<unsigned>& indices);
+  SygusGrammarReduce(Env& env) : EnvObj(env) {}
+  ~SygusGrammarReduce() {}
   /**
-   * This function returns true if the i^th constructor of the registered type
-   * is redundant.
+   * Minimize and update non-terminal ntsym of grammar g, which drops a
+   * subset of the rules of ntsym in g that can be shown not to contribute
+   * any semantically unique terms to the enumeration.
    */
-  bool isRedundant(unsigned i);
+  void minimize(SygusGrammar& g, const Node& ntsym);
+  /** Minimize and update all non-terminals of grammar g. */
+  void minimize(SygusGrammar& g);
 
  private:
-  /** the registered type */
-  TypeNode d_type;
-  /** redundant status
-   *
-   * For each constructor, status indicating whether the constructor is
-   * redundant, where:
-   *
-   * 0 : not redundant,
-   * 1 : redundant since another constructor can be used to construct values for
-   * this constructor.
-   *
-   * For example, for grammar:
-   *   A -> C > B | B < C | not D
-   *   B -> x | y
-   *   C -> 0 | 1 | C+C
-   *   D -> B >= C
-   * If A is register with this class, then we store may store { 0, 1, 0 },
-   * noting that the second constructor of A can be simulated with the first.
-   * Notice that the third constructor is not considered redundant.
-   */
-  std::vector<int> d_sygus_red_status;
-  /**
-   * Map from constructor indices to the generic term for that constructor,
-   * where the generic term for a constructor is the (canonical) term returned
-   * by a call to TermDbSygus::mkGeneric.
-   */
-  std::map<unsigned, Node> d_gen_terms;
-  /**
-   * Map from the rewritten form of generic terms for constructors of the
-   * registered type to their corresponding constructor index.
-   */
-  std::map<Node, unsigned> d_gen_cons;
   /** get generic list
    *
    * This function constructs all well-typed variants of a term of the form
@@ -97,25 +58,47 @@ class SygusRedundantCons : protected EnvObj
    *
    * It constructs a list of terms of the form g * sigma, where sigma
    * is an automorphism on { x1...xn } such that for all xi -> xj in sigma,
-   * the type for arguments i and j of dt[c] are the same. We store this
-   * list of terms in terms.
+   * the type for arguments i and j of dt[c] are the same. We store this in
+   * the returned set.
    *
-   * This function recurses on the arguments of g, index is the current argument
+   * This function recurses on the arguments of r, index is the current argument
    * we are processing, and pre stores the current arguments of
    *
    * For example, for a sygus grammar
-   *   A -> and( A, A, B )
+   *   A -> and( A, A, B ) | true
    *   B -> false
-   * passing arguments such that g=and( x1, x2, x3 ) to this function will add:
+   * passing arguments such that r=and( x1, x2, x3 ) to this function will add:
    *   and( x1, x2, x3 ) and and( x2, x1, x3 )
    * to terms.
    */
-  void getGenericList(TermDbSygus* tds,
-                      const DType& dt,
-                      unsigned c,
-                      unsigned index,
-                      std::map<int, Node>& pre,
-                      std::vector<Node>& terms);
+  std::unordered_set<Node> getGenericTerms(const SygusGrammar& g,
+                                           const Node& r);
+  /**
+   * A recursive helper for the above method.
+   * @param lam The lambda corresponding to the non-terminal rule (see
+   * SygusGrammar::getLambdaForRule).
+   * @param tset The set of terms we have computed thus far.
+   * @param vlist The list of non-terminal variables and a unique index. The
+   * variable we are considering for each pair in this vector is
+   * ntvMap[pair.first][pair.second].
+   * @param ntlist The list of non-terminals (unique variables that occur
+   * as the first component of some pair in vlist).
+   * @param ntvMap The partition of variables we are considering, grouped by
+   * their corresponding non-terminal. We consider permutations of the
+   * range of this map.
+   * @param ntindex The non-terminal we are considering partitions for
+   * @param vindex The sub-vector of variables for the current non-terminal
+   * we are considering.
+   */
+  void getGenericTermsRec(const Node& lam,
+                          std::unordered_set<Node>& tset,
+                          const std::vector<std::pair<Node, size_t>>& vlist,
+                          const std::vector<Node>& ntlist,
+                          std::map<Node, std::vector<Node>>& ntvMap,
+                          size_t ntindex,
+                          size_t vindex);
+  /** A set of intermediate variables introduced for the above method. */
+  std::vector<Node> d_cacheValues;
 };
 
 }  // namespace quantifiers
