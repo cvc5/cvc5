@@ -17,7 +17,7 @@ A clear and concise description of what the bug is.
 **Operating system**: Name/version of the operating system.  
 
 **`configure.sh` options**  
-Paste `configure.sh` here.
+Paste the options passed to `configure.sh` here.
 
 **`configure.sh` output**  
 Paste the output of `configure.sh` here.

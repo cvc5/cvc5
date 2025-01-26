@@ -53,9 +53,5 @@
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
 
-; generic variables
-; NOTE: does not check that U is a numeral
-(declare-const const (-> (! Type :var U :implicit) (! U :opaque) (! Type :opaque :var T) T))
-
 ; The purification skolem.
 (declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))

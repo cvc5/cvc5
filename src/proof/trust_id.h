@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -194,8 +194,13 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
-  /** A quantifiers rewriting step for instantiations, e.g. virtual term substitution */
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
   QUANTIFIERS_INST_REWRITE,
+  /** A quantifiers from the --sub-cbqi module */
+  QUANTIFIERS_SUB_CBQI_LEMMA,
+  /** A quantifiers from the nested quantifier elimination module */
+  QUANTIFIERS_NESTED_QE_LEMMA,
   /** A rewrite performed at TheoryStrings::ppStaticRewrite */
   STRINGS_PP_STATIC_REWRITE,
   /**

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,12 +39,13 @@ namespace strings {
 
 SequencesRewriter::SequencesRewriter(NodeManager* nm,
                                      Rewriter* r,
+                                     ArithEntail& ae,
                                      HistogramStat<Rewrite>* statistics)
     : TheoryRewriter(nm),
       d_statistics(statistics),
       d_rr(r),
-      d_arithEntail(r),
-      d_stringsEntail(r, d_arithEntail, this)
+      d_arithEntail(ae),
+      d_stringsEntail(r, ae, this)
 {
   d_sigmaStar = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);

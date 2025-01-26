@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +29,10 @@ namespace strings {
 
 StringsRewriter::StringsRewriter(NodeManager* nm,
                                  Rewriter* r,
+                                 ArithEntail& ae,
                                  HistogramStat<Rewrite>* statistics,
                                  uint32_t alphaCard)
-    : SequencesRewriter(nm, r, statistics), d_alphaCard(alphaCard)
+    : SequencesRewriter(nm, r, ae, statistics), d_alphaCard(alphaCard)
 {
 }
 

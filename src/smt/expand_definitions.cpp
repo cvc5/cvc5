@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,13 +79,17 @@ Node ExpandDefs::expandDefinitions(TNode n,
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      theory::TheoryId tid = d_env.theoryOf(node);
+      // ensure rewritten
+      Node nr = rewrite(n);
+      // now get the appropriate theory
+      theory::TheoryId tid = d_env.theoryOf(nr);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
       Assert(tr != NULL);
-      // ensure rewritten
-      Node nr = rewrite(n);
+      Trace("expand") << "Expand definition on " << nr << " (from " << n << ")"
+                      << std::endl;
       Node nre = tr->expandDefinition(nr);
+      Trace("expand") << "...returns " << nre << std::endl;
       node = nre.isNull() ? nr : nre;
       // the partial functions can fall through, in which case we still
       // consider their children

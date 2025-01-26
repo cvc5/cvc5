@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Abdalrhman Mohamed
+ *   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1328,7 +1328,7 @@ enum ENUM(ProofRule)
    *
    * Notice that this rule is correct only when :math:`z_1,\dots,z_n` are not
    * contained in :math:`FV(F) \setminus \{ y_1,\dots, y_n \}`, where
-   * :math:`FV(\varphi)` are the free variables of :math:`\varphi`. The internal
+   * :math:`FV(F)` are the free variables of :math:`F`. The internal
    * quantifiers proof checker does not currently check that this is the case.
    * \endverbatim
    */
@@ -1952,9 +1952,11 @@ enum ENUM(ProofRule)
    *
    * where :math:`f_1 \dots f_k` are variables compared to zero (less, greater
    * or not equal), :math:`m` is a monomial from these variables and
-   * :math:`\diamond` is the comparison (less or equal) that results from the
-   * signs of the variables. All variables with even exponent in :math:`m`
-   * should be given as not equal to zero while all variables with odd exponent
+   * :math:`\diamond` is the comparison (less or greater) that results from the
+   * signs of the variables. In particular, :math:`\diamond` is :math`<`
+   * if :math:`f_1 \dots f_k` contains an odd number of :math`<`. Otherwise
+   * :math:`\diamond` is :math`>`. All variables with even exponent in :math:`m`
+   * are given as not equal to zero while all variables with odd exponent
    * in :math:`m` should be given as less or greater than zero.
    * \endverbatim
    */
@@ -2492,6 +2494,24 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(LAMBDA_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Macro lambda application capture avoid**
+   *
+   * .. math::
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = ((\lambda y_1 \ldots y_n.\> t') \ t_1 \ldots t_n)
+   *
+   * The terms may either be of kind
+   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
+   * This rule ensures that the free variables of :math:`y_1, \ldots, y_n, t_1 \ldots t_n`
+   * do not occur in binders within :math:`t'`, and
+   * :math:`(\lambda x_1 \ldots x_n.\> t)` is alpha-equivalent to
+   * :math:`(\lambda y_1 \ldots y_n.\> t')`. This rule is applied prior to
+   * beta reduction to ensure there is no variable capturing.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_LAMBDA_CAPTURE_AVOID),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Constant array select**
