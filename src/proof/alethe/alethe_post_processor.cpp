@@ -1597,18 +1597,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
       bool allSame = true;
-      std::vector<std::string> lhsNames;
-      bool hasClash = false;
+      std::unordered_set<std::string> lhsNames;
       for (size_t i = 0, size = res[0][0].getNumChildren(); i < size; ++i)
       {
         Node v0 = res[0][0][i], v1 = res[1][0][i];
-        if (std::find(lhsNames.begin(), lhsNames.end(), v1.getName())
-            != lhsNames.end())
-        {
-          hasClash = true;
-          allSame = false;
-        }
-        lhsNames.push_back(v0.getName());
+        lhsNames.insert(v0.getName());
         allSame = allSame && v0 == v1;
       }
       // when no renaming, no-op
@@ -1620,6 +1613,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                              {},
                              {},
                              *cdp);
+      }
+      // check if any name in the rhs variables clashes with a name in the lhs
+      bool hasClash = false;
+      for (const Node& v : res[1][0])
+      {
+        if (lhsNames.count(v.getName()))
+        {
+          hasClash = true;
+        }
       }
       bool success = true;
       Node lhsQ = res[0];
