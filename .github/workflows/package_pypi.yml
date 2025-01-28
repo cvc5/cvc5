@@ -141,6 +141,15 @@ jobs:
         python3 -m pip install -U packaging # See https://github.com/pypa/twine/issues/1216
         python3 -m pip install twine
 
+    - name: Check wheels with twine
+      run: |
+        echo "::group::Check wheels with twine"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine check $wheel
+        done
+        echo "::endgroup::"
+
     - name: Upload wheels to pypi.org
       if: >
         github.event_name == 'release' ||
