@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Tag of the release to build"
-        required: true
+        description: "Tag of the release to build (leave empty for current branch)"
+      python_versions:
+        description: "Python versions to build (leave empty for all supported versions)"
       deploy_target:
         type: choice
         description: "Choose the deployment target"
@@ -112,6 +113,8 @@ jobs:
       with:
         package-dir: ./build/src/api/python/
       env:
+        CIBW_ALLOW_EMPTY: True
+        CIBW_BUILD: "${{ github.event.inputs.python_versions || '*' }}"
         CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
@@ -138,11 +141,21 @@ jobs:
         python3 -m pip install -U packaging # See https://github.com/pypa/twine/issues/1216
         python3 -m pip install twine
 
+    - name: Check wheels with twine
+      run: |
+        echo "::group::Check wheels with twine"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine check $wheel
+        done
+        echo "::endgroup::"
+
     - name: Upload wheels to pypi.org
       if: >
         github.event_name == 'release' ||
         (github.event_name == 'workflow_dispatch' &&
-         github.event.inputs.deploy_target == 'PyPI')
+         github.event.inputs.deploy_target == 'PyPI' &&
+         startsWith(github.event.inputs.release_tag, 'cvc5-'))
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -150,7 +163,8 @@ jobs:
         echo "::group::Upload to pypi.org"
         for wheel in `ls ./wheelhouse/*.whl`
         do
-          twine upload $wheel
+          # --skip-existing is only valid when uploading to PyPI
+          twine upload --skip-existing $wheel
         done
         echo "::endgroup::"
 
