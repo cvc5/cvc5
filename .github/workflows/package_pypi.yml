@@ -6,10 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Tag of the release to build"
-        required: true
+        description: "Tag of the release to build (leave empty for current branch)"
       python_versions:
-        description: "Python versions to build (leave empty for all versions)"
+        description: "Python versions to build (leave empty for all supported versions)"
       deploy_target:
         type: choice
         description: "Choose the deployment target"
@@ -155,7 +154,8 @@ jobs:
       if: >
         github.event_name == 'release' ||
         (github.event_name == 'workflow_dispatch' &&
-         github.event.inputs.deploy_target == 'PyPI')
+         github.event.inputs.deploy_target == 'PyPI' &&
+         startsWith(github.event.inputs.release_tag, 'cvc5-'))
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
