@@ -374,6 +374,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   CDProof cdp(d_env);
   Node cond = conc[0][0];
   Node truen = nm->mkConst(true);
+  // if we are (<rel1> (ite (<rel2> s t) t s) r) where r is s|t. 
   if (cond.getNumChildren() == 2 && cond[0] == conc[0][2]
       && cond[1] == conc[0][1]
       && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
@@ -432,7 +433,8 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
     }
     else
     {
-      Trace("arith-static-pf") << "...failed rewrite " << eq2 << std::endl;
+      // this should always hold unless the rewriter for ITE changes
+      Assert(false) << "...failed rewrite " << eq2 << std::endl;
       cdp.addTrustedStep(fact, TrustId::ARITH_STATIC_LEARN, {}, {});
       return cdp.getProofFor(fact);
     }
@@ -441,11 +443,17 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
            && cond[1] == conc[0][2]
            && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {
+    // if we are (<rel1> (ite (<rel2> s t) s t) r) where r is s|t. 
     Trace("arith-static-pf") << "Min/max term..." << std::endl;
+    // conc can be shown by a RARE rule arith-{min,max}-*
     cdp.addTrustedStep(conc, TrustId::ARITH_STATIC_LEARN, {}, {});
   }
   else
   {
+    // otherwise we are (=> (and R1? R2?) (<rel> (ite C s t) c)) where either
+    // - R1 is not provided and s is a value such that (<rel> s c) is true
+    // - R1 is provided and implies (<rel> s c).
+    // Similarly for t and R2.
     std::vector<Node> branches;
     std::vector<Node> congPremises;
     Node ceq = cond.eqNode(cond);
