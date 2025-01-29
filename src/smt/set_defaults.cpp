@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -153,6 +153,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these are disabled by default but are listed here in case they are
     // enabled by default later
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
     // specific options that are disabled
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");

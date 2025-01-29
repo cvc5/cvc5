@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -153,6 +153,8 @@ private:
 
   std::string identify() const override { return "THEORY_UF"; }
  private:
+  /** Called when preregistering terms of kind APPLY_UF or HO_APPLY */
+  void preRegisterFunctionTerm(TNode node);
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 

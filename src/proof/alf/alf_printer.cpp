@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -276,11 +276,15 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
     case ProofRewriteRule::DT_COLLAPSE_TESTER:
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    case ProofRewriteRule::DT_CYCLE:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
     case ProofRewriteRule::QUANT_MINISCOPE_ITE:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
     case ProofRewriteRule::SETS_INSERT_ELIM:
@@ -291,6 +295,10 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+      // only strings are supported, since it is non-trivial to show
+      // distinctness of sequence characters.
+      return n[0][0].getType().isString();
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
@@ -375,8 +383,15 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
         case Kind::STRING_PREFIX:
+        case Kind::STRING_SUFFIX:
         case Kind::STRING_ITOS:
         case Kind::STRING_STOI:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        case Kind::STRING_REV:
+        case Kind::STRING_CHARAT:
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -384,6 +399,11 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_NEG:
         case Kind::BITVECTOR_NOT:
         case Kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_SHL:
+        case Kind::BITVECTOR_LSHR:
+        case Kind::BITVECTOR_ASHR:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
         case Kind::BITVECTOR_XOR:
@@ -902,11 +922,9 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CONG:
-    case ProofRule::NARY_CONG:
     case ProofRule::ARITH_POLY_NORM_REL:
     {
-      Node op = d_tproc.getOperatorOfTerm(res[0], true);
+      Node op = d_tproc.getOperatorOfTerm(res[0]);
       args.push_back(d_tproc.convert(op));
       return;
     }

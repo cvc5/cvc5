@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -408,8 +408,35 @@ bool InferProofCons::convert(Env& env,
       // if there are substitutions to apply
       if (mainEqIndex > 0)
       {
+        // Compute which equalities we want to flip their substitution.
+        // Currently this is only an issue if e.g. (= (str.++ a a) (str.++ b c))
+        // where we conclude (= a c) from an explanation (= a b) via
+        // STRINGS_F_UNIFY, which would otherwise conclude (= b c) if a -> b
+        // was processed as a substitution.
+        // In contrast, normal form inferences are truly processed as
+        // substitutions in the strings core solver, whereas flat form
+        // inferences simply consider unification without substitutions, leading
+        // to issues like the one above.
         std::vector<Node> rexp(ps.d_children.begin(),
                                ps.d_children.begin() + mainEqIndex);
+        if (infer == InferenceId::STRINGS_F_UNIFY
+            || infer == InferenceId::STRINGS_F_ENDPOINT_EQ)
+        {
+          Trace("strings-ipc-core")
+              << "...check reorient substitution" << std::endl;
+          Assert(conc.getKind() == Kind::EQUAL);
+          // maybe reorient?
+          for (size_t i = 0; i < mainEqIndex; i++)
+          {
+            Assert(rexp[i].getKind() == Kind::EQUAL);
+            if (rexp[i][0] == conc[0] || rexp[i][0] == conc[1])
+            {
+              rexp[i] = rexp[i][1].eqNode(rexp[i][0]);
+              Trace("strings-ipc-core")
+                  << "...reorient to " << rexp[i] << std::endl;
+            }
+          }
+        }
         // apply substitution using the util method below
         pmainEq = convertCoreSubs(env, pf, psb, mainEq, rexp, 0, 0);
       }
@@ -571,6 +598,14 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR)
         {
+          // may have to flip
+          Assert(conc.getKind() == Kind::AND && conc[0].getKind() == Kind::OR
+                 && conc[0][0].getKind() == Kind::EQUAL);
+          if (conc[0][0][0] != t0)
+          {
+            applySym = true;
+            std::swap(t0, s0);
+          }
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkNode(Kind::STRING_LENGTH, s0))
@@ -870,16 +905,48 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
-        // either equal or rewrites to it
-        std::vector<Node> cexp;
-        if (psb.applyPredTransform(red, conc, cexp))
+        if (red == conc)
         {
           Trace("strings-ipc-red") << "...success!" << std::endl;
           useBuffer = true;
         }
         else
         {
-          Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          std::vector<Node> cexp;
+          // get the equalities where the reduction is different
+          std::vector<Node> matchConds;
+          expr::getConversionConditions(red, conc, matchConds);
+          Trace("strings-ipc-red")
+              << "...need to prove " << matchConds << std::endl;
+          // To simplify the proof transformation step below, we manually
+          // unpurify skolems from the concluded reduction. This
+          // make it more likely the applyPredTransform step does not have to
+          // resort to original forms. In particular, the strings rewriter
+          // currently does not respect the property that if
+          // t ---> c for constant c, then getOriginalForm(t) ---> c. This
+          // means we should attempt to replay the term which was used by the
+          // strings skolem cache to justify k = c, which is its unpurified
+          // form t, not its original form.
+          for (const Node& mc : matchConds)
+          {
+            Node mcu = SkolemManager::getUnpurifiedForm(mc[0]);
+            if (mcu != mc[0])
+            {
+              Node mceq = mc[0].eqNode(mcu);
+              psb.addStep(ProofRule::SKOLEM_INTRO, {}, {mc[0]}, mceq);
+              cexp.push_back(mceq);
+            }
+          }
+          // either equal or rewrites to it
+          if (psb.applyPredTransform(red, conc, cexp))
+          {
+            Trace("strings-ipc-red") << "...success!" << std::endl;
+            useBuffer = true;
+          }
+          else
+          {
+            Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          }
         }
       }
     }
@@ -897,7 +964,24 @@ bool InferProofCons::convert(Env& env,
     // ========================== unit injectivity
     case InferenceId::STRINGS_UNIT_INJ:
     {
-      ps.d_rule = ProofRule::STRING_SEQ_UNIT_INJ;
+      Assert(conc.getKind() == Kind::EQUAL);
+      Assert(ps.d_children.size() == 1
+             && ps.d_children[0].getKind() == Kind::EQUAL);
+      Node concS =
+          psb.tryStep(ProofRule::STRING_SEQ_UNIT_INJ, ps.d_children, {});
+      if (!concS.isNull())
+      {
+        // may need to apply symmetry
+        if (concS != conc)
+        {
+          Node ss = psb.tryStep(ProofRule::SYMM, {concS}, {});
+          useBuffer = (ss == conc);
+        }
+        else
+        {
+          useBuffer = true;
+        }
+      }
     }
     break;
     // ========================== prefix conflict
@@ -1088,9 +1172,67 @@ bool InferProofCons::convert(Env& env,
       }
     }
     break;
+    case InferenceId::STRINGS_I_CYCLE_E:
+    {
+      Assert(ps.d_children.size() == 1);
+      Node concE = psb.applyPredElim(ps.d_children[0],
+                                     {},
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_EXT_REWRITE);
+      Trace("strings-ipc-debug") << "... elim to " << concE << std::endl;
+      if (concE != conc)
+      {
+        if (concE.getKind() == Kind::AND)
+        {
+          for (size_t i = 0, nchild = concE.getNumChildren(); i < nchild; i++)
+          {
+            if (concE[i] == conc)
+            {
+              Node ni = nm->mkConstInt(Rational(i));
+              psb.addStep(ProofRule::AND_ELIM, {concE}, {ni}, conc);
+              useBuffer = true;
+              break;
+            }
+          }
+        }
+      }
+      else
+      {
+        useBuffer = true;
+      }
+    }
+    break;
+    case InferenceId::STRINGS_CTN_DECOMPOSE:
+    {
+      if (ps.d_children.size() != 2)
+      {
+        break;
+      }
+      Node ctn = ps.d_children[0];
+      if (ctn.getKind() != Kind::STRING_CONTAINS)
+      {
+        break;
+      }
+      Node pconc = psb.tryStep(ProofRule::STRING_EAGER_REDUCTION, {}, {ctn});
+      Trace("strings-ipc-cons") << "Eager reduction: " << pconc << std::endl;
+      Node pelim = psb.applyPredElim(pconc, {ctn}, MethodId::SB_LITERAL);
+      Trace("strings-ipc-cons") << "After rewriting: " << pelim << std::endl;
+      if (pelim.getKind() != Kind::EQUAL)
+      {
+        break;
+      }
+      Node tgt = ps.d_children[1];
+      Node pelim2 = psb.applyPredElim(tgt, {pelim});
+      Trace("strings-ipc-cons") << "After elim: " << pelim << std::endl;
+      if (pelim2 == conc)
+      {
+        useBuffer = true;
+      }
+    }
+    break;
     // ========================== unknown and currently unsupported
     case InferenceId::STRINGS_CARDINALITY:
-    case InferenceId::STRINGS_I_CYCLE_E:
     case InferenceId::STRINGS_I_CYCLE:
     case InferenceId::STRINGS_INFER_EMP:
     case InferenceId::STRINGS_RE_DELTA:
@@ -1100,7 +1242,6 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_FLOOP_CONFLICT:
     case InferenceId::STRINGS_DEQ_NORM_EMP:
     case InferenceId::STRINGS_CTN_TRANS:
-    case InferenceId::STRINGS_CTN_DECOMPOSE:
     default:
       // do nothing, these will be converted to THEORY_INFERENCE_STRINGS below
       // since the rule is unknown.
@@ -1151,8 +1292,8 @@ bool InferProofCons::convert(Env& env,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion, the argument of THEORY_INFERENCE_STRINGS is its
-    // conclusion
+    //  untrustworthy conversion, the argument of THEORY_INFERENCE_STRINGS is
+    //  its conclusion
     ps.d_args.clear();
     ps.d_args.push_back(mkTrustId(nm, TrustId::THEORY_INFERENCE_STRINGS));
     ps.d_args.push_back(conc);
@@ -1269,17 +1410,52 @@ bool InferProofCons::convertAndElim(NodeManager* nm,
   {
     return true;
   }
-  if (src.getKind() == Kind::AND)
+  Trace("strings-ipc-debug")
+      << "AND_ELIM " << src << " => " << tgt << "?" << std::endl;
+  Node stgt;
+  if (src.getKind() == Kind::NOT && src[0].getKind() == Kind::OR)
   {
-    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    // handles case of ~(L1 or ... or Ln) where tgt is ~Li.
+    for (size_t i = 0, nchild = src[0].getNumChildren(); i < nchild; i++)
     {
-      if (src[i] == tgt)
+      Node sn = src[0][i].negate();
+      if (CDProof::isSame(sn, tgt))
       {
+        Node snn = src[0][i].notNode();
         Node ni = nm->mkConstInt(Rational(i));
-        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, tgt);
-        return true;
+        psb.addStep(ProofRule::NOT_OR_ELIM, {src}, {ni}, snn);
+        // double negation elimination if necessary
+        if (snn != sn)
+        {
+          psb.addStep(ProofRule::NOT_NOT_ELIM, {snn}, {}, sn);
+        }
+        stgt = sn;
+        break;
       }
     }
+  }
+  else if (src.getKind() == Kind::AND)
+  {
+    // otherwise check case of (L1 and ... and Ln) => Li
+    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    {
+      if (CDProof::isSame(src[i], tgt))
+      {
+        Node ni = nm->mkConstInt(Rational(i));
+        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, src[i]);
+        stgt = src[i];
+        break;
+      }
+    }
+  }
+  if (!stgt.isNull())
+  {
+    Assert(CDProof::isSame(stgt, tgt));
+    if (stgt != tgt)
+    {
+      psb.addStep(ProofRule::SYMM, {stgt}, {}, tgt);
+    }
+    return true;
   }
   return false;
 }

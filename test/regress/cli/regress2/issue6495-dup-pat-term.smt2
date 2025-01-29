@@ -1,6 +1,6 @@
 ; COMMAND-LINE: -i -q
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
+
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort |T@[Int]Int| 0)

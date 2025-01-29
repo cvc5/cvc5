@@ -188,3 +188,8 @@
   (and (not (str.in_re s (re.++ r1 r2))) (not (str.in_re s (re.++ r1 r2 (re.* r3) r3))))
   (str.in_re s (re.++ r1 r2 (re.* r3)))
   false)
+
+(define-rule* str-in-re-concat-emp ((s String) (s1 String) (s2 String :list))
+  (str.in_re (str.++ s s1 s2) (str.to_re ""))
+  (str.in_re (str.++ s1 s2) (str.to_re ""))
+  (and (= s "") _))
