@@ -66,9 +66,9 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   endif()
 
   # Minimum supported version
-  set(CaDiCaL_FIND_VERSION "1.6.0")
+  set(CaDiCaL_FIND_VERSION "2.1.0")
   # Maximum supported version
-  set(CaDiCaL_FIND_VERSION_MAX "2.0.0")
+  set(CaDiCaL_FIND_VERSION_MAX "2.1.3")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required
@@ -87,8 +87,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-2.0.0")
-  set(CaDiCaL_CHECKSUM "9afe5f6439442d854e56fc1fac3244ce241dbb490735939def8fd03584f89331")
+  set(CaDiCaL_VERSION "rel-2.1.2")
+  set(CaDiCaL_CHECKSUM "292c2bb8d712d6d05fce3d3df63b922b8fa45e03974a79f7bae5bf68c284f131")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
