@@ -244,13 +244,13 @@ std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
       cdp.addTrustedStep(c, TrustId::DIAMONDS, {}, {});
     }
   }
-  // proves (and 
-  //          (=> (and (= a1 b1) (= c1 d1)) (= e f)) 
+  // proves (and
+  //          (=> (and (= a1 b1) (= c1 d1)) (= e f))
   //          (=> (and (= a2 b2) (= c2 d2)) (= e f)))
   Node cc = nm->mkAnd(conj);
   cdp.addStep(cc, ProofRule::AND_INTRO, conj, {});
   // proves
-  // (= cc 
+  // (= cc
   //    (=> (or (and (= a1 b1) (= c1 d1)) (and (= a2 b2) (= c2 d2))) (= e f)))
   // where cc is defined above.
   Node eqc = cc.eqNode(fact);
