@@ -44,6 +44,11 @@ namespace arith {
  */
 std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs);
+/**
+ * Same as above, but with proven formulas.
+ */
+std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
+                                     const std::vector<Node>& coeffs);
 
 /**
  * Expand an instance of ProofRule::MACRO_ARITH_SCALE_SUM_UB.

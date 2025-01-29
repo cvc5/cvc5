@@ -26,6 +26,17 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs)
 {
   Assert(pfs.size() == coeffs.size());
+  std::vector<Node> premises;
+  for (const Pf& p : pfs)
+  {
+    premises.push_back(p->getResult());
+  }
+  return getMacroSumUbCoeff(premises, coeffs);
+}
+std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
+                                     const std::vector<Node>& coeffs)
+{
+  Assert(premises.size() == coeffs.size());
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> ret;
   TypeNode itype = nm->integerType();
@@ -35,7 +46,7 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
   for (size_t i = 0, ncoeff = coeffs.size(); i < ncoeff; i++)
   {
     Assert(coeffs[i].isConst());
-    Node res = pfs[i]->getResult();
+    Node res = premises[i];
     Assert(res.getType().isBoolean() && res.getNumChildren() == 2);
     const Rational& r = coeffs[i].getConst<Rational>();
     bool isReal = !r.isIntegral() || res[0].getType().isReal()
