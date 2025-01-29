@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -292,14 +292,11 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (d_env.isSatProofProducing())
-  {
-    Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
-    // notify the prop engine of the explanation, which is only relevant if
-    // we are proof producing for the purposes of storing the CNF of the
-    // explanation.
-    d_propEngine->notifyExplainedPropagation(tte);
-  }
+  Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
+  // notify the prop engine of the explanation, which is only relevant if
+  // we are proof producing for the purposes of storing the CNF of the
+  // explanation.
+  d_propEngine->notifyExplainedPropagation(tte);
   Trace("prop-explain") << "explainPropagation() => " << theoryExplanation
                         << std::endl;
   explanation.push_back(l);

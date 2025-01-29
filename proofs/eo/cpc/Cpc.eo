@@ -81,6 +81,15 @@
 ;   and are used to model cvc5's internal symbols, including its skolems,
 ;   other internally introduced terms, and extensions.
 
+; note: >
+;   @const corresponds to generic abstract constants, which correspond to internally
+;   introduced terms that do not have a formal definition in the signature.
+(declare-const @const (-> (! Int :opaque) (! Type :opaque :var T) T))
+
+; note: >
+;   @var is an alias of eo::var to ensure the cpc proof does not use eo::var.
+(define @var ((s String) (T Type)) (eo::var s T))
+
 ; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
 ; disclaimer: this function is not in SMT-LIB.
@@ -149,6 +158,8 @@
       (($run_evaluate (str.len x))         (eo::len ($run_evaluate x)))
       (($run_evaluate (str.substr x n m))  (eo::define ((r ($run_evaluate n)))
                                              (eo::extract ($run_evaluate x) r (eo::add r ($run_evaluate m) -1))))
+      (($run_evaluate (str.at x n))         (eo::define ((r ($run_evaluate n)))
+                                             (eo::extract ($run_evaluate x) r r)))
       (($run_evaluate (str.contains x y))  (eo::not (eo::is_neg (eo::find ($run_evaluate x) ($run_evaluate y)))))
       (($run_evaluate (str.replace x y z)) (eo::define ((ex ($run_evaluate x)))
                                            (eo::define ((ey ($run_evaluate y)))
@@ -163,10 +174,15 @@
                                            ))))
       (($run_evaluate (str.prefixof x y)) (eo::define ((ex ($run_evaluate x)))
                                           (eo::define ((ey ($run_evaluate y)))
-                                          (eo::define ((r (eo::find ey ex)))
-                                            (eo::ite (eo::is_eq r 0) true
-                                            (eo::ite (eo::is_z r) false
-                                              (str.prefixof ex ey)))))))
+                                          (eo::define ((r (eo::extract ey 0 (eo::add (eo::len ex) -1))))
+                                            (eo::is_eq ex r)))))
+      (($run_evaluate (str.suffixof x y)) (eo::define ((ex ($run_evaluate x)))
+                                          (eo::define ((ey ($run_evaluate y)))
+                                          (eo::define ((eyl (eo::len ey)))
+                                          (eo::define ((r (eo::extract ey
+                                                            (eo::add eyl (eo::neg (eo::len ex))) 
+                                                            (eo::add eyl -1))))
+                                            (eo::is_eq ex r))))))
       (($run_evaluate (str.indexof x y n)) (eo::define ((en ($run_evaluate n)))
                                            (eo::ite (eo::is_neg en) -1
                                              (eo::define ((ex ($run_evaluate x)))
@@ -187,12 +203,42 @@
                                              ($str_to_int_eval ex)))
       (($run_evaluate (str.from_int n))    (eo::define ((en ($run_evaluate n)))
                                              ($str_from_int_eval en)))
+      (($run_evaluate (str.<= x y))        (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((ey ($run_evaluate y)))
+                                             ($str_leq_eval ex ey))))
+      (($run_evaluate (str.to_lower x))    (eo::define ((ex ($run_evaluate x)))
+                                             ($str_to_lower_eval ex)))
+      (($run_evaluate (str.to_upper x))    (eo::define ((ex ($run_evaluate x)))
+                                             ($str_to_upper_eval ex)))
+      (($run_evaluate (str.rev x))         (eo::define ((ex ($run_evaluate x)))
+                                             ($str_rev_eval ex)))
+      (($run_evaluate (str.update x n y))  (eo::define ((ex ($run_evaluate x)))
+                                           (eo::define ((en ($run_evaluate n)))
+                                           (eo::define ((exl (eo::len ex)))
+                                           (eo::ite (eo::or (eo::gt 0 en) (eo::gt en exl))
+                                             ex
+                                             (eo::define ((ey ($run_evaluate y)))
+                                             (eo::define ((rc (eo::add (eo::neg en) exl)))
+                                             (eo::concat
+                                               (eo::extract ex 0 (eo::add en -1))
+                                               (eo::extract ey 0 (eo::add rc -1))
+                                               (eo::extract ex (eo::add en (eo::len ey)) exl)))))))))
 
       ; bitvectors
       (($run_evaluate (bvnot xb))          (eo::not ($run_evaluate xb)))
       (($run_evaluate (bvneg xb))          (eo::neg ($run_evaluate xb)))
       (($run_evaluate (bvadd xb ybs))      (eo::add ($run_evaluate xb) ($run_evaluate ybs)))
       (($run_evaluate (bvmul xb ybs))      (eo::mul ($run_evaluate xb) ($run_evaluate ybs)))
+      (($run_evaluate (bvudiv xb yb))      (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                           (eo::ite (eo::is_eq (eo::to_z ey) 0)
+                                             ($bv_ones ($bv_bitwidth (eo::typeof xb)))
+                                             (eo::zdiv ex ey)))))
+      (($run_evaluate (bvurem xb yb))      (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                           (eo::ite (eo::is_eq (eo::to_z ey) 0)
+                                             ex
+                                             (eo::zmod ex ey)))))
       (($run_evaluate (bvand xb ybs))      (eo::and ($run_evaluate xb) ($run_evaluate ybs)))
       (($run_evaluate (bvor xb ybs))       (eo::or ($run_evaluate xb) ($run_evaluate ybs)))
       (($run_evaluate (bvxor xb ybs))      (eo::xor ($run_evaluate xb) ($run_evaluate ybs)))
@@ -215,6 +261,29 @@
       (($run_evaluate (bvsge xb yb))       (eo::define ((ex ($bv_to_signed_int ($run_evaluate xb))))
                                            (eo::define ((ey ($bv_to_signed_int ($run_evaluate yb))))
                                              (eo::or (eo::gt ex ey) (eo::is_eq ex ey)))))
+      (($run_evaluate (bvshl xb yb))       (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                           (eo::define ((eyz (eo::to_z ey)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof xb))))
+                                           (eo::ite (eo::gt eyz w)
+                                             (eo::to_bin w 0)
+                                             (eo::to_bin w (eo::mul (eo::to_z ex) ($arith_eval_int_pow_2 eyz)))
+                                           ))))))
+      (($run_evaluate (bvlshr xb yb))      (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                           (eo::define ((eyz (eo::to_z ey)))
+                                           (eo::define ((w ($bv_bitwidth (eo::typeof xb))))
+                                           (eo::ite (eo::gt eyz w)
+                                             (eo::to_bin w 0)
+                                             (eo::to_bin w (eo::zdiv (eo::to_z ex) ($arith_eval_int_pow_2 eyz)))
+                                           ))))))
+      (($run_evaluate (bvashr xb yb))      (eo::define ((ex ($run_evaluate xb)))
+                                           (eo::define ((ey ($run_evaluate yb)))
+                                           (eo::define ((sb ($bv_sign_bit ex)))
+                                           (eo::ite (eo::is_eq sb #b0)
+                                             ($run_evaluate (bvlshr ex ey))
+                                             ($run_evaluate (bvnot (bvlshr (bvnot ex) ey)))
+                                           )))))
       (($run_evaluate (repeat n xb))       ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($run_evaluate xb))))
       (($run_evaluate (sign_extend n xb))  (eo::define ((ex ($run_evaluate xb)))
                                               (eo::concat ($run_evaluate ($bv_unfold_repeat ($run_evaluate n) ($bv_sign_bit ex))) ex)))

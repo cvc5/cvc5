@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "smt/logic_exception.h"
 #include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/output_channel.h"
 #include "theory/theory_model.h"
 #include "util/floatingpoint.h"
@@ -44,7 +45,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_wordBlaster(new FpWordBlaster(userContext())),
       d_registeredTerms(userContext()),
       d_abstractionMap(userContext()),
-      d_rewriter(nodeManager(), userContext()),
+      d_rewriter(nodeManager(), userContext(), options().fp.fpExp),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::fp::", true),
       d_notify(d_im),
@@ -593,23 +594,10 @@ void TheoryFp::preRegisterTerm(TNode node)
   }
   if (!options().fp.fpExp)
   {
-    TypeNode tn = node.getType();
-    if (tn.isFloatingPoint())
-    {
-      uint32_t exp_sz = tn.getFloatingPointExponentSize();
-      uint32_t sig_sz = tn.getFloatingPointSignificandSize();
-      if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
-      {
-        std::stringstream ss;
-        ss << "FP term " << node << " with type whose size is " << exp_sz << "/"
-           << sig_sz
-           << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
-              "are supported in default mode. Try the experimental solver via "
-              "--fp-exp. Note: There are known issues with the experimental "
-              "solver, use at your own risk.";
-        throw LogicException(ss.str());
-      }
-    }
+    // check whether it is using an experimental type. This should be
+    // (almost) fully subsumed by the check in the rewriter, but is required
+    // e.g. for terms with 0 children which are not rewritten.
+    utils::checkForExperimentalFloatingPointType(node);
   }
   Trace("fp-preRegisterTerm")
       << "TheoryFp::preRegisterTerm(): " << node << std::endl;
