@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__BV__THEORY_BV_H
 #define CVC5__THEORY__BV__THEORY_BV_H
 
+#include "theory/bv/bv_pp_assert.h"
 #include "theory/bv/proof_checker.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
@@ -104,6 +105,9 @@ class TheoryBV : public Theory
 
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
+
+  /** The preprocess assertion utility */
+  BvPpAssert d_ppAssert;
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;

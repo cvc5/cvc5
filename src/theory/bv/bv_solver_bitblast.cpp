@@ -241,7 +241,17 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
       conflict = nm->mkAnd(assertions);
     }
-    d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
+    TrustNode tconflict;
+    if (d_epg != nullptr)
+    {
+      tconflict = d_epg->mkTrustNodeTrusted(
+          conflict, TrustId::BV_BITBLAST_CONFLICT, {}, {}, true);
+    }
+    else
+    {
+      tconflict = TrustNode::mkTrustConflict(conflict, nullptr);
+    }
+    d_im.trustedConflict(tconflict, InferenceId::BV_BITBLAST_CONFLICT);
   }
 }
 
