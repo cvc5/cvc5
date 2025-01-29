@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ namespace transcendental {
 SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
     : EnvObj(env), d_data(tstate)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node zero = nm->mkConstReal(Rational(0));
   Node one = nm->mkConstReal(Rational(1));
   Node negOne = nm->mkConstReal(Rational(-1));
@@ -66,7 +66,7 @@ SineSolver::~SineSolver() {}
 
 void SineSolver::doReductions()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   std::map<Kind, std::vector<Node> >::iterator it =
       d_data->d_funcMap.find(Kind::SINE);
   if (it == d_data->d_funcMap.end())
@@ -506,7 +506,7 @@ void SineSolver::checkMonotonic()
 void SineSolver::doTangentLemma(
     TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Assert(region != -1);
 
   Trace("nl-ext-sine") << c << " in region " << region << std::endl;

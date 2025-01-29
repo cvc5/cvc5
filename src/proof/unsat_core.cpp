@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +51,6 @@ UnsatCore::const_iterator UnsatCore::end() const {
 
 void UnsatCore::toStream(std::ostream& out) const {
   options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   Printer::getPrinter(out)->toStream(out, *this);
 }
 

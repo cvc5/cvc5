@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -308,12 +308,33 @@ int MonomialCheck::compareSign(
     if (mvaoa.getConst<Rational>().sgn() != status)
     {
       Node zero = mkZero(oa.getType());
-      Node lemma = nm->mkAnd(exp).impNode(mkLit(oa, zero, status * 2));
+      // order the explanation based on the order the variables appear
+      std::map<Node, Node> varToExp;
+      for (const Node& e : exp)
+      {
+        Node v = e.getKind() == Kind::NOT ? e[0][0] : e[0];
+        varToExp[v] = e;
+      }
+      std::vector<Node> expo;
+      Node vc;
+      for (const Node& v : oa)
+      {
+        if (v != vc)
+        {
+          Assert(varToExp.find(v) != varToExp.end());
+          expo.push_back(varToExp[v]);
+          vc = v;
+        }
+      }
+      Node antec = nm->mkAnd(expo);
+      Node conc = nm->mkNode(status < 0 ? Kind::LT : Kind::GT, oa, zero);
+      Node lemma = antec.impNode(conc);
       CDProof* proof = nullptr;
       if (d_data->isProofEnabled())
       {
         proof = d_data->getProof();
-        std::vector<Node> args = exp;
+        std::vector<Node> args;
+        args.emplace_back(antec);
         args.emplace_back(oa);
         proof->addStep(lemma, ProofRule::ARITH_MULT_SIGN, {}, args);
       }

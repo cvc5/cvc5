@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Hans-Joerg Schurr
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,15 +63,14 @@ bool ProofRuleChecker::getKind(TNode n, Kind& k)
   return true;
 }
 
-Node ProofRuleChecker::mkKindNode(Kind k)
+Node ProofRuleChecker::mkKindNode(NodeManager* nm, Kind k)
 {
   if (k == Kind::UNDEFINED_KIND)
   {
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();
   }
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(k)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(k)));
 }
 
 NodeManager* ProofRuleChecker::nodeManager() const { return d_nm; }

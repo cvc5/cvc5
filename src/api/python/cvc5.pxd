@@ -7,6 +7,7 @@ from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.map cimport map
+from libcpp.optional cimport optional
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage
@@ -35,14 +36,6 @@ cdef extern from "<functional>" namespace "std" nogil:
     cdef cppclass hash[T]:
         hash()
         size_t operator()(T t)
-
-cdef extern from "<optional>" namespace "std" nogil:
-    # The std::optional wrapper would be available as cpplib.optional with
-    # cython 3.0.0a10 (Jan 2022). Until this version is widely available, we
-    # wrap it manually.
-    cdef cppclass optional[T]:
-        bint has_value()
-        T& value()
 
 cdef extern from "<string>" namespace "std":
     cdef cppclass wstring:

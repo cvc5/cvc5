@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --arrays-exp
 ; EXPECT: feasible
 (set-logic ALL)
 (declare-sort U 0)

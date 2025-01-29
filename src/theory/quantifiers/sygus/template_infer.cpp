@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +87,6 @@ void SygusTemplateInfer::initialize(Node q)
   }
   Assert(prog == q[0][0]);
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
   d_ti.getVariables(prog_templ_vars);
@@ -102,7 +101,7 @@ void SygusTemplateInfer::initialize(Node q)
   {
     atn = atn.getRangeType();
   }
-  d_templ_arg[prog] = sm->mkDummySkolem("I", atn);
+  d_templ_arg[prog] = NodeManager::mkDummySkolem("I", atn);
 
   // construct template
   Node templ;

@@ -1,3 +1,4 @@
+; COMMAND-LINE: --nl-cov
 ; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)

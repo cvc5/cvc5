@@ -1,4 +1,4 @@
-; DISABLE-TESTER: cpc
+
 ; DISABLE-TESTER: lfsc
 ; test name: testPullNull
 ;Translating sql query: SELECT * FROM EMP AS EMP WHERE EMP.DEPTNO = 7 AND EMP.EMPNO = 10 AND EMP.MGR IS NULL AND EMP.EMPNO = 10

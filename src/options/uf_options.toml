@@ -77,7 +77,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "eagerArithBvConv"
-  category   = "expert"
+  category   = "regular"
   long       = "eager-arith-bv-conv"
   type       = "bool"
   default    = "false"

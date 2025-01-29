@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,6 @@ Node SygusAbduct::mkAbductionConjecture(NodeManager* nm,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType)
 {
-  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
@@ -170,7 +169,7 @@ Node SygusAbduct::mkAbductionConjecture(NodeManager* nm,
     Node vbvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     sc = nm->mkNode(Kind::EXISTS, vbvl, sc);
   }
-  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
+  Node sygusScVar = NodeManager::mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(Kind::INST_ATTRIBUTE, sygusScVar);
   // build in the side condition

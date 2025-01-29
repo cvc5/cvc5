@@ -19,7 +19,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLazyPreproc"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
@@ -107,7 +107,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "regExpElim"
-  category   = "regular"
+  category   = "expert"
   long       = "re-elim=MODE"
   type       = "RegExpElimMode"
   default    = "OFF"
@@ -235,3 +235,19 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "eager reduction of positive membership into concatenation"
+
+[[option]]
+  name       = "stringRegexpDeriveConflicts"
+  category   = "expert"
+  long       = "strings-re-derive-conf"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expression derive for conflict finding"
+
+[[option]]
+  name       = "stringRecArithApprox"
+  category   = "expert"
+  long       = "strings-rec-arith-approx"
+  type       = "bool"
+  default    = "false"
+  help       = "use possibly recursive reasoning when finding approximations for arithmetic string terms"

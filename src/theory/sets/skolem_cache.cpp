@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,7 @@ Node SkolemCache::mkTypedSkolemCached(
     }
     else
     {
-      sk = sm->mkDummySkolem(c, tn, "sets skolem");
+      sk = NodeManager::mkDummySkolem(c, tn, "sets skolem");
     }
     d_skolemCache[a][b][id] = sk;
     d_allSkolems.insert(sk);
@@ -67,8 +67,7 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {
-  SkolemManager* sm = d_nm->getSkolemManager();
-  Node n = sm->mkDummySkolem(c, tn, "sets skolem");
+  Node n = NodeManager::mkDummySkolem(c, tn, "sets skolem");
   d_allSkolems.insert(n);
   return n;
 }

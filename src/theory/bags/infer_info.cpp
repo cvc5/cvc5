@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
 
 Node InferInfo::getLemma() const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_im->getNodeManager();
   std::vector<Node> nodes;
   Node premises = nm->mkAnd(d_premises);
   Node lemma = nm->mkNode(Kind::IMPLIES, premises, d_conclusion);

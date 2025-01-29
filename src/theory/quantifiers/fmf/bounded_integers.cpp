@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,8 +50,8 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
   // we require a proxy if the term is set.card
   if (options().quantifiers.fmfBoundLazy || r.getKind() == Kind::SET_CARD)
   {
-    SkolemManager* sm = nodeManager()->getSkolemManager();
-    d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
+    d_proxy_range =
+        isProxy ? r : NodeManager::mkDummySkolem("pbir", r.getType());
   }
   else
   {
@@ -397,7 +397,6 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{
@@ -565,7 +564,7 @@ void BoundedIntegers::checkOwnership(Node f)
         {
           // introduce a new bound
           Node new_range =
-              sm->mkDummySkolem("bir", r.getType(), "bound for term");
+              NodeManager::mkDummySkolem("bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -978,8 +977,7 @@ Node BoundedIntegers::mkBoundedForall(NodeManager* nm, Node bvl, Node body)
   }
   else
   {
-    SkolemManager* sm = nm->getSkolemManager();
-    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
+    qvar = NodeManager::mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(BoundedQuantAttribute(), true);
     // remember the dummy variable

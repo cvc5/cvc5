@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -246,7 +246,8 @@ modes::LearnedLitType ZeroLevelLearner::computeLearnedLiteralType(
   Node lit = d_tsmap.apply(input, d_env.getRewriter());
   modes::LearnedLitType ltype =
       internal ? modes::LearnedLitType::INTERNAL : modes::LearnedLitType::INPUT;
-  if (internal || d_trackSimplifications)
+  // we don't try to solve for literals that simplify to constants
+  if ((internal || d_trackSimplifications) && !lit.isConst())
   {
     Subs ss;
     bool processed = false;
@@ -431,8 +432,8 @@ bool ZeroLevelLearner::getSolved(const Node& lit, Subs& subs)
   context::Context dummyContext;
   theory::TrustSubstitutionMap subsOut(d_env, &dummyContext);
   TrustNode tlit = TrustNode::mkTrustLemma(lit);
-  theory::Theory::PPAssertStatus status = d_theoryEngine->solve(tlit, subsOut);
-  if (status == theory::Theory::PP_ASSERT_STATUS_SOLVED)
+  bool status = d_theoryEngine->solve(tlit, subsOut);
+  if (status)
   {
     Trace("level-zero-debug") << lit << " is solvable" << std::endl;
     // extract the substitution

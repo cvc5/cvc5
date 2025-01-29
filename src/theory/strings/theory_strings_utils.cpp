@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +46,7 @@ uint32_t getDefaultAlphabetCardinality()
   return 196608;
 }
 
-Node mkAnd(const std::vector<Node>& a)
+Node mkAnd(NodeManager* nm, const std::vector<Node>& a)
 {
   std::vector<Node> au;
   for (const Node& ai : a)
@@ -58,13 +58,13 @@ Node mkAnd(const std::vector<Node>& a)
   }
   if (au.empty())
   {
-    return NodeManager::currentNM()->mkConst(true);
+    return nm->mkConst(true);
   }
   else if (au.size() == 1)
   {
     return au[0];
   }
-  return NodeManager::currentNM()->mkNode(Kind::AND, au);
+  return nm->mkNode(Kind::AND, au);
 }
 
 void flattenOp(Kind k, Node n, std::vector<Node>& conj)

@@ -1,3 +1,4 @@
+; COMMAND-LINE: --arrays-exp
 (set-logic QF_A)
 (set-info :status unsat)
 (declare-const a (Array Bool Bool))

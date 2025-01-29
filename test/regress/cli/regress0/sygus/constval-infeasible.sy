@@ -1,0 +1,8 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: infeasible
+(set-logic ALL)
+(synth-fun constval ((x Int) ) Int)
+(declare-var x Int)
+(declare-var w Int)
+(constraint (= w (constval x)))
+(check-synth)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,10 +65,10 @@ bool InferInfo::isFact() const
          && d_noExplain.empty();
 }
 
-Node InferInfo::getPremises() const
+Node InferInfo::getPremises(NodeManager* nm) const
 {
   // d_noExplain is a subset of d_ant
-  return utils::mkAnd(d_premises);
+  return utils::mkAnd(nm, d_premises);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)

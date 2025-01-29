@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,11 @@ RewriteProofGenerator::RewriteProofGenerator(Env& env, MethodId id)
     : EnvObj(env), ProofGenerator(), d_id(id)
 {
   // initialize the proof args
-  addMethodIds(d_pargs, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL, d_id);
+  addMethodIds(nodeManager(),
+               d_pargs,
+               MethodId::SB_DEFAULT,
+               MethodId::SBA_SEQUENTIAL,
+               d_id);
 }
 RewriteProofGenerator::~RewriteProofGenerator() {}
 

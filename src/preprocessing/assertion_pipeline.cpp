@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,10 +50,8 @@ void AssertionPipeline::clear()
   d_substsIndices.clear();
 }
 
-void AssertionPipeline::push_back(Node n,
-                                  bool isInput,
-                                  ProofGenerator* pgen,
-                                  TrustId trustId)
+void AssertionPipeline::push_back(
+    Node n, bool isInput, ProofGenerator* pgen, TrustId trustId, bool ensureRew)
 {
   if (d_conflict)
   {
@@ -111,13 +109,21 @@ void AssertionPipeline::push_back(Node n,
     // add each conjunct
     for (const Node& nc : conjs)
     {
-      push_back(nc, false, d_andElimEpg.get());
+      push_back(nc,
+                false,
+                d_andElimEpg.get(),
+                TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                ensureRew);
     }
     return;
   }
   else
   {
     d_nodes.push_back(n);
+    if (ensureRew)
+    {
+      ensureRewritten(d_nodes.size() - 1);
+    }
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
@@ -137,11 +143,13 @@ void AssertionPipeline::push_back(Node n,
   }
 }
 
-void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId)
+void AssertionPipeline::pushBackTrusted(TrustNode trn,
+                                        TrustId trustId,
+                                        bool ensureRew)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, trn.getGenerator(), trustId);
+  push_back(trn.getProven(), false, trn.getGenerator(), trustId, ensureRew);
 }
 
 void AssertionPipeline::replace(size_t i,
@@ -225,12 +233,11 @@ void AssertionPipeline::addSubstitutionNode(Node n,
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == Kind::EQUAL);
   size_t prevNodeSize = d_nodes.size();
-  push_back(n, false, pg, trustId);
+  // ensure rewritten here
+  push_back(n, false, pg, trustId, true);
   // remember this is a substitution index
   for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
-    // ensure rewritten
-    replace(i, rewrite(d_nodes[i]), d_rewpg.get());
     d_substsIndices.insert(i);
   }
 }

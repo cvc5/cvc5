@@ -106,7 +106,7 @@
 
 ; define: $arith_eval_int_pow_2
 ; args:
-; - x Int: The term to compute whether it is a power of two.
+; - x Int: The term to compute take as the exponent of two.
 ; return: >
 ;   two raised to the power of x. If x is not a numeral value, we return
 ;   the term (int.pow2 x).
@@ -140,3 +140,27 @@
   (eo::ite (eo::is_z x) 
     (eo::ite (eo::is_neg x) false ($arith_eval_int_is_pow_2_rec x))
     (int.ispow2 x)))
+
+
+; define: $arith_unfold_pow_rec
+; args:
+; - n Int: The number of times to multiply, expected to be a non-negative numeral.
+; - a T: The term to muliply.
+; return: The result of multiplying a, n times.
+(program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
+  (Int T) T
+  (
+    (($arith_unfold_pow_rec 0 a)  1)
+    (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
+  )
+)
+
+; define: $arith_unfold_pow
+; args:
+; - n Int: The number of times to multiply.
+; - a T: The term to muliply.
+; return: The result of multiplying a, n times. If n is not a positive numeral, this returns (^ a n).
+(define $arith_unfold_pow ((T Type :implicit) (n Int) (a T))
+  (eo::ite (eo::and (eo::is_z n) (eo::not (eo::is_neg n)))
+    ($arith_unfold_pow_rec n a)
+    (^ a n)))

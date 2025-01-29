@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,6 +49,8 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::HO_DEQ_DIFF: return "ho_deq_diff";
     case cvc5::SkolemId::QUANTIFIERS_SKOLEMIZE:
       return "quantifiers_skolemize";
+    case cvc5::SkolemId::WITNESS_STRING_LENGTH: return "witness_string_length";
+    case cvc5::SkolemId::WITNESS_INV_CONDITION: return "witness_inv_condition";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR: return "strings_num_occur";
     case cvc5::SkolemId::STRINGS_NUM_OCCUR_RE: return "strings_num_occur_re";
     case cvc5::SkolemId::STRINGS_OCCUR_INDEX: return "strings_occur_index";

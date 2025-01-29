@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,8 +39,6 @@ Node getMostFrequentValue(TNode store);
 uint64_t getMostFrequentValueCount(TNode store);
 void setMostFrequentValue(TNode store, TNode value);
 void setMostFrequentValueCount(TNode store, uint64_t count);
-
-static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
 
 class TheoryArraysRewriter : public TheoryRewriter
 {
@@ -88,6 +86,13 @@ class TheoryArraysRewriter : public TheoryRewriter
    * be removed.
    */
   Rewriter* d_rewriter;
+  /**
+   * Make rewritten equality.
+   * @param a The first term.
+   * @param b The second term.
+   * @return the rewritten form of the equality between a and b.
+   */
+  Node mkEqNode(const Node& a, const Node& b) const;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays

@@ -2,7 +2,7 @@
 #
 # mkkind
 # Morgan Deters <mdeters@cs.nyu.edu> for cvc5
-# Copyright (c) 2010-2013  The cvc5 Project
+# Copyright (c) 2010-2025  The cvc5 Project
 #
 # The purpose of this script is to create kind.h (and also
 # type_properties.h) from a template and a list of theory kinds.
@@ -17,7 +17,7 @@
 # replacing & by the substituted text.
 shopt | grep -q '^patsub_replacement\b' &&  shopt -u patsub_replacement
 
-copyright=2010-2022
+copyright=2010-2025
 
 filename=`basename "$1" | sed 's,_template,,'`
 

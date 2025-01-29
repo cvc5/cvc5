@@ -1,3 +1,17 @@
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer, Aina Niemetz, Andrew Reynolds
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Sphinx extension, implements a lexer for SMT-LIBv2.
+##
 from pygments.lexer import RegexLexer
 from pygments import token
 

@@ -1,5 +1,7 @@
 (include "../theories/Builtin.eo")
 
+;;;;; ProofRule::REFL
+
 ; rule: refl
 ; implements: ProofRule::REFL
 ; args:
@@ -9,6 +11,8 @@
     :args (t)
     :conclusion (= t t)
 )
+
+;;;;; ProofRule::SYMM
 
 ; rule: symm
 ; implements: ProofRule::SYMM
@@ -25,6 +29,8 @@
                 ((not (= t1 t2)) (not (= t2 t1)))
             ))
 )
+
+;;;;; ProofRule::TRANS
 
 ; program: $mk_trans
 ; args:
@@ -60,21 +66,19 @@
         (((and (= t1 t2) tail) ($mk_trans t1 t2 tail))))
 )
 
+;;;;; ProofRule::CONG
 
-; program: $mk_cong
+; program: $mk_cong_rhs
 ; args:
-; - t1 U: The current left hand side of the equality we have proven.
-; - t2 U: The current right hand side of the equality we have proven.
-; - E Bool: A conjunction of the remaining equalities we have left to process.
+; - t U: The left hand side of the equality we have yet to process.
+; - E Bool: A conjunction of the remaining equalities we have left to process, in reverse order.
 ; return: >
-;   An equality where the original terms are applied to the left and
-;   right hand sides of the equalities given by E.
-(program $mk_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
-    (U U Bool) Bool
+;   The right hand side of the equality.
+(program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (t3 U) (tail Bool :list))
+    (U Bool) U
     (
-        (($mk_cong f1 f2 (and (= t1 t2) tail)) ($mk_cong (f1 t1) (f2 t2) tail))
-        (($mk_cong t1 t2 true)                 (= t1 t2))
-        (($mk_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
+        (($mk_cong_rhs (f t1) (and (= t1 t2) tail))  (_ ($mk_cong_rhs f tail) t2))
+        (($mk_cong_rhs f true)                       f)
     )
 )
 
@@ -83,57 +87,34 @@
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply congruence to.
 ; args:
-; - f (-> T U): >
-;   The function to apply congruence to. This is assumed to be
+; - t U: >
+;   The term to apply congruence to. This is assumed to be an application of
 ;   a function that is not n-ary, e.g. it is not marked :right-assoc-nil.
-;   Congruence for n-ary operators requires a different rule (nary_cong) below.
 ; conclusion: >
-;   An equality between applications of f whose arguments are given
-;   by the equalities in E.
-; disclaimer: >
-;   This proof rule takes only the function to do congruence over,
-;   whereas the internal proof calculus takes an internal value denoting its
-;   cvc5::Kind along with an (optional) function if the kind if parameterized.
-(declare-rule cong ((T Type) (U Type) (E Bool) (f (-> T U)))
+;   An equality between applications of the operator of t whose arguments are
+;   given by the equalities in E.
+; note: >
+;   Congruence for n-ary operators requires a different rule (nary_cong) below.
+(declare-rule cong ((U Type) (E Bool) (t U))
     :premise-list E and
-    :args (f)
-    :conclusion ($mk_cong f f E)
+    :args (t)
+    :conclusion (= t ($mk_cong_rhs t ($nary_reverse E)))
 )
 
-; program: $mk_nary_cong_lhs
-; args:
-; - f (-> U U U): >
-;   The function we are applying congruence over. This is
-;   assumed to be a right-associative n-ary operator with nil terminator, i.e.
-;   marked with :right-assoc-nil.
-; - E Bool: A conjunction of the remaining equalities we have left to process.
-; return: >
-;   The left hand side of the equality proven by nary_cong for f and
-;   the given premises E.
-; note: >
-;   We use two side conditions for computing each side of the returned
-;   equality. This avoids constructing equalities between intermediate terms.
-(program $mk_nary_cong_lhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U U) Bool) Bool
-    (
-        (($mk_nary_cong_lhs f (and (= s1 s2) tail)) (eo::cons f s1 ($mk_nary_cong_lhs f tail)))
-        (($mk_nary_cong_lhs f true)                 (eo::nil f))
-    )
-)
+;;;;; ProofRule::NARY_CONG
 
 ; program: $mk_nary_cong_rhs
 ; args:
-; - f (-> U U U): The function we are applying congruence over.
+; - t U: The term (left hand side of the equality) we are applying congruence over.
 ; - E Bool: A conjunction of the remaining equalities we have left to process.
 ; return: >
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
-; note: This program is analogous to $mk_nary_cong_lhs.
-(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (tail Bool :list))
-    ((-> U U U) Bool) Bool
+(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
+    (U Bool) U
     (
-        (($mk_nary_cong_rhs f (and (= s1 s2) tail)) (eo::cons f s2 ($mk_nary_cong_rhs f tail)))
-        (($mk_nary_cong_rhs f true)                 (eo::nil f))
+        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
+        (($mk_nary_cong_rhs nil true)                       nil)
     )
 )
 
@@ -142,22 +123,21 @@
 ; premises:
 ; - E [:list]: A conjunction of equalities to apply nary-congruence to.
 ; args:
-; - f (-> T U): >
-;   The function to apply congruence to. This is assumed to be
-;   a function that is right-associative n-ary operator with nil terminator, e.g.
-;   it is marked :right-assoc-nil.
+; - t U: >
+;   The term to apply congruence to. This is assumed to be an application of
+;   a function that is a right-associative n-ary operator with nil terminator,
+;   i.e. it is marked :right-assoc-nil. It is required to be the left hand side
+;   of the equality we are proving.
 ; conclusion: >
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
-; disclaimer: >
-;   This proof rule takes as argument the function to do congruence
-;   over, whereas the internal proof calculus takes an internal value denoting its
-;   cvc5::Kind.
-(declare-rule nary_cong ((U Type) (E Bool) (f (-> U U)) (nil U))
+(declare-rule nary_cong ((U Type) (E Bool) (t U))
     :premise-list E and
-    :args (f)
-    :conclusion (= ($mk_nary_cong_lhs f E) ($mk_nary_cong_rhs f E))
+    :args (t)
+    :conclusion (= t ($mk_nary_cong_rhs t E))
 )
+
+;;;;; ProofRule::TRUE_INTRO
 
 ; rule: true_intro
 ; implements: ProofRule::TRUE_INTRO
@@ -169,6 +149,8 @@
     :conclusion (= F true)
 )
 
+;;;;; ProofRule::TRUE_ELIM
+
 ; rule: true_elim
 ; implements: ProofRule::TRUE_ELIM
 ; premises:
@@ -178,6 +160,8 @@
     :premises ((= F true))
     :conclusion F
 )
+
+;;;;; ProofRule::FALSE_INTRO
 
 ; rule: false_intro
 ; implements: ProofRule::FALSE_INTRO
@@ -189,6 +173,7 @@
     :conclusion (= F false)
 )
 
+;;;;; ProofRule::FALSE_ELIM
 
 ; rule: false_elim
 ; implements: ProofRule::FALSE_ELIM
@@ -198,6 +183,25 @@
 (declare-rule false_elim ((F Bool))
     :premises ((= F false))
     :conclusion (not F)
+)
+
+;;;;; ProofRule::HO_CONG
+
+; program: $mk_ho_cong
+; args:
+; - t1 U: The current left hand side of the equality we have proven.
+; - t2 U: The current right hand side of the equality we have proven.
+; - E Bool: A conjunction of the remaining equalities we have left to process.
+; return: >
+;   An equality where the original terms are applied to the left and
+;   right hand sides of the equalities given by E.
+(program $mk_ho_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
+    (U U Bool) Bool
+    (
+        (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
+        (($mk_ho_cong t1 t2 true)                 (= t1 t2))
+        (($mk_ho_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
+    )
 )
 
 ; rule: ho_cong
@@ -215,7 +219,7 @@
     :conclusion
         (eo::match ((t1 U) (t2 U) (tail Bool :list))
         E
-        (((and (= t1 t2) tail) ($mk_cong t1 t2 tail))))
+        (((and (= t1 t2) tail) ($mk_ho_cong t1 t2 tail))))
 )
 
 ;;-------------------- Instances of THEORY_REWRITE

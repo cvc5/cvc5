@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -174,7 +174,7 @@ Node LambdaLift::getAssertionFor(TNode node)
   Node lambda = FunctionConst::toLambda(node);
   if (!lambda.isNull())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = node.getNodeManager();
     // The new assertion
     std::vector<Node> children;
     // bound variable list
@@ -222,9 +222,7 @@ Node LambdaLift::getSkolemFor(TNode node)
       Trace("rtf-proof-debug")
           << "RemoveTermFormulas::run: make LAMBDA skolem" << std::endl;
       // Make the skolem to represent the lambda
-      NodeManager* nm = NodeManager::currentNM();
-      SkolemManager* sm = nm->getSkolemManager();
-      skolem = sm->mkPurifySkolem(node);
+      skolem = SkolemManager::mkPurifySkolem(node);
     }
   }
   return skolem;
@@ -258,11 +256,10 @@ TrustNode LambdaLift::betaReduce(TNode node) const
 Node LambdaLift::betaReduce(TNode lam, const std::vector<Node>& args) const
 {
   Assert(lam.getKind() == Kind::LAMBDA);
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> betaRed;
   betaRed.push_back(lam);
   betaRed.insert(betaRed.end(), args.begin(), args.end());
-  Node app = nm->mkNode(Kind::APPLY_UF, betaRed);
+  Node app = nodeManager()->mkNode(Kind::APPLY_UF, betaRed);
   app = rewrite(app);
   return app;
 }

@@ -1,3 +1,29 @@
+###############################################################################
+# Top contributors (to current version):
+#   Daniel Larraz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Build, repair, and install a cvc5 Python wheel
+#
+# This script first removes any existing wheel build directories,
+# builds an initial Python wheel, repairs the wheel to include
+# all required shared library dependencies, and finally prepares
+# an installation command to install the repaired wheel.
+#
+# Input variables:
+# Python_EXECUTABLE - Path to the Python executable
+# Repairwheel_EXECUTABLE - Path to the repairwheel tool
+# BUILD_DIR - Path to the cvc5 build directory 
+# DEPS_BASE - Path to the cvc5 dependencies directory
+# INSTALL_CMD - Command to install the wheel
+##
 set(UNREPAIRED_WHEEL_DIR ${BUILD_DIR}/unrepaired-wheel)
 set(REPAIRED_WHEEL_DIR ${BUILD_DIR}/repaired-wheel)
 

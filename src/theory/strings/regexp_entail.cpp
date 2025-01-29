@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,19 +29,19 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-RegExpEntail::RegExpEntail(Rewriter* r) : d_aent(r)
+RegExpEntail::RegExpEntail(NodeManager* nm, Rewriter* r) : d_aent(r)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
 }
 
-Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
+Node RegExpEntail::simpleRegexpConsume(NodeManager* nm,
+                                       std::vector<Node>& mchildren,
                                        std::vector<Node>& children,
                                        int dir)
 {
   Trace("regexp-ext-rewrite-debug")
       << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir < 0 ? 0 : dir;
   unsigned tmax = dir < 0 ? 1 : dir;
   // try to remove off front and back
@@ -203,7 +203,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               mchildren_s.push_back(xc);
               utils::getConcat(rc[i], children_s);
               Trace("regexp-ext-rewrite-debug") << push;
-              Node ret = simpleRegexpConsume(mchildren_s, children_s, t);
+              Node ret = simpleRegexpConsume(nm, mchildren_s, children_s, t);
               Trace("regexp-ext-rewrite-debug") << pop;
               if (!ret.isNull())
               {
@@ -281,7 +281,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             Trace("regexp-ext-rewrite-debug")
                 << "- recursive call on body of star" << std::endl;
             Trace("regexp-ext-rewrite-debug") << push;
-            Node ret = simpleRegexpConsume(mchildren_s, children_s, t);
+            Node ret = simpleRegexpConsume(nm, mchildren_s, children_s, t);
             Trace("regexp-ext-rewrite-debug") << pop;
             if (!ret.isNull())
             {
@@ -320,7 +320,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                   Trace("regexp-ext-rewrite-debug")
                       << "- recursive call required repeat star" << std::endl;
                   Trace("regexp-ext-rewrite-debug") << push;
-                  Node rets = simpleRegexpConsume(mchildren_ss, children_ss, t);
+                  Node rets =
+                      simpleRegexpConsume(nm, mchildren_ss, children_ss, t);
                   Trace("regexp-ext-rewrite-debug") << pop;
                   if (!rets.isNull())
                   {

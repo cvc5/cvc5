@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,9 @@ namespace sets {
 class TheorySetsRewriter : public TheoryRewriter
 {
  public:
-  TheorySetsRewriter(NodeManager* nm);
+  TheorySetsRewriter(NodeManager* nm,
+                     bool cardEnabled = true,
+                     bool relsEnabled = true);
 
   /**
    * Rewrite n based on the proof rewrite rule id.
@@ -95,6 +97,10 @@ class TheorySetsRewriter : public TheoryRewriter
    * Returns true if elementTerm is in setTerm, where both terms are constants.
    */
   bool checkConstantMembership(TNode elementTerm, TNode setTerm);
+  /**
+   * Main entry point for rewriting relation kinds.
+   */
+  RewriteResponse postRewriteRelations(TNode node);
   /**
    * Rewrite set comprehension
    */
@@ -169,6 +175,10 @@ class TheorySetsRewriter : public TheoryRewriter
    * (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
    */
   RewriteResponse postRewriteProject(TNode n);
+  /** Is sets+cardinality enabled? */
+  bool d_cardEnabled;
+  /** Are relations enabled? */
+  bool d_relsEnabled;
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

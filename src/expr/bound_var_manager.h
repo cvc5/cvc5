@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +63,7 @@ class BoundVarManager
       Assert(n.getAttribute(attr).getType() == tn);
       return n.getAttribute(attr);
     }
-    Node v = NodeManager::currentNM()->mkBoundVar(tn);
+    Node v = NodeManager::mkBoundVar(tn);
     n.setAttribute(attr, v);
     // if we are keeping cache values, insert it to the set
     if (d_keepCacheVals)

@@ -54,8 +54,8 @@ runs:
           delete = False
           # We generate 10 packages per build:
           # {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64} * {static, shared}
-          # and 4 JARS {Linux-x86_64, macOS-x86_64, macOS-arm64, Win64-x86_64}
-          if cnt >= 28: # Keep at most 2 builds
+          # and 5 JARS {Linux-x86_64, Linux-arm64, macOS-x86_64, macOS-arm64, Win64-x86_64}
+          if cnt >= 30: # Keep at most 2 builds
             delete = True
           if asset.name.startswith(samedayprefix):
             delete = True

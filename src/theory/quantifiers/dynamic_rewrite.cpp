@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -149,7 +149,6 @@ Node DynamicRewriter::toExternal(Node ai)
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> ctypes;
   for (const Node& cn : n)
   {
@@ -181,7 +180,8 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   {
     utype = nm->mkFunctionType(ctypes);
   }
-  Node f = sm->mkDummySkolem("ufd", utype, "internal op for dynamic_rewriter");
+  Node f = NodeManager::mkDummySkolem(
+      "ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
   return f;
 }

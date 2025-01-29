@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,8 +109,29 @@ bool isNullaryConstructor(const DTypeConstructor& c);
  *   C( x, y ) and C( D( x ), y )
  *   C( D( x ), y ) and C( x, E( z ) )
  *   C( x, y ) and z
+ *
+ * @param n1 The first term.
+ * @param n2 The second term.
+ * @param rew The set of entailed equalities.
+ * @param checkNdtConst If true, we consider constants (of non-datatype type) to
+ * be a conflict.
  */
-bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst = true);
+/**
+ * Same as above, but tracks the path to the clashing equality.
+ * In particular, path contains the child index to follow in n1 and n2 to
+ * find a conflicting value, e.g.
+ *    C( x, D( y, z, 7 ) ) = C( w, D( 2, 3, 4) )
+ * would return path = { 1, 2 }, referencing the conflicting equality 7=4.
+ */
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst,
+                std::vector<size_t>& path);
 
 }  // namespace utils
 }  // namespace datatypes

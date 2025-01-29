@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +30,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-FieldObj::FieldObj(const FfSize& size)
+FieldObj::FieldObj(NodeManager* nm, const FfSize& size)
     : d_size(size),
-      d_nm(NodeManager::currentNM()),
+      d_nm(nm),
       d_zero(d_nm->mkConst(FiniteFieldValue(0, d_size))),
       d_one(d_nm->mkConst(FiniteFieldValue(1, d_size)))
 #ifdef CVC5_USE_COCOA

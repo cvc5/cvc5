@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -176,8 +176,8 @@ void SolverState::checkInjectivity(Node n)
   }
 
   TypeNode domainType = f.getType().getArgTypes()[0];
-  Node x = sm->mkDummySkolem("x", domainType);
-  Node y = sm->mkDummySkolem("y", domainType);
+  Node x = NodeManager::mkDummySkolem("x", domainType);
+  Node y = NodeManager::mkDummySkolem("y", domainType);
   Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
   Node f_y = d_nm->mkNode(Kind::APPLY_UF, f, y);
   Node f_x_equals_f_y = f_x.eqNode(f_y);

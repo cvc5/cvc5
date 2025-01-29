@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -301,7 +301,7 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   Kind k = term.getKind();
   if (!options().arrays.arraysExp)
   {
-    if (k == Kind::EQ_RANGE)
+    if (k == Kind::EQ_RANGE || k == Kind::STORE_ALL)
     {
       std::stringstream ss;
       ss << "Term of kind `" << k
@@ -363,8 +363,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   return TrustNode::null();
 }
 
-Theory::PPAssertStatus TheoryArrays::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArrays::ppAssert(TrustNode tin,
+                            TrustSubstitutionMap& outSubstitutions)
 {
   TNode in = tin.getNode();
   switch(in.getKind()) {
@@ -375,12 +375,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
       if (in[0].isVar() && d_valuation.isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       if (in[1].isVar() && d_valuation.isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-        return PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       break;
     }
@@ -398,7 +398,7 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
     default:
       break;
   }
-  return PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -209,13 +209,11 @@ void collectUSortsToBV(NodeManager* nm,
                        const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {
-  SkolemManager* sm = nm->getSkolemManager();
-
   for (TNode var : vars)
   {
     TypeNode type = var.getType();
     size_t size = getBVSkolemSize(usortCardinality.at(type));
-    Node skolem = sm->mkDummySkolem(
+    Node skolem = NodeManager::mkDummySkolem(
         "ackermann.bv",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "

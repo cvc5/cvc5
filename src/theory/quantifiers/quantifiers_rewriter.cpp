@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -279,6 +279,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         size_t prevVarIndex = varIndex;
         while (varIndex < nvars && fvs.find(n[0][varIndex]) != fvs.end())
         {
+          // cannot have shadowing
+          if (varsUsed.find(n[0][varIndex]) != varsUsed.end())
+          {
+            return Node::null();
+          }
+          varsUsed.insert(n[0][varIndex]);
           varIndex++;
         }
         std::vector<Node> dvs(n[0].begin() + prevVarIndex,
@@ -2013,8 +2019,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
   children.push_back(body);
   if (marked)
   {
-    SkolemManager* sm = nm->getSkolemManager();
-    Node avar = sm->mkDummySkolem("id", nm->booleanType());
+    Node avar = NodeManager::mkDummySkolem("id", nm->booleanType());
     QuantIdNumAttribute ida;
     avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(Kind::INST_ATTRIBUTE, avar));

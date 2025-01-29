@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,8 +58,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_true = nodeManager()->mkConst<bool>(true);
   d_false = nodeManager()->mkConst<bool>(false);
-  d_tiid = mkTrustId(TrustId::THEORY_INFERENCE);
-  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SEP);
+  d_tiid = mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_SEP);
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
@@ -90,7 +89,14 @@ void TheorySep::initializeHeapTypes()
   }
 }
 
-TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheorySep::getTheoryRewriter()
+{
+  if (!options().sep.sep)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheorySep::getProofChecker() { return nullptr; }
 
@@ -340,7 +346,6 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
   TNode satom = atom.getKind() == Kind::SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == Kind::SEP_LABEL ? atom[1] : TNode::null();
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   if (slbl.isNull())
   {
     Trace("sep-lemma-debug")
@@ -446,8 +451,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       else
       {
         Assert(!d_type_ref.isNull());
-        Node kl = sm->mkDummySkolem("loc", d_type_ref);
-        Node kd = sm->mkDummySkolem("data", d_type_data);
+        Node kl = NodeManager::mkDummySkolem("loc", d_type_ref);
+        Node kd = NodeManager::mkDummySkolem("data", d_type_data);
         Node econc = nm->mkNode(
             Kind::SEP_LABEL,
             nm->mkNode(
@@ -479,7 +484,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "Negated spatial constraint asserted to sep theory: " << fact
         << std::endl;
-    Node g = sm->mkDummySkolem("G", nm->booleanType());
+    Node g = NodeManager::mkDummySkolem("G", nm->booleanType());
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
         d_env, "sep_neg_guard", g, getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
@@ -520,7 +525,6 @@ void TheorySep::postCheck(Effort level)
     return;
   }
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Trace("sep-process") << "Checking heap at full effort..." << std::endl;
   d_label_model.clear();
   d_tmodel.clear();
@@ -836,7 +840,7 @@ void TheorySep::postCheck(Effort level)
       {
         Trace("sep-process") << "Must witness label : " << ll
                              << ", data type is " << d_type_data << std::endl;
-        Node dsk = sm->mkDummySkolem(
+        Node dsk = NodeManager::mkDummySkolem(
             "dsk", d_type_data, "pto-data for implicit location");
         // if location is in the heap, then something must point to it
         Node lem = nm->mkNode(
@@ -1122,8 +1126,6 @@ void TheorySep::initializeBounds() {
   {
     return;
   }
-  NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Trace("sep-bound") << "Initialize bounds for " << d_type_ref << "..."
                      << std::endl;
   size_t n_emp = 0;
@@ -1144,7 +1146,7 @@ void TheorySep::initializeBounds() {
                      << std::endl;
   for (size_t r = 0; r < n_emp; r++)
   {
-    Node e = sm->mkDummySkolem(
+    Node e = NodeManager::mkDummySkolem(
         "e", d_type_ref, "cardinality bound element for seplog");
     d_type_references_card.push_back(e);
     d_type_ref_card_id[e] = r;
@@ -1158,19 +1160,18 @@ Node TheorySep::getBaseLabel()
     return d_base_label;
   }
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   initializeBounds();
   Trace("sep") << "Make base label for " << d_type_ref << std::endl;
   std::stringstream ss;
   ss << "__Lb";
   TypeNode ltn = nm->mkSetType(d_type_ref);
-  Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "base label");
+  Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn, "base label");
   d_base_label = n_lbl;
   // make reference bound
   Trace("sep") << "Make reference bound label for " << d_type_ref << std::endl;
   std::stringstream ss2;
   ss2 << "__Lu";
-  d_reference_bound = sm->mkDummySkolem(ss2.str(), ltn, "");
+  d_reference_bound = NodeManager::mkDummySkolem(ss2.str(), ltn, "");
 
   // check whether monotonic (elements can be added to tn without effecting
   // satisfiability)
@@ -1280,17 +1281,18 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
 
 Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   std::map< int, Node >::iterator it = d_label_map[atom][lbl].find( child );
-  if( it==d_label_map[atom][lbl].end() ){
-    NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
+  if (it == d_label_map[atom][lbl].end())
+  {
     Assert(!d_type_ref.isNull());
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = nodeManager()->mkSetType(d_type_ref);
-    Node n_lbl = sm->mkDummySkolem(ss.str(), ltn, "sep label");
+    Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn, "sep label");
     d_label_map[atom][lbl][child] = n_lbl;
     return n_lbl;
-  }else{
+  }
+  else
+  {
     return (*it).second;
   }
 }
@@ -1904,12 +1906,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
         TrustNode trn = d_im.mkLemmaExp(
-            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

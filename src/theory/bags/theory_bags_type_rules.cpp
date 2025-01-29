@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -421,9 +421,8 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
-    NodeManager* nm = NodeManager::currentNM();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && functionType.getRangeType() == nm->booleanType()))
+          && functionType.getRangeType() == nodeManager->booleanType()))
     {
       if (errOut)
       {
@@ -517,7 +516,6 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == Kind::BAG_PARTITION);
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode bagType = n[1].getTypeOrNull();
-  NodeManager* nm = NodeManager::currentNM();
   if (check)
   {
     if (!bagType.isBag())
@@ -546,7 +544,7 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
     if (!(argTypes.size() == 2 && elementType == argTypes[0]
-          && elementType == argTypes[1] && rangeType == nm->booleanType()))
+          && elementType == argTypes[1] && rangeType == nodeManager->booleanType()))
     {
       if (errOut)
       {
@@ -558,7 +556,7 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
   }
-  TypeNode retType = nm->mkBagType(bagType);
+  TypeNode retType = nodeManager->mkBagType(bagType);
   return retType;
 }
 

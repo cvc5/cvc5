@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -458,11 +458,10 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
     return itt->second;
   }
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   types.push_back(tn);
   TypeNode ptn = nm->mkPredicateType(types);
-  Node pred = sm->mkDummySkolem(isPre ? "pre" : "post", ptn);
+  Node pred = NodeManager::mkDummySkolem(isPre ? "pre" : "post", ptn);
   d_traversal_pred[index][tn][n] = pred;
   return pred;
 }
@@ -470,7 +469,6 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 Node SygusExtension::eliminateTraversalPredicates(Node n)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::map<Node, Node>::iterator ittb;
@@ -496,7 +494,7 @@ Node SygusExtension::eliminateTraversalPredicates(Node n)
         {
           std::stringstream ss;
           ss << "v_" << cur;
-          ret = sm->mkDummySkolem(ss.str(), cur.getType());
+          ret = NodeManager::mkDummySkolem(ss.str(), cur.getType());
           d_traversal_bool[cur] = ret;
         }
         else
@@ -1769,8 +1767,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
   if (d_measure_value.isNull())
   {
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
-    d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
+    d_measure_value = NodeManager::mkDummySkolem("mt", nm->integerType());
     Node mtlem =
         nm->mkNode(Kind::GEQ, d_measure_value, nm->mkConstInt(Rational(0)));
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
@@ -1784,8 +1781,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
   if (mkNew)
   {
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
+    Node new_mt = NodeManager::mkDummySkolem("mt", nm->integerType());
     Node mtlem = nm->mkNode(Kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
     d_measure_value_active = new_mt;
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);

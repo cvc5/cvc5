@@ -26,12 +26,23 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:production-arm64
+            os: ubuntu-22.04-arm
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            package-name: cvc5-Linux-arm64
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
           - name: ubuntu:production-arm64-cross
             os: ubuntu-latest
             config: production --auto-download --arm64
             cache-key: production-arm64-cross
             strip-bin: aarch64-linux-gnu-strip
-            package-name: cvc5-Linux-arm64
 
           - name: macos:production
             os: macos-13
@@ -129,6 +140,14 @@ jobs:
             package-name: cvc5-Linux-x86_64
             gpl-tag: -gpl
 
+          - name: ubuntu:production-arm64-gpl
+            os: ubuntu-22.04-arm
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: production-arm64-gpl
+            strip-bin: strip
+            package-name: cvc5-Linux-arm64
+            gpl-tag: -gpl
+
           - name: macos:production-gpl
             os: macos-13
             config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
@@ -151,6 +170,9 @@ jobs:
           - has-tag: false
             build:
               name: ubuntu:production-gpl
+          - has-tag: false
+            build:
+              name: ubuntu:production-arm64-gpl
           - has-tag: false
             build:
               name: macos:production-gpl

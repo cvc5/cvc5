@@ -12,6 +12,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name="cvc5"
 description="Python bindings for cvc5"
+readme = {text = "Python bindings for cvc5", content-type = "text/plain"}
 dynamic = ["version"]
 license = {text = "BSD-3-Clause AND LGPL-3.0-or-later AND MIT"}
 # BSD-3-Clause      : cvc5 library and Python API

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Aina Niemetz
+ *   Andrew Reynolds, Clark Barrett, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1337,7 +1337,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   TypeNode rangeType = f.getType().getRangeType();
   if (dfvm == options::DefaultFunctionValueMode::HOLE)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));
@@ -1389,7 +1389,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
   Node curr, currPre;
   if (dfvm == options::DefaultFunctionValueMode::HOLE)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     std::vector<Node> cacheVals;
     cacheVals.push_back(nm->mkConst(SortToTerm(rangeType)));

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Liana Hadarean
+ *   Aina Niemetz, Liana Hadarean, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -276,10 +276,10 @@ Node mkConst(const BitVector& value)
 Node mkVar(unsigned size)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkDummySkolem("BVSKOLEM$$",
-                           nm->mkBitVectorType(size),
-                           "is a variable created by the theory of bitvectors");
+  return NodeManager::mkDummySkolem(
+      "BVSKOLEM$$",
+      nm->mkBitVectorType(size),
+      "is a variable created by the theory of bitvectors");
 }
 
 /* ------------------------------------------------------------------------- */

@@ -1,7 +1,7 @@
 ; EXPECT: sat
 (set-logic ALL)
 
-(declare-datatype T
+(declare-datatype Td
   ((T (T_id String)))
 )
 

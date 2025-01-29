@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,6 @@
 #include "proof/proof_node_updater.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
-#include "smt/proof_final_callback.h"
 #include "smt/proof_post_processor_dsl.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
@@ -241,13 +240,6 @@ class ProofPostprocess : protected EnvObj
    * and connecting preprocessed assumptions to input assumptions.
    */
   ProofNodeUpdater d_updater;
-  /** The post process callback for finalization */
-  ProofFinalCallback d_finalCb;
-  /**
-   * The finalizer, which is responsible for taking stats and checking for
-   * (lazy) pedantic failures.
-   */
-  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt

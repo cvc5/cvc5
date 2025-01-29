@@ -5,7 +5,7 @@
 (declare-var m Int)
 (declare-var s Int)
 (declare-var inc Int)
-(declare-datatypes ((tuple2 0)) ( ((tuple2 (_m Int) (_s Int))) ))
+(declare-datatypes ((tuple2 0)) ( ((tuple2c (_m Int) (_s Int))) ))
 
 (synth-fun x12 ((m Int) (s Int) (inc Int)) tuple2)
 (constraint (=>

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_SUB_CONFLICT_H
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_SUB_CONFLICT_H
 
+#include "proof/trust_proof_generator.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
@@ -56,6 +57,8 @@ class InstStrategySubConflict : public QuantifiersModule
  private:
   /** The options for subsolver calls */
   Options d_subOptions;
+  /** For lemmas */
+  std::shared_ptr<TrustProofGenerator> d_tpg;
 };
 
 }  // namespace quantifiers

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -244,7 +244,7 @@ void SynthConjecture::assign(Node q)
   {
     for (const Node& v : d_checkBody[0][0])
     {
-      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      Node sk = NodeManager::mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
       d_innerVars.push_back(v);
       d_innerSks.push_back(sk);

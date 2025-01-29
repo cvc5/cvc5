@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -153,6 +153,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // these are disabled by default but are listed here in case they are
     // enabled by default later
     SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY_IF_NOT_USER(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
     // specific options that are disabled
     OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
@@ -1139,11 +1140,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   if (opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
     // symmetry breaking does not have proof support
-    SET_AND_NOTIFY_VAL_SYM(uf, ufSymmetryBreaker, false, "full strict proofs");
+    SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "full strict proofs");
     // CEGQI with deltas and infinities is not supported
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfInt, false, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfReal, false, "full strict proofs");
+    // shared selectors are not supported
+    SET_AND_NOTIFY(datatypes, dtSharedSelectors, false, "full strict proofs");
   }
   return false;
 }
@@ -1291,17 +1294,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       return true;
     }
     SET_AND_NOTIFY(smt, learnedRewrite, false, "unsat cores");
-  }
-  // most static learning techniques are local, although arithmetic static
-  // learning is not.
-  if (opts.arith.arithStaticLearning)
-  {
-    if (opts.arith.arithStaticLearningWasSetByUser)
-    {
-      reason << "arith static learning";
-      return true;
-    }
-    SET_AND_NOTIFY(arith, arithStaticLearning, false, "unsat cores");
   }
 
   if (opts.arith.pbRewrites)

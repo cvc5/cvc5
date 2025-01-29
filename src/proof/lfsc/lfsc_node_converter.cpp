@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -120,7 +120,8 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM
+           || k == Kind::DT_SYGUS_EVAL)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -1158,7 +1159,6 @@ Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 
 size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(fv.isVar());
   std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
   if (it != d_fvarIndex.end())
   {
