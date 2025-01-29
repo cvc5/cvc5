@@ -173,6 +173,11 @@ std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
   CDProof cdp(d_env);
   Trace("diamonds-proof") << "Prove " << fact << std::endl;
   Assert(fact.getKind() == Kind::IMPLIES);
+  // fact is of the form
+  //   (=> (or (and (= a1 b1) (= c1 d1)) (and (= a2 b2) (= c2 d2))) (= e f))
+  // where
+  //   (=> (and (= a1 b1) (= c1 d1)) (= e f)) by transitivity and
+  //   (=> (and (= a2 b2) (= c2 d2)) (= e f)) by transitivity.
   Node antec = fact[0];
   Assert(antec.getKind() == Kind::OR);
   Node conc = fact[1];
@@ -209,6 +214,11 @@ std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
           Assert(acc[1 - i][jo] == aco);
           transEq.push_back(acc[1 - i][jo].eqNode(acc[1 - i][1 - jo]));
           Assert(acc[1 - i][1 - jo] == conc[1]);
+          // e = h    h = f
+          // ---------------- TRANS
+          // e = f
+          // where (= e h) and (= h f) are equivalent to
+          // to e.g. (and (= a1 b1) (= c1 d1)) when i=0.
           cdpi.addStep(conc, ProofRule::TRANS, transEq, {});
           success = true;
           break;
@@ -222,6 +232,7 @@ std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
     if (success)
     {
       // close with scope
+      // proves (=> (and (= a1 b1) (= c1 d1)) (= e f)) when i=0
       std::shared_ptr<ProofNode> pfn = cdpi.getProofFor(conc);
       pfn = d_env.getProofNodeManager()->mkScope(pfn, acc);
       // add to main proof
@@ -233,8 +244,15 @@ std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
       cdp.addTrustedStep(c, TrustId::DIAMONDS, {}, {});
     }
   }
+  // proves (and 
+  //          (=> (and (= a1 b1) (= c1 d1)) (= e f)) 
+  //          (=> (and (= a2 b2) (= c2 d2)) (= e f)))
   Node cc = nm->mkAnd(conj);
   cdp.addStep(cc, ProofRule::AND_INTRO, conj, {});
+  // proves
+  // (= cc 
+  //    (=> (or (and (= a1 b1) (= c1 d1)) (and (= a2 b2) (= c2 d2))) (= e f)))
+  // where cc is defined above.
   Node eqc = cc.eqNode(fact);
   // this rewrite should be reconstructable via RARE rule
   // bool-implies-or-distrib
