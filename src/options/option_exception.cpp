@@ -17,4 +17,6 @@
 
 namespace cvc5::internal {
 const std::string OptionException::s_errPrefix = "Error in option parsing: ";
+const std::string FatalOptionException::s_errPrefix =
+    "Fatal error in option parsing: ";
 }  // namespace cvc5::internal

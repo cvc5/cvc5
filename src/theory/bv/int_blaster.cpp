@@ -25,9 +25,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
-#include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "smt/logic_exception.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -323,7 +323,7 @@ Node IntBlaster::translateWithChildren(
     */
    if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
    {
-     throw OptionException("bv-to-int does not support higher order logic ");
+     throw LogicException("bv-to-int does not support higher order logic ");
    }
   // Translate according to the kind of the original node.
   switch (oldKind)
@@ -665,7 +665,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(oldKind, translated_children);
       if (d_mode == options::SolveBVAsIntMode::BITWISE)
       {
-        throw OptionException(
+        throw LogicException(
             "--solve-bv-as-int=bitwise does not support quantifiers");
       }
       break;

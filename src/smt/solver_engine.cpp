@@ -2160,7 +2160,7 @@ void SolverEngine::setOption(const std::string& key,
   {
     if (key == "trace")
     {
-      throw OptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages with safe-options");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2179,7 +2179,7 @@ void SolverEngine::setOption(const std::string& key,
         ss << " The value for " << key << " is already its current value ("
            << value << "). Omitting this option may avoid this exception.";
       }
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
@@ -2212,7 +2212,7 @@ void SolverEngine::setOption(const std::string& key,
                << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
     }
   }
