@@ -46,6 +46,7 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   Node cac = d_nodeManager->mkConst(String("cac"));
   Node abca = d_nodeManager->mkConst(String("abca"));
   Node abcd = d_nodeManager->mkConst(String("abcd"));
+  Node cd = d_nodeManager->mkConst(String("cd"));
 
   TypeNode stringType = d_nodeManager->stringType();
   ASSERT_TRUE(Word::mkEmptyWord(stringType) == empty);
@@ -105,12 +106,12 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_EQ(empty, Word::suffix(empty, 0));
   ASSERT_EQ(aa, Word::suffix(aaaaa, 2));
 
-  ASSERT_FALSE(Word::hasBidirectalOverlap(abc, empty));
-  ASSERT_TRUE(Word::hasBidirectalOverlap(cac, aa));
-  ASSERT_FALSE(Word::hasBidirectalOverlap(cac, abc));
-  ASSERT_TRUE(Word::hasBidirectalOverlap(cac, b));
-  ASSERT_FALSE(Word::hasBidirectalOverlap(cac, a));
-  ASSERT_FALSE(Word::hasBidirectalOverlap(abca, a));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(abc, empty));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, aa));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, abc));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, b));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, a));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(abca, a));
 
   ASSERT_TRUE(Word::overlap(abc, empty) == 0);
   ASSERT_TRUE(Word::overlap(aaaaa, abc) == 1);
