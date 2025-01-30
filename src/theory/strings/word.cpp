@@ -395,7 +395,7 @@ bool Word::hasOverlap(TNode x, TNode y, bool rev)
     }
     else
     {
-      return (sx.find(sy) == std::string::npos || sx.overlap(sy) != 0);
+      return (sx.find(sy) != std::string::npos || sx.overlap(sy) != 0);
     }
   }
   else if (k == Kind::CONST_SEQUENCE)
@@ -413,7 +413,7 @@ bool Word::hasOverlap(TNode x, TNode y, bool rev)
     }
     else
     {
-      return (sx.find(sy) == std::string::npos || sx.overlap(sy) != 0);
+      return (sx.find(sy) != std::string::npos || sx.overlap(sy) != 0);
     }
   }
   Unimplemented();
