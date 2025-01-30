@@ -1217,7 +1217,7 @@ bool RewriteDbProofCons::ensureProofInternal(
           cdp->addStep(cur,
                        ProofRule::ARITH_POLY_NORM_REL,
                        {pcur.d_vars[0]},
-                       {ProofRuleChecker::mkKindNode(nm, cur[0].getKind())});
+                       {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
