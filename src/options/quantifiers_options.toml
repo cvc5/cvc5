@@ -220,7 +220,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "eMatching"
-  category   = "common"
+  category   = "regular"
   long       = "e-matching"
   type       = "bool"
   default    = "true"
