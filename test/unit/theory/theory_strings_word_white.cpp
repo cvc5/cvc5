@@ -106,12 +106,12 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   ASSERT_EQ(empty, Word::suffix(empty, 0));
   ASSERT_EQ(aa, Word::suffix(aaaaa, 2));
 
-  ASSERT_FALSE(Word::hasBidirectionalOverlap(abc, empty));
-  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, aa));
-  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, abc));
-  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, b));
-  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, a));
-  ASSERT_FALSE(Word::hasBidirectionalOverlap(abca, a));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(abc, empty));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, aa));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, abc));
+  ASSERT_FALSE(Word::hasBidirectionalOverlap(cac, b));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(cac, a));
+  ASSERT_TRUE(Word::hasBidirectionalOverlap(abca, a));
 
   ASSERT_TRUE(Word::overlap(abc, empty) == 0);
   ASSERT_TRUE(Word::overlap(aaaaa, abc) == 1);
