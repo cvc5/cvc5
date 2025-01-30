@@ -383,12 +383,12 @@ bool Word::hasOverlap(TNode x, TNode y, bool rev)
   if (k == Kind::CONST_STRING)
   {
     Assert(y.getKind() == Kind::CONST_STRING);
+    const String& sx = x.getConst<String>();
     const String& sy = y.getConst<String>();
-    if (sy.empty())
+    if (sx.empty() || sy.empty())
     {
       return false;
     }
-    const String& sx = x.getConst<String>();
     if (rev)
     {
       return (sx.find(sy) != std::string::npos || sx.roverlap(sy) != 0);
@@ -401,12 +401,12 @@ bool Word::hasOverlap(TNode x, TNode y, bool rev)
   else if (k == Kind::CONST_SEQUENCE)
   {
     Assert(y.getKind() == Kind::CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
-    if (sy.empty())
+    if (sx.empty() || sy.empty())
     {
       return false;
     }
-    const Sequence& sx = x.getConst<Sequence>();
     if (rev)
     {
       return (sx.find(sy) != std::string::npos || sx.roverlap(sy) != 0);
