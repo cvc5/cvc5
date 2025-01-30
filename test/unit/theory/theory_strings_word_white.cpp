@@ -127,7 +127,7 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   
   ASSERT_FALSE(Word::hasOverlap(empty, empty, false));
   ASSERT_FALSE(Word::hasOverlap(empty, a, false));
-  ASSERT_FALSE(Word::hasOverlap(abc, empty, false));
+  ASSERT_TRUE(Word::hasOverlap(abc, empty, false));
   ASSERT_FALSE(Word::hasOverlap(abc, aa, false));
   ASSERT_TRUE(Word::hasOverlap(abc, cd, false));
   ASSERT_TRUE(Word::hasOverlap(abc, b, false));
@@ -136,7 +136,7 @@ TEST_F(TestTheoryWhiteStringsWord, strings)
   
   ASSERT_FALSE(Word::hasOverlap(empty, empty, true));
   ASSERT_FALSE(Word::hasOverlap(empty, a, true));
-  ASSERT_FALSE(Word::hasOverlap(abc, empty, true));
+  ASSERT_TRUE(Word::hasOverlap(abc, empty, true));
   ASSERT_TRUE(Word::hasOverlap(abc, aa, true));
   ASSERT_FALSE(Word::hasOverlap(abc, cd, true));
   ASSERT_TRUE(Word::hasOverlap(abc, b, true));
