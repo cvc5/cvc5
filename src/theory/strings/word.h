@@ -112,24 +112,24 @@ class Word
    * corresponds to checking whether one string contains the other and whether a
    * substring/subsequence of one is a prefix of the other and/or vice-versa.
    *
-   * If rev=false, this method returns true if x is non-empty, and either
+   * If rev=false, this method returns true if y is non-empty, and either
    * x contains y, or a non-empty suffix of x is a prefix of y.
    * Examples:
    *   "", "" -> false
    *   "", "a" -> false
-   *   "abc", "" -> true
+   *   "abc", "" -> false
    *   "abc", "aa" -> false
    *   "abc", "cd" -> true
    *   "abc", "b" -> true
    *   "abc", "abcd" -> true
    *   "abc", "aab" -> false
-   * 
-   * If rev=true, this method returns true if x is non-empty, and either
+   *
+   * If rev=true, this method returns true if y is non-empty, and either
    * x contains y, or a non-empty prefix of x is a suffix of y.
    * Examples:
    *   "", "" -> false
    *   "", "a" -> false
-   *   "abc", "" -> true
+   *   "abc", "" -> false
    *   "abc", "aa" -> true
    *   "abc", "cd" -> false
    *   "abc", "b" -> true

@@ -2575,8 +2575,10 @@ Node SequencesRewriter::rewriteContains(Node node)
         // constant contains
         if (node[0][i].isConst())
         {
+          Assert (Word::getLength(node[0][i])!=0);
           // if no overlap, we can split into disjunction
-          if (!Word::hasBidirectionalOverlap(node[0][i], node[1]))
+          if (!Word::hasOverlap(node[0][i], node[1], false)
+              && !Word::hasOverlap(node[0][i], node[1], true))
           {
             std::vector<Node> nc0;
             utils::getConcat(node[0], nc0);

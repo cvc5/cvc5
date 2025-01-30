@@ -2010,9 +2010,12 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   {
     if (node[0].getKind() == Kind::STRING_REPLACE)
     {
+      TypeNode stype = node[0].getType();
+      Node empty = strings::Word::mkEmptyWord(stype);
       if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
       {
-        if (!strings::Word::hasBidirectionalOverlap(node[1], node[0][1])
+        if (node[1] != empty && node[0][1] != empty && node[0][2] != empty
+            && !strings::Word::hasBidirectionalOverlap(node[1], node[0][1])
             && !strings::Word::hasBidirectionalOverlap(node[1], node[0][2]))
         {
           // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
@@ -2030,8 +2033,6 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
         Node ctn = se.checkContains(node[0][2], node[1]);
         if (!ctn.isNull() && !ctn.getConst<bool>())
         {
-          TypeNode stype = node[0].getType();
-          Node empty = strings::Word::mkEmptyWord(stype);
           Node ret = d_nm->mkNode(
               Kind::STRING_CONTAINS,
               d_nm->mkNode(Kind::STRING_REPLACE, node[0][0], node[0][1], empty),
