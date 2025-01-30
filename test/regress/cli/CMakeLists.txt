@@ -3826,6 +3826,14 @@ set(regress_2_tests
   regress2/sygus/three.sy
   regress2/sygus/tp19.eqn_sygus_iter_98_0.sy
   regress2/typed_v1l50016-simp.cvc.smt2
+  regress2/ufdt/clam-goal48.smt2
+  regress2/ufdt/isaplanner-goal60.smt2
+  regress2/ufdt/tip2015-int_add_inv_left.smt2
+  regress2/ufdt/TIP-isaplanner-prop_20.smt2
+  regress2/ufdtlia/false-graph_bt_k.smt2
+  regress2/ufdtlia/false-graph_btp5.smt2
+  regress2/ufdtlia/false-show_bin_lists_assoc.smt2
+  regress2/uflia/ADTIND-mult-int.smt2
   regress2/uflia-error0.smt2
   regress2/xs-09-16-3-4-1-5.smtv1.smt2
 )
