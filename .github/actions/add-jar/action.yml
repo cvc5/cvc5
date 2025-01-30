@@ -82,6 +82,17 @@ runs:
         jar cf ${{ inputs.jar-name }}.jar AUTHORS COPYING licenses io ${{ inputs.jar-libs-dir }}
         echo "::endgroup::"
 
+    - name: Test JAR
+      shell: ${{ inputs.shell }}
+      run: |
+        javac -cp "${{ inputs.jar-name }}.jar" ./examples/api/java/QuickStart.java -d .
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          java -cp "${{ inputs.jar-name }}.jar;." QuickStart
+        else
+          java -cp "${{ inputs.jar-name }}.jar:." QuickStart
+        fi
+        rm QuickStart.class
+
     - name: Store to latest
       if: github.ref == 'refs/heads/main'
       uses: ./.github/actions/store-to-latest

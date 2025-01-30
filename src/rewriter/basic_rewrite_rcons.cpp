@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Hans-Joerg Schurr, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -635,7 +635,7 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   theory::strings::Rewrite rule;
   // call the same utility that proved it
   theory::strings::ArithEntail ae(nullptr);
-  theory::strings::StringsEntail sent(nullptr, ae, nullptr);
+  theory::strings::StringsEntail sent(nullptr, ae);
   std::vector<Node> ch1;
   std::vector<Node> ch2;
   Node rhs = sent.rewriteViaMacroSubstrStripSymLength(lhs, rule, ch1, ch2);

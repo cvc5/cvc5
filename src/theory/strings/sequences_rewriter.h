@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,8 +35,8 @@ class SequencesRewriter : public TheoryRewriter
 {
  public:
   SequencesRewriter(NodeManager* nm,
-                    Rewriter* r,
                     ArithEntail& ae,
+                    StringsEntail& se,
                     HistogramStat<Rewrite>* statistics);
   /** The underlying entailment utilities */
   ArithEntail& getArithEntail();
@@ -350,15 +350,10 @@ class SequencesRewriter : public TheoryRewriter
   Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
-  /**
-   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
-   * be removed.
-   */
-  Rewriter* d_rr;
   /** The arithmetic entailment module */
-  ArithEntail d_arithEntail;
+  ArithEntail& d_arithEntail;
   /** Instance of the entailment checker for strings. */
-  StringsEntail d_stringsEntail;
+  StringsEntail& d_stringsEntail;
   /** Common constants */
   Node d_sigmaStar;
   Node d_true;
