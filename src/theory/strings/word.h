@@ -124,6 +124,12 @@ class Word
    *   "abc", "abcd" -> true
    *   "abc", "aab" -> false
    *
+   * Overall, the intuition is the following when rev=false:
+   *   If hasOverlap(c, d, false) returns false, then the first occurence (if any)
+   *   of d in a string of the form c++e is as a substring of e, for any e.
+   *   In other words, the content of c does not contribute to where d is contained
+   *   when looking from the start of the string.
+   *
    * If rev=true, this method returns true if x is non-empty, and either
    * x contains y, or a non-empty prefix of x is a suffix of y.
    * Examples:
@@ -135,6 +141,12 @@ class Word
    *   "abc", "b" -> true
    *   "abc", "abcd" -> false
    *   "abc", "aab" -> true
+   *
+   * Overall, the intuition of this operation is the following when rev=true:
+   *   If hasOverlap(c, d, true) returns false, then the last occurence (if any)
+   *   of d in a string of the form e++c is as a substring of e, for any e.
+   *   In other words, the content of c does not contribute to where d is contained
+   *   when looking from the end of the string.
    *
    * @param x The first string
    * @param y The second string
