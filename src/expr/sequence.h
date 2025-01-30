@@ -100,16 +100,6 @@ class Sequence
   /** Return the suffix of this sequence of size at most i */
   Sequence suffix(size_t i) const { return substr(size() - i, i); }
 
-  /**
-   * Checks if there is any overlap between this sequence and another sequence.
-   * This corresponds to checking whether one sequence contains the other and
-   * whether a subsequence of one is a prefix of the other and vice-versa.
-   *
-   * @param y The other sequence
-   * @return True if there is an overlap, false otherwise
-   */
-  bool noOverlapWith(const Sequence& y) const;
-
   /** sequence overlap
    *
    * if overlap returns m>0,

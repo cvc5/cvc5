@@ -2576,7 +2576,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (node[0][i].isConst())
         {
           // if no overlap, we can split into disjunction
-          if (Word::noOverlapWith(node[0][i], node[1]))
+          if (!Word::hasBidirectionalOverlap(node[0][i], node[1]))
           {
             std::vector<Node> nc0;
             utils::getConcat(node[0], nc0);
@@ -2612,18 +2612,6 @@ Node SequencesRewriter::rewriteContains(Node node)
   }
   else if (node[0].getKind() == Kind::STRING_REPLACE)
   {
-    if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
-    {
-      if (Word::noOverlapWith(node[1], node[0][1])
-          && Word::noOverlapWith(node[1], node[0][2]))
-      {
-        // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
-        // if there is no overlap between c1 and c3 and none between c2 and c3
-        Node ret = nm->mkNode(Kind::STRING_CONTAINS, node[0][0], node[1]);
-        return returnRewrite(node, ret, Rewrite::CTN_REPL_CNSTS_TO_CTN);
-      }
-    }
-
     if (node[0][0] == node[0][2])
     {
       // (str.contains (str.replace x y x) y) ---> (str.contains x y)
