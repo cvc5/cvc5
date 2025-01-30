@@ -1214,10 +1214,8 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           cdp->addStep(
               pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
-          cdp->addStep(cur,
-                       ProofRule::ARITH_POLY_NORM_REL,
-                       {pcur.d_vars[0]},
-                       {cur});
+          cdp->addStep(
+              cur, ProofRule::ARITH_POLY_NORM_REL, {pcur.d_vars[0]}, {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
