@@ -111,12 +111,30 @@ class Word
    * Checks if there is any overlap between word x and another word y. This
    * corresponds to checking whether one string contains the other and whether a
    * substring/subsequence of one is a prefix of the other and/or vice-versa.
-   * In particular, this method returns false if x is empty, and otherwise true
-   * when:
    *
-   * If rev=false, if x contains y, or a non-empty suffix of x is a prefix of y.
-   * If rev=true, if x contains y, or a non-empty prefix of x is a suffix of y.
-   *
+   * If rev=false, this method returns true if x is non-empty, and either
+   * x contains y, or a non-empty suffix of x is a prefix of y.
+   * Examples:
+   *   "", "" -> false
+   *   "", "a" -> false
+   *   "abc", "" -> true
+   *   "abc", "aa" -> false
+   *   "abc", "cd" -> true
+   *   "abc", "b" -> true
+   *   "abc", "abcd" -> true
+   *   "abc", "aab" -> false
+   * 
+   * If rev=true, this method returns true if x is non-empty, and either
+   * x contains y, or a non-empty prefix of x is a suffix of y.
+   * Examples:
+   *   "", "" -> false
+   *   "", "a" -> false
+   *   "abc", "" -> true
+   *   "abc", "aa" -> true
+   *   "abc", "cd" -> false
+   *   "abc", "b" -> true
+   *   "abc", "abcd" -> false
+   *   "abc", "aab" -> true
    *
    * @param x The first string
    * @param y The second string
@@ -131,7 +149,7 @@ class Word
 
   /** overlap
    *
-   * if overlap returns m>0,
+   * when overlap returns m,
    * then the maximal suffix of this string that is a prefix of y is of length
    * m.
    *
@@ -145,7 +163,7 @@ class Word
 
   /** reverse overlap
    *
-   * if roverlap returns m>0,
+   * when roverlap returns m,
    * then the maximal prefix of this word that is a suffix of y is of length m.
    *
    * For example, if x is "abcdef", then:
