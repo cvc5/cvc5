@@ -425,7 +425,7 @@ bool Word::hasOverlap(TNode x, TNode y, bool rev)
 
 bool Word::hasBidirectionalOverlap(TNode x, TNode y)
 {
-  return hasOverlap(x,y,false) || hasOverlap(y,x,false);
+  return hasOverlap(x, y, false) || hasOverlap(y, x, false);
 }
 
 std::size_t Word::overlap(TNode x, TNode y)

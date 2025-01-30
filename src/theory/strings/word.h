@@ -113,10 +113,10 @@ class Word
    * substring/subsequence of one is a prefix of the other and/or vice-versa.
    * In particular, this method returns false if x is empty, and otherwise true
    * when:
-   * 
+   *
    * If rev=false, if x contains y, or a non-empty suffix of x is a prefix of y.
    * If rev=true, if x contains y, or a non-empty prefix of x is a suffix of y.
-   * 
+   *
    *
    * @param x The first string
    * @param y The second string
