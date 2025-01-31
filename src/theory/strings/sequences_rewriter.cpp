@@ -3458,7 +3458,6 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
 Node SequencesRewriter::rewriteReplaceReAll(Node node)
 {
   Assert(node.getKind() == Kind::STRING_REPLACE_RE_ALL);
-  NodeManager* nm = nodeManager();
   Node x = node[0];
   Node y = node[1];
   Node z = node[2];
