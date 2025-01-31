@@ -1,4 +1,3 @@
-; DISABLE-TESTER: cpc
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatypes ( (List 1) ) (

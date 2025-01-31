@@ -1,7 +1,5 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
-; cpc fails due to congruence on overloaded operator
 (set-logic ALL)
 (declare-const x Bool)
 (declare-sort S 0)
