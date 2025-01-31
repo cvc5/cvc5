@@ -292,6 +292,14 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+      return "str-overlap-split-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+      return "str-overlap-endpoints-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+      return "str-overlap-endpoints-indexof";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return "str-overlap-endpoints-replace";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
