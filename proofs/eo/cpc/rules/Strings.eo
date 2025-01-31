@@ -179,6 +179,7 @@
 ;   An equality involving the given child of t. In particular, we infer what
 ;   portion of the prefix (resp. suffix) it is entailed to be based on
 ;   reasoning about adjacent constants.
+; TODO: update usage of $str_overlap
 (declare-rule concat_cprop ((U Type) (t (Seq U)) (tc (Seq U)) (s (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
@@ -640,4 +641,82 @@
                 ($str_to_flat_form s false)
                 ($str_multiset_overapprox t) false) true))
   :conclusion (= (str.contains t s) false)
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+
+; rule: str-overlap-split-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a disjunction.
+; requires: >
+;   The middle component of the first argument to contains is non-empty and
+;   has no forward or reverse overlap with the second argument.
+; conclusion: The given equality.
+(declare-rule str-overlap-split-ctn ((T Type) (t (Seq T)) (s (Seq T)) (c (Seq T)) (d (Seq T)) (emp (Seq T) :list))
+  :args ((= (str.contains (str.++ t c s emp) d)
+            (or (str.contains t d) (str.contains s d))))
+  :requires ((($str_has_overlap c d false) false)
+             (($str_has_overlap d c false) false)
+             (($str_is_empty emp) true))
+  :conclusion (= (str.contains (str.++ t c s emp) d)
+                 (or (str.contains t d) (str.contains s d)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+
+; rule: str-overlap-endpoints-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a miniscoped version.
+; requires: >
+;   The contains predicate can be shown false by multiset reasoning
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-ctn ((T Type) (c1 (Seq T)) (s (Seq T)) (c2 (Seq T)) 
+                                         (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)) (emp (Seq T) :list))
+  :args ((= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+            (str.contains s (str.++ d1 t d2 emp))))
+  :requires ((($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false)
+             (($str_is_empty emp) true))
+  :conclusion (= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+                 (str.contains s (str.++ d1 t d2 emp)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+
+; rule: str-overlap-endpoints-indexof
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+; args:
+; - eq Bool: The equality between a indexof term and miniscoped one.
+; requires: >
+;   The contains predicate can be shown false by multiset reasoning
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-indexof ((T Type) (s (Seq T)) (c (Seq T)) (t (Seq T)) (d (Seq T)) (emp (Seq T) :list))
+  :args ((= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+            (str.indexof s (str.++ t d emp) 0)))
+  :requires ((($str_has_overlap c d true) false)
+             (($str_is_empty emp) true))
+  :conclusion (= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+                 (str.indexof s (str.++ t d emp) 0))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_REPLACE
+
+; rule: str-overlap-endpoints-replace
+; implements: ProofRewriteRule::STR_OVERLAP_REPLACE
+; args:
+; - eq Bool: The equality between a replace term and a miniscoped one.
+; requires: >
+;   The contains predicate can be shown false by multiset reasoning
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-replace ((T Type) (c1 (Seq T)) (s (Seq T)) (c2 (Seq T))
+                                             (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)) (emp (Seq T) :list) (r (Seq T)))
+  :args ((= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+            (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp)))
+  :requires ((($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false)
+             (($str_is_empty emp) true))
+  :conclusion (= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+                 (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp))
 )
