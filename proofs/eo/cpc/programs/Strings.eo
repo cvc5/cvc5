@@ -218,6 +218,7 @@
 ; args:
 ; - s String: The string to inspect.
 ; - r RegLan: The regular expression to inspect.
+; - rs RegLan: Equivalent to (re.++ r re.all), used for finding whether a prefix of s is contained in r.
 ; - n Int: The position of the original string we are searching.
 ; - lens Int: The length of s.
 ; return: >
