@@ -3038,10 +3038,9 @@ enum ENUM(ProofRewriteRule)
    *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
    *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_3, s)
    *
-   * :math:`t_2` is non-empty and has no forward overlap with
-   * :math:`s` and :math:`s` has no forward overlap with :math:`t_2`.
-   * For details see :math:`\texttt{Word::hasOverlap}` in
-   * :cvc5src:`theory/strings/word.h`.
+   * :math:`t_2` has no forward overlap with :math:`s` and :math:`s` has no
+   * forward overlap with :math:`t_2`. For details see
+   * :math:`\texttt{Word::hasOverlap}` in :cvc5src:`theory/strings/word.h`.
    * \endverbatim
    */
   EVALUE(STR_OVERLAP_SPLIT_CTN),
