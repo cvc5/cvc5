@@ -637,18 +637,6 @@
 (define-rule* re-inter-flatten ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs (re.inter b ys) zs) (re.inter xs b ys zs))
 (define-rule* re-inter-dup ((xs RegLan :list) (b RegLan) (ys RegLan :list) (zs RegLan :list)) (re.inter xs b ys b zs) (re.inter xs b ys zs))
 
-; used for macro expansion
-(define-cond-rule re-inter-const-elim ((r RegLan) (s String))
-  (str.in_re s r)
-  (re.inter (str.to_re s) r)
-  (str.to_re s))
-
-; used for macro expansion
-(define-cond-rule re-inter-const-conflict ((r RegLan) (s String))
-  (not (str.in_re s r))
-  (re.inter (str.to_re s) r)
-  re.none)
-
 (define-rule re-star-none () (re.* re.none) (str.to_re ""))
 
 (define-rule re-star-emp () (re.* (str.to_re "")) (str.to_re ""))
