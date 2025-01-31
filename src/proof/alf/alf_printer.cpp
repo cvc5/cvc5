@@ -292,6 +292,9 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
