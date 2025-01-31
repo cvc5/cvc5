@@ -212,6 +212,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
         options::ProofGranularityMode::DSL_REWRITE,
         "check-proof-steps");
   }
+  if (opts.driver.dumpProofs)
+  {
+    // should not combine this with proof logging
+    OPTION_EXCEPTION_IF_NOT(proof, proofLog, false, "dump proofs");
+  }
   // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
   // then proofs being fully enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
@@ -315,6 +320,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
             smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
+    if (opts.proof.proofLog)
+    {
+      SET_AND_NOTIFY(smt, produceProofs, true, "proof logging");
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        SET_AND_NOTIFY_VAL_SYM(
+            smt, proofMode, options::ProofMode::PP_ONLY, "proof logging");
+      }
+    }
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {
@@ -354,6 +369,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       SET_AND_NOTIFY_IF_NOT_USER(
           smt, proofMode, options::ProofMode::FULL_STRICT, "safe options");
+    }
+  }
+  if (opts.proof.proofLog)
+  {
+    // incompatible with sygus-inst
+    if (opts.quantifiers.sygusInst)
+    {
+      throw OptionException(std::string("Cannot log proofs with sygus-inst"));
     }
   }
 
@@ -1250,6 +1273,13 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "compute partitions";
     return true;
   }
+  // proof logging not yet supported in incremental mode, which requires
+  // managing how new assertions are printed.
+  if (opts.proof.proofLog)
+  {
+    reason << "proof logging";
+    return true;
+  }
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
@@ -1890,6 +1920,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.write_smt().debugCheckModels = false;
   opts.write_smt().checkModels = false;
   opts.write_proof().checkProofSteps = false;
+  opts.write_proof().proofLog = false;
 }
 
 }  // namespace smt

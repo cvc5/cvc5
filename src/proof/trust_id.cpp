@@ -27,6 +27,7 @@ const char* toString(TrustId id)
   switch (id)
   {
     case TrustId::NONE: return "NONE";
+    case TrustId::PREPROCESSED_INPUT: return "PREPROCESSED_INPUT";
     // core
     case TrustId::THEORY_LEMMA: return "THEORY_LEMMA";
     case TrustId::THEORY_INFERENCE_ARITH: return "THEORY_INFERENCE_ARITH";

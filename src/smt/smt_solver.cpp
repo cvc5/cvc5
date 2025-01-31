@@ -83,6 +83,16 @@ void SmtSolver::finishInit()
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
   finishInitPreprocessor();
+
+  if (options().proof.proofLog)
+  {
+    smt::PfManager* pm = d_env.getProofManager();
+    if (pm != nullptr)
+    {
+      // Logs proofs on the base output stream of the solver
+      pm->startProofLogging(options().base.out, d_asserts);
+    }
+  }
 }
 
 void SmtSolver::resetAssertions()

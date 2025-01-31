@@ -166,7 +166,8 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 
 void PfManager::startProofLogging(std::ostream& out, Assertions& as)
 {
-  Unimplemented() << "Not yet implemented" << std::endl;
+  // by default, CPC proof logger
+  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as, d_pfpp.get()));
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
