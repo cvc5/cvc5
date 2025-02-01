@@ -1314,7 +1314,7 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
     return false;
   }
   Node kn = ProofRuleChecker::mkKindNode(nodeManager(), eq[0].getKind());
-  if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {kn}))
+  if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {eq}))
   {
     Trace("brc-macro") << "...fail application" << std::endl;
     return false;
