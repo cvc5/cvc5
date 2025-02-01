@@ -1241,6 +1241,13 @@ Node QuantifiersRewriter::getVarElimEqString(Node lit,
                                              Node& var) const
 {
   Assert(lit.getKind() == Kind::EQUAL);
+  // The reasoning below involves equality entailment as
+  // (= (str.++ s x t) r) entails (= x (str.substr r (str.len s) _)),
+  // but these equalities are not equivalent.
+  if (!d_opts.quantifiers.varEntEqElimQuant)
+  {
+    return Node::null();
+  }
   NodeManager* nm = nodeManager();
   for (unsigned i = 0; i < 2; i++)
   {
