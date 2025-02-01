@@ -1,4 +1,4 @@
-(include "../programs/Utils.eo")
+(include "../theories/Arith.eo")
 
 ; =============================================
 ;  Right-associative null-terminated operators
