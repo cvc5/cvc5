@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -152,6 +152,8 @@ class CVC5_EXPORT NodeValue
   Kind getKind() const { return dKindToKind(d_kind); }
 
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
+
+  NodeManager* getNodeManager() const { return d_nm; }
 
   uint32_t getNumChildren() const
   {
@@ -357,6 +359,9 @@ class CVC5_EXPORT NodeValue
 
   /** Number of children */
   uint32_t d_nchildren : NBITS_NCHILDREN;
+
+  /** Associated node manager. */
+  NodeManager* d_nm = nullptr;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];

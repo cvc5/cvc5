@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Tim King
+ *   Morgan Deters, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -366,6 +366,33 @@ std::string LogicInfo::getLogicString() const {
   return d_logicString;
 }
 
+void throwTwoArithmeticTheoriesError(const char* th1, const char* th2)
+{
+  stringstream err;
+  err << "a logic name can only contain one arithmetic theory but found two: "
+      << th1 << " and " << th2;
+  throw cvc5::internal::Exception(err.str().c_str());
+}
+
+void checkMultipleArithmeticTheories(const char* prevTheory,
+                                     const char* currentTheory)
+{
+  if (*prevTheory != '\0')
+  {
+    throwTwoArithmeticTheoriesError(prevTheory, currentTheory);
+  }
+}
+
+void LogicInfo::checkDuplicateTheory(TheoryId theory, const char* id)
+{
+  if (d_theories[theory])
+  {
+    stringstream err;
+    err << "duplicate theory: " << id;
+    throw cvc5::internal::Exception(err.str().c_str());
+  }
+}
+
 void LogicInfo::setLogicString(std::string logicString)
 {
   PrettyCheckArgument(!d_locked, *this,
@@ -433,105 +460,168 @@ void LogicInfo::setLogicString(std::string logicString)
       enableTheory(THEORY_ARRAYS);
       p += 2;
     } else {
-      if(*p == 'A') {
-        enableTheory(THEORY_ARRAYS);
-        ++p;
-      }
-      if(!strncmp(p, "UF", 2)) {
-        enableTheory(THEORY_UF);
-        p += 2;
-      }
-      if(!strncmp(p, "C", 1 )) {
-        d_cardinalityConstraints = true;
-        p += 1;
-      }
-      // allow BV or DT in either order
-      if(!strncmp(p, "BV", 2)) {
-        enableTheory(THEORY_BV);
-        p += 2;
-      }
-      if (!strncmp(p, "FF", 2))
+      // arithmeticTheory points to "\0" if no arithmetic theory has been read
+      // yet; otherwise it points to the arithmetic theory that has already been
+      // read.
+      const char* arithmeticTheory = "\0";
+      // whether an unrecognized theory has been read
+      bool unrecognizedTheory = false;
+      while (!unrecognizedTheory && (*p != '\0'))
       {
-        enableTheory(THEORY_FF);
-        p += 2;
-      }
-      if(!strncmp(p, "FP", 2)) {
-        enableTheory(THEORY_FP);
-        p += 2;
-      }
-      if(!strncmp(p, "DT", 2)) {
-        enableTheory(THEORY_DATATYPES);
-        p += 2;
-      }
-      if(!d_theories[THEORY_BV] && !strncmp(p, "BV", 2)) {
-        enableTheory(THEORY_BV);
-        p += 2;
-      }
-      if(*p == 'S') {
-        enableTheory(THEORY_STRINGS);
-        ++p;
-      }
-      if(!strncmp(p, "IDL", 3)) {
-        enableIntegers();
-        disableReals();
-        arithOnlyDifference();
-        p += 3;
-      } else if(!strncmp(p, "RDL", 3)) {
-        disableIntegers();
-        enableReals();
-        arithOnlyDifference();
-        p += 3;
-      } else if(!strncmp(p, "IRDL", 4)) {
-        // "IRDL" ?! --not very useful, but getLogicString() can produce
-        // that string, so we really had better be able to read it back in.
-        enableIntegers();
-        enableReals();
-        arithOnlyDifference();
-        p += 4;
-      } else if(!strncmp(p, "LIA", 3)) {
-        enableIntegers();
-        disableReals();
-        arithOnlyLinear();
-        p += 3;
-      } else if(!strncmp(p, "LRA", 3)) {
-        disableIntegers();
-        enableReals();
-        arithOnlyLinear();
-        p += 3;
-      } else if(!strncmp(p, "LIRA", 4)) {
-        enableIntegers();
-        enableReals();
-        arithOnlyLinear();
-        p += 4;
-      } else if(!strncmp(p, "NIA", 3)) {
-        enableIntegers();
-        disableReals();
-        arithNonLinear();
-        p += 3;
-      } else if(!strncmp(p, "NRA", 3)) {
-        disableIntegers();
-        enableReals();
-        arithNonLinear();
-        p += 3;
-        if (*p == 'T')
+        if (*p == 'A')
         {
-          arithTranscendentals();
+          checkDuplicateTheory(THEORY_ARRAYS, "A");
+          enableTheory(THEORY_ARRAYS);
+          ++p;
+        }
+        else if (!strncmp(p, "UF", 2))
+        {
+          checkDuplicateTheory(THEORY_UF, "UF");
+          enableTheory(THEORY_UF);
+          p += 2;
+        }
+        else if (!strncmp(p, "C", 1))
+        {
+          if (d_cardinalityConstraints)
+          {
+            throw cvc5::internal::Exception("duplicate theory: C");
+          }
+          enableCardinalityConstraints();
           p += 1;
         }
-      } else if(!strncmp(p, "NIRA", 4)) {
-        enableIntegers();
-        enableReals();
-        arithNonLinear();
-        p += 4;
-        if (*p == 'T')
+        else if (!strncmp(p, "BV", 2))
         {
-          arithTranscendentals();
-          p += 1;
+          checkDuplicateTheory(THEORY_BV, "BV");
+          enableTheory(THEORY_BV);
+          p += 2;
         }
-      }
-      if(!strncmp(p, "FS", 2)) {
-        enableTheory(THEORY_SETS);
-        p += 2;
+        else if (!strncmp(p, "FF", 2))
+        {
+          checkDuplicateTheory(THEORY_FF, "FF");
+          enableTheory(THEORY_FF);
+          p += 2;
+        }
+        else if (!strncmp(p, "FP", 2))
+        {
+          checkDuplicateTheory(THEORY_FP, "FP");
+          enableTheory(THEORY_FP);
+          p += 2;
+        }
+        else if (!strncmp(p, "DT", 2))
+        {
+          checkDuplicateTheory(THEORY_DATATYPES, "DT");
+          enableTheory(THEORY_DATATYPES);
+          p += 2;
+        }
+        else if (*p == 'S')
+        {
+          checkDuplicateTheory(THEORY_STRINGS, "S");
+          enableTheory(THEORY_STRINGS);
+          ++p;
+        }
+        else if (!strncmp(p, "IDL", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "IDL");
+          enableIntegers();
+          disableReals();
+          arithOnlyDifference();
+          p += 3;
+          arithmeticTheory = "IDL";
+        }
+        else if (!strncmp(p, "RDL", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "RDL");
+          disableIntegers();
+          enableReals();
+          arithOnlyDifference();
+          arithmeticTheory = "RDL";
+          p += 3;
+        }
+        else if (!strncmp(p, "IRDL", 4))
+        {
+          // "IRDL" ?! --not very useful, but getLogicString() can produce
+          // that string, so we really had better be able to read it back in.
+          checkMultipleArithmeticTheories(arithmeticTheory, "IRDL");
+          enableIntegers();
+          enableReals();
+          arithOnlyDifference();
+          arithmeticTheory = "IRDL";
+          p += 4;
+        }
+        else if (!strncmp(p, "LIA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LIA");
+          enableIntegers();
+          disableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LIA";
+          p += 3;
+        }
+        else if (!strncmp(p, "LRA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LRA");
+          disableIntegers();
+          enableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LRA";
+          p += 3;
+        }
+        else if (!strncmp(p, "LIRA", 4))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LIRA");
+          enableIntegers();
+          enableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LIRA";
+          p += 4;
+        }
+        else if (!strncmp(p, "NIA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NIA");
+          enableIntegers();
+          disableReals();
+          arithNonLinear();
+          arithmeticTheory = "NIA";
+          p += 3;
+        }
+        else if (!strncmp(p, "NRA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NRA");
+          disableIntegers();
+          enableReals();
+          arithNonLinear();
+          arithmeticTheory = "NRA";
+          p += 3;
+          if (*p == 'T')
+          {
+            arithTranscendentals();
+            p += 1;
+          }
+        }
+        else if (!strncmp(p, "NIRA", 4))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NIRA");
+          enableIntegers();
+          enableReals();
+          arithNonLinear();
+          arithmeticTheory = "NIRA";
+          p += 4;
+          if (*p == 'T')
+          {
+            arithTranscendentals();
+            p += 1;
+          }
+        }
+        else if (!strncmp(p, "FS", 2))
+        {
+          checkDuplicateTheory(THEORY_SETS, "FS");
+          enableTheory(THEORY_SETS);
+          p += 2;
+        }
+        else
+        {
+          unrecognizedTheory = true;
+        }
       }
     }
   }

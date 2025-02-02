@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -225,7 +225,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
-        NodeBuilder nb(cur.getKind());
+        NodeBuilder nb(nodeManager(), cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           if (cur.getKind() == Kind::APPLY_UF)

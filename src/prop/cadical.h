@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -69,10 +69,7 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 
   /* CDCLTSatSolver interface --------------------------------------------- */
 
-  void initialize(context::Context* context,
-                  prop::TheoryProxy* theoryProxy,
-                  context::UserContext* userContext,
-                  PropPfManager* ppm) override;
+  void initialize(prop::TheoryProxy* theoryProxy, PropPfManager* ppm) override;
   void push() override;
 
   void pop() override;
@@ -92,9 +89,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   /** Get proof, unimplemented by this solver. */
   std::shared_ptr<ProofNode> getProof() override;
 
-  /** Get proof sketch. */
-  std::pair<ProofRule, std::vector<Node>> getProofSketch() override;
-
  private:
   /**
    * Constructor.
@@ -103,12 +97,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * @param env       The associated environment.
    * @param registry  The associated statistics registry.
    * @param name      The name of the SAT solver.
-   * @param logProofs Whether to log proofs
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
-                const std::string& name = "",
-                bool logProofs = false);
+                const std::string& name = "");
 
   /**
    * Initialize SAT solver instance.
@@ -145,8 +137,6 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
-  /** Whether we are logging proofs */
-  bool d_logProofs;
   /** The proof file */
   std::string d_pfFile;
   /**

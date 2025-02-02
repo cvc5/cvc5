@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Dejan Jovanovic
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -113,6 +113,11 @@ class SubstitutionMap
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions() const;
+  /**
+   * Return a formula that is equivalent to this substitution, e.g. for
+   * [x -> t, y -> s], we return (and (= x t) (= y s)).
+   */
+  Node toFormula(NodeManager* nm) const;
   /**
    * Adds a substitution from x to t.
    */

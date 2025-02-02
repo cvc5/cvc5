@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,9 @@
 #include "theory/inference_id.h"
 
 namespace cvc5::internal {
+
+class ProofLogger;
+
 namespace prop {
 
 class CDCLTSatSolver;
@@ -58,6 +61,11 @@ class PropPfManager : protected EnvObj
                 CDCLTSatSolver* satSolver,
                 CnfStream& cnfProof,
                 const context::CDList<Node>& assumptions);
+
+  /** Presolve, which initializes proof logging */
+  void presolve();
+  /** Postsolve, which finalizes proof logging */
+  void postsolve(SatValue result);
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
@@ -189,65 +197,11 @@ class PropPfManager : protected EnvObj
   std::vector<Node> getLemmaClauses();
   /**
    * Return theory lemmas used for showing unsat. If the SAT solver has a proof,
-   * we examine its leaves. Otherwise, we recompute the unsat core lemmas
-   * using the method reproveUnsatCore.
+   * we examine its leaves. Otherwise, we throw an exception.
    *
-   * @param outDimacs If provided, we write the DIMACS output of uc to this
-   * stream
    * @return the unsat core of lemmas.
    */
-  std::vector<Node> getUnsatCoreClauses(std::ostream* outDimacs = nullptr);
-  /**
-   * Get minimized assumptions. Returns a vector of nodes which is a
-   * subset of the assumptions (d_assumptions) that appear in the unsat
-   * core. This should be called only when the unsat core is available (after
-   * an unsatisfiable check-sat).
-   */
-  std::vector<Node> getMinimizedAssumptions();
-  /**
-   * Calculate a subset of cset that is propositionally unsatisfiable.
-   * If sucessful, return true and store this in uc.
-   *
-   * @param cset The set of formulas to compute an unsat core for
-   * @param uc The set of formulas returned as the unsat core
-   * @param outDimacs If provided, we write a DIMACS representation of uc to
-   * this stream
-   */
-  bool reproveUnsatCore(const std::unordered_set<Node>& cset,
-                        std::vector<Node>& uc,
-                        std::ostream* outDimacs = nullptr);
-  /**
-   * Add a proof of false to cdp whose free assumptions are a subset of the
-   * clauses (after CNF conversion), which is a union of:
-   * (1) assumptions (d_assumptions),
-   * (2) input clauses (d_inputClauses),
-   * (3) lemma clauses (d_lemmaClauses).
-   * The choice of what to add to cdp is dependent on the prop-proof-mode.
-   *
-   * @param cdp The proof object to add the refutation proof to.
-   */
-  void getProofInternal(CDProof* cdp);
-  /**
-   * Get auxilary units. Computes top-level formulas in clauses that
-   * also occur as literals which we call "auxiliary units". In particular,
-   * consider the set of propositionally unsatisfiable clauses:
-   *
-   * (or ~(or A B) ~C)
-   * (or A B)
-   * C
-   *
-   * Here, we return (or A B) as an auxilary unit clause.
-   *
-   * Note that in the above example, it is ambiguous whether to interpret the
-   * second clause (or A B) as a unit clause or as a clause with literals
-   * A and B. To ensure that we generate an unsatisfiable DIMACS, we include
-   * both in a proof output. In particular, Any OR-term that occurs as a literal
-   * of another clause is included in the return vector.
-   *
-   * @param clauses The clauses
-   * @return the auxiliary units for the set of clauses.
-   */
-  std::vector<Node> computeAuxiliaryUnits(const std::vector<Node>& clauses);
+  std::vector<Node> getUnsatCoreClauses();
   /** The proofs of this proof manager, which are saved once requested (note the
    * cache is for both the request of the full proof (true) or not (false)).
    *
@@ -261,6 +215,8 @@ class PropPfManager : protected EnvObj
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /** Proof-producing CNF converter */
   ProofCnfStream d_pfCnfStream;
+  /** Pointer to the proof logger of the environment */
+  ProofLogger* d_plog;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */

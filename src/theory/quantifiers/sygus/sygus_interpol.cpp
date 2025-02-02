@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,9 +81,9 @@ void SygusInterpol::createVariables(bool needsShared)
     // Notice that we allow for non-first class (e.g. function) variables here.
     std::stringstream ss;
     ss << s;
-    Node var = nm->mkBoundVar(tn);
+    Node var = NodeManager::mkBoundVar(tn);
     d_vars.push_back(var);
-    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    Node vlv = NodeManager::mkBoundVar(ss.str(), tn);
     // set that this variable encodes the term s
     SygusVarToTermAttribute sta;
     vlv.setAttribute(sta, s);
@@ -232,7 +232,7 @@ Node SygusInterpol::mkPredicate(const std::string& name)
   TypeNode itpType = d_varTypesShared.empty()
                          ? nm->booleanType()
                          : nm->mkPredicateType(d_varTypesShared);
-  Node itp = nm->mkBoundVar(name.c_str(), itpType);
+  Node itp = NodeManager::mkBoundVar(name.c_str(), itpType);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
   return itp;
 }
@@ -374,7 +374,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
   Trace("sygus-interpol")
       << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
-      << ", solving for " << d_sygusConj[0][0] << std::endl;
+      << std::endl;
   d_subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol")

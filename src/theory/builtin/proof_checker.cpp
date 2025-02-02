@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "expr/nary_term_util.h"
+#include "expr/aci_norm.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -420,9 +420,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv(nodeManager());
-    // run a single (small) step conversion
-    Node ac = rconv.postConvert(args[0]);
+    Node ac = getEncodeEqIntro(nodeManager(), args[0]);
     return args[0].eqNode(ac);
   }
   else if (id == ProofRule::DSL_REWRITE)
@@ -481,6 +479,13 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   return Node::null();
 }
 
+Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager* nm, const Node& n)
+{
+  rewriter::RewriteDbNodeConverter rconv(nm);
+  // run a single (small) step conversion
+  return rconv.postConvert(n);
+}
+
 bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 {
   uint32_t i;
@@ -492,10 +497,9 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
   return true;
 }
 
-Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
+Node BuiltinProofRuleChecker::mkTheoryIdNode(NodeManager* nm, TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(tid)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(tid)));
 }
 
 }  // namespace builtin

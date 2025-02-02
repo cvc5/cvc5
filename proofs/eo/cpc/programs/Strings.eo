@@ -1,9 +1,9 @@
-
-(include "../theories/Builtin.eo")
-(include "../programs/Nary.eo")
-
 (include "../theories/Arith.eo")
+(include "../theories/Builtin.eo")
 (include "../theories/Strings.eo")
+(include "../programs/Nary.eo")
+(include "../programs/PolyNorm.eo")
+
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -16,7 +16,7 @@
 (program $str_is_empty ((U Type) (x U))
   (U) Bool
   (
-    (($str_is_empty (seq.empty U)) true)
+    (($str_is_empty (@seq.empty U)) true)
     (($str_is_empty "") true)
     (($str_is_empty x) false)
   )
@@ -37,6 +37,23 @@
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
   (eo::list_concat str.++ x y)
+)
+
+; define: $str_mk_nth
+; args:
+; - x (Seq T): The string-like term
+; - n Int: The index
+; return: >
+;   A term corresponding to extracting the n^th position of x, which as a
+;   special case is a string of length one if x is a string. This is used
+;   by ProofRule::STRING_EXT.
+(define $str_mk_nth ((T Type :implicit) (x (Seq T)) (n Int))
+  (eo::match ((U Type))
+  (eo::typeof x)
+  (
+    (String   (str.substr x n 1))
+    ((Seq U)  (seq.nth x n))
+  ))
 )
 
 ; define: $str_cons
@@ -405,15 +422,75 @@
 ; return: the reduction predicate for term t of sort s.
 ; note: >
 ;   The operators listed in comments are missing from the signature currently.
-(program $str_reduction_pred ((U Type) (x (Seq U)) (y (Seq U)) (n Int) (m Int))
-  ((Seq U)) Bool
+(program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int) (s String))
+  (T) Bool
   (
     (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
     (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    (($str_reduction_pred (str.replace x y z)) 
+        (eo::define ((k (@purify (str.replace x y z))))
+        (ite (= y ($mk_emptystr (eo::typeof y)))
+          (= k (str.++ z x))
+          (ite (str.contains x y)
+            (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
+            (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
+            (and
+              (= x (str.++ k1 y k2))
+              (= k (str.++ k1 z k2))
+              (not (str.contains (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y)))))
+            (= k x)))))
+    (($str_reduction_pred (str.from_int n))
+        (eo::define ((k (@purify (str.from_int n))))
+        (eo::define ((R (@strings_itos_result n)))
+        (ite (>= n 0)
+          (and (>= (str.len k) 1)
+               (= n (R (str.len k)))
+               (= 0 (R 0))
+               (forall ((@var.str_index Int))
+                  (eo::define ((cd (- (str.to_code (str.substr k @var.str_index 1)) 48)))
+                  (eo::define ((ux1 (R (+ @var.str_index 1))))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index (str.len k)))
+                    (and
+                      (= ux1 (+ cd (* 10 (R @var.str_index))))
+                      (and (>= cd (ite (and (= @var.str_index 0) (> (str.len k) 1)) 1 0))
+                           (< cd 10))
+                      (>= n ux1)))))))
+          (= k "")))))
+    (($str_reduction_pred (str.to_int s))
+        (eo::define ((k (@purify (str.to_int s))))
+        (eo::define ((xlen (str.len s)))
+        (eo::define ((R (@strings_stoi_result s)))
+        (eo::define ((ndi (@strings_stoi_non_digit s)))
+        (ite (< k 0)
+          (eo::define ((ndc (- (str.to_code (str.substr s ndi 1)) 48)))
+          (and (= k -1) 
+               (or (= s "") (and (>= ndi 0) (< ndi xlen) (or (< ndc 0) (>= ndc 10))))))
+          (and (= k (R xlen))
+               (= 0 (R 0))
+               (> (str.len s) 0)
+               (forall ((@var.str_index Int))
+                  (eo::define ((cd (- (str.to_code (str.substr s @var.str_index 1)) 48)))
+                  (eo::define ((ux1 (R (+ @var.str_index 1))))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index (str.len s)))
+                    (and
+                      (= ux1 (+ cd (* 10 (R @var.str_index))))
+                      (and (>= cd 0) (< cd 10))
+                      (>= k ux1)))))))))))))
+    (($str_reduction_pred (seq.nth x n))
+        (eo::define ((k (@purify (seq.nth x n))))
+        (eo::define ((k1 (@purify ($str_prefix x n))))
+        (eo::define ((k2 (@purify ($str_suffix_rem x (+ n 1)))))
+          (=> (and (>= n 0) (> (str.len x) n))
+              (and (= x (str.++ k1 (seq.unit k) k2))
+                   (= (str.len k1) n)
+                   (= (str.len k2) (- (str.len x) (+ n 1)))))))))
+
     ; str.update
-    ; str.from_int
     ; str.to_int
-    ; seq.nth
     ; str.replaceall
     ; str.replace_re
     ; str.replace_re_all
@@ -424,62 +501,6 @@
   )
 )
 
-; program: $str_eager_reduction_contains
-; args:
-; - s (Seq U): The first argument of str.contains.
-; - t (Seq U): The second argument of str.contains.
-; return: the eager reduction predicate for (str.contains s t).
-(program $str_eager_reduction_contains ((U Type) (t (Seq U)) (r (Seq U)))
-  ((Seq U) (Seq U)) Bool
-  (
-    (($str_eager_reduction_contains t r)
-        (eo::define ((k1 (@purify ($str_first_ctn_pre t r))))
-        (eo::define ((k2 (@purify ($str_first_ctn_post t r))))
-        (ite
-          (str.contains t r)
-          (= t (str.++ k1 r k2))
-          (not (= t r)))
-        )))
-  )
-)
-
-; define: $str_eager_reduction_to_code
-; args:
-; - s (Seq U): The argument of str.to_code.
-; return: the eager reduction predicate for (str.to_code s)
-(define $str_eager_reduction_to_code ((s String))
-  (eo::define ((t (str.to_code s)))
-  (ite
-    (= (str.len s) 1)
-    (and (>= t 0) (< t 196608))
-    (= t (eo::neg 1))))
-)
-
-; program: $str_eager_reduction_indexof
-; args:
-; - x (Seq U): The first argument to str.indexof.
-; - y (Seq U): The second argument to str.indexof.
-; - n Int: The third argument to str.indexof.
-; return: the eager reduction predicate for (str.indexof x y n).
-(program $str_eager_reduction_indexof ((U Type) (x U) (y U) (n Int))
-  (U U Int) Bool
-  (
-    (($str_eager_reduction_indexof x y n)
-        (eo::define ((t (str.indexof x y n)))
-        (and (or (= t (eo::neg 1)) (>= t n))
-             (<= t (str.len x)))))
-  )
-)
-
-; define: $str_eager_reduction_in_re
-; args:
-; - x (Seq U): The first argument to str.in_re.
-; - r RegLan: The second argument to str.in_re.
-; return: the eager reduction predicate for (str.in_re x r).
-(define $str_eager_reduction_in_re ((U Type :implicit) (x (Seq U)) (r RegLan))
-  (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r)))
-)
-
 ; program: $mk_str_eager_reduction
 ; args:
 ; - t U: The term to process.
@@ -487,10 +508,38 @@
 (program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
   (U) Bool
   (
-    (($mk_str_eager_reduction (str.to_code x)) ($str_eager_reduction_to_code x))
-    (($mk_str_eager_reduction (str.contains x y)) ($str_eager_reduction_contains x y))
-    (($mk_str_eager_reduction (str.indexof x y n)) ($str_eager_reduction_indexof x y n))
-    (($mk_str_eager_reduction (str.in_re x r)) ($str_eager_reduction_in_re x r))
+    (($mk_str_eager_reduction (str.from_code n))
+      (eo::define ((k (@purify (str.from_code n))))
+      (ite
+        (and (<= 0 n) (< n 196608))
+        (= n (str.to_code k))
+        (= k ""))))
+    (($mk_str_eager_reduction (str.to_code x))
+        (eo::define ((t (str.to_code x)))
+        (ite
+          (= (str.len x) 1)
+          (and (>= t 0) (< t 196608))
+          (= t (eo::neg 1)))))
+    (($mk_str_eager_reduction (str.to_int x))
+        (>= (str.to_int x) -1))
+    (($mk_str_eager_reduction (str.contains x y))
+        (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
+        (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
+        (ite
+          (str.contains x y)
+          (= x (str.++ k1 y k2))
+          (not (= x y)))
+        )))
+    (($mk_str_eager_reduction (str.indexof x y n))
+        (eo::define ((t (str.indexof x y n)))
+        (and (or (= t (eo::neg 1)) (>= t n))
+          (<= t (str.len x)))))
+    (($mk_str_eager_reduction (str.indexof_re x r n))
+        (eo::define ((t (str.indexof_re x r n)))
+        (and (or (= t (eo::neg 1)) (>= t n))
+          (<= t (str.len x)))))
+    (($mk_str_eager_reduction (str.in_re x r))
+        (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
   )
 )
 
@@ -1447,10 +1496,11 @@
   )
 )
 
-; define: $str_re_consume
+; define: $str_re_consume_process
 ; args:
 ; - s String: The string argument of the membership to rewrite.
 ; - r RegLan: The regular expression argument of the membership to rewrite.
+; - oneDir Bool: If true, we only strip from a single end.
 ; returns: >
 ;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
 ;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
@@ -1458,22 +1508,196 @@
 ;   reversing them initially and converting them to flat forms. We then reverse
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
-(define $str_re_consume ((s String) (r RegLan))
+(define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
   (eo::define ((ss ($str_to_flat_form s true)))  
   (eo::define ((rr ($re_to_flat_form r true)))
   (eo::match ((s1 String) (r1 RegLan))
       ($str_re_consume_rec ss rr @result.null true)
       (
         (false              false)
-        ((str.in_re s1 r1)  (eo::define ((s1r ($str_rev true s1)) (r1r ($re_to_flat_form r1 true)))
+        ((str.in_re s1 r1)  ; we revert if oneDir is true and we didn't fully consume
+                            (eo::define ((revert (eo::and oneDir (eo::not (eo::is_eq r1 @re.empty)))))
+                            (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
+                                         (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
                             (eo::match ((s2 String) (r2 RegLan))
                               ($str_re_consume_rec s1r r1r @result.null false)
                               (
                                 (false              false)
                                 ((str.in_re s2 r2)  (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))
                               )
-                            ))
+                            )))
         )
       )
   )))
 )
+
+; define: $str_re_consume
+; args:
+; - s String: The string argument of the membership to rewrite.
+; - r RegLan: The regular expression argument of the membership to rewrite.
+; returns: >
+;   false if `(str.in_re s r)` can be shown to be equivalent to false, or
+;   otherwise `(str.in_re sr rr)` where sr and rr are the result of "consuming"
+;   prefixes/suffixes from s and r. In addition to the above method
+;   $str_re_consume_process, we additionally handle the case where we reason
+;   about the body of re.*, succeeding if a conflict is found or we full
+;   consume one copy.
+(program $str_re_consume ((s String) (r RegLan))
+  (String RegLan) Bool
+  (
+  (($str_re_consume s (re.* r))
+    (eo::match ((s1 String))
+        ($str_re_consume_process s r true)  ; only process in a single direction
+        (
+          (false                    false)  ; conflict
+          ((str.in_re s1 @re.empty) (str.in_re s1 (re.* r))) ; one full copy
+        )
+    ))
+  (($str_re_consume s r) ($str_re_consume_process s r false))
+  )
+)
+
+; program: $str_from_int_eval_rec
+; args:
+; - n Int: The integer to process, expected to be non-negative.
+; - s String: The accumulated return value.
+; returns: >
+;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
+(program $str_from_int_eval_rec ((s String) (n Int))
+  (Int String) Bool
+  (
+  (($str_from_int_eval_rec n s) (eo::ite (eo::is_eq n 0)
+                                  (eo::ite (eo::is_eq s "") "0" s)
+                                  ($str_from_int_eval_rec
+                                    (eo::zdiv n 10)
+                                    (eo::concat (eo::to_str (eo::add 48 (eo::zmod n 10))) s))))
+  )
+)
+
+; define: $str_from_int_eval
+; args:
+; - n Int: The integer to process.
+; returns: >
+;   The result of evaluating `(str.from_int n)` if `n` is an integer literal,
+;   or the term `(str.from_int n)` otherwise.
+(define $str_from_int_eval ((n Int))
+  (eo::ite (eo::is_z n)
+    (eo::ite (eo::is_neg n)
+      ""
+      ($str_from_int_eval_rec n ""))
+    (str.from_int n)))
+
+; program: $str_to_int_eval_rec
+; args:
+; - s String: The string to process, expected to be in reversed flat form.
+; - e Int: The exponent.
+; - n Int: The accumulated return value.
+; returns: >
+;   The result of evaluating `(str.to_int s)` given the current exponent and
+;   accumulated return value.
+(program $str_to_int_eval_rec ((s1 String) (s2 String :list) (e Int) (n Int))
+  (String Int Int) Bool
+  (
+  (($str_to_int_eval_rec (str.++ s1 s2) e n)  (eo::define ((c (eo::add (eo::to_z s1) -48)))
+                                              (eo::ite (eo::and (eo::gt 10 c) (eo::not (eo::is_neg c)))
+                                                ($str_to_int_eval_rec s2 (eo::mul e 10) (eo::add (eo::mul c e) n))
+                                                -1)))
+  (($str_to_int_eval_rec "" e n)              n)
+  )
+)
+
+; define: $str_to_int_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_int s)` if `s` is a string literal,
+;   or the term `(str.to_int s)` otherwise.
+(define $str_to_int_eval ((s String))
+  (eo::ite (eo::is_str s)
+    (eo::ite (eo::is_eq s "")
+      -1
+      ; consider characters in reverse order
+      ($str_to_int_eval_rec ($str_to_flat_form s true) 1 0))
+    (str.to_int s)))
+
+; program: $str_case_conv_rec
+; args:
+; - s String: The string to process, expected to be in flat form.
+; - isLower Bool: Whether we computing `str.to_lower` (resp. `str.to_upper`).
+; returns: >
+;   The result of evaluating `(str.to_lower s)` (resp. `(str.to_upper s)`).
+(program $str_case_conv_rec ((s1 String) (s2 String :list) (isLower Bool))
+  (String Bool) String
+  (
+  (($str_case_conv_rec (str.++ s1 s2) true)  (eo::define ((c (eo::to_z s1)))
+                                              (eo::concat
+                                                (eo::to_str (eo::add c (eo::ite (eo::and (eo::gt 91 c) (eo::gt c 64)) 32 0)))
+                                                ($str_case_conv_rec s2 true))))
+  (($str_case_conv_rec (str.++ s1 s2) false)   (eo::define ((c (eo::to_z s1)))
+                                              (eo::concat
+                                                (eo::to_str (eo::add c (eo::ite (eo::and (eo::gt 123 c) (eo::gt c 96)) -32 0)))
+                                                ($str_case_conv_rec s2 false))))
+  (($str_case_conv_rec "" isLower)              "")
+  )
+)
+
+; define: $str_to_lower_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_lower s)` if `s` is a string literal,
+;   or the term `(str.to_lower s)` otherwise.
+(define $str_to_lower_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_case_conv_rec ($str_to_flat_form s false) true)
+    (str.to_lower s)))
+
+; define: $str_to_upper_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.to_upper s)` if `s` is a string literal,
+;   or the term `(str.to_upper s)` otherwise.
+(define $str_to_upper_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_case_conv_rec ($str_to_flat_form s false) false)
+    (str.to_upper s)))
+
+; define: $str_rev_eval
+; args:
+; - s String: The string to process.
+; returns: >
+;   The result of evaluating `(str.rev s)` if `s` is a string literal,
+;   or the term `(str.rev s)` otherwise.
+(define $str_rev_eval ((s String))
+  (eo::ite (eo::is_str s)
+    ($str_from_flat_form ($str_to_flat_form s true) false) ; make reverse flat form and then convert back
+    (str.rev s)))
+
+; program: $str_leq_eval_rec
+; args:
+; - s String: The first string to compare, expected to be a literal in flat form.
+; - t String: The second string to compare, expected to be a literal in flat form.
+; returns: The result of evaluating `(str.<= s t)`.
+(program $str_leq_eval_rec ((s1 String) (s2 String :list) (t1 String) (t2 String :list) )
+  (String String) Bool
+  (
+  (($str_leq_eval_rec (str.++ s1 s2) (str.++ t1 t2))  (eo::ite (eo::is_eq s1 t1)
+                                                        ($str_leq_eval_rec s2 t2)
+                                                        (eo::gt (eo::to_z t1) (eo::to_z s1))))
+  (($str_leq_eval_rec "" t1)                          true)
+  (($str_leq_eval_rec s1 t1)                          false)
+  )
+)
+
+; define: $str_leq_eval
+; args:
+; - s String: The first string to compare.
+; - t String: The second string to compare.
+; returns: >
+;   The result of evaluating `(str.<= s t)` if `s` and `t` are string literals,
+;   or the term `(str.<= s t)` otherwise.
+(define $str_leq_eval ((s String) (t String))
+  (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
+    ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
+    (str.<= s t)))

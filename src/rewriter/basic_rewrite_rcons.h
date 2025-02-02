@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,6 +142,15 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_DT_CONS_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO_DT_CONS_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL.
    *
    * This takes an equality of the form (r t1 t2) = c, where r is an arithmetic
@@ -170,6 +179,76 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantMergePrenex(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_PRENEX.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_PRENEX.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantPrenex(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantPartitionConnectedFv(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantVarElimEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_MINISCOPE.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_MINISCOPE.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantMiniscope(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_REWRITE_BODY.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_REWRITE_BODY.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantRewriteBody(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroLambdaCaptureAvoid(CDProof* cdp, const Node& eq);
   /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.

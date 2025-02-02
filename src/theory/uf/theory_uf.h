@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
+#include "theory/uf/diamonds_proof_generator.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -80,6 +81,8 @@ private:
   std::unique_ptr<HoExtension> d_ho;
   /** the conversions solver */
   std::unique_ptr<ConversionsSolver> d_csolver;
+  /** Diamonds proof generator */
+  DiamondsProofGenerator d_dpfgen;
 
   /** node for true */
   Node d_true;
@@ -141,7 +144,7 @@ private:
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) override;
   void presolve() override;
 
   void computeCareGraph() override;
@@ -150,6 +153,8 @@ private:
 
   std::string identify() const override { return "THEORY_UF"; }
  private:
+  /** Called when preregistering terms of kind APPLY_UF or HO_APPLY */
+  void preRegisterFunctionTerm(TNode node);
   /** Explain why this literal is true by building an explanation */
   void explain(TNode literal, Node& exp);
 

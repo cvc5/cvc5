@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Scott Talbert
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,7 +122,6 @@ Token Smt2Lexer::computeNextToken()
   pushToToken(ch);
   switch (ch)
   {
-    case '!': return Token::ATTRIBUTE_TOK;
     case '(': return Token::LPAREN_TOK;
     case ')': return Token::RPAREN_TOK;
     case '|':
@@ -321,6 +320,12 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
   Assert(!d_token.empty());
   switch (d_token[0])
   {
+    case '!':
+      if (d_token.size() == 1)
+      {
+        return Token::ATTRIBUTE_TOK;
+      }
+      break;
     case 'a':
       if (d_token.size() == 2 && d_token[1] == 's')
       {

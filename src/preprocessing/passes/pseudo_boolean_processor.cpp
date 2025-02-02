@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -298,9 +298,8 @@ void PseudoBooleanProcessor::learn(Node assertion)
   }
 }
 
-Node PseudoBooleanProcessor::mkGeqOne(Node v)
+Node PseudoBooleanProcessor::mkGeqOne(NodeManager* nm, Node v)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(
       Kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
@@ -340,6 +339,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
   // \sum pos >= \sum neg + off
 
+  NodeManager* nm = nodeManager();
+
   // for now special case everything we want
   // target easy clauses
   if (d_pos.size() == 1 && d_neg.size() == 1 && off.isZero())
@@ -349,8 +350,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_pos.front();
     Node y = d_neg.front();
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node imp = yGeq1.impNode(xGeq1);
     addSub(geq, imp);
   }
@@ -362,8 +363,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_neg[0];
     Node y = d_neg[1];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node cases = (xGeq1.notNode()).orNode(yGeq1.notNode());
     addSub(geq, cases);
   }
@@ -375,10 +376,9 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node y = d_pos[1];
     Node z = d_neg[0];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
-    Node zGeq1 = mkGeqOne(z);
-    NodeManager* nm = NodeManager::currentNM();
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
+    Node zGeq1 = mkGeqOne(nm, z);
     Node dis = nm->mkNode(Kind::OR, zGeq1.notNode(), xGeq1, yGeq1);
     addSub(geq, dis);
   }

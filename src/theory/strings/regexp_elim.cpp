@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,14 +76,12 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
   Node eatom = eliminate(atom, d_isAggressive);
   if (!eatom.isNull())
   {
-    // Currently aggressive doesnt work due to fresh bound variables
-    if (isProofEnabled() && !d_isAggressive)
+    if (isProofEnabled())
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node eq = atom.eqNode(eatom);
-      Node aggn = NodeManager::currentNM()->mkConst(d_isAggressive);
       std::shared_ptr<ProofNode> pn =
-          pnm->mkNode(ProofRule::MACRO_RE_ELIM, {}, {atom, aggn}, eq);
+          pnm->mkTrustedNode(TrustId::RE_ELIM, {}, {}, eq);
       d_epg->setProofFor(eq, pn);
       return TrustNode::mkTrustRewrite(atom, eatom, d_epg.get());
     }

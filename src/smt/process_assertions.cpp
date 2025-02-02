@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -471,7 +471,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
                                                const AssertionPipeline& ap)
 {
-  PrintBenchmark pb(Printer::getPrinter(os));
+  PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that users may define ordinary and recursive functions. The latter
   // get added to the list of assertions as quantified formulas. Since we are

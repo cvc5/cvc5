@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
+#include "smt/set_defaults.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -54,6 +55,8 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   {
     d_msenum.reset(new MbqiFastSygus(env, *this));
   }
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 void InstStrategyMbqi::ppNotifyAssertions(const std::vector<Node>& assertions)
@@ -255,7 +258,8 @@ void InstStrategyMbqi::process(Node q)
   Node query = nm->mkAnd(constraints);
 
   std::unique_ptr<SolverEngine> mbqiChecker;
-  initializeSubsolver(mbqiChecker, d_env);
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
+  initializeSubsolver(mbqiChecker, ssi);
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
@@ -310,7 +314,7 @@ void InstStrategyMbqi::process(Node q)
       Trace("mbqi") << "warning: failed to process model value " << vc
                     << ", from " << v
                     << ", use arbitrary term for instantiation" << std::endl;
-      vc = nm->mkGroundTerm(v.getType());
+      vc = NodeManager::mkGroundTerm(v.getType());
     }
     v = vc;
   }
@@ -331,7 +335,7 @@ void InstStrategyMbqi::process(Node q)
       // modifiedInst = true;
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
-      mvt = nm->mkGroundTerm(ov.getType());
+      mvt = NodeManager::mkGroundTerm(ov.getType());
     }
     Assert(v.getType() == mvt.getType());
     fvToInst.add(v, mvt);
@@ -435,7 +439,7 @@ Node InstStrategyMbqi::convertToQuery(
         }
       }
       else if (d_nonClosedKinds.find(ck) != d_nonClosedKinds.end())
-      {        
+      {
         // if its a constant, we can continue, we will assume it is distinct
         // from all others of its type
         if (cur.isConst())

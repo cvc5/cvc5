@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -146,7 +146,7 @@ Node ITEUtilities::simplifyWithCare(TNode e)
 {
   if (d_careSimp == NULL)
   {
-    d_careSimp = new ITECareSimplifier();
+    d_careSimp = new ITECareSimplifier(nodeManager());
   }
   return d_careSimp->simplifyWithCare(e);
 }
@@ -296,8 +296,8 @@ ITECompressor::ITECompressor(Env& env, ContainsTermITEVisitor* contains)
 {
   Assert(d_contains != NULL);
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITECompressor::~ITECompressor() { reset(); }
@@ -345,9 +345,8 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
+    NodeManager* nm = nodeManager();
+    Node skolem = NodeManager::mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
@@ -395,7 +394,7 @@ Node ITECompressor::compressBooleanITEs(Node toCompress)
     }
   }
 
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nodeManager(), Kind::AND);
   Node curr = toCompress;
   while (curr.getKind() == Kind::ITE
          && (curr[1] == d_false || curr[2] == d_false)
@@ -459,7 +458,7 @@ Node ITECompressor::compressTerm(Node toCompress)
     }
   }
 
-  NodeBuilder nb(toCompress.getKind());
+  NodeBuilder nb(nodeManager(), toCompress.getKind());
 
   if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -496,7 +495,7 @@ Node ITECompressor::compressBoolean(Node toCompress)
   else
   {
     bool ta = ite::isTheoryAtom(toCompress);
-    NodeBuilder nb(toCompress.getKind());
+    NodeBuilder nb(nodeManager(), toCompress.getKind());
     if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       nb << (toCompress.getOperator());
@@ -654,8 +653,8 @@ ITESimplifier::ITESimplifier(Env& env, ContainsTermITEVisitor* contains)
       d_statistics(env.getStatisticsRegistry())
 {
   Assert(d_containsVisitor != NULL);
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITESimplifier::~ITESimplifier()
@@ -709,6 +708,10 @@ ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
       d_binaryPredFold(reg.registerInt("ite-simp::binaryPredFold")),
       d_specialEqualityFolds(reg.registerInt("ite-simp::specialEqualityFolds")),
       d_simpITEVisits(reg.registerInt("ite-simp::simpITE.visits")),
+      d_numBranches(0),
+      d_numFalseBranches(0),
+      d_itesMade(0),
+      d_instance(0),
       d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
 {
 }
@@ -881,7 +884,7 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
     return d_replaceOverCache[p];
   }
 
-  NodeBuilder builder(n.getKind());
+  NodeBuilder builder(nodeManager(), n.getKind());
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << n.getOperator();
@@ -977,7 +980,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
               search.nonConstants.size());
           Trace("ite::simpite") << "used " << search.nonConstants.size()
                                 << " nonconstants" << endl;
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = nodeManager();
           Node simpVar = getSimpVar(notIte.getType());
           TNode newLeft = leftIsIte ? simpVar : notIte;
           TNode newRight = leftIsIte ? notIte : simpVar;
@@ -1010,7 +1013,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
     Node lT = lite[1];
     Node lE = lite[2];
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node negRite = atom[1][1];
     Node rC = negRite[0];
     Node rT = nm->mkNode(Kind::MULT, negOne, negRite[1]);
@@ -1045,7 +1048,7 @@ Node ITESimplifier::transformAtom(TNode atom)
     if (atom.getKind() == Kind::EQUAL && atom[0].isConst() && atom[1].isConst())
     {
       // constant equality
-      return NodeManager::currentNM()->mkConst<bool>(atom[0] == atom[1]);
+      return nodeManager()->mkConst<bool>(atom[0] == atom[1]);
     }
     return Node::null();
   }
@@ -1064,21 +1067,18 @@ Node ITESimplifier::transformAtom(TNode atom)
   }
 }
 
-static unsigned numBranches = 0;
-static unsigned numFalseBranches = 0;
-static unsigned itesMade = 0;
-
 Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
 {
-  static int instance = 0;
-  ++instance;
+  d_statistics.d_instance = 0;
+  ++(d_statistics.d_instance);
   Trace("ite::constantIteEqualsConstant")
-      << instance << "constantIteEqualsConstant(" << cite << ", " << constant
-      << ")" << endl;
+      << (d_statistics.d_instance) << "constantIteEqualsConstant(" << cite
+      << ", " << constant << ")" << endl;
   if (cite.isConst())
   {
     Node res = (cite == constant) ? d_true : d_false;
-    Trace("ite::constantIteEqualsConstant") << instance << "->" << res << endl;
+    Trace("ite::constantIteEqualsConstant")
+        << (d_statistics.d_instance) << "->" << res << endl;
     return res;
   }
   std::pair<Node, Node> pair = make_pair(cite, constant);
@@ -1088,7 +1088,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   if (eq_pos != d_constantIteEqualsConstantCache.end())
   {
     Trace("ite::constantIteEqualsConstant")
-        << instance << "->" << (*eq_pos).second << endl;
+        << (d_statistics.d_instance) << "->" << (*eq_pos).second << endl;
     return (*eq_pos).second;
   }
 
@@ -1103,7 +1103,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       // probably unreachable
       d_constantIteEqualsConstantCache[pair] = d_true;
       Trace("ite::constantIteEqualsConstant")
-          << instance << "->" << d_true << endl;
+          << (d_statistics.d_instance) << "->" << d_true << endl;
       return d_true;
     }
     else
@@ -1117,13 +1117,13 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       Node boolIte = cnd.iteNode(tEqs, fEqs);
       if (!(tEqs.isConst() || fEqs.isConst()))
       {
-        ++numBranches;
+        ++(d_statistics.d_numBranches);
       }
       if (!(tEqs == d_false || fEqs == d_false))
       {
-        ++numFalseBranches;
+        ++(d_statistics.d_numFalseBranches);
       }
-      ++itesMade;
+      ++(d_statistics.d_itesMade);
       d_constantIteEqualsConstantCache[pair] = boolIte;
       // Trace("ite::constantIteEqualsConstant") << instance << "->" << boolIte
       // << endl;
@@ -1134,7 +1134,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   {
     d_constantIteEqualsConstantCache[pair] = d_false;
     Trace("ite::constantIteEqualsConstant")
-        << instance << "->" << d_false << endl;
+        << (d_statistics.d_instance) << "->" << d_false << endl;
     return d_false;
   }
 }
@@ -1150,13 +1150,14 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     TNode cite = lIsConst ? rcite : lcite;
 
     (d_statistics.d_inSmaller) << 1;
-    unsigned preItesMade = itesMade;
-    unsigned preNumBranches = numBranches;
-    unsigned preNumFalseBranches = numFalseBranches;
+    unsigned preItesMade = d_statistics.d_itesMade;
+    unsigned preNumBranches = d_statistics.d_numBranches;
+    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches;
     Node bterm = constantIteEqualsConstant(cite, constant);
-    Trace("intersectConstantIte") << (numBranches - preNumBranches) << " "
-                                  << (numFalseBranches - preNumFalseBranches)
-                                  << " " << (itesMade - preItesMade) << endl;
+    Trace("intersectConstantIte")
+        << ((d_statistics.d_numBranches) - preNumBranches) << " "
+        << ((d_statistics.d_numFalseBranches) - preNumFalseBranches) << " "
+        << ((d_statistics.d_itesMade) - preItesMade) << endl;
     return bterm;
   }
   Assert(lcite.getKind() == Kind::ITE);
@@ -1182,7 +1183,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
   }
   else
   {
-    NodeBuilder nb(Kind::OR);
+    NodeBuilder nb(nodeManager(), Kind::OR);
     NodeVec::const_iterator it = intersection.begin(), end = intersection.end();
     for (; it != end; ++it)
     {
@@ -1307,7 +1308,7 @@ Node ITESimplifier::simpConstants(TNode simpContext,
 
   if (iteNode.getKind() == Kind::ITE)
   {
-    NodeBuilder builder(Kind::ITE);
+    NodeBuilder builder(nodeManager(), Kind::ITE);
     builder << iteNode[0];
     unsigned i = 1;
     for (; i < iteNode.getNumChildren(); ++i)
@@ -1360,8 +1361,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node var = sm->mkDummySkolem(
+  Node var = NodeManager::mkDummySkolem(
       "iteSimp", t, "is a variable resulting from ITE simplification");
   d_simpVars[t] = var;
   return var;
@@ -1400,7 +1400,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     return simpVar;
   }
 
-  NodeBuilder builder(c.getKind());
+  NodeBuilder builder(nodeManager(), c.getKind());
   if (c.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << c.getOperator();
@@ -1551,7 +1551,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -1614,10 +1614,10 @@ Node ITESimplifier::simpITE(TNode assertion)
   return d_simpITECache[assertion];
 }
 
-ITECareSimplifier::ITECareSimplifier() : d_careSetsOutstanding(0), d_usedSets()
+ITECareSimplifier::ITECareSimplifier(NodeManager* nm) : d_careSetsOutstanding(0), d_usedSets()
 {
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nm->mkConst<bool>(true);
+  d_false = nm->mkConst<bool>(false);
 }
 
 ITECareSimplifier::~ITECareSimplifier()
@@ -1698,7 +1698,7 @@ Node ITECareSimplifier::substitute(TNode e,
     return e;
   }
 
-  NodeBuilder builder(e.getKind());
+  NodeBuilder builder(e.getNodeManager(), e.getKind());
   if (e.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << e.getOperator();

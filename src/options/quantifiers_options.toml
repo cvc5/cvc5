@@ -668,7 +668,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefined"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun"
   type       = "bool"
   default    = "false"
@@ -676,7 +676,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fmfFunWellDefinedRelevant"
-  category   = "regular"
+  category   = "expert"
   long       = "fmf-fun-rlv"
   type       = "bool"
   default    = "false"
@@ -833,7 +833,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqi"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi"
   type       = "bool"
   default    = "false"
@@ -1579,7 +1579,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiNestedQE"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-nested-qe"
   type       = "bool"
   default    = "false"
@@ -1715,7 +1715,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "macrosQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "macros-quant"
   type       = "bool"
   default    = "false"

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,7 +141,7 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder conjunction(Kind::AND);
+  NodeBuilder conjunction(NodeManager::currentNM(), Kind::AND);
   for (TNode n : all) { conjunction << n; }
   return conjunction;
 }
@@ -160,7 +160,7 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder disjunction(Kind::OR);
+  NodeBuilder disjunction(NodeManager::currentNM(), Kind::OR);
   for (TNode n : all) { disjunction << n; }
   return disjunction;
 }

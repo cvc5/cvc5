@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,8 +33,8 @@ namespace prop {
 
 MinisatSatSolver::MinisatSatSolver(Env& env, StatisticsRegistry& registry)
     : EnvObj(env),
-      d_minisat(NULL),
-      d_context(NULL),
+      d_minisat(nullptr),
+      d_context(context()),
       d_assumptions(),
       d_statistics(registry)
 {}
@@ -106,13 +106,8 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(context::Context* context,
-                                  TheoryProxy* theoryProxy,
-                                  context::UserContext* userContext,
-                                  PropPfManager* ppm)
+void MinisatSatSolver::initialize(TheoryProxy* theoryProxy, PropPfManager* ppm)
 {
-  d_context = context;
-
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
     verbose(1) << "minisat: Incremental solving is forced on (to avoid "
@@ -124,8 +119,8 @@ void MinisatSatSolver::initialize(context::Context* context,
   d_minisat =
       new Minisat::SimpSolver(d_env,
                               theoryProxy,
-                              d_context,
-                              userContext,
+                              context(),
+                              userContext(),
                               ppm,
                               options().base.incrementalSolving
                                   || options().decision.decisionMode
@@ -312,12 +307,6 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 {
   Assert(d_env.isSatProofProducing());
   return d_minisat->getProof();
-}
-
-std::pair<ProofRule, std::vector<Node>> MinisatSatSolver::getProofSketch()
-{
-  Unimplemented() << "getProofSketch for Minisat not supported";
-  return std::pair<ProofRule, std::vector<Node>>();
 }
 
 /** Incremental interface */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@ Node AnnotationElimNodeConverter::postConvert(Node n)
 {
   if (n.isClosure() && n.getNumChildren() == 3)
   {
-    return NodeManager::currentNM()->mkNode(n.getKind(), n[0], n[1]);
+    return NodeManager::mkNode(n.getKind(), n[0], n[1]);
   }
   return n;
 }

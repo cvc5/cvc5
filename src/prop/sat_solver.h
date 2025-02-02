@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,9 +122,7 @@ class CDCLTSatSolver : public SatSolver
  public:
   virtual ~CDCLTSatSolver(){};
 
-  virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy,
-                          context::UserContext* userContext,
+  virtual void initialize(prop::TheoryProxy* theoryProxy,
                           PropPfManager* ppm) = 0;
 
   virtual void push() = 0;
@@ -175,17 +173,6 @@ class CDCLTSatSolver : public SatSolver
    * @return a complete proof computed by this SAT solver.
    */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
-
-  /**
-   * Get proof sketch, which is used if option prop-proof-mode is SKETCH.
-   * Get a rule r and additional arguments args such that the final proof
-   * will be:
-   *   (r :premises (c1..cn) :args (F args))
-   * where F is a string corresponding to the file name of a DIMACs file
-   * for an unsat core of derived clauses (input or theory lemma) c1...cn.
-   * @return The above rule and arguments packaged as a std::pair.
-   */
-  virtual std::pair<ProofRule, std::vector<Node>> getProofSketch() = 0;
 
 }; /* class CDCLTSatSolver */
 

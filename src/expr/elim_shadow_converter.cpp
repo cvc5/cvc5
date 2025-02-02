@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -123,7 +123,7 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   {
     children.push_back(esnc.convert(q[i]));
   }
-  return NodeManager::currentNM()->mkNode(q.getKind(), children);
+  return nm->mkNode(q.getKind(), children);
 }
 
 }  // namespace cvc5::internal

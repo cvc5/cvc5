@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,10 +30,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsEntail::StringsEntail(Rewriter* r,
-                             ArithEntail& aent,
-                             SequencesRewriter* rewriter)
-    : d_rr(r), d_arithEntail(aent), d_rewriter(rewriter)
+StringsEntail::StringsEntail(Rewriter* r, ArithEntail& aent)
+    : d_rr(r), d_arithEntail(aent)
 {
 }
 
@@ -192,11 +190,10 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
     }
     else
     {
-      Node next_s = NodeManager::currentNM()->mkNode(
+      Node next_s = NodeManager::mkNode(
           Kind::SUB,
           curr,
-          NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH,
-                                           n1[sindex_use]));
+          NodeManager::mkNode(Kind::STRING_LENGTH, n1[sindex_use]));
       next_s = d_arithEntail.rewriteArith(next_s);
       if (d_arithEntail.check(next_s))
       {
@@ -263,8 +260,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = NodeManager::currentNM()->mkNode(
-                Kind::STRING_CONCAT, n1[i], n1re);
+            n1[i] = NodeManager::mkNode(Kind::STRING_CONCAT, n1[i], n1re);
           }
           if (remainderDir != 1)
           {
@@ -277,8 +273,7 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = NodeManager::currentNM()->mkNode(
-                Kind::STRING_CONCAT, n1rb, n1[i]);
+            n1[i] = NodeManager::mkNode(Kind::STRING_CONCAT, n1rb, n1[i]);
           }
         }
         return i;
@@ -371,8 +366,6 @@ bool StringsEntail::componentContainsBase(
   Assert(n1rb.isNull());
   Assert(n1re.isNull());
 
-  NodeManager* nm = NodeManager::currentNM();
-
   if (n1 == n2)
   {
     return true;
@@ -445,8 +438,8 @@ bool StringsEntail::componentContainsBase(
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = nm->mkNode(Kind::ADD, n2[1], n2[2]);
-          Node len_n2s = nm->mkNode(Kind::STRING_LENGTH, n2[0]);
+          Node end_pos = NodeManager::mkNode(Kind::ADD, n2[1], n2[2]);
+          Node len_n2s = NodeManager::mkNode(Kind::STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
             // To be a suffix, start + length must be greater than
@@ -672,17 +665,12 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
+Node StringsEntail::checkContains(Node a, Node b)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node ctn = nm->mkNode(Kind::STRING_CONTAINS, a, b);
+  Node ctn = NodeManager::mkNode(Kind::STRING_CONTAINS, a, b);
 
-  if (fullRewriter)
+  if (d_rr != nullptr)
   {
-    if (d_rr == nullptr)
-    {
-      return Node::null();
-    }
     ctn = d_rr->rewrite(ctn);
   }
   else
@@ -709,17 +697,26 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 
 bool StringsEntail::checkNonEmpty(Node a)
 {
-  Node len = NodeManager::currentNM()->mkNode(Kind::STRING_LENGTH, a);
-  len = d_rr->rewrite(len);
+  if (a.isConst())
+  {
+    return Word::getLength(a) != 0;
+  }
+  Node len = NodeManager::mkNode(Kind::STRING_LENGTH, a);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(len, true);
 }
 
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
+  if (s.isConst())
+  {
+    size_t len = Word::getLength(s);
+    return strict ? (len == 1) : (len <= 1);
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(Kind::STRING_LENGTH, s);
-  len = d_rr->rewrite(len);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(one, len)
          && (!strict || d_arithEntail.check(len, true));
 }
@@ -858,7 +855,7 @@ Node StringsEntail::getMultisetApproximation(Node a)
   }
   else if (a.getKind() == Kind::STRING_CONCAT)
   {
-    NodeBuilder nb(Kind::STRING_CONCAT);
+    NodeBuilder nb(nm, Kind::STRING_CONCAT);
     for (const Node& ac : a)
     {
       nb << getMultisetApproximation(ac);
@@ -989,7 +986,7 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
     cs.push_back(yiLen[0]);
   }
 
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nm, Kind::AND);
   // (= x (str.++ y1' ... ym'))
   if (!cs.empty())
   {

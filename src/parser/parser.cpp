@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Christopher L. Conway, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -126,8 +126,17 @@ std::unique_ptr<Parser> Parser::mkParser(modes::InputLanguage lang,
       || lang == modes::InputLanguage::SYGUS_2_1)
   {
     bool isSygus = (lang == modes::InputLanguage::SYGUS_2_1);
-    bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
-    parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
+    ParsingMode parsingMode = ParsingMode::DEFAULT;
+    std::string mode = solver->getOption("parsing-mode");
+    if (mode == "strict")
+    {
+      parsingMode = ParsingMode::STRICT;
+    }
+    else if (mode == "lenient")
+    {
+      parsingMode = ParsingMode::LENIENT;
+    }
+    parser.reset(new Smt2Parser(solver, sm, parsingMode, isSygus));
   }
   else
   {

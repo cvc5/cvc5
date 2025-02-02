@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -651,7 +651,7 @@ struct ApplyRuleToChildren {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
-    NodeBuilder result(kind);
+    NodeBuilder result(node.getNodeManager(), kind);
     for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
       result << RewriteRule<rule>::template run<true>(node[i]);
     }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,9 @@ class Preprocessor : protected EnvObj
   /**
    * Finish initialization
    */
-  void finishInit(TheoryEngine* te, prop::PropEngine* pe);
+  void finishInit(TheoryEngine* te,
+                  prop::PropEngine* pe,
+                  PreprocessProofGenerator* pppg);
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
@@ -91,8 +93,8 @@ class Preprocessor : protected EnvObj
   PreprocessProofGenerator* getPreprocessProofGenerator();
 
  private:
-  /** The preprocess proof generator. */
-  std::unique_ptr<PreprocessProofGenerator> d_pppg;
+  /** Pointer to the preprocess proof generator. */
+  PreprocessProofGenerator* d_pppg;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */

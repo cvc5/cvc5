@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_algorithm.h"
@@ -68,7 +69,7 @@ void ProofPostprocessCallback::setCollectAllTrustedRules()
   d_collectAllTrusted = true;
 }
 
-std::unordered_set<std::shared_ptr<ProofNode>>&
+std::vector<std::shared_ptr<ProofNode>>&
 ProofPostprocessCallback::getTrustedProofs()
 {
   return d_trustedPfs;
@@ -107,7 +108,7 @@ bool ProofPostprocessCallback::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
   if (d_collectAllTrusted
       && (id == ProofRule::TRUST_THEORY_REWRITE || id == ProofRule::TRUST))
   {
-    d_trustedPfs.insert(pn);
+    d_trustedPfs.emplace_back(pn);
   }
   return false;
 }
@@ -218,20 +219,11 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     TrustId tid;
     getTrustId(args[0], tid);
-    // we don't do this for steps that are already extended theory rewrite
-    // steps, or we would get an infinite loop in reconstruction.
-    if (tid == TrustId::EXT_THEORY_REWRITE)
-    {
-      return Node::null();
-    }
-    // maybe we can show it rewrites to true based on (extended) rewriting
+    // maybe we can show it rewrites to true based on rewriting
     // modulo original forms (MACRO_SR_PRED_INTRO).
     TheoryProofStepBuffer psb(d_pc);
-    if (psb.applyPredIntro(res,
-                           {},
-                           MethodId::SB_DEFAULT,
-                           MethodId::SBA_SEQUENTIAL,
-                           MethodId::RW_EXT_REWRITE))
+    if (psb.applyPredIntro(
+            res, {}, MethodId::SB_DEFAULT, MethodId::SBA_SEQUENTIAL))
     {
       cdp->addSteps(psb);
       return res;
@@ -475,10 +467,15 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("smt-proof-pp-debug")
           << "transform finish (" << r << ")" << std::endl;
     }
-
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
-
+    if (eq.isNull())
+    {
+      Assert(false) << "Failed proof for MACRO_SR_PRED_TRANSFORM";
+      Trace("smt-proof-pp-debug")
+          << "Failed transitivity from " << tchildren << std::endl;
+      return Node::null();
+    }
     cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
@@ -580,7 +577,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("crowding-lits") << "..premises: " << children << "\n";
       Trace("crowding-lits") << "..args: " << args << "\n";
       chainConclusion =
-          proof::eliminateCrowdingLits(d_env.getOptions().proof.optResReconSize,
+          proof::eliminateCrowdingLits(nm,
+                                       d_env.getOptions().proof.optResReconSize,
                                        chainConclusionLits,
                                        conclusionLits,
                                        children,
@@ -883,7 +881,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+              nodeManager(), theoryId);
           cdp->addStep(
               eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -927,7 +926,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // will expand this as a default rewrite if needed
           Node eqd = retCurr.eqNode(retDef);
-          Node mid = mkMethodId(midi);
+          Node mid = mkMethodId(nodeManager(), midi);
           cdp->addStep(eqd, ProofRule::MACRO_REWRITE, {}, {retCurr, mid});
           transEq.push_back(eqd);
         }
@@ -977,8 +976,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::convertAndAddProofTo(
-              cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::convert(
+              d_env, iid, isRev, conc, exp, cdp))
       {
         return conc;
       }
@@ -1084,10 +1083,8 @@ ProofPostprocess::ProofPostprocess(Env& env,
                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_cb(env, updateScopedAssumptions),
-      // the update merges subproofs
-      d_updater(env, d_cb, options().proof.proofPpMerge),
-      d_finalCb(env),
-      d_finalizer(env, d_finalCb)
+      // the update merges subproofs if proofPpMerge is true
+      d_updater(env, d_cb, options().proof.proofPpMerge)
 {
   if (rdb != nullptr)
   {
@@ -1106,14 +1103,6 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
   // now, process
   d_updater.process(pf);
 
-  // run the reconstruction algorithm on the proofs to eliminate
-  std::unordered_set<std::shared_ptr<ProofNode>>& tproofs =
-      d_cb.getTrustedProofs();
-  if (!tproofs.empty())
-  {
-    d_ppdsl->reconstruct(tproofs);
-  }
-
   // eliminate subtypes if option is specified
   if (options().proof.proofElimSubtypes)
   {
@@ -1123,19 +1112,26 @@ void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
     AlwaysAssert(pfc != nullptr);
     // now update
     d_env.getProofNodeManager()->updateNode(pf.get(), pfc.get());
+    // go back and find the (possibly new) trusted steps
+    std::vector<std::shared_ptr<ProofNode>> tproofs;
+    std::unordered_set<ProofRule> trustRules{ProofRule::TRUST,
+                                             ProofRule::TRUST_THEORY_REWRITE};
+    expr::getSubproofRules(pf, trustRules, tproofs);
+    if (d_ppdsl != nullptr)
+    {
+      d_ppdsl->reconstruct(tproofs);
+    }
   }
-
-  // take stats and check pedantic
-  d_finalCb.initializeUpdate();
-  d_finalizer.process(pf);
-
-  std::stringstream serr;
-  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
-  if (wasPedanticFailure)
+  else
   {
-    AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostprocess::process: pedantic failure:" << std::endl
-        << serr.str();
+    // As an optimization, we have tracked the trusted steps while running
+    // the updater. Now run the reconstruction algorithm on the proofs to
+    // eliminate.
+    std::vector<std::shared_ptr<ProofNode>>& tproofs = d_cb.getTrustedProofs();
+    if (d_ppdsl != nullptr)
+    {
+      d_ppdsl->reconstruct(tproofs);
+    }
   }
 }
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,6 +183,19 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
   }
   // if we can make concrete, return its type
   return cn.getType();
+}
+
+TypeNode TypeOfTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  return nodeManager->builtinOperatorType();
 }
 
 Node SortProperties::mkGroundTerm(TypeNode type)

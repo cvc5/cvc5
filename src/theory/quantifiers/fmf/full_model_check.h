@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,7 @@ public:
   bool addEntry( FirstOrderModelFmc * m, Node c, Node v);
   Node evaluate( FirstOrderModelFmc * m, std::vector<Node>& inst );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst );
-  void simplify( FullModelChecker * mc, FirstOrderModelFmc * m );
+  void simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m);
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
 };/* class Def */
 

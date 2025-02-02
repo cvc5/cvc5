@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mudathir Mohamed, Andres Noetzli, Hans-Joerg Schurr
+#   Mudathir Mohamed, Andres Noetzli, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -102,7 +102,14 @@ add_custom_command(
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
 # find java
-find_package(Java COMPONENTS Development REQUIRED)
+find_package(Java 1.8 COMPONENTS Development REQUIRED)
+if(Java_VERSION_MAJOR GREATER_EQUAL 9)
+  # Compile option --release is available from JDK 9 onwards.
+  # It ensures the compiled classes are compatible with
+  # the minimum required version. It expects a single number
+  # and does not support 1.X syntax used in JDK < 9.
+  set(CMAKE_JAVA_COMPILE_FLAGS "--release" "8")
+endif()
 include(UseJava)
 
 # specify java source files

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/datatypes/inference.h"
@@ -72,8 +73,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   virtual std::string identify() const override;
 
  private:
-  /** Common constants */
-  Node d_tdid;
   /** convert
    *
    * This method is called when the theory of strings makes an inference
@@ -85,6 +84,19 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * information is stored in cdp.
    */
   void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
+  /**
+   * Add a step a=b to cdp using ProofRewriteRule rule r if possible, or a
+   * trust step otherwise.
+   */
+  void tryRewriteRule(TNode a, TNode b, ProofRewriteRule r, CDProof* cdp);
+  /**
+   * Adds a step concluding t_i = s_i from C(t_1 ... t_n) = C(s_1 ... s_n),
+   * where i is stored in the node narg.
+   */
+  void addDtUnif(CDProof* cdp,
+                 const Node& conc,
+                 const Node& exp,
+                 const Node& narg);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The lazy fact map */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -654,16 +654,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   /**
    * Push user assertion level.
    */
-  void user_push(SatVariable& alit)
+  void user_push()
   {
     Trace("cadical::propagator")
         << "user push: " << d_active_vars_control.size();
     d_active_vars_control.push_back(d_active_vars.size());
     Trace("cadical::propagator")
         << " -> " << d_active_vars_control.size() << std::endl;
+  }
+
+  /**
+   * Set the activation literal for the current user assertion level.
+   *
+   * @param alit The activation literal for the current user assertion level.
+   */
+  void set_activation_lit(SatVariable& alit)
+  {
     d_activation_literals.push_back(alit);
     Trace("cadical::propagator")
-        << "enable activation lit: " << alit << std::endl;
+      << "enable activation lit: " << alit << std::endl;
   }
 
   /**
@@ -786,7 +795,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
   }
 
   /** Return the current user (assertion) level. */
-  size_t current_user_level() { return d_activation_literals.size(); }
+  size_t current_user_level() const { return d_active_vars_control.size(); }
 
   /** Return the current list of activation literals. */
   const std::vector<SatLiteral>& activation_literals()
@@ -988,15 +997,13 @@ class ClauseLearner : public CaDiCaL::Learner
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
-                             const std::string& name,
-                             bool logProofs)
+                             const std::string& name)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
-      d_context(nullptr),
+      d_context(context()),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
-      d_logProofs(logProofs),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -1004,8 +1011,7 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
 
   // walk and lucky phase do not use the external propagator, disable for now
   if (d_propagator)
@@ -1015,15 +1021,22 @@ void CadicalSolver::init()
     // ilb currently does not play well with user propagators
     d_solver->set("ilb", 0);
     d_solver->set("ilbassumptions", 0);
+    d_solver->connect_external_propagator(d_propagator.get());
   }
 
-  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
+  d_true = newVar();
+  d_false = newVar();
   d_solver->add(toCadicalVar(d_true));
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
 
-  if (d_logProofs)
+  bool logProofs = false;
+  // TODO (wishue #154): determine how to initialize the proofs for CaDiCaL
+  // here based on d_env.isSatProofProducing and options().proof.propProofMode.
+  // The latter should be extended to include modes DRAT and LRAT based on
+  // what is available here.
+  if (logProofs)
   {
     d_pfFile = options().driver.filename + ".drat_proof.txt";
     if (!options().proof.dratBinaryFormat)
@@ -1221,15 +1234,11 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 
 /* CDCLTSatSolver Interface ------------------------------------------------- */
 
-void CadicalSolver::initialize(context::Context* context,
-                               prop::TheoryProxy* theoryProxy,
-                               context::UserContext* userContext,
+void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
                                PropPfManager* ppm)
 {
-  d_context = context;
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(theoryProxy, context, *d_solver));
-  d_solver->connect_external_propagator(d_propagator.get());
+  d_propagator.reset(new CadicalPropagator(theoryProxy, d_context, *d_solver));
   if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
@@ -1242,9 +1251,13 @@ void CadicalSolver::initialize(context::Context* context,
 void CadicalSolver::push()
 {
   d_context->push();  // SAT context for cvc5
-  // New activation literal for pushed user level.
+  // Push new user level
+  d_propagator->user_push();
+  // Set new activation literal for pushed user level
+  // Note: This happens after the push to ensure that the activation literal's
+  // introduction level is the current user level.
   SatVariable alit = newVar(false);
-  d_propagator->user_push(alit);
+  d_propagator->set_activation_lit(alit);
 }
 
 void CadicalSolver::pop()
@@ -1298,20 +1311,11 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
+  // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
+  // consisting of a single step, referencing the files for the DIMACS + proof.
   // do not throw an exception, since we test whether the proof is available
   // by comparing it to nullptr.
   return nullptr;
-}
-
-std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
-{
-  Assert(d_logProofs);
-  d_solver->flush_proof_trace();
-  std::vector<Node> args = {nodeManager()->mkConst(String(d_pfFile))};
-  // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
-  // The DRAT file is an argument to the file proof.
-  return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,
-                                                 args);
 }
 
 /* -------------------------------------------------------------------------- */

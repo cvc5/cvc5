@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,6 +32,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
+#include "theory/sets/normal_form.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -46,10 +47,11 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if (options().quantifiers.fmfBoundLazy)
+  // we require a proxy if the term is set.card
+  if (options().quantifiers.fmfBoundLazy || r.getKind() == Kind::SET_CARD)
   {
-    SkolemManager* sm = nodeManager()->getSkolemManager();
-    d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
+    d_proxy_range =
+        isProxy ? r : NodeManager::mkDummySkolem("pbir", r.getType());
   }
   else
   {
@@ -84,12 +86,30 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   d_ranges_proxied[curr] = true;
   NodeManager* nm = nodeManager();
   Node currLit = getLiteral(curr);
-  Node lem = nm->mkNode(
-      Kind::EQUAL,
-      currLit,
-      nm->mkNode(curr == 0 ? Kind::LT : Kind::LEQ,
-                 d_range,
-                 nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1))));
+  Node lit;
+  if (d_range.getKind() == Kind::SET_CARD)
+  {
+    // Instead of introducing (set.card s) < n, we introduce the literal
+    // s = characteristicSet(s, n-1) for n>0 and false for n=0. We do this
+    // to avoid introducing set.card.
+    if (curr == 0)
+    {
+      lit = nodeManager()->mkConst(false);
+    }
+    else
+    {
+      Node cset = sets::NormalForm::getCharacteristicSet(
+          nodeManager(), d_range[0], curr - 1);
+      lit = d_range[0].eqNode(cset);
+    }
+  }
+  else
+  {
+    lit = nm->mkNode(curr == 0 ? Kind::LT : Kind::LEQ,
+                     d_range,
+                     nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1)));
+  }
+  Node lem = nm->mkNode(Kind::EQUAL, currLit, lit);
   return lem;
 }
 
@@ -377,7 +397,6 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
 
   bool success;
   do{
@@ -418,9 +437,8 @@ void BoundedIntegers::checkOwnership(Node f)
           d_setm_range[f][v] = bound_lit_map[2][v][1];
           d_setm_range_lit[f][v] = bound_lit_map[2][v];
           Node cardTerm = nm->mkNode(Kind::SET_CARD, d_setm_range[f][v]);
-          // Purify the cardinality term, since we don't want to introduce
-          // cardinality terms. We do minimization on this variable for
-          // consistency, although it will have no impact on the sets models.
+          // Note that we avoid reasoning about cardinality by eagerly
+          // eliminating set.card for literals as they are introduced.
           d_range[f][v] = cardTerm;
           Trace("bound-int") << "Variable " << v
                              << " is bound because of set membership literal "
@@ -546,18 +564,11 @@ void BoundedIntegers::checkOwnership(Node f)
         {
           // introduce a new bound
           Node new_range =
-              sm->mkDummySkolem("bir", r.getType(), "bound for term");
+              NodeManager::mkDummySkolem("bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
           isProxy = true;
-        }
-        if (r.getKind()==Kind::SET_CARD)
-        {
-          // Purify the cardinality term, since we don't want to introduce
-          // cardinality terms. We do minimization on this variable for
-          // consistency, although it will have no impact on the sets models.
-          r = nm->getSkolemManager()->mkPurifySkolem(r);
         }
         if( !r.isConst() ){
           if (d_rms.find(r) == d_rms.end())
@@ -705,44 +716,20 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   {
     return sr;
   }
-  NodeManager* nm = nodeManager();
-  TypeNode srt = sr.getType();
-  TypeNode tne = srt.getSetElementType();
-  Node nsr = nm->mkConst(EmptySet(srt));
-
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
   while (sr.getKind() == Kind::SET_UNION)
   {
+    Assert(sr[0].getKind() == Kind::SET_SINGLETON);
     srCard++;
-    sr = sr[0];
+    sr = sr[1];
   }
   Assert(sr.getKind() == Kind::SET_SINGLETON);
   srCard++;
-  Node choice_i;
-  for (unsigned i = 0; i < srCard; i++)
-  {
-    if (i == d_setm_choice[sro].size())
-    {
-      Node stgt = nsr.getKind() == Kind::SET_EMPTY
-                      ? sro
-                      : nm->mkNode(Kind::SET_MINUS, sro, nsr);
-      choice_i = nm->mkNode(Kind::SET_CHOOSE, stgt);
-      d_setm_choice[sro].push_back(choice_i);
-    }
-    Assert(i < d_setm_choice[sro].size());
-    choice_i = d_setm_choice[sro][i];
-    Node sChoiceI = nm->mkNode(Kind::SET_SINGLETON, choice_i);
-    if (nsr.getKind() == Kind::SET_EMPTY)
-    {
-      nsr = sChoiceI;
-    }
-    else
-    {
-      nsr = nm->mkNode(Kind::SET_UNION, nsr, sChoiceI);
-    }
-  }
-  // turns the concrete model value of sro into a canonical representation
+  Trace("bound-int-rsi") << "...cardinality is " << srCard << std::endl;
+  // get the characteristic set
+  Node nsr = sets::NormalForm::getCharacteristicSet(nodeManager(), sro, srCard);
+  // turns the concrete set value of sro into a canonical representation
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
@@ -990,8 +977,7 @@ Node BoundedIntegers::mkBoundedForall(NodeManager* nm, Node bvl, Node body)
   }
   else
   {
-    SkolemManager* sm = nm->getSkolemManager();
-    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
+    qvar = NodeManager::mkDummySkolem("qinternal", nm->booleanType());
     // this dummy variable marks that the quantified formula is internal
     qvar.setAttribute(BoundedQuantAttribute(), true);
     // remember the dummy variable

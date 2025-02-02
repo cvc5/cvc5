@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
+ *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,8 @@ namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
+class BVEagerAtomProofGenerator;
+
 class BvEagerAtoms : public PreprocessingPass
 {
  public:
@@ -35,6 +37,8 @@ class BvEagerAtoms : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  /** A proof generator */
+  std::shared_ptr<BVEagerAtomProofGenerator> d_proof;
 };
 
 }  // namespace passes

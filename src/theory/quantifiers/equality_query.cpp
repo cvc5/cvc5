@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -179,8 +179,10 @@ int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
   else if (options().quantifiers.instMaxLevel != -1)
   {
     //score prefer lowest instantiation level
-    if( n.hasAttribute(InstLevelAttribute()) ){
-      return n.getAttribute(InstLevelAttribute());
+    uint64_t level;
+    if (QuantAttributes::getInstantiationLevel(n, level))
+    {
+      return static_cast<int32_t>(level);
     }
     return -1;
   }

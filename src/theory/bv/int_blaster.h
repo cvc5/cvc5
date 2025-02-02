@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Mathias Preiner
+ *   Yoni Zohar, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,8 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "options/smt_options.h"
+#include "proof/proof_generator.h"
+#include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
 
@@ -91,7 +93,7 @@ namespace cvc5::internal {
 ** op.
 **
 **/
-class IntBlaster : protected EnvObj
+class IntBlaster : protected EnvObj, public ProofGenerator
 {
   using CDNodeMap = context::CDHashMap<Node, Node>;
 
@@ -124,11 +126,26 @@ class IntBlaster : protected EnvObj
    * ff((bv2nat x))), where k is the bit-width of the domain of f, i is the
    * bit-width of its range, and ff is a Int->Int function that corresponds to
    * f. For functions with other signatures this is similar
-   * @return integer node that corresponds to n
+   * @return trust node proving (= n n_i) where n_i is an integer node that
+   * corresponds to n
    */
+  TrustNode trustedIntBlast(Node n,
+                            std::vector<TrustNode>& lemmas,
+                            std::map<Node, Node>& skolems);
+
+  /** Version without proof tracking */
   Node intBlast(Node n,
                 std::vector<Node>& lemmas,
                 std::map<Node, Node>& skolems);
+  /**
+   * Get proof for fact, where fact may correspond to:
+   * (1) An equality of the form (= n n') where n was rewritten to n' in the
+   * method trustedIntBlast.
+   * (2) A lemma added to lemmas in the method trustedIntBlast.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+  /** identify */
+  std::string identify() const override;
 
  protected:
   /**
@@ -151,10 +168,13 @@ class IntBlaster : protected EnvObj
                        bool isLeftShift);
 
   /** Adds the constraint 0 <= node < 2^size to lemmas */
-  void addRangeConstraint(Node node, uint32_t size, std::vector<Node>& lemmas);
+  void addRangeConstraint(Node node,
+                          uint32_t size,
+                          std::vector<TrustNode>& lemmas);
 
   /** Adds a constraint that encodes bitwise and */
-  void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
+  void addBitwiseConstraint(Node bitwiseConstraint,
+                            std::vector<TrustNode>& lemmas);
 
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint32_t bvsize);
@@ -167,14 +187,14 @@ class IntBlaster : protected EnvObj
   Node createBVAndNode(Node x,
                        Node y,
                        uint32_t bvsize,
-                       std::vector<Node>& lemmas);
+                       std::vector<TrustNode>& lemmas);
 
   /** Returns a node that represents the bitwise or of x and y, by translation
    * to sum and bitwise and. */
   Node createBVOrNode(Node x,
                       Node y,
                       uint32_t bvsize,
-                      std::vector<Node>& lemmas);
+                      std::vector<TrustNode>& lemmas);
 
   /** Returns a node that represents the sum of x and y. */
   Node createBVAddNode(Node x, Node y, uint32_t bvsize);
@@ -323,7 +343,7 @@ class IntBlaster : protected EnvObj
    */
   Node translateWithChildren(Node original,
                              const std::vector<Node>& translated_children,
-                             std::vector<Node>& lemmas);
+                             std::vector<TrustNode>& lemmas);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -331,7 +351,7 @@ class IntBlaster : protected EnvObj
    * symbols).
    */
   Node translateNoChildren(Node original,
-                           std::vector<Node>& lemmas,
+                           std::vector<TrustNode>& lemmas,
                            std::map<Node, Node>& skolems);
 
   /** Caches for the different functions */

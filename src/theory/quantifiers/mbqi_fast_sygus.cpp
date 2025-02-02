@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +24,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 #include "util/random.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -34,7 +35,7 @@ void MVarInfo::initialize(Env& env,
                           const Node& v,
                           const std::vector<Node>& etrules)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   TypeNode tn = v.getType();
   Assert(MQuantInfo::shouldEnumerate(tn));
   TypeNode retType = tn;
@@ -46,7 +47,7 @@ void MVarInfo::initialize(Env& env,
     std::vector<Node> vs;
     for (const TypeNode& tnc : argTypes)
     {
-      Node vc = nm->mkBoundVar(tnc);
+      Node vc = NodeManager::mkBoundVar(tnc);
       vs.push_back(vc);
     }
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
@@ -86,9 +87,8 @@ void MVarInfo::initialize(Env& env,
   d_senum.reset(new SygusTermEnumerator(env, tng));
 }
 
-Node MVarInfo::getEnumeratedTerm(size_t i)
+Node MVarInfo::getEnumeratedTerm(NodeManager* nm, size_t i)
 {
-  NodeManager* nm = NodeManager::currentNM();
   size_t nullCount = 0;
   while (i >= d_enum.size())
   {
@@ -187,6 +187,8 @@ bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
 MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 
 MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
@@ -222,6 +224,7 @@ bool MbqiFastSygus::constructInstantiation(
           << "  " << q[0][i] << " -> " << mvs[i] << std::endl;
     }
   }
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
   MQuantInfo& qi = getOrMkQuantInfo(q);
   std::vector<size_t> indices = qi.getInstIndices();
   std::vector<size_t> nindices = qi.getNoInstIndices();
@@ -258,7 +261,7 @@ bool MbqiFastSygus::constructInstantiation(
     bool successEnum;
     do
     {
-      Node ret = vi.getEnumeratedTerm(cindex);
+      Node ret = vi.getEnumeratedTerm(nodeManager(), cindex);
       cindex++;
       Node retc;
       if (!ret.isNull())
@@ -295,7 +298,6 @@ bool MbqiFastSygus::constructInstantiation(
       Node queryCheck = queryCurr.substitute(v, TNode(retc));
       queryCheck = rewrite(queryCheck);
       Trace("mbqi-model-enum") << "...check " << queryCheck << std::endl;
-      SubsolverSetupInfo ssi(d_env);
       Result r = checkWithSubsolver(queryCheck, ssi);
       if (r == Result::SAT)
       {

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -161,8 +161,6 @@ class NodeBuilder {
   constexpr static size_t default_nchild_thresh = 10;
 
  public:
-  NodeBuilder();
-  NodeBuilder(Kind k);
   NodeBuilder(NodeManager* nm);
   NodeBuilder(NodeManager* nm, Kind k);
   NodeBuilder(const NodeBuilder& nb);

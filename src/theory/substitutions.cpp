@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Clark Barrett, Andrew Reynolds
+ *   Andrew Reynolds, Dejan Jovanovic, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,6 +40,16 @@ std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions() const
     subs.emplace(sub.first, sub.second);
   }
   return subs;
+}
+
+Node SubstitutionMap::toFormula(NodeManager* nm) const
+{
+  std::vector<Node> conj;
+  for (const auto& sub : d_substitutions)
+  {
+    conj.emplace_back(nm->mkNode(Kind::EQUAL, sub.first, sub.second));
+  }
+  return nm->mkAnd(conj);
 }
 
 struct substitution_stack_element {
@@ -112,7 +122,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(current.getNodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << Node(cache[current.getOperator()]);

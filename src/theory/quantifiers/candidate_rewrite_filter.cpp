@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@ namespace theory {
 namespace quantifiers {
 
 // the number of d_drewrite objects we have allocated (to avoid name conflicts)
-static unsigned drewrite_counter = 0;
+static thread_local unsigned drewrite_counter = 0;
 
 CandidateRewriteFilter::CandidateRewriteFilter(Env& env)
     : EnvObj(env),

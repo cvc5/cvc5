@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,6 +34,8 @@ namespace builtin {
 TheoryBuiltinRewriter::TheoryBuiltinRewriter(NodeManager* nm)
     : TheoryRewriter(nm)
 {
+  registerProofRewriteRule(ProofRewriteRule::DISTINCT_CARD_CONFLICT,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::DISTINCT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
 }
@@ -42,6 +44,15 @@ Node TheoryBuiltinRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      if (n.getKind() == Kind::DISTINCT)
+      {
+        if (n[0].getType().isCardinalityLessThan(n.getNumChildren()))
+        {
+          return nodeManager()->mkConst(false);
+        }
+      }
+      break;
     case ProofRewriteRule::DISTINCT_ELIM:
       if (n.getKind() == Kind::DISTINCT)
       {

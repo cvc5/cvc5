@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,9 +39,7 @@ SygusTermEnumerator::SygusTermEnumerator(Env& env,
   // grammar, which is important if the grammar involves terms that have
   // user definitions in env.
   theory::datatypes::utils::computeExpandedDefinitionForms(env, tn);
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  d_enum = sm->mkDummySkolem("enum", tn);
+  d_enum = NodeManager::mkDummySkolem("enum", tn);
   d_internal->initialize(d_enum);
   // ensure current is non-null
   if (d_internal->getCurrent().isNull())

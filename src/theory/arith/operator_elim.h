@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Martin Brain, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Martin Brain
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +17,10 @@
 
 #include <map>
 
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
-#include "proof/eager_proof_generator.h"
+#include "proof/proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
@@ -31,7 +32,7 @@ class TConvProofGenerator;
 namespace theory {
 namespace arith {
 
-class OperatorElim : public EagerProofGenerator
+class OperatorElim : protected EnvObj, public ProofGenerator
 {
  public:
   OperatorElim(Env& env);
@@ -57,7 +58,14 @@ class OperatorElim : public EagerProofGenerator
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
    */
-  static Node getAxiomFor(Node n);
+  static Node getAxiomFor(NodeManager* nm, const Node& n);
+  /**
+   * Get proof for formula f, which should have been generated as a lemma
+   * via eliminate above, or as a rewrite performed by eliminate.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify this, for proof generator interface */
+  std::string identify() const override;
 
  private:
   /**
@@ -78,6 +86,11 @@ class OperatorElim : public EagerProofGenerator
    */
   std::map<SkolemId, Node> d_arithSkolem;
   /**
+   * Map from the lemmas we sent to the term that they were introduced for.
+   * This is tracked only for proofs.
+   */
+  context::CDHashMap<Node, Node> d_lemmaMap;
+  /**
    * Eliminate operators in term n. If n has top symbol that is not a core
    * one (including division, int division, mod, to_int, is_int, syntactic sugar
    * transcendental functions), then we replace it by a form that eliminates
@@ -91,19 +104,19 @@ class OperatorElim : public EagerProofGenerator
    *
    * This method is called both during expandDefinition and during ppRewrite.
    *
+   * @param nm Pointer to the node manager
    * @param n The node to eliminate operators from.
+   * @param lems The lemmas storing (L, k) where L is the lemma and k is the 
+   * attached skolem it is associated with.
+   * @param partialOnly Whether we are only eliminating partial operators.
+   * @param wasNonLinear Set to true if n requires a non-linear logic.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n,
-                          std::vector<SkolemLemma>& lems,
-                          TConvProofGenerator* tg,
-                          bool partialOnly);
-  /** get arithmetic skolem
-   *
-   * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist.
-   */
-  Node getArithSkolem(SkolemId asi);
+  static Node eliminateOperators(NodeManager* nm,
+                                 Node n,
+                                 std::vector<std::pair<Node, Node>>& lems,
+                                 bool partialOnly,
+                                 bool& wasNonLinear);
   /**
    * Get the skolem lemma for lem, based on whether we are proof producing.
    * A skolem lemma is a wrapper around lem that also tracks its associated
@@ -111,27 +124,16 @@ class OperatorElim : public EagerProofGenerator
    *
    * @param lem The lemma that axiomatizes the behavior of k
    * @param k The skolem
+   * @param n The term we introduced the skolem for
    * @return the skolem lemma corresponding to lem, annotated with k.
    */
-  SkolemLemma mkSkolemLemma(Node lem, Node k);
+  SkolemLemma mkSkolemLemma(const Node& lem, const Node& k, const Node& n);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
    * for the identifier asi.
-   *
-   * If the option arithNoPartialFun is enabled, this returns f, where f is
-   * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp(Node n, SkolemId asi);
-
-  /**
-   * Called when a non-linear term n is given to this class. Throw an exception
-   * if the logic is linear.
-   */
-  void checkNonLinearLogic(Node term);
-
-  /** Whether we should use a partial function for the given id */
-  bool usePartialFunction(SkolemId id) const;
+  static Node getArithSkolemApp(NodeManager* nm, Node n, SkolemId asi);
 };
 
 }  // namespace arith

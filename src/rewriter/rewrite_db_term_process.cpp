@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,12 +15,17 @@
 
 #include "rewriter/rewrite_db_term_process.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
-#include "expr/nary_term_util.h"
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -40,10 +45,8 @@ RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager* nm,
 Node RewriteDbNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
-  TypeNode tn = n.getType();
   if (k == Kind::CONST_STRING)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" "B" "C")
     const std::vector<unsigned>& vec = n.getConst<String>().getVec();
     if (vec.size() <= 1)
@@ -55,9 +58,9 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     {
       std::vector<unsigned> tmp;
       tmp.push_back(c);
-      children.push_back(nm->mkConst(String(tmp)));
+      children.push_back(d_nm->mkConst(String(tmp)));
     }
-    Node ret = nm->mkNode(Kind::STRING_CONCAT, children);
+    Node ret = d_nm->mkNode(Kind::STRING_CONCAT, children);
     recordProofStep(n, ret, ProofRule::EVALUATE);
     return ret;
   }
@@ -70,13 +73,19 @@ Node RewriteDbNodeConverter::postConvert(Node n)
   else if (k == Kind::CONST_BITVECTOR)
   {
     // (_ bv N M) is (bv N M)
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     children.push_back(
-        nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
-    children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
-    Node ret = nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
+        d_nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
+    children.push_back(
+        d_nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
+    Node ret = d_nm->mkNode(Kind::CONST_BITVECTOR_SYMBOLIC, children);
     recordProofStep(n, ret, ProofRule::EVALUATE);
+    return ret;
+  }
+  else if (k == Kind::FUNCTION_ARRAY_CONST)
+  {
+    Node ret = theory::uf::FunctionConst::toLambda(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
   else if (k == Kind::FORALL)
@@ -84,27 +93,64 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     // ignore annotation
     if (n.getNumChildren() == 3)
     {
-      NodeManager* nm = NodeManager::currentNM();
-      Node ret = nm->mkNode(Kind::FORALL, n[0], n[1]);
+      Node ret = d_nm->mkNode(Kind::FORALL, n[0], n[1]);
       recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
       return ret;
+    }
+  }
+  else if (k == Kind::APPLY_UF)
+  {
+    Node ret = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+    return ret;
+  }
+  else if (k == Kind::APPLY_CONSTRUCTOR)
+  {
+    // We apply annotations to parametric datatype constructors, which is
+    // a no-op based on our proof signature.
+    TypeNode tn = n.getType();
+    if (tn.isParametricDatatype())
+    {
+      if (n.getOperator().getKind() != Kind::APPLY_TYPE_ASCRIPTION)
+      {
+        Node op = n.getOperator();
+        size_t index = theory::datatypes::utils::indexOf(op);
+        // get the constructor object
+        const DTypeConstructor& dtc =
+            theory::datatypes::utils::datatypeOf(op)[index];
+        // create ascribed constructor type
+        Node op_new = dtc.getInstantiatedConstructor(tn);
+        // make new node
+        std::vector<Node> children;
+        children.push_back(op_new);
+        children.insert(children.end(), n.begin(), n.end());
+        Node inr = d_nm->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+        recordProofStep(n, inr, ProofRule::ENCODE_EQ_INTRO);
+        return inr;
+      }
     }
   }
   // convert indexed operators to symbolic
   if (GenericOp::isNumeralIndexedOperatorKind(k))
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    indices.insert(indices.begin(), nm->mkConst(GenericOp(k)));
+    indices.insert(indices.begin(), d_nm->mkConst(GenericOp(k)));
     indices.insert(indices.end(), n.begin(), n.end());
-    Node ret = nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
+    Node ret = d_nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
     recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
     return ret;
   }
-  Node nacc = expr::getACINormalForm(n);
-  recordProofStep(n, nacc, ProofRule::ACI_NORM);
-  return nacc;
+  // since string constants are converted to concatenation terms, we ensure
+  // these are flattened using ACI_NORM. This ensures (str.++ "AB" x) is
+  // handled as (str.++ "A" "B" x), not (str.++ (str.++ "A" "B") x).
+  if (k==Kind::STRING_CONCAT)
+  {
+    Node nacc = expr::getACINormalForm(n);
+    recordProofStep(n, nacc, ProofRule::ACI_NORM);
+    return nacc;
+  }
+  return n;
 }
 
 bool RewriteDbNodeConverter::shouldTraverse(Node n)
@@ -148,7 +194,17 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
 }
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
-    : EnvObj(env), d_tpg(env, nullptr), d_proof(env)
+    : EnvObj(env),
+      d_wktc(Kind::INST_PATTERN_LIST),
+      // must rewrite within operators
+      d_tpg(env,
+            nullptr,
+            TConvPolicy::FIXPOINT,
+            TConvCachePolicy::NEVER,
+            "ProofRewriteDb",
+            &d_wktc,
+            true),
+      d_proof(env)
 {
 }
 

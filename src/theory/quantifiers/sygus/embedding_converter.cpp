@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -112,8 +112,6 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
-  NodeManager* nm = nodeManager();
-
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
   {
@@ -193,7 +191,7 @@ Node EmbeddingConverter::process(Node q,
     }
 
     // ev is the first-order variable corresponding to this synth fun
-    Node ev = nm->mkBoundVar("f" + sf.getName(), tn);
+    Node ev = NodeManager::mkBoundVar("f" + sf.getName(), tn);
     ebvl.push_back(ev);
     Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev
                    << std::endl;
@@ -241,7 +239,7 @@ Node EmbeddingConverter::process(Node q,
       for (unsigned j = 0; j < sfvl.getNumChildren(); j++)
       {
         schildren.push_back(sfvl[j]);
-        largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
+        largs.push_back(NodeManager::mkBoundVar(sfvl[j].getType()));
       }
       std::vector<Node> subsfn_children;
       subsfn_children.push_back(sf);
@@ -375,7 +373,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
           std::vector<Node> vs;
           for (const Node& v : vars)
           {
-            vs.push_back(nm->mkBoundVar(v.getType()));
+            vs.push_back(NodeManager::mkBoundVar(v.getType()));
           }
           Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
           std::vector<Node> eargs;

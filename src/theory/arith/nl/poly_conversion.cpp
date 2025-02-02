@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -838,7 +838,7 @@ Node PolyConverter::ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
 Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)
   {
@@ -855,7 +855,7 @@ Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
 Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node ran_variable = nm->mkBoundVar(nm->realType());
+  Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)
   {

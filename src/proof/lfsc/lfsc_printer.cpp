@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -186,12 +186,11 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     const DType& dt = stc.getDType();
     preamble << "; DATATYPE " << dt.getName() << std::endl;
-    NodeManager* nm = nodeManager();
     for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DTypeConstructor& cons = dt[i];
       std::string cname = d_tproc.getNameForUserNameOf(cons.getConstructor());
-      Node cc = nm->mkRawSymbol(cname, stc);
+      Node cc = NodeManager::mkRawSymbol(cname, stc);
       // print constructor/tester
       preamble << "(declare " << cc << " term)" << std::endl;
       for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
@@ -199,7 +198,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
         const DTypeSelector& arg = cons[j];
         // print selector
         std::string sname = d_tproc.getNameForUserNameOf(arg.getSelector());
-        Node sc = nm->mkRawSymbol(sname, stc);
+        Node sc = NodeManager::mkRawSymbol(sname, stc);
         preamble << "(declare " << sc << " term)" << std::endl;
       }
     }
@@ -541,11 +540,6 @@ void LfscPrinter::printProofInternal(
           Assert(passumeIt != passumeMap.end());
           out->printId(passumeIt->second, d_assumpPrefix);
         }
-        else if (r == ProofRule::ENCODE_EQ_INTRO)
-        {
-          // just add child
-          visit.push_back(PExpr(cur->getChildren()[0].get()));
-        }
         else if (isLambda)
         {
           Assert(cur->getArguments().size() == 3);
@@ -678,7 +672,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   for (const Node& a : args)
   {
     Node ac = d_tproc.convert(a);
-    Assert(!ac.isNull());
+    Assert(!ac.isNull()) << "Could not convert " << a << " in " << r;
     as.push_back(ac);
   }
   // The proof expression stream, which packs the next expressions (proofs,

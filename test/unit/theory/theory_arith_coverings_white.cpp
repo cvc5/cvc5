@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,13 +114,13 @@ Node make_real_variable(const std::string& s)
 {
   SkolemManager* sm = nodeManager->getSkolemManager();
   return sm->mkDummySkolem(
-      s, nodeManager->realType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->realType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
 }
 Node make_int_variable(const std::string& s)
 {
   SkolemManager* sm = nodeManager->getSkolemManager();
   return sm->mkDummySkolem(
-      s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->integerType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
 }
 
 TEST_F(TestTheoryWhiteArithCoverings, test_univariate_isolation)
@@ -388,7 +388,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   opts.write_smt().produceProofs = true;
   Env env(d_nodeManager, &opts);
   smt::PfManager pfm(env);
-  env.finishInit(pfm.getProofNodeManager());
+  env.finishInit(&pfm);
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
   NodeManager * nm = env.getNodeManager();

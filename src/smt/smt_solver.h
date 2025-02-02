@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -135,6 +135,8 @@ class SmtSolver : protected EnvObj
  private:
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
+  /** Finish initialization of preprocessor */
+  void finishInitPreprocessor();
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Assertions manager */

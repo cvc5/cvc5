@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,10 +63,10 @@ TermRegistry::TermRegistry(Env& env,
                                        : nullptr),
       d_inFullEffortCheck(false)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   d_zero = nm->mkConstInt(Rational(0));
   d_one = nm->mkConstInt(Rational(1));
-  d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
+  d_negOne = nm->mkConstInt(Rational(-1));
   Assert(options().strings.stringsAlphaCard <= String::num_codes());
   d_alphaCard = options().strings.stringsAlphaCard;
 }
@@ -151,6 +151,21 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
       lemma = nm->mkNode(
           Kind::IMPLIES, t, nm->mkNode(Kind::STRING_LENGTH, t[0]).eqNode(len));
     }
+  }
+  else if (tk == Kind::STRING_FROM_CODE)
+  {
+    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "kFromCode");
+    Node tc = t[0];
+    Node card = nm->mkConstInt(Rational(alphaCard));
+    Node cond = nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
+                           nm->mkNode(Kind::LT, tc, card));
+    Node emp = Word::mkEmptyWord(t.getType());
+    lemma = nm->mkNode(Kind::ITE,
+                       cond,
+                       tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)),
+                       k.eqNode(emp));
   }
   return lemma;
 }
@@ -305,20 +320,7 @@ void TermRegistry::registerTermInternal(Node n)
     }
     if (doEagerReduce)
     {
-      Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
-      if (!eagerRedLemma.isNull())
-      {
-        // if there was an eager reduction, we make the trust node for it
-        if (d_epg != nullptr)
-        {
-          regTermLem = d_epg->mkTrustNode(
-              eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
-        }
-        else
-        {
-          regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
-        }
-      }
+      regTermLem = eagerReduceTrusted(n);
     }
   }
   if (!regTermLem.isNull())
@@ -329,6 +331,25 @@ void TermRegistry::registerTermInternal(Node n)
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
     d_im->trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
+}
+
+TrustNode TermRegistry::eagerReduceTrusted(const Node& n)
+{
+  TrustNode regTermLem;
+  Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
+  if (!eagerRedLemma.isNull())
+  {
+    if (d_epg != nullptr)
+    {
+      regTermLem = d_epg->mkTrustNode(
+          eagerRedLemma, ProofRule::STRING_EAGER_REDUCTION, {}, {n});
+    }
+    else
+    {
+      regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+    }
+  }
+  return regTermLem;
 }
 
 void TermRegistry::registerType(TypeNode tn)
@@ -351,7 +372,7 @@ void TermRegistry::registerType(TypeNode tn)
 TrustNode TermRegistry::getRegisterTermLemma(Node n)
 {
   Assert(n.getType().isStringLike());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // register length information:
   //  for variables, split on empty vs positive length
   //  for concat/const/replace, introduce proxy var and state length relation
@@ -466,7 +487,7 @@ bool TermRegistry::isHandledUpdateOrSubstr(Node n)
 {
   Assert(n.getKind() == Kind::STRING_UPDATE
          || n.getKind() == Kind::STRING_SUBSTR);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node lenN = n[2];
   if (n.getKind() == Kind::STRING_UPDATE)
   {
@@ -496,7 +517,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     return TrustNode::null();
   }
   Assert(n.getType().isStringLike());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node n_len = nm->mkNode(Kind::STRING_LENGTH, n);
   Node emp = Word::mkEmptyWord(n.getType());
   if (s == LENGTH_GEQ_ONE)
@@ -595,7 +616,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
       }
     }
   }
-  return NodeManager::currentNM()->mkNode(n.getKind(), children);
+  return nodeManager()->mkNode(n.getKind(), children);
 }
 
 Node TermRegistry::getProxyVariableFor(Node n) const
@@ -679,13 +700,12 @@ const std::set<Node>& TermRegistry::getRelevantTermSet() const
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const
 {
-  return rewrite(NodeManager::currentNM()->mkNode(Kind::STRING_CONCAT, n1, n2));
+  return rewrite(NodeManager::mkNode(Kind::STRING_CONCAT, n1, n2));
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2, Node n3) const
 {
-  return rewrite(
-      NodeManager::currentNM()->mkNode(Kind::STRING_CONCAT, n1, n2, n3));
+  return rewrite(NodeManager::mkNode(Kind::STRING_CONCAT, n1, n2, n3));
 }
 
 Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn) const

@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -14,6 +14,8 @@
 ##
 
 libcvc5_add_sources(
+  aci_norm.cpp
+  aci_norm.h
   algorithm/flatten.h
   annotation_elim_node_converter.cpp
   annotation_elim_node_converter.h
@@ -43,6 +45,8 @@ libcvc5_add_sources(
   free_var_cache.h
   function_array_const.cpp
   function_array_const.h
+  internal_skolem_id.cpp
+  internal_skolem_id.h
   kind_map.h
   match_trie.cpp
   match_trie.h

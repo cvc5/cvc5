@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,7 +108,7 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(statisticsRegistry(), userContext()),
+      d_learner(d_env),
       d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
       d_constantIntegerVariables(context()),
@@ -945,8 +945,8 @@ Node TheoryArithPrivate::getCandidateModelValue(TNode term)
   }
 }
 
-Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArithPrivate::ppAssert(TrustNode tin,
+                                  TrustSubstitutionMap& outSubstitutions)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   TNode in = tin.getNode();
@@ -1005,7 +1005,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
                           << minVar << " |-> " << elim << endl;
         Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
       else
       {
@@ -1032,10 +1032,10 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       break;
   }
 
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
-void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder& learned)
+void TheoryArithPrivate::ppStaticLearn(TNode n, std::vector<TrustNode>& learned)
 {
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
@@ -1823,8 +1823,7 @@ void TheoryArithPrivate::outputPropagate(TNode lit) {
 void TheoryArithPrivate::outputRestart() {
   Trace("arith::channel") << "Arith restart!" << std::endl;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node restartVar = sm->mkDummySkolem(
+  Node restartVar = NodeManager::mkDummySkolem(
       "restartVar",
       nm->booleanType(),
       "A boolean variable asserted to be true to force a restart");
@@ -3395,7 +3394,27 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         revertOutOfConflict();
         Trace("arith::conflict") << "dio conflict   " << possibleConflict << endl;
         // TODO (project #37): justify (proofs in the DIO solver)
-        raiseBlackBoxConflict(possibleConflict);
+        Pf pf;
+        if (isProofEnabled())
+        {
+          std::vector<Node> assump;
+          if (possibleConflict.getKind() == Kind::AND)
+          {
+            assump.insert(
+                assump.end(), possibleConflict.begin(), possibleConflict.end());
+          }
+          else
+          {
+            assump.push_back(possibleConflict);
+          }
+          Node falsen = nodeManager()->mkConst(false);
+          CDProof cdp(d_env);
+          cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
+          Node npc = possibleConflict.notNode();
+          cdp.addStep(npc, ProofRule::SCOPE, {falsen}, assump);
+          pf = cdp.getProofFor(npc);
+        }
+        raiseBlackBoxConflict(possibleConflict, pf);
         outputConflicts();
         emmittedConflictOrSplit = true;
       }
@@ -4437,7 +4456,7 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 }
 
 Node flattenImplication(Node imp){
-  NodeBuilder nb(Kind::OR);
+  NodeBuilder nb(imp.getNodeManager(), Kind::OR);
   std::unordered_set<Node> included;
   Node left = imp[0];
   Node right = imp[1];
@@ -4539,7 +4558,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
-          NodeBuilder nb;
+          NodeBuilder nb(nodeManager());
           conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
         }
         // Collect the farkas coefficients, as nodes.
@@ -5059,7 +5078,7 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);
-  NodeBuilder nb(Kind::AND);
+  NodeBuilder nb(nodeManager(), Kind::AND);
 
   Polynomial p = Polynomial::parsePolynomial(tp);
   for(Polynomial::iterator i = p.begin(), iend = p.end(); i != iend; ++i) {

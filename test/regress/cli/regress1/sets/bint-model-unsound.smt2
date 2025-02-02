@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :finite-model-find true)
+(set-option :fmf-bound true)
+(declare-const r (Set (Tuple Int)))
+(declare-const a Int)
+(declare-const b Int)
+(declare-const c Int)
+(assert (forall ((D Int)) (or (< D 0) (not (set.member (tuple D) r)))))
+(assert (set.member (tuple 0) r))
+(assert (set.subset r (set.union (set.singleton (tuple a)) (set.union (set.singleton (tuple b)) (set.singleton (tuple c))))))
+(check-sat)

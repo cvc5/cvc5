@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +37,6 @@ InferenceManager::InferenceManager(Env& env,
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
-  d_tid = mkTrustId(TrustId::THEORY_INFERENCE);
-  d_tsid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_SETS);
 }
 
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
@@ -111,7 +109,12 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
 
 void InferenceManager::assertSetsConflict(const Node& conf, InferenceId id)
 {
-  conflict(conf, id);
+  if (d_ipc)
+  {
+    d_ipc->notifyConflict(conf, id);
+  }
+  TrustNode trn = TrustNode::mkTrustConflict(conf, d_ipc.get());
+  trustedConflict(trn, id);
 }
 
 bool InferenceManager::assertSetsFact(Node atom,

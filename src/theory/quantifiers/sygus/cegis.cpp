@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,7 +89,7 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       std::vector<Node> vs;
       for (const Node& v : vars)
       {
-        vs.push_back(nm->mkBoundVar(v.getType()));
+        vs.push_back(NodeManager::mkBoundVar(v.getType()));
       }
       std::vector<Node> eargs;
       eargs.push_back(candidates[i]);

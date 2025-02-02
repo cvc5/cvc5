@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1032,6 +1032,14 @@ class CVC5_EXPORT SolverEngine
    */
   const Options& options() const;
 
+  /**
+   * Return true if the given term is a valid closed term, which can be used as
+   * an argument to, e.g., assert, get-value, block-model-values, etc.
+   *
+   * @param n The node to check
+   * @return true if n is a well formed term.
+   */
+  bool isWellFormedTerm(const Node& n) const;
   /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.

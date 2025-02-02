@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,6 +66,16 @@ void getFreeAssumptionsMap(
 void getSubproofRule(std::shared_ptr<ProofNode> pn,
                      ProofRule r,
                      std::vector<std::shared_ptr<ProofNode>>& pfs);
+
+/**
+ * Get the subproofs of pn that have a rule in rs.
+ * @param pn The proof node.
+ * @param rs The rules to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRules(std::shared_ptr<ProofNode> pn,
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs);
 
 /**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we

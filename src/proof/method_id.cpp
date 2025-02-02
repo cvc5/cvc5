@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@ const char* toString(MethodId id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
     case MethodId::RW_EXT_REWRITE: return "RW_EXT_REWRITE";
+    case MethodId::RW_EXT_REWRITE_AGG: return "RW_EXT_REWRITE_AGG";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
@@ -49,10 +50,9 @@ std::ostream& operator<<(std::ostream& out, MethodId id)
   return out;
 }
 
-Node mkMethodId(MethodId id)
+Node mkMethodId(NodeManager* nm, MethodId id)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(id)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(id)));
 }
 
 bool getMethodId(TNode n, MethodId& i)
@@ -97,7 +97,8 @@ bool getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-void addMethodIds(std::vector<Node>& args,
+void addMethodIds(NodeManager* nm,
+                  std::vector<Node>& args,
                   MethodId ids,
                   MethodId ida,
                   MethodId idr)
@@ -106,15 +107,15 @@ void addMethodIds(std::vector<Node>& args,
   bool ndefApply = (ida != MethodId::SBA_SEQUENTIAL);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter || ndefApply)
   {
-    args.push_back(mkMethodId(ids));
+    args.push_back(mkMethodId(nm, ids));
   }
   if (ndefApply || ndefRewriter)
   {
-    args.push_back(mkMethodId(ida));
+    args.push_back(mkMethodId(nm, ida));
   }
   if (ndefRewriter)
   {
-    args.push_back(mkMethodId(idr));
+    args.push_back(mkMethodId(nm, idr));
   }
 }
 

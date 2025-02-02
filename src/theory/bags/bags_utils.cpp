@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -705,7 +705,6 @@ Node BagsUtils::evaluateBagFold(TNode n)
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
 
   std::map<Node, Rational>::iterator it = elements.begin();
-  NodeManager* nm = NodeManager::currentNM();
   while (it != elements.end())
   {
     // apply the combination function n times, where n is the multiplicity
@@ -713,7 +712,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
     Assert(count.sgn() >= 0) << "negative multiplicity" << std::endl;
     while (!count.isZero())
     {
-      ret = nm->mkNode(Kind::APPLY_UF, f, it->first, ret);
+      ret = NodeManager::mkNode(Kind::APPLY_UF, f, it->first, ret);
       count = count - 1;
     }
     ++it;
@@ -770,7 +769,8 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     ++j;
     while (j != elements.end())
     {
-      Node sameClass = nm->mkNode(Kind::APPLY_UF, r, i->first, j->first);
+      Node sameClass =
+          NodeManager::mkNode(Kind::APPLY_UF, r, i->first, j->first);
       sameClass = rewriter->rewrite(sameClass);
       if (!sameClass.isConst())
       {

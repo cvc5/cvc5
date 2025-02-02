@@ -6,7 +6,7 @@
 ; EXPECT: "done"
 ; DISABLE-TESTER: dump
 (set-logic ALL)
-(set-option :produce-proofs true)
-(get-option :produce-proofs)
+(set-option :produce-models true)
+(get-option :produce-models)
 (assert false)
 (echo "done")

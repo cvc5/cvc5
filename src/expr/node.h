@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,8 @@
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
 
+#include <cvc5/cvc5_skolem_id.h>
+
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -30,6 +32,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
+#include "expr/internal_skolem_id.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -440,6 +443,15 @@ public:
   }
 
   /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const
+  {
+    assertTNodeNotExpired();
+    return d_nv->getNodeManager();
+  }
+
+  /**
    * Returns a node representing the operator of this expression.
    * If this is an APPLY_UF, then the operator will be a functional term.
    * Otherwise, it will be a node with kind BUILTIN.
@@ -553,6 +565,27 @@ public:
    */
   template <class T>
   inline const T& getConst() const;
+
+  /**
+   * @return true if this is a skolem function.
+   */
+  bool isSkolem() const;
+
+  /**
+   * @return the skolem identifier of this node.
+   */
+  SkolemId getSkolemId() const;
+
+  /**
+   * @return the skolem indices of this node.
+   */
+  std::vector<Node> getSkolemIndices() const;
+
+  /**
+   * @return the internal skolem function id, for skolems whose id is
+   * SkolemId::INTERNAL.
+   */
+  InternalSkolemId getInternalSkolemId() const;
 
   /**
    * Returns the reference count of this node.
@@ -983,7 +1016,7 @@ inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   assertTNodeNotExpired();
 
-  return NodeManager::currentNM()->getAttribute(*this, AttrKind());
+  return d_nv->getNodeManager()->getAttribute(*this, AttrKind());
 }
 
 template <bool ref_count>
@@ -992,7 +1025,7 @@ inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   assertTNodeNotExpired();
 
-  return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
+  return d_nv->getNodeManager()->hasAttribute(*this, AttrKind());
 }
 
 template <bool ref_count>
@@ -1001,7 +1034,7 @@ inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   assertTNodeNotExpired();
 
-  return NodeManager::currentNM()->getAttribute(*this, AttrKind(), ret);
+  return d_nv->getNodeManager()->getAttribute(*this, AttrKind(), ret);
 }
 
 template <bool ref_count>
@@ -1010,7 +1043,7 @@ inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   assertTNodeNotExpired();
 
-  NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
+  d_nv->getNodeManager()->setAttribute(*this, AttrKind(), value);
 }
 
 template <bool ref_count>
@@ -1133,13 +1166,13 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::eqNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::EQUAL, *this, right);
+  return d_nv->getNodeManager()->mkNode(Kind::EQUAL, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::NOT, *this);
+  return d_nv->getNodeManager()->mkNode(Kind::NOT, *this);
 }
 
 template <bool ref_count>
@@ -1147,7 +1180,7 @@ NodeTemplate<true> NodeTemplate<ref_count>::negate() const {
   assertTNodeNotExpired();
   return (getKind() == Kind::NOT)
              ? NodeTemplate<true>(d_nv->getChild(0))
-             : NodeManager::currentNM()->mkNode(Kind::NOT, *this);
+             : d_nv->getNodeManager()->mkNode(Kind::NOT, *this);
 }
 
 template <bool ref_count>
@@ -1155,7 +1188,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::andNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::AND, *this, right);
+  return d_nv->getNodeManager()->mkNode(Kind::AND, *this, right);
 }
 
 template <bool ref_count>
@@ -1163,7 +1196,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::orNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::OR, *this, right);
+  return d_nv->getNodeManager()->mkNode(Kind::OR, *this, right);
 }
 
 template <bool ref_count>
@@ -1172,7 +1205,7 @@ NodeTemplate<true>
 NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count2>& thenpart,
                                  const NodeTemplate<ref_count3>& elsepart) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::ITE, *this, thenpart, elsepart);
+  return d_nv->getNodeManager()->mkNode(Kind::ITE, *this, thenpart, elsepart);
 }
 
 template <bool ref_count>
@@ -1180,7 +1213,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::impNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::IMPLIES, *this, right);
+  return d_nv->getNodeManager()->mkNode(Kind::IMPLIES, *this, right);
 }
 
 template <bool ref_count>
@@ -1188,7 +1221,7 @@ template <bool ref_count2>
 NodeTemplate<true>
 NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count2>& right) const {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->mkNode(Kind::XOR, *this, right);
+  return d_nv->getNodeManager()->mkNode(Kind::XOR, *this, right);
 }
 
 template <bool ref_count>
@@ -1212,7 +1245,7 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
   if (mk == kind::metakind::OPERATOR)
   {
     /* Returns a BUILTIN node. */
-    return NodeManager::currentNM()->operatorOf(getKind());
+    return d_nv->getNodeManager()->operatorOf(getKind());
   }
   Assert(mk == kind::metakind::PARAMETERIZED);
   /* The operator is the first child. */
@@ -1233,12 +1266,12 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
   assertTNodeNotExpired();
-  TypeNode tn = NodeManager::currentNM()->getType(*this, check);
+  TypeNode tn = d_nv->getNodeManager()->getType(*this, check);
   if (tn.isNull())
   {
     // recompute with an error stream and throw a type exception
     std::stringstream errOutTmp;
-    tn = NodeManager::currentNM()->getType(*this, check, &errOutTmp);
+    tn = d_nv->getNodeManager()->getType(*this, check, &errOutTmp);
     throw TypeCheckingExceptionPrivate(*this, errOutTmp.str());
   }
   return tn;
@@ -1248,7 +1281,7 @@ template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getTypeOrNull(bool check) const
 {
   assertTNodeNotExpired();
-  return NodeManager::currentNM()->getType(*this, check);
+  return d_nv->getNodeManager()->getType(*this, check);
 }
 
 template <bool ref_count>
@@ -1282,7 +1315,7 @@ Node NodeTemplate<ref_count>::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
+  NodeBuilder nb(getNodeManager(), getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1352,7 +1385,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(getNodeManager(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1416,7 +1449,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(getNodeManager(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
