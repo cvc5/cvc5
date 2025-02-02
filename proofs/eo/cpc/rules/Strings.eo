@@ -179,7 +179,6 @@
 ;   An equality involving the given child of t. In particular, we infer what
 ;   portion of the prefix (resp. suffix) it is entailed to be based on
 ;   reasoning about adjacent constants.
-; TODO: update usage of $str_overlap
 (declare-rule concat_cprop ((U Type) (t (Seq U)) (tc (Seq U)) (s (Seq U)) (rev Bool))
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
