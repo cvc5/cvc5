@@ -380,57 +380,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       beginCallDebug();
-      eq::EqualityEngine * ee = getEqualityEngine();
+      eq::EqualityEngine* ee = getEqualityEngine();
       d_conj_count = 0;
-
-      Trace("sg-proc") << "Get eq classes..." << std::endl;
-      d_op_arg_index.clear();
-      d_ground_eqc_map.clear();
-      d_bool_eqc[0] = Node::null();
-      d_bool_eqc[1] = Node::null();
-      std::vector< TNode > eqcs;
-      d_em.clear();
-      eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-      while( !eqcs_i.isFinished() ){
-        TNode r = (*eqcs_i);
-        Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
-        eqcs.push_back( r );
-        if( r.getType().isBoolean() ){
-          if (areEqual(r, d_true))
-          {
-            d_ground_eqc_map[r] = d_true;
-            d_bool_eqc[0] = r;
-          }
-          else if (areEqual(r, d_false))
-          {
-            d_ground_eqc_map[r] = d_false;
-            d_bool_eqc[1] = r;
-          }
-        }
-        d_em[r] = eqcs.size();
-        eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
-        while( !ieqc_i.isFinished() ){
-          TNode n = (*ieqc_i);
-          Trace("sg-proc-debug") << "......term : " << n << std::endl;
-          if( getTermDatabase()->hasTermCurrent( n ) ){
-            if( isHandledTerm( n ) ){
-              std::vector<TNode> areps;
-              for (const Node& nc : n)
-              {
-                areps.push_back(d_qstate.getRepresentative(nc));
-              }
-              d_op_arg_index[r].addTerm(areps, n);
-            }
-          }
-          ++ieqc_i;
-        }
-        ++eqcs_i;
-      }
-      Assert(!d_bool_eqc[0].isNull());
-      Assert(!d_bool_eqc[1].isNull());
-      d_urelevant_terms.clear();
-      Trace("sg-proc") << "...done get eq classes" << std::endl;
-
+      std::vector<TNode> eqcs;
+      getEquivalenceClasses(eqcs);
       Trace("sg-proc") << "Determine ground EQC..." << std::endl;
       bool success;
       do{
@@ -891,6 +844,57 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       endCallDebug();
     }
   }
+}
+
+void ConjectureGenerator::getEquivalenceClasses(std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Get eq classes..." << std::endl;
+  d_op_arg_index.clear();
+  d_ground_eqc_map.clear();
+  d_bool_eqc[0] = Node::null();
+  d_bool_eqc[1] = Node::null();
+  d_em.clear();
+  eq::EqualityEngine* ee = getEqualityEngine();
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
+    eqcs.push_back( r );
+    if( r.getType().isBoolean() ){
+      if (areEqual(r, d_true))
+        {
+          d_ground_eqc_map[r] = d_true;
+          d_bool_eqc[0] = r;
+        }
+      else if (areEqual(r, d_false))
+        {
+          d_ground_eqc_map[r] = d_false;
+          d_bool_eqc[1] = r;
+        }
+    }
+    d_em[r] = eqcs.size();
+    eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
+    while( !ieqc_i.isFinished() ){
+      TNode n = (*ieqc_i);
+      Trace("sg-proc-debug") << "......term : " << n << std::endl;
+      if( getTermDatabase()->hasTermCurrent( n ) ){
+        if( isHandledTerm( n ) ){
+          std::vector<TNode> areps;
+          for (const Node& nc : n)
+            {
+              areps.push_back(d_qstate.getRepresentative(nc));
+            }
+          d_op_arg_index[r].addTerm(areps, n);
+        }
+      }
+      ++ieqc_i;
+    }
+    ++eqcs_i;
+  }
+  Assert(!d_bool_eqc[0].isNull());
+  Assert(!d_bool_eqc[1].isNull());
+  d_urelevant_terms.clear();
+  Trace("sg-proc") << "...done get eq classes" << std::endl;
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
