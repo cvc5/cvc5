@@ -19,7 +19,7 @@
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "printer/smt2/smt2_printer.h"
-#include "theory/quantifiers/mbqi_fast_sygus.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -51,9 +51,9 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   // may appear in certain models e.g. strings of excessive length
   d_nonClosedKinds.insert(Kind::WITNESS);
 
-  if (options().quantifiers.mbqiFastSygus)
+  if (options().quantifiers.mbqiEnum)
   {
-    d_msenum.reset(new MbqiFastSygus(env, *this));
+    d_msenum.reset(new MbqiEnum(env, *this));
   }
   d_subOptions.copyValues(options());
   smt::SetDefaults::disableChecking(d_subOptions);
@@ -322,7 +322,6 @@ void InstStrategyMbqi::process(Node q)
   // get a term that has the same model value as the value each fresh variable
   // represents
   Subs fvToInst;
-  // bool modifiedInst = false;
   for (const Node& v : allVars)
   {
     // get a term that witnesses this variable
@@ -332,7 +331,6 @@ void InstStrategyMbqi::process(Node q)
     // is combined with MBQI
     if (mvt.isNull() || !TermUtil::getInstConstAttr(mvt).isNull())
     {
-      // modifiedInst = true;
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
       mvt = NodeManager::mkGroundTerm(ov.getType());
@@ -351,7 +349,6 @@ void InstStrategyMbqi::process(Node q)
   Instantiate* qinst = d_qim.getInstantiate();
   if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_MBQI))
   {
-    // AlwaysAssert(modifiedInst) << "Failed to add instantiation";
     Trace("mbqi") << "...failed to add instantiation" << std::endl;
     return;
   }
@@ -500,7 +497,7 @@ Node InstStrategyMbqi::convertToQuery(
 Node InstStrategyMbqi::modelValueToQuery(const Node& t)
 {
   FirstOrderModel* fm = d_treg.getModel();
-  if (!options().quantifiers.mbqiFastSygus)
+  if (!options().quantifiers.mbqiEnum)
   {
     return fm->getValue(t);
   }
@@ -546,7 +543,7 @@ void InstStrategyMbqi::modelValueFromQuery(
     const std::map<Node, Node>& mvToFreshVar)
 {
   getModelFromSubsolver(smt, vars, mvs);
-  if (options().quantifiers.mbqiFastSygus)
+  if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
     if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))

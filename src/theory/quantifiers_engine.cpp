@@ -181,7 +181,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   }
   if (options().quantifiers.mbqi)
   {
-    // may need to be notified of assertions, for mbqi-fast-sygus
+    // may need to be notified of assertions, for mbqi-enum
     quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
     mi->ppNotifyAssertions(assertions);
   }

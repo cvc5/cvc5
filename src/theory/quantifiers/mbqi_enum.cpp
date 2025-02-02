@@ -13,7 +13,7 @@
  * A class for augmenting model-based instantiations via fast sygus enumeration.
  */
 
-#include "theory/quantifiers/mbqi_fast_sygus.h"
+#include "theory/quantifiers/mbqi_enum.h"
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
@@ -54,7 +54,7 @@ void MVarInfo::initialize(Env& env,
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
   // include free symbols from body of quantified formula if applicable
-  if (env.getOptions().quantifiers.mbqiFastSygusFreeSymsGrammar)
+  if (env.getOptions().quantifiers.mbqiEnumFreeSymsGrammar)
   {
     std::unordered_set<Node> syms;
     expr::getSymbols(q[1], syms);
@@ -144,14 +144,14 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
     {
       d_nindices.push_back(index);
       // include variables defined in terms of others if applicable
-      if (env.getOptions().quantifiers.mbqiFastSygusExtVarsGrammar)
+      if (env.getOptions().quantifiers.mbqiEnumExtVarsGrammar)
       {
         etrules.push_back(v);
       }
     }
   }
   // include the global symbols if applicable
-  if (env.getOptions().quantifiers.mbqiFastSygusGlobalSymGrammar)
+  if (env.getOptions().quantifiers.mbqiEnumGlobalSymGrammar)
   {
     const context::CDHashSet<Node>& gsyms = parent.getGlobalSyms();
     for (const Node& v : gsyms)
@@ -184,14 +184,14 @@ bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
   return true;
 }
 
-MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
+MbqiEnum::MbqiEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
   d_subOptions.copyValues(options());
   smt::SetDefaults::disableChecking(d_subOptions);
 }
 
-MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
+MQuantInfo& MbqiEnum::getOrMkQuantInfo(const Node& q)
 {
   auto [it, inserted] = d_qinfo.try_emplace(q);
   if (inserted)
@@ -201,18 +201,13 @@ MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiFastSygus::constructInstantiation(
+bool MbqiEnum::constructInstantiation(
     const Node& q,
     const Node& query,
     const std::vector<Node>& vars,
     std::vector<Node>& mvs,
     const std::map<Node, Node>& mvFreshVar)
 {
-  // TODO: it would better for the last child to simply invoke addInstantiation
-  // as an oracle to determine if the instantiation is feasiable. This would
-  // avoid one subsolver call per instantiation we construct.
-  // Doing this ignores the constructed model in favor of using "entailment"
-  // from the main solver. This is likely a better notion of filtering.
   Assert(q[0].getNumChildren() == vars.size());
   Assert(vars.size() == mvs.size());
   if (TraceIsOn("mbqi-model-enum"))

@@ -32,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 
-class MbqiFastSygus;
+class MbqiEnum;
 
 /**
  * InstStrategyMbqi
@@ -47,7 +47,7 @@ class MbqiFastSygus;
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
-  friend class MbqiFastSygus;
+  friend class MbqiEnum;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -66,7 +66,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
   /** For collecting global terms from all available assertions. */
-  void ppNotifyAssertions(const std::vector<Node>& assertions);
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /** Get the symbols appearing in assertions */
   const context::CDHashSet<Node>& getGlobalSyms() const;
   /** identify */
@@ -139,7 +139,7 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
-  std::unique_ptr<MbqiFastSygus> d_msenum;
+  std::unique_ptr<MbqiEnum> d_msenum;
   /** The options for subsolver calls */
   Options d_subOptions;
   /* Set of global ground terms in assertions (outside of quantifiers). */
