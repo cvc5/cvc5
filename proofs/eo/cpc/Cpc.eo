@@ -100,7 +100,7 @@
 ; program: $run_evaluate
 ; args:
 ; - t S: The term to evaluate.
-; conclusion: The result of evaluating t.
+; return: The result of evaluating t.
 (program $run_evaluate ((T Type) (S Type) 
                        (x T) (y T) (z S) (ys S :list)
                        (b Bool) (n Int) (m Int)
@@ -172,6 +172,8 @@
                                                  (eo::extract ex (eo::add r (eo::len ey)) (eo::len ex)))
                                              )
                                            ))))
+      (($run_evaluate (str.replace_all x y z))
+                                          ($str_eval_replace_all x y z))
       (($run_evaluate (str.prefixof x y)) (eo::define ((ex ($run_evaluate x)))
                                           (eo::define ((ey ($run_evaluate y)))
                                           (eo::define ((r (eo::extract ey 0 (eo::add (eo::len ex) -1))))

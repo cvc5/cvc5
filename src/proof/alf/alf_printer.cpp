@@ -379,6 +379,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
