@@ -1,4 +1,4 @@
-(include "../theories/Arith.eo")
+(include "../../theories/Arith.eo")
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
