@@ -418,6 +418,18 @@
 
 ;;-------------------- Reductions
 
+; define: $str_check_length_one_or_unit
+; args:
+; - s (Seq T): The sequence term.
+; return: true if s is a constant-like string of length one.
+(program $str_check_length_one_or_unit ((T Type) (s (Seq T)) (t T))
+  ((Seq T)) Bool
+  (
+    (($str_check_length_one_or_unit (seq.unit t))  true)
+    (($str_check_length_one_or_unit s)             (eo::is_eq (eo::len s) 1))
+  )
+)
+
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string program in terms of (simpler) programs.
 
