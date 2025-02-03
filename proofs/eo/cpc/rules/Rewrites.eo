@@ -2,10 +2,12 @@
 (include "../theories/Arrays.eo")
 (include "../theories/Arith.eo")
 (include "../theories/Reals.eo")
-(include "../theories/Transcendentals.eo")
 (include "../theories/BitVectors.eo")
 (include "../theories/Strings.eo")
 (include "../theories/Sets.eo")
+
+(include "../expert/theories/Sets.eo")
+(include "../expert/theories/Transcendentals.eo")
 
 (declare-rule arith-mul-one ((@T0 Type) (@T1 Type) (t1 @T0 :list) (s1 @T1 :list))
   :args (t1 s1)

@@ -1,6 +1,6 @@
-(include "../theories/Builtin.eo")
-(include "../theories/Arith.eo")
-(include "../theories/BitVectors.eo")
+(include "../../theories/Builtin.eo")
+(include "../../theories/Arith.eo")
+(include "../../theories/BitVectors.eo")
 
 ; note: We do not currently check whether the indices of this sort are positive.
 (declare-const FloatingPoint
