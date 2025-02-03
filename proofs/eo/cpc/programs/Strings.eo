@@ -1762,3 +1762,39 @@
   (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
     ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
     (str.<= s t)))
+
+
+; program: $str_eval_replace_all_rec
+; args:
+; - s String: A string.
+; - t String: A string to find.
+; - u String: A string to replace with.
+; - n Int: The result of finding t in s.
+; - lent Int: The length of t.
+; return: >
+;   The result of evaluating (str.replace_all s t u).
+(program $str_eval_replace_all_rec ((s String) (t String) (u String) (n Int) (lent Int))
+  (String String String Int Int) String
+  (
+  (($str_eval_replace_all_rec s t u -1 lent)  s)
+  (($str_eval_replace_all_rec s t u n lent)   (eo::define ((snext (eo::extract s (eo::add n lent) (eo::len s))))
+                                              (eo::concat
+                                                (eo::extract s 0 (eo::add n -1))
+                                                u
+                                                ($str_eval_replace_all_rec snext t u (eo::find snext t) lent))))
+  )
+)
+
+; program: $str_eval_replace_all_rec
+; args:
+; - s String: A string.
+; - t String: A string to find.
+; - u String: A string to replace with.
+; return: >
+;   The result of evaluating (str.replace_all s t u).
+(define $str_eval_replace_all ((s String) (t String) (u String))
+  (eo::ite (eo::and (eo::is_str s) (eo::is_str t) (eo::is_str u))
+    (eo::ite (eo::is_eq t "")
+      s
+      ($str_eval_replace_all_rec s t u (eo::find s t) (eo::len t)))
+    (str.replace_all s t u)))
