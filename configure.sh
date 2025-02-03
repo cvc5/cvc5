@@ -9,10 +9,15 @@ Usage: $0 [<build type>] [<option> ...]
 
 Build types:
   production
+    Optimized, assertions and tracing disabled
   debug
+    Unoptimized, debug symbols, assertions, and tracing enabled
   testing
+    Optimized debug build
   competition
-  competition-inc
+    Maximally optimized, assertions and tracing disabled, muzzled
+  safe-mode
+    Like production except --safe-options is set to true
 
 
 General options;
@@ -110,7 +115,6 @@ asan=default
 assertions=default
 auto_download=default
 cln=default
-comp_inc=default
 coverage=default
 cryptominisat=default
 debug_context_mm=default
@@ -336,7 +340,6 @@ do
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         competition-inc) buildtype=Competition; comp_inc=ON;;
          safe-mode)       buildtype=Production; safe_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
@@ -369,8 +372,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $comp_inc != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $safe_mode != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
 [ $coverage != default ] \

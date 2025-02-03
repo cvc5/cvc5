@@ -10,6 +10,13 @@
   (eo::define ((wm1 (eo::add w -1)))
     (eo::extract b wm1 wm1)))))
 
+; define: $bv_ones
+; args:
+; - m Int: The bitwidth.
+; return: The bitvector of width m containing all ones.
+(define $bv_ones ((m Int))
+  (eo::to_bin m (eo::add ($arith_eval_int_pow_2 m) -1)))
+
 ; define: $bv_to_signed_int
 ; args:
 ; - b (BitVec m): The bitvector term.

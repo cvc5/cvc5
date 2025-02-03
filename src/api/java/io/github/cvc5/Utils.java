@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Hans-Joerg Schurr, Daniel Larraz
+ *   Mudathir Mohamed, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@ package io.github.cvc5;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,29 +45,31 @@ public class Utils
    * filenames.
    * @param pathInJar The path to the text file inside the JAR
    * @return a list of filenames read from the file
-   * @throws UnsatisfiedLinkError If the text file does not exist
+   * @throws FileNotFoundException If the text file does not exist
    * @throws IOException If an I/O error occurs
    */
   public static List<String> readLibraryFilenames(String pathInJar)
-      throws IOException, UnsatisfiedLinkError
+      throws FileNotFoundException, IOException
   {
     List<String> filenames = new ArrayList<>();
 
     // Load the input stream from the resource path within the JAR
-    try (InputStream inputStream = Utils.class.getResourceAsStream(pathInJar);
-         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
+    try (InputStream inputStream = Utils.class.getResourceAsStream(pathInJar))
     {
       // Check if the input stream is null (resource not found)
       if (inputStream == null)
       {
-        throw new UnsatisfiedLinkError("Resource not found: " + pathInJar);
+        throw new FileNotFoundException("Resource not found: " + pathInJar);
       }
 
-      String line;
-      // Read each line from the file and add it to the list
-      while ((line = reader.readLine()) != null)
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
       {
-        filenames.add(line);
+        String line;
+        // Read each line from the file and add it to the list
+        while ((line = reader.readLine()) != null)
+        {
+          filenames.add(line);
+        }
       }
     }
 
@@ -83,11 +86,11 @@ public class Utils
    *
    * @param inputStream The input stream from which data is read
    * @param outputStream The output stream to which data is written
-   * @throws Exception If an I/O error occurs during reading or writing
+   * @throws IOException If an I/O error occurs during reading or writing
    * @see InputStream#transferTo(OutputStream)
    */
   public static void transferTo(InputStream inputStream, FileOutputStream outputStream)
-      throws Exception
+      throws IOException
   {
     byte[] buffer = new byte[4096];
     int bytesRead;
@@ -102,18 +105,18 @@ public class Utils
    *
    * @param path The path inside the JAR where the library is located (e.g., "/cvc5-libs").
    * @param filename The name of the library file (e.g., "libcvc5.so").
-   * @throws Exception If the library cannot be found, the filename lacks an extension,
-   *                   or any I/O operation fails during extraction.
-   * @throws UnsatisfiedLinkError If the library cannot be located at the specified path.
+   * @throws FileNotFoundException If the library cannot be found
+   * @throws Exception If an I/O error occurs or the library cannot be loaded
    */
-  public static void loadLibraryFromJar(Path tempDir, String path, String filename) throws Exception
+  public static void loadLibraryFromJar(Path tempDir, String path, String filename)
+    throws FileNotFoundException, Exception
   {
     String pathInJar = path + "/" + filename;
     // Extract the library from the JAR
     InputStream inputStream = Utils.class.getResourceAsStream(pathInJar);
     if (inputStream == null)
     {
-      throw new UnsatisfiedLinkError("Library not found: " + pathInJar);
+      throw new FileNotFoundException("Library not found: " + pathInJar);
     }
 
     // Create a temporary file for the native library
@@ -127,7 +130,14 @@ public class Utils
     }
 
     // Load the library
-    System.load(tempLibrary.getAbsolutePath());
+    try
+    {
+      System.load(tempLibrary.getAbsolutePath());
+    }
+    catch (UnsatisfiedLinkError e)
+    {
+      throw new Exception("Couldn't load cvc5 native libraries from JAR");
+    }
   }
 
   /**
@@ -139,25 +149,25 @@ public class Utils
     {
       try
       {
-        System.loadLibrary("cvc5jni");
+        // Try to extract the libraries from a JAR in the classpath
+        List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
+
+        // Create a temporary directory to store the libraries
+        Path tempDir = Files.createTempDirectory("cvc5-libs");
+        tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
+
+        for (String filename : filenames)
+        {
+          loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
+        }
       }
-      catch (UnsatisfiedLinkError jni_ex)
+      catch (Exception ex)
       {
         try
         {
-          // Try to extract the libraries from a JAR in the classpath
-          List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
-
-          // Create a temporary directory to store the libraries
-          Path tempDir = Files.createTempDirectory("cvc5-libs");
-          tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
-
-          for (String filename : filenames)
-          {
-            loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
-          }
+          System.loadLibrary("cvc5jni");
         }
-        catch (Exception ex)
+        catch (UnsatisfiedLinkError jni_ex)
         {
           throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
         }

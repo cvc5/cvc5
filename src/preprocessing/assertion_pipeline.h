@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,14 +73,17 @@ class AssertionPipeline : protected EnvObj
    * generator is not required and is ignored if isInput is true.
    * @param trustId The trust id to use if pg is not provided when isInput
    * is false and proofs are enabled.
+   * @param ensureRew If true, we rewrite all assertions added in this call.
    */
   void push_back(Node n,
                  bool isInput = false,
                  ProofGenerator* pg = nullptr,
-                 TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
+                 TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                 bool ensureRew = false);
   /** Same as above, with TrustNode */
   void pushBackTrusted(TrustNode trn,
-                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                       bool ensureRew = false);
 
   /**
    * Get the constant reference to the underlying assertions. It is only

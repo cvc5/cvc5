@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -881,7 +881,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+              nodeManager(), theoryId);
           cdp->addStep(
               eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }

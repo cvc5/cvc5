@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,8 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   // don't need to rewrite terms since rewritten is not a non-standard op
   if (d_env.isTheoryProofProducing())
   {
-    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(),
+                                                              THEORY_ARITH);
     Node eq = atom.eqNode(rewritten);
     return d_ppPfGen.mkTrustedRewrite(
         atom,
