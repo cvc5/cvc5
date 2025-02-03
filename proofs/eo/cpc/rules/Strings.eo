@@ -739,7 +739,7 @@
 ;   The result of evaluating (str.replace_re_all s r t).
 (define $str_eval_replace_re_all ((s String) (r RegLan) (t String))
   (eo::define ((rnemp (re.inter r (re.comp (str.to_re ""))))) ; looking for non-empty matches
-  ($singleton_elim ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s r)))))
+  ($singleton_elim ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s rnemp)))))
 
 ; rule: str-replace-re-all-eval
 ; implements: ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL
