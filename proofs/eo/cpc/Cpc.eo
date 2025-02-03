@@ -69,6 +69,7 @@
 (include "./rules/Sets.eo")
 (include "./theories/Bags.eo")
 (include "./theories/FiniteFields.eo")
+(include "./rules/ArithBvConv.eo")
 (include "./rules/Quantifiers.eo")
 (include "./rules/Datatypes.eo")
 (include "./theories/SepLogic.eo")
