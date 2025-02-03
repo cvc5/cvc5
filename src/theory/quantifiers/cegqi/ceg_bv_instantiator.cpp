@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -159,7 +159,6 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return lit;
   }
-  NodeManager* nm = NodeManager::currentNM();
   Node s = atom[0];
   Node t = atom[1];
 
@@ -181,12 +180,12 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
     if (sm != tm)
     {
-      Node slack = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, sm, tm));
+      Node slack = rewrite(NodeManager::mkNode(Kind::BITVECTOR_SUB, sm, tm));
       Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;
-      ret =
-          nm->mkNode(Kind::EQUAL, s, nm->mkNode(Kind::BITVECTOR_ADD, t, slack));
+      ret = NodeManager::mkNode(
+          Kind::EQUAL, s, NodeManager::mkNode(Kind::BITVECTOR_ADD, t, slack));
       Trace("cegqi-bv") << "Slack is " << slack << std::endl;
     }
     else
@@ -220,7 +219,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     else
     {
       Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
-      ret = nm->mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
+      ret = NodeManager::mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
     }
   }
   Trace("cegqi-bv") << "Process " << lit << " as " << ret << std::endl;
@@ -539,8 +538,6 @@ Node BvInstantiator::rewriteTermForSolvePv(
     std::vector<Node>& children,
     std::unordered_map<Node, bool>& contains_pv)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   // [1] rewrite cases of non-invertible operators
 
   if (n.getKind() == Kind::EQUAL)
@@ -554,7 +551,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
         || (rhs == pv && lhs.getKind() == Kind::BITVECTOR_MULT && lhs[0] == pv
             && lhs[1] == pv))
     {
-      return nm->mkNode(
+      return NodeManager::mkNode(
           Kind::BITVECTOR_ULT,
           pv,
           bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
@@ -648,7 +645,6 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   if (d_opts.quantifiers.cegqiBvRmExtract)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
@@ -697,10 +693,10 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
-        Node var =
-            sm->mkDummySkolem("ek",
-                              ex.getType(),
-                              "variable to represent disjoint extract region");
+        Node var = NodeManager::mkDummySkolem(
+            "ek",
+            ex.getType(),
+            "variable to represent disjoint extract region");
         children.push_back(var);
         vars.push_back(var);
       }

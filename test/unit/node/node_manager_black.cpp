@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Christopher L. Conway
+ *   Aina Niemetz, Dejan Jovanovic, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,7 +121,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_skolemManager->mkDummySkolem(
-      "x", *d_boolTypeNode, "", SkolemManager::SKOLEM_EXACT_NAME);
+      "x", *d_boolTypeNode, "", SkolemFlags::SKOLEM_EXACT_NAME);
   ASSERT_EQ(x.getKind(), Kind::DUMMY_SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
   ASSERT_EQ(x.getAttribute(VarNameAttr()), "x");

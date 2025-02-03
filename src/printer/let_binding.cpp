@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -110,7 +110,7 @@ Node LetBinding::convert(Node n, bool letTop) const
         // make the let variable
         std::stringstream ss;
         ss << d_prefix << id;
-        visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+        visited[cur] = NodeManager::mkBoundVar(ss.str(), cur.getType());
       }
       else if (cur.isClosure())
       {
@@ -178,8 +178,7 @@ void LetBinding::updateCounts(Node n)
       {
         SkolemId skid;
         Node cacheVal;
-        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        if (sm->isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
         {
           if (cacheVal.getKind() == Kind::SEXPR)
           {

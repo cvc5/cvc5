@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,37 +19,13 @@
 
 namespace cvc5::internal {
 
-NodeBuilder::NodeBuilder()
-    : d_nv(&d_inlineNv),
-      d_nm(NodeManager::currentNM()),
-      d_nvMaxChildren(default_nchild_thresh)
-{
-  d_inlineNv.d_id = 0;
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(Kind::UNDEFINED_KIND);
-  d_inlineNv.d_nchildren = 0;
-}
-
-NodeBuilder::NodeBuilder(Kind k)
-    : d_nv(&d_inlineNv),
-      d_nm(NodeManager::currentNM()),
-      d_nvMaxChildren(default_nchild_thresh)
-{
-  Assert(k != Kind::NULL_EXPR && k != Kind::UNDEFINED_KIND)
-      << "illegal Node-building kind";
-
-  d_inlineNv.d_id = 1;  // have a kind already
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
-  d_inlineNv.d_nchildren = 0;
-}
-
 NodeBuilder::NodeBuilder(NodeManager* nm)
     : d_nv(&d_inlineNv), d_nm(nm), d_nvMaxChildren(default_nchild_thresh)
 {
   d_inlineNv.d_id = 0;
   d_inlineNv.d_rc = 0;
   d_inlineNv.d_kind = expr::NodeValue::kindToDKind(Kind::UNDEFINED_KIND);
+  d_inlineNv.d_nm = d_nm;
   d_inlineNv.d_nchildren = 0;
 }
 
@@ -62,6 +38,7 @@ NodeBuilder::NodeBuilder(NodeManager* nm, Kind k)
   d_inlineNv.d_id = 1;  // have a kind already
   d_inlineNv.d_rc = 0;
   d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
+  d_inlineNv.d_nm = d_nm;
   d_inlineNv.d_nchildren = 0;
 }
 
@@ -71,6 +48,7 @@ NodeBuilder::NodeBuilder(const NodeBuilder& nb)
   d_inlineNv.d_id = nb.d_nv->d_id;
   d_inlineNv.d_rc = 0;
   d_inlineNv.d_kind = nb.d_nv->d_kind;
+  d_inlineNv.d_nm = d_nm;
   d_inlineNv.d_nchildren = 0;
 
   internalCopy(nb);
@@ -167,6 +145,7 @@ void NodeBuilder::clear(Kind k)
   {
     (*i)->dec();
   }
+  d_inlineNv.d_nm = d_nm;
   d_inlineNv.d_nchildren = 0;
   // keep track of whether or not we hvae a kind already
   d_inlineNv.d_id = (k == Kind::UNDEFINED_KIND) ? 0 : 1;
@@ -314,6 +293,7 @@ void NodeBuilder::realloc(size_t toSize)
     d_nv->d_id = d_inlineNv.d_id;
     d_nv->d_rc = 0;
     d_nv->d_kind = d_inlineNv.d_kind;
+    d_nv->d_nm = d_nm;
     d_nv->d_nchildren = d_inlineNv.d_nchildren;
 
     std::copy(d_inlineNv.d_children,
@@ -416,6 +396,7 @@ expr::NodeValue* NodeBuilder::constructNV()
     nv->d_nchildren = 0;
     nv->d_kind = d_nv->d_kind;
     nv->d_id = d_nm->d_nextId++;
+    nv->d_nm = d_nm;
     nv->d_rc = 0;
     setUsed();
     if (TraceIsOn("gc"))
@@ -498,6 +479,7 @@ expr::NodeValue* NodeBuilder::constructNV()
       nv->d_nchildren = d_inlineNv.d_nchildren;
       nv->d_kind = d_inlineNv.d_kind;
       nv->d_id = d_nm->d_nextId++;
+      nv->d_nm = d_nm;
       nv->d_rc = 0;
 
       std::copy(d_inlineNv.d_children,
@@ -558,6 +540,7 @@ expr::NodeValue* NodeBuilder::constructNV()
       crop();
       expr::NodeValue* nv = d_nv;
       nv->d_id = d_nm->d_nextId++;
+      nv->d_nm = d_nm;
       d_nv = &d_inlineNv;
       d_nvMaxChildren = default_nchild_thresh;
       setUsed();

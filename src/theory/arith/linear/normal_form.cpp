@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -553,8 +553,7 @@ Node Polynomial::computeQR(const Polynomial& p, const Integer& div){
   Polynomial p_q = Polynomial::mkPolynomial(q_vec);
   Polynomial p_r = Polynomial::mkPolynomial(r_vec);
 
-  return NodeManager::currentNM()->mkNode(
-      Kind::ADD, p_q.getNode(), p_r.getNode());
+  return NodeManager::mkNode(Kind::ADD, p_q.getNode(), p_r.getNode());
 }
 
 
@@ -638,8 +637,7 @@ Node SumPair::computeQR(const SumPair& sp, const Integer& div){
   SumPair sp_q(p_q, Constant::mkConstant(constant_q));
   SumPair sp_r(p_r, Constant::mkConstant(constant_r));
 
-  return NodeManager::currentNM()->mkNode(
-      Kind::ADD, sp_q.getNode(), sp_r.getNode());
+  return NodeManager::mkNode(Kind::ADD, sp_q.getNode(), sp_r.getNode());
 }
 
 SumPair SumPair::mkSumPair(const Polynomial& p){
@@ -855,8 +853,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
   Assert(isRelationOperator(k));
   switch(k) {
     case Kind::GEQ:
-    case Kind::GT:
-      return NodeManager::currentNM()->mkNode(k, l.getNode(), r.getNode());
+    case Kind::GT: return NodeManager::mkNode(k, l.getNode(), r.getNode());
     default: Unhandled() << k;
   }
 }
@@ -866,8 +863,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Polynomial& r) {
   switch(k) {
     case Kind::GEQ:
     case Kind::EQUAL:
-    case Kind::GT:
-      return NodeManager::currentNM()->mkNode(k, l.getNode(), r.getNode());
+    case Kind::GT: return NodeManager::mkNode(k, l.getNode(), r.getNode());
     case Kind::LEQ: return toNode(Kind::GEQ, r, l).notNode();
     case Kind::LT: return toNode(Kind::GT, r, l).notNode();
     case Kind::DISTINCT: return toNode(Kind::EQUAL, r, l).notNode();

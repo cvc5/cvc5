@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -271,7 +271,7 @@ PolyVector requiredCoefficientsLazardModified(
   auto zero = NodeManager::currentNM()->mkConstReal(Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
-    conditions.emplace_back(NodeManager::currentNM()->mkNode(
+    conditions.emplace_back(NodeManager::mkNode(
         Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)

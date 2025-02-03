@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,12 +19,13 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
+#include "expr/sort_to_term.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -82,9 +83,16 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy node, return it
     return n;
   }
-  TypeNode tn = n.getType();
-  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  // case for skolems, unhandled variables, and other unhandled terms
+  // These should print as @const, or otherwise be printed as a skolem,
+  // which may need further processing below. In the case of unhandled
+  // terms (e.g. DT_SYGUS_EVAL), we prefer printing them as @const instead
+  // of using their smt2 printer, which would lead to undeclared identifiers in
+  // the proof.
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT
+      || k == Kind::DT_SYGUS_EVAL)
   {
+    TypeNode tn = n.getType();
     // constructors/selectors are represented by skolems, which are defined
     // symbols
     if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
@@ -94,11 +102,14 @@ Node AlfNodeConverter::postConvert(Node n)
       // to avoid type errors when constructing terms for postConvert
       return n;
     }
-    // might be a skolem function
-    Node ns = maybeMkSkolemFun(n);
-    if (!ns.isNull())
+    if (k == Kind::SKOLEM)
     {
-      return ns;
+      // might be a skolem function
+      Node ns = maybeMkSkolemFun(n);
+      if (!ns.isNull())
+      {
+        return ns;
+      }
     }
     // Otherwise, it is an uncategorized skolem, must use a fresh variable.
     // This case will only apply for terms originating from places with no
@@ -106,7 +117,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // is used as (var N T) throughout.
     Node index = d_nm->mkConstInt(Rational(getOrAssignIndexForConst(n)));
     Node tc = typeAsNode(tn);
-    return mkInternalApp("const", {index, tc}, tn);
+    return mkInternalApp("@const", {index, tc}, tn);
   }
   else if (k == Kind::BOUND_VARIABLE)
   {
@@ -123,14 +134,16 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
-    // A variable x of type T can unambiguously referred to as (eo::var "x" T).
+    // A variable x of type T can unambiguously referred to as (@var "x" T),
+    // which is a macro for (eo::var "x" T) in the cpc signature.
     // We convert to this representation here, which will often be letified.
+    TypeNode tn = n.getType();
     std::vector<Node> args;
     Node nn = d_nm->mkConst(String(sname));
     args.push_back(nn);
     Node tnn = typeAsNode(tn);
     args.push_back(tnn);
-    return mkInternalApp("eo::var", args, tn);
+    return mkInternalApp("@var", args, tn);
   }
   else if (k == Kind::VARIABLE)
   {
@@ -142,6 +155,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // must ensure we print higher-order function applications with "_"
     if (!n.getOperator().isVar())
     {
+    TypeNode tn = n.getType();
       std::vector<Node> args;
       args.push_back(n.getOperator());
       args.insert(args.end(), n.begin(), n.end());
@@ -150,10 +164,12 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::HO_APPLY)
   {
+    TypeNode tn = n.getType();
     return mkInternalApp("_", {n[0], n[1]}, tn);
   }
   else if (n.isClosure())
   {
+    TypeNode tn = n.getType();
     Node vl = n[0];
     // Notice that intentionally we drop annotations here.
     // Additionally, it is important that we convert the closure to a
@@ -168,6 +184,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::STORE_ALL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
     Node val = convert(storeAll.getValue());
@@ -176,11 +193,13 @@ Node AlfNodeConverter::postConvert(Node n)
   else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
            || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
   {
+    TypeNode tn = n.getType();
     Node t = typeAsNode(tn);
     return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
   }
   else if (k == Kind::SET_INSERT)
   {
+    TypeNode tn = n.getType();
     std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
     Node list = mkList(iargs);
     return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
@@ -189,6 +208,7 @@ Node AlfNodeConverter::postConvert(Node n)
   {
     if (n.getConst<Sequence>().empty())
     {
+      TypeNode tn = n.getType();
       Node t = typeAsNode(tn);
       return mkInternalApp("seq.empty", {t}, tn);
     }
@@ -198,6 +218,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::CONST_FINITE_FIELD)
   {
+    TypeNode tn = n.getType();
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
     Node v = convert(d_nm->mkConstInt(ffv.getValue()));
     Node fs = convert(d_nm->mkConstInt(ffv.getFieldSize()));
@@ -225,6 +246,7 @@ Node AlfNodeConverter::postConvert(Node n)
     std::vector<Node> newArgs;
     if (opc.getNumChildren() > 0)
     {
+      TypeNode tn = n.getType();
       newArgs.insert(newArgs.end(), opc.begin(), opc.end());
       newArgs.insert(newArgs.end(), n.begin(), n.end());
       opc = opc.getOperator();
@@ -238,6 +260,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::INDEXED_ROOT_PREDICATE)
   {
+    TypeNode tn = n.getType();
     const IndexedRootPredicate& irp =
         n.getOperator().getConst<IndexedRootPredicate>();
     std::vector<Node> newArgs;
@@ -252,6 +275,7 @@ Node AlfNodeConverter::postConvert(Node n)
            || k == Kind::FLOATINGPOINT_COMPONENT_EXPONENT
            || k == Kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)
   {
+    TypeNode tn = n.getType();
     // dummy symbol, provide the return type
     Node tnn = typeAsNode(tn);
     std::stringstream ss;
@@ -260,6 +284,7 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
+    TypeNode tn = n.getType();
     // use generic list
     std::vector<Node> args;
     args.insert(args.end(), n.begin(), n.end());
@@ -270,6 +295,7 @@ Node AlfNodeConverter::postConvert(Node n)
     Kind okind = n.getOperator().getConst<GenericOp>().getKind();
     if (okind == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
     {
+      TypeNode tn = n.getType();
       // This does not take a rounding mode, we change the smt2 syntax
       // to distinguish this case, similar to the case in getOperatorOfTerm
       // where it is processed as an indexed operator.
@@ -277,8 +303,16 @@ Node AlfNodeConverter::postConvert(Node n)
       return mkInternalApp("to_fp_bv", children, tn);
     }
   }
+  else if (k == Kind::BITVECTOR_EAGER_ATOM)
+  {
+    // For now, we explicity remove the application.
+    // https://github.com/cvc5/cvc5-wishues/issues/156: if the smt2 printer
+    // is refactored to silently ignore this kind, this case can be deleted.
+    return n[0];
+  }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
+    TypeNode tn = n.getType();
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());
@@ -400,8 +434,8 @@ Node AlfNodeConverter::mkInternalSymbol(const std::string& name,
                                         bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
@@ -429,7 +463,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
+Node AlfNodeConverter::getOperatorOfTerm(Node n)
 {
   Assert(n.hasOperator());
   Kind k = n.getKind();
@@ -457,28 +491,20 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     {
       if (k == Kind::APPLY_TESTER)
       {
+        indices.clear();
         size_t cindex = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
+        opName << "is";
         if (dt.isTuple())
         {
-          opName << "is-tuple";
-        }
-        else if (dt.isNullable())
-        {
-          if (cindex == 0)
-          {
-            opName << "nullable.is_null";
-          }
-          else
-          {
-            opName << "nullable.is_some";
-          }
+          std::string tname = dt[0].getNumArgs() == 0 ? "tuple.unit" : "tuple";
+          Node tsym = mkInternalSymbol(tname, dt[0].getConstructor().getType());
+          indices.push_back(tsym);
         }
         else
         {
-          opName << "is-" << dt[cindex].getConstructor();
+          indices.push_back(dt[cindex].getConstructor());
         }
-        indices.clear();
       }
       else if (k == Kind::APPLY_UPDATER)
       {
@@ -486,14 +512,18 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
         size_t index = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
         size_t cindex = DType::cindexOf(op);
+        opName << "update";
         if (dt.isTuple())
         {
-          opName << "tuple.update";
-          indices.push_back(d_nm->mkConstInt(cindex));
+          std::vector<Node> args;
+          args.push_back(d_nm->mkConstInt(cindex));
+          Node ssym = mkInternalApp(
+              "tuple.select", args, dt[cindex][index].getSelector().getType());
+          indices.push_back(ssym);
         }
         else
         {
-          opName << "update-" << dt[cindex][index].getSelector();
+          indices.push_back(dt[cindex][index].getSelector());
         }
       }
       else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
@@ -531,22 +561,30 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
     else if (k == Kind::APPLY_SELECTOR)
     {
       // maybe a shared selector
-      ret = maybeMkSkolemFun(op);
-      if (!ret.isNull())
+      if (op.getSkolemId() == SkolemId::SHARED_SELECTOR)
       {
-        return ret;
-      }
-      unsigned index = DType::indexOf(op);
-      const DType& dt = DType::datatypeOf(op);
-      if (dt.isTuple())
-      {
-        indices.push_back(d_nm->mkConstInt(index));
-        opName << "tuple.select";
+        std::vector<Node> kindices = op.getSkolemIndices();
+        opName << "@shared_selector";
+        indices.push_back(
+            typeAsNode(kindices[0].getConst<SortToTerm>().getType()));
+        indices.push_back(
+            typeAsNode(kindices[1].getConst<SortToTerm>().getType()));
+        indices.push_back(kindices[2]);
       }
       else
       {
-        unsigned cindex = DType::cindexOf(op);
-        opName << dt[cindex][index].getSelector();
+        unsigned index = DType::indexOf(op);
+        const DType& dt = DType::datatypeOf(op);
+        if (dt.isTuple())
+        {
+          indices.push_back(d_nm->mkConstInt(index));
+          opName << "tuple.select";
+        }
+        else
+        {
+          unsigned cindex = DType::cindexOf(op);
+          opName << dt[cindex][index].getSelector();
+        }
       }
     }
     else
@@ -556,60 +594,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    bool isParameterized = false;
-    if (reqCast)
-    {
-      // If the operator is a parameterized constant and reqCast is true,
-      // then we must apply the parameters of the operator, e.g. such that
-      // bvor becomes (eo::_ bvor 32) where 32 is the bitwidth of the first
-      // argument.
-      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
-          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
-          || k == Kind::BITVECTOR_XOR)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getBitVectorSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
-               || k == Kind::FINITE_FIELD_MULT)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getFfSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::STRING_CONCAT)
-      {
-        // String concatenation is parameterized by the character type, which
-        // is the "Char" type in the ALF signature for String (which note does
-        // not exist internally in cvc5). Otherwise it is the sequence element
-        // type.
-        TypeNode tna = n[0].getType();
-        Node cht;
-        if (tna.isString())
-        {
-          cht = mkInternalSymbol("Char", d_sortType);
-        }
-        else
-        {
-          cht = typeAsNode(tna.getSequenceElementType());
-        }
-        indices.push_back(cht);
-        isParameterized = true;
-      }
-    }
-    if (isParameterized)
-    {
-      opName << "eo::_";
-      std::stringstream oppName;
-      oppName << printer::smt2::Smt2Printer::smtKindString(k);
-      Node opp = mkInternalSymbol(oppName.str(), n.getType());
-      indices.insert(indices.begin(), opp);
-    }
-    else
-    {
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
-    }
+    opName << printer::smt2::Smt2Printer::smtKindString(k);
   }
   std::vector<Node> args(n.begin(), n.end());
   Node app = mkInternalApp(opName.str(), args, n.getType());
@@ -632,24 +617,12 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   {
     ret = args.empty() ? app : app.getOperator();
   }
-  if (reqCast)
-  {
-    // - prints as e.g. (eo::as - (-> Int Int)).
-    if (k == Kind::NEG || k == Kind::SUB)
-    {
-      std::vector<Node> asChildren;
-      asChildren.push_back(ret);
-      asChildren.push_back(typeAsNode(ret.getType()));
-      ret = mkInternalApp("eo::as", asChildren, n.getType());
-    }
-  }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
 }
 
 size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
 {
-  Assert(v.isVar());
   std::map<Node, size_t>::iterator it = d_constIndex.find(v);
   if (it != d_constIndex.end())
   {

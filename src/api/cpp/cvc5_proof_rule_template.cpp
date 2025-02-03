@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Joerg Schurr, Andrew Reynolds
+ *   Hans-Joerg Schurr, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -120,7 +120,6 @@ const char* toString(ProofRule rule)
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
-    case ProofRule::DT_UNIF: return "DT_UNIF";
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
@@ -155,6 +154,7 @@ const char* toString(ProofRule rule)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case ProofRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case ProofRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case ProofRule::STRING_EXT: return "STRING_EXT";
     case ProofRule::MACRO_STRING_INFERENCE: return "MACRO_STRING_INFERENCE";
     //================================================= Arith rules
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
@@ -166,6 +166,8 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
     case ProofRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
+      return "ARITH_MULT_ABS_COMPARISON";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
@@ -220,11 +222,11 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::NONE: return "NONE";
     //================================================= ad-hoc rules
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+      return "distinct-card-conflict";
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
-    case ProofRewriteRule::ARITH_DIV_BY_CONST_ELIM:
-      return "arith-div-by-const-elim";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -233,25 +235,49 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-arith-string-pred-entail";
     case ProofRewriteRule::ARITH_POW_ELIM: return "arith-pow-elim";
     case ProofRewriteRule::BETA_REDUCE: return "beta-reduce";
+    case ProofRewriteRule::LAMBDA_ELIM: return "lambda-elim";
+    case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
+      return "macro-lambda-capture-avoid";
+    case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
+    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
+      return "macro-arrays-distinct-arrays";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
+      return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
       return "arrays-eq-range-expand";
     case ProofRewriteRule::EXISTS_ELIM: return "exists-elim";
     case ProofRewriteRule::QUANT_UNUSED_VARS: return "quant-unused-vars";
+    case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
+      return "macro-quant-merge-prenex";
     case ProofRewriteRule::QUANT_MERGE_PRENEX: return "quant-merge-prenex";
-    case ProofRewriteRule::QUANT_MINISCOPE: return "quant-miniscope";
-    case ProofRewriteRule::QUANT_MINISCOPE_FV: return "quant-miniscope-fv";
+    case ProofRewriteRule::MACRO_QUANT_PRENEX: return "macro-quant-prenex";
+    case ProofRewriteRule::MACRO_QUANT_MINISCOPE:
+      return "macro-quant-miniscope";
+    case ProofRewriteRule::QUANT_MINISCOPE_AND: return "quant-miniscope-and";
+    case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
+    case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
       return "macro-quant-var-elim-eq";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
       return "macro-quant-var-elim-ineq";
+    case ProofRewriteRule::QUANT_VAR_ELIM_EQ: return "quant-var-elim-eq";
+    case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
+      return "macro-quant-rewrite-body";
     case ProofRewriteRule::DT_INST: return "dt-inst";
     case ProofRewriteRule::DT_COLLAPSE_SELECTOR: return "dt-collapse-selector";
     case ProofRewriteRule::DT_COLLAPSE_TESTER: return "dt-collapse-tester";
     case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
       return "dt-collapse-tester-singleton";
+    case ProofRewriteRule::MACRO_DT_CONS_EQ: return "macro-dt-cons-eq";
     case ProofRewriteRule::DT_CONS_EQ: return "dt-cons-eq";
+    case ProofRewriteRule::DT_CONS_EQ_CLASH: return "dt-cons-eq-clash";
+    case ProofRewriteRule::DT_CYCLE: return "dt-cycle";
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
+    case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
@@ -259,6 +285,17 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "bv-add-combine-like-terms";
     case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
+    case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+      return "str-ctn-multiset-subset";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
+      return "macro-str-eq-len-unify-prefix";
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
+      return "macro-str-eq-len-unify";
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+      return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
       return "re-inter-union-inclusion";
@@ -270,6 +307,13 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
+    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
+      return "macro-sets-distinct-sets";
+    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
+      return "macro-sets-inter-eval";
+    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
+      return "macro-sets-minus-eval";
+    case ProofRewriteRule::SETS_UNION_NORM: return "sets-union-norm";
     case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
       return "sets-is-empty-eval";
     case ProofRewriteRule::SETS_INSERT_ELIM:

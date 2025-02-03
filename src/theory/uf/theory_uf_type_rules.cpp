@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -278,10 +278,9 @@ bool FunctionProperties::isWellFounded(TypeNode type)
 
 Node FunctionProperties::mkGroundTerm(TypeNode type)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node bvl = nm->getBoundVarListForFunctionType(type);
-  Node ret = nm->mkGroundTerm(type.getRangeType());
-  return nm->mkNode(Kind::LAMBDA, bvl, ret);
+  Node bvl = NodeManager::getBoundVarListForFunctionType(type);
+  Node ret = NodeManager::mkGroundTerm(type.getRangeType());
+  return NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
 }
 
 TypeNode IntToBitVectorOpTypeRule::preComputeType(NodeManager* nm, TNode n)

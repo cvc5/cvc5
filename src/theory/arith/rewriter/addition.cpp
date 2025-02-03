@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,7 +122,7 @@ Node collectSumWithBase(const Sum& sum,
 {
   if (sum.empty()) return mkConst(Rational(0));
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::ADD);
   for (const auto& summand : sum)
   {
     Assert(!summand.second.isZero());
@@ -193,7 +193,7 @@ Node collectSum(const Sum& sum)
   if (sum.empty()) return mkConst(Rational(0));
   Trace("arith-rewriter") << "Collecting sum " << sum << std::endl;
   // construct the sum as nodes.
-  NodeBuilder nb(Kind::ADD);
+  NodeBuilder nb(NodeManager::currentNM(), Kind::ADD);
   for (const auto& s : sum)
   {
     nb << mkMultTerm(s.second, s.first);

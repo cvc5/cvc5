@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1116,6 +1116,10 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         visit.pop_back();
         out << "(...)";
+        if (cur.getNumChildren() > 0)
+        {
+          out << ')';
+        }
         continue;
       }
     }
@@ -1146,6 +1150,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::EQUAL: return "=";
     case Kind::DISTINCT: return "distinct";
     case Kind::SEXPR: break;
+
+    case Kind::TYPE_OF: return "@type_of";
 
     // bool theory
     case Kind::NOT: return "not";
@@ -1313,6 +1319,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::RELATION_GROUP: return "rel.group";
     case Kind::RELATION_AGGREGATE: return "rel.aggr";
     case Kind::RELATION_PROJECT: return "rel.project";
+    case Kind::SET_EMPTY_OF_TYPE: return "@set.empty_of_type";
 
     // bag theory
     case Kind::BAG_TYPE: return "Bag";
@@ -1436,6 +1443,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SEQUENCE_TYPE: return "Seq";
     case Kind::SEQ_UNIT: return "seq.unit";
     case Kind::SEQ_NTH: return "seq.nth";
+    case Kind::SEQ_EMPTY_OF_TYPE: return "@seq.empty_of_type";
 
     // sep theory
     case Kind::SEP_STAR: return "sep";
@@ -2266,7 +2274,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
             TypeNode argType = cons[j].getRangeType();
             std::stringstream ss;
             ss << argType;
-            Node bv = nm->mkBoundVar(ss.str(), argType);
+            Node bv = NodeManager::mkBoundVar(ss.str(), argType);
             cchildren.push_back(bv);
             // if fresh type, store it for later processing
             if (grammarTypes.insert(argType).second)

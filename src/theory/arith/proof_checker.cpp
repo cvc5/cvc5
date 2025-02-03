@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds, Gereon Kremer
+ *   Alex Ozdemir, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,8 +129,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::ADD);
-      NodeBuilder rightSum(Kind::ADD);
+      NodeBuilder leftSum(nm, Kind::ADD);
+      NodeBuilder rightSum(nm, Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -193,8 +193,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::ADD);
-      NodeBuilder rightSum(Kind::ADD);
+      NodeBuilder leftSum(nm, Kind::ADD);
+      NodeBuilder rightSum(nm, Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();
@@ -432,7 +432,9 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       Node lr = l[1];
+      lr = lr.getKind() == Kind::TO_REAL ? lr[0] : lr;
       Node rr = r[1];
+      rr = rr.getKind() == Kind::TO_REAL ? rr[0] : rr;
       if ((lr.getKind() != Kind::SUB && lr.getKind() != Kind::BITVECTOR_SUB)
           || (rr.getKind() != Kind::SUB && rr.getKind() != Kind::BITVECTOR_SUB))
       {

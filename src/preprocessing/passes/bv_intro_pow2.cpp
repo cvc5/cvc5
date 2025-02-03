@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,8 +45,9 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     Node res = pow2Rewrite(cur, cache);
     if (res != cur)
     {
-      res = rewrite(res);
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_BV_INTRO_POW2);
+      assertionsToPreprocess->ensureRewritten(i);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

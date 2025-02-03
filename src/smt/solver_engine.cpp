@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -470,18 +470,25 @@ std::string SolverEngine::getInfo(const std::string& key) const
 void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
                                      Node func)
 {
-  for (std::vector<Node>::const_iterator i = formals.begin();
-       i != formals.end();
-       ++i)
+  std::unordered_set<Node> vars;
+  for (const Node& v : formals)
   {
-    if ((*i).getKind() != Kind::BOUND_VARIABLE)
+    if (v.getKind() != Kind::BOUND_VARIABLE)
     {
-      stringstream ss;
+      std::stringstream ss;
       ss << "All formal arguments to defined functions must be "
             "BOUND_VARIABLEs, but in the\n"
          << "definition of function " << func << ", formal\n"
-         << "  " << *i << "\n"
-         << "has kind " << (*i).getKind();
+         << "  " << v << "\n"
+         << "has kind " << v.getKind();
+      throw TypeCheckingExceptionPrivate(func, ss.str());
+    }
+    if (!vars.insert(v).second)
+    {
+      std::stringstream ss;
+      ss << "All formal arguments to defined functions must be "
+            "unique, but a duplicate variable was used in the "
+         << "definition of function " << func;
       throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   }
@@ -1022,8 +1029,9 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(asserts,
-                                                                     nvars);
+    NodeManager* nm = d_env->getNodeManager();
+    gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
+        nm, asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"
@@ -1106,9 +1114,9 @@ void SolverEngine::declareOracleFun(
     const std::vector<TypeNode>& argTypes = tn.getArgTypes();
     for (const TypeNode& t : argTypes)
     {
-      inputs.push_back(nm->mkBoundVar(t));
+      inputs.push_back(NodeManager::mkBoundVar(t));
     }
-    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    outputs.push_back(NodeManager::mkBoundVar(tn.getRangeType()));
     std::vector<Node> appc;
     appc.push_back(var);
     appc.insert(appc.end(), inputs.begin(), inputs.end());
@@ -1116,7 +1124,7 @@ void SolverEngine::declareOracleFun(
   }
   else
   {
-    outputs.push_back(nm->mkBoundVar(tn.getRangeType()));
+    outputs.push_back(NodeManager::mkBoundVar(tn.getRangeType()));
     app = var;
   }
   // makes equality assumption
@@ -1541,6 +1549,8 @@ void SolverEngine::checkProof()
     // connect proof to assertions, which will fail if the proof is malformed
     d_pfManager->connectProofToAssertions(
         pePfn, d_smtSolver->getAssertions(), ProofScopeMode::UNIFIED);
+    // now check the proof
+    d_pfManager->checkFinalProof(pePfn);
   }
 }
 
@@ -1942,12 +1952,10 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
-  // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
+  std::vector<Node> axioms = getAssertions();
   Node interpol;
   bool success =
-      d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1980,11 +1988,10 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   beginCall(true);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
-  std::vector<Node> axioms = getSubstitutedAssertions();
+  std::vector<Node> axioms = getAssertions();
   // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
   Node abd;
-  bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
@@ -2164,11 +2171,13 @@ void SolverEngine::setOption(const std::string& key,
       ss << "expert option " << key
          << " cannot be set when safeOptions is true.";
       // If we are setting to a default value, the exception can be avoided
-      // by omitting.
+      // by omitting the expert option.
       if (getOption(key) == value)
       {
+        // note this is not the case for options which safe-options explicitly
+        // disables.
         ss << " The value for " << key << " is already its current value ("
-           << value << "). Omitting this option will avoid this exception.";
+           << value << "). Omitting this option may avoid this exception.";
       }
       throw OptionException(ss.str());
     }
@@ -2197,9 +2206,10 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            ss << " The value for " << rkey
-               << " is already its current value (" << rvalue
-               << "). Omitting this option will avoid this exception.";
+            // note this is not the case for options which safe-options
+            // explicitly disables.
+            ss << " The value for " << rkey << " is already its current value ("
+               << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
         throw OptionException(ss.str());

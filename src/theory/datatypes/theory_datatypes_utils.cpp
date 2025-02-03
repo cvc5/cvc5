@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ Node applySelector(const DTypeConstructor& dc,
                    const Node& n)
 {
   Node s = getSelector(n.getType(), dc, index, shareSel);
-  return NodeManager::currentNM()->mkNode(Kind::APPLY_SELECTOR, s, n);
+  return NodeManager::mkNode(Kind::APPLY_SELECTOR, s, n);
 }
 
 Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
@@ -121,8 +121,7 @@ const DType& datatypeOf(Node n)
 
 Node mkTester(Node n, int i, const DType& dt)
 {
-  return NodeManager::currentNM()->mkNode(
-      Kind::APPLY_TESTER, dt[i].getTester(), n);
+  return NodeManager::mkNode(Kind::APPLY_TESTER, dt[i].getTester(), n);
 }
 
 Node mkSplit(Node n, const DType& dt)
@@ -162,7 +161,17 @@ bool isNullaryConstructor(const DTypeConstructor& c)
   return true;
 }
 
-bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
+bool checkClash(Node n1, Node n2, std::vector<Node>& rew, bool checkNdtConst)
+{
+  std::vector<size_t> path;
+  return checkClash(n1, n2, rew, checkNdtConst, path);
+}
+
+bool checkClash(Node n1,
+                Node n2,
+                std::vector<Node>& rew,
+                bool checkNdtConst,
+                std::vector<size_t>& path)
 {
   Trace("datatypes-rewrite-debug")
       << "Check clash : " << n1 << " " << n2 << std::endl;
@@ -179,15 +188,17 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
     Assert(n1.getNumChildren() == n2.getNumChildren());
     for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
     {
-      if (checkClash(n1[i], n2[i], rew))
+      if (checkClash(n1[i], n2[i], rew, checkNdtConst, path))
       {
+        path.push_back(i);
         return true;
       }
     }
   }
   else if (n1 != n2)
   {
-    if (n1.isConst() && n2.isConst())
+    // if checking equality between non-datatypes
+    if (checkNdtConst && n1.isConst() && n2.isConst())
     {
       Trace("datatypes-rewrite-debug")
           << "Clash constants : " << n1 << " " << n2 << std::endl;
@@ -195,7 +206,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
     }
     else
     {
-      Node eq = NodeManager::currentNM()->mkNode(Kind::EQUAL, n1, n2);
+      Node eq = NodeManager::mkNode(Kind::EQUAL, n1, n2);
       rew.push_back(eq);
     }
   }

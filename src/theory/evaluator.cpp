@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -605,7 +605,12 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           bool valid = false;
-          if (x.getNumerator().fitsUnsignedInt())
+          if (x.sgn() < 0)
+          {
+            results[currNode] = EvalResult(Rational(0));
+            valid = true;
+          }
+          else if (x.getNumerator().fitsUnsignedInt())
           {
             uint32_t value = x.getNumerator().toUnsignedInt();
             if (value <= 256)

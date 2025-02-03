@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,11 +19,11 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -120,7 +120,8 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM
+           || k == Kind::DT_SYGUS_EVAL)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -521,7 +522,7 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
     options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     options::ioutils::applyDagThresh(ss, 0);
     ss << op;
-    Node opv = d_nm->mkRawSymbol(ss.str(), op.getType());
+    Node opv = NodeManager::mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);
   }
   aargs.insert(aargs.end(), args.begin(), args.end());
@@ -838,8 +839,8 @@ Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
                                          bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
@@ -1158,7 +1159,6 @@ Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 
 size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(fv.isVar());
   std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
   if (it != d_fvarIndex.end())
   {

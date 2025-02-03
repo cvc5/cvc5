@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -170,7 +170,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
         else
         {
           Assert(vnum == qtvars[tnv].size());
-          Node bv = nm->mkBoundVar(tnv);
+          Node bv = NodeManager::mkBoundVar(tnv);
           qtvars[tnv].push_back(bv);
           qvars.push_back(bv);
           subs.push_back(bv);
@@ -257,7 +257,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   std::map<Node, Node> ff_var_to_ff;
   for (const Node& ff : free_functions)
   {
-    Node ffv = nm->mkBoundVar(ff.getType());
+    Node ffv = NodeManager::mkBoundVar(ff.getType());
     ff_vars.push_back(ffv);
     Trace("sygus-infer") << "  synth-fun: " << ff << " as " << ffv << std::endl;
     ff_var_to_ff[ffv] = ff;
@@ -281,7 +281,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
 
-  body = quantifiers::SygusUtils::mkSygusConjecture(ff_vars, body);
+  body =
+      quantifiers::SygusUtils::mkSygusConjecture(nodeManager(), ff_vars, body);
 
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,7 +128,12 @@ class RewriteProofRule
   Node getConclusionFor(
       const std::vector<Node>& ss,
       std::vector<std::pair<Kind, std::vector<Node>>>& witnessTerms) const;
-
+  /**
+   * @return the list of applications of Kind::TYPE_OF that appear in the
+   * conclusion or a premise. These require special handling by the
+   * printer.
+   */
+  std::vector<Node> getExplicitTypeOfList() const;
   /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof
@@ -171,8 +176,6 @@ class RewriteProofRule
   ProofRewriteRule d_id;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
-  /** The obligation generator formulas of the rule */
-  std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
   /** Is the rule applied in some fixed point context? */

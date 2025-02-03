@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ void MVarInfo::initialize(Env& env,
                           const Node& v,
                           const std::vector<Node>& etrules)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = env.getNodeManager();
   TypeNode tn = v.getType();
   Assert(MQuantInfo::shouldEnumerate(tn));
   TypeNode retType = tn;
@@ -47,7 +47,7 @@ void MVarInfo::initialize(Env& env,
     std::vector<Node> vs;
     for (const TypeNode& tnc : argTypes)
     {
-      Node vc = nm->mkBoundVar(tnc);
+      Node vc = NodeManager::mkBoundVar(tnc);
       vs.push_back(vc);
     }
     d_lamVars = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
@@ -83,9 +83,8 @@ void MVarInfo::initialize(Env& env,
   d_senum.reset(new SygusTermEnumerator(env, tng));
 }
 
-Node MVarInfo::getEnumeratedTerm(size_t i)
+Node MVarInfo::getEnumeratedTerm(NodeManager* nm, size_t i)
 {
-  NodeManager* nm = NodeManager::currentNM();
   size_t nullCount = 0;
   while (i >= d_enum.size())
   {
@@ -252,7 +251,7 @@ bool MbqiFastSygus::constructInstantiation(
     bool successEnum;
     do
     {
-      Node ret = vi.getEnumeratedTerm(cindex);
+      Node ret = vi.getEnumeratedTerm(nodeManager(), cindex);
       cindex++;
       Node retc;
       if (!ret.isNull())

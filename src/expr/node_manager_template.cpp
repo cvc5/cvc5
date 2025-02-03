@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -513,8 +513,9 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
   TypeNode typeNode;
   TypeAttr ta;
   TypeCheckedAttr tca;
-  bool hasType = getAttribute(n, ta, typeNode);
-  bool needsCheck = check && !getAttribute(n, tca);
+  NodeManager* nm = n.getNodeManager();
+  bool hasType = nm->getAttribute(n, ta, typeNode);
+  bool needsCheck = check && !nm->getAttribute(n, tca);
   if (hasType && !needsCheck)
   {
     return typeNode;
@@ -529,7 +530,8 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     cur = visit.back();
     visit.pop_back();
     // already computed (and checked, if necessary) this type
-    if (!getAttribute(cur, ta).isNull() && (!check || getAttribute(cur, tca)))
+    if (!nm->getAttribute(cur, ta).isNull()
+        && (!check || nm->getAttribute(cur, tca)))
     {
       continue;
     }
@@ -542,11 +544,11 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
       // check the children types.
       if (!check)
       {
-        typeNode = TypeChecker::preComputeType(this, cur);
+        typeNode = TypeChecker::preComputeType(nm, cur);
         if (!typeNode.isNull())
         {
           visited[cur] = true;
-          setAttribute(cur, ta, typeNode);
+          nm->setAttribute(cur, ta, typeNode);
           // note that the result of preComputeType is not cached
           continue;
         }
@@ -560,21 +562,21 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     {
       visited[cur] = true;
       // children now have types assigned
-      typeNode = TypeChecker::computeType(this, cur, check, errOut);
+      typeNode = TypeChecker::computeType(nm, cur, check, errOut);
       // if null, immediately return without further caching
       if (typeNode.isNull())
       {
         return typeNode;
       }
-      setAttribute(cur, ta, typeNode);
-      setAttribute(cur, tca, check || getAttribute(cur, tca));
+      nm->setAttribute(cur, ta, typeNode);
+      nm->setAttribute(cur, tca, check || nm->getAttribute(cur, tca));
     }
   } while (!visit.empty());
 
   /* The type should be have been computed and stored. */
-  Assert(hasAttribute(n, ta));
+  Assert(n.hasAttribute(ta));
   /* The check should have happened, if we asked for it. */
-  Assert(!check || getAttribute(n, tca));
+  Assert(!check || n.getAttribute(tca));
   // should be the last type computed in the above loop
   return typeNode;
 }
@@ -1117,7 +1119,7 @@ Node NodeManager::mkVar(const std::string& name,
 Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type)
 {
   Node n = mkBoundVar(type);
-  setAttribute(n, expr::VarNameAttr(), name);
+  n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1132,7 +1134,7 @@ Node NodeManager::getBoundVarListForFunctionType(TypeNode tn)
     {
       vars.push_back(mkBoundVar(tn[i]));
     }
-    bvl = mkNode(Kind::BOUND_VAR_LIST, vars);
+    bvl = tn.getNodeManager()->mkNode(Kind::BOUND_VAR_LIST, vars);
     Trace("functions") << "Make standard bound var list " << bvl << " for "
                        << tn << std::endl;
     tn.setAttribute(LambdaBoundVarListAttr(), bvl);
@@ -1233,23 +1235,23 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
 
 Node NodeManager::mkVar(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::VARIABLE);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
 Node NodeManager::mkBoundVar(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::BOUND_VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::BOUND_VARIABLE);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
 Node NodeManager::mkInstConstant(const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::INST_CONSTANT);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
@@ -1257,10 +1259,10 @@ Node NodeManager::mkInstConstant(const TypeNode& type)
 
 Node NodeManager::mkRawSymbol(const std::string& name, const TypeNode& type)
 {
-  Node n = NodeBuilder(this, Kind::RAW_SYMBOL);
+  Node n = NodeBuilder(type.getNodeManager(), Kind::RAW_SYMBOL);
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
-  setAttribute(n, expr::VarNameAttr(), name);
+  n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
@@ -1318,6 +1320,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   nvStack.d_id = 0;
   nvStack.d_kind = static_cast<uint32_t>(k);
   nvStack.d_rc = 0;
+  nvStack.d_nm = this;
   nvStack.d_nchildren = 1;
 
 #if defined(__GNUC__) \
@@ -1352,6 +1355,7 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   nv->d_nchildren = 0;
   nv->d_kind = static_cast<uint32_t>(k);
   nv->d_id = d_nextId++;
+  nv->d_nm = this;
   nv->d_rc = 0;
 
   new (&nv->d_children) T(val);
@@ -1376,6 +1380,15 @@ Node NodeManager::mkGroundValue(const TypeNode& tn)
 {
   theory::TypeEnumerator te(tn);
   return *te;
+}
+
+Node NodeManager::mkDummySkolem(const std::string& prefix,
+                                const TypeNode& type,
+                                const std::string& comment,
+                                SkolemFlags flags)
+{
+  NodeManager* nm = type.getNodeManager();
+  return nm->getSkolemManager()->mkDummySkolem(prefix, type, comment, flags);
 }
 
 bool NodeManager::safeToReclaimZombies() const

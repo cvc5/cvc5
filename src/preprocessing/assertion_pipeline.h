@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "proof/lazy_proof.h"
+#include "proof/rewrite_proof_generator.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -61,17 +62,28 @@ class AssertionPipeline : protected EnvObj
   /**
    * Adds an assertion/assumption to be preprocessed.
    *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
+   *
    * @param n The assertion/assumption
    * @param isInput If true, n is an input formula (an assumption in the main
    * body of the overall proof).
    * @param pg The proof generator who can provide a proof of n. The proof
    * generator is not required and is ignored if isInput is true.
+   * @param trustId The trust id to use if pg is not provided when isInput
+   * is false and proofs are enabled.
+   * @param ensureRew If true, we rewrite all assertions added in this call.
    */
   void push_back(Node n,
                  bool isInput = false,
-                 ProofGenerator* pg = nullptr);
+                 ProofGenerator* pg = nullptr,
+                 TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                 bool ensureRew = false);
   /** Same as above, with TrustNode */
-  void pushBackTrusted(TrustNode trn);
+  void pushBackTrusted(TrustNode trn,
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                       bool ensureRew = false);
 
   /**
    * Get the constant reference to the underlying assertions. It is only
@@ -86,17 +98,34 @@ class AssertionPipeline : protected EnvObj
    * Replaces assertion i with node n and records the dependency between the
    * original assertion and its replacement.
    *
+   * Note that if proofs are provided, a preprocess pass using this method
+   * is required to either provide a proof generator or a trust id that is not
+   * TrustId::UNKNOWN_PREPROCESS_LEMMA.
+   *
    * @param i The position of the assertion to replace.
    * @param n The replacement assertion.
    * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
    * where d_nodes[i] is the assertion at position i prior to this call.
+   * @param trustId The trust id to use if pg is not provided and proofs are
+   * enabled.
    */
-  void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
+  void replace(size_t i,
+               Node n,
+               ProofGenerator* pg = nullptr,
+               TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
   /**
    * Same as above, with TrustNode trn, which is of kind REWRITE and proves
    * d_nodes[i] = n for some n.
    */
-  void replaceTrusted(size_t i, TrustNode trn);
+  void replaceTrusted(size_t i,
+                      TrustNode trn,
+                      TrustId trustId = TrustId::UNKNOWN_PREPROCESS);
+  /**
+   * Ensure assertion at index i is rewritten. If it is not already in
+   * rewritten form, the assertion is replaced by its rewritten form.
+   * @param i The index of the assertion.
+   */
+  void ensureRewritten(size_t i);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
@@ -124,8 +153,12 @@ class AssertionPipeline : protected EnvObj
    *
    * @param n The substitution node
    * @param pg The proof generator that can provide a proof of n.
+   * @param trustId The trust id to use if pg is not provided and proofs are
+   * enabled.
    */
-  void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
+  void addSubstitutionNode(Node n,
+                           ProofGenerator* pg = nullptr,
+                           TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA);
 
   /**
    * Checks whether the assertion at a given index represents substitutions.
@@ -209,6 +242,10 @@ class AssertionPipeline : protected EnvObj
    * Maintains proofs for eliminating top-level AND from inputs to this class.
    */
   std::unique_ptr<LazyCDProof> d_andElimEpg;
+  /**
+   * Maintains proofs for rewrite steps.
+   */
+  std::unique_ptr<RewriteProofGenerator> d_rewpg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

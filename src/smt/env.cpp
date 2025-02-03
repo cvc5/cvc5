@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,7 +76,7 @@ Env::Env(NodeManager* nm, const Options* opts)
 
 Env::~Env() {}
 
-NodeManager* Env::getNodeManager() { return d_nm; }
+NodeManager* Env::getNodeManager() const { return d_nm; }
 
 void Env::finishInit(smt::PfManager* pm)
 {
@@ -109,7 +109,14 @@ context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 smt::PfManager* Env::getProofManager() { return d_pfManager; }
 
+ProofLogger* Env::getProofLogger()
+{
+  return d_pfManager ? d_pfManager->getProofLogger() : nullptr;
+}
+
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
+
+bool Env::isProofProducing() const { return d_proofNodeManager != nullptr; }
 
 bool Env::isSatProofProducing() const
 {

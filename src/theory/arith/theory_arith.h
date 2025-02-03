@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,8 +94,7 @@ class TheoryArith : public Theory {
 
   void presolve() override;
   void notifyRestart() override;
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   /**
    * Preprocess rewrite terms, return the trust node encapsulating the
    * preprocessed form of n, and the proof generator that can provide the
@@ -106,7 +105,7 @@ class TheoryArith : public Theory {
    */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   TrustNode ppStaticRewrite(TNode atom) override;
-  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
 

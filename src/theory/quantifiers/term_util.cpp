@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -312,7 +312,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
   {
     return n[0];
   }
-  return NodeManager::currentNM()->mkNode(notk, n);
+  return NodeManager::mkNode(notk, n);
 }
 
 bool TermUtil::isNegate(Kind k)
@@ -657,11 +657,11 @@ Node TermUtil::ensureType(Node n, TypeNode tn)
   }
   if (tn.isInteger())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
+    return NodeManager::mkNode(Kind::TO_INTEGER, n);
   }
   else if (tn.isReal())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
+    return NodeManager::mkNode(Kind::TO_REAL, n);
   }
   return Node::null();
 }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
+ArithEntail::ArithEntail(Rewriter* r, bool recApprox)
+    : d_rr(r), d_recApprox(recApprox)
 {
   d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
@@ -228,7 +229,7 @@ bool ArithEntail::check(Node a, Node b, bool strict, bool isSimple)
   {
     return !strict;
   }
-  Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
+  Node diff = NodeManager::mkNode(Kind::SUB, a, b);
   return check(diff, strict, isSimple);
 }
 
@@ -238,7 +239,7 @@ bool ArithEntail::check(Node a, bool strict, bool isSimple)
   {
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
-  Node ar = strict ? NodeManager::currentNM()->mkNode(Kind::SUB, a, d_one) : a;
+  Node ar = strict ? NodeManager::mkNode(Kind::SUB, a, d_one) : a;
   ar = rewriteArith(ar);
   // if simple, just call the checkSimple routine.
   if (isSimple)
@@ -273,6 +274,11 @@ Node ArithEntail::findApprox(Node ar, bool isSimple)
 
 Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
 {
+  // if not using recursive approximations, we always set isSimple to true
+  if (!d_recApprox)
+  {
+    isSimple = true;
+  }
   Assert(rewriteArith(ar) == ar)
       << "Not rewritten " << ar << ", got " << rewriteArith(ar);
   NodeManager* nm = NodeManager::currentNM();
@@ -371,9 +377,11 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
+            // ensure rewritten, which makes a difference if isSimple is true
+            Node aar = rewriteArith(aa);
             CVC5_UNUSED bool ret =
-                ArithMSum::getMonomialSum(aa, approxMsums[aa]);
-            Assert(ret);
+                ArithMSum::getMonomialSum(aar, approxMsums[aa]);
+            Assert(ret) << "Could not find sum " << aa;
           }
         }
         changed = true;
@@ -864,7 +872,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("slackVal", nm->stringType());
+    Node s = NodeManager::mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sleny = nm->mkNode(Kind::ADD, y, slen);
     Node rr = rewriteArith(nm->mkNode(Kind::SUB, x, sleny));

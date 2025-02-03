@@ -49,9 +49,9 @@ name   = "Finite Field Theory"
   help = "use multiple groebner bases for partitions of the system"
 
 [[option]]
-  name       = "ffExp"
+  name       = "ff"
   category   = "expert"
-  long       = "ff-exp"
+  long       = "ff"
   type       = "bool"
   default    = "true"
-  help       = "enables the finite field solver"
+  help       = "enables the finite field solver in applicable logics"

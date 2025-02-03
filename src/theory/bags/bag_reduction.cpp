@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -225,7 +225,7 @@ Node BagReduction::reduceProjectOperator(Node n)
   TypeNode elementType = A.getType().getBagElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
   Node op = nm->mkConst(Kind::TUPLE_PROJECT_OP, projectOp);
-  Node t = nm->mkBoundVar("t", elementType);
+  Node t = NodeManager::mkBoundVar("t", elementType);
   Node projection = nm->mkNode(Kind::TUPLE_PROJECT, op, t);
   Node lambda =
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);

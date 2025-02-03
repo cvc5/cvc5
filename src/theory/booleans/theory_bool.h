@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Andres Noetzli
+ *   Haniel Barbosa, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +36,7 @@ class TheoryBool : public Theory {
   /** get the proof checker of this theory */
   ProofRuleChecker* getProofChecker() override;
 
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
 
   std::string identify() const override;
 

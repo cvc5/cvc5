@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -546,6 +546,19 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
     return TypeNode::null();
   }
   return t.getSequenceElementType();
+}
+
+TypeNode SeqEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
+{
+  return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
 }
 
 Cardinality SequenceProperties::computeCardinality(TypeNode type)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -117,7 +117,7 @@ Node PatternTermSelector::getIsUsableEq(Node q, Node n) const
       if (i == 1 && n.getKind() == Kind::EQUAL
           && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
       {
-        return NodeManager::currentNM()->mkNode(Kind::EQUAL, n[1], n[0]);
+        return NodeManager::mkNode(Kind::EQUAL, n[1], n[0]);
       }
       else
       {

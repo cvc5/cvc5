@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Leni Aniva, Haniel Barbosa
+#   Leni Aniva, Haniel Barbosa, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -156,6 +156,8 @@ class Op(Enum):
 
     BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
     INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
+    
+    TYPE_OF = ('@type_of', 'TYPE_OF')
 
     ###########################################################################
     # Strings
@@ -190,6 +192,7 @@ class Op(Enum):
 
     SEQ_UNIT = ('seq.unit', 'SEQ_UNIT')
     SEQ_NTH = ('seq.nth', 'SEQ_NTH')
+    SEQ_EMPTY_OF_TYPE = ('@seq.empty_of_type', 'SEQ_EMPTY_OF_TYPE')
 
     STRING_TO_REGEXP = ('str.to_re', 'STRING_TO_REGEXP')
     REGEXP_CONCAT = ('re.++', 'REGEXP_CONCAT')
@@ -221,6 +224,7 @@ class Op(Enum):
     SET_CARD = ('set.card', 'SET_CARD')
     SET_IS_EMPTY = ('set.is_empty', 'SET_IS_EMPTY')
     SET_IS_SINGLETON = ('set.is_singleton', 'SET_IS_SINGLETON')
+    SET_EMPTY_OF_TYPE = ('@set.empty_of_type', 'SET_EMPTY_OF_TYPE')
 
 
 class BaseSort(Enum):

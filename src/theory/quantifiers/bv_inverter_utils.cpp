@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
+ *   Aina Niemetz, Mathias Preiner, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,6 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
 {
   Assert(k == Kind::BITVECTOR_ULT || k == Kind::BITVECTOR_UGT);
 
-  NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
   Node ic;
 
@@ -40,16 +39,16 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
        * (distinct t z)
        * where
        * z = 0 with getSize(z) = w  */
-      Node scl = nm->mkNode(Kind::DISTINCT, t, bv::utils::mkZero(w));
-      Node scr = nm->mkNode(k, x, t);
-      ic = nm->mkNode(Kind::IMPLIES, scl, scr);
+      Node scl = NodeManager::mkNode(Kind::DISTINCT, t, bv::utils::mkZero(w));
+      Node scr = NodeManager::mkNode(k, x, t);
+      ic = NodeManager::mkNode(Kind::IMPLIES, scl, scr);
     }
     else
     {
       /* x >= t
        * with invertibility condition:
        * true (no invertibility condition)  */
-      ic = nm->mkNode(Kind::NOT, nm->mkNode(k, x, t));
+      ic = NodeManager::mkNode(Kind::NOT, NodeManager::mkNode(k, x, t));
     }
   }
   else
@@ -62,16 +61,16 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
        * (distinct t ones)
        * where
        * ones = ~0 with getSize(ones) = w  */
-      Node scl = nm->mkNode(Kind::DISTINCT, t, bv::utils::mkOnes(w));
-      Node scr = nm->mkNode(k, x, t);
-      ic = nm->mkNode(Kind::IMPLIES, scl, scr);
+      Node scl = NodeManager::mkNode(Kind::DISTINCT, t, bv::utils::mkOnes(w));
+      Node scr = NodeManager::mkNode(k, x, t);
+      ic = NodeManager::mkNode(Kind::IMPLIES, scl, scr);
     }
     else
     {
       /* x <= t
        * with invertibility condition:
        * true (no invertibility condition)  */
-      ic = nm->mkNode(Kind::NOT, nm->mkNode(k, x, t));
+      ic = NodeManager::mkNode(Kind::NOT, NodeManager::mkNode(k, x, t));
     }
   }
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
@@ -82,7 +81,6 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
 {
   Assert(k == Kind::BITVECTOR_SLT || k == Kind::BITVECTOR_SGT);
 
-  NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
   Node ic;
 
@@ -96,16 +94,16 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
        * where
        * min is the minimum signed value with getSize(min) = w  */
       Node min = bv::utils::mkMinSigned(w);
-      Node scl = nm->mkNode(Kind::DISTINCT, min, t);
-      Node scr = nm->mkNode(k, x, t);
-      ic = nm->mkNode(Kind::IMPLIES, scl, scr);
+      Node scl = NodeManager::mkNode(Kind::DISTINCT, min, t);
+      Node scr = NodeManager::mkNode(k, x, t);
+      ic = NodeManager::mkNode(Kind::IMPLIES, scl, scr);
     }
     else
     {
       /* x >= t
        * with invertibility condition:
        * true (no invertibility condition)  */
-      ic = nm->mkNode(Kind::NOT, nm->mkNode(k, x, t));
+      ic = NodeManager::mkNode(Kind::NOT, NodeManager::mkNode(k, x, t));
     }
   }
   else
@@ -119,16 +117,16 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
        * where
        * max is the signed maximum value with getSize(max) = w  */
       Node max = bv::utils::mkMaxSigned(w);
-      Node scl = nm->mkNode(Kind::DISTINCT, t, max);
-      Node scr = nm->mkNode(k, x, t);
-      ic = nm->mkNode(Kind::IMPLIES, scl, scr);
+      Node scl = NodeManager::mkNode(Kind::DISTINCT, t, max);
+      Node scr = NodeManager::mkNode(k, x, t);
+      ic = NodeManager::mkNode(Kind::IMPLIES, scl, scr);
     }
     else
     {
       /* x <= t
        * with invertibility condition:
        * true (no invertibility condition)  */
-      ic = nm->mkNode(Kind::NOT, nm->mkNode(k, x, t));
+      ic = NodeManager::mkNode(Kind::NOT, NodeManager::mkNode(k, x, t));
     }
   }
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
@@ -1223,10 +1221,8 @@ namespace {
 Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
-  NodeBuilder nb(Kind::OR);
-  NodeManager* nm;
-
-  nm = NodeManager::currentNM();
+  NodeManager* nm = s.getNodeManager();
+  NodeBuilder nb(nm, Kind::OR);
 
   w = bv::utils::getSize(s);
   Assert(w == bv::utils::getSize(t));
@@ -2064,7 +2060,8 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
   unsigned w = bv::utils::getSize(t), wx = bv::utils::getSize(x);
-  NodeBuilder nbs1(Kind::BITVECTOR_CONCAT), nbs2(Kind::BITVECTOR_CONCAT);
+  NodeBuilder nbs1(nm, Kind::BITVECTOR_CONCAT),
+      nbs2(nm, Kind::BITVECTOR_CONCAT);
   Node s1, s2;
   Node t1, t2, tx;
   Node scl, scr;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ bool RewriteRule<ConcatFlatten>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(node.getNodeManager(), Kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {

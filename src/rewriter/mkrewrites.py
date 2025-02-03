@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -59,7 +59,7 @@ def gen_mk_skolem(name, sort):
         sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
-    res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
+    res = f'Node {name} = NodeManager::mkBoundVar("{name}", {sort_code});'
     if sort.is_list:
         res += f'expr::markListVar({name});'
     return res

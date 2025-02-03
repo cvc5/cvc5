@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Makai Mann
+ *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -789,7 +789,8 @@ Node IntBlaster::translateNoChildren(Node original,
         // they will be added once the quantifier itself is handled.
         std::stringstream ss;
         ss << original;
-        translation = d_nm->mkBoundVar(ss.str() + "_int", d_nm->integerType());
+        translation =
+            NodeManager::mkBoundVar(ss.str() + "_int", d_nm->integerType());
       }
       else
       {
@@ -868,7 +869,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   {
     // Each bit-vector argument is casted to a natural number
     // Other arguments are left intact.
-    Node fresh_bound_var = d_nm->mkBoundVar(d);
+    Node fresh_bound_var = NodeManager::mkBoundVar(d);
     args.push_back(fresh_bound_var);
     Node castedArg = args[i];
     if (d.isBitVector())
@@ -946,7 +947,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
   Kind oldKind = originalNode.getKind();
-  NodeBuilder builder(oldKind);
+  NodeBuilder builder(nodeManager(), oldKind);
   if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << originalNode.getOperator();

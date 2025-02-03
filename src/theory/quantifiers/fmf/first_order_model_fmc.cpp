@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,9 +92,8 @@ Node FirstOrderModelFmc::getStar(TypeNode tn)
   {
     return it->second;
   }
-  SkolemManager* sm = nodeManager()->getSkolemManager();
-  Node st =
-      sm->mkDummySkolem("star", tn, "skolem created for full-model checking");
+  Node st = NodeManager::mkDummySkolem(
+      "star", tn, "skolem created for full-model checking");
   d_type_star[tn] = st;
   st.setAttribute(IsStarAttribute(), true);
   return st;
@@ -110,7 +109,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
   {
     std::stringstream ss;
     ss << argPrefix << (i + 1);
-    Node b = nm->mkBoundVar(ss.str(), type[i]);
+    Node b = NodeManager::mkBoundVar(ss.str(), type[i]);
     vars.push_back(b);
   }
   Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);

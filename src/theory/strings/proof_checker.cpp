@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,6 +60,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
   pc->registerChecker(ProofRule::STRING_CODE_INJ, this);
   pc->registerChecker(ProofRule::STRING_SEQ_UNIT_INJ, this);
+  pc->registerChecker(ProofRule::STRING_EXT, this);
   // trusted rule
   pc->registerTrustedChecker(ProofRule::MACRO_STRING_INFERENCE, this, 2);
 }
@@ -71,7 +72,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   NodeManager* nm = nodeManager();
   // core rules for word equations
   if (id == ProofRule::CONCAT_EQ || id == ProofRule::CONCAT_UNIFY
-      || id == ProofRule::CONCAT_CONFLICT || id == ProofRule::CONCAT_SPLIT
+      || id == ProofRule::CONCAT_CONFLICT
+      || id == ProofRule::CONCAT_CONFLICT_DEQ || id == ProofRule::CONCAT_SPLIT
       || id == ProofRule::CONCAT_CSPLIT || id == ProofRule::CONCAT_LPROP
       || id == ProofRule::CONCAT_CPROP)
   {
@@ -527,6 +529,20 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         << " == " << t[1] << std::endl;
     AlwaysAssert(t[0].getType() == t[1].getType());
     return t[0].eqNode(t[1]);
+  }
+  else if (id == ProofRule::STRING_EXT)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    Node deq = children[0];
+    if (deq.getKind() != Kind::NOT || deq[0].getKind() != Kind::EQUAL
+        || !deq[0][0].getType().isStringLike())
+    {
+      return Node::null();
+    }
+    SkolemCache skc(nm, nullptr);
+    return CoreSolver::getExtensionalityConclusion(
+        nm, deq[0][0], deq[0][1], &skc);
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {
