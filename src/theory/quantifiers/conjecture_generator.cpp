@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
@@ -185,6 +186,11 @@ void ConjectureGenerator::setUniversalRelevant( TNode n ) {
 }
 
 bool ConjectureGenerator::isUniversalLessThan( TNode rt1, TNode rt2 ) {
+  //ensure both patterns are registered so that the following assertions will
+  //succeed
+  registerPattern(rt1, rt1.getType());
+  registerPattern(rt2, rt2.getType());
+
   //prefer the one that is (normal, smaller) lexographically
   Assert(d_pattern_is_relevant.find(rt1) != d_pattern_is_relevant.end());
   Assert(d_pattern_is_relevant.find(rt2) != d_pattern_is_relevant.end());
@@ -926,23 +932,14 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
             if( optStatsOnly() ){
               d_conj_count++;
             }else{
-              std::vector< Node > bvs;
-              for (const std::pair<const TypeNode, unsigned>& lhs_pattern :
-                   d_pattern_var_id[lhs])
-              {
-                for (unsigned j = 0; j <= lhs_pattern.second; j++)
-                {
-                  bvs.push_back(getFreeVar(lhs_pattern.first, j));
-                }
-              }
-              Node rsg;
-              if( !bvs.empty() ){
-                Node bvl =
-                    nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
-                rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
-              }else{
-                rsg = lhs.eqNode( rhs );
-              }
+              Node body = lhs.eqNode(rhs);
+              std::unordered_set<Node> fvs;
+              expr::getFreeVariables(body, fvs);
+              std::vector<Node> bvs;
+              bvs.insert(bvs.begin(), fvs.begin(), fvs.end());
+              Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
+              Node rsg = NodeManager::mkNode(Kind::FORALL, bvl, body);
+
               rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );

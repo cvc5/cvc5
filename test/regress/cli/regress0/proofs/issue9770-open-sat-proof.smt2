@@ -1,4 +1,3 @@
-; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic QF_LIA)
 
