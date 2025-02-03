@@ -62,19 +62,17 @@
 (include "./rules/Arrays.eo")
 (include "./rules/Uf.eo")
 (include "./rules/Arith.eo")
-(include "./theories/FloatingPoints.eo")
-(include "./rules/Transcendentals.eo")
 (include "./rules/BitVectors.eo")
 (include "./rules/Strings.eo")
 (include "./rules/Sets.eo")
-(include "./theories/Bags.eo")
-(include "./theories/FiniteFields.eo")
 (include "./rules/Quantifiers.eo")
 (include "./rules/Datatypes.eo")
-(include "./theories/SepLogic.eo")
+(include "./rules/ArithBvConv.eo")
 (include "./rules/Rewrites.eo")
 
 (include "./programs/PolyNorm.eo")
+
+(include "./expert/CpcExpert.eo")
 
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
@@ -89,13 +87,6 @@
 ; note: >
 ;   @var is an alias of eo::var to ensure the cpc proof does not use eo::var.
 (define @var ((s String) (T Type)) (eo::var s T))
-
-; disclaimer: this function is not in SMT-LIB.
-(declare-const fmf.card (-> Type Int Bool))
-; disclaimer: this function is not in SMT-LIB.
-(declare-const fmf.combined_card (-> Int Bool))
-(declare-type @ho-elim-sort (Type))
-(declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
 
 ; program: $run_evaluate
 ; args:

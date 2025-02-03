@@ -12,23 +12,6 @@
 ;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
-; returns the type of the element in the list, if the list is a singleton.
-
-; program: $get_witness_type
-; args:
-; - L List: The list of variables of the witness to process.
-; return: >
-;   The type of a witness having the singleton list of variables L.
-(program $get_witness_type ((x @List))
-  (@List) Type
-  (
-    (($get_witness_type (@list x)) (eo::typeof x))
-  )
-)
-
-; disclaimer: This function is not in SMT-LIB.
-(declare-const witness (-> (! @List :var L) Bool ($get_witness_type L)) :binder @list)
-
 ; program: $get_qskolem_type
 ; args:
 ; - F Bool: The quantified formula.
@@ -41,5 +24,6 @@
     (($get_qskolem_type (forall xs G) i) (eo::typeof (eo::list_nth @list xs i)))
   )
 )
+
 ; skolems
 (declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque :var F) (! Int :opaque :var i) ($get_qskolem_type F i)))
