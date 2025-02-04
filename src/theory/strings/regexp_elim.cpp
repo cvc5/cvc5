@@ -32,22 +32,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-/**
- * Attributes used for constructing unique bound variables. The following
- * attributes are used to construct (deterministic) bound variables for
- * eliminations within eliminateConcat and eliminateStar respectively.
- */
-struct ReElimConcatIndexAttributeId
-{
-};
-typedef expr::Attribute<ReElimConcatIndexAttributeId, Node>
-    ReElimConcatIndexAttribute;
-struct ReElimStarIndexAttributeId
-{
-};
-typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
-    ReElimStarIndexAttribute;
-
 RegExpElimination::RegExpElimination(Env& env, bool isAgg, context::Context* c)
     : EnvObj(env),
       d_isAggressive(isAgg),
@@ -282,8 +266,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           Node cacheVal =
               BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
           TypeNode intType = nm->integerType();
-          Node k =
-              bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
+          Node k = bvm->mkBoundVar(
+              BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(Kind::ADD, prev_end, k);
         }
@@ -483,7 +467,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node cacheVal =
             BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
         TypeNode intType = nm->integerType();
-        k = bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
+        k = bvm->mkBoundVar(
+            BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
         Node bound = nm->mkNode(
             Kind::AND,
             nm->mkNode(Kind::LEQ, zero, k),
@@ -566,7 +551,8 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
   TypeNode intType = nm->integerType();
-  Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
+  Node index =
+      bvm->mkBoundVar(BoundVarId::STRINGS_RE_ELIM_STAR_INDEX, atom, intType);
   Node substr_ch =
       nm->mkNode(Kind::STRING_SUBSTR, x, index, nm->mkConstInt(Rational(1)));
   // handle the case where it is purely characters
