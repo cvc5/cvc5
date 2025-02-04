@@ -28,8 +28,11 @@ namespace proof {
 AlfListNodeConverter::AlfListNodeConverter(NodeManager* nm,
                                            BaseAlfNodeConverter& tproc,
                                            const std::map<Node, Node>& adtcMap,
-                       bool useSingletonElim)
-    : NodeConverter(nm), d_tproc(tproc), d_useSingletonElim(useSingletonElim), d_adtcMap(adtcMap)
+                                           bool useSingletonElim)
+    : NodeConverter(nm),
+      d_tproc(tproc),
+      d_useSingletonElim(useSingletonElim),
+      d_adtcMap(adtcMap)
 {
 }
 

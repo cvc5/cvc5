@@ -89,7 +89,7 @@ class AlfListNodeConverter : public NodeConverter
   AlfListNodeConverter(NodeManager* nm,
                        BaseAlfNodeConverter& tproc,
                        const std::map<Node, Node>& adtcMap,
-                       bool useSingletonElim=true);
+                       bool useSingletonElim = true);
   /** Convert node n based on the conversion described above. */
   Node preConvert(Node n) override;
   /** Convert node n based on the conversion described above. */
