@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/bound_var_id.h"
 
 namespace cvc5::internal {
 
@@ -54,29 +55,23 @@ class BoundVarManager
    *
    * Returns the bound variable.
    */
-  template <class T>
-  Node mkBoundVar(Node n, TypeNode tn)
+  Node mkBoundVar(BoundVarId id, Node n, TypeNode tn)
   {
-    T attr;
-    if (n.hasAttribute(attr))
+    std::tuple<BoundVarId, TypeNode, Node> key(id, tn, n);
+    std::map<std::tuple<BoundVarId, TypeNode, Node>, Node>::iterator it =
+        d_skolemFuns.find(key);
+    if (it != d_cache.end())
     {
-      Assert(n.getAttribute(attr).getType() == tn);
-      return n.getAttribute(attr);
+      return it->second;
     }
     Node v = NodeManager::mkBoundVar(tn);
-    n.setAttribute(attr, v);
-    // if we are keeping cache values, insert it to the set
-    if (d_keepCacheVals)
-    {
-      d_cacheVals.insert(n);
-    }
+    d_cache[key] = v;
     return v;
   }
   /** Same as above, with a name for the bound variable. */
-  template <class T>
-  Node mkBoundVar(Node n, const std::string& name, TypeNode tn)
+  Node mkBoundVar(BoundVarId id, Node n, const std::string& name, TypeNode tn)
   {
-    Node v = mkBoundVar<T>(n, tn);
+    Node v = mkBoundVar(id, n, tn);
     setNameAttr(v, name);
     return v;
   }
@@ -95,10 +90,8 @@ class BoundVarManager
  private:
   /** Set name of bound variable to name */
   static void setNameAttr(Node v, const std::string& name);
-  /** Whether we keep cache values */
-  bool d_keepCacheVals;
   /** The set of cache values we have used */
-  std::unordered_set<Node> d_cacheVals;
+  std::map<std::tuple<BoundVarId, TypeNode, Node>, Node> d_cache;
 };
 
 }  // namespace cvc5::internal
