@@ -136,7 +136,8 @@ Node StringsPreprocess::reduce(Node t,
     // substr(r,0,|s|-n)
     Node lens = nm->mkNode(Kind::STRING_LENGTH, s);
     Node rs;
-    if (r.isConst() && Word::getLength(r) == 1)
+    if ((r.isConst() && Word::getLength(r) == 1)
+        || r.getKind() == Kind::SEQ_UNIT)
     {
       // optimization: don't need to take substring for single characters, due
       // to guard on where it is used in the reduction below.
@@ -662,9 +663,6 @@ Node StringsPreprocess::reduce(Node t,
 
     Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvli = nm->mkNode(Kind::BOUND_VAR_LIST, i);
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::GEQ, i, zero),
-                            nm->mkNode(Kind::LT, i, numOcc));
     Node ufi = nm->mkNode(Kind::APPLY_UF, uf, i);
     Node ufip1 = nm->mkNode(Kind::APPLY_UF, uf, nm->mkNode(Kind::ADD, i, one));
     Node ii = nm->mkNode(Kind::STRING_INDEXOF, x, y, ufi);
@@ -680,8 +678,10 @@ Node StringsPreprocess::reduce(Node t,
     flem.push_back(ufip1.eqNode(
         nm->mkNode(Kind::ADD, ii, nm->mkNode(Kind::STRING_LENGTH, y))));
 
-    Node body =
-        nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, numOcc).notNode(),
+                           nm->mkNode(Kind::AND, flem));
     Node q = utils::mkForallInternal(nm, bvli, body);
     lem.push_back(q);
 
@@ -737,12 +737,10 @@ Node StringsPreprocess::reduce(Node t,
     Node k1Len = nm->mkNode(Kind::STRING_LENGTH, k1).eqNode(idx);
     Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, l),
-                            nm->mkNode(Kind::LT, l, k2Len));
     Node body =
         nm->mkNode(Kind::OR,
-                   bound.negate(),
+                   nm->mkNode(Kind::GEQ, l, zero).notNode(),
+                   nm->mkNode(Kind::LT, l, k2Len).notNode(),
                    nm->mkNode(Kind::STRING_IN_REGEXP,
                               nm->mkNode(Kind::STRING_SUBSTR, k2, zero, l),
                               y)
@@ -809,9 +807,6 @@ Node StringsPreprocess::reduce(Node t,
 
     Node i = SkolemCache::mkIndexVar(nm, t);
     Node bvli = nm->mkNode(Kind::BOUND_VAR_LIST, i);
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::GEQ, i, zero),
-                            nm->mkNode(Kind::LT, i, numOcc));
     Node ip1 = nm->mkNode(Kind::ADD, i, one);
     Node ufi = nm->mkNode(Kind::APPLY_UF, uf, i);
     Node ufip1 = nm->mkNode(Kind::APPLY_UF, uf, ip1);
@@ -831,12 +826,10 @@ Node StringsPreprocess::reduce(Node t,
                               yp));
     Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
-    Node lenBound = nm->mkNode(Kind::AND,
-                               nm->mkNode(Kind::LT, zero, l),
-                               nm->mkNode(Kind::LT, l, ulip1));
     Node shortestMatchBody =
         nm->mkNode(Kind::OR,
-                   lenBound.negate(),
+                   nm->mkNode(Kind::GT, l, zero).notNode(),
+                   nm->mkNode(Kind::LT, l, ulip1).notNode(),
                    nm->mkNode(Kind::STRING_IN_REGEXP,
                               nm->mkNode(Kind::STRING_SUBSTR, x, ii, l),
                               y)
@@ -853,8 +846,10 @@ Node StringsPreprocess::reduce(Node t,
                                pfxMatch,
                                z,
                                nm->mkNode(Kind::APPLY_UF, us, ip1))));
-    Node body =
-        nm->mkNode(Kind::OR, bound.negate(), nm->mkNode(Kind::AND, flem));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, numOcc).notNode(),
+                           nm->mkNode(Kind::AND, flem));
     Node forall = utils::mkForallInternal(nm, bvli, body);
     lemmas.push_back(forall);
 
