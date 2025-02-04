@@ -21,8 +21,8 @@
 #include <string>
 #include <unordered_set>
 
-#include "expr/node.h"
 #include "expr/bound_var_id.h"
+#include "expr/node.h"
 
 namespace cvc5::internal {
 
