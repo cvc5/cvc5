@@ -168,16 +168,6 @@ class String
   /** Return the suffix of this string of size at most i */
   String suffix(std::size_t i) const { return substr(size() - i, i); }
 
-  /**
-   * Checks if there is any overlap between this string and another string. This
-   * corresponds to checking whether one string contains the other and whether a
-   * substring of one is a prefix of the other and vice-versa.
-   *
-   * @param y The other string
-   * @return True if there is an overlap, false otherwise
-   */
-  bool noOverlapWith(const String& y) const;
-
   /** string overlap
   *
   * if overlap returns m>0,

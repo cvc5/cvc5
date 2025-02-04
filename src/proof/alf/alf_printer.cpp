@@ -217,10 +217,13 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_SUBSTR:
         case Kind::STRING_INDEXOF:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
+        case Kind::STRING_REPLACE_RE:
+        case Kind::STRING_REPLACE_RE_ALL:
         case Kind::STRING_STOI:
         case Kind::STRING_ITOS:
         case Kind::SEQ_NTH:
-          return true;
+        case Kind::STRING_UPDATE: return true;
         default:
           break;
       }
@@ -266,6 +269,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
+    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::INT_TO_BV_ELIM:
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -292,6 +297,9 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
@@ -379,6 +387,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:

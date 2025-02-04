@@ -245,3 +245,11 @@ name   = "Proof"
   type       = "bool"
   default    = "true"
   help       = "Whether to allow trust in the proof printer (when applicable)"
+
+[[option]]
+  name       = "proofLog"
+  category   = "expert"
+  long       = "proof-log"
+  type       = "bool"
+  default    = "false"
+  help       = "Proof logging mode"
