@@ -127,10 +127,6 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     }
     NodeManager* nm = nodeManager();
     Node l = nm->mkNode(k, lchildren);
-    if (l != args[0])
-    {
-      return Node::null();
-    }
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
   }
