@@ -39,12 +39,6 @@ class BoundVarManager
   BoundVarManager();
   ~BoundVarManager();
   /**
-   * Enable or disable keeping cache values. If we keep cache values, then
-   * the bound variables returned by the methods below are deterministic in the
-   * lifetime of the NodeManager we are using.
-   */
-  void enableKeepCacheValues(bool isEnabled = true);
-  /**
    * Make a bound variable of type tn and name tn, cached based on (T, n),
    * where T is an attribute class of the form:
    *   expr::Attribute<id, Node>
@@ -55,26 +49,9 @@ class BoundVarManager
    *
    * Returns the bound variable.
    */
-  Node mkBoundVar(BoundVarId id, Node n, TypeNode tn)
-  {
-    std::tuple<BoundVarId, TypeNode, Node> key(id, tn, n);
-    std::map<std::tuple<BoundVarId, TypeNode, Node>, Node>::iterator it =
-        d_cache.find(key);
-    if (it != d_cache.end())
-    {
-      return it->second;
-    }
-    Node v = NodeManager::mkBoundVar(tn);
-    d_cache[key] = v;
-    return v;
-  }
+  Node mkBoundVar(BoundVarId id, Node n, TypeNode tn);
   /** Same as above, with a name for the bound variable. */
-  Node mkBoundVar(BoundVarId id, Node n, const std::string& name, TypeNode tn)
-  {
-    Node v = mkBoundVar(id, n, tn);
-    setNameAttr(v, name);
-    return v;
-  }
+  Node mkBoundVar(BoundVarId id, Node n, const std::string& name, TypeNode tn);
   //---------------------------------- utilities for computing Node hash
   /** get cache value from two nodes, returns SEXPR */
   static Node getCacheValue(TNode cv1, TNode cv2);

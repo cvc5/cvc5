@@ -25,11 +25,12 @@ const char* toString(BoundVarId id)
   {
     case BoundVarId::REAL_ALGEBRAIC_NUMBER_WITNESS:
       return "REAL_ALGEBRAIC_NUMBER_WITNESS";
+    case BoundVarId::ARITH_TR_PURIFY: return "ARITH_TR_PURIFY";
     case BoundVarId::ARRAYS_EQ_RANGE: return "ARRAYS_EQ_RANGE";
-    case BoundVarId::BAG_FIRST_INDEX: return "BAG_FIRST_INDEX";
-    case BoundVarId::BAG_SECOND_INDEX: return "BAG_SECOND_INDEX";
-    case BoundVarId::SET_FIRST_INDEX: return "SET_FIRST_INDEX";
-    case BoundVarId::SET_SECOND_INDEX: return "SET_SECOND_INDEX";
+    case BoundVarId::BAGS_FIRST_INDEX: return "BAGS_FIRST_INDEX";
+    case BoundVarId::BAGS_SECOND_INDEX: return "BAGS_SECOND_INDEX";
+    case BoundVarId::SETS_FIRST_INDEX: return "SETS_FIRST_INDEX";
+    case BoundVarId::SETS_SECOND_INDEX: return "SETS_SECOND_INDEX";
     case BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX:
       return "STRINGS_RE_ELIM_CONCAT_INDEX";
     case BoundVarId::STRINGS_RE_ELIM_STAR_INDEX:
@@ -43,6 +44,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::QUANT_ELIM_SHADOW: return "QUANT_ELIM_SHADOW";
     case BoundVarId::QUANT_DT_EXPAND: return "QUANT_DT_EXPAND";
     case BoundVarId::QUANT_DT_SPLIT: return "QUANT_DT_SPLIT";
+    case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
     case BoundVarId::QUANT_REW_PRENEX: return "QUANT_REW_PRENEX";
     case BoundVarId::QUANT_SYGUS_BUILTIN_FV: return "QUANT_SYGUS_BUILTIN_FV";
     default: return "?";

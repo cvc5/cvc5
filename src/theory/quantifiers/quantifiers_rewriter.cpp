@@ -48,34 +48,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/**
- * Attributes used for constructing bound variables in a canonical way. These
- * are attributes that map to bound variable, introduced for the following
- * purposes:
- * - QRewPrenexAttribute: cached on (v, body) where we are prenexing bound
- * variable v in a nested quantified formula within the given body.
- * - QRewMiniscopeAttribute: cached on (v, q, i) where q is being miniscoped
- * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
- * that q binds.
- * - QRewDtExpandAttribute: cached on (F, lit, a) where lit is the tested
- * literal used for expanding a quantified datatype variable in quantified
- * formula with body F, and a is the rational corresponding to the argument
- * position of the variable, e.g. lit is ((_ is C) x) and x is
- * replaced by (C y1 ... yn), where the argument position of yi is i.
- */
-struct QRewPrenexAttributeId
-{
-};
-using QRewPrenexAttribute = expr::Attribute<QRewPrenexAttributeId, Node>;
-struct QRewMiniscopeAttributeId
-{
-};
-using QRewMiniscopeAttribute = expr::Attribute<QRewMiniscopeAttributeId, Node>;
-struct QRewDtExpandAttributeId
-{
-};
-using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
-
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
@@ -1337,7 +1309,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
         TypeNode tn = tspec[j];
         Node rn = nm->mkConstInt(Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
-        Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
+        Node v = bvm->mkBoundVar(BoundVarId::QUANT_DT_EXPAND, cacheVal, tn);
         newChildren.push_back(v);
         newVars.push_back(v);
       }
@@ -1786,7 +1758,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
           // may share the same variables. This is the case for define-fun
           // or inferred substitutions that contain quantified formulas.
           Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-          vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
+          vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_PRENEX, cacheVal, vt);
         }
         else
         {
@@ -2071,7 +2043,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
           {
             TypeNode vt = v.getType();
             Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
-            Node vv = bvm->mkBoundVar<QRewMiniscopeAttribute>(cacheVal, vt);
+            Node vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_MINISCOPE, cacheVal, vt);
             argsc.push_back(vv);
           }
         }

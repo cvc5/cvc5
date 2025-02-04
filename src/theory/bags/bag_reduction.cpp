@@ -34,29 +34,6 @@ BagReduction::BagReduction() {}
 
 BagReduction::~BagReduction() {}
 
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a bag, used
- * for axiomatizing the behavior of some term.
- * If there are multiple quantifiers, this variable should be the first one.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over (may be distinct) elements in a bag, used
- * for axiomatizing the behavior of some term.
- * This variable should be the second of multiple quantifiers.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
-
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::BAG_FOLD);
@@ -76,7 +53,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
-      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
+      bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
   Node elements_i = nm->mkNode(Kind::APPLY_UF, elements, i);
@@ -136,9 +113,9 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node i =
-      bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
+      bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
   Node j =
-      bvm->mkBoundVar<SecondIndexVarAttribute>(node, "j", nm->integerType());
+      bvm->mkBoundVar(BoundVarId::BAGS_SECOND_INDEX, node, "j", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
@@ -207,7 +184,7 @@ Node BagReduction::reduceAggregateOperator(Node node)
   Node groupOp = nm->mkConst(Kind::TABLE_GROUP_OP, op);
   Node group = nm->mkNode(Kind::TABLE_GROUP, {groupOp, A});
 
-  Node bag = bvm->mkBoundVar<FirstIndexVarAttribute>(
+  Node bag = bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX,
       group, "bag", nm->mkBagType(elementType));
   Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, bag);
   Node foldBody = nm->mkNode(Kind::BAG_FOLD, function, initialValue, bag);
