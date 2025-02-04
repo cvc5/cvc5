@@ -41,16 +41,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-/**
- * Attribute used for making unique (bound variables) which correspond to
- * unique element values used in sequence models. See use in collectModelValues
- * below.
- */
-struct SeqModelVarAttributeId
-{
-};
-using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
-
 TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
@@ -814,7 +804,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   for (const Node& snv : snvec)
   {
     Assert(snv.getType() == etn);
-    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+    Node v = bvm->mkBoundVar(BoundVarId::STRINGS_SEQ_MODEL, snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v);
     skChildren.push_back(utils::mkUnit(tn, kv));

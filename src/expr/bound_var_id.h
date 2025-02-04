@@ -56,8 +56,13 @@ enum class BoundVarId
  * This variable should be the second of multiple quantifiers.
  */
   BAGS_SECOND_INDEX,
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over (may be distinct) elements in a set, used
+ * for axiomatizing the behavior of some term.
+ * If there are multiple quantifiers, this variable should be the first one.
+ */
   SETS_FIRST_INDEX,
-  SETS_SECOND_INDEX,
   /**
  * Attributes used for constructing unique bound variables. The following
  * attributes are used to construct (deterministic) bound variables for
@@ -77,10 +82,30 @@ enum class BoundVarId
  * axiomatizing the behavior of some term.
  */
   STRINGS_LENGTH,
+
+/**
+ * A unique (bound variable) which corresponds to
+ * unique element values used in sequence models. See use in TheoryStrings::collectModelValues.
+ */
   STRINGS_SEQ_MODEL,
+/**
+ * Mapping to the variable used for binding the witness term for the
+ * EXISTS_STRING_LENGTH.
+ */
   STRINGS_VALUE_FOR_LENGTH,
+/**
+ * Constructing a unique bound variable list for a lambda
+ * corresponding to an array constant.
+ */
   FUN_BOUND_VAR_LIST,
-  QUANT_ELIM_SHADOW,
+  /**
+   * Cached on (q, q', v), which is used to replace a
+  * shadowed variable v, which is quantified by a subformula q' of quantified
+  * formula q. Shadowed variables may be introduced when e.g. quantified formulas
+  * appear on the right hand sides of substitutions in preprocessing. They are
+  * eliminated by the rewriter.
+   */
+  ELIM_SHADOW,
 /**
  * Cached on (F, lit, a) where lit is the tested
  * literal used for expanding a quantified datatype variable in quantified

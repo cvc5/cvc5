@@ -30,7 +30,6 @@ const char* toString(BoundVarId id)
     case BoundVarId::BAGS_FIRST_INDEX: return "BAGS_FIRST_INDEX";
     case BoundVarId::BAGS_SECOND_INDEX: return "BAGS_SECOND_INDEX";
     case BoundVarId::SETS_FIRST_INDEX: return "SETS_FIRST_INDEX";
-    case BoundVarId::SETS_SECOND_INDEX: return "SETS_SECOND_INDEX";
     case BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX:
       return "STRINGS_RE_ELIM_CONCAT_INDEX";
     case BoundVarId::STRINGS_RE_ELIM_STAR_INDEX:
@@ -41,7 +40,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::STRINGS_VALUE_FOR_LENGTH:
       return "STRINGS_VALUE_FOR_LENGTH";
     case BoundVarId::FUN_BOUND_VAR_LIST: return "FUN_BOUND_VAR_LIST";
-    case BoundVarId::QUANT_ELIM_SHADOW: return "QUANT_ELIM_SHADOW";
+    case BoundVarId::ELIM_SHADOW: return "ELIM_SHADOW";
     case BoundVarId::QUANT_DT_EXPAND: return "QUANT_DT_EXPAND";
     case BoundVarId::QUANT_DT_SPLIT: return "QUANT_DT_SPLIT";
     case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
