@@ -59,7 +59,7 @@ class BoundVarManager
   {
     std::tuple<BoundVarId, TypeNode, Node> key(id, tn, n);
     std::map<std::tuple<BoundVarId, TypeNode, Node>, Node>::iterator it =
-        d_skolemFuns.find(key);
+        d_cache.find(key);
     if (it != d_cache.end())
     {
       return it->second;
