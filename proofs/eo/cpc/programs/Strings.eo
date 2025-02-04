@@ -433,62 +433,6 @@
 ; In the following, a "reduction predicate" refers to a formula that is used
 ; to axiomatize an extended string program in terms of (simpler) programs.
 
-; program: $str_reduction_substr
-; args:
-; - x (Seq U): The first argument to str.substr.
-; - n Int: The second argument to str.substr.
-; - m Int: The third argument to str.substr.
-; return: the reduction predicate for (str.substr x n m) of sort U.
-(program $str_reduction_substr ((U Type) (x (Seq U)) (n Int) (m Int))
-  ((Seq U) Int Int) Bool
-  (
-    (($str_reduction_substr x n m)
-      (eo::define ((k (@purify (str.substr x n m))))
-      (eo::define ((npm (+ n m)))
-      (eo::define ((k1 (@purify ($str_prefix x n))))
-      (eo::define ((k2 (@purify ($str_suffix_rem x npm))))
-      (ite
-        ; condition
-        (and (>= n 0)(> (str.len x) n) (> m 0))
-        ; if branch
-        (and (= x (str.++ k1 k k2))
-            (= (str.len k1) n)
-            (or (= (str.len k2) (- (str.len x) npm))
-                (= (str.len k2) 0))
-            (<= (str.len k) m))
-        ; else branch
-        (= k ($mk_emptystr (eo::typeof x)))
-        ))))))
-  )
-)
-
-; program: $str_reduction_indexof
-; args:
-; - x (Seq U): The first argument to str.indexof.
-; - y (Seq U): The second argument to str.indexof.
-; - n Int: The third argument to str.indexof.
-; return: the reduction predicate for (str.indexof x y n) of sort U.
-(program $str_reduction_indexof ((U Type) (x (Seq U)) (y (Seq U)) (n Int))
-  ((Seq U) (Seq U) Int) Bool
-  (
-    (($str_reduction_indexof x y n)
-      (eo::define ((k (@purify (str.indexof x y n))))
-      (eo::define ((xn (str.substr x n (- (str.len x) n))))
-      (eo::define ((k1 (@purify ($str_first_ctn_pre xn y))))
-      (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
-      (ite
-        (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
-        (= k (eo::neg 1))
-        (ite
-          (= y ($mk_emptystr (eo::typeof x)))
-          (= k n)
-          (and (= xn (str.++ k1 y k2))
-              (not (str.contains
-                        (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y))
-              (= k (+ n (str.len k1)))))))))))
-  )
-)
-
 ; program: $str_reduction_pred
 ; args:
 ; - t (Seq U): The string term.
@@ -499,8 +443,39 @@
                               (s String) (r RegLan) (t String))
   (T) Bool
   (
-    (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
-    (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    ; str.contains
+    (($str_reduction_pred (str.contains x y))
+      (eo::define ((k (@purify (str.contains x y))))
+      (= k (not (forall ((@var.str_index Int))
+        (or
+          (not (>= @var.str_index 0))
+          (not (<= @var.str_index (- (str.len x) (str.len y))))
+          (not (= (str.substr x @var.str_index (str.len y)) y))))))))
+    (($str_reduction_pred (str.substr x n m))
+      (eo::define ((k (@purify (str.substr x n m))))
+      (eo::define ((npm (+ n m)))
+      (eo::define ((k1 (@purify ($str_prefix x n))))
+      (eo::define ((k2 (@purify ($str_suffix_rem x npm))))
+      (ite (and (>= n 0)(> (str.len x) n) (> m 0))
+        (and (= x (str.++ k1 k k2))
+            (= (str.len k1) n)
+            (or (= (str.len k2) (- (str.len x) npm))
+                (= (str.len k2) 0))
+            (<= (str.len k) m))
+        (= k ($mk_emptystr (eo::typeof x)))))))))
+    (($str_reduction_pred (str.indexof x y n))
+      (eo::define ((k (@purify (str.indexof x y n))))
+      (eo::define ((xn (str.substr x n (- (str.len x) n))))
+      (eo::define ((k1 (@purify ($str_first_ctn_pre xn y))))
+      (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
+      (ite (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
+        (= k -1)
+        (ite (= y ($mk_emptystr (eo::typeof x)))
+          (= k n)
+          (and (= xn (str.++ k1 y k2))
+              (not (str.contains
+                        (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y))
+              (= k (+ n (str.len k1)))))))))))
     (($str_reduction_pred (str.replace x y z)) 
         (eo::define ((k (@purify (str.replace x y z))))
         (ite (= y ($mk_emptystr (eo::typeof y)))
@@ -649,12 +624,47 @@
                            (= (result @var.str_index)
                               (str.++ (str.substr s oindex (- ii oindex)) t (result (+ @var.str_index 1))))
                       ))))))))))))))))))
+    (($str_reduction_pred (str.indexof_re s r n))
+        (eo::define ((k (@purify (str.indexof_re s r n))))
+        (ite (or (> n (str.len s)) (> 0 n))
+          (= k -1)
+          (ite (str.in_re "" r)
+            (= k n)
+            (and (forall ((@var.str_index Int) (@var.str_length Int))
+                   (or
+                     (not (>= @var.str_index n))
+                     (not (< @var.str_index (ite (= k -1) (str.len s) k)))
+                     (not (> @var.str_length 0))
+                     (not (<= @var.str_length (- (str.len s) @var.str_index)))
+                     (not (str.in_re (str.substr s @var.str_index @var.str_length) r))))
+                 (or (= k -1)
+                     (and (>= k n)
+                          (not (forall ((@var.str_length Int)) (or
+                                 (not (>= @var.str_length 0))
+                                 (not (<= @var.str_length (- (str.len s) k)))
+                                 (not (str.in_re (str.substr s k @var.str_length) r))))))))))))
+    (($str_reduction_pred (str.<= s t))
+        (eo::define ((k (@purify (str.<= s t))))
+        (ite (= s t) k
+          (not (forall ((@var.str_index Int))
+            (or
+              (not (>= @var.str_index 0))
+              (not (<= @var.str_index (str.len s)))
+              (not (<= @var.str_index (str.len t)))
+              (not (= (str.substr s 0 @var.str_index) (str.substr t 0 @var.str_index)))
+              (ite k
+                (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
+                (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
+            )))))))
 
-    ; str.indexof_re
     ; str.to_lower
+    (($str_reduction_pred (str.to_lower x)) false)
     ; str.to_upper
+    (($str_reduction_pred (str.to_upper x)) false)
     ; str.rev
-    ; str.leq
+    (($str_reduction_pred (str.rev x))
+        (eo::define ((k (@purify (str.rev x))))
+          false))
   )
 )
 
