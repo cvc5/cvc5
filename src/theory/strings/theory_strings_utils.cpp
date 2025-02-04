@@ -484,8 +484,8 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node cacheVal = BoundVarManager::getCacheValue(n, len);
-  Node v = bvm->mkBoundVar(BoundVarId::STRINGS_VALUE_FOR_LENGTH,
-      cacheVal, "s", n.getType());
+  Node v = bvm->mkBoundVar(
+      BoundVarId::STRINGS_VALUE_FOR_LENGTH, cacheVal, "s", n.getType());
   Node pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(len);
   // return (witness ((v String)) (= (str.len v) len))
   Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, v);

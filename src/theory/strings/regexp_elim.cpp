@@ -266,8 +266,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           Node cacheVal =
               BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
           TypeNode intType = nm->integerType();
-          Node k =
-              bvm->mkBoundVar(BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
+          Node k = bvm->mkBoundVar(
+              BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(Kind::ADD, prev_end, k);
         }
@@ -467,7 +467,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node cacheVal =
             BoundVarManager::getCacheValue(atom, nm->mkConstInt(Rational(i)));
         TypeNode intType = nm->integerType();
-        k = bvm->mkBoundVar(BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
+        k = bvm->mkBoundVar(
+            BoundVarId::STRINGS_RE_ELIM_CONCAT_INDEX, cacheVal, intType);
         Node bound = nm->mkNode(
             Kind::AND,
             nm->mkNode(Kind::LEQ, zero, k),
@@ -550,7 +551,8 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
   TypeNode intType = nm->integerType();
-  Node index = bvm->mkBoundVar(BoundVarId::STRINGS_RE_ELIM_STAR_INDEX, atom, intType);
+  Node index =
+      bvm->mkBoundVar(BoundVarId::STRINGS_RE_ELIM_STAR_INDEX, atom, intType);
   Node substr_ch =
       nm->mkNode(Kind::STRING_SUBSTR, x, index, nm->mkConstInt(Rational(1)));
   // handle the case where it is purely characters

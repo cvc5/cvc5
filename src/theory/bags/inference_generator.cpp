@@ -414,9 +414,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node totalSumEqualCountE = d_nm->mkNode(Kind::EQUAL, totalSum, countE);
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node i = bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX, n, "i", d_nm->integerType());
-  Node j =
-      bvm->mkBoundVar(BoundVarId::BAGS_SECOND_INDEX, n, "j", d_nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, n, "i", d_nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(Kind::ADD, i, d_one);

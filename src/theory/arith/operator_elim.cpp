@@ -295,8 +295,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       // Make (lambda ((x Real)) (f x)) for this function, using the bound
       // variable manager to ensure this function is always the same.
       BoundVarManager* bvm = nm->getBoundVarManager();
-      Node x = bvm->mkBoundVar(BoundVarId::ARITH_TR_PURIFY,
-          node.getOperator(), "x", nm->realType());
+      Node x = bvm->mkBoundVar(
+          BoundVarId::ARITH_TR_PURIFY, node.getOperator(), "x", nm->realType());
       Node lam = nm->mkNode(
           Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
       Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
@@ -389,8 +389,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
     case Kind::REAL_ALGEBRAIC_NUMBER:
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
-      Node v = bvm->mkBoundVar(BoundVarId::REAL_ALGEBRAIC_NUMBER_WITNESS,
-          node, "i", nm->realType());
+      Node v = bvm->mkBoundVar(
+          BoundVarId::REAL_ALGEBRAIC_NUMBER_WITNESS, node, "i", nm->realType());
       Node w;
 #ifdef CVC5_POLY_IMP
       w = PolyConverter::ran_to_node(

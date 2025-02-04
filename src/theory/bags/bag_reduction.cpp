@@ -52,8 +52,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node combine = sm->mkSkolemFunction(SkolemId::BAGS_FOLD_COMBINE, {f, t, A});
 
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node i =
-      bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
   Node elements_i = nm->mkNode(Kind::APPLY_UF, elements, i);
@@ -112,10 +112,10 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
   Node combine = sm->mkSkolemFunction(SkolemId::BAGS_CARD_COMBINE, A);
 
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node i =
-      bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
-  Node j =
-      bvm->mkBoundVar(BoundVarId::BAGS_SECOND_INDEX, node, "j", nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, node, "i", nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, node, "j", nm->integerType());
   Node iList = nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iMinusOne = nm->mkNode(Kind::SUB, i, one);
@@ -184,8 +184,8 @@ Node BagReduction::reduceAggregateOperator(Node node)
   Node groupOp = nm->mkConst(Kind::TABLE_GROUP_OP, op);
   Node group = nm->mkNode(Kind::TABLE_GROUP, {groupOp, A});
 
-  Node bag = bvm->mkBoundVar(BoundVarId::BAGS_FIRST_INDEX,
-      group, "bag", nm->mkBagType(elementType));
+  Node bag = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, group, "bag", nm->mkBagType(elementType));
   Node foldList = nm->mkNode(Kind::BOUND_VAR_LIST, bag);
   Node foldBody = nm->mkNode(Kind::BAG_FOLD, function, initialValue, bag);
 

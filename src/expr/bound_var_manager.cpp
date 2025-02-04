@@ -69,7 +69,10 @@ Node BoundVarManager::mkBoundVar(BoundVarId id, Node n, TypeNode tn)
   return v;
 }
 
-Node BoundVarManager::mkBoundVar(BoundVarId id, Node n, const std::string& name, TypeNode tn)
+Node BoundVarManager::mkBoundVar(BoundVarId id,
+                                 Node n,
+                                 const std::string& name,
+                                 TypeNode tn)
 {
   Node v = mkBoundVar(id, n, tn);
   setNameAttr(v, name);

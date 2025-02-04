@@ -26,7 +26,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
-  
+
 /**
  * An attribute to cache the conversion between array constants and lambdas.
  */
@@ -62,8 +62,8 @@ Node FunctionConst::toLambda(TNode n)
     {
       Node cacheVal =
           BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
-      Node v =
-          bvm->mkBoundVar(BoundVarId::FUN_BOUND_VAR_LIST, cacheVal, argTypes[i]);
+      Node v = bvm->mkBoundVar(
+          BoundVarId::FUN_BOUND_VAR_LIST, cacheVal, argTypes[i]);
       bvs.push_back(v);
     }
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
