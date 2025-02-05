@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class LazyCDProof;
+
 namespace smt {
 
 class AbstractValues;
@@ -141,6 +144,8 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
+  /** Proof generator storing proofs of rewriting for defined functions */
+  std::shared_ptr<LazyCDProof> d_defFunRewPf;
 };
 
 }  // namespace smt

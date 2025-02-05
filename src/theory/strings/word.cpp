@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -377,25 +377,46 @@ Node Word::suffix(TNode x, std::size_t i)
   return Node::null();
 }
 
-bool Word::noOverlapWith(TNode x, TNode y)
+bool Word::hasOverlap(TNode x, TNode y, bool rev)
 {
   Kind k = x.getKind();
   if (k == Kind::CONST_STRING)
   {
     Assert(y.getKind() == Kind::CONST_STRING);
-    String sx = x.getConst<String>();
-    String sy = y.getConst<String>();
-    return sx.noOverlapWith(sy);
+    const String& sx = x.getConst<String>();
+    const String& sy = y.getConst<String>();
+    if (sx.empty())
+    {
+      return false;
+    }
+    if (rev)
+    {
+      return (sx.find(sy) != std::string::npos || sx.roverlap(sy) != 0);
+    }
+    return (sx.find(sy) != std::string::npos || sx.overlap(sy) != 0);
   }
   else if (k == Kind::CONST_SEQUENCE)
   {
     Assert(y.getKind() == Kind::CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
     const Sequence& sy = y.getConst<Sequence>();
-    return sx.noOverlapWith(sy);
+    if (sx.empty())
+    {
+      return false;
+    }
+    if (rev)
+    {
+      return (sx.find(sy) != std::string::npos || sx.roverlap(sy) != 0);
+    }
+    return (sx.find(sy) != std::string::npos || sx.overlap(sy) != 0);
   }
   Unimplemented();
   return false;
+}
+
+bool Word::hasBidirectionalOverlap(TNode x, TNode y)
+{
+  return hasOverlap(x, y, false) || hasOverlap(y, x, false);
 }
 
 std::size_t Word::overlap(TNode x, TNode y)
