@@ -192,8 +192,12 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                               size_t maxIndex = 0,
                               bool proveSrc = false);
   /**
+   * This method ensures that constants in eq have been spliced to match
+   * the requirements of the given proof rule (possibly in its reverse form).
+   * If necessary, we rewrite eq to a new equality eqr and add a proof of eqr
+   * from eq as a step to psb and return eqr. Otherwise, eq is returned.
    */
-  static Node splicePrefixConstants(Env& env,
+  static Node spliceConstants(Env& env,
                                     ProofRule rule,
                                     TheoryProofStepBuffer& psb,
                                     const Node& eq,

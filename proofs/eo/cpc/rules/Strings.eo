@@ -190,15 +190,16 @@
           (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
             ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
             (((str.++ s1 s2)
-                (eo::define ((sc ($str_to_flat_form s1 rev)))
-                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
+                (eo::define ((s1len (eo::len s1)))
+                (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))
+                (eo::requires ($str_has_overlap s1s t2 rev) false
                   (= tc
                     (eo::ite rev
-                      (eo::define ((oc ($str_suffix s1 v)))
+                      (eo::define ((oc ($str_suffix s1 s1len)))
                       (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
-                      (eo::define ((oc ($str_prefix s1 v)))
+                      (eo::define ((oc ($str_prefix s1 s1len)))
                       (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
-                )))))))))
+                ))))))))))
 )
 
 ; rule: concat_conflict

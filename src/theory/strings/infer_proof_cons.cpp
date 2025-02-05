@@ -457,7 +457,7 @@ bool InferProofCons::convert(Env& env,
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
       // may need to splice constants
-      mainEqSRew = splicePrefixConstants(
+      mainEqSRew = spliceConstants(
           env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
@@ -509,7 +509,7 @@ bool InferProofCons::convert(Env& env,
                || infer == InferenceId::STRINGS_N_EQ_CONF)
       {
         // first, splice if necessary
-        mainEqCeq = splicePrefixConstants(
+        mainEqCeq = spliceConstants(
           env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, isRev);
         // should be a constant conflict
         std::vector<Node> childrenC;
@@ -594,7 +594,7 @@ bool InferProofCons::convert(Env& env,
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
         {
         // first, splice if necessary
-        mainEqCeq = splicePrefixConstants(
+        mainEqCeq = spliceConstants(
           env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
@@ -656,6 +656,9 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
         {
+          // may need to splice
+        mainEqSRew = spliceConstants(
+            env, ProofRule::CONCAT_CPROP, psb, mainEqSRew, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -1523,7 +1526,7 @@ Node InferProofCons::convertCoreSubs(Env& env,
   return src;
 }
 
-Node InferProofCons::splicePrefixConstants(Env& env,
+Node InferProofCons::spliceConstants(Env& env,
                                            ProofRule rule,
                                            TheoryProofStepBuffer& psb,
                                            const Node& eq,
@@ -1531,7 +1534,7 @@ Node InferProofCons::splicePrefixConstants(Env& env,
 {
   Assert(eq.getKind() == Kind::EQUAL);
   Trace("strings-ipc-splice")
-      << "Splice " << rule << " for " << eq << std::endl;
+      << "Splice " << rule << " (" << isRev << ") for " << eq << std::endl;
   std::vector<Node> tvec;
   std::vector<Node> svec;
   theory::strings::utils::getConcat(eq[0], tvec);
