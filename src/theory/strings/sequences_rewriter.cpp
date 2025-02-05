@@ -77,6 +77,10 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
+                           TheoryRewriteCtx::POST_DSL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
