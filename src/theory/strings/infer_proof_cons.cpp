@@ -625,6 +625,9 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST)
         {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
