@@ -59,12 +59,15 @@
 ; - leq: An equality between the lengths of child strings of s and t.
 ; args:
 ; - rev Bool: Whether we are reasoning about the end of strings s and t.
-; requires: leq refers to children that are prefixes (resp. suffixes) of s and t.
+; requires: >
+;   leq refers to children that are the first (resp. last) components
+;   of s and t.
 ; conclusion: an equality between the given children of s and t. 
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
-  :requires ((($str_is_prefix s s1 rev) true) (($str_is_prefix t t1 rev) true))
+  :requires ((($head ($str_to_nary_form s rev)) s1)
+             (($head ($str_to_nary_form t rev)) t1))
   :conclusion (= s1 t1)
 )
 
@@ -220,8 +223,8 @@
            ($str_to_nary_form s rev)
            ($str_to_nary_form t rev))
       (((@pair ss ts)
-          (eo::define ((cs ($str_head_or_empty ss)))
-          (eo::define ((ct ($str_head_or_empty ts)))
+          (eo::define ((cs ($head ss)))
+          (eo::define ((ct ($head ts)))
             ; ensure they are disequal, return false
             (eo::requires (eo::is_str cs) true
             (eo::requires (eo::is_str ct) true
@@ -251,8 +254,8 @@
            ($str_to_nary_form t rev))
       (((@pair ss ts)
           ; take the first character from each side, should give x and y
-          (eo::requires ($str_head_or_empty ss) (seq.unit x)
-          (eo::requires ($str_head_or_empty ts) (seq.unit y)
+          (eo::requires ($head ss) (seq.unit x)
+          (eo::requires ($head ts) (seq.unit y)
               false)))))
 )
 
