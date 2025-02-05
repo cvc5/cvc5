@@ -191,8 +191,8 @@
             ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
             (((str.++ s1 s2)
                 (eo::define ((s1len (eo::len s1)))
-                (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))
-                (eo::requires ($str_has_overlap s1s t2 rev) false
+                (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
+                (eo::requires ($str_has_overlap s1s t2 rev) false   ; no overlap
                   (= tc
                     (eo::ite rev
                       (eo::define ((oc ($str_suffix s1 s1len)))

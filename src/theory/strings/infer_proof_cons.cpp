@@ -27,6 +27,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/strings/core_solver.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
@@ -562,14 +563,13 @@ bool InferProofCons::convert(Env& env,
       }
       else
       {
-        bool applySym = false;
         // may need to apply symmetry
         if ((infer == InferenceId::STRINGS_SSPLIT_CST
              || infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
             && t0.isConst())
         {
           Assert(!s0.isConst());
-          applySym = true;
+          mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
           std::swap(t0, s0);
         }
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
@@ -581,7 +581,7 @@ bool InferProofCons::convert(Env& env,
           // one side should match, the other side could be a split constant
           if (conc[0] != t0 && conc[1] != s0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           Assert(conc[0].isConst() == t0.isConst());
@@ -613,7 +613,7 @@ bool InferProofCons::convert(Env& env,
                  && conc[0][0].getKind() == Kind::EQUAL);
           if (conc[0][0][0] != t0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           // it should be the case that lenConstraint => lenReq
@@ -648,7 +648,7 @@ bool InferProofCons::convert(Env& env,
             if (r == 0)
             {
               // may be the other direction
-              applySym = true;
+              mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
               std::swap(t0, s0);
             }
           }
@@ -657,8 +657,8 @@ bool InferProofCons::convert(Env& env,
         else if (infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
         {
           // may need to splice
-        mainEqSRew = spliceConstants(
-            env, ProofRule::CONCAT_CPROP, psb, mainEqSRew, isRev);
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_CPROP, psb, mainEqCeq, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -671,16 +671,6 @@ bool InferProofCons::convert(Env& env,
           Trace("strings-ipc-core")
               << "...failed due to length constraint" << std::endl;
           break;
-        }
-        // apply symmetry if necessary
-        if (applySym)
-        {
-          std::vector<Node> childrenSymm;
-          childrenSymm.push_back(mainEqCeq);
-          // note this explicit step may not be necessary
-          mainEqCeq = psb.tryStep(ProofRule::SYMM, childrenSymm, {});
-          Trace("strings-ipc-core")
-              << "Main equality after SYMM " << mainEqCeq << std::endl;
         }
         if (rule != ProofRule::UNKNOWN)
         {
@@ -1554,8 +1544,39 @@ Node InferProofCons::spliceConstants(Env& env,
     }
     if (rule == ProofRule::CONCAT_CPROP)
     {
+      Trace("strings-ipc-splice") << "Splice cprop at " << ti << " / " << si << std::endl;
+      if (i+1==tvec.size())
+      {
+        AlwaysAssert(false);
+        return eq;
+      }
       // isolate the maximal overlap
-      return eq;
+      size_t nextIndex = isRev ? ti-1 : ti+1;
+      Node currTNext = tvec[nextIndex];
+      if (!currS.isConst() || !currTNext.isConst())
+      {
+        AlwaysAssert(false) << "Non-constant " << currT << " / " << currTNext << std::endl;
+        return eq;
+      }
+      Trace("strings-ipc-splice") << "Get sufficient overlap " << currS << " / " << currTNext << std::endl;
+      size_t p = CoreSolver::getSufficientNonEmptyOverlap(currS, currTNext, isRev);
+      Trace("strings-ipc-splice") << "...returns " << p << std::endl;
+      size_t len = Word::getLength(currS);
+      if (p==len)
+      {
+        // not necessary
+        return eq;
+      }
+      if (isRev)
+      {
+        svec[si] = Word::suffix(currS, p);
+        svec.insert(svec.begin()+si, Word::prefix(currS, len-p));
+      }
+      else
+      {
+        svec[si] = Word::prefix(currS, p);
+        svec.insert(svec.begin()+si+(isRev ? 0 : 1), Word::suffix(currS, len-p));
+      }
     }
     if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
     {
