@@ -195,8 +195,8 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    */
   static Node splicePrefixConstants(Env& env,
                                     ProofRule rule,
-                              TheoryProofStepBuffer& psb,
-                              const Node& eq,
+                                    TheoryProofStepBuffer& psb,
+                                    const Node& eq,
                                     bool isRev);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;

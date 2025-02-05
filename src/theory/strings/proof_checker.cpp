@@ -160,12 +160,12 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
              || id == ProofRule::CONCAT_CONFLICT_DEQ)
     {
       Assert(children.size() >= 1 && children.size() <= 2);
-      if (!t0.isConst() || !s0.isConst() || t0==s0)
+      if (!t0.isConst() || !s0.isConst() || t0 == s0)
       {
         // not constants
         return Node::null();
       }
-      if (Word::getLength(t0)!=Word::getLength(s0))
+      if (Word::getLength(t0) != Word::getLength(s0))
       {
         // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
         // versa.

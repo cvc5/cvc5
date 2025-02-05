@@ -457,7 +457,8 @@ bool InferProofCons::convert(Env& env,
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
       // may need to splice constants
-      mainEqSRew = splicePrefixConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
+      mainEqSRew = splicePrefixConstants(
+          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
       Node mainEqCeq = psb.tryStep(ProofRule::CONCAT_EQ, childrenCeq, argsCeq);
@@ -510,7 +511,7 @@ bool InferProofCons::convert(Env& env,
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
-        // may have to splice constants 
+        // may have to splice constants
         // TODO
         // if it is between sequences, we require the explicit disequality
         ProofRule r = ProofRule::CONCAT_CONFLICT;
@@ -1522,24 +1523,25 @@ Node InferProofCons::convertCoreSubs(Env& env,
 
 Node InferProofCons::splicePrefixConstants(Env& env,
                                            ProofRule rule,
-                              TheoryProofStepBuffer& psb,
-                              const Node& eq,
-                                    bool isRev)
+                                           TheoryProofStepBuffer& psb,
+                                           const Node& eq,
+                                           bool isRev)
 {
-  Assert (eq.getKind()==Kind::EQUAL);
-  Trace("strings-ipc-splice") << "Splice " << rule << " for " << eq << std::endl;
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("strings-ipc-splice")
+      << "Splice " << rule << " for " << eq << std::endl;
   std::vector<Node> tvec;
   std::vector<Node> svec;
   theory::strings::utils::getConcat(eq[0], tvec);
   theory::strings::utils::getConcat(eq[1], svec);
   size_t nts = tvec.size();
   size_t nss = svec.size();
-  size_t n = nts>nss ? nss : nts;
-  for (size_t i=0; i<n; i++)
+  size_t n = nts > nss ? nss : nts;
+  for (size_t i = 0; i < n; i++)
   {
-    size_t ti = isRev ? nts-i-1 : i;
-    size_t si = isRev ? nss-i-1 : i;
-    if (tvec[ti]==svec[si])
+    size_t ti = isRev ? nts - i - 1 : i;
+    size_t si = isRev ? nss - i - 1 : i;
+    if (tvec[ti] == svec[si])
     {
       continue;
     }
@@ -1547,27 +1549,27 @@ Node InferProofCons::splicePrefixConstants(Env& env,
     const Node& currS = svec[si];
     if (currT.isConst() && currS.isConst())
     {
-      if (rule==ProofRule::CONCAT_CPROP)
+      if (rule == ProofRule::CONCAT_CPROP)
       {
         // isolate the maximal overlap
         return eq;
       }
-      if (rule==ProofRule::CONCAT_EQ || rule==ProofRule::CONCAT_UNIFY)
+      if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
       {
-        // remove the common prefix            
+        // remove the common prefix
         // get the equal prefix/suffix, strip and add the remainders
         size_t sindex;
         Node currR = Word::splitConstant(currT, currS, sindex, isRev);
         if (!currR.isNull())
         {
-          size_t index = sindex==1 ? si : ti;
-          std::vector<Node>& vec = sindex==1 ? svec : tvec;
-          Node o = sindex==1 ? currT : currS;
+          size_t index = sindex == 1 ? si : ti;
+          std::vector<Node>& vec = sindex == 1 ? svec : tvec;
+          Node o = sindex == 1 ? currT : currS;
           vec[index] = o;
-          vec.insert(vec.begin()+index + (isRev ? 0 : 1), currR);
+          vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
         }
       }
-      else if (rule==ProofRule::CONCAT_CONFLICT)
+      else if (rule == ProofRule::CONCAT_CONFLICT)
       {
         // isolate a disequal prefix
         return eq;
