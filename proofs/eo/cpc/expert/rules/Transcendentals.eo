@@ -1,7 +1,8 @@
-(include "../theories/Builtin.eo")
 (include "../theories/Transcendentals.eo")
-(include "../programs/Arith.eo")
-(include "../programs/Utils.eo")
+
+(include "../../theories/Builtin.eo")
+(include "../../programs/Arith.eo")
+(include "../../programs/Utils.eo")
 
 ; Unhandled:
 ; ProofRule::ARITH_TRANS_PI

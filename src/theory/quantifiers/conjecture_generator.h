@@ -366,6 +366,19 @@ public:
   TermGenEnv d_tge;
   //consider term canon
   bool considerTermCanon( Node ln, bool genRelevant );
+  /** collect equivalence classes
+   *
+   * This function iterates over the representative 'r'
+   * of each equivalence class and
+   *
+   * - adds 'r' to 'eqcs',
+   * - assigns to 'r' a 1-indexed serial number 'd_em[r]',
+   * - and adds every term 't' in the equivalence class represented by 'r'
+   * to the operator-argument index, which will be used to identify
+   * equivalence classes that do not contain concrete terms and so are
+   * relevant for conjecture generation.
+   */
+  void getEquivalenceClasses(std::vector<TNode>& eqcs);
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {

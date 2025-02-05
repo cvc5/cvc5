@@ -169,6 +169,8 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaStrReplaceReEval(const Node& n);
   /** Rewrite based on STR_REPLACE_RE_ALL_EVAL */
   Node rewriteViaStrReplaceReAllEval(const Node& n);
+  /** Rewrite based on one of the STR_OVERLAP_* rules */
+  Node rewriteViaOverlap(ProofRewriteRule id, const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;
