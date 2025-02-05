@@ -1643,7 +1643,7 @@ Node InferProofCons::spliceConstants(Env& env,
       }
       // isolate a disequal prefix by taking maximal prefix/suffix
       size_t lens = Word::getLength(currS);
-      size_t lent = Word::getLength(currS);
+      size_t lent = Word::getLength(currT);
       if (lens == lent)
       {
         // no need
