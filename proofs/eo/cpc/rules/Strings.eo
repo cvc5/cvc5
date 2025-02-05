@@ -44,12 +44,12 @@
   :conclusion
     (eo::match ((ss U) (ts U))
       ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
+           ($str_to_nary_form s rev)
+           ($str_to_nary_form t rev))
       (((@pair ss ts)
         (= 
-          ($str_from_flat_form ss rev)
-          ($str_from_flat_form ts rev)))))
+          ($str_from_nary_form ss rev)
+          ($str_from_nary_form ts rev)))))
 )
 
 ; rule: concat_unify
@@ -84,11 +84,11 @@
   :args (rev)
   :conclusion
     (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
+      ($str_to_nary_form t rev)
       (((str.++ t1 t2)
         (eo::requires t1 u
           (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
+            ($str_to_nary_form s rev)
             (((str.++ s1 s2)
               (eo::requires ($str_check_length_one s1) true    ; checks if char
                 (= u
@@ -112,11 +112,11 @@
   :args (rev)
   :conclusion
     (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
+      ($str_to_nary_form t rev)
       (((str.++ t1 t2)
         (eo::requires t1 tc
           (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
+            ($str_to_nary_form s rev)
             (((str.++ s1 s2)
               (eo::requires s1 sc
                 (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
@@ -150,11 +150,11 @@
   :args (rev)
   :conclusion
     (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
+      ($str_to_nary_form t rev)
       (((str.++ t1 t2)
         (eo::requires t1 tc
           (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
+            ($str_to_nary_form s rev)
             (((str.++ s1 s2)
               (eo::requires s1 sc
                 (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
@@ -217,8 +217,8 @@
     ; strip the prefix of the equality
     (eo::match ((ss String) (ts String))
       ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
+           ($str_to_nary_form s rev)
+           ($str_to_nary_form t rev))
       (((@pair ss ts)
           (eo::define ((cs ($str_head_or_empty ss)))
           (eo::define ((ct ($str_head_or_empty ts)))
@@ -247,8 +247,8 @@
     ; strip the prefix of the equality
     (eo::match ((ss (Seq U)) (ts (Seq U)))
       ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
+           ($str_to_nary_form s rev)
+           ($str_to_nary_form t rev))
       (((@pair ss ts)
           ; take the first character from each side, should give x and y
           (eo::requires ($str_head_or_empty ss) (seq.unit x)

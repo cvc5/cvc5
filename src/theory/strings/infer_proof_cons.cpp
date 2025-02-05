@@ -454,12 +454,12 @@ bool InferProofCons::convert(Env& env,
       }
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
-      // now, apply CONCAT_EQ to get the remainder
-      std::vector<Node> childrenCeq;
-      childrenCeq.push_back(mainEqSRew);
       // may need to splice constants
       mainEqSRew =
           spliceConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
+      // now, apply CONCAT_EQ to get the remainder
+      std::vector<Node> childrenCeq;
+      childrenCeq.push_back(mainEqSRew);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
       Node mainEqCeq = psb.tryStep(ProofRule::CONCAT_EQ, childrenCeq, argsCeq);

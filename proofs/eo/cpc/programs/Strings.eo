@@ -1089,6 +1089,10 @@
 ;   (3) (optionally) reverse.
 (define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, flatten, reverse
+  ($str_rev rev ($str_flatten ($str_nary_intro s)))
+)
+(define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; intro, flatten, reverse
   ($str_rev rev ($str_nary_intro s))
 )
 
@@ -1137,6 +1141,10 @@
 ;   (2) collect constants
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; reverse, collect, elim
+  ($str_nary_elim ($str_collect ($str_rev rev s)))
+)
+(define $str_from_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
   ($str_nary_elim ($str_rev rev s))
 )
