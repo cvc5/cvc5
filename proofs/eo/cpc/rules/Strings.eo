@@ -720,6 +720,7 @@
              (($str_has_overlap c2 d2 true) false))
   :conclusion (= (str.replace (str.++ c1 s c2) (str.++ d1 t d2) r)
                  (str.++ c1 (str.replace s (str.++ d1 t d2) r) c2))
+)
 
 ;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
 
