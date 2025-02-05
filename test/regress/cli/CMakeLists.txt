@@ -3793,6 +3793,7 @@ set(regress_2_tests
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
   regress2/strings/repl-repl.smt2
+  regress2/strings/replace-re-all-unsat.smt2
   regress2/strings/replace_re.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
