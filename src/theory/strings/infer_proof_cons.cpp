@@ -1536,8 +1536,8 @@ Node InferProofCons::spliceConstants(Env& env,
   {
     size_t ti = isRev ? nts - i - 1 : i;
     size_t si = isRev ? nss - i - 1 : i;
-    const Node& currT = tvec[ti];
-    const Node& currS = svec[si];
+    Node currT = tvec[ti];
+    Node currS = svec[si];
     if (currT == currS)
     {
       continue;
@@ -1564,6 +1564,7 @@ Node InferProofCons::spliceConstants(Env& env,
       size_t len = Word::getLength(currS);
       if (p==len)
       {
+        Trace("strings-ipc-splice") << "...same as length" << std::endl;
         // not necessary
         return eq;
       }
@@ -1578,7 +1579,7 @@ Node InferProofCons::spliceConstants(Env& env,
         svec.insert(svec.begin()+si+(isRev ? 0 : 1), Word::suffix(currS, len-p));
       }
     }
-    if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
+    else if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
     {
       if (!currT.isConst() || !currS.isConst())
       {

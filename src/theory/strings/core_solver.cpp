@@ -793,8 +793,7 @@ Node CoreSolver::getConclusion(NodeManager* nm,
     Node c = y;
     Assert(c.isConst());
     size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
-    Node rp = nm->mkConstInt(p);
-    Node preC = (isRev ? utils::mkSuffixOfLen(c, rp) : utils::mkPrefix(c, rp));
+    Node preC = (isRev ? Word::suffix(c, p) : Word::prefix(c, p));
     Node sk = skc->mkSkolemCached(
         z,
         preC,
