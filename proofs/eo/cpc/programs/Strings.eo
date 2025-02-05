@@ -827,10 +827,25 @@
 (program $str_flatten_word ((t String))
   (String) String
   (
+    (($str_flatten_word "") "")
     (($str_flatten_word t) 
       (eo::ite ($str_check_length_one t)
         ($str_cons t "")
         ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t))))))
+  )
+)
+
+; program: $str_collect_word
+; args:
+; - t String: A string term, assumed to be a concatenation of characters.
+; return: >
+;   The result of "collect" t, for example given (str.++ "A" (str.++ "B" "")),
+;   this returns the term "AB".
+(program $str_collect_word ((t String) (ts String :list))
+  (String) String
+  (
+    (($str_collect_word (str.++ t ts)) (eo::concat t ($str_collect_word ts)))
+    (($str_collect_word "")            "")
   )
 )
 
@@ -1641,7 +1656,7 @@
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
 (define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
-  (eo::define ((ss ($str_to_flat_form s true)))  
+  (eo::define ((ss ($str_to_flat_form s true)))
   (eo::define ((rr ($re_to_flat_form r true)))
   (eo::match ((s1 String) (r1 RegLan))
       ($str_re_consume_rec ss rr @result.null true)
@@ -1821,7 +1836,7 @@
 ;   or the term `(str.to_lower s)` otherwise.
 (define $str_to_lower_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_case_conv_rec ($str_to_flat_form s false) true)
+    ($str_case_conv_rec ($str_flatten_word s) true)
     (str.to_lower s)))
 
 ; define: $str_to_upper_eval
@@ -1832,7 +1847,7 @@
 ;   or the term `(str.to_upper s)` otherwise.
 (define $str_to_upper_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_case_conv_rec ($str_to_flat_form s false) false)
+    ($str_case_conv_rec ($str_flatten_word s) false)
     (str.to_upper s)))
 
 ; define: $str_rev_eval
@@ -1843,7 +1858,7 @@
 ;   or the term `(str.rev s)` otherwise.
 (define $str_rev_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_from_flat_form ($str_to_flat_form s true) false) ; make reverse flat form and then convert back
+    ($str_collect_word ($str_rev true ($str_flatten_word s))) ; make reverse flat form and then convert back
     (str.rev s)))
 
 ; program: $str_leq_eval_rec
@@ -1871,7 +1886,7 @@
 ;   or the term `(str.<= s t)` otherwise.
 (define $str_leq_eval ((s String) (t String))
   (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
-    ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
+    ($str_leq_eval_rec ($str_flatten_word s) ($str_flatten_word t))
     (str.<= s t)))
 
 
