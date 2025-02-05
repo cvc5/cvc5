@@ -7,5 +7,4 @@
 (forall ((x Int) (y Int)) (or (> x y) (> x b) (= x 2) (> y 0)))
 )
 )
-;(assert (forall ((x Int) (y Int)) (or (< x y) (< x b) (< y 0))))
 (check-sat)
