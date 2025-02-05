@@ -576,7 +576,7 @@
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, remembering if we have removed a character.
 ; note: This method only supports strings currently.
-(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (ts (Seq T) :list) (b Bool))
+(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
     ((Seq T) (Seq T) Bool) Bool
     (
       (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
