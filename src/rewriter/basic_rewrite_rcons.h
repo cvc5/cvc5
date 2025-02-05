@@ -171,6 +171,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroArithStringPredEntail(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroReInterUnionInclusion(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
    *
    * @param cdp The proof to add to.
