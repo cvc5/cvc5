@@ -1714,6 +1714,46 @@
   )
 )
 
+;;;;; overlap utils
+
+; program: $str_has_overlap_rec
+; args:
+; - nil (Seq U): The empty string.
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be in flattened form.
+; return: >
+;   Assuming t is non-empty, this method returns true if s contains t, or a
+;   non-empty suffix of s is a prefix of t.
+(program $str_has_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
+  ((Seq U) (Seq U) (Seq U)) Bool
+  (
+  (($str_has_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
+                                                true
+                                                ($str_has_overlap_rec nil s1 t)))
+  (($str_has_overlap_rec nil nil t)           false)
+  )
+)
+
+
+; program: $str_has_overlap
+; args:
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be non-empty and in flattened form.
+; return: >
+;   True if s is non-empty and contains t, or
+;   a non-empty suffix of s is a prefix of t if rev is false, or
+;   a non-empty prefix of s is a suffix of t if rev is true.
+; note: >
+;   This method is equivalent to theory::strings::Word::hasOverlap in cvc5,
+;   see theory/strings/word.h.
+(define $str_has_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
+  (eo::requires (eo::is_str s) true
+  (eo::requires (eo::is_str t) true
+  (eo::define ((emp ($mk_emptystr (eo::typeof s))))
+    ($str_has_overlap_rec emp ($str_to_flat_form s rev) ($str_to_flat_form t rev))))))
+
+;;;;; evaluation utils
+
 ; program: $str_from_int_eval_rec
 ; args:
 ; - n Int: The integer to process, expected to be non-negative.

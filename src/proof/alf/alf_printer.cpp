@@ -303,6 +303,10 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
       // only strings are supported, since it is non-trivial to show
       // distinctness of sequence characters.

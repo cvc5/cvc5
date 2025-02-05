@@ -3029,6 +3029,70 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_STR_EQ_LEN_UNIFY),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap split contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_3, s)
+   *
+   * :math:`t_2` has no forward overlap with :math:`s` and :math:`s` has no
+   * forward overlap with :math:`t_2`. For details see
+   * :math:`\texttt{Word::hasOverlap}` in :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_SPLIT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_2, s)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints indexof**
+   *
+   * .. math::
+   *   \mathit{str.indexof}(\mathit{str.++}(t_1, t_2), s, n) =
+   *   \mathit{str.indexof}(t_1, s, n)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2)` and
+   * :math:`t_2` has no reverse overlap with :math:`s_2`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_INDEXOF),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints replace**
+   *
+   * .. math::
+   *   \mathit{str.replace}(\mathit{str.++}(t_1, t_2, t_3), s, r) =
+   *   \mathit{str.++}(t_1, \mathit{str.replace}(t_2, s, r) t_3)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- string indexof regex evaluation**

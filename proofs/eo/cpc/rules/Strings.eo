@@ -642,6 +642,86 @@
   :conclusion (= (str.contains t s) false)
 )
 
+;;;;; ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+
+; rule: str-overlap-split-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a disjunction.
+; requires: >
+;   The middle component of the first argument to contains has no forward
+;   overlap with the second argument, and the second argument has not forward
+;   overlap with the middle component of the first argument.
+; conclusion: The given equality.
+(declare-rule str-overlap-split-ctn ((t String) (s String) (c String) (d String))
+  :args ((= (str.contains (str.++ t c s) d)
+            (or (str.contains t d) (str.contains s d))))
+  :requires ((($str_has_overlap c d false) false)
+             (($str_has_overlap d c false) false))
+  :conclusion (= (str.contains (str.++ t c s) d)
+                 (or (str.contains t d) (str.contains s d)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+
+; rule: str-overlap-endpoints-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a miniscoped version.
+; requires: >
+;   the first components of the arguments to contains have no forward overlap,
+;   and the last components of the arguments to contains have no reverse
+;   overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-ctn ((c1 String) (s String) (c2 String)
+                                         (d1 String) (t String) (d2 String))
+  :args ((= (str.contains (str.++ c1 s c2) (str.++ d1 t d2))
+            (str.contains s (str.++ d1 t d2))))
+  :requires ((($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false))
+  :conclusion (= (str.contains (str.++ c1 s c2) (str.++ d1 t d2))
+                 (str.contains s (str.++ d1 t d2)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+
+; rule: str-overlap-endpoints-indexof
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+; args:
+; - eq Bool: The equality between a indexof term and miniscoped one.
+; requires: >
+;  the last components of the first two arguments to indexof have no reverse
+;  overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-indexof ((s String) (c String) (t String) (d String))
+  :args ((= (str.indexof (str.++ s c) (str.++ t d) 0)
+            (str.indexof s (str.++ t d) 0)))
+  :requires ((($str_has_overlap c d true) false))
+  :conclusion (= (str.indexof (str.++ s c) (str.++ t d) 0)
+                 (str.indexof s (str.++ t d) 0))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_REPLACE
+
+; rule: str-overlap-endpoints-replace
+; implements: ProofRewriteRule::STR_OVERLAP_REPLACE
+; args:
+; - eq Bool: The equality between a replace term and a miniscoped one.
+; requires: >
+;   the first components of the first two arguments to replace have no forward
+;   overlap, and the last components of the first two arguments to replace have
+;   no reverse overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-replace ((c1 String) (s String) (c2 String)
+                                             (d1 String) (t String) (d2 String) (r String))
+  :args ((= (str.replace (str.++ c1 s c2) (str.++ d1 t d2) r)
+            (str.++ c1 (str.replace s (str.++ d1 t d2) r) c2)))
+  :requires ((($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false))
+  :conclusion (= (str.replace (str.++ c1 s c2) (str.++ d1 t d2) r)
+                 (str.++ c1 (str.replace s (str.++ d1 t d2) r) c2))
+)
+
 ;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
 
 ; define: $str_eval_indexof_re
