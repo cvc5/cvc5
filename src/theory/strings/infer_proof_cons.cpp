@@ -24,10 +24,10 @@
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/strings/core_solver.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
@@ -458,8 +458,8 @@ bool InferProofCons::convert(Env& env,
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
       // may need to splice constants
-      mainEqSRew = spliceConstants(
-          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
+      mainEqSRew =
+          spliceConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
       Node mainEqCeq = psb.tryStep(ProofRule::CONCAT_EQ, childrenCeq, argsCeq);
@@ -511,7 +511,7 @@ bool InferProofCons::convert(Env& env,
       {
         // first, splice if necessary
         mainEqCeq = spliceConstants(
-          env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, isRev);
+            env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, isRev);
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
@@ -593,9 +593,9 @@ bool InferProofCons::convert(Env& env,
         bool lenSuccess = false;
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
         {
-        // first, splice if necessary
-        mainEqCeq = spliceConstants(
-          env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, isRev);
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -1517,10 +1517,10 @@ Node InferProofCons::convertCoreSubs(Env& env,
 }
 
 Node InferProofCons::spliceConstants(Env& env,
-                                           ProofRule rule,
-                                           TheoryProofStepBuffer& psb,
-                                           const Node& eq,
-                                           bool isRev)
+                                     ProofRule rule,
+                                     TheoryProofStepBuffer& psb,
+                                     const Node& eq,
+                                     bool isRev)
 {
   Assert(eq.getKind() == Kind::EQUAL);
   Trace("strings-ipc-splice")
@@ -1544,25 +1544,29 @@ Node InferProofCons::spliceConstants(Env& env,
     }
     if (rule == ProofRule::CONCAT_CPROP)
     {
-      Trace("strings-ipc-splice") << "Splice cprop at " << ti << " / " << si << std::endl;
-      if (i+1==tvec.size())
+      Trace("strings-ipc-splice")
+          << "Splice cprop at " << ti << " / " << si << std::endl;
+      if (i + 1 == tvec.size())
       {
         AlwaysAssert(false);
         return eq;
       }
       // isolate the maximal overlap
-      size_t nextIndex = isRev ? ti-1 : ti+1;
+      size_t nextIndex = isRev ? ti - 1 : ti + 1;
       Node currTNext = tvec[nextIndex];
       if (!currS.isConst() || !currTNext.isConst())
       {
-        AlwaysAssert(false) << "Non-constant " << currT << " / " << currTNext << std::endl;
+        AlwaysAssert(false)
+            << "Non-constant " << currT << " / " << currTNext << std::endl;
         return eq;
       }
-      Trace("strings-ipc-splice") << "Get sufficient overlap " << currS << " / " << currTNext << std::endl;
-      size_t p = CoreSolver::getSufficientNonEmptyOverlap(currS, currTNext, isRev);
+      Trace("strings-ipc-splice") << "Get sufficient overlap " << currS << " / "
+                                  << currTNext << std::endl;
+      size_t p =
+          CoreSolver::getSufficientNonEmptyOverlap(currS, currTNext, isRev);
       Trace("strings-ipc-splice") << "...returns " << p << std::endl;
       size_t len = Word::getLength(currS);
-      if (p==len)
+      if (p == len)
       {
         Trace("strings-ipc-splice") << "...same as length" << std::endl;
         // not necessary
@@ -1571,12 +1575,13 @@ Node InferProofCons::spliceConstants(Env& env,
       if (isRev)
       {
         svec[si] = Word::suffix(currS, p);
-        svec.insert(svec.begin()+si, Word::prefix(currS, len-p));
+        svec.insert(svec.begin() + si, Word::prefix(currS, len - p));
       }
       else
       {
         svec[si] = Word::prefix(currS, p);
-        svec.insert(svec.begin()+si+(isRev ? 0 : 1), Word::suffix(currS, len-p));
+        svec.insert(svec.begin() + si + (isRev ? 0 : 1),
+                    Word::suffix(currS, len - p));
       }
     }
     else if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
@@ -1610,7 +1615,7 @@ Node InferProofCons::spliceConstants(Env& env,
       }
       // split the first character
       size_t len = Word::getLength(currS);
-      if (len==1)
+      if (len == 1)
       {
         // not needed
         return eq;
@@ -1618,12 +1623,12 @@ Node InferProofCons::spliceConstants(Env& env,
       if (isRev)
       {
         svec[si] = Word::suffix(currS, 1);
-        svec.insert(svec.begin()+si, Word::prefix(currS, len-1));
+        svec.insert(svec.begin() + si, Word::prefix(currS, len - 1));
       }
       else
       {
         svec[si] = Word::prefix(currS, 1);
-        svec.insert(svec.begin()+si+1, Word::suffix(currS, len-1));
+        svec.insert(svec.begin() + si + 1, Word::suffix(currS, len - 1));
       }
     }
     else if (rule == ProofRule::CONCAT_CONFLICT)
@@ -1636,18 +1641,21 @@ Node InferProofCons::spliceConstants(Env& env,
       // isolate a disequal prefix by taking maximal prefix/suffix
       size_t lens = Word::getLength(currS);
       size_t lent = Word::getLength(currS);
-      if (lens==lent)
+      if (lens == lent)
       {
         // no need
         return eq;
       }
-      std::vector<Node>& vec = lens>lent ? svec : tvec;
-      Node curr = lens>lent ? currS : currT;
-      size_t index = lens>lent ? si : ti;
-      size_t smallLen = lens>lent ? lent : lens;
-      size_t diffLen = lens>lent ? (lens-lent) : (lent-lens);
-      vec[index] = isRev ? Word::suffix(curr, smallLen) : Word::prefix(curr, smallLen);
-      vec.insert(vec.begin()+index+(isRev ? 0 : 1), isRev ? Word::prefix(curr, diffLen) : Word::suffix(curr, diffLen));
+      std::vector<Node>& vec = lens > lent ? svec : tvec;
+      Node curr = lens > lent ? currS : currT;
+      size_t index = lens > lent ? si : ti;
+      size_t smallLen = lens > lent ? lent : lens;
+      size_t diffLen = lens > lent ? (lens - lent) : (lent - lens);
+      vec[index] =
+          isRev ? Word::suffix(curr, smallLen) : Word::prefix(curr, smallLen);
+      vec.insert(
+          vec.begin() + index + (isRev ? 0 : 1),
+          isRev ? Word::prefix(curr, diffLen) : Word::suffix(curr, diffLen));
     }
     else
     {
@@ -1666,7 +1674,6 @@ Node InferProofCons::spliceConstants(Env& env,
       return eq;
     }
     return eqr;
-  
   }
   // no change
   return eq;

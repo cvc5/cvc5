@@ -198,10 +198,10 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * from eq as a step to psb and return eqr. Otherwise, eq is returned.
    */
   static Node spliceConstants(Env& env,
-                                    ProofRule rule,
-                                    TheoryProofStepBuffer& psb,
-                                    const Node& eq,
-                                    bool isRev);
+                              ProofRule rule,
+                              TheoryProofStepBuffer& psb,
+                              const Node& eq,
+                              bool isRev);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */

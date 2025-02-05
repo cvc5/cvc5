@@ -214,7 +214,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       // note we guard that the length must be one here, despite
       // CoreSolver::getConclusion allow splicing below.
-      if (!s0.isConst() || !s0.getType().isStringLike() || Word::getLength(s0)!=1)
+      if (!s0.isConst() || !s0.getType().isStringLike()
+          || Word::getLength(s0) != 1)
       {
         return Node::null();
       }
