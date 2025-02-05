@@ -26,6 +26,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
@@ -455,6 +456,8 @@ bool InferProofCons::convert(Env& env,
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
+      // may need to splice constants
+      mainEqSRew = splicePrefixConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
       std::vector<Node> argsCeq;
       argsCeq.push_back(nodeIsRev);
       Node mainEqCeq = psb.tryStep(ProofRule::CONCAT_EQ, childrenCeq, argsCeq);
@@ -507,6 +510,8 @@ bool InferProofCons::convert(Env& env,
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
+        // may have to splice constants 
+        // TODO
         // if it is between sequences, we require the explicit disequality
         ProofRule r = ProofRule::CONCAT_CONFLICT;
         if (mainEqCeq[0].getType().isSequence())
@@ -595,6 +600,8 @@ bool InferProofCons::convert(Env& env,
                        .eqNode(nm->mkNode(Kind::STRING_LENGTH, conc[1]));
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = ProofRule::CONCAT_UNIFY;
+          // we may have to splice constants
+          // TODO
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR)
         {
@@ -1511,6 +1518,80 @@ Node InferProofCons::convertCoreSubs(Env& env,
     return res[1];
   }
   return src;
+}
+
+Node InferProofCons::splicePrefixConstants(Env& env,
+                                           ProofRule rule,
+                              TheoryProofStepBuffer& psb,
+                              const Node& eq,
+                                    bool isRev)
+{
+  Assert (eq.getKind()==Kind::EQUAL);
+  Trace("strings-ipc-splice") << "Splice " << rule << " for " << eq << std::endl;
+  std::vector<Node> tvec;
+  std::vector<Node> svec;
+  theory::strings::utils::getConcat(eq[0], tvec);
+  theory::strings::utils::getConcat(eq[1], svec);
+  size_t nts = tvec.size();
+  size_t nss = svec.size();
+  size_t n = nts>nss ? nss : nts;
+  for (size_t i=0; i<n; i++)
+  {
+    size_t ti = isRev ? nts-i-1 : i;
+    size_t si = isRev ? nss-i-1 : i;
+    if (tvec[ti]==svec[si])
+    {
+      continue;
+    }
+    const Node& currT = tvec[ti];
+    const Node& currS = svec[si];
+    if (currT.isConst() && currS.isConst())
+    {
+      if (rule==ProofRule::CONCAT_CPROP)
+      {
+        // isolate the maximal overlap
+        return eq;
+      }
+      if (rule==ProofRule::CONCAT_EQ || rule==ProofRule::CONCAT_UNIFY)
+      {
+        // remove the common prefix            
+        // get the equal prefix/suffix, strip and add the remainders
+        size_t sindex;
+        Node currR = Word::splitConstant(currT, currS, sindex, isRev);
+        if (!currR.isNull())
+        {
+          size_t index = sindex==1 ? si : ti;
+          std::vector<Node>& vec = sindex==1 ? svec : tvec;
+          Node o = sindex==1 ? currT : currS;
+          vec[index] = o;
+          vec.insert(vec.begin()+index + (isRev ? 0 : 1), currR);
+        }
+      }
+      else if (rule==ProofRule::CONCAT_CONFLICT)
+      {
+        // isolate a disequal prefix
+        return eq;
+      }
+      else
+      {
+        return eq;
+      }
+      TypeNode stype = eq[0].getType();
+      Node tr = utils::mkConcat(tvec, stype);
+      Node sr = utils::mkConcat(svec, stype);
+      Node eqr = tr.eqNode(sr);
+      Trace("strings-ipc-splice") << "...splice to " << eqr << std::endl;
+      std::vector<Node> cexp;
+      if (!psb.applyPredTransform(eq, eqr, cexp))
+      {
+        AlwaysAssert(false);
+        return eq;
+      }
+      return eqr;
+    }
+  }
+  // no change
+  return eq;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)

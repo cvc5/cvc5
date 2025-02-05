@@ -191,6 +191,13 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                               size_t minIndex = 0,
                               size_t maxIndex = 0,
                               bool proveSrc = false);
+  /**
+   */
+  static Node splicePrefixConstants(Env& env,
+                                    ProofRule rule,
+                              TheoryProofStepBuffer& psb,
+                              const Node& eq,
+                                    bool isRev);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */
