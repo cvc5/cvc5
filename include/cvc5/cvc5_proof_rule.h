@@ -3029,7 +3029,47 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_STR_EQ_LEN_UNIFY),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string split contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(t, s) =
+   *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_2, s)
+   *
+   * where :math:`t_1` and :math:`t_2` are substrings of :math:`t`. This
+   * rule is elaborated using
+   * :cpp:enumerator:`STR_OVERLAP_SPLIT_CTN <cvc5::ProofRewriteRule::STR_OVERLAP_SPLIT_CTN>`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_SPLIT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string strip endpoints**
+   *
+   * One of the following forms:
+   *
+   * .. math::
+   *   \mathit{str.contains}(t, s) = \mathit{str.contains}(t_2, s)
+   *
+   * .. math::
+   *   \mathit{str.indexof}(t, s, n) = \mathit{str.indexof}(t_2, s, n)
+   *
+   * .. math::
+   *   \mathit{str.replace}(t, s, r) =
+   *   \mathit{str.++}(t_1, \mathit{str.replace}(t_2, s, r) t_3)
+   *
+   * where in each case we reason about removing portions of :math:`t`
+   * that are irrelevant to the evaluation of the term. This rule
+   * is elaborated  using
+   * :cpp:enumerator:`STR_OVERLAP_ENDPOINTS_CTN <cvc5::ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN>`,
+   * :cpp:enumerator:`STR_OVERLAP_ENDPOINTS_INDEXOF <cvc5::ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF>` and
+   * :cpp:enumerator:`STR_OVERLAP_ENDPOINTS_REPLACE <cvc5::ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE>`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_STRIP_ENDPOINTS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Strings overlap split contains**
