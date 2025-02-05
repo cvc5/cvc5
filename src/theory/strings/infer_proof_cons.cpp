@@ -508,11 +508,12 @@ bool InferProofCons::convert(Env& env,
       else if (infer == InferenceId::STRINGS_N_CONST || infer == InferenceId::STRINGS_F_CONST
                || infer == InferenceId::STRINGS_N_EQ_CONF)
       {
+        // first, splice if necessary
+        mainEqCeq = splicePrefixConstants(
+          env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, isRev);
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
-        // may have to splice constants
-        // TODO
         // if it is between sequences, we require the explicit disequality
         ProofRule r = ProofRule::CONCAT_CONFLICT;
         if (mainEqCeq[0].getType().isSequence())
@@ -592,6 +593,9 @@ bool InferProofCons::convert(Env& env,
         bool lenSuccess = false;
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
         {
+        // first, splice if necessary
+        mainEqCeq = splicePrefixConstants(
+          env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -601,8 +605,6 @@ bool InferProofCons::convert(Env& env,
                        .eqNode(nm->mkNode(Kind::STRING_LENGTH, conc[1]));
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = ProofRule::CONCAT_UNIFY;
-          // we may have to splice constants
-          // TODO
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_VAR)
         {
@@ -1541,56 +1543,105 @@ Node InferProofCons::splicePrefixConstants(Env& env,
   {
     size_t ti = isRev ? nts - i - 1 : i;
     size_t si = isRev ? nss - i - 1 : i;
-    if (tvec[ti] == svec[si])
+    const Node& currT = tvec[ti];
+    const Node& currS = svec[si];
+    if (currT == currS)
     {
       continue;
     }
-    const Node& currT = tvec[ti];
-    const Node& currS = svec[si];
-    if (currT.isConst() && currS.isConst())
+    if (rule == ProofRule::CONCAT_CPROP)
     {
-      if (rule == ProofRule::CONCAT_CPROP)
+      // isolate the maximal overlap
+      return eq;
+    }
+    if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
+    {
+      if (!currT.isConst() || !currS.isConst())
       {
-        // isolate the maximal overlap
+        // no need to splice
         return eq;
       }
-      if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
+      // remove the common prefix
+      // get the equal prefix/suffix, strip and add the remainders
+      size_t sindex;
+      Node currR = Word::splitConstant(currT, currS, sindex, isRev);
+      if (currR.isNull())
       {
-        // remove the common prefix
-        // get the equal prefix/suffix, strip and add the remainders
-        size_t sindex;
-        Node currR = Word::splitConstant(currT, currS, sindex, isRev);
-        if (!currR.isNull())
-        {
-          size_t index = sindex == 1 ? si : ti;
-          std::vector<Node>& vec = sindex == 1 ? svec : tvec;
-          Node o = sindex == 1 ? currT : currS;
-          vec[index] = o;
-          vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
-        }
-      }
-      else if (rule == ProofRule::CONCAT_CONFLICT)
-      {
-        // isolate a disequal prefix
+        // no need to splice
         return eq;
+      }
+      size_t index = sindex == 1 ? si : ti;
+      std::vector<Node>& vec = sindex == 1 ? svec : tvec;
+      Node o = sindex == 1 ? currT : currS;
+      vec[index] = o;
+      vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
+    }
+    else if (rule == ProofRule::CONCAT_CSPLIT)
+    {
+      if (!currS.isConst())
+      {
+        AlwaysAssert(false) << "Non-constant for csplit";
+        return eq;
+      }
+      // split the first character
+      size_t len = Word::getLength(currS);
+      if (len==1)
+      {
+        // not needed
+        return eq;
+      }
+      if (isRev)
+      {
+        svec[si] = Word::suffix(currS, 1);
+        svec.insert(svec.begin()+si, Word::prefix(currS, len-1));
       }
       else
       {
-        return eq;
+        svec[si] = Word::prefix(currS, 1);
+        svec.insert(svec.begin()+si+1, Word::suffix(currS, len-1));
       }
-      TypeNode stype = eq[0].getType();
-      Node tr = utils::mkConcat(tvec, stype);
-      Node sr = utils::mkConcat(svec, stype);
-      Node eqr = tr.eqNode(sr);
-      Trace("strings-ipc-splice") << "...splice to " << eqr << std::endl;
-      std::vector<Node> cexp;
-      if (!psb.applyPredTransform(eq, eqr, cexp))
-      {
-        AlwaysAssert(false);
-        return eq;
-      }
-      return eqr;
     }
+    else if (rule == ProofRule::CONCAT_CONFLICT)
+    {
+      if (!currT.isConst() || !currS.isConst())
+      {
+        Assert(false) << "Non-constants for concat conflict";
+        return eq;
+      }
+      // isolate a disequal prefix by taking maximal prefix/suffix
+      size_t lens = Word::getLength(currS);
+      size_t lent = Word::getLength(currS);
+      if (lens==lent)
+      {
+        // no need
+        return eq;
+      }
+      std::vector<Node>& vec = lens>lent ? svec : tvec;
+      Node curr = lens>lent ? currS : currT;
+      size_t index = lens>lent ? si : ti;
+      size_t smallLen = lens>lent ? lent : lens;
+      size_t diffLen = lens>lent ? (lens-lent) : (lent-lens);
+      vec[index] = isRev ? Word::suffix(curr, smallLen) : Word::prefix(curr, smallLen);
+      vec.insert(vec.begin()+index+(isRev ? 0 : 1), isRev ? Word::prefix(curr, diffLen) : Word::suffix(curr, diffLen));
+    }
+    else
+    {
+      Assert(false) << "Unknown rule to splice " << rule;
+      return eq;
+    }
+    TypeNode stype = eq[0].getType();
+    Node tr = utils::mkConcat(tvec, stype);
+    Node sr = utils::mkConcat(svec, stype);
+    Node eqr = tr.eqNode(sr);
+    Trace("strings-ipc-splice") << "...splice to " << eqr << std::endl;
+    std::vector<Node> cexp;
+    if (!psb.applyPredTransform(eq, eqr, cexp))
+    {
+      AlwaysAssert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      return eq;
+    }
+    return eqr;
+  
   }
   // no change
   return eq;

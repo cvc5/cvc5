@@ -167,8 +167,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       if (Word::getLength(t0) != Word::getLength(s0))
       {
-        // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
-        // versa.
+        // Not a conflict due to constants if not the same length
         return Node::null();
       }
       // if a disequality was provided, ensure that it is correct
@@ -213,7 +212,9 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || !s0.getType().isStringLike() || Word::isEmpty(s0))
+      // note we guard that the length must be one here, despite
+      // CoreSolver::getConclusion allow splicing below.
+      if (!s0.isConst() || !s0.getType().isStringLike() || Word::getLength(s0)!=1)
       {
         return Node::null();
       }
