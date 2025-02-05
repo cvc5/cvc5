@@ -362,6 +362,7 @@ Node InstStrategyMbqi::convertToQuery(
 {
   NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
+  FirstOrderModel* fm = d_treg.getModel();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> modelValue;
   std::unordered_set<Node> processingChildren;
@@ -412,7 +413,7 @@ Node InstStrategyMbqi::convertToQuery(
             }
             else
             {
-              mval = modelValueToQuery(cur);
+              mval = fm->getValue(cur);
             }
             Trace("mbqi-model") << "  M[" << cur << "] = " << mval << "\n";
             modelValue[cur] = mval;
@@ -492,46 +493,6 @@ Node InstStrategyMbqi::convertToQuery(
 
   Assert(cmap.find(cur) != cmap.end());
   return cmap[cur];
-}
-
-Node InstStrategyMbqi::modelValueToQuery(const Node& t)
-{
-  FirstOrderModel* fm = d_treg.getModel();
-  if (!options().quantifiers.mbqiEnum)
-  {
-    return fm->getValue(t);
-  }
-  if (TraceIsOn("mbqi-model-exp"))
-  {
-    Trace("mbqi-model-exp")
-        << "-> Choose model value of " << t << "?" << std::endl;
-    if (t.getType().isFunction())
-    {
-      if (fm->getTheoryModel()->hasUfTerms(t))
-      {
-        const std::vector<Node>& uterms = fm->getTheoryModel()->getUfTerms(t);
-        Trace("mbqi-model-exp") << "  #terms=" << uterms.size() << std::endl;
-        for (const Node& u : uterms)
-        {
-          Trace("mbqi-model-exp")
-              << "    " << u << " == " << fm->getValue(u) << std::endl;
-          for (const Node& ua : u)
-          {
-            Trace("mbqi-model-exp")
-                << "      " << ua << " == " << fm->getValue(ua) << std::endl;
-          }
-        }
-      }
-      else
-      {
-        Trace("mbqi-model-exp") << "  #terms=0" << std::endl;
-      }
-    }
-  }
-  Node val = fm->getValue(t);
-  Trace("mbqi-model-exp") << "...M_main(" << t << ") = " << val << std::endl;
-  /** TODO: update this as needed to impact the query to the subsolver */
-  return val;
 }
 
 void InstStrategyMbqi::modelValueFromQuery(

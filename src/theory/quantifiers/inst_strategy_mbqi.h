@@ -115,8 +115,6 @@ class InstStrategyMbqi : public QuantifiersModule
    * which can lead to logic exceptions in subsolvers.
    */
   Node mkMbqiSkolem(const Node& t);
-  /** Return the model value for term t */
-  Node modelValueToQuery(const Node& t);
   /**
    * Return the model value for term t from the solver, possibly post-processing
    * it with modules maintained by this class (e.g. d_msenum).
