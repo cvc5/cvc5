@@ -603,18 +603,20 @@
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, remembering if we have removed a character.
 ; note: This method only supports strings currently.
-(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
+(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (ts (Seq T) :list) (b Bool))
     ((Seq T) (Seq T) Bool) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
-                                                            (eo::define ((nrem (eo::is_eq t tr)))
-                                                              ($str_is_multiset_subset_strict ss tr 
-                                                                ; we update b to true if we successfully remove a character from s
-                                                                (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
-      (($str_is_multiset_subset_strict s t b)             (eo::ite b 
-                                                            ; remaining characters in t must be constants only
-                                                            (eo::is_str ($str_from_flat_form t false))
-                                                            false))
+      (($str_is_multiset_subset_strict (str.++ s ss) t b)     (eo::define ((tr ($nary_remove str.++ "" s t)))
+                                                              (eo::define ((nrem (eo::is_eq t tr)))
+                                                                ($str_is_multiset_subset_strict ss tr 
+                                                                  ; we update b to true if we successfully remove a character from s
+                                                                  (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
+      (($str_is_multiset_subset_strict s t false)             false)
+      (($str_is_multiset_subset_strict s (str.++ t ts) true)  (eo::ite (eo::is_str t)
+                                                                ; remaining characters in t must be constants only
+                                                                ($str_is_multiset_subset_strict s ts true)
+                                                                false))
+      (($str_is_multiset_subset_strict s t true)              true)
     )
 )
 

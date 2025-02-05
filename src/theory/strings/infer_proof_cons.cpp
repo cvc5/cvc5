@@ -1548,7 +1548,7 @@ Node InferProofCons::spliceConstants(Env& env,
           << "Splice cprop at " << ti << " / " << si << std::endl;
       if (i + 1 == tvec.size())
       {
-        AlwaysAssert(false);
+        Assert(false) << "Splice cprop out of bounds";
         return eq;
       }
       // isolate the maximal overlap
@@ -1556,8 +1556,8 @@ Node InferProofCons::spliceConstants(Env& env,
       Node currTNext = tvec[nextIndex];
       if (!currS.isConst() || !currTNext.isConst())
       {
-        AlwaysAssert(false)
-            << "Non-constant " << currT << " / " << currTNext << std::endl;
+        Assert(false)
+            << "Splice cprop non-constant " << currT << " / " << currTNext << std::endl;
         return eq;
       }
       Trace("strings-ipc-splice") << "Get sufficient overlap " << currS << " / "
@@ -1610,7 +1610,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       if (!currS.isConst())
       {
-        AlwaysAssert(false) << "Non-constant for csplit";
+        Assert(false) << "Non-constant for csplit";
         return eq;
       }
       // split the first character
@@ -1670,7 +1670,7 @@ Node InferProofCons::spliceConstants(Env& env,
     std::vector<Node> cexp;
     if (!psb.applyPredTransform(eq, eqr, cexp))
     {
-      AlwaysAssert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      Assert(false) << "Failed to show " << eqr << " spliced from " << eq;
       return eq;
     }
     return eqr;
