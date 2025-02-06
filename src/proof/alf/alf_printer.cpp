@@ -22,8 +22,8 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
-#include "expr/subs.h"
 #include "expr/sequence.h"
+#include "expr/subs.h"
 #include "options/main_options.h"
 #include "options/strings_options.h"
 #include "printer/printer.h"
@@ -259,9 +259,11 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     break;
     case ProofRule::DISTINCT_VALUES:
     {
-      if (isHandledDistinctValues(pargs[0]) && isHandledDistinctValues(pargs[1]))
+      if (isHandledDistinctValues(pargs[0])
+          && isHandledDistinctValues(pargs[1]))
       {
-        Trace("alf-printer-debug") << "Can distinct values " << pargs[0] << " " << pargs[1] << std::endl;
+        Trace("alf-printer-debug") << "Can distinct values " << pargs[0] << " "
+                                   << pargs[1] << std::endl;
         return true;
       }
     }
@@ -488,8 +490,7 @@ bool AlfPrinter::isHandledDistinctValues(const Node& n)
         case Kind::SET_UNION:
         case Kind::SET_EMPTY:
         case Kind::APPLY_CONSTRUCTOR:
-        case Kind::SEQ_UNIT:
-          break;
+        case Kind::SEQ_UNIT: break;
         case Kind::CONST_SEQUENCE:
           if (!cur.getConst<Sequence>().empty())
           {

@@ -16,8 +16,8 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/aci_norm.h"
-#include "expr/skolem_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -288,8 +288,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    Assert (args[0].getType()==args[1].getType());
-    if(!args[0].isConst() || !args[1].isConst() || args[0]==args[1])
+    Assert(args[0].getType() == args[1].getType());
+    if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
     {
       return Node::null();
     }
