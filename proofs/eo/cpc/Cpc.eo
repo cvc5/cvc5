@@ -326,12 +326,13 @@
 ;   are equal modulo polynomial normalization and some scaling factors. These
 ;   terms may be of arithmetic or bitvector type.
 ; args:
-; - r (-> U U Bool): The relation whose equivalence is proven by this rule.
-; conclusion: An equivalence between relations of the terms specified by eq.
-(declare-rule arith_poly_norm_rel ((U Type) (t U) (s U) (r (-> U U Bool)))
+; - eqr Bool: The equivalence between relations, proven by this rule.
+; conclusion: >
+;   An equivalence between relations specified by eqr and justified by eq.
+(declare-rule arith_poly_norm_rel ((U Type) (t U) (s U) (eqr Bool))
   :premises ((= t s))
-  :args (r)
-  :conclusion ($mk_poly_norm_rel t s r)
+  :args (eqr)
+  :conclusion ($mk_poly_norm_rel t s eqr)
 )
 
 ; define: $get_aci_normal_form

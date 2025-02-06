@@ -1924,7 +1924,7 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Polynomial normalization for relations**
    *
    * .. math::
-   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
@@ -3145,7 +3145,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings -- regular expression intersection/union inclusion**
    *
    * .. math::
-   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
@@ -3162,7 +3162,31 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(RE_INTER_UNION_INCLUSION),
+  EVALUE(MACRO_RE_INTER_UNION_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression intersection inclusion**
+   *
+   * .. math::
+   *   \mathit{re.inter}(r_1, re.comp(r_2)) = \mathit{re.none}
+   *
+   * where :math:`r_2` is a superset of :math:`r_1`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression union inclusion**
+   *
+   * .. math::
+   *   \mathit{re.union}(r_1, re.comp(r_2)) = \mathit{re}.\text{*}(\mathit{re.allchar})
+   *
+   * where :math:`r_1` is a superset of :math:`r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression membership evaluation**
