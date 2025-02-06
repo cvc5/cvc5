@@ -83,10 +83,13 @@ class AlfListNodeConverter : public NodeConverter
    * types of the variables assigned to them. For example, a variable of type
    * ?Set may be mapped to `(Set T1)` where `T1` is a sort name allocated by
    * the dependent type converter (alf_dependent_type_converter.h).
+   * @param useSingletonElim Whether we are introducing $singleton_elim to
+   * terms.
    */
   AlfListNodeConverter(NodeManager* nm,
                        BaseAlfNodeConverter& tproc,
-                       const std::map<Node, Node>& adtcMap);
+                       const std::map<Node, Node>& adtcMap,
+                       bool useSingletonElim = true);
   /** Convert node n based on the conversion described above. */
   Node preConvert(Node n) override;
   /** Convert node n based on the conversion described above. */
@@ -95,6 +98,8 @@ class AlfListNodeConverter : public NodeConverter
  private:
   /** The parent converter, used for getting internal symbols and utilities */
   BaseAlfNodeConverter& d_tproc;
+  /** Are we introducing $singleton_elim? */
+  bool d_useSingletonElim;
   /** Mapping symbols to a node whose name is the type associated to that symbol
    */
   const std::map<Node, Node>& d_adtcMap;
