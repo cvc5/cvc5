@@ -456,7 +456,7 @@ bool InferProofCons::convert(Env& env,
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
       // may need to splice constants
       mainEqSRew =
-          spliceConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, isRev);
+          spliceConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -511,7 +511,7 @@ bool InferProofCons::convert(Env& env,
       {
         // first, splice if necessary
         mainEqCeq = spliceConstants(
-            env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, isRev);
+            env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, conc, isRev);
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
@@ -595,7 +595,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, isRev);
+              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -627,7 +627,7 @@ bool InferProofCons::convert(Env& env,
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, isRev);
+              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -661,7 +661,7 @@ bool InferProofCons::convert(Env& env,
         {
           // may need to splice
           mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_CPROP, psb, mainEqCeq, isRev);
+              env, ProofRule::CONCAT_CPROP, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -1523,6 +1523,7 @@ Node InferProofCons::spliceConstants(Env& env,
                                      ProofRule rule,
                                      TheoryProofStepBuffer& psb,
                                      const Node& eq,
+                                     const Node& conc,
                                      bool isRev)
 {
   Assert(eq.getKind() == Kind::EQUAL);
@@ -1587,7 +1588,7 @@ Node InferProofCons::spliceConstants(Env& env,
                     Word::suffix(currS, len - p));
       }
     }
-    else if (rule == ProofRule::CONCAT_EQ || rule == ProofRule::CONCAT_UNIFY)
+    else if (rule == ProofRule::CONCAT_EQ)
     {
       if (!currT.isConst() || !currS.isConst())
       {
@@ -1608,6 +1609,45 @@ Node InferProofCons::spliceConstants(Env& env,
       Node o = sindex == 1 ? currT : currS;
       vec[index] = o;
       vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
+    }
+    else if (rule == ProofRule::CONCAT_UNIFY)
+    {
+      Trace("strings-ipc-splice")
+          << "Splice cprop at " << currT << " / " << currS << ", for conclusion " << conc << std::endl;
+      Assert (!conc.isNull() && conc.getKind()==Kind::EQUAL);
+      for (size_t j=0; j<2; j++)
+      {
+        Node src = j==0 ? currT : currS;
+        Node tgt = j==0 ? conc[0] : conc[1];
+        if (src==tgt)
+        {
+          continue;
+        }
+        if (!src.isConst() || !tgt.isConst())
+        {
+          Assert(false) << "Non-constant for unify";
+          return eq;
+        }
+        size_t index = j == 0 ? ti : si;
+        std::vector<Node>& vec = j == 0 ? tvec : svec;
+        size_t lentgt = Word::getLength(tgt);
+        size_t len = Word::getLength(src);
+        if (len<=lentgt)
+        {
+          Assert(false) << "Smaller source for unify";
+          return eq;
+        }
+        if (isRev)
+        {
+          vec[index] = Word::suffix(src, lentgt);
+          vec.insert(vec.begin() + index, Word::prefix(src, len - lentgt));
+        }
+        else
+        {
+          vec[index] = Word::prefix(src, lentgt);
+          vec.insert(vec.begin() + index + 1, Word::suffix(src, len - lentgt));
+        }
+      }
     }
     else if (rule == ProofRule::CONCAT_CSPLIT)
     {
