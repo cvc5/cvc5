@@ -174,7 +174,7 @@
   :conclusion
     (eo::define ((tn ($str_to_nary_form t rev)))
     (eo::define ((t1 ($str_head tn)))
-    (eo::define ((t2 (eo::list_nth str.++ tn 2)))
+    (eo::define ((t2 (eo::list_nth str.++ tn 1))) ; get the second component
     (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
       (eo::requires t1 tc
       (eo::define ((s1len (eo::len s1)))
