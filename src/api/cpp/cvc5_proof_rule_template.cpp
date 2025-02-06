@@ -305,8 +305,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return "re-inter-union-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return "macro-re-inter-union-inclusion";
+    case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
+    case ProofRewriteRule::RE_UNION_INCLUSION: return "re-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
