@@ -66,8 +66,8 @@
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
-  :requires ((($head ($str_to_nary_form s rev)) s1)
-             (($head ($str_to_nary_form t rev)) t1))
+  :requires ((($str_head ($str_to_nary_form s rev)) s1)
+             (($str_head ($str_to_nary_form t rev)) t1))
   :conclusion (= s1 t1)
 )
 
@@ -86,8 +86,8 @@
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (eo::define ((t1 ($head ($str_to_nary_form t rev))))
-    (eo::define ((s1 ($head ($str_to_nary_form s rev))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
       (eo::requires ($str_check_length_one s1) true    ; checks if char
         (= u
           (eo::ite rev
@@ -109,8 +109,8 @@
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
   :conclusion
-    (eo::define ((t1 ($head ($str_to_nary_form t rev))))
-    (eo::define ((s1 ($head ($str_to_nary_form s rev))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
     (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
       (eo::requires t1 tc
       (eo::requires s1 sc
@@ -143,8 +143,8 @@
   :premises ((= t s) (> (str.len tc) (str.len sc)))
   :args (rev)
   :conclusion
-    (eo::define ((t1 ($head ($str_to_nary_form t rev))))
-    (eo::define ((s1 ($head ($str_to_nary_form s rev))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
       (eo::requires t1 tc
       (eo::requires s1 sc
         (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
@@ -173,9 +173,9 @@
   :args (rev)
   :conclusion
     (eo::define ((tn ($str_to_nary_form t rev)))
-    (eo::define ((t1 ($head tn)))
-    (eo::define ((t2 ($head ($tail tn))))
-    (eo::define ((s1 ($head ($str_to_nary_form s rev))))
+    (eo::define ((t1 ($str_head tn)))
+    (eo::define ((t2 (eo::list_nth str.++ tn 2)))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
       (eo::requires t1 tc
       (eo::define ((s1len (eo::len s1)))
       (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
@@ -200,8 +200,8 @@
   :premises ((= s t))
   :args (rev)
   :conclusion
-      (eo::define ((cs ($head ($str_to_nary_form s rev))))
-      (eo::define ((ct ($head ($str_to_nary_form t rev))))
+      (eo::define ((cs ($str_head ($str_to_nary_form s rev))))
+      (eo::define ((ct ($str_head ($str_to_nary_form t rev))))
         ; ensure they are disequal, return false
         (eo::requires (eo::is_str cs) true
         (eo::requires (eo::is_str ct) true
@@ -224,8 +224,8 @@
   :args (rev)
   :conclusion
     ; take the first character from each side, should give x and y
-    (eo::requires ($head ($str_to_nary_form s rev)) (seq.unit x)
-    (eo::requires ($head ($str_to_nary_form t rev)) (seq.unit y)
+    (eo::requires ($str_head ($str_to_nary_form s rev)) (seq.unit x)
+    (eo::requires ($str_head ($str_to_nary_form t rev)) (seq.unit y)
         false))
 )
 
