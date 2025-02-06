@@ -200,12 +200,15 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * @param psb Reference to proof step buffer.
    * @param rule The rule whose premise is eq.
    * @param eq The equality to ensure constants are spliced in.
+   * @param conc The target conclusion of the rule, used if rule is
+   * CONCAT_UNIFY.
    * @param isRev Whether rule is being applied in the reverse direction.
    */
   static Node spliceConstants(Env& env,
                               ProofRule rule,
                               TheoryProofStepBuffer& psb,
                               const Node& eq,
+                              const Node& conc,
                               bool isRev);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
