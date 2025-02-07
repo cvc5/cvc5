@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +67,14 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
 
 TheoryFiniteFields::~TheoryFiniteFields() {}
 
-TheoryRewriter* TheoryFiniteFields::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryFiniteFields::getTheoryRewriter()
+{
+  if (!options().ff.ff)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryFiniteFields::getProofChecker() { return nullptr; }
 

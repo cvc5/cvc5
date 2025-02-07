@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,7 +83,14 @@ Node AlfNodeConverter::postConvert(Node n)
     // dummy node, return it
     return n;
   }
-  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT)
+  // case for skolems, unhandled variables, and other unhandled terms
+  // These should print as @const, or otherwise be printed as a skolem,
+  // which may need further processing below. In the case of unhandled
+  // terms (e.g. DT_SYGUS_EVAL), we prefer printing them as @const instead
+  // of using their smt2 printer, which would lead to undeclared identifiers in
+  // the proof.
+  if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM || k == Kind::INST_CONSTANT
+      || k == Kind::DT_SYGUS_EVAL)
   {
     TypeNode tn = n.getType();
     // constructors/selectors are represented by skolems, which are defined
@@ -110,7 +117,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // is used as (var N T) throughout.
     Node index = d_nm->mkConstInt(Rational(getOrAssignIndexForConst(n)));
     Node tc = typeAsNode(tn);
-    return mkInternalApp("const", {index, tc}, tn);
+    return mkInternalApp("@const", {index, tc}, tn);
   }
   else if (k == Kind::BOUND_VARIABLE)
   {
@@ -127,7 +134,8 @@ Node AlfNodeConverter::postConvert(Node n)
       ss << n;
       sname = ss.str();
     }
-    // A variable x of type T can unambiguously referred to as (eo::var "x" T).
+    // A variable x of type T can unambiguously referred to as (@var "x" T),
+    // which is a macro for (eo::var "x" T) in the cpc signature.
     // We convert to this representation here, which will often be letified.
     TypeNode tn = n.getType();
     std::vector<Node> args;
@@ -135,7 +143,7 @@ Node AlfNodeConverter::postConvert(Node n)
     args.push_back(nn);
     Node tnn = typeAsNode(tn);
     args.push_back(tnn);
-    return mkInternalApp("eo::var", args, tn);
+    return mkInternalApp("@var", args, tn);
   }
   else if (k == Kind::VARIABLE)
   {
@@ -455,7 +463,7 @@ Node AlfNodeConverter::mkInternalApp(const std::string& name,
   return mkInternalSymbol(name, ret, useRawSym);
 }
 
-Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
+Node AlfNodeConverter::getOperatorOfTerm(Node n)
 {
   Assert(n.hasOperator());
   Kind k = n.getKind();
@@ -586,60 +594,7 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   }
   else
   {
-    bool isParameterized = false;
-    if (reqCast)
-    {
-      // If the operator is a parameterized constant and reqCast is true,
-      // then we must apply the parameters of the operator, e.g. such that
-      // bvor becomes (eo::_ bvor 32) where 32 is the bitwidth of the first
-      // argument.
-      if (k == Kind::BITVECTOR_ADD || k == Kind::BITVECTOR_MULT
-          || k == Kind::BITVECTOR_OR || k == Kind::BITVECTOR_AND
-          || k == Kind::BITVECTOR_XOR)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getBitVectorSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::FINITE_FIELD_ADD || k == Kind::FINITE_FIELD_BITSUM
-               || k == Kind::FINITE_FIELD_MULT)
-      {
-        TypeNode tna = n[0].getType();
-        indices.push_back(d_nm->mkConstInt(tna.getFfSize()));
-        isParameterized = true;
-      }
-      else if (k == Kind::STRING_CONCAT)
-      {
-        // String concatenation is parameterized by the character type, which
-        // is the "Char" type in the ALF signature for String (which note does
-        // not exist internally in cvc5). Otherwise it is the sequence element
-        // type.
-        TypeNode tna = n[0].getType();
-        Node cht;
-        if (tna.isString())
-        {
-          cht = mkInternalSymbol("Char", d_sortType);
-        }
-        else
-        {
-          cht = typeAsNode(tna.getSequenceElementType());
-        }
-        indices.push_back(cht);
-        isParameterized = true;
-      }
-    }
-    if (isParameterized)
-    {
-      opName << "eo::_";
-      std::stringstream oppName;
-      oppName << printer::smt2::Smt2Printer::smtKindString(k);
-      Node opp = mkInternalSymbol(oppName.str(), n.getType());
-      indices.insert(indices.begin(), opp);
-    }
-    else
-    {
-      opName << printer::smt2::Smt2Printer::smtKindString(k);
-    }
+    opName << printer::smt2::Smt2Printer::smtKindString(k);
   }
   std::vector<Node> args(n.begin(), n.end());
   Node app = mkInternalApp(opName.str(), args, n.getType());
@@ -662,24 +617,12 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n, bool reqCast)
   {
     ret = args.empty() ? app : app.getOperator();
   }
-  if (reqCast)
-  {
-    // - prints as e.g. (eo::as - (-> Int Int)).
-    if (k == Kind::NEG || k == Kind::SUB)
-    {
-      std::vector<Node> asChildren;
-      asChildren.push_back(ret);
-      asChildren.push_back(typeAsNode(ret.getType()));
-      ret = mkInternalApp("eo::as", asChildren, n.getType());
-    }
-  }
   Trace("alf-term-process-debug2") << "...return " << ret << std::endl;
   return ret;
 }
 
 size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
 {
-  Assert(v.isVar());
   std::map<Node, size_t>::iterator it = d_constIndex.find(v);
   if (it != d_constIndex.end())
   {

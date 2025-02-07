@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -783,6 +783,48 @@ EvalResult Evaluator::evalInternal(
           const String& x = results[currNode[1]].d_str;
           const String& y = results[currNode[2]].d_str;
           results[currNode] = EvalResult(s.replace(x, y));
+          break;
+        }
+        case Kind::STRING_REPLACE_ALL:
+        {
+          const String& s = results[currNode[0]].d_str;
+          const String& x = results[currNode[1]].d_str;
+          const String& y = results[currNode[2]].d_str;
+          if (s.empty() || x.empty())
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            const std::vector<unsigned>& svec = s.getVec();
+            const std::vector<unsigned>& yvec = y.getVec();
+            std::size_t sizeS = s.size();
+            std::size_t sizeX = x.size();
+            std::size_t index = 0;
+            std::size_t curr = 0;
+            std::vector<unsigned> chars;
+            do
+            {
+              curr = s.find(x, index);
+              if (curr != std::string::npos)
+              {
+                if (curr > index)
+                {
+                  chars.insert(
+                      chars.end(), svec.begin() + index, svec.begin() + curr);
+                }
+                chars.insert(chars.end(), yvec.begin(), yvec.end());
+                index = curr + sizeX;
+              }
+              else
+              {
+                chars.insert(
+                    chars.end(), svec.begin() + index, svec.begin() + sizeS);
+              }
+            } while (curr != std::string::npos && curr < sizeS);
+            // constant evaluation
+            results[currNode] = EvalResult(String(chars));
+          }
           break;
         }
 

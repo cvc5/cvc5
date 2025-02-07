@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -229,6 +229,11 @@ void InputParser::initialize()
   if (info.setByUser)
   {
     sm->setFreshDeclarations(info.boolValue());
+  }
+  info = d_solver->getOptionInfo("term-sort-overload");
+  if (info.setByUser)
+  {
+    sm->setTermSortOverload(info.boolValue());
   }
   // notice that we don't create the parser object until the input is set.
 }

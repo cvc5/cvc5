@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1214,10 +1214,8 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           cdp->addStep(
               pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
-          cdp->addStep(cur,
-                       ProofRule::ARITH_POLY_NORM_REL,
-                       {pcur.d_vars[0]},
-                       {ProofRuleChecker::mkKindNode(nm, cur[0].getKind())});
+          cdp->addStep(
+              cur, ProofRule::ARITH_POLY_NORM_REL, {pcur.d_vars[0]}, {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL

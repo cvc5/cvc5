@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,8 +57,12 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
+      d_arithEntail(d_env.getRewriter(),
+                    options().strings.stringRecArithApprox),
+      d_strEntail(d_env.getRewriter(), d_arithEntail),
       d_rewriter(env.getNodeManager(),
-                 env.getRewriter(),
+                 d_arithEntail,
+                 d_strEntail,
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
@@ -100,7 +104,11 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_strat(d_env),
       d_absModelCounter(0),
       d_strGapModelCounter(0),
-      d_cpacb(*this)
+      d_cpacb(*this),
+      d_psrewPg(env.isTheoryProofProducing()
+                    ? new TrustProofGenerator(
+                          env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
+                    : nullptr)
 {
   d_termReg.finishInit(&d_im);
 
@@ -682,8 +690,13 @@ bool TheoryStrings::collectModelInfoType(
               AlwaysAssert(!len_splits.empty());
               for (const std::pair<size_t, size_t>& sl : len_splits)
               {
-                Node s1 = nm->mkNode(Kind::STRING_LENGTH, col[sl.first][0]);
-                Node s2 = nm->mkNode(Kind::STRING_LENGTH, col[sl.second][0]);
+                // ensure we use proxy variables or else the split may be rewritten away
+                Node k1 = col[sl.first][0];
+                Node kp1 = d_termReg.getProxyVariableFor(k1);
+                Node k2 = col[sl.second][0];
+                Node kp2 = d_termReg.getProxyVariableFor(k2);
+                Node s1 = nm->mkNode(Kind::STRING_LENGTH, kp1.isNull() ? k1 : kp1);
+                Node s2 = nm->mkNode(Kind::STRING_LENGTH, kp2.isNull() ? k2 : kp2);
                 Node eq = s1.eqNode(s2);
                 Node spl = nm->mkNode(Kind::OR, eq, eq.negate());
                 d_im.lemma(spl, InferenceId::STRINGS_CMI_SPLIT);
@@ -1228,7 +1241,7 @@ TrustNode TheoryStrings::ppStaticRewrite(TNode atom)
     Node ret = d_rewriter.rewriteEqualityExt(atom);
     if (ret != atom)
     {
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+      return TrustNode::mkTrustRewrite(atom, ret, d_psrewPg.get());
     }
   }
   return TrustNode::null();
