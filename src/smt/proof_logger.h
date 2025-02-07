@@ -18,10 +18,18 @@
 #ifndef CVC5__SMT__PROOF_LOGGER_H
 #define CVC5__SMT__PROOF_LOGGER_H
 
+#include "proof/alf/alf_node_converter.h"
+#include "proof/alf/alf_printer.h"
 #include "proof/proof_node.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+namespace smt {
+class Assertions;
+class PfManager;
+class ProofPostprocess;
+}  // namespace smt
 
 /**
  * The purpose of this class is to output proofs for all reasoning the solver
@@ -86,6 +94,58 @@ class ProofLogger : protected EnvObj
    * @param pfn The refutation proof.
    */
   virtual void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) {}
+};
+
+/**
+ * The default implementation of a proof logger, which prints proofs in the
+ * CPC format.
+ */
+class ProofLoggerCpc : public ProofLogger
+{
+ public:
+  /** */
+  ProofLoggerCpc(Env& env,
+                 std::ostream& out,
+                 smt::PfManager* pm,
+                 smt::Assertions& as,
+                 smt::ProofPostprocess* ppp);
+  ~ProofLoggerCpc();
+  /** Log preprocessing input */
+  void logCnfPreprocessInputs(const std::vector<Node>& inputs) override;
+  /** Log preprocessing input proof */
+  void logCnfPreprocessInputProofs(
+      std::vector<std::shared_ptr<ProofNode>>& pfns) override;
+  /** Log theory lemma */
+  void logTheoryLemma(const Node& n) override;
+  /** Log theory lemma proof */
+  void logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn) override;
+  /** Log SAT refutation */
+  void logSatRefutation() override;
+  /** Log SAT refutation proof */
+  void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) override;
+
+ private:
+  /** Pointer to the proof manager, for connecting proofs to inputsw */
+  smt::PfManager* d_pm;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** Reference to the assertions of SMT solver */
+  smt::Assertions& d_as;
+  /** Pointer to the proof post-processor */
+  smt::ProofPostprocess* d_ppp;
+  /** The node converter, used for printing */
+  proof::AlfNodeConverter d_atp;
+  /** The proof printer */
+  proof::AlfPrinter d_alfp;
+  /** The output channel we are using */
+  proof::AlfPrintChannelOut d_aout;
+  /** The preprocessing proof we were notified of, which we may have created */
+  std::shared_ptr<ProofNode> d_ppProof;
+  /**
+   * The list of theory lemma proofs we were notified of, which we may have
+   * created.
+   */
+  std::vector<std::shared_ptr<ProofNode>> d_lemmaPfs;
 };
 
 }  // namespace cvc5::internal

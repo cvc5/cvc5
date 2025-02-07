@@ -40,8 +40,10 @@ class SequencesRewriter;
  */
 class StringsEntail
 {
+  friend class SequencesRewriter;
+
  public:
-  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter* rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -226,12 +228,10 @@ class StringsEntail
    *
    * @param a The string that is checked whether it contains `b`
    * @param b The string that is checked whether it is contained in `a`
-   * @param fullRewriter Determines whether the function can use the full
-   * rewriter or only `rewriteContains()` (useful for avoiding loops)
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  Node checkContains(Node a, Node b, bool fullRewriter = true);
+  Node checkContains(Node a, Node b);
 
   /** entail non-empty
    *

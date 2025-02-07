@@ -413,10 +413,13 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.size() == 1);
       Assert(args.size() == 1);
-      Kind k;
-      if (!getKind(args[0], k)
-          || (k != Kind::LT && k != Kind::LEQ && k != Kind::EQUAL
-              && k != Kind::GT && k != Kind::GEQ))
+      if (args[0].getKind() != Kind::EQUAL)
+      {
+        return Node::null();
+      }
+      Kind k = args[0][0].getKind();
+      if (k != Kind::LT && k != Kind::LEQ && k != Kind::EQUAL && k != Kind::GT
+          && k != Kind::GEQ)
       {
         return Node::null();
       }
@@ -469,7 +472,12 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
           return Node::null();
         }
       }
-      return nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
+      Node ret = nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
+      if (ret != args[0])
+      {
+        return Node::null();
+      }
+      return ret;
     }
     default: return Node::null();
   }

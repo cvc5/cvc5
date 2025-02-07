@@ -1929,7 +1929,7 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Polynomial normalization for relations**
    *
    * .. math::
-   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
@@ -3029,6 +3029,70 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_STR_EQ_LEN_UNIFY),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap split contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_3, s)
+   *
+   * :math:`t_2` has no forward overlap with :math:`s` and :math:`s` has no
+   * forward overlap with :math:`t_2`. For details see
+   * :math:`\texttt{Word::hasOverlap}` in :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_SPLIT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_2, s)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints indexof**
+   *
+   * .. math::
+   *   \mathit{str.indexof}(\mathit{str.++}(t_1, t_2), s, n) =
+   *   \mathit{str.indexof}(t_1, s, n)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2)` and
+   * :math:`t_2` has no reverse overlap with :math:`s_2`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_INDEXOF),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints replace**
+   *
+   * .. math::
+   *   \mathit{str.replace}(\mathit{str.++}(t_1, t_2, t_3), s, r) =
+   *   \mathit{str.++}(t_1, \mathit{str.replace}(t_2, s, r) t_3)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- string indexof regex evaluation**
@@ -3086,7 +3150,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings -- regular expression intersection/union inclusion**
    *
    * .. math::
-   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
@@ -3103,7 +3167,31 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(RE_INTER_UNION_INCLUSION),
+  EVALUE(MACRO_RE_INTER_UNION_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression intersection inclusion**
+   *
+   * .. math::
+   *   \mathit{re.inter}(r_1, re.comp(r_2)) = \mathit{re.none}
+   *
+   * where :math:`r_2` is a superset of :math:`r_1`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression union inclusion**
+   *
+   * .. math::
+   *   \mathit{re.union}(r_1, re.comp(r_2)) = \mathit{re}.\text{*}(\mathit{re.allchar})
+   *
+   * where :math:`r_1` is a superset of :math:`r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression membership evaluation**
@@ -3369,6 +3457,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_ABS_INT_GT),
   /** Auto-generated from RARE rule arith-abs-real-gt */
   EVALUE(ARITH_ABS_REAL_GT),
+  /** Auto-generated from RARE rule arith-geq-ite-lift */
+  EVALUE(ARITH_GEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-gt-ite-lift */
+  EVALUE(ARITH_GT_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-leq-ite-lift */
+  EVALUE(ARITH_LEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-lt-ite-lift */
+  EVALUE(ARITH_LT_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-min-lt1 */
+  EVALUE(ARITH_MIN_LT1),
+  /** Auto-generated from RARE rule arith-min-lt2 */
+  EVALUE(ARITH_MIN_LT2),
+  /** Auto-generated from RARE rule arith-max-geq1 */
+  EVALUE(ARITH_MAX_GEQ1),
+  /** Auto-generated from RARE rule arith-max-geq2 */
+  EVALUE(ARITH_MAX_GEQ2),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */
@@ -3857,6 +3961,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_EQ_CTN_FULL_FALSE1),
   /** Auto-generated from RARE rule str-eq-ctn-full-false2 */
   EVALUE(STR_EQ_CTN_FULL_FALSE2),
+  /** Auto-generated from RARE rule str-eq-len-false */
+  EVALUE(STR_EQ_LEN_FALSE),
   /** Auto-generated from RARE rule str-concat-flatten */
   EVALUE(STR_CONCAT_FLATTEN),
   /** Auto-generated from RARE rule str-concat-flatten-eq */
@@ -3875,8 +3981,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_SUBSTR_EQ_EMPTY),
   /** Auto-generated from RARE rule str-len-replace-inv */
   EVALUE(STR_LEN_REPLACE_INV),
+  /** Auto-generated from RARE rule str-len-replace-all-inv */
+  EVALUE(STR_LEN_REPLACE_ALL_INV),
   /** Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-update-in-first-concat */
+  EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
   EVALUE(STR_LEN_SUBSTR_IN_RANGE),
   /** Auto-generated from RARE rule str-len-substr-ub1 */
@@ -3931,6 +4041,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_REFL),
   /** Auto-generated from RARE rule str-contains-concat-find */
   EVALUE(STR_CONTAINS_CONCAT_FIND),
+  /** Auto-generated from RARE rule str-contains-concat-find-contra */
+  EVALUE(STR_CONTAINS_CONCAT_FIND_CONTRA),
   /** Auto-generated from RARE rule str-contains-split-char */
   EVALUE(STR_CONTAINS_SPLIT_CHAR),
   /** Auto-generated from RARE rule str-contains-lt-len */
@@ -3949,10 +4061,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_PREFIX),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-find-base */
+  EVALUE(STR_REPLACE_FIND_BASE),
+  /** Auto-generated from RARE rule str-replace-find-first-concat */
+  EVALUE(STR_REPLACE_FIND_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-replace-empty */
   EVALUE(STR_REPLACE_EMPTY),
   /** Auto-generated from RARE rule str-replace-contains-pre */
   EVALUE(STR_REPLACE_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-replace-one-pre */
+  EVALUE(STR_REPLACE_ONE_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-re-none */
@@ -3967,6 +4085,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_NO_CONTAINS),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
+  /** Auto-generated from RARE rule str-indexof-find */
+  EVALUE(STR_INDEXOF_FIND),
+  /** Auto-generated from RARE rule str-indexof-find-emp */
+  EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-re-none */
   EVALUE(STR_INDEXOF_RE_NONE),
   /** Auto-generated from RARE rule str-to-lower-concat */
@@ -3995,14 +4117,26 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEQ_CONCAT_FALSE),
   /** Auto-generated from RARE rule str-leq-concat-true */
   EVALUE(STR_LEQ_CONCAT_TRUE),
+  /** Auto-generated from RARE rule str-leq-concat-base-1 */
+  EVALUE(STR_LEQ_CONCAT_BASE_1),
+  /** Auto-generated from RARE rule str-leq-concat-base-2 */
+  EVALUE(STR_LEQ_CONCAT_BASE_2),
   /** Auto-generated from RARE rule str-lt-elim */
   EVALUE(STR_LT_ELIM),
+  /** Auto-generated from RARE rule str-from-int-no-ctn-nondigit */
+  EVALUE(STR_FROM_INT_NO_CTN_NONDIGIT),
+  /** Auto-generated from RARE rule str-substr-ctn */
+  EVALUE(STR_SUBSTR_CTN),
+  /** Auto-generated from RARE rule str-replace-dual-ctn */
+  EVALUE(STR_REPLACE_DUAL_CTN),
   /** Auto-generated from RARE rule re-all-elim */
   EVALUE(RE_ALL_ELIM),
   /** Auto-generated from RARE rule re-opt-elim */
   EVALUE(RE_OPT_ELIM),
   /** Auto-generated from RARE rule re-diff-elim */
   EVALUE(RE_DIFF_ELIM),
+  /** Auto-generated from RARE rule re-plus-elim */
+  EVALUE(RE_PLUS_ELIM),
   /** Auto-generated from RARE rule re-concat-emp */
   EVALUE(RE_CONCAT_EMP),
   /** Auto-generated from RARE rule re-concat-none */
@@ -4013,6 +4147,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_STAR_SWAP),
   /** Auto-generated from RARE rule re-concat-star-repeat */
   EVALUE(RE_CONCAT_STAR_REPEAT),
+  /** Auto-generated from RARE rule re-concat-star-subsume1 */
+  EVALUE(RE_CONCAT_STAR_SUBSUME1),
+  /** Auto-generated from RARE rule re-concat-star-subsume2 */
+  EVALUE(RE_CONCAT_STAR_SUBSUME2),
   /** Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */
@@ -4033,6 +4171,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_DUP),
   /** Auto-generated from RARE rule re-star-none */
   EVALUE(RE_STAR_NONE),
+  /** Auto-generated from RARE rule re-star-emp */
+  EVALUE(RE_STAR_EMP),
+  /** Auto-generated from RARE rule re-star-star */
+  EVALUE(RE_STAR_STAR),
+  /** Auto-generated from RARE rule re-star-union-drop-emp */
+  EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
   EVALUE(RE_LOOP_NEG),
   /** Auto-generated from RARE rule re-inter-cstring */
@@ -4045,12 +4189,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
   /** Auto-generated from RARE rule str-substr-len-skip */
   EVALUE(STR_SUBSTR_LEN_SKIP),
+  /** Auto-generated from RARE rule str-substr-len-norm */
+  EVALUE(STR_SUBSTR_LEN_NORM),
   /** Auto-generated from RARE rule seq-len-rev */
   EVALUE(SEQ_LEN_REV),
   /** Auto-generated from RARE rule seq-rev-rev */
   EVALUE(SEQ_REV_REV),
   /** Auto-generated from RARE rule seq-rev-concat */
   EVALUE(SEQ_REV_CONCAT),
+  /** Auto-generated from RARE rule str-eq-repl-self-emp */
+  EVALUE(STR_EQ_REPL_SELF_EMP),
+  /** Auto-generated from RARE rule str-eq-repl-no-change */
+  EVALUE(STR_EQ_REPL_NO_CHANGE),
+  /** Auto-generated from RARE rule str-eq-repl-len-one-emp-prefix */
+  EVALUE(STR_EQ_REPL_LEN_ONE_EMP_PREFIX),
   /** Auto-generated from RARE rule seq-len-unit */
   EVALUE(SEQ_LEN_UNIT),
   /** Auto-generated from RARE rule seq-nth-unit */
@@ -4145,6 +4297,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_TEST_UNFOLD),
   /** Auto-generated from RARE rule str-in-re-test-unfold-rev */
   EVALUE(STR_IN_RE_TEST_UNFOLD_REV),
+  /** Auto-generated from RARE rule str-in-re-concat-emp */
+  EVALUE(STR_IN_RE_CONCAT_EMP),
   /** Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */

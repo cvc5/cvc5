@@ -292,13 +292,23 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+      return "str-overlap-split-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+      return "str-overlap-endpoints-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+      return "str-overlap-endpoints-indexof";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return "str-overlap-endpoints-replace";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return "re-inter-union-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return "macro-re-inter-union-inclusion";
+    case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
+    case ProofRewriteRule::RE_UNION_INCLUSION: return "re-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:

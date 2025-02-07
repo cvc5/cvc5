@@ -339,14 +339,6 @@ Sequence Sequence::substr(size_t i, size_t j) const
   return Sequence(getType(), retVec);
 }
 
-bool Sequence::noOverlapWith(const Sequence& y) const
-{
-  Assert(getType() == y.getType());
-  return y.find(*this) == std::string::npos
-         && this->find(y) == std::string::npos && this->overlap(y) == 0
-         && y.overlap(*this) == 0;
-}
-
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
