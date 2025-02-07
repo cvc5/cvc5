@@ -784,8 +784,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
     if (body2ms.isNull())
     {
       // May have to remove unused variables. This is in rare cases where
-      // we are simultaneously prenex variables from different branches of an
-      // ITE.
+      // we simultaneously prenex variables from different branches of an ITE.
       Node ceuv =
           rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, currEq[0]);
       if (!ceuv.isNull())
