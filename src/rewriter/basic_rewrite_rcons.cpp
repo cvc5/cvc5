@@ -950,13 +950,39 @@ bool BasicRewriteRCons::ensureProofMacroQuantPrenex(CDProof* cdp,
             : (bk == Kind::OR ? ProofRewriteRule::QUANT_MINISCOPE_OR
                               : ProofRewriteRule::QUANT_MINISCOPE_AND);
     Node body2ms = rr->rewriteViaRule(prr, currEq[0]);
+    Trace("brc-macro") << "Rewrite " << currEq[0] << " by " << prr
+                       << " returns " << body2ms << std::endl;
+    Node eqqm;
     if (body2ms.isNull())
     {
-      Trace("brc-macro") << "Failed miniscope" << std::endl;
-      return false;
+      // May have to remove unused variables. This is in rare cases where
+      // we simultaneously prenex variables from different branches of an ITE.
+      Node ceuv =
+          rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, currEq[0]);
+      if (!ceuv.isNull())
+      {
+        body2ms = rr->rewriteViaRule(prr, ceuv);
+        Trace("brc-macro") << "Rewrite " << currEq[0] << " by " << prr
+                           << " returns " << body2ms << std::endl;
+      }
+      if (body2ms.isNull())
+      {
+        Trace("brc-macro") << "Failed miniscope" << std::endl;
+        return false;
+      }
+      Node eqce = currEq[0].eqNode(ceuv);
+      cdp->addTheoryRewriteStep(eqce, ProofRewriteRule::QUANT_UNUSED_VARS);
+      Node eqqm1 = ceuv.eqNode(body2ms);
+      cdp->addTheoryRewriteStep(eqqm1, prr);
+      eqqm = currEq[0].eqNode(body2ms);
+      cdp->addStep(
+          eqqm, ProofRule::TRANS, {eqce, eqqm1}, {});
     }
-    Node eqqm = currEq[0].eqNode(body2ms);
-    cdp->addTheoryRewriteStep(eqqm, prr);
+    else
+    {
+      eqqm = currEq[0].eqNode(body2ms);
+      cdp->addTheoryRewriteStep(eqqm, prr);
+    }
     if (body2ms != currEq[1])
     {
       if (body2ms.getKind() != currEq[1].getKind()

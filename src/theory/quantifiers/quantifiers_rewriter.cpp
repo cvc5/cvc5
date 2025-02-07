@@ -1778,6 +1778,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
       std::vector< Node > terms;
       std::vector< Node > subs;
       BoundVarManager* bvm = nm->getBoundVarManager();
+      std::vector<Node>& argVec = pol ? args : nargs;
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
       for (const Node& v : body[0])
@@ -1788,12 +1789,23 @@ Node QuantifiersRewriter::computePrenex(Node q,
         if (!q.isNull())
         {
           // We cache based on the original quantified formula, the subformula
-          // that we are pulling variables from (body), and the variable v.
+          // that we are pulling variables from (body), the variable v and an
+          // index ii.
           // The argument body is required since in rare cases, two subformulas
           // may share the same variables. This is the case for define-fun
           // or inferred substitutions that contain quantified formulas.
-          Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-          vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
+          // The argument ii is required in case we are prenexing the same
+          // subformula multiple times, e.g.
+          // forall x. (forall y. P(y) or forall y. P(y)) --->
+          // forall x z w. (P(z) or P(w)).
+          size_t index = 0;
+          do
+          {
+            Node ii = nm->mkConstInt(index);
+            Node cacheVal = nm->mkNode(Kind::SEXPR, {q, body, v, ii});
+            vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
+            index++;
+          } while (std::find(argVec.begin(), argVec.end(), vv) != argVec.end());
         }
         else
         {
@@ -1802,14 +1814,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
         }
         subs.push_back(vv);
       }
-      if (pol)
-      {
-        args.insert(args.end(), subs.begin(), subs.end());
-      }
-      else
-      {
-        nargs.insert(nargs.end(), subs.begin(), subs.end());
-      }
+      argVec.insert(argVec.end(), subs.begin(), subs.end());
       Node newBody = body[1];
       newBody = newBody.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
       return newBody;
