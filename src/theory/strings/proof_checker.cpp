@@ -267,12 +267,6 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
       }
-      // we don't allow constant splicing here
-      size_t p = CoreSolver::getSufficientNonEmptyOverlap(s0, w1, isRev);
-      if (p!=Word::getLength(s0))
-      {
-        return Node::null();
-      }
       // getConclusion expects the adjacent constant to be included
       t0 = nm->mkNode(Kind::STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }

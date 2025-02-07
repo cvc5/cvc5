@@ -176,14 +176,16 @@
     (eo::define ((t1 ($str_head tn)))
     (eo::define ((t2 (eo::list_nth str.++ tn 1))) ; get the second component
     (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+    (eo::define ((s1len (eo::len s1)))
+    (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
+    (eo::define ((v (eo::add 1 ($str_overlap s1s t2 rev)))) ; get the overlap, plus one
       (eo::requires t1 tc
-      (eo::define ((s1len (eo::len s1)))
-      (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
-      (eo::requires ($str_has_overlap s1s t2 rev) false   ; no overlap
         (= tc
           (eo::ite rev
-            (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len s1)))) s1)
-            (str.++ s1 (@purify ($str_suffix_rem tc (str.len s1))))))))))))))
+            (eo::define ((oc ($str_suffix s1 v)))
+              (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
+            (eo::define ((oc ($str_prefix s1 v)))
+              (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))))))))))
 )
 
 ; rule: concat_conflict

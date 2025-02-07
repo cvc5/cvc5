@@ -659,9 +659,6 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
         {
-          // may need to splice
-          mainEqCeq = spliceConstants(
-              env, ProofRule::CONCAT_CPROP, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -1546,49 +1543,7 @@ Node InferProofCons::spliceConstants(Env& env,
     {
       continue;
     }
-    if (rule == ProofRule::CONCAT_CPROP)
-    {
-      Trace("strings-ipc-splice")
-          << "Splice cprop at " << ti << " / " << si << std::endl;
-      if (i + 1 == tvec.size())
-      {
-        Assert(false) << "Splice cprop out of bounds";
-        return eq;
-      }
-      // isolate the maximal overlap
-      size_t nextIndex = isRev ? ti - 1 : ti + 1;
-      Node currTNext = tvec[nextIndex];
-      if (!currS.isConst() || !currTNext.isConst())
-      {
-        Assert(false)
-            << "Splice cprop non-constant " << currT << " / " << currTNext << std::endl;
-        return eq;
-      }
-      Trace("strings-ipc-splice") << "Get sufficient overlap " << currS << " / "
-                                  << currTNext << std::endl;
-      size_t p =
-          CoreSolver::getSufficientNonEmptyOverlap(currS, currTNext, isRev);
-      Trace("strings-ipc-splice") << "...returns " << p << std::endl;
-      size_t len = Word::getLength(currS);
-      if (p == len)
-      {
-        Trace("strings-ipc-splice") << "...same as length" << std::endl;
-        // not necessary
-        return eq;
-      }
-      if (isRev)
-      {
-        svec[si] = Word::suffix(currS, p);
-        svec.insert(svec.begin() + si, Word::prefix(currS, len - p));
-      }
-      else
-      {
-        svec[si] = Word::prefix(currS, p);
-        svec.insert(svec.begin() + si + (isRev ? 0 : 1),
-                    Word::suffix(currS, len - p));
-      }
-    }
-    else if (rule == ProofRule::CONCAT_EQ)
+    if (rule == ProofRule::CONCAT_EQ)
     {
       if (!currT.isConst() || !currS.isConst())
       {

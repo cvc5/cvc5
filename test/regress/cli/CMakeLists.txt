@@ -1863,6 +1863,7 @@ set(regress_0_tests
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/complement-simple.smt2
+  regress0/strings/cprop-splice.smt2
   regress0/strings/ctn-decompose-3-sym.smt2
   regress0/strings/ctn-decompose-3-sym-nf.smt2
   regress0/strings/ctn-repl-to-ctn.smt2 

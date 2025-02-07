@@ -1566,31 +1566,34 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = w_2 \cdot r)}
+   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
-   * where :math:`w_1,\,w_2` are words,
-   * :math:`\mathit{suf}(w_2,1)` has no forward overlap with :math:`w_1`,
-   * and :math:`r` is the purification skolem for
-   * :math:`\mathit{suf}(t_1,\mathit{len}(w_2))`.
-   * Note that since :math:`t_1` is non-empty, the overlap condition
-   * ensures that :math:`w_2` must be contained entirely in :math:`t_1`.
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{pre}(w_2,p)`, :math:`p` is
+   * :math:`\texttt{Word::overlap}(\mathit{suf}(w_2,1), w_1)`, and :math:`r` is
+   * the purification skolem for
+   * :math:`\mathit{suf}(t_1,\mathit{len}(w_3))`.  Note that
+   * :math:`\mathit{suf}(w_2,p)` is the largest suffix of
+   * :math:`\mathit{suf}(w_2,1)` that can contain a prefix of :math:`w_1`; since
+   * :math:`t_1` is non-empty, :math:`w_3` must therefore be contained in
+   * :math:`t_1`.
    *
    * Alternatively for the reverse:
    *
    * .. math::
    *
    *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot w_2)}
+   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
    *
-   * where :math:`w_1,\,w_2` are words,
-   * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` has no reverse overlap with :math:`w_1`,
-   * and :math:`r` is the purification skolem for
-   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(w_3))`.
-   * Note that since :math:`t_2` is non-empty, the overlap condition ensures that :math:`w_2`
-   * contained entirely in :math:`t_2`.
-   *
-   * For details on the definitions of forward and reverse overlap, see
-   * :math:`\texttt{Word::hasOverlap}` in :cvc5src:`theory/strings/word.h`.
+   * where :math:`w_1,\,w_2` are words, :math:`t_3` is
+   * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
+   * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
+   * w_1)`, and :math:`r` is the purification skolem for
+   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(w_3))`.  Note that
+   * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
+   * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
+   * of :math:`w_1`; since :math:`t_2` is non-empty, :math:`w_3` must therefore
+   * be contained in :math:`t_2`.
    * \endverbatim
    */
   EVALUE(CONCAT_CPROP),
