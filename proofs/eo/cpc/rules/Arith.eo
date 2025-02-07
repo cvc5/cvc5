@@ -351,8 +351,8 @@
 ; return: >
 ;   The left hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
-(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list))
-  ((-> T U Bool) Bool) Bool
+(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
+  ((-> T U Bool) Bool) S
   (
     (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
     (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
@@ -371,8 +371,8 @@
 ;   The right hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
 ; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
-(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list))
-  ((-> T U Bool) Bool) Bool
+(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
+  ((-> T U Bool) Bool) S
   (
     (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
     (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
