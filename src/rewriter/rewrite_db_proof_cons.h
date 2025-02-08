@@ -66,9 +66,6 @@ class RewriteDbProofCons : protected EnvObj
    * @param b The right hand side of the equality.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
-   * @param subgoals The list of proofs introduced when proving (= a b) that
-   * are trusted steps, and thus would require further elaboration from the
-   * caller of this method.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
@@ -77,7 +74,6 @@ class RewriteDbProofCons : protected EnvObj
              const Node& b,
              int64_t recLimit,
              int64_t stepLimit,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals,
              TheoryRewriteMode tmode);
 
  private:
@@ -182,8 +178,6 @@ class RewriteDbProofCons : protected EnvObj
    * converted from eq using d_rdnc.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
@@ -192,7 +186,6 @@ class RewriteDbProofCons : protected EnvObj
                          const Node& eqi,
                          int64_t recLimit,
                          int64_t stepLimit,
-                         std::vector<std::shared_ptr<ProofNode>>& subgoals,
                          TheoryRewriteMode tmode);
   /**
    * Prove and store the proof of eq with internal form eqi in cdp if possible,
@@ -202,15 +195,12 @@ class RewriteDbProofCons : protected EnvObj
    * @param eqi The equality we are trying to prove.
    * @param recLimit The recursion limit for this call.
    * @param stepLimit The step limit for this call.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @return true if we successfully added a proof of (= a b) to cdp
    */
   bool proveEq(CDProof* cdp,
                const Node& eqi,
                int64_t recLimit,
-               int64_t stepLimit,
-               std::vector<std::shared_ptr<ProofNode>>& subgoals);
+               int64_t stepLimit);
   /**
    * Prove internal, which is the main entry point for proven an equality eqi.
    * Returns the proof rule that was used to prove eqi, or
@@ -249,12 +239,8 @@ class RewriteDbProofCons : protected EnvObj
    *
    * @param cdp The proof to add the proof of eqi to
    * @param eqi The proven equality
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    */
-  bool ensureProofInternal(CDProof* cdp,
-                           const Node& eqi,
-                           std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  bool ensureProofInternal(CDProof* cdp, const Node& eqi);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
