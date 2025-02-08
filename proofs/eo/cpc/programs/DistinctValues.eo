@@ -76,8 +76,8 @@
   ((Seq T) (Seq T)) Bool
   (
   ; handle singleton cases
-  (($seq_distinct_terms (seq.unit e1) s)                                     ($seq_distinct_terms (eo::cons seq.++ (seq.unit e1) @seq.empty) s))
-  (($seq_distinct_terms t (seq.unit e2))                                     ($seq_distinct_terms t (eo::cons seq.++ (seq.unit e2) @seq.empty)))
+  (($seq_distinct_terms (seq.unit e1) s)                                     ($seq_distinct_terms (seq.++ (seq.unit e1)) s))
+  (($seq_distinct_terms t (seq.unit e2))                                     ($seq_distinct_terms t (seq.++ (seq.unit e2))))
   (($seq_distinct_terms (seq.++ (seq.unit e1) ts) (seq.++ (seq.unit e2) ss)) (eo::ite ($are_distinct_terms e1 e2)
                                                                                true
                                                                                ($seq_distinct_terms ts ss)))
