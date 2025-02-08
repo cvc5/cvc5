@@ -84,6 +84,7 @@ class Op(Enum):
     BVUSUBO = ('bvusubo', 'BITVECTOR_USUBO')
     BVSSUBO = ('bvssubo', 'BITVECTOR_SSUBO')
     BVSDIVO = ('bvsdivo', 'BITVECTOR_SDIVO')
+    BVNEGO = ('bvnego', 'BITVECTOR_NEGO')
 
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
