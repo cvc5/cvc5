@@ -8,7 +8,6 @@
 
 (include "Utils.eo")
 (include "Datatypes.eo")
-(include "Strings.eo")
 
 ; note: This is a forward declaration of $are_distinct_terms_list below.
 (program $are_distinct_terms_list () (@List Type) Bool)
@@ -76,6 +75,9 @@
 (program $seq_distinct_terms ((T Type) (t (Seq T)) (ts (Seq T) :list) (s (Seq T)) (ss (Seq T) :list) (e1 T) (e2 T))
   ((Seq T) (Seq T)) Bool
   (
+  ; handle singleton cases
+  (($seq_distinct_terms (seq.unit e1) s)                                     ($seq_distinct_terms (eo::cons seq.++ (seq.unit e1) @seq.empty) s))
+  (($seq_distinct_terms t (seq.unit e2))                                     ($seq_distinct_terms t (eo::cons seq.++ (seq.unit e2) @seq.empty)))
   (($seq_distinct_terms (seq.++ (seq.unit e1) ts) (seq.++ (seq.unit e2) ss)) (eo::ite ($are_distinct_terms e1 e2)
                                                                                true
                                                                                ($seq_distinct_terms ts ss)))
@@ -126,7 +128,7 @@
   (($are_distinct_terms_type t s (BitVec n))  (eo::and (eo::is_bin t) (eo::is_bin s)))
   (($are_distinct_terms_type t s Bool)        (eo::and (eo::is_bool t) (eo::is_bool s)))
   (($are_distinct_terms_type t s (Set U))     (eo::or ($set_is_not_subset t s) ($set_is_not_subset s t)))
-  (($are_distinct_terms_type t s (Seq U))     ($seq_distinct_terms ($str_to_flat_form t false) ($str_to_flat_form s false)))
+  (($are_distinct_terms_type t s (Seq U))     ($seq_distinct_terms t s))
   (($are_distinct_terms_type t s T)           ($dt_distinct_terms t s)) ; otherwise assume we are a user datatype
   )
 )
