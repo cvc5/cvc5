@@ -1494,10 +1494,8 @@ bool QuantifiersRewriter::hasVarElim(Node n,
   return getVarElimInternal(n, n, pol, args, vars, subs, lits);
 }
 
-bool QuantifiersRewriter::getVarElimIneq(Node body,
+Node QuantifiersRewriter::getVarElimIneq(Node body,
                                          std::vector<Node>& args,
-                                         std::vector<Node>& bounds,
-                                         std::vector<Node>& subs,
                                          QAttributes& qa) const
 {
   Trace("var-elim-quant-debug") << "getVarElimIneq " << body << std::endl;
