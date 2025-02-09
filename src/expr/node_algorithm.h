@@ -62,7 +62,8 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
 /**
  * @param ks The kinds of node to check
  * @param n The node to search in.
- * @param visited A cache of nodes we have already visited (and did not contain a kind in ks)
+ * @param visited A cache of nodes we have already visited (and did not contain
+ * a kind in ks)
  * @return the illegal kind we found
  */
 Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
