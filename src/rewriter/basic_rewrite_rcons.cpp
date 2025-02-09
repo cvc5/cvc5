@@ -236,6 +236,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+      if (ensureProofMacroBvExtractConcat(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     default: break;
   }
   if (handledMacro)
@@ -1199,6 +1205,45 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   cdp->addProof(pfn);
+  return true;
+}
+bool BasicRewriteRCons::ensureProofMacroBvExtractConcat(CDProof* cdp,
+                                                         const Node& eq)
+{
+  Trace("brc-macro") << "Expand bv extract concat " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  using namespace theory::bv;
+  if (RewriteRule<ExtractConcat>::applies(eq[0]))
+  {
+    return false;
+  }
+  auto const& node = eq[0];
+  int extract_high = utils::getExtractHigh(node);
+  int extract_low = utils::getExtractLow(node);
+
+  Node last = eq[0];
+
+  std::vector<Node> resultChildren;
+
+  Node concat = node[0];
+  for (int i = concat.getNumChildren() - 1; i >= 0 && extract_high >= 0; i--) {
+    Node concatChild = concat[i];
+    int concatChildSize = utils::getSize(concatChild);
+    if (extract_low < concatChildSize) {
+      int extract_start = extract_low < 0 ? 0 : extract_low;
+      int extract_end = extract_high < concatChildSize ? extract_high : concatChildSize - 1;
+      resultChildren.push_back(utils::mkExtract(concatChild, extract_end, extract_start));
+    }
+    std::vector<Node> stepChildren(resultChildren.rbegin(), resultChildren.rend());
+    Node next = utils::mkConcat(stepChildren);
+
+    // FIXME: Should this be `EVALUATE`?
+    cdp->addStep(last.eqNode(next), ProofRule::EVALUATE, {}, {});
+    extract_low -= concatChildSize;
+    extract_high -= concatChildSize;
+    last = next;
+  }
+
   return true;
 }
 

@@ -31,6 +31,8 @@ using namespace cvc5::internal::theory::bv;
 TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
 {
   initializeRewrites();
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIMINATE,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIMINATE,
@@ -85,6 +87,11 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;                                                       \
   }                                                              \
     /* end of macro */
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+    {
+      if (!RewriteRule<ExtractConcat>::applies(n)) break;
+      break;
+    }
     case ProofRewriteRule::BV_UMULO_ELIMINATE:
       BV_PROOF_REWRITE_CASE(UmuloEliminate)
     case ProofRewriteRule::BV_SMULO_ELIMINATE:

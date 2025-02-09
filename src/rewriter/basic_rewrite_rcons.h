@@ -239,6 +239,8 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroQuantRewriteBody(CDProof* cdp, const Node& eq);
+
+  bool ensureProofMacroBvExtractConcat(CDProof* cdp, const Node& eq);
   /**
    * @param cdp The proof to add to.
    * @param eq The rewrite that can be proven by ProofRule::ARITH_POLY_NORM_REL.

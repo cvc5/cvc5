@@ -2337,9 +2337,10 @@ enum ENUM(ProofRewriteRule)
    *   \texttt{distinct}(t_1, t_2) = \neg (t_1 = t2)
    *
    * if :math:`n = 2`, or
-   * 
+   *
    * .. math::
-   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n \bigwedge_{j=i+1}^n t_i \neq t_j
+   *   \texttt{distinct}(t_1, \ldots, tn) = \bigwedge_{i=1}^n
+   * \bigwedge_{j=i+1}^n t_i \neq t_j
    *
    * if :math:`n > 2`
    *
@@ -2410,11 +2411,14 @@ enum ENUM(ProofRewriteRule)
    *   (>= s t) = c
    *
    * where :math:`c` is a Boolean constant.
-   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE <cvc5::ProofRule::EVALUATE>`,
-   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
-   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
-   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`,
-   * as well as other rewrites for normalizing arithmetic predicates.
+   * This macro is elaborated by applications of :cpp:enumerator:`EVALUATE
+   * <cvc5::ProofRule::EVALUATE>`, :cpp:enumerator:`ARITH_POLY_NORM
+   * <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_ENTAIL
+   * <cvc5::ProofRewriteRule::ARITH_STRING_PRED_ENTAIL>`,
+   * :cpp:enumerator:`ARITH_STRING_PRED_SAFE_APPROX
+   * <cvc5::ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX>`, as well as other
+   * rewrites for normalizing arithmetic predicates.
    *
    * \endverbatim
    */
@@ -2474,7 +2478,8 @@ enum ENUM(ProofRewriteRule)
    * or alternatively
    *
    * .. math::
-   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\> t)\{x_1 \mapsto t_1\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\>
+   * t)\{x_1 \mapsto t_1\}
    *
    * In the former case, the left hand side may either be a term of kind
    * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`. The latter case is used
@@ -2612,7 +2617,9 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Macro prenex**
    *
    * .. math::
-   *   (\forall X.\> F_1 \vee \cdots \vee (\forall Y.\> F_i) \vee \cdots \vee F_n) = (\forall X Z.\> F_1 \vee \cdots \vee F_i\{ Y \mapsto Z \} \vee \cdots \vee F_n)
+   *   (\forall X.\> F_1 \vee \cdots \vee (\forall Y.\> F_i) \vee \cdots \vee
+   * F_n) = (\forall X Z.\> F_1 \vee \cdots \vee F_i\{ Y \mapsto Z \} \vee
+   * \cdots \vee F_n)
    *
    * \endverbatim
    */
@@ -2652,8 +2659,9 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Miniscoping or**
    *
    * .. math::
-   *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots \vee (\forall X_n.\> F_n)
-   * 
+   *   \forall X.\> F_1 \vee \ldots \vee F_n = (\forall X_1.\> F_1) \vee \ldots
+   * \vee (\forall X_n.\> F_n)
+   *
    * where :math:`X = X_1 \ldots X_n`, and the right hand side does not have any
    * free variable in :math:`X`.
    *
@@ -2665,8 +2673,9 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Miniscoping ite**
    *
    * .. math::
-   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\> F_2}
-   * 
+   *   \forall X.\> \ite{C}{F_1}{F_2} = \ite{C}{\forall X.\> F_1}{\forall X.\>
+   * F_2}
+   *
    * where :math:`C` does not have any free variable in :math:`X`.
    *
    * \endverbatim
@@ -2677,12 +2686,13 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Datatypes Split**
    *
    * .. math::
-   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n Y. F_n)
-   * 
+   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n
+   * Y. F_n)
+   *
    * where :math:`x` is of a datatype type with constructors
    * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
    * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`.
-   * 
+   *
    * \endverbatim
    */
   EVALUE(QUANT_DT_SPLIT),
@@ -2822,7 +2832,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *   (t = s) = false
-   * 
+   *
    * where :math:`t` and :math:`s` have subterms that occur in the same
    * position (beneath constructor applications) that are distinct.
    *
@@ -2836,7 +2846,7 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   (c(t_1, \ldots, t_n) = c(s_1, \ldots, s_n)) =
    *   (t_1 = s_1 \wedge \ldots \wedge t_n = s_n)
-   * 
+   *
    * where :math:`c` is a constructor.
    *
    * \endverbatim
@@ -2848,7 +2858,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *   (t = s) = false
-   * 
+   *
    * where :math:`t` and :math:`s` have subterms that occur in the same
    * position (beneath constructor applications) that are distinct constructor
    * applications.
@@ -2874,7 +2884,8 @@ enum ENUM(ProofRewriteRule)
    * **Datatypes -- collapse tester**
    *
    * .. math::
-   *   u_{c,i}(c(t_1, \ldots, t_i, \ldots, t_n), s) = c(t_1, \ldots, s, \ldots, t_n)
+   *   u_{c,i}(c(t_1, \ldots, t_i, \ldots, t_n), s) = c(t_1, \ldots, s, \ldots,
+   * t_n)
    *
    * or alternatively
    *
@@ -2891,7 +2902,8 @@ enum ENUM(ProofRewriteRule)
    * **Datatypes - updater elimination**
    *
    * .. math::
-   *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots s_n(t)), t)
+   *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots
+   * s_n(t)), t)
    *
    * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
    *
@@ -2903,8 +2915,9 @@ enum ENUM(ProofRewriteRule)
    * **Datatypes -- match elimination**
    *
    * .. math::
-   *   \texttt{match}(t ((p_1 c_1) \ldots (p_n c_n))) = \texttt{ite}(F_1, r_1, \texttt{ite}( \ldots, r_n))
-   * 
+   *   \texttt{match}(t ((p_1 c_1) \ldots (p_n c_n))) = \texttt{ite}(F_1, r_1,
+   * \texttt{ite}( \ldots, r_n))
+   *
    * where for :math:`i=1, \ldots, n`, :math:`F_1` is a formula that holds iff
    * :math:`t` matches :math:`p_i` and :math:`r_i` is the result of a
    * substitution on :math:`c_i` based on this match.
@@ -2912,6 +2925,8 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(DT_MATCH_ELIM),
+
+  EVALUE(MACRO_BV_EXTRACT_CONCAT),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Unsigned multiplication overflow detection elimination**
