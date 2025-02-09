@@ -311,6 +311,8 @@
 
 ;;-------------------- Regular expressions
 
+;;;;; ProofRule::RE_INTER
+
 ; rule: re_inter
 ; implements: ProofRule::RE_INTER
 ; premises:
@@ -323,6 +325,38 @@
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
+
+;;;;; ProofRule::RE_CONCAT
+
+; program: $mk_re_concat
+; args:
+; - E: A conjunction of regular expression memberships.
+; return: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(program $mk_re_concat ((Es Bool :list) (s String) (r RegLan))
+  (Bool) Bool
+  (
+  (($mk_re_concat (and (str.in_re s r) Es)) (eo::match ((s1 String) (r1 RegLan))
+                                              ($mk_re_concat Es)
+                                              (((str.in_re s1 r1) (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))))
+  (($mk_re_concat true)                     (str.in_re "" @re.empty))
+  )
+)
+
+; rule: re_concat
+; implements: ProofRule::RE_CONCAT
+; premises:
+; - E [:list]: A conjunction of regular expression memberships.
+; conclusion: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(declare-rule re_concat ((E Bool))
+  :premise-list E and
+  :conclusion ($mk_re_concat E)
+)
+
+;;;;; ProofRule::RE_UNFOLD_POS
 
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
@@ -357,6 +391,8 @@
     ))
 )
 
+;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 ; premises:
@@ -383,6 +419,8 @@
                            (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
+
+;;;;; ProofRule::RE_UNFOLD_NEG
 
 ; rule: re_unfold_neg
 ; implements: ProofRule::RE_UNFOLD_NEG

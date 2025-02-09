@@ -1687,6 +1687,16 @@ enum ENUM(ProofRule)
   EVALUE(RE_INTER),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Concatenation**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1\in R_1,\,\ldots,\,t_n\in R_n\mid -}{\text{str.++}(t_1, \ldots, t_n)\in \text{re.++}(R_1, \ldots, R_n)}
+   * \endverbatim
+   */
+  EVALUE(RE_CONCAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Positive Unfold**
    *
    * .. math::
