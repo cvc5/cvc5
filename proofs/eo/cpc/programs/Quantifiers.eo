@@ -12,7 +12,8 @@
   (S S U) U
   (
   (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))
-  (($substitute x y z)             (eo::ite (eo::is_eq z x) y z))
+  (($substitute x y x)             y)
+  (($substitute x y z)             z)
   )
 )
 
