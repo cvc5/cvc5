@@ -227,6 +227,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+      return "macro-arith-int-eq-conflict";
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+      return "macro-arith-int-geq-tighten";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -292,13 +296,23 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+      return "str-overlap-split-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+      return "str-overlap-endpoints-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+      return "str-overlap-endpoints-indexof";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return "str-overlap-endpoints-replace";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return "re-inter-union-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return "macro-re-inter-union-inclusion";
+    case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
+    case ProofRewriteRule::RE_UNION_INCLUSION: return "re-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:

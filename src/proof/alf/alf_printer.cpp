@@ -138,6 +138,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_MULT_TANGENT:
+    case ProofRule::ARITH_MULT_SIGN:
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::ARITH_TRANS_EXP_NEG:
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -300,9 +302,14 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
     case ProofRewriteRule::STR_REPLACE_RE_EVAL:
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::RE_INTER_INCLUSION:
+    case ProofRewriteRule::RE_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
       // only strings are supported, since it is non-trivial to show
       // distinctness of sequence characters.
@@ -931,13 +938,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::ARITH_POLY_NORM_REL:
-    {
-      Node op = d_tproc.getOperatorOfTerm(res[0]);
-      args.push_back(d_tproc.convert(op));
-      return;
-    }
-    break;
     case ProofRule::HO_CONG:
     {
       // argument is ignored

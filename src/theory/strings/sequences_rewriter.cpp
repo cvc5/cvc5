@@ -51,7 +51,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::RE_INTER_UNION_INCLUSION,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
@@ -86,8 +86,11 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return rewriteViaReInterUnionInclusion(n);
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return rewriteViaMacroReInterUnionInclusion(n);
+    case ProofRewriteRule::RE_INTER_INCLUSION:
+    case ProofRewriteRule::RE_UNION_INCLUSION:
+      return rewriteViaReInterUnionInclusion(id, n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONSUME:
       return rewriteViaStrInReConsume(n);
@@ -148,6 +151,11 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return rewriteViaStrReplaceReAllEval(n);
     }
     break;
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return rewriteViaOverlap(id, n);
     default: break;
   }
   return Node::null();
@@ -889,7 +897,7 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
-Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
+Node SequencesRewriter::rewriteViaMacroReInterUnionInclusion(const Node& node)
 {
   Kind nk = node.getKind();
   if (nk != Kind::REGEXP_UNION && nk != Kind::REGEXP_INTER)
@@ -953,6 +961,33 @@ Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
         }
         return retNode;
       }
+    }
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaReInterUnionInclusion(ProofRewriteRule id,
+                                                        const Node& n)
+{
+  if (n.getNumChildren() != 2 || n[1].getKind() != Kind::REGEXP_COMPLEMENT)
+  {
+    return Node::null();
+  }
+  Kind k = n.getKind();
+  if (id == ProofRewriteRule::RE_INTER_INCLUSION)
+  {
+    if (k == Kind::REGEXP_INTER && RegExpEntail::regExpIncludes(n[1][0], n[0]))
+    {
+      return nodeManager()->mkNode(Kind::REGEXP_NONE);
+    }
+  }
+  else
+  {
+    Assert(id == ProofRewriteRule::RE_UNION_INCLUSION);
+    if (k == Kind::REGEXP_UNION && RegExpEntail::regExpIncludes(n[0], n[1][0]))
+    {
+      NodeManager* nm = nodeManager();
+      return nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
     }
   }
   return Node::null();
@@ -1102,7 +1137,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  Node retNode = rewriteViaReInterUnionInclusion(node);
+  Node retNode = rewriteViaMacroReInterUnionInclusion(node);
   if (!retNode.isNull())
   {
     return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
@@ -1533,6 +1568,100 @@ Node SequencesRewriter::rewriteViaStrReplaceReAllEval(const Node& n)
     }
     Node ret = utils::mkConcat(res, t);
     return ret;
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaOverlap(ProofRewriteRule id, const Node& n)
+{
+  if (n.getNumChildren() < 2)
+  {
+    return Node::null();
+  }
+  // get the list of overlaps to check, based on the rule, which will be passed
+  // to Word::hasOverlap below.
+  std::vector<std::tuple<Node, Node, int>> overlap;
+  Kind k = n.getKind();
+  switch (id)
+  {
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    {
+      if (k != Kind::STRING_CONTAINS || n[0].getNumChildren() != 3)
+      {
+        return Node::null();
+      }
+      overlap.emplace_back(n[0][1], n[1], false);
+      overlap.emplace_back(n[1], n[0][1], false);
+    }
+    break;
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    {
+      if (k != Kind::STRING_CONTAINS || n[0].getNumChildren() != 3
+          || n[1].getNumChildren() != 3)
+      {
+        return Node::null();
+      }
+      overlap.emplace_back(n[0][0], n[1][0], false);
+      overlap.emplace_back(n[0][2], n[1][2], true);
+    }
+    break;
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    {
+      if (k != Kind::STRING_INDEXOF || n[0].getNumChildren() != 2
+          || n[1].getNumChildren() != 2 || !n[2].isConst()
+          || n[2].getConst<Rational>().sgn() != 0)
+      {
+        return Node::null();
+      }
+      overlap.emplace_back(n[0][1], n[1][1], true);
+    }
+    break;
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+    {
+      if (k != Kind::STRING_REPLACE || n[0].getNumChildren() != 3
+          || n[1].getNumChildren() != 3)
+      {
+        return Node::null();
+      }
+      overlap.emplace_back(n[0][0], n[1][0], false);
+      overlap.emplace_back(n[0][2], n[1][2], true);
+    }
+    break;
+    default: return Node::null();
+  }
+  for (const std::tuple<Node, Node, int>& f : overlap)
+  {
+    const Node& c1 = std::get<0>(f);
+    const Node& c2 = std::get<1>(f);
+    // ensure it is a constant
+    if (!c1.isConst() || !c2.isConst())
+    {
+      return Node::null();
+    }
+    // if it has an overlap
+    if (Word::hasOverlap(c1, c2, std::get<2>(f)))
+    {
+      return Node::null();
+    }
+  }
+
+  // checks succeeded, make the appropriate rewritten term
+  NodeManager* nm = nodeManager();
+  switch (id)
+  {
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+      return nm->mkNode(
+          Kind::OR, nm->mkNode(k, n[0][0], n[1]), nm->mkNode(k, n[0][2], n[1]));
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+      return nm->mkNode(k, n[0][1], n[1]);
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+      return nm->mkNode(k, n[0][0], n[1], n[2]);
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return nm->mkNode(Kind::STRING_CONCAT,
+                        n[0][0],
+                        nm->mkNode(k, n[0][1], n[1], n[2]),
+                        n[0][2]);
+    default: break;
   }
   return Node::null();
 }
