@@ -399,7 +399,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind() != Kind::EQUAL || !args[0][0].getType().isRealOrInt())
+      if (args[0].getKind() != Kind::EQUAL
+          || !args[0][0].getType().isRealOrInt())
       {
         return Node::null();
       }
@@ -429,8 +430,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       Node l = children[0][0];
       Node r = children[0][1];
-      if (l.getKind() != Kind::MULT
-          || r.getKind() != Kind::MULT)
+      if (l.getKind() != Kind::MULT || r.getKind() != Kind::MULT)
       {
         return Node::null();
       }
@@ -438,8 +438,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       lr = lr.getKind() == Kind::TO_REAL ? lr[0] : lr;
       Node rr = r[1];
       rr = rr.getKind() == Kind::TO_REAL ? rr[0] : rr;
-      if (lr.getKind() != Kind::SUB
-          || rr.getKind() != Kind::SUB)
+      if (lr.getKind() != Kind::SUB || rr.getKind() != Kind::SUB)
       {
         return Node::null();
       }

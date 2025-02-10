@@ -560,8 +560,8 @@ Node PolyNorm::getArithPolyNormRelPremise(TNode a,
   Node lhs, rhs;
   if (a[0].getType().isBitVector())
   {
-    Assert (rx.isOne());
-    Assert (ry.isOne());
+    Assert(rx.isOne());
+    Assert(ry.isOne());
     lhs = nm->mkNode(Kind::BITVECTOR_SUB, a[0], a[1]);
     rhs = nm->mkNode(Kind::BITVECTOR_SUB, b[0], b[1]);
   }

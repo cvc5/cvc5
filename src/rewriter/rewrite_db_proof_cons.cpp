@@ -1198,20 +1198,21 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
-        TypeNode tn = pcur.d_vars.empty() ? cur[0].getType() : cur[0][0].getType();
+        TypeNode tn =
+            pcur.d_vars.empty() ? cur[0].getType() : cur[0][0].getType();
         bool isBitVec = (tn.isBitVector());
-        ProofRule pr = isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
+        ProofRule pr =
+            isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
         if (pcur.d_vars.empty())
         {
           cdp->addStep(cur, pr, {}, {cur});
         }
         else
         {
-          ProofRule prr = isBitVec ? ProofRule::BV_POLY_NORM_EQ : ProofRule::ARITH_POLY_NORM_REL;
-          cdp->addStep(
-              pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
-          cdp->addStep(
-              cur, prr, {pcur.d_vars[0]}, {cur});
+          ProofRule prr = isBitVec ? ProofRule::BV_POLY_NORM_EQ
+                                   : ProofRule::ARITH_POLY_NORM_REL;
+          cdp->addStep(pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
+          cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL

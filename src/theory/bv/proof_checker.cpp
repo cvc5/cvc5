@@ -58,7 +58,7 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
   }
-  else if (id==ProofRule::BV_POLY_NORM)
+  else if (id == ProofRule::BV_POLY_NORM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -72,7 +72,7 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id==ProofRule::BV_POLY_NORM_EQ)
+  else if (id == ProofRule::BV_POLY_NORM_EQ)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -100,7 +100,7 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Node x2 = lr[1];
     Node y1 = rr[0];
     Node y2 = rr[1];
-    NodeManager * nm = nodeManager();
+    NodeManager* nm = nodeManager();
     Node ret = nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
     if (ret != args[0])
     {
