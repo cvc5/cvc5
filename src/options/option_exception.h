@@ -49,7 +49,7 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
 
 /**
  * Class representing an option-parsing exception involving an illegal
- * combination of options. In contrast to OptionsException, it is treated as an
+ * combination of options. In contrast to OptionException, it is treated as an
  * unrecoverable exception in the API.
  *
  * At a high level, this exception is used when the user requests a legal
