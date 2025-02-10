@@ -204,13 +204,14 @@ void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   Assert(node.getKind() == Kind::CONST_BITVECTOR);
   Assert(bits.size() == 0);
 
+  NodeManager* nm = node.getNodeManager();
   for (unsigned i = 0; i < utils::getSize(node); ++i) {
     Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
     if(bit == Integer(0)){
-      bits.push_back(mkFalse<T>(node.getNodeManager()));
+      bits.push_back(mkFalse<T>(nm));
     } else {
       Assert(bit == Integer(1));
-      bits.push_back(mkTrue<T>(node.getNodeManager()));
+      bits.push_back(mkTrue<T>(nm));
     }
   }
   if(TraceIsOn("bitvector-bb")) {
@@ -378,14 +379,15 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // }
   
   std::vector<T> newres; 
-  bb->bbTerm(node[0], res); 
+  bb->bbTerm(node[0], res);
+  NodeManager* nm = node.getNodeManager();
   for(unsigned i = 1; i < node.getNumChildren(); ++i) {
     std::vector<T> current;
     bb->bbTerm(node[i], current);
     newres.clear(); 
     // constructs a simple shift and add multiplier building the result
     // in res
-    shiftAddMultiplier(node.getNodeManager(), res, current, newres);
+    shiftAddMultiplier(nm, res, current, newres);
     res = newres;
   }
   if(TraceIsOn("bitvector-bb")) {
@@ -404,11 +406,12 @@ void DefaultAddBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
 
   std::vector<T> newres;
 
+  NodeManager* nm = node.getNodeManager();
   for(unsigned i = 1; i < node.getNumChildren(); ++i) {
     std::vector<T> current;
     bb->bbTerm(node[i], current);
     newres.clear();
-    rippleCarryAdder(res, current, newres, mkFalse<T>(node.getNodeManager()));
+    rippleCarryAdder(res, current, newres, mkFalse<T>(nm));
     res = newres; 
   }
 
