@@ -1247,6 +1247,28 @@ enum ENUM(ProofRule)
   EVALUE(BV_EAGER_ATOM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Polynomial normalization**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   *
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials :math:`s` and :math:`t` over bitvectors.
+   * \endverbatim
+   */
+  EVALUE(BV_POLY_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Polynomial normalization for relations**
+   *
+   * .. math::
+   *  \inferrule{(x_1 - x_2) = (y_1 - y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
+   *            {(x_1 = x_2) = (y_1 = y_2)}
+   * \endverbatim
+   */
+  EVALUE(BV_POLY_NORM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
    *
    * .. math::
