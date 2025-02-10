@@ -148,8 +148,8 @@ TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
   TypeNode intType = d_nodeManager->integerType();
 
   Node abc = d_nodeManager->mkConst(String("abc"));
-  Node a = d_nodeManager->mkVar("a", intType);
-  Node s = d_nodeManager->mkVar("s", strType);
+  Node a = d_nodeManager->mkDummySkolem("a", intType);
+  Node s = d_nodeManager->mkDummySkolem("s", strType);
   Node fia = d_nodeManager->mkNode(Kind::STRING_ITOS, a);
   Node fils = d_nodeManager->mkNode(
       Kind::STRING_ITOS, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
