@@ -95,16 +95,17 @@ void SmtSolver::finishInit()
     }
   }
 
-  // Determine any illegal kinds that are dependent on options that need to be guarded here.
-  // Note that nearly all illegal kinds should be properly guarded by either the theory engine,
-  // theory solvers, or by theory rewriters. We only require special handling for rare cases,
-  // including array constants, where array constants *must* be rewritten by the rewriter
-  // for the purposes of model verification, but we do not want array constants to
-  // appear in assertions unless --arrays-exp is enabled.
+  // Determine any illegal kinds that are dependent on options that need to be
+  // guarded here. Note that nearly all illegal kinds should be properly guarded
+  // by either the theory engine, theory solvers, or by theory rewriters. We
+  // only require special handling for rare cases, including array constants,
+  // where array constants *must* be rewritten by the rewriter for the purposes
+  // of model verification, but we do not want array constants to appear in
+  // assertions unless --arrays-exp is enabled.
 
   // Array constants are not supported unless arraysExp is enabled
   if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARRAYS)
-    && !options().arrays.arraysExp)
+      && !options().arrays.arraysExp)
   {
     d_illegalKinds.insert(Kind::STORE_ALL);
   }
@@ -158,11 +159,12 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
     for (const Node& a : assertions)
     {
       Kind k = expr::hasSubtermKinds(d_illegalKinds, a, visited);
-      if (k!=Kind::UNDEFINED_KIND)
+      if (k != Kind::UNDEFINED_KIND)
       {
         std::stringstream ss;
-        ss << "ERROR: cannot handle assertion with term of kind " << k << " in this configuration";
-        if (k==Kind::STORE_ALL)
+        ss << "ERROR: cannot handle assertion with term of kind " << k
+           << " in this configuration";
+        if (k == Kind::STORE_ALL)
         {
           ss << ", unless --arrays-exp is enabled";
         }
@@ -170,7 +172,6 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
       }
     }
   }
-
 
   // process the assertions with the preprocessor
   d_pp.process(ap);
