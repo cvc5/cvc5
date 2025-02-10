@@ -1,6 +1,7 @@
 (include "../../programs/Utils.eo")
 (include "../../theories/Builtin.eo")
 (include "../../theories/Arith.eo")
+(include "../../theories/Datatypes.eo")
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further
