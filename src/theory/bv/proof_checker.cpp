@@ -62,7 +62,7 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    if (args[0].getKind() != Kind::EQUAL || !args[0].getType().isBitVector())
+    if (args[0].getKind() != Kind::EQUAL || !args[0][0].getType().isBitVector())
     {
       return Node::null();
     }
