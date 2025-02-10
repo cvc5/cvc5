@@ -184,11 +184,17 @@ enum ENUM(ProofRule)
    *
    * where :math:`t` and :math:`s` are distinct values.
    *
-   * Internally, this means the Node::isConst method returns true for both,
-   * indicating that are canonical representations of values of their sort.
+   * Note that cvc5 internally has a notion of which terms denote "values".
+   * This property is implemented for any sort that can appear in equalities.
+   * A term denotes a value if and only if it is the canonical representation
+   * of a value of that sort. Any two distinct values are semantically disequal
+   * in all models.
    *
-   * In practice, this rule is typically only used to terms of non-atomic
+   * In practice, we use this rule only to show the distinctness of non-atomic
    * sort, e.g. Sets, Sequences, Datatypes, Arrays, etc.
+   *
+   * Note that internally, the notion of value is implemented by the
+   * Node::isConst method.
    *
    * \endverbatim
    */
