@@ -67,6 +67,15 @@
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
 (define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
 
+(define-cond-rule arith-int-eq-conflict ((t Int) (c Real))
+  (not (= (to_real (to_int c)) c))
+  (= (to_real t) c)
+  false)
+
+(define-cond-rule arith-int-geq-tighten ((t Int) (c Real) (cc Int))
+  (and (not (= (to_real (to_int c)) c)) (= cc (+ (to_int c) 1)))
+  (>= (to_real t) c)
+  (>= t cc))
 
 ; trancendentals
 
@@ -105,3 +114,57 @@
     (ite (>= y 0/1)
       (> (- x) y)
       (> (- x) (- y)))))
+
+; ITE lifting
+
+(define-rule arith-geq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (>= (ite C t s) r)
+  (ite C (>= t r) (>= s r)))
+
+(define-rule arith-gt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (> (ite C t s) r)
+  (ite C (> t r) (> s r)))
+
+(define-rule arith-leq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (<= (ite C t s) r)
+  (ite C (<= t r) (<= s r)))
+
+(define-rule arith-lt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (< (ite C t s) r)
+  (ite C (< t r) (< s r)))
+
+; min/max rules
+
+(define-rule arith-min-lt1 ((t ?) (s ?))
+  (<= (ite (< t s) t s) t)
+  true)
+
+(define-rule arith-min-lt2 ((t ?) (s ?))
+  (<= (ite (< t s) t s) s)
+  true)
+
+; The rules for leq, gt are not applied if the arith static learner
+; is applied only to rewritten terms.
+;(define-rule arith-min-leq1 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) t)
+;  true)
+
+;(define-rule arith-min-leq2 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) s)
+;  true)
+
+;(define-rule arith-max-gt1 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) t)
+;  true)
+
+;(define-rule arith-max-gt2 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) s)
+;  true)
+
+(define-rule arith-max-geq1 ((t ?) (s ?))
+  (>= (ite (>= t s) t s) t)
+  true)
+
+(define-rule arith-max-geq2 ((t ?) (s ?))
+  (>= (ite (>= t s) t s) s)
+  true)

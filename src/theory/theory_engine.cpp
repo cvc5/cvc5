@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -925,7 +925,8 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     if (tskl.getGenerator() == nullptr)
     {
       Node proven = tskl.getProven();
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(), tid);
       d_lazyProof->addTrustedStep(
           proven, TrustId::THEORY_PREPROCESS_LEMMA, {}, {tidn});
       skl.d_lemma = TrustNode::mkTrustLemma(proven, d_lazyProof.get());
@@ -1316,7 +1317,8 @@ TrustNode TheoryEngine::getExplanation(TNode node)
       {
         Node proven = texplanation.getProven();
         TheoryId tid = theoryOf(atom)->getId();
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), tid);
         d_lazyProof->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
         texplanation =
             TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
@@ -1507,7 +1509,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
     if (tlemma.getGenerator() == nullptr)
     {
       // add theory lemma step to proof
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(from);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(), from);
       d_lazyProof->addTrustedStep(lemma, TrustId::THEORY_LEMMA, {}, {tidn});
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
@@ -1608,7 +1611,8 @@ void TheoryEngine::conflict(TrustNode tconflict,
       else
       {
         // add theory lemma step
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), theoryId);
         Node conf = tconflict.getProven();
         d_lazyProof->addTrustedStep(conf, TrustId::THEORY_LEMMA, {}, {tidn});
       }
@@ -1669,7 +1673,7 @@ void TheoryEngine::conflict(TrustNode tconflict,
       tconf.debugCheckClosed(
           options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
-    lemma(tconf, id, LemmaProperty::NONE);
+    lemma(tconf, id, LemmaProperty::NONE, theoryId);
   }
   else
   {
@@ -2007,7 +2011,8 @@ TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+            nodeManager(), ttid);
         lcp->addTrustedStep(proven, TrustId::THEORY_LEMMA, {}, {tidn});
       }
       std::vector<Node> pfChildren;

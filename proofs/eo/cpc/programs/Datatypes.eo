@@ -56,7 +56,24 @@
 ; - t T: The term in question.
 ; return: true iff t is a constructor symbol.
 (define $dt_is_cons ((T Type :implicit) (t T))
-  (eo::is_z (eo::list_len eo::List::cons (eo::dt_selectors t))))
+  (eo::ite (eo::is_z (eo::list_len eo::List::cons (eo::dt_selectors t)))
+    true ; if it has selectors, then it is a constructor
+    (eo::is_eq t tuple)))
+
+; program: $dt_arg_list
+; args:
+; - t T: The term to inspect, expected to be a constructor application.
+; return: >
+;   The list of arguments of the constructor application t.
+(program $dt_arg_list ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
+  (T) U
+  (
+    ; for tuples, we manually accumulate the list.
+    (($dt_arg_list (tuple t1 t2))  (eo::cons @list t1 ($dt_arg_list t2)))
+    ; otherwise we get the argument list using the utility method
+    (($dt_arg_list t)              ($get_arg_list t))
+  )
+)
 
 ; define: $dt_arg_nth
 ; args:
@@ -64,12 +81,6 @@
 ; - n Int: The index of the argument to get.
 ; return: >
 ;   The nth argument of t.
-(program $dt_arg_nth ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
-  (T Int) U
-  (
-    ; for tuples, use nth on tuple as an n-ary constructor
-    (($dt_arg_nth (tuple t1 t2) n)  (eo::list_nth tuple (tuple t1 t2) n))
-    ; otherwise we get the argument list
-    (($dt_arg_nth t n)              (eo::list_nth @list ($get_arg_list t) n))
-  )
+(define $dt_arg_nth ((T Type :implicit) (t T) (n Int))
+  (eo::list_nth @list ($dt_arg_list t) n)
 )

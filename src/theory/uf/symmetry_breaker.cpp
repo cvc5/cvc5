@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,8 +54,8 @@ namespace uf {
 
 using namespace cvc5::context;
 
-SymmetryBreaker::Template::Template()
-    : d_template(), d_assertions(NodeManager::currentNM()), d_sets(), d_reps()
+SymmetryBreaker::Template::Template(NodeManager* nm)
+    : d_template(), d_assertions(nm), d_sets(), d_reps()
 {
 }
 
@@ -173,7 +173,7 @@ SymmetryBreaker::SymmetryBreaker(Env& env, std::string name)
       d_phiSet(),
       d_permutations(),
       d_terms(),
-      d_template(),
+      d_template(nodeManager()),
       d_normalizationCache(),
       d_termEqs(),
       d_termEqsOnly(),
@@ -438,7 +438,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
   d_phi.push_back(phi);
   if (phi.getKind() == Kind::OR)
   {
-    Template t;
+    Template t(nodeManager());
     Node::iterator i = phi.begin();
     t.match(*i++);
     while(i != phi.end()) {

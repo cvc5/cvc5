@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,6 +88,42 @@ Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k);
  * The sum is taken as rvalue as it is modified in the process.
  */
 Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
+
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @param negated Updated to true if we negated the sum.
+ * @param followLCoeffSign if true, the leading coefficient is made positive,
+ * possibly negating all other coefficients.
+ * @return a pair p such that p.first + p.second (possibly negated) is
+ * equivalent to sum and p.first does not contain constant sums and p.second is
+ * constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm,
+                                   Sum&& sum,
+                                   bool& negated,
+                                   bool followLCoeffSign);
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @return a pair p such that p.first + p.second is equivalent to sum and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum);
+
+/**
+ * Decompose relation a <> b into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param a The first term.
+ * @param b The second term.
+ * @return a pair p such that p.first <> p.second is equivalent to a <> b and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeRelation(NodeManager* nm,
+                                        const Node& a,
+                                        const Node& b);
 
 }  // namespace rewriter
 }  // namespace arith

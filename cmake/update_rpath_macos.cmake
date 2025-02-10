@@ -1,3 +1,27 @@
+###############################################################################
+# Top contributors (to current version):
+#   Daniel Larraz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Update the RPATH of a macOS dynamic library to make it relocatable
+#
+# This script updates RPATH if not already set, replaces ${DEPS_BASE}/lib with 
+# @rpath in the install name and in the paths of all library dependencies to
+# ensure the dynamic library is relocatable.
+#
+# Input variables:
+# RPATH - The rpath to use in the dynamic library
+# INSTALL_NAME_TOOL - Path to the install_name tool
+# DYLIB_PATH - Path to the dynamic library
+# DEPS_BASE - Path to the cvc5 dependencies directory
+##
 # If RPATH is provided, add it unless it already exists
 if(RPATH)
    # otool -l output is in the format:

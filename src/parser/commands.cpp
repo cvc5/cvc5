@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1078,7 +1078,14 @@ void DeclareSortCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   // determine if this will be a fresh declaration
   bool fresh = sm->getFreshDeclarations();
   Sort sort = solver->declareSort(d_symbol, d_arity, fresh);
-  sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort);
+  if (!sm->bindType(d_symbol, std::vector<Sort>(d_arity), sort, true))
+  {
+    std::stringstream ss;
+    ss << "Cannot bind " << d_symbol
+       << " to sort, maybe it has already been defined?";
+    d_commandStatus = new CommandFailure(ss.str());
+    return;
+  }
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
@@ -1124,7 +1131,14 @@ cvc5::Sort DefineSortCommand::getSort() const { return d_sort; }
 void DefineSortCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   // This name is not its own distinct sort, it's an alias.
-  sm->bindType(d_symbol, d_params, d_sort);
+  if (!sm->bindType(d_symbol, d_params, d_sort, true))
+  {
+    std::stringstream ss;
+    ss << "Cannot bind " << d_symbol
+       << " to sort, maybe it has already been defined?";
+    d_commandStatus = new CommandFailure(ss.str());
+    return;
+  }
   d_commandStatus = CommandSuccess::instance();
 }
 

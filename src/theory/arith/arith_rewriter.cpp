@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,10 @@ ArithRewriter::ArithRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
                            TheoryRewriteCtx::DSL_SUBCALL);
-
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN,
+                           TheoryRewriteCtx::DSL_SUBCALL);
   // we don't register ARITH_STRING_PRED_ENTAIL or
   // ARITH_STRING_PRED_SAFE_APPROX, as these are subsumed by
   // MACRO_ARITH_STRING_PRED_ENTAIL.
@@ -138,6 +141,61 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           Trace("arith-rewriter-proof")
               << n[0] << " --> " << approx << " by safe approx" << std::endl;
           return nodeManager()->mkNode(Kind::GEQ, approx, n[1]);
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0] != n[1])
+      {
+        Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
+        Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+        rewriter::Sum sum;
+        rewriter::addToSum(sum, a, false);
+        rewriter::addToSum(sum, b, true);
+        if (rewriter::isIntegral(sum))
+        {
+          std::pair<Node, Node> p = decomposeSum(d_nm, std::move(sum));
+          Rational c = p.second.getConst<Rational>();
+          if (!c.isIntegral())
+          {
+            return d_nm->mkConst(false);
+          }
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+    {
+      Trace("arith-rewriter-proof") << "Rewrite " << n << "?" << std::endl;
+      if (n.getKind() == Kind::GEQ && n[0] != n[1])
+      {
+        Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
+        Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+        rewriter::Sum sum;
+        rewriter::addToSum(sum, a, false);
+        rewriter::addToSum(sum, b, true);
+        if (rewriter::isIntegral(sum))
+        {
+          // decompose the sum into a non-constant and constant part
+          bool negated = false;
+          std::pair<Node, Node> p =
+              decomposeSum(d_nm, std::move(sum), negated, true);
+          Rational c = p.second.getConst<Rational>();
+          Trace("arith-rewriter-proof")
+              << "Decomposed to " << p.first << " + " << p.second << std::endl;
+          if (!c.isIntegral())
+          {
+            c = -c;
+            c = c.ceiling();
+            Node ret = d_nm->mkNode(Kind::GEQ, p.first, d_nm->mkConstInt(c));
+            if (negated)
+            {
+              ret = ret.notNode();
+            }
+            return ret;
+          }
         }
       }
     }

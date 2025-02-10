@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Alex Ozdemir, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,20 @@ std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
                                      const std::vector<Node>& coeffs)
 {
   Assert(pfs.size() == coeffs.size());
+
+  std::vector<Node> premises;
+  for (const Pf& p : pfs)
+  {
+    premises.push_back(p->getResult());
+  }
+  return getMacroSumUbCoeff(nm, premises, coeffs);
+}
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Node>& premises,
+                                     const std::vector<Node>& coeffs)
+{
+  Assert(premises.size() == coeffs.size());
+
   std::vector<Node> ret;
   TypeNode itype = nm->integerType();
   TypeNode rtype = nm->realType();
@@ -35,7 +49,7 @@ std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
   for (size_t i = 0, ncoeff = coeffs.size(); i < ncoeff; i++)
   {
     Assert(coeffs[i].isConst());
-    Node res = pfs[i]->getResult();
+    Node res = premises[i];
     Assert(res.getType().isBoolean() && res.getNumChildren() == 2);
     const Rational& r = coeffs[i].getConst<Rational>();
     bool isReal = !r.isIntegral() || res[0].getType().isReal()
