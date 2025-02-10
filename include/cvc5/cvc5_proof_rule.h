@@ -2417,12 +2417,18 @@ enum ENUM(ProofRewriteRule)
    * **Arithmetic -- Integer inequality tightening**
    *
    * .. math::
-   *   (t \geq s) = (\neg)( r \geq \lceil c \rceil)
+   *   (t \geq s) = ( r \geq \lceil c \rceil)
+   *
+   * or
+   *
+   * .. math::
+   *   (t \geq s) = \neg( r \geq \lceil c \rceil)
    *
    * where :math:`t \geq s` is equivalent (via
    * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`) to
-   * :math:`(\neg)( r \geq c )` where :math:`r` is an integral term and
-   * :math:`c` is a non-integral constant.
+   * the right hand side where :math:`r` is an integral term and
+   * :math:`c` is a non-integral constant. Note that we end up with a
+   * negation if the leading coefficient in :math:`t` is negative.
    *
    * \endverbatim
    */
