@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -467,10 +467,15 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Trace("smt-proof-pp-debug")
           << "transform finish (" << r << ")" << std::endl;
     }
-
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
-
+    if (eq.isNull())
+    {
+      Assert(false) << "Failed proof for MACRO_SR_PRED_TRANSFORM";
+      Trace("smt-proof-pp-debug")
+          << "Failed transitivity from " << tchildren << std::endl;
+      return Node::null();
+    }
     cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
@@ -876,7 +881,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
         {
           // update to TRUST_THEORY_REWRITE with idr
           Assert(args.size() >= 1);
-          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+          Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+              nodeManager(), theoryId);
           cdp->addStep(
               eq, ProofRule::TRUST_THEORY_REWRITE, {}, {eq, tid, args[1]});
         }
@@ -970,8 +976,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     if (theory::strings::InferProofCons::unpackArgs(
             args, conc, iid, isRev, exp))
     {
-      if (theory::strings::InferProofCons::convertAndAddProofTo(
-              cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::convert(
+              d_env, iid, isRev, conc, exp, cdp))
       {
         return conc;
       }

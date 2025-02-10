@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -198,9 +198,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofFor: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(f, ProofRule::REFL, {}, {f[0]});
   }
   else
@@ -254,9 +251,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {
-    // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofForRewriting: " << identify()
-                  << ": don't ask for trivial proofs";
     lpf.addStep(conc, ProofRule::REFL, {}, {n});
   }
   std::shared_ptr<ProofNode> pfn = lpf.getProofFor(conc);
@@ -512,7 +506,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           else if (ck == Kind::APPLY_UF && children[0] != cur.getOperator())
           {
             congRule = ProofRule::HO_CONG;
-            pfArgs.pop_back();
+            pfArgs.clear();
+            pfArgs.push_back(ProofRuleChecker::mkKindNode(nm, Kind::APPLY_UF));
             pfChildren.push_back(cur.getOperator().eqNode(children[0]));
           }
           for (size_t i = startIndex, size = cur.getNumChildren(); i < size;

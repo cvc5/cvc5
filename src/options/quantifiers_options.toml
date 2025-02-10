@@ -80,6 +80,14 @@ name   = "Quantifiers"
   help       = "enable simple variable elimination for quantified formulas"
 
 [[option]]
+  name       = "varEntEqElimQuant"
+  category   = "expert"
+  long       = "var-ent-eq-elim-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
+
+[[option]]
   name       = "varIneqElimQuant"
   category   = "regular"
   long       = "var-ineq-elim-quant"
@@ -515,7 +523,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fullSaturateQuant"
-  category   = "regular"
+  category   = "common"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
@@ -523,7 +531,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInst"
-  category   = "regular"
+  category   = "common"
   long       = "enum-inst"
   type       = "bool"
   default    = "false"
@@ -809,7 +817,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqi"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi"
   type       = "bool"
   default    = "false"
@@ -1555,7 +1563,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiNestedQE"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-nested-qe"
   type       = "bool"
   default    = "false"
@@ -1691,7 +1699,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "macrosQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "macros-quant"
   type       = "bool"
   default    = "false"

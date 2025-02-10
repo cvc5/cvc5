@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -216,7 +216,7 @@ Result CegSingleInv::solve()
   if (siq.getKind() == Kind::FORALL)
   {
     // get the INST_ATTRIBUTE term marking quantifier elimination
-    n_attr = QuantAttributes::mkAttrQuantifierElimination();
+    n_attr = QuantAttributes::mkAttrQuantifierElimination(nm);
     n_attr = nm->mkNode(Kind::INST_PATTERN_LIST, n_attr);
     siq = nm->mkNode(Kind::FORALL, siq[0], siq[1], n_attr);
   }

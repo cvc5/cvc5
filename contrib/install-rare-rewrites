@@ -17,10 +17,12 @@ cat << EOF > $REWRITE_SIG
 (include "../theories/Arrays.eo")
 (include "../theories/Arith.eo")
 (include "../theories/Reals.eo")
-(include "../theories/Transcendentals.eo")
 (include "../theories/BitVectors.eo")
 (include "../theories/Strings.eo")
 (include "../theories/Sets.eo")
+
+(include "../expert/theories/Sets.eo")
+(include "../expert/theories/Transcendentals.eo")
 
 EOF
 
