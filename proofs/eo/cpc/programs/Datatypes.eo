@@ -7,7 +7,7 @@
 ; note: >
 ;   (Unit) tuples are treated as a special case of datatypes with a single
 ;   constructor. Parametric datatypes must reference the type constructor to
-;   extract their constructors, which notice generates a list of *unannotated*
+;   extract their constructors, which generates a list of *unannotated*
 ;   datatype constructors.
 (program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
   (Type) eo::List
