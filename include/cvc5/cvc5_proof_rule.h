@@ -3617,6 +3617,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_USUBO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ssubo-eliminate */
   EVALUE(BV_SSUBO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-nego-eliminate */
+  EVALUE(BV_NEGO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
   /** Auto-generated from RARE rule bv-ite-const-children-1 */
