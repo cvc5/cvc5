@@ -2111,15 +2111,15 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
    * where :math:`d` is a positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, 2 \cdot d+1, c)` is the :math:`(2 \cdot d+1)`'th taylor
+   * :math:`\texttt{maclaurin}(\exp, n+1, c)` is the :math:`(n+1)`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`c`. The Maclaurin series for the exponential
-   * function is the following:
+   * function evaluated at :math:`c` where :math:`n` is :math:`2 \cdot d`.
+   * The Maclaurin series for the exponential function is the following:
    *
    * .. math::
    *   \exp(x) = \sum_{i=0}^{\infty} \frac{x^i}{i!}
    *
-   * This rule furthermore requires that :math:`1 > c^{2 \cdot d+1}/(2 \cdot d+1)!`
+   * This rule furthermore requires that :math:`1 > c^{n+1}/(n+1)!`
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_EXP_APPROX_BELOW),
