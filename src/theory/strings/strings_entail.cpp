@@ -232,26 +232,28 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                                      bool computeRemainder,
                                      int remainderDir)
 {
-  return componentContainsInternal(false, n1, n2, nb, ne, computeRemainder, remainderDir);
+  return componentContainsInternal(
+      false, n1, n2, nb, ne, computeRemainder, remainderDir);
 }
 
 int StringsEntail::componentContainsExt(std::vector<Node>& n1,
-                      std::vector<Node>& n2,
-                      std::vector<Node>& nb,
-                      std::vector<Node>& ne,
-                      bool computeRemainder,
-                      int remainderDir)
+                                        std::vector<Node>& n2,
+                                        std::vector<Node>& nb,
+                                        std::vector<Node>& ne,
+                                        bool computeRemainder,
+                                        int remainderDir)
 {
-  return componentContainsInternal(true, n1, n2, nb, ne, computeRemainder, remainderDir);
+  return componentContainsInternal(
+      true, n1, n2, nb, ne, computeRemainder, remainderDir);
 }
 
 int StringsEntail::componentContainsInternal(bool isExt,
-                              std::vector<Node>& n1,
-                      std::vector<Node>& n2,
-                      std::vector<Node>& nb,
-                      std::vector<Node>& ne,
-                      bool computeRemainder,
-                      int remainderDir)
+                                             std::vector<Node>& n1,
+                                             std::vector<Node>& n2,
+                                             std::vector<Node>& nb,
+                                             std::vector<Node>& ne,
+                                             bool computeRemainder,
+                                             int remainderDir)
 {
   Assert(nb.empty());
   Assert(ne.empty());
@@ -266,7 +268,8 @@ int StringsEntail::componentContainsInternal(bool isExt,
     {
       Node n1rb;
       Node n1re;
-      if (componentContainsBase(isExt, n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
+      if (componentContainsBase(
+              isExt, n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
       {
         if (computeRemainder)
         {
@@ -328,7 +331,7 @@ int StringsEntail::componentContainsInternal(bool isExt,
             Node n1re_last;
             // last component of n2 must be a prefix
             if (componentContainsBase(isExt,
-              n1[i + j],
+                                      n1[i + j],
                                       n2[j],
                                       n1rb_last,
                                       n1re_last,
@@ -384,8 +387,13 @@ int StringsEntail::componentContainsInternal(bool isExt,
   return -1;
 }
 
-bool StringsEntail::componentContainsBase(
-    bool isExt, Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
+bool StringsEntail::componentContainsBase(bool isExt,
+                                          Node n1,
+                                          Node n2,
+                                          Node& n1rb,
+                                          Node& n1re,
+                                          int dir,
+                                          bool computeRemainder)
 {
   Assert(n1rb.isNull());
   Assert(n1re.isNull());
