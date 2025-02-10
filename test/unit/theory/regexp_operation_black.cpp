@@ -150,9 +150,9 @@ TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
   Node abc = d_nodeManager->mkConst(String("abc"));
   Node a = d_nodeManager->mkVar("a", intType);
   Node s = d_nodeManager->mkVar("s", strType);
-  Node fia = d_nodeManager->mkNode(Kind::STRING_FROM_INT, a);
+  Node fia = d_nodeManager->mkNode(Kind::STRING_ITOS, a);
   Node fils = d_nodeManager->mkNode(
-      Kind::STRING_FROM_INT, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
+      Kind::STRING_ITOS, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
 
   Node sigma = d_nodeManager->mkNode(Kind::REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, sigma);
