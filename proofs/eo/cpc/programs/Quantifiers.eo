@@ -11,26 +11,9 @@
   ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U) (w T))
   (S S U) U
   (
-  (($substitute x y x)             y)
   (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))
+  (($substitute x y x)             y)
   (($substitute x y z)             z)
-  )
-)
-
-; program: $substitute_list
-; args:
-; - arg1 @List: The list of domains of the substitution.
-; - arg2 @List: The list of ranges of the substitution.
-; - arg3 U: The term to process.
-; return: >
-;   The result of applying the substitutions specified by arg1
-;   and arg2 in order to arg3. In particular, the first element in the lists arg1
-;   and arg2 are processed first.
-(program $substitute_list ((T Type) (U Type) (F U) (x T) (xs @List :list) (t T) (ts @List :list))
-  (@List @List U) U
-  (
-    (($substitute_list (@list x xs) (@list t ts) F) ($substitute_list xs ts ($substitute x t F)))
-    (($substitute_list @list.nil @list.nil F)       F)
   )
 )
 
@@ -62,6 +45,18 @@
   )
 )
 
+; program: $contains_aterm_list
+; args:
+; - t T: The term to process.
+; - xs @List: The list of terms to find.
+; return: true if any atomic (0-ary) subterm of t is in xs.
+(program $contains_aterm_list ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List))
+  (T @List) Bool
+  (
+    (($contains_aterm_list (f a) xs)  (eo::ite ($contains_aterm_list f xs) true ($contains_aterm_list a xs)))
+    (($contains_aterm_list x xs)      (eo::not (eo::is_neg (eo::list_find @list xs x))))
+  )
+)
 
 ; program: $substitute_simul
 ; args:
@@ -74,9 +69,8 @@
   (S @List @List) S
   (
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
-  (($substitute_simul x @list.nil @list.nil)        x)
-  (($substitute_simul x (@list x xs) (@list s ss))  s)  ; note that we do not substitute further since this is a simultaneous substitution.
-  (($substitute_simul x (@list y xs) (@list s ss))  ($substitute_simul x xs ss))
+  (($substitute_simul x xs ss)                      (eo::define ((i (eo::list_find @list xs x)))
+                                                      (eo::ite (eo::is_neg i) x (eo::list_nth @list ss i))))
   )
 )
 

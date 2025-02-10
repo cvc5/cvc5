@@ -12,7 +12,7 @@
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
-  :conclusion ($substitute_list xs ts F))
+  :conclusion ($substitute_simul F xs ts))
 
 ; program: $mk_skolems
 ; args:
@@ -39,7 +39,7 @@
 ;   introduced via $mk_skolems.
 (declare-rule skolemize ((x @List) (G Bool))
   :premises ((not (forall x G)))
-  :conclusion ($substitute_list x ($mk_skolems x (forall x G) 0) (not G))
+  :conclusion ($substitute_simul (not G) x ($mk_skolems x (forall x G) 0))
 )
 
 ; rule: skolem_intro
@@ -66,8 +66,8 @@
 ;   B. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
-  :requires ((($contains_subterm_list B ts) false))
-  :conclusion (= B ($substitute_list vs ts B))
+  :requires ((($contains_aterm_list B ts) false))
+  :conclusion (= B ($substitute_simul B vs ts))
 )
 
 ; rule: beta-reduce
@@ -235,9 +235,9 @@
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_aterm_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
-  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_aterm_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
   (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
                                                                       (eo::requires ($contains_subterm gs x) false
@@ -273,7 +273,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
-  :requires ((($contains_subterm_list A x) false))
+  :requires ((($contains_aterm_list A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
