@@ -158,14 +158,15 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
     {
       if (n.getKind() == Kind::STRING_CONTAINS
-          && n[0].getKind()==Kind::CONST_STRING)
+          && n[0].getKind() == Kind::CONST_STRING)
       {
-        NodeManager * nm = nodeManager();
+        NodeManager* nm = nodeManager();
         RegExpEntail re(nm, nullptr);
         Node re2 = re.getGeneralizedConstRegExp(n[1]);
         if (!re2.isNull())
         {
-          Node re2s = nm->mkNode(Kind::REGEXP_CONCAT, d_sigmaStar, re2, d_sigmaStar);
+          Node re2s =
+              nm->mkNode(Kind::REGEXP_CONCAT, d_sigmaStar, re2, d_sigmaStar);
           String s = n[0].getConst<String>();
           if (!RegExpEntail::testConstStringInRegExp(s, re2s))
           {
