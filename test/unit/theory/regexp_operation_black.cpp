@@ -158,10 +158,12 @@ TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
   Node sigmaStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, sigma);
   Node rabc = d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
                                     d_nodeManager->mkConst(String("abc")));
-  Node digRange = d_nodeManager->mkNode(
-      Kind::REGEXP_RANGE, d_nodeManager->mkConst(String("0")), d_nodeManager->mkConst(String("9")));
+  Node digRange = d_nodeManager->mkNode(Kind::REGEXP_RANGE,
+                                        d_nodeManager->mkConst(String("0")),
+                                        d_nodeManager->mkConst(String("9")));
   Node digRangeStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, digRange);
-  Node digRangePlus = d_nodeManager->mkNode(Kind::REGEXP_CONCAT, digRange, digRangeStar);
+  Node digRangePlus =
+      d_nodeManager->mkNode(Kind::REGEXP_CONCAT, digRange, digRangeStar);
 
   ASSERT_TRUE(re.getGeneralizedConstRegExp(s).isNull());
   ASSERT_EQ(re.getGeneralizedConstRegExp(fia), digRangeStar);
