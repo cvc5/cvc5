@@ -1198,16 +1198,19 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
+        bool isBitVec = (cur[0].getType().isBitVector());
+        ProofRule pr = isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
         if (pcur.d_vars.empty())
         {
-          cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+          cdp->addStep(cur, pr, {}, {cur});
         }
         else
         {
+          ProofRule prr = isBitVec ? ProofRule::BV_POLY_NORM_EQ : ProofRule::ARITH_POLY_NORM_REL;
           cdp->addStep(
-              pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
+              pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
           cdp->addStep(
-              cur, ProofRule::ARITH_POLY_NORM_REL, {pcur.d_vars[0]}, {cur});
+              cur, prr, {pcur.d_vars[0]}, {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL

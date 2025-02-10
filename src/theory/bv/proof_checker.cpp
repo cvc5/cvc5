@@ -15,6 +15,8 @@
 
 #include "theory/bv/proof_checker.h"
 
+#include "theory/arith/arith_poly_norm.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
@@ -26,6 +28,8 @@ void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
   pc->registerTrustedChecker(ProofRule::BV_BITBLAST_STEP, this, 2);
+  pc->registerChecker(ProofRule::BV_POLY_NORM, this);
+  pc->registerChecker(ProofRule::BV_POLY_NORM_EQ, this);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);
 }
 
@@ -53,6 +57,56 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 1);
     Assert(args[0].getKind() == Kind::BITVECTOR_EAGER_ATOM);
     return args[0].eqNode(args[0][0]);
+  }
+  else if (id==ProofRule::BV_POLY_NORM)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL || !args[0].getType().isBitVector())
+    {
+      return Node::null();
+    }
+    if (!arith::PolyNorm::isArithPolyNorm(args[0][0], args[0][1]))
+    {
+      return Node::null();
+    }
+    return args[0];
+  }
+  else if (id==ProofRule::BV_POLY_NORM_EQ)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    Kind k = args[0][0].getKind();
+    if (k != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    if (children[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    Node lr = children[0][0];
+    Node rr = children[0][1];
+    if (lr.getKind() != Kind::BITVECTOR_SUB
+        || rr.getKind() != Kind::BITVECTOR_SUB)
+    {
+      return Node::null();
+    }
+    Node x1 = lr[0];
+    Node x2 = lr[1];
+    Node y1 = rr[0];
+    Node y2 = rr[1];
+    NodeManager * nm = nodeManager();
+    Node ret = nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
+    if (ret != args[0])
+    {
+      return Node::null();
+    }
+    return ret;
   }
   // no rule
   return Node::null();

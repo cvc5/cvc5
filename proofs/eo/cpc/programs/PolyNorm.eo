@@ -276,9 +276,7 @@
 ; return: >
 ;   The conclusion of ProofRule::ARITH_POLY_NORM_REL. This program does not
 ;   evaluate if the input to this proof rule is invalid.
-(program $mk_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U)
-                            (n Int) (c (BitVec n)) (nil (BitVec n) :list) 
-                            (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
+(program $mk_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U))
   (U U Bool) Bool
   (
     (($mk_poly_norm_rel (* cx x) (* cy y) (= (r x1 x2) (r y1 y2)))
@@ -286,9 +284,5 @@
         (eo::requires ($remove_to_real x) (- x1 x2)
         (eo::requires ($remove_to_real y) (- y1 y2)
           (= (r x1 x2) (r y1 y2))))))
-    (($mk_poly_norm_rel (bvmul c (bvsub xb1 xb2) nil) (bvmul c (bvsub yb1 yb2) nil) (= (= xb1 xb2) (= yb1 yb2)))
-        (eo::requires (eo::to_z c) 1
-        (eo::requires (eo::to_z nil) 1
-          (= (= xb1 xb2) (= yb1 yb2)))))
   )
 )

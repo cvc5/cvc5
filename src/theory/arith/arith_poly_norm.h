@@ -96,7 +96,7 @@ class PolyNorm
    */
   static bool isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb);
   /**
-   * Get the premise for ProofRule::ARITH_POLY_NORM_REL for a == b, where
+   * Get the premise for ProofRule::ARITH_POLY_NORM_REL or ProofRule::BV_POLY_NORM_EQ for a == b, where
    * ca and cb are the rationals returned by the above method.
    */
   static Node getArithPolyNormRelPremise(TNode a,

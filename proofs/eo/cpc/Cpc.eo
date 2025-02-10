@@ -317,6 +317,11 @@
   :requires ((($is_poly_norm a b) true))
   :conclusion (= a b)
 )
+(declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($is_poly_norm a b) true))
+  :conclusion (= a b)
+)
 
 ; rule: arith_poly_norm_rel
 ; implements: ProofRule::ARITH_POLY_NORM_REL
@@ -333,6 +338,11 @@
   :premises ((= t s))
   :args (eqr)
   :conclusion ($mk_poly_norm_rel t s eqr)
+)
+(declare-rule bv_poly_norm_eq ((n Int) (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
+  :premises ((= (bvsub xb1 xb2) (bvsub yb1 yb2)))
+  :args ((= (= xb1 xb2) (= yb1 yb2)))
+  :conclusion (= (= xb1 xb2) (= yb1 yb2))
 )
 
 ; define: $get_aci_normal_form
