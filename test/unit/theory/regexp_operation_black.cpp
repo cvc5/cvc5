@@ -151,15 +151,15 @@ TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
   Node a = d_nodeManager->mkVar("a", intType);
   Node s = d_nodeManager->mkVar("s", strType);
   Node fia = d_nodeManager->mkNode(Kind::STRING_FROM_INT, a);
-  Node fils = d_nodeManager->mkNode(Kind::STRING_FROM_INT, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
+  Node fils = d_nodeManager->mkNode(
+      Kind::STRING_FROM_INT, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
 
   Node sigma = d_nodeManager->mkNode(Kind::REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, sigma);
   Node rabc = d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
-                                   d_nodeManager->mkConst(String("abc")));
-  Node digRange = nm->mkNode(Kind::REGEXP_RANGE,
-                              nm->mkConst(String("0")),
-                              nm->mkConst(String("9")));
+                                    d_nodeManager->mkConst(String("abc")));
+  Node digRange = nm->mkNode(
+      Kind::REGEXP_RANGE, nm->mkConst(String("0")), nm->mkConst(String("9")));
   Node digRangeStar = nm->mkNode(Kind::REGEXP_STAR, digRange);
   Node digRangePlus = nm->mkNode(Kind::REGEXP_CONCAT, digRange, digRangeStar);
 
