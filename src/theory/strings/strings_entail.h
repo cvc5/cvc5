@@ -230,8 +230,7 @@ class StringsEntail
                                      std::vector<Node>& n2,
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
-                                     int dir = 0,
-                                     bool isSimple = true);
+                                     int dir = 0);
 
   /**
    * Checks whether a string term `a` is entailed to contain or not contain a
