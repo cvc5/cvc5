@@ -85,8 +85,8 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
     {
       // only matters if n contains integer string operators
-      if (n.getType().isBoolean() && n.getNumChildren() == 2 && n[0] != n[1]
-          && !expr::hasSubtermKinds(
+      if (!n.getType().isBoolean() || n.getNumChildren() != 2 || n[0] == n[1]
+          || !expr::hasSubtermKinds(
               {Kind::STRING_LENGTH, Kind::STRING_INDEXOF, Kind::STRING_STOI},
               n))
       {
