@@ -36,7 +36,7 @@ class TestBlackOptions : public TestApi
 {
  public:
   /**
-   * Sets setting options for option "name", including setting error values.
+   * Tests setting options for option "name", including error values.
    */
   void testSetOption(const std::string& name)
   {
