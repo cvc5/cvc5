@@ -1,5 +1,7 @@
 (include "../programs/BitVectors.eo")
 
+(include "../programs/PolyNorm.eo")
+
 ;;;;; ProofRewriteRule::BV_REPEAT_ELIM
 
 ; rule: bv-repeat-elim
@@ -206,3 +208,36 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRule::BV_POLY_NORM
+
+; rule: bv_poly_norm
+; implements: ProofRule::BV_POLY_NORM
+; args:
+; - a (BitVec n): The left-hand side of the equality.
+; - b (BitVec n): The right-hand side of the equality.
+; requires: >
+;   That the bitvector terms a and b are equal up polynomial normalization.
+; conclusion: The given equality.
+(declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires ((($is_poly_norm a b) true))
+  :conclusion (= a b)
+)
+
+;;;;; ProofRule::BV_POLY_NORM_EQ
+
+; rule: bv_poly_norm_eq
+; implements: ProofRule::BV_POLY_NORM_EQ
+; premises:
+; - eq Bool: >
+;   An equality stating that terms t and s of the form (bvsub x1 x2) and (bvsub y1 y2)
+;   are equal.
+; args:
+; - eqr Bool: The equivalence between equalities, proven by this rule.
+; conclusion: >
+;   An equivalence between equalities specified by eqr and justified by eq.
+(declare-rule bv_poly_norm_eq ((n Int) (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
+  :premises ((= (bvsub xb1 xb2) (bvsub yb1 yb2)))
+  :args ((= (= xb1 xb2) (= yb1 yb2)))
+  :conclusion (= (= xb1 xb2) (= yb1 yb2))
+)
