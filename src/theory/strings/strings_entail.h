@@ -184,6 +184,16 @@ class StringsEntail
                         std::vector<Node>& ne,
                         bool computeRemainder = false,
                         int remainderDir = 0);
+  /**
+   * Same as above, but with more advanced reasoning, e.g. to infer prefixes
+   * and suffixes.
+   */
+  int componentContainsExt(std::vector<Node>& n1,
+                        std::vector<Node>& n2,
+                        std::vector<Node>& nb,
+                        std::vector<Node>& ne,
+                        bool computeRemainder = false,
+                        int remainderDir = 0);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -220,7 +230,8 @@ class StringsEntail
                                      std::vector<Node>& n2,
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
-                                     int dir = 0);
+                                     int dir = 0,
+                                     bool isSimple = true);
 
   /**
    * Checks whether a string term `a` is entailed to contain or not contain a
@@ -337,6 +348,16 @@ class StringsEntail
                                            std::vector<Node>& ch2);
 
  private:
+  /**
+   * Helper method for componentContains / componentContainsExt.
+   */
+  int componentContainsInternal(bool isExt,
+                                std::vector<Node>& n1,
+                        std::vector<Node>& n2,
+                        std::vector<Node>& nb,
+                        std::vector<Node>& ne,
+                        bool computeRemainder = false,
+                        int remainderDir = 0);
   /** component contains base
    *
    * This function is a helper for the above function.
@@ -390,7 +411,7 @@ class StringsEntail
    * instead return false, indicating that we cannot compute the remainder.
    */
   bool componentContainsBase(
-      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
+      bool isExt, Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
   /**
    * Simplifies a given node `a` s.t. the result is a concatenation of string
    * terms that can be interpreted as a multiset and which contains all
