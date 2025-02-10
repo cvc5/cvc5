@@ -196,21 +196,6 @@
 (define $get_bv_poly_norm ((m Int :implicit) (w Int) (b (BitVec m)))
   ($poly_mod_coeffs ($get_bv_poly_norm_rec b) w))
 
-; define: $is_poly_norm
-; args:
-; - a T: The first arithmetic term to process, of type Int, Real, or BitVec type.
-; - b T: The second arithmetic term to process, of type Int, Real, or BitVec type.
-; return: true if a and b normalize to the same polynomial
-(define $is_poly_norm ((T Type :implicit) (a T) (b T))
-  (eo::define ((at (eo::typeof a)))
-  (eo::ite (eo::is_eq ($is_arith_type at) true)
-    ; if arithmetic, use arith routine on a and b
-    (eo::is_eq ($get_arith_poly_norm a) ($get_arith_poly_norm b))
-    ; it bitvector, get two to the power of the bitwidth and use bv routine on a and b
-    (eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth at))))
-      (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b)))))
-)
-
 ; program: $arith_poly_to_term_rec
 ; args:
 ; - p @Polynomial: The polynomial to convert to a term.

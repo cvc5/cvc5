@@ -220,7 +220,8 @@
 ; conclusion: The given equality.
 (declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
-  :requires ((($is_poly_norm a b) true))
+  :requires (((eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof a)))))
+                (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
   :conclusion (= a b)
 )
 
