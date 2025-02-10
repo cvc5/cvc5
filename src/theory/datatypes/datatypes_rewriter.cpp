@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1096,7 +1096,10 @@ Node DatatypesRewriter::expandDefinition(Node n)
   {
     case Kind::APPLY_SELECTOR:
     {
+      Trace("dt-expand") << "expand selector, share sel = "
+                         << d_opts.datatypes.dtSharedSelectors << std::endl;
       ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
+      Trace("dt-expand") << "...returns " << ret << std::endl;
     }
     break;
     case Kind::APPLY_UPDATER:

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,6 +107,12 @@ class Env
    * this environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
+
+  /**
+   * Check whether proofs are enabled at all, i.e. the proof node manager is
+   * set.
+   */
+  bool isProofProducing() const;
 
   /**
    * Check whether the SAT solver should produce proofs. Other than whether

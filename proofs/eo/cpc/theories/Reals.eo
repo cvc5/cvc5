@@ -15,7 +15,5 @@
                            T U
                            (! Real :requires (($is_arith_type T) true) :requires (($is_arith_type U) true))) :left-assoc)
 
-(declare-const @indexed_root_predicate (-> Int Bool Real Bool))
-
 ; skolems
 (declare-const @div_by_zero (-> Real Real))

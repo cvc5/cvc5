@@ -9,29 +9,19 @@
 ;   This function is declared in SMT-LIB to be :left-assoc. We
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
-(declare-const or (-> Bool Bool Bool)
-   :right-assoc-nil false
-)
+(declare-const or (-> Bool Bool Bool) :right-assoc-nil false)
 
 ; disclaimer: >
 ;   This function is declared in SMT-LIB to be :left-assoc. We
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
-(declare-const and (-> Bool Bool Bool)
-   :right-assoc-nil true
-)
+(declare-const and (-> Bool Bool Bool) :right-assoc-nil true)
 
-(declare-const => (-> Bool Bool Bool)
-   :right-assoc
-)
+(declare-const => (-> Bool Bool Bool) :right-assoc)
 
-(declare-const xor (-> Bool Bool Bool)
-   :left-assoc
-)
+(declare-const xor (-> Bool Bool Bool) :left-assoc)
 
-(declare-const = (-> (! Type :var A :implicit) A A Bool)
-   :chainable and
-)
+(declare-const = (-> (! Type :var A :implicit) A A Bool) :chainable and)
 
 ; program: $get_lambda_type
 ; args:
@@ -52,10 +42,6 @@
 (declare-const lambda (-> (! Type :var B :implicit) (! @List :var L) B ($get_lambda_type L B)) :binder @list)
 
 (declare-const distinct (-> (! Type :var A :implicit) A A Bool) :pairwise and)
-
-; generic variables
-; NOTE: does not check that U is a numeral
-(declare-const const (-> (! Type :var U :implicit) (! U :opaque) (! Type :opaque :var T) T))
 
 ; The purification skolem.
 (declare-const @purify (-> (! Type :var A :implicit) (! A :opaque) A))

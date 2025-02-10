@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
+#   Aina Niemetz, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -93,8 +93,6 @@ cvc5_option(ENABLE_ASAN           "Enable ASAN build")
 cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc5_option(ENABLE_TSAN           "Enable TSan build")
 cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
-cvc5_option(ENABLE_COMP_INC_TRACK
-            "Enable optimizations for incremental SMT-COMP tracks")
 cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
 cvc5_option(ENABLE_SAFE_MODE      "Enable safe mode")
@@ -253,9 +251,12 @@ if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
 
-# Changing the default linker on MSYS prevents the build system from
-# using the GMP system library if available
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND NOT USE_DEFAULT_LINKER)
+# Keep the default linker on MSYS, as switching it prevents the build system from
+# using the GMP system library if available. For Linux ARM64, the default linker is
+# also required due to a bug in the gold linker specific to ARM64 architectures.
+if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
+    NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND
+    NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
   # Use ld.mold if available, otherwise use ld.gold if available
 
@@ -502,10 +503,6 @@ if(ENABLE_DEBUG_SYMBOLS)
   endif()
 endif()
 
-if(ENABLE_COMP_INC_TRACK)
-  add_definitions(-DCVC5_SMTCOMP_APPLICATION_TRACK)
-endif()
-
 if(ENABLE_MUZZLE)
   add_definitions(-DCVC5_MUZZLE)
 endif()
@@ -747,14 +744,10 @@ string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 message("")
 print_info("cvc5 ${CVC5_VERSION}")
 message("")
-if(ENABLE_COMP_INC_TRACK)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
+if (ENABLE_SAFE_MODE)
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
 else()
-  if (ENABLE_SAFE_MODE)
-    print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
-  else()
-    print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
-  endif()
+  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
 message("")
 print_config("Assertions                " ${ENABLE_ASSERTIONS})
