@@ -7,7 +7,8 @@
 ; note: >
 ;   (Unit) tuples are treated as a special case of datatypes with a single
 ;   constructor. Parametric datatypes must reference the type constructor to
-;   extract their constructors.
+;   extract their constructors, which generates a list of *unannotated*
+;   datatype constructors.
 (program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
   (Type) eo::List
   (
@@ -17,6 +18,22 @@
     (($dt_get_constructors D)             (eo::dt_constructors D))     ; ordinary user-defined datatypes
   )
 )
+
+; define: $dt_inst_cons_of
+; args:
+; - D Type: The datatype to get the instantiated constructor for.
+; - c Type: The constructor.
+; return: >
+;   The version of c that has been annotated with its type, if necessary. For
+;   example, given (List Int) and nil, this returns (_ nil (List Int)).
+(define $dt_inst_cons_of ((D Type) (T Type :implicit) (c T))
+  ; we construct two lists here: eo::dt_constructors with and without the annotations
+  ; and rely on the fact that the constructor appears unannotated at the same index
+  ; as it appears annotated in the instantiated list.
+  (eo::list_nth
+    eo::List::cons
+    (eo::dt_constructors D)
+    (eo::list_find eo::List::cons ($dt_get_constructors D) c)))
 
 ; program: $tuple_get_selectors_rec
 ; args:
