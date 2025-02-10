@@ -788,9 +788,12 @@ PreprocessingPassResult Normalize::applyInternal(
     std::vector<TypeNode> types;
     std::unordered_set<TNode> visited;
     std::unordered_set<TypeNode> mark;
-    for (const Node& a : assertionsToPreprocess->ref())
+    for (const std::vector<NodeInfo*>& eqClass : eqClasses) 
     {
-        collectTypes(a, types, visited, mark);
+        for (NodeInfo* nodeInfo : eqClass) 
+        {
+            collectTypes(nodeInfo->node, types, visited, mark);
+        }
     }
     std::map<TypeNode, TypeNode> normalizedSorts;
     int sortCounter = 0;
@@ -800,6 +803,7 @@ PreprocessingPassResult Normalize::applyInternal(
         {
             std::string new_sort_name = "S" + std::string(8 - numDigits(sortCounter), '0') + std::to_string(sortCounter);
             sortCounter++;
+            // std::cout << "Normalizing sort " << ctn << " to " << new_sort_name << std::endl;
             TypeNode new_sort = NodeManager::currentNM()->mkSort(new_sort_name);
             normalizedSorts[ctn] = new_sort;
         }
