@@ -2399,6 +2399,42 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Integer equality conflict**
+   *
+   * .. math::
+   *   (t=s) = \bot
+   *
+   * where :math:`t=s` is equivalent (via
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`) to
+   * :math:`(r = c)` where :math:`r` is an integral term and :math:`c` is a
+   * non-integral constant.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_INT_EQ_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Integer inequality tightening**
+   *
+   * .. math::
+   *   (t \geq s) = ( r \geq \lceil c \rceil)
+   *
+   * or
+   *
+   * .. math::
+   *   (t \geq s) = \neg( r \geq \lceil c \rceil)
+   *
+   * where :math:`t \geq s` is equivalent (via
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`) to
+   * the right hand side where :math:`r` is an integral term and
+   * :math:`c` is a non-integral constant. Note that we end up with a
+   * negation if the leading coefficient in :math:`t` is negative.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_INT_GEQ_TIGHTEN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- strings predicate entailment**
    *
    * .. math::
@@ -3435,6 +3471,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-int-eq-conflict */
+  EVALUE(ARITH_INT_EQ_CONFLICT),
+  /** Auto-generated from RARE rule arith-int-geq-tighten */
+  EVALUE(ARITH_INT_GEQ_TIGHTEN),
   /** Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
   /** Auto-generated from RARE rule arith-sine-pi2 */
