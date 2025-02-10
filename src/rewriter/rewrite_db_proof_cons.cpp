@@ -1198,7 +1198,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
-        bool isBitVec = (cur[0].getType().isBitVector());
+        TypeNode tn = pcur.d_vars.empty() ? cur[0].getType() : cur[0][0].getType();
+        bool isBitVec = (tn.isBitVector());
         ProofRule pr = isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
         if (pcur.d_vars.empty())
         {
