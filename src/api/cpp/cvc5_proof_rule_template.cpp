@@ -300,6 +300,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "str-overlap-endpoints-indexof";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
       return "str-overlap-endpoints-replace";
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+      return "macro-str-const-nctn-concat";
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      return "macro-str-in-re-inclusion";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:

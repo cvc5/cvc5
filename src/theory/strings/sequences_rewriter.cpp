@@ -77,6 +77,10 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION,
+                           TheoryRewriteCtx::POST_DSL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -151,6 +155,28 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return rewriteViaStrReplaceReAllEval(n);
     }
     break;
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+    {
+      if (n.getKind() == Kind::STRING_CONTAINS
+          && n[0].getKind()==Kind::CONST_STRING)
+      {
+        NodeManager * nm = nodeManager();
+        RegExpEntail re(nm, nullptr);
+        Node re2 = re.getGeneralizedConstRegExp(n[1]);
+        if (!re2.isNull())
+        {
+          Node re2s = nm->mkNode(Kind::REGEXP_CONCAT, d_sigmaStar, re2, d_sigmaStar);
+          String s = n[0].getConst<String>();
+          if (!RegExpEntail::testConstStringInRegExp(s, re2s))
+          {
+            return nm->mkConst(false);
+          }
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      return rewriteViaMacroStrInReInclusion(n);
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
@@ -1483,6 +1509,28 @@ Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
   return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
 }
 
+Node SequencesRewriter::rewriteViaMacroStrInReInclusion(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_IN_REGEXP)
+  {
+    return Node::null();
+  }
+  // check regular expression inclusion
+  // This makes a regular expression that contains all possible model values
+  // for x, and checks whether r includes this regular expression. If so,
+  // the membership rewrites to true.
+  RegExpEntail re(nodeManager(), nullptr);
+  Node reForX = re.getGeneralizedConstRegExp(n[0]);
+  // only chance of success is if there was at least one constant
+  if (!reForX.isNull())
+  {
+    if (RegExpEntail::regExpIncludes(n[1], reForX))
+    {
+      return d_true;
+    }
+  }
+  return Node::null();
+}
 
 Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
 {
