@@ -621,7 +621,6 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     Assert(nvars == vvars.size());
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
-    NodeManager* nm = nodeManager();
     if (ret == BVGauss::Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
