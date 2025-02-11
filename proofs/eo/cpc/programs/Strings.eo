@@ -1357,57 +1357,6 @@
   )
 )
 
-; define: $str_check_re_union_inclusion
-; args:
-; - r RegLan: The regular expression to check.
-; return: >
-;   true if r is an application of re.union with 2 children for which
-;   regular expression inclusion shows r is equivalent to (re.* re.allchar).
-(define $str_check_re_union_inclusion ((r RegLan))
-  (eo::match ((r1 RegLan) (r2 RegLan))
-  r
-  (
-    ((re.union (re.comp r1) r2) ($str_re_includes r2 r1))
-    ((re.union r1 (re.comp r2)) ($str_re_includes r1 r2))
-  ))
-)
-
-; define: $str_check_re_inter_inclusion
-; args:
-; - r RegLan: The regular expression to check.
-; return: >
-;   true if r is an application of re.inter with 2 children for which
-;   regular expression inclusion shows r is equivalent to re.none.
-(define $str_check_re_inter_inclusion ((r RegLan))
-  (eo::match ((r1 RegLan) (r2 RegLan))
-  r
-  (
-    ((re.inter (re.comp r1) r2) ($str_re_includes r1 r2))
-    ((re.inter r1 (re.comp r2)) ($str_re_includes r2 r1))
-  ))
-)
-
-; program: $str_decompose_and_check_re_inter_union_inclusion
-; args:
-; - r : The regular expression to check.
-; - rr : The rewritten form of r.
-; return: >
-;   true if r can be rewritten to rr via the rule
-;   ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
-;   that rr has the result of the inclusion as the first child. We then subtract
-;   the remainder (rr1) to find the regular expressions that are relevant for this
-;   inference.
-(define $str_decompose_and_check_re_inter_union_inclusion ((r RegLan) (rr RegLan))
-  (eo::match ((rr1 RegLan :list))
-  rr
-  (
-  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion ($nary_diff re.union re.none r rr1)))
-  ((re.* re.allchar)                ($str_check_re_union_inclusion r))
-  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion ($nary_diff re.inter re.all r rr1)))
-  (re.none                          ($str_check_re_inter_inclusion r))
-  ))
-)
-
 ; program: $str_arith_entail_simple
 ; args:
 ; - n Int: An integer term to process.
