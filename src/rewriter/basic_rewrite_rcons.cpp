@@ -214,7 +214,6 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       }
       break;
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
-    case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
       if (ensureProofMacroOverlap(id, cdp, eq))
       {
         handledMacro = true;
@@ -916,41 +915,8 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   size_t nchildpre = 0;
   ProofRewriteRule rule;
   std::vector<Node> premises;
-  if (id == ProofRewriteRule::MACRO_STR_SPLIT_CTN)
+  if (id == ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS)
   {
-    Assert(concat.getKind() == Kind::STRING_CONCAT);
-    rule = ProofRewriteRule::STR_OVERLAP_SPLIT_CTN;
-    Assert(eq[1].getKind() == Kind::OR
-           && eq[1][0].getKind() == Kind::STRING_CONTAINS);
-    if (eq[1][0][0].getKind() == Kind::STRING_CONCAT)
-    {
-      nchildpre = eq[1][0][0].getNumChildren();
-    }
-    else if (eq[1][0][0] != emp)
-    {
-      nchildpre = 1;
-    }
-    // partition into three children
-    std::vector<Node> childpre(concat.begin(), concat.begin() + nchildpre);
-    Node cpre = theory::strings::utils::mkConcat(childpre, stype);
-    Node cmid = concat[nchildpre];
-    std::vector<Node> childpost(concat.begin() + nchildpre + 1, concat.end());
-    Node cpost = theory::strings::utils::mkConcat(childpost, stype);
-    Node cgroup = nm->mkNode(Kind::STRING_CONCAT, cpre, cmid, cpost);
-    if (concat != cgroup)
-    {
-      Node eqc = concat.eqNode(cgroup);
-      if (!cdp->addStep(eqc, ProofRule::ACI_NORM, {}, {eqc}))
-      {
-        Assert(false);
-        return false;
-      }
-      premises.push_back(eqc);
-    }
-  }
-  else
-  {
-    Assert(id == ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS);
     theory::strings::ArithEntail ae(nullptr);
     theory::strings::StringsEntail se(nullptr, ae);
     theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
