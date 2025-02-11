@@ -55,6 +55,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::STRING_REDUCTION, this);
   pc->registerChecker(ProofRule::STRING_EAGER_REDUCTION, this);
   pc->registerChecker(ProofRule::RE_INTER, this);
+  pc->registerChecker(ProofRule::RE_CONCAT, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_POS, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
@@ -395,29 +396,44 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     // memberships in the explanation
     for (const Node& c : children)
     {
-      bool polarity = c.getKind() != Kind::NOT;
-      Node catom = polarity ? c : c[0];
-      if (catom.getKind() != Kind::STRING_IN_REGEXP)
+      if (c.getKind() != Kind::STRING_IN_REGEXP)
       {
         return Node::null();
       }
       if (x.isNull())
       {
-        x = catom[0];
+        x = c[0];
       }
-      else if (x != catom[0])
+      else if (x != c[0])
       {
         // different LHS
         return Node::null();
       }
-      Node xcurr = catom[0];
-      Node rcurr =
-          polarity ? catom[1] : nm->mkNode(Kind::REGEXP_COMPLEMENT, catom[1]);
-      reis.push_back(rcurr);
+      reis.push_back(c[1]);
     }
     Node rei =
         reis.size() == 1 ? reis[0] : nm->mkNode(Kind::REGEXP_INTER, reis);
     return nm->mkNode(Kind::STRING_IN_REGEXP, x, rei);
+  }
+  else if (id == ProofRule::RE_CONCAT)
+  {
+    Assert(children.size() >= 2);
+    Assert(args.empty());
+    std::vector<Node> ts;
+    std::vector<Node> rs;
+    // make the regular expression concatenation
+    for (const Node& c : children)
+    {
+      if (c.getKind() != Kind::STRING_IN_REGEXP)
+      {
+        return Node::null();
+      }
+      ts.push_back(c[0]);
+      rs.push_back(c[1]);
+    }
+    Node tc = nm->mkNode(Kind::STRING_CONCAT, ts);
+    Node rc = nm->mkNode(Kind::REGEXP_CONCAT, rs);
+    return nm->mkNode(Kind::STRING_IN_REGEXP, tc, rc);
   }
   else if (id == ProofRule::RE_UNFOLD_POS || id == ProofRule::RE_UNFOLD_NEG
            || id == ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED)
