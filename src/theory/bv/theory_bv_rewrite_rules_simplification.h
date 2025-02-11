@@ -499,7 +499,7 @@ Node RewriteRule<AndOne>::apply(TNode node) {
   }
   else
   {
-    Assert(node[1] == utils::mkOnes(size));
+    Assert(node[1] == utils::mkOnes(nm, size));
     return node[0];
   }
 }
