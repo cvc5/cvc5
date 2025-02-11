@@ -35,8 +35,7 @@
 ; disclaimer: This function is not in the SMT-LIB standard.
 (declare-const tuple.update
     (-> (! Type :var T :implicit)
-    (-> (! Type :var S :implicit)
-        (! Int :var i) T S T)))
+        (! Int :var i) T (eo::list_nth Tuple T i) T))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
