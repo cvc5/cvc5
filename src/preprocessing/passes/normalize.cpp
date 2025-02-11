@@ -283,6 +283,11 @@ Node rename(
     // Initialize a global variable counter for variable renaming
     static int globalVarCounter = 0;
 
+    // Initialize a variable counter for bound variables
+    int boundVarCounter = 0;
+    boundVar2node.clear();
+
+
     // Push the root node onto the stack
     stack.push(n);
 
@@ -310,7 +315,8 @@ Node rename(
                         }
                         else
                         {
-                            int id = globalVarCounter++;
+                            // int id = globalVarCounter++;
+                            int id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
                             // Node ret = nodeManager->mkBoundVar(new_var_name, current.getType());
@@ -400,7 +406,8 @@ Node rename(
                         }
                         else
                         {
-                            int id = globalVarCounter++;
+                            // int id = globalVarCounter++;
+                            int id = boundVarCounter++;
                             std::string new_var_name =
                                 "u" + std::string(8 - numDigits(id), '0') + std::to_string(id);
                             // Node newBv = nodeManager->mkBoundVar(new_var_name, bv.getType());
