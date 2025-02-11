@@ -121,7 +121,6 @@ const char* toString(ProofRule rule)
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
-    case ProofRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
     case ProofRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
     case ProofRule::SKOLEMIZE: return "SKOLEMIZE";
