@@ -1,3 +1,4 @@
+(include "../../theories/Sets.eo")
 
 ; NOTE: this signature does not enforce that the operators take into account the declared heap types.
 
