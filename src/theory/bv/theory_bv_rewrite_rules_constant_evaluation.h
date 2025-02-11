@@ -43,8 +43,7 @@ Node RewriteRule<EvalAnd>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
   BitVector res = a & b;
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -62,8 +61,7 @@ Node RewriteRule<EvalOr>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
   BitVector res = a | b;
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -81,8 +79,7 @@ Node RewriteRule<EvalXor>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
   BitVector res = a ^ b;
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 // template<> inline
@@ -110,8 +107,7 @@ Node RewriteRule<EvalNot>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<EvalNot>(" << node << ")" << std::endl;
   BitVector a = node[0].getConst<BitVector>();
   BitVector res = ~ a;
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 // template<> inline
@@ -148,8 +144,7 @@ Node RewriteRule<EvalMult>::apply(TNode node) {
   for(++child_it; child_it != node.end(); ++child_it) {
     res = res * (*child_it).getConst<BitVector>();
   }
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template <>
@@ -167,8 +162,7 @@ inline Node RewriteRule<EvalAdd>::apply(TNode node)
   for(++child_it; child_it != node.end(); ++child_it) {
     res = res + (*child_it).getConst<BitVector>();
   }
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 // template<> inline
@@ -197,8 +191,7 @@ Node RewriteRule<EvalNeg>::apply(TNode node) {
   BitVector a = node[0].getConst<BitVector>();
   BitVector res = - a;
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 template<> inline
 bool RewriteRule<EvalUdiv>::applies(TNode node) {
@@ -212,8 +205,7 @@ Node RewriteRule<EvalUdiv>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
   BitVector res = a.unsignedDivTotal(b);
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 template<> inline
 bool RewriteRule<EvalUrem>::applies(TNode node) {
@@ -226,8 +218,8 @@ Node RewriteRule<EvalUrem>::apply(TNode node) {
   BitVector a = node[0].getConst<BitVector>();
   BitVector b = node[1].getConst<BitVector>();
   BitVector res = a.unsignedRemTotal(b);
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -242,8 +234,7 @@ Node RewriteRule<EvalShl>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
 
   BitVector res = a.leftShift(b);
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -258,8 +249,7 @@ Node RewriteRule<EvalLshr>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
   
   BitVector res = a.logicalRightShift(b);
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -274,8 +264,7 @@ Node RewriteRule<EvalAshr>::apply(TNode node) {
   BitVector b = node[1].getConst<BitVector>();
 
   BitVector res = a.arithRightShift(b);
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -428,8 +417,7 @@ Node RewriteRule<EvalExtract>::apply(TNode node) {
   unsigned hi = utils::getExtractHigh(node);
 
   BitVector res = a.extract(hi, lo);
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 
@@ -448,8 +436,7 @@ Node RewriteRule<EvalConcat>::apply(TNode node) {
     BitVector a = node[i].getConst<BitVector>();
     res = res.concat(a); 
   }
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -466,8 +453,7 @@ Node RewriteRule<EvalSignExtend>::apply(TNode node) {
       node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   BitVector res = a.signExtend(amount);
 
-  NodeManager* nm = node.getNodeManager();
-  return utils::mkConst(nm, res);
+  return utils::mkConst(node.getNodeManager(), res);
 }
 
 template<> inline
@@ -518,10 +504,9 @@ inline Node RewriteRule<EvalConstBvSym>::apply(TNode node)
 {
   Trace("bv-rewrite") << "RewriteRule<EvalConstBvSym>(" << node << ")"
                       << std::endl;
-  NodeManager* nm = node.getNodeManager();
   Integer a = node[0].getConst<Rational>().getNumerator();
   Integer b = node[1].getConst<Rational>().getNumerator();
-  return utils::mkConst(nm, b.toUnsignedInt(), a);
+  return utils::mkConst(node.getNodeManager(), b.toUnsignedInt(), a);
 }
 
 template <>
