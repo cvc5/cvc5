@@ -30,8 +30,8 @@ VM. Depending on your machine, the initial compilation may take a while.
 
 ### Method 1: Direct Compilation
 
-Before compiling cvc5, install the required dependencies as listed in
-[INSTALL.md](INSTALL.md).
+Before compiling cvc5, install the required dependencies as listed 
+in [INSTALL.rst](INSTALL.rst).
 
 Afterwards, we can configure cvc5 and build it as follows:
 
@@ -98,7 +98,7 @@ For this project, the example file is part of the _regression tests_. The
 regression tests are a collection of tests that are run frequently (e.g., as
 part of the CI) to ensure that we do not introduce bugs. Regression tests can
 also be run using `ctest`: `ctest -R idl/example-rewritten.smt2`. See [the
-documentation](test/regress/README.md) of our regression tests for more
+documentation](test/regress/cli/README.md) of our regression tests for more
 information.
 
 The option `--arith-idl-ext` tells cvc5 that we want to use the IDL solver
@@ -158,7 +158,7 @@ rewrites should look like. This example only covers parts of the `TODO`s.
 
 If you would like to test your solver with additional inputs, you can use the
 [SMT-LIB benchmarks for
-QF_IDL](https://clc-gitlab.cs.uiowa.edu:2443/SMT-LIB-benchmarks/QF_IDL).
+QF_IDL](https://zenodo.org/records/11061097/files/QF_IDL.tar.zst?download=1).
 
 ### Model Generation
 
