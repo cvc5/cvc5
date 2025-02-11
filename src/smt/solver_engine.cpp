@@ -2161,7 +2161,7 @@ void SolverEngine::setOption(const std::string& key,
   {
     if (key == "trace")
     {
-      throw OptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages with safe-options");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2170,7 +2170,7 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safeOptions is true.";
+         << " cannot be set when safe-options is true.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2180,7 +2180,7 @@ void SolverEngine::setOption(const std::string& key,
         ss << " The value for " << key << " is already its current value ("
            << value << "). Omitting this option may avoid this exception.";
       }
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
@@ -2196,7 +2196,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safeOptions is true.";
+           << " and " << key << ") when safe-options is true.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
@@ -2213,7 +2213,7 @@ void SolverEngine::setOption(const std::string& key,
                << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
     }
   }
