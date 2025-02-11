@@ -2784,12 +2784,43 @@ Node SequencesRewriter::rewriteContains(Node node)
   // splitting
   if (node[0].getKind() == Kind::STRING_CONCAT)
   {
-    // e.g. (str.contains (str.++ x "AB" y) "C") -->
-    // (or (str.contains x "C") (str.contains y "C")
-    Node ret = rewriteViaMacroStrSplitCtn(node);
-    if (!ret.isNull())
+    if (node[1].isConst())
     {
-      return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
+      Node t = node[1];
+      // Below, we are looking for a constant component of node[0]
+      // has no overlap with node[1], which means we can split.
+      // Notice that if the first or last components had no
+      // overlap, these would have been removed by strip
+      // constant endpoints above.
+      // Hence, we consider only the inner children.
+      for (unsigned i = 1; i < (node[0].getNumChildren() - 1); i++)
+      {
+        // constant contains
+        if (node[0][i].isConst())
+        {
+          Assert (Word::getLength(node[0][i])!=0);
+          // if no overlap, we can split into disjunction
+          if (!Word::hasOverlap(node[0][i], node[1], false)
+              && !Word::hasOverlap(node[1], node[0][i], false))
+          {
+            std::vector<Node> nc0;
+            utils::getConcat(node[0], nc0);
+            std::vector<Node> spl[2];
+            spl[0].insert(spl[0].end(), nc0.begin(), nc0.begin() + i);
+            Assert(i < nc0.size() - 1);
+            spl[1].insert(spl[1].end(), nc0.begin() + i + 1, nc0.end());
+            Node ret = nodeManager()->mkNode(
+                Kind::OR,
+                nodeManager()->mkNode(Kind::STRING_CONTAINS,
+                                      utils::mkConcat(spl[0], stype),
+                                      node[1]),
+                nodeManager()->mkNode(Kind::STRING_CONTAINS,
+                                      utils::mkConcat(spl[1], stype),
+                                      node[1]));
+            return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
+          }
+        }
+      }
     }
   }
   else if (node[0].getKind() == Kind::STRING_SUBSTR)
