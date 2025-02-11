@@ -50,6 +50,9 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
+  /** Should proof pn be updated (post-traversal)? */
+  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,
@@ -59,13 +62,14 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
 
  private:
+  /** Common constants */
   Node d_true;
   /** The rewrite database proof generator */
   rewriter::RewriteDbProofCons d_rdbPc;
   /** The default mode for if/when to try theory rewrites */
   rewriter::TheoryRewriteMode d_tmode;
-  /** The accumulated subgoals from calls to d_rdbPc */
-  std::vector<std::shared_ptr<ProofNode>> d_subgoals;
+  /** The current proofs we are traversing */
+  std::vector<std::shared_ptr<ProofNode>> d_traversing;
 };
 
 }  // namespace smt

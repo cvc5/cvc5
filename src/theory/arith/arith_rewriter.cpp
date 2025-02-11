@@ -57,7 +57,10 @@ ArithRewriter::ArithRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL,
                            TheoryRewriteCtx::DSL_SUBCALL);
-
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN,
+                           TheoryRewriteCtx::DSL_SUBCALL);
   // we don't register ARITH_STRING_PRED_ENTAIL or
   // ARITH_STRING_PRED_SAFE_APPROX, as these are subsumed by
   // MACRO_ARITH_STRING_PRED_ENTAIL.
@@ -81,11 +84,15 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
     {
-      // only matters if n contains strings
-      if (!expr::hasSubtermKinds({Kind::STRING_LENGTH}, n))
+      // only matters if n contains integer string operators
+      if (!n.getType().isBoolean() || n.getNumChildren() != 2 || n[0] == n[1]
+          || !expr::hasSubtermKinds(
+              {Kind::STRING_LENGTH, Kind::STRING_INDEXOF, Kind::STRING_STOI},
+              n))
       {
         return Node::null();
       }
+      Trace("macro-arith-str-pred") << "Check entailment " << n << std::endl;
       // Note that we do *not* pass a rewriter here, since the proof rule
       // cannot depend on the rewriter. This makes this rule capture most
       // but not all cases of this kind of reasoning.
@@ -106,8 +113,10 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // first do basic length intro, which rewrites (str.len (str.++ x y))
       // to (+ (str.len x) (str.len y))
       Node nexp = ae.rewriteLengthIntro(tgt);
+      Trace("macro-arith-str-pred") << "...setup to " << nexp << std::endl;
       // Also must make this a "simple" check (isSimple = true).
       Node ret = ae.rewritePredViaEntailment(nexp, true);
+      Trace("macro-arith-str-pred") << "...result = " << ret << std::endl;
       return ret;
     }
     break;
@@ -138,6 +147,61 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           Trace("arith-rewriter-proof")
               << n[0] << " --> " << approx << " by safe approx" << std::endl;
           return nodeManager()->mkNode(Kind::GEQ, approx, n[1]);
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+    {
+      if (n.getKind() == Kind::EQUAL && n[0] != n[1])
+      {
+        Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
+        Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+        rewriter::Sum sum;
+        rewriter::addToSum(sum, a, false);
+        rewriter::addToSum(sum, b, true);
+        if (rewriter::isIntegral(sum))
+        {
+          std::pair<Node, Node> p = decomposeSum(d_nm, std::move(sum));
+          Rational c = p.second.getConst<Rational>();
+          if (!c.isIntegral())
+          {
+            return d_nm->mkConst(false);
+          }
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+    {
+      Trace("arith-rewriter-proof") << "Rewrite " << n << "?" << std::endl;
+      if (n.getKind() == Kind::GEQ && n[0] != n[1])
+      {
+        Node a = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
+        Node b = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+        rewriter::Sum sum;
+        rewriter::addToSum(sum, a, false);
+        rewriter::addToSum(sum, b, true);
+        if (rewriter::isIntegral(sum))
+        {
+          // decompose the sum into a non-constant and constant part
+          bool negated = false;
+          std::pair<Node, Node> p =
+              decomposeSum(d_nm, std::move(sum), negated, true);
+          Rational c = p.second.getConst<Rational>();
+          Trace("arith-rewriter-proof")
+              << "Decomposed to " << p.first << " + " << p.second << std::endl;
+          if (!c.isIntegral())
+          {
+            c = -c;
+            c = c.ceiling();
+            Node ret = d_nm->mkNode(Kind::GEQ, p.first, d_nm->mkConstInt(c));
+            if (negated)
+            {
+              ret = ret.notNode();
+            }
+            return ret;
+          }
         }
       }
     }
