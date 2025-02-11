@@ -155,8 +155,12 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaStrEqLenUnify(const Node& n, Rewrite& rule);
   /** Rewrite based on RE_LOOP_ELIM */
   Node rewriteViaReLoopElim(const Node& n);
-  /** Rewrite based on RE_INTER_UNION_INCLUSION */
-  Node rewriteViaReInterUnionInclusion(const Node& n);
+  /** Rewrite based on MACRO_RE_INTER_UNION_INCLUSION */
+  Node rewriteViaMacroReInterUnionInclusion(const Node& n);
+  /**
+   * Rewrite based on RE_INTER_INCLUSION, or RE_UNION_INCLUSION.
+   */
+  Node rewriteViaReInterUnionInclusion(ProofRewriteRule id, const Node& n);
   /** Rewrite based on STR_IN_RE_EVAL */
   Node rewriteViaStrInReEval(const Node& n);
   /** Rewrite based on STR_IN_RE_CONSUME */

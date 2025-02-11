@@ -51,7 +51,7 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::RE_INTER_UNION_INCLUSION,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
                            TheoryRewriteCtx::DSL_SUBCALL);
@@ -90,8 +90,11 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return rewriteViaReInterUnionInclusion(n);
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return rewriteViaMacroReInterUnionInclusion(n);
+    case ProofRewriteRule::RE_INTER_INCLUSION:
+    case ProofRewriteRule::RE_UNION_INCLUSION:
+      return rewriteViaReInterUnionInclusion(id, n);
     case ProofRewriteRule::STR_IN_RE_EVAL: return rewriteViaStrInReEval(n);
     case ProofRewriteRule::STR_IN_RE_CONSUME:
       return rewriteViaStrInReConsume(n);
@@ -905,7 +908,7 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
   return node;
 }
 
-Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
+Node SequencesRewriter::rewriteViaMacroReInterUnionInclusion(const Node& node)
 {
   Kind nk = node.getKind();
   if (nk != Kind::REGEXP_UNION && nk != Kind::REGEXP_INTER)
@@ -969,6 +972,33 @@ Node SequencesRewriter::rewriteViaReInterUnionInclusion(const Node& node)
         }
         return retNode;
       }
+    }
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaReInterUnionInclusion(ProofRewriteRule id,
+                                                        const Node& n)
+{
+  if (n.getNumChildren() != 2 || n[1].getKind() != Kind::REGEXP_COMPLEMENT)
+  {
+    return Node::null();
+  }
+  Kind k = n.getKind();
+  if (id == ProofRewriteRule::RE_INTER_INCLUSION)
+  {
+    if (k == Kind::REGEXP_INTER && RegExpEntail::regExpIncludes(n[1][0], n[0]))
+    {
+      return nodeManager()->mkNode(Kind::REGEXP_NONE);
+    }
+  }
+  else
+  {
+    Assert(id == ProofRewriteRule::RE_UNION_INCLUSION);
+    if (k == Kind::REGEXP_UNION && RegExpEntail::regExpIncludes(n[0], n[1][0]))
+    {
+      NodeManager* nm = nodeManager();
+      return nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
     }
   }
   return Node::null();
@@ -1118,7 +1148,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
   }
   // use inclusion tests
-  Node retNode = rewriteViaReInterUnionInclusion(node);
+  Node retNode = rewriteViaMacroReInterUnionInclusion(node);
   if (!retNode.isNull())
   {
     return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);

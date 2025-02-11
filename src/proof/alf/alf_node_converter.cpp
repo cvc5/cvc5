@@ -231,10 +231,22 @@ Node AlfNodeConverter::postConvert(Node n)
     Assert(!lam.isNull());
     return convert(lam);
   }
+  else if (k == Kind::APPLY_CONSTRUCTOR)
+  {
+    Node opc = getOperatorOfTerm(n);
+    if (n.getNumChildren() == 0)
+    {
+      return opc;
+    }
+    std::vector<Node> newArgs;
+    newArgs.push_back(opc);
+    newArgs.insert(newArgs.end(), n.begin(), n.end());
+    Node ret = d_nm->mkNode(Kind::APPLY_UF, newArgs);
+    return convert(ret);
+  }
   else if (k == Kind::APPLY_TESTER || k == Kind::APPLY_UPDATER || k == Kind::NEG
            || k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL
-           || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_CONSTRUCTOR
-           || k == Kind::APPLY_SELECTOR
+           || k == Kind::INTS_MODULUS_TOTAL || k == Kind::APPLY_SELECTOR
            || k == Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV)
   {
     // kinds where the operator may be different
@@ -553,6 +565,18 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
           opName << "tuple";
         }
       }
+      else if ((dt.isNullable() && index == 0)
+               || (dt.isParametric()
+                   && isAmbiguousDtConstructor(dt[index].getConstructor())))
+      {
+        // ambiguous if nullable.null or a user provided ambiguous datatype
+        // constructor
+        opName << "as";
+        indices.push_back(dt[index].getConstructor());
+        // tn is the return type
+        TypeNode tn = n.getType();
+        indices.push_back(typeAsNode(tn));
+      }
       else
       {
         opName << dt[index].getConstructor();
@@ -601,7 +625,8 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
   Node ret;
   if (!indices.empty())
   {
-    ret = mkInternalApp(opName.str(), indices, app.getOperator().getType());
+    Node op = args.empty() ? app : app.getOperator();
+    ret = mkInternalApp(opName.str(), indices, op.getType());
   }
   else if (n.isClosure())
   {
@@ -631,6 +656,41 @@ size_t AlfNodeConverter::getOrAssignIndexForConst(Node v)
   size_t id = d_constIndex.size();
   d_constIndex[v] = id;
   return id;
+}
+
+bool AlfNodeConverter::isAmbiguousDtConstructor(const Node& op)
+{
+  std::map<Node, bool>::iterator it = d_ambDt.find(op);
+  if (it != d_ambDt.end())
+  {
+    return it->second;
+  }
+  bool ret = false;
+  TypeNode tn = op.getType();
+  Trace("alf-amb-dt") << "Ambiguous datatype constructor? " << op << " " << tn
+                      << std::endl;
+  size_t nchild = tn.getNumChildren();
+  Assert(nchild > 0);
+  std::unordered_set<TypeNode> atypes;
+  for (size_t i = 0; i < nchild - 1; i++)
+  {
+    expr::getComponentTypes(tn[i], atypes);
+  }
+  const DType& dt = DType::datatypeOf(op);
+  std::vector<TypeNode> params = dt.getParameters();
+  for (const TypeNode& p : params)
+  {
+    if (atypes.find(p) == atypes.end())
+    {
+      Trace("alf-amb-dt") << "...yes since " << p << " not contained"
+                          << std::endl;
+      ret = true;
+      break;
+    }
+  }
+  Trace("alf-amb-dt") << "...returns " << ret << std::endl;
+  d_ambDt[op] = ret;
+  return ret;
 }
 
 bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
