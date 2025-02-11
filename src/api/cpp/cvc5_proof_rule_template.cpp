@@ -148,6 +148,7 @@ const char* toString(ProofRule rule)
     case ProofRule::STRING_REDUCTION: return "STRING_REDUCTION";
     case ProofRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
     case ProofRule::RE_INTER: return "RE_INTER";
+    case ProofRule::RE_CONCAT: return "RE_CONCAT";
     case ProofRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
