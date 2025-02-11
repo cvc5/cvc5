@@ -659,11 +659,8 @@ Node RewriteRule<OrZero>::apply(TNode node) {
   {
     return node[1];
   }
-  else
-  {
-    Assert(node[1] == utils::mkConst(nm, size, 0));
-    return node[0];
-  }
+  Assert(node[1] == utils::mkConst(nm, size, 0));
+  return node[0];
 }
 
 /* -------------------------------------------------------------------------- */
