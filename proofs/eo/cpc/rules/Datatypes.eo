@@ -295,3 +295,92 @@
   :requires ((($dt_find_cycle t (@list s)) true)) 
   :conclusion (= (= s t) false)
 )
+
+;;;;; ProofRewriteRule::DT_COLLAPSE_UPDATER
+
+; program: $mk_dt_collapse_updater_rhs
+; args:
+; - c U: The remaining term to process.
+; - a T: The value to replace as an argument of t.
+; - n Int: The argument position (from the end) which a should be placed.
+; return: >
+;   The result of updating the n^th argument from the end in t.
+(program $dt_collapse_updater_rhs ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
+  (U T Int) U
+  (
+    (($dt_collapse_updater_rhs (f x) a 0)  (f a))
+    (($dt_collapse_updater_rhs (f x) a n)  (_ ($dt_collapse_updater_rhs f a (eo::add n -1)) x))
+  )
+)
+
+(program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (f (-> T U)) (x T) (a T) (b T) (n Int) (ts W :list))
+  (U T Int) U
+  (
+  (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
+  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (eo::cons tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
+  (($tuple_collapse_updater_rhs tuple.unit a n)     tuple.unit)
+  )
+)
+
+(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (s (-> D T)) (t D) (a T) (tr D) (n Int))
+  (D) Bool
+  (
+  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((c ($get_fun t)))
+                                                      (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+                                                      (eo::define ((index (eo::list_find eo::List::cons ss s)))
+                                                        (eo::ite (eo::is_neg index)
+                                                          t ; unchanged if not correct constructor
+                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1)))))))
+  (($mk_dt_collapse_updater_rhs (tuple.update n t a)) ($tuple_collapse_updater_rhs t a n))
+  )
+)
+
+; rule: dt-collapse-updater
+; implements: ProofRewriteRule::DT_COLLAPSE_UPDATER
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that the index^th argument of the term t we are selecting from
+;   is the right hand side of the equality, where index is the index of the
+;   selector in the constructor of t.
+; conclusion: The given equality.
+(declare-rule dt-collapse-updater ((D Type) (t D) (s D))
+  :args ((= t s))
+  :requires ((($mk_dt_collapse_updater_rhs t) s))
+  :conclusion (= t s)
+)
+
+;;;;; ProofRewriteRule::DT_UPDATER_ELIM
+
+; program: $mk_dt_updater_elim
+; args:
+; - s (-> D T): the selector specifying the argument.
+; - D t: The datatype term we are updating.
+; - a T: The value to replace at the s argument of t.
+; - ss eo::List: The remaining selector arguments to process.
+; - c U: The result of updating t we have accumulated so far.
+; return: >
+;   The result of updating the argument specified by s in t.
+(program $mk_dt_updater_elim ((D Type) (T Type) (U Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
+  ((-> D T) D T eo::List U) D
+  (
+    (($mk_dt_updater_elim s t a (eo::List::cons s ss) c)   ($mk_dt_updater_elim s t a ss (c a)))
+    (($mk_dt_updater_elim s t a (eo::List::cons s1 ss) c)  ($mk_dt_updater_elim s t a ss (c (s1 t))))
+    (($mk_dt_updater_elim s t a eo::List::nil c)           c)
+  )
+)
+
+; rule: dt-collapse-updater
+; implements: ProofRewriteRule::DT_COLLAPSE_UPDATER
+; args:
+; - eq Bool: The equality to prove.
+; requires: >
+;   We require that the right hand side is an ITE where the then branch is
+;   obtained by updating the proper argument of t.
+; conclusion: The given equality.
+(declare-rule dt-updater-elim ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U))
+  :args ((= (update s t a) (ite (is c t) tr t)))
+  :requires (((eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+                ($mk_dt_updater_elim s t a ss ($dt_inst_cons_of (eo::typeof t) c))) tr))  ; ensure the constructor is annotated
+  :conclusion (= (update s t a) (ite (is c t) tr t))
+)
