@@ -912,8 +912,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   Node concat = eq[0][0];
   TypeNode stype = concat.getType();
   Node emp = theory::strings::Word::mkEmptyWord(stype);
-  size_t nchildpre = 0;
-  ProofRewriteRule rule;
+  ProofRewriteRule rule = ProofRewriteRule::NONE;
   std::vector<Node> premises;
   if (id == ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS)
   {
