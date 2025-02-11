@@ -1,3 +1,4 @@
+; EXPECT: sat
 (set-logic QF_ABV)
 (declare-const __ (_ BitVec 9))
 (declare-fun mem_35_192 () (Array (_ BitVec 32) (_ BitVec 8)))
