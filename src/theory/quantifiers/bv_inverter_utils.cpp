@@ -120,7 +120,6 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
        * (distinct t max)
        * where
        * max is the signed maximum value with getSize(max) = w  */
-      NodeManager* nm = NodeManager::currentNM();
       Node max = bv::utils::mkMaxSigned(nm, w);
       Node scl = NodeManager::mkNode(Kind::DISTINCT, t, max);
       Node scr = NodeManager::mkNode(k, x, t);
