@@ -313,6 +313,13 @@
   )
 )
 
+; program: $tuple_collapse_updater_rhs
+; args:
+; - c U: The remaining tuple term to process.
+; - a T: The value to replace as an argument of t.
+; - n Int: The argument position which a should be placed.
+; return: >
+;   The result of updating the n^th argument in t.
 (program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (f (-> T U)) (x T) (a T) (b T) (n Int) (ts W :list))
   (U T Int) U
   (
@@ -322,6 +329,11 @@
   )
 )
 
+; program: $mk_dt_collapse_updater_rhs
+; args:
+; - c U: The update term to process, expected to be an updater applied to a constructor application.
+; return: >
+;   The result of collasping the update term.
 (program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (s (-> D T)) (t D) (a T) (tr D) (n Int))
   (D) Bool
   (
@@ -352,7 +364,7 @@
 
 ;;;;; ProofRewriteRule::DT_UPDATER_ELIM
 
-; program: $mk_dt_updater_elim
+; program: $dt_updater_elim_rhs
 ; args:
 ; - s (-> D T): the selector specifying the argument.
 ; - D t: The datatype term we are updating.
@@ -361,26 +373,56 @@
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $mk_dt_updater_elim ((D Type) (T Type) (U Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
+(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
   ((-> D T) D T eo::List U) D
   (
-    (($mk_dt_updater_elim s t a (eo::List::cons s ss) c)   ($mk_dt_updater_elim s t a ss (c a)))
-    (($mk_dt_updater_elim s t a (eo::List::cons s1 ss) c)  ($mk_dt_updater_elim s t a ss (c (s1 t))))
-    (($mk_dt_updater_elim s t a eo::List::nil c)           c)
+    (($dt_updater_elim_rhs s t a (eo::List::cons s ss) c)   ($dt_updater_elim_rhs s t a ss (c a)))
+    (($dt_updater_elim_rhs s t a (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs s t a ss (c (s1 t))))
+    (($dt_updater_elim_rhs s t a eo::List::nil c)           c)
   )
 )
 
-; rule: dt-collapse-updater
-; implements: ProofRewriteRule::DT_COLLAPSE_UPDATER
+; program: $tuple_updater_elim_rhs
+; args:
+; - n Int: the index specifying the argument.
+; - D t: The tuple term we are updating.
+; - a T: The value to replace at the n^th argument of t.
+; - ss eo::List: The remaining selector arguments to process.
+; return: >
+;   The result of updating the argument specified by s in t.
+(program $tuple_updater_elim_rhs ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
+  (Int D T eo::List) D
+  (
+    (($tuple_updater_elim_rhs n t a (eo::List::cons (tuple.select n) ss))   (eo::cons tuple a ($tuple_updater_elim_rhs n t a ss)))
+    (($tuple_updater_elim_rhs n t a (eo::List::cons s ss))                  (eo::cons tuple (s t) ($tuple_updater_elim_rhs n t a ss)))
+    (($tuple_updater_elim_rhs n t a eo::List::nil)                          tuple.unit)
+  )
+)
+
+; program: $mk_dt_updater_elim_rhs
+; args:
+; - s D: The update term.
+; - ss eo::List: The list of selectors for the type of s.
+; return: >
+;   The right hand side is obtained by updating the proper argument of t.
+(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
+  (D U eo::List) Bool
+  (
+    (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs s t a ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
+    (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)  ($tuple_updater_elim_rhs n t a ss))
+  )
+)
+
+; rule: dt-updater-elim
+; implements: ProofRewriteRule::DT_UPDATER_ELIM
 ; args:
 ; - eq Bool: The equality to prove.
 ; requires: >
 ;   We require that the right hand side is an ITE where the then branch is
-;   obtained by updating the proper argument of t.
+;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
 ; conclusion: The given equality.
-(declare-rule dt-updater-elim ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U))
-  :args ((= (update s t a) (ite (is c t) tr t)))
-  :requires (((eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
-                ($mk_dt_updater_elim s t a ss ($dt_inst_cons_of (eo::typeof t) c))) tr))  ; ensure the constructor is annotated
-  :conclusion (= (update s t a) (ite (is c t) tr t))
+(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (s S) (t D) (a T) (u (-> S D T D)) (tu D) (c C))
+  :args ((= (u s t a) (ite (is c t) tu t)))
+  :requires ((($mk_dt_updater_elim_rhs (u s t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
+  :conclusion (= (u s t a) (ite (is c t) tu t))
 )
