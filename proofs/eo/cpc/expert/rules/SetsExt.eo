@@ -1,4 +1,4 @@
-(include "../theories/Sets.eo")
+(include "../theories/SetsExt.eo")
 
 ;;;;; ProofRewriteRule::SETS_FILTER_DOWN
 

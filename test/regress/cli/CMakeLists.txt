@@ -1171,6 +1171,7 @@ set(regress_0_tests
   regress0/options/safe-options2.smt2
   regress0/options/safe-options3.smt2
   regress0/options/safe-opts-warn.smt2
+  regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -3807,6 +3808,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/str-contains-reduction.smt2
   regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
