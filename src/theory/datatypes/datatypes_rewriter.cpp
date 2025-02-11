@@ -383,11 +383,15 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (kind == Kind::MATCH)
   {
-    Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
-    Node ret = expandMatch(in);
-    Trace("dt-rewrite-match")
-        << "Rewrite match: " << in << " ... " << ret << std::endl;
-    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    // only rewrite if expert
+    if (d_opts.datatypes.datatypesExp)
+    {
+      Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
+      Node ret = expandMatch(in);
+      Trace("dt-rewrite-match")
+          << "Rewrite match: " << in << " ... " << ret << std::endl;
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   else if (kind == Kind::MATCH_BIND_CASE)
   {
