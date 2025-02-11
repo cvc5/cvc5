@@ -16,6 +16,7 @@
 #include "theory/bv/proof_checker.h"
 
 #include "theory/arith/arith_poly_norm.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -89,10 +90,33 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node lr = children[0][0];
-    Node rr = children[0][1];
+    Node l = children[0][0];
+    Node r = children[0][1];
+    if (l.getKind() != Kind::BITVECTOR_MULT || r.getKind() != Kind::BITVECTOR_MULT)
+    {
+      return Node::null();
+    }
+    Node cx = l[0];
+    Node lr = l[1];
+    Node cy = r[0];
+    Node rr = r[1];
     if (lr.getKind() != Kind::BITVECTOR_SUB
         || rr.getKind() != Kind::BITVECTOR_SUB)
+    {
+      return Node::null();
+    }
+    if (cx.getKind() == Kind::CONST_BITVECTOR
+        && cy.getKind() == Kind::CONST_BITVECTOR)
+    {
+      BitVector c1 = cx.getConst<BitVector>();
+      BitVector c2 = cy.getConst<BitVector>();
+      BitVector one = BitVector::mkOne(c1.getSize());
+      if (c1 != one || c2 != one)
+      {
+        return Node::null();
+      }
+    }
+    else
     {
       return Node::null();
     }

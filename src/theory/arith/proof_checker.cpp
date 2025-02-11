@@ -23,7 +23,6 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
-#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 

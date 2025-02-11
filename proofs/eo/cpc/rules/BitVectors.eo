@@ -231,14 +231,18 @@
 ; implements: ProofRule::BV_POLY_NORM_EQ
 ; premises:
 ; - eq Bool: >
-;   An equality stating that terms t and s of the form (bvsub x1 x2) and (bvsub y1 y2)
-;   are equal.
+;   An equality stating that terms t and s of the form (bvmul cx (bvsub x1 x2))
+;   and (bvmul cy (bvsub y1 y2)) are equal.
 ; args:
 ; - eqr Bool: The equivalence between equalities, proven by this rule.
+; requires: >
+;   The constants cx and cy are one.
 ; conclusion: >
 ;   An equivalence between equalities specified by eqr and justified by eq.
-(declare-rule bv_poly_norm_eq ((n Int) (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
-  :premises ((= (bvsub xb1 xb2) (bvsub yb1 yb2)))
+(declare-rule bv_poly_norm_eq ((n Int) (cx (BitVec n)) (xb1 (BitVec n)) (xb2 (BitVec n))
+                               (cy (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)) (one (BitVec n) :list))
+  :premises ((= (bvmul cx (bvsub xb1 xb2) one) (bvmul cy (bvsub yb1 yb2) one)))
   :args ((= (= xb1 xb2) (= yb1 yb2)))
+  :requires (((eo::to_z one) 1) ((eo::to_z cx) 1) ((eo::to_z cy) 1))
   :conclusion (= (= xb1 xb2) (= yb1 yb2))
 )
