@@ -284,14 +284,14 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
             cdp->addStep(inst, ProofRule::EQ_RESOLVE, {t, eq}, {});
             if (i==0)
             {
-              Node insts = inst[1].eqNode(inst[0]);
-              cdp->addStep(insts, ProofRule::SYMM, {inst}, {});
-              inst = insts;
+              Node instsym = inst[1].eqNode(inst[0]);
+              cdp->addStep(instsym, ProofRule::SYMM, {inst}, {});
+              inst = instsym;
             }
             insts.push_back(inst);
           }
-          Node ceq = inst[0][0].eqNode(inst[1][1]);
-          cdp->addStep(ceq, ProofRule::TRANS, inst, {});
+          Node ceq = insts[0][0].eqNode(insts[1][1]);
+          cdp->addStep(ceq, ProofRule::TRANS, insts, {});
           Node ceqf = ceq.eqNode(fn);
           tryRewriteRule(ceqf, conc, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
           cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
