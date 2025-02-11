@@ -1441,6 +1441,8 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites-regexp-membership
   ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites-transcendentals
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites-card
 )
 
 #-----------------------------------------------------------------------------#
