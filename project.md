@@ -30,8 +30,8 @@ VM. Depending on your machine, the initial compilation may take a while.
 
 ### Method 1: Direct Compilation
 
-Before compiling cvc5, install the required dependencies as listed in
-[INSTALL.rst](INSTALL.rst).
+Before compiling cvc5, install the required dependencies as listed 
+in [INSTALL.rst](INSTALL.rst).
 
 Afterwards, we can configure cvc5 and build it as follows:
 
