@@ -86,34 +86,3 @@
   :requires ((($set_eval_insert es s) t))
   :conclusion (= (set.insert es s) t)
 )
-
-;;;;; ProofRewriteRule::SETS_FILTER_DOWN
-
-; rule: sets_filter_down
-; implements: ProofRewriteRule::SETS_FILTER_DOWN
-; premises:
-; - mem: A membership of element x into a set filter term.
-; conclusion: >
-;   The membership holds for the set for which we are filtering, and the
-;   predicate is true for x.
-(declare-rule sets_filter_down ((T Type) (P (-> T Bool)) (x T) (S (Set T)))
-  :premises ((set.member x (set.filter P S)))
-  :conclusion (and (set.member x S) (P x))
-)
-
-;;;;; ProofRewriteRule::SETS_FILTER_UP
-
-; rule: sets_filter_up
-; implements: ProofRewriteRule::SETS_FILTER_UP
-; args:
-; - P (-> T Bool): The predicate to filter on.
-; premises:
-; - mem: A membership of element x into a set term.
-; conclusion: >
-;   The membership into the same set, filtered by P, holds if and only if the
-;   predicate is true for x.
-(declare-rule sets_filter_up ((T Type) (P (-> T Bool)) (x T) (S (Set T)))
-  :premises ((set.member x S))
-  :args (P)
-  :conclusion (= (set.member x (set.filter P S)) (P x))
-)

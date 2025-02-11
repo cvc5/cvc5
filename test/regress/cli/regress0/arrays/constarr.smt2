@@ -1,3 +1,5 @@
+; COMMAND-LINE: --arrays-exp
+; EXPECT: unsat
 (set-logic QF_ALIA)
 (set-info :status unsat)
 (declare-const all1 (Array Int Int))

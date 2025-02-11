@@ -138,6 +138,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_MULT_TANGENT:
+    case ProofRule::ARITH_MULT_SIGN:
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::ARITH_TRANS_EXP_NEG:
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -214,13 +216,19 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       Kind k = pargs[0].getKind();
       switch (k)
       {
+        case Kind::STRING_CONTAINS:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_INDEXOF:
+        case Kind::STRING_INDEXOF_RE:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
+        case Kind::STRING_REPLACE_RE:
+        case Kind::STRING_REPLACE_RE_ALL:
         case Kind::STRING_STOI:
         case Kind::STRING_ITOS:
         case Kind::SEQ_NTH:
-          return true;
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ: return true;
         default:
           break;
       }
@@ -266,6 +274,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
+    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::INT_TO_BV_ELIM:
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -292,9 +302,17 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+    case ProofRewriteRule::RE_INTER_INCLUSION:
+    case ProofRewriteRule::RE_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
     case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
       // only strings are supported, since it is non-trivial to show
       // distinctness of sequence characters.
@@ -379,6 +397,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
@@ -922,13 +941,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::ARITH_POLY_NORM_REL:
-    {
-      Node op = d_tproc.getOperatorOfTerm(res[0]);
-      args.push_back(d_tproc.convert(op));
-      return;
-    }
-    break;
     case ProofRule::HO_CONG:
     {
       // argument is ignored

@@ -1,0 +1,40 @@
+; =============================================================================
+;
+; This is porition of CPC that is not supported under cvc5's safe options. It
+; should *not* be included in proofs emitted by safe builds of cvc5 or when
+; --safe-options is enabled. All proofs emitted in such cases will never
+; reference any of the symbols or proof rules defined in this subdirectory.
+;
+; Note the theory definitions in this subdirectory are intended to cover *all* of
+; the experimental theory symbols that cvc5 supports. It also may contain proof
+; rules that are supported when experimental features are enabled, or definitions
+; that are works in progress.
+;
+; =============================================================================
+
+(include "./theories/ArithExt.eo")
+(include "./theories/Bags.eo")
+(include "./theories/FloatingPoints.eo")
+(include "./theories/FiniteFields.eo")
+(include "./theories/SepLogic.eo")
+(include "./rules/Transcendentals.eo")
+(include "./rules/SetsExt.eo")
+
+(include "../theories/Arrays.eo")
+
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.card (-> Type Int Bool))
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.combined_card (-> Int Bool))
+
+; Used in the --ho-elim preprocessing pass
+(declare-type @ho-elim-sort (Type))
+(declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
+
+; The arrays equal-range predicate.
+; disclaimer: This function is not in SMT-LIB.
+(declare-const eqrange (-> (! Type :var U :implicit) (! Type :var T :implicit) (! Type :var I :implicit)
+                           (Array U T) (Array U T) I I Bool))
+
+; Dataypes shared selector
+(declare-const @shared_selector (-> (! Type :opaque :var D) (! Type :opaque :var T) (! Int :opaque) D T))

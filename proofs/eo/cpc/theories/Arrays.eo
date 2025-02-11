@@ -9,14 +9,9 @@
                           (Array U T) U T (Array U T)))
 
 ; The store all array constant.
-; NOTE: doesn't check that T is (Array x U) for some x
+; note: doesn't check that T is (Array x U) for some x
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const store_all (-> (! Type :var T) (! Type :var U :implicit) U T))
-
-; The equal-range predicate.
-; disclaimer: This function is not in SMT-LIB.
-(declare-const eqrange (-> (! Type :var U :implicit) (! Type :var T :implicit) (! Type :var I :implicit)
-                           (Array U T) (Array U T) I I Bool))
 
 ; The array diff skolem.
 ; (@array_deq_diff A B) denotes an index where A and B differ if A and B are not equal.

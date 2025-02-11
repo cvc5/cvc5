@@ -1929,7 +1929,7 @@ enum ENUM(ProofRule)
    * **Arithmetic -- Polynomial normalization for relations**
    *
    * .. math::
-   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid \diamond}
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
@@ -2397,6 +2397,42 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_BOOL_NNF_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Integer equality conflict**
+   *
+   * .. math::
+   *   (t=s) = \bot
+   *
+   * where :math:`t=s` is equivalent (via
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`) to
+   * :math:`(r = c)` where :math:`r` is an integral term and :math:`c` is a
+   * non-integral constant.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_INT_EQ_CONFLICT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Integer inequality tightening**
+   *
+   * .. math::
+   *   (t \geq s) = ( r \geq \lceil c \rceil)
+   *
+   * or
+   *
+   * .. math::
+   *   (t \geq s) = \neg( r \geq \lceil c \rceil)
+   *
+   * where :math:`t \geq s` is equivalent (via
+   * :cpp:enumerator:`ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`) to
+   * the right hand side where :math:`r` is an integral term and
+   * :math:`c` is a non-integral constant. Note that we end up with a
+   * negation if the leading coefficient in :math:`t` is negative.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_ARITH_INT_GEQ_TIGHTEN),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- strings predicate entailment**
@@ -3029,6 +3065,70 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_STR_EQ_LEN_UNIFY),
+
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap split contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_3, s)
+   *
+   * :math:`t_2` has no forward overlap with :math:`s` and :math:`s` has no
+   * forward overlap with :math:`t_2`. For details see
+   * :math:`\texttt{Word::hasOverlap}` in :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_SPLIT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(\mathit{str.++}(t_1, t_2, t_3), s) =
+   *   \mathit{str.contains}(t_2, s)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints indexof**
+   *
+   * .. math::
+   *   \mathit{str.indexof}(\mathit{str.++}(t_1, t_2), s, n) =
+   *   \mathit{str.indexof}(t_1, s, n)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2)` and
+   * :math:`t_2` has no reverse overlap with :math:`s_2`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_INDEXOF),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Strings overlap endpoints replace**
+   *
+   * .. math::
+   *   \mathit{str.replace}(\mathit{str.++}(t_1, t_2, t_3), s, r) =
+   *   \mathit{str.++}(t_1, \mathit{str.replace}(t_2, s, r) t_3)
+   *
+   * where :math:`s` is `:math:\mathit{str.++}(s_1, s_2, s_3)`,
+   * :math:`t_1` has no forward overlap with :math:`s_1` and
+   * :math:`t_3` has no reverse overlap with :math:`s_3`.
+   * For details see :math:`\texttt{Word::hasOverlap}` in
+   * :cvc5src:`theory/strings/word.h`.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- string indexof regex evaluation**
@@ -3086,7 +3186,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings -- regular expression intersection/union inclusion**
    *
    * .. math::
-   *   (re.inter\ R) = \mathit{re.inter}(\mathit{re.none}, R_0)
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
    * where :math:`R` is a list of regular expressions containing `r_1`,
    * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
@@ -3103,7 +3203,31 @@ enum ENUM(ProofRewriteRule)
    *
    * \endverbatim
    */
-  EVALUE(RE_INTER_UNION_INCLUSION),
+  EVALUE(MACRO_RE_INTER_UNION_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression intersection inclusion**
+   *
+   * .. math::
+   *   \mathit{re.inter}(r_1, re.comp(r_2)) = \mathit{re.none}
+   *
+   * where :math:`r_2` is a superset of :math:`r_1`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_INTER_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression union inclusion**
+   *
+   * .. math::
+   *   \mathit{re.union}(r_1, re.comp(r_2)) = \mathit{re}.\text{*}(\mathit{re.allchar})
+   *
+   * where :math:`r_1` is a superset of :math:`r_2`.
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_UNION_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression membership evaluation**
@@ -3347,6 +3471,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-int-eq-conflict */
+  EVALUE(ARITH_INT_EQ_CONFLICT),
+  /** Auto-generated from RARE rule arith-int-geq-tighten */
+  EVALUE(ARITH_INT_GEQ_TIGHTEN),
   /** Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
   /** Auto-generated from RARE rule arith-sine-pi2 */
@@ -3369,6 +3497,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_ABS_INT_GT),
   /** Auto-generated from RARE rule arith-abs-real-gt */
   EVALUE(ARITH_ABS_REAL_GT),
+  /** Auto-generated from RARE rule arith-geq-ite-lift */
+  EVALUE(ARITH_GEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-gt-ite-lift */
+  EVALUE(ARITH_GT_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-leq-ite-lift */
+  EVALUE(ARITH_LEQ_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-lt-ite-lift */
+  EVALUE(ARITH_LT_ITE_LIFT),
+  /** Auto-generated from RARE rule arith-min-lt1 */
+  EVALUE(ARITH_MIN_LT1),
+  /** Auto-generated from RARE rule arith-min-lt2 */
+  EVALUE(ARITH_MIN_LT2),
+  /** Auto-generated from RARE rule arith-max-geq1 */
+  EVALUE(ARITH_MAX_GEQ1),
+  /** Auto-generated from RARE rule arith-max-geq2 */
+  EVALUE(ARITH_MAX_GEQ2),
   /** Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
   /** Auto-generated from RARE rule array-read-over-write2 */

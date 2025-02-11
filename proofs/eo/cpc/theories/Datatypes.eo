@@ -36,10 +36,7 @@
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
 ;   symbols over this sort are also not part of the SMT-LIB standard.
-(declare-const Nullable (-> Type Type))
-(declare-const nullable.null (-> (! Type :var T) (Nullable T)))
-(declare-const nullable.some (-> (! Type :var T :implicit) T (Nullable T)))
-(declare-const nullable.val (-> (! Type :var T :implicit) (Nullable T) T))
+(declare-datatypes ((Nullable 1)) ((par (T) ((nullable.some (nullable.val T)) (nullable.null)))))
 
 ; program: $get_type_nullable_lift
 ; args:
@@ -58,6 +55,3 @@
 
 ; disclaimer: This function is not in the SMT-LIB standard.
 (declare-const nullable.lift (-> (! Type :var F :implicit) F ($get_type_nullable_lift F)))
-
-; shared selector
-(declare-const @shared_selector (-> (! Type :opaque :var D) (! Type :opaque :var T) (! Int :opaque) D T))
