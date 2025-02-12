@@ -232,7 +232,10 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_ITOS:
         case Kind::SEQ_NTH:
         case Kind::STRING_UPDATE:
-        case Kind::STRING_LEQ: return true;
+        case Kind::STRING_LEQ:
+        case Kind::STRING_REV:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER: return true;
         default:
           break;
       }

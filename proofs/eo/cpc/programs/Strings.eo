@@ -22,6 +22,22 @@
   )
 )
 
+; define: $str_value_len
+; args:
+; - s (Seq T): The sequence term.
+; return: >
+;   The length of s, if it denotes a "value-like" sequence, that
+;   is, either a string literal or a concatentation of sequence units.
+(program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
+  ((Seq T)) Int
+  (
+    (($str_value_len (seq.++ (seq.unit e) ss))  (eo::add 1 ($str_value_len ss)))
+    (($str_value_len (@seq.empty (Seq T)))      0)
+    (($str_value_len (seq.unit e))              1)
+    (($str_value_len s)                         (eo::requires (eo::is_str s) true (eo::len s)))
+  )
+)
+
 ; define: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
@@ -418,27 +434,28 @@
 
 ;;-------------------- Reductions
 
-; define: $str_check_length_one_or_unit
-; args:
-; - s (Seq T): The sequence term.
-; return: true if s is a constant-like string of length one.
-(program $str_check_length_one_or_unit ((T Type) (s (Seq T)) (t T))
-  ((Seq T)) Bool
-  (
-    (($str_check_length_one_or_unit (seq.unit t))  true)
-    (($str_check_length_one_or_unit s)             (eo::is_eq (eo::len s) 1))
-  )
-)
 
-; In the following, a "reduction predicate" refers to a formula that is used
-; to axiomatize an extended string program in terms of (simpler) programs.
+; define: $str_reduction_pred_case_conv
+; args:
+; - k String: The purification skolem.
+; - x String: The string term argument.
+; - isLower Bool: Whether we are considering str.to_lower (resp. str.to_upper).
+; return: the reduction predicate for term for str.to_lower/str.to_upper applied to x.
+(define $str_reduction_pred_case_conv ((k String) (x String) (isLower Bool))
+  (and (= (str.len x) (str.len k))
+       (forall ((@var.str_index Int))
+         (or (not (>= @var.str_index 0))
+             (not (< @var.str_index (str.len k)))
+             (= (str.to_code (str.substr k @var.str_index 1))
+                (eo::define ((ci (str.to_code (str.substr x @var.str_index 1))))
+                (eo::ite isLower
+                  (ite (and (<= 65 ci) (<= ci 90)) (+ ci 32) ci)
+                  (ite (and (<= 97 ci) (<= ci 122)) (+ ci -32) ci))))))))
 
 ; program: $str_reduction_pred
 ; args:
 ; - t (Seq U): The string term.
 ; return: the reduction predicate for term t of sort s.
-; note: >
-;   The operators listed in comments are missing from the signature currently.
 (program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int)
                               (s String) (r RegLan) (t String))
   (T) Bool
@@ -540,7 +557,7 @@
         (eo::define ((k (@purify (str.update x n y))))
         (ite (and (>= n 0) (> (str.len x) n))
           (eo::define ((k1 (@purify ($str_prefix x n))))
-          (eo::define ((ys (eo::ite ($str_check_length_one_or_unit y) ; optimization for single characters
+          (eo::define ((ys (eo::ite (eo::is_eq ($str_value_len y) 1) ; optimization for single characters
                               y
                               (str.substr y 0 (- (str.len x) n)))))
           (eo::define ((k2 (@purify ($str_suffix_rem x (+ n (str.len ys))))))
@@ -655,10 +672,16 @@
                 (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
                 (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
             )))))))
-
-    ; str.to_lower
-    ; str.to_upper
-    ; str.rev
+    (($str_reduction_pred (str.to_lower x)) ($str_reduction_pred_case_conv (@purify (str.to_lower x)) x true))
+    (($str_reduction_pred (str.to_upper x)) ($str_reduction_pred_case_conv (@purify (str.to_upper x)) x false))
+    (($str_reduction_pred (str.rev x))
+        (eo::define ((k (@purify (str.rev x))))
+          (and (= (str.len x) (str.len k))
+              (forall ((@var.str_index Int))
+                (or
+                  (not (>= @var.str_index 0))
+                  (not (< @var.str_index (str.len k)))
+                  (= (str.substr k @var.str_index 1) (str.substr x (- (str.len x) (+ @var.str_index 1)) 1)))))))
   )
 )
 
