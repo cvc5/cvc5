@@ -443,6 +443,11 @@ private:
   //--------------------------------- end initialization
 
   /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return nodeManager(); };
+
+  /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);

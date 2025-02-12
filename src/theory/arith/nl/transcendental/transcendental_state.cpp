@@ -39,6 +39,7 @@ TranscendentalState::TranscendentalState(Env& env,
     : EnvObj(env),
       d_im(im),
       d_model(model),
+      d_taylor(nodeManager()),
       d_trPurify(userContext()),
       d_trPurifies(userContext()),
       d_trPurifyVars(userContext())

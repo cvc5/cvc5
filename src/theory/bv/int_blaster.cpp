@@ -56,6 +56,7 @@ IntBlaster::IntBlaster(Env& env,
       d_intblastCache(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
+      d_iandUtils(nodeManager()),
       d_mode(mode),
       d_context(userContext())
 {

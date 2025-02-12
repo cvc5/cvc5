@@ -511,7 +511,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
                 << "- add " << ita->second << " with " << diffRel << std::endl;
             std::vector<Node> premises{ita->second, diffRel};
             std::vector<Node> cpre{one, one};
-            std::vector<Node> coeff = getMacroSumUbCoeff(premises, cpre);
+            std::vector<Node> coeff = getMacroSumUbCoeff(nm, premises, cpre);
             ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
             Trace("arith-static-pf")
                 << "- check " << premises << " " << coeff << std::endl;
