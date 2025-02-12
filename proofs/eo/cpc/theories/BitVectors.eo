@@ -325,24 +325,6 @@
         (BitVec m) (BitVec 1))
 )
 
-; disclaimer: >
-;   This function is not a function in SMT-LIB. Although it is used
-;   to describe semantics of bv operators, it is not a theory symbol.
-;   The type of this function currently permits evaluatable terms as
-;   indices to support RARE.
-(declare-const int2bv (->
-  (! Int :var w)
-  Int (BitVec w))
-)
-
-; disclaimer: >
-;   This function is not a function in SMT-LIB. Although it is used
-;   to describe semantics of bv operators, it is not a theory symbol.
-(declare-const bv2nat (->
-  (! Int :var m :implicit)
-  (BitVec m) Int)
-)
-
 ; internal operators
 
 (declare-const @bit

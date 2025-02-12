@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -730,16 +730,6 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       premises.insert(fa);
     }
   } while (expanded);
-  // now we should be able to close it
-  if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
-  {
-    std::vector<Node> assumptionsVec;
-    for (const Node& a : d_assumptions)
-    {
-      assumptionsVec.push_back(a);
-    }
-    d_resChains.addLazyStep(d_false, &d_resChainPg, assumptionsVec);
-  }
 }
 
 void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,7 +62,7 @@ T DefaultEqBB(TNode node, TBitblaster<T>* bb) {
     T bit_eq = mkIff(lhs[i], rhs[i]);
     bits_eq.push_back(bit_eq); 
   }
-  T bv_eq = mkAnd(bits_eq);
+  T bv_eq = mkAnd(node.getNodeManager(), bits_eq);
   return bv_eq; 
 }
 
@@ -78,8 +78,8 @@ T AdderUltBB(TNode node, TBitblaster<T>* bb) {
   // a < b <=> ~ (add(a, ~b, 1).carry_out)
   std::vector<T> not_b;
   negateBits(b, not_b);
-  T carry = mkTrue<T>();
-  
+  T carry = mkTrue<T>(node.getNodeManager());
+
   for (unsigned i = 0 ; i < a.size(); ++i) {
     carry = mkOr( mkAnd(a[i], not_b[i]),
                   mkAnd( mkXor(a[i], not_b[i]),
@@ -204,13 +204,14 @@ void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   Assert(node.getKind() == Kind::CONST_BITVECTOR);
   Assert(bits.size() == 0);
 
+  NodeManager* nm = node.getNodeManager();
   for (unsigned i = 0; i < utils::getSize(node); ++i) {
     Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
     if(bit == Integer(0)){
-      bits.push_back(mkFalse<T>());
+      bits.push_back(mkFalse<T>(nm));
     } else {
       Assert(bit == Integer(1));
-      bits.push_back(mkTrue<T>()); 
+      bits.push_back(mkTrue<T>(nm));
     }
   }
   if(TraceIsOn("bitvector-bb")) {
@@ -348,7 +349,7 @@ void DefaultCompBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
     T eq = mkIff(a[i], b[i]);
     bit_eqs.push_back(eq); 
   }
-  T a_eq_b = mkAnd(bit_eqs);
+  T a_eq_b = mkAnd(node.getNodeManager(), bit_eqs);
   bits.push_back(a_eq_b);   
 }
 
@@ -378,14 +379,15 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   // }
   
   std::vector<T> newres; 
-  bb->bbTerm(node[0], res); 
+  bb->bbTerm(node[0], res);
+  NodeManager* nm = node.getNodeManager();
   for(unsigned i = 1; i < node.getNumChildren(); ++i) {
     std::vector<T> current;
     bb->bbTerm(node[i], current);
     newres.clear(); 
     // constructs a simple shift and add multiplier building the result
     // in res
-    shiftAddMultiplier(res, current, newres);
+    shiftAddMultiplier(nm, res, current, newres);
     res = newres;
   }
   if(TraceIsOn("bitvector-bb")) {
@@ -404,11 +406,12 @@ void DefaultAddBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
 
   std::vector<T> newres;
 
+  NodeManager* nm = node.getNodeManager();
   for(unsigned i = 1; i < node.getNumChildren(); ++i) {
     std::vector<T> current;
     bb->bbTerm(node[i], current);
-    newres.clear(); 
-    rippleCarryAdder(res, current, newres, mkFalse<T>());
+    newres.clear();
+    rippleCarryAdder(res, current, newres, mkFalse<T>(nm));
     res = newres; 
   }
 
@@ -429,7 +432,7 @@ void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   // bvsub a b = adder(a, ~b, 1)
   std::vector<T> not_b;
   negateBits(b, not_b);
-  rippleCarryAdder(a, not_b, bits, mkTrue<T>());
+  rippleCarryAdder(a, not_b, bits, mkTrue<T>(node.getNodeManager()));
 }
 
 template <class T>
@@ -441,41 +444,49 @@ void DefaultNegBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   bb->bbTerm(node[0], a);
   Assert(utils::getSize(node) == a.size());
 
+  NodeManager* nm = node.getNodeManager();
+
   // -a = add(~a, 0, 1).
   std::vector<T> not_a;
   negateBits(a, not_a);
   std::vector<T> zero;
-  makeZero(zero, utils::getSize(node)); 
-  
-  rippleCarryAdder(not_a, zero, bits, mkTrue<T>()); 
+  makeZero(nm, zero, utils::getSize(node));
+
+  rippleCarryAdder(not_a, zero, bits, mkTrue<T>(nm));
 }
 
 template <class T>
-void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>& q, std::vector<T>& r, unsigned rec_width) {
+void uDivModRec(NodeManager* nm,
+                const std::vector<T>& a,
+                const std::vector<T>& b,
+                std::vector<T>& q,
+                std::vector<T>& r,
+                unsigned rec_width)
+{
   Assert(q.size() == 0 && r.size() == 0);
 
-  if(rec_width == 0 || isZero(a)) {
-    makeZero(q, a.size());
-    makeZero(r, a.size());
+  if (rec_width == 0 || isZero(nm, a))
+  {
+    makeZero(nm, q, a.size());
+    makeZero(nm, r, a.size());
     return;
-  } 
-  
+  }
+
   std::vector<T> q1, r1;
   std::vector<T> a1 = a;
-  rshift(a1, 1); 
+  rshift(nm, a1, 1);
 
-  uDivModRec(a1, b, q1, r1, rec_width - 1);
+  uDivModRec(nm, a1, b, q1, r1, rec_width - 1);
   // shift the quotient and remainder (i.e. multiply by two) and add 1 to remainder if a is odd
-  lshift(q1, 1);
-  lshift(r1, 1);
+  lshift(nm, q1, 1);
+  lshift(nm, r1, 1);
 
-  
-  T is_odd = mkIff(a[0], mkTrue<T>());
-  T one_if_odd = mkIte(is_odd, mkTrue<T>(), mkFalse<T>()); 
+  T is_odd = mkIff(a[0], mkTrue<T>(nm));
+  T one_if_odd = mkIte(is_odd, mkTrue<T>(nm), mkFalse<T>(nm));
 
   std::vector<T> zero;
-  makeZero(zero, b.size());
-  
+  makeZero(nm, zero, b.size());
+
   std::vector<T> r1_shift_add;
   // account for a being odd
   rippleCarryAdder(r1, zero, r1_shift_add, one_if_odd); 
@@ -485,11 +496,11 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
   std::vector<T> r_minus_b;
   T co1;
   // use adder because we need r_minus_b anyway
-  co1 = rippleCarryAdder(r1_shift_add, not_b, r_minus_b, mkTrue<T>()); 
+  co1 = rippleCarryAdder(r1_shift_add, not_b, r_minus_b, mkTrue<T>(nm));
   // sign is true if r1 < b
-  T sign = mkNot(co1); 
-  
-  q1[0] = mkIte(sign, q1[0], mkTrue<T>());
+  T sign = mkNot(co1);
+
+  q1[0] = mkIte(sign, q1[0], mkTrue<T>(nm));
 
   // would be nice to have a high level ITE instead of bitwise
   for(unsigned i = 0; i < a.size(); ++i) {
@@ -499,17 +510,16 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
   // check if a < b
 
   std::vector<T> a_minus_b;
-  T co2 = rippleCarryAdder(a, not_b, a_minus_b, mkTrue<T>());
+  T co2 = rippleCarryAdder(a, not_b, a_minus_b, mkTrue<T>(nm));
   // Node a_lt_b = a_minus_b.back();
   T a_lt_b = mkNot(co2); 
   
   for(unsigned i = 0; i < a.size(); ++i) {
-    T qval = mkIte(a_lt_b, mkFalse<T>(), q1[i]);
+    T qval = mkIte(a_lt_b, mkFalse<T>(nm), q1[i]);
     T rval = mkIte(a_lt_b, a[i], r1_shift_add[i]);
     q.push_back(qval);
-    r.push_back(rval); 
+    r.push_back(rval);
   }
-
 }
 
 template <class T>
@@ -529,19 +539,21 @@ void UdivUremBB(TNode node,
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
-  uDivModRec(a, b, quot, rem, utils::getSize(node));
+  NodeManager* nm = node.getNodeManager();
+
+  uDivModRec(nm, a, b, quot, rem, utils::getSize(node));
   // adding a special case for division by 0
   std::vector<T> iszero;
   for (size_t i = 0, size = b.size(); i < size; ++i)
   {
-    iszero.push_back(mkIff(b[i], mkFalse<T>()));
+    iszero.push_back(mkIff(b[i], mkFalse<T>(nm)));
   }
-  T b_is_0 = mkAnd(iszero);
+  T b_is_0 = mkAnd(nm, iszero);
 
   for (size_t i = 0, size = quot.size(); i < size; ++i)
   {
-    quot[i] = mkIte(b_is_0, mkTrue<T>(), quot[i]);  // a udiv 0 is 11..11
-    rem[i] = mkIte(b_is_0, a[i], rem[i]);           // a urem 0 is a
+    quot[i] = mkIte(b_is_0, mkTrue<T>(nm), quot[i]);  // a udiv 0 is 11..11
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);             // a urem 0 is a
   }
 }
 
@@ -598,6 +610,8 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
+  NodeManager* nm = node.getNodeManager();
+
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
@@ -623,7 +637,7 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
         // if b[s] is true then we must have shifted by at least 2^b bits so
         // all bits bellow 2^s will be 0, otherwise just use previous shift
         // value
-        res[i] = mkIte(b[s], mkFalse<T>(), prev_res[i]);
+        res[i] = mkIte(b[s], mkFalse<T>(nm), prev_res[i]);
       }
       else
       {
@@ -637,7 +651,7 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   for (unsigned i = 0; i < b.size(); ++i)
   {
     // this is fine  because b_ult_a_size has been bit-blasted
-    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
+    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>(nm));
   }
 
   if (TraceIsOn("bitvector-bb"))
@@ -655,6 +669,8 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
+
+  NodeManager* nm = node.getNodeManager();
 
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
@@ -680,7 +696,7 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
       {
         // if b[s] is true then we must have shifted by at least 2^b bits so
         // all bits above 2^s will be 0, otherwise just use previous shift value
-        res[i] = mkIte(b[s], mkFalse<T>(), prev_res[i]);
+        res[i] = mkIte(b[s], mkFalse<T>(nm), prev_res[i]);
       }
       else
       {
@@ -695,7 +711,7 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   for (unsigned i = 0; i < b.size(); ++i)
   {
     // this is fine  because b_ult_a_size has been bit-blasted
-    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
+    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>(nm));
   }
 
   if (TraceIsOn("bitvector-bb"))

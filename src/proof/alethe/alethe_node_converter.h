@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,10 +73,7 @@ class AletheNodeConverter : public BaseAlfNodeConverter
                         TypeNode tn,
                         bool useRawSym = true) override;
 
-  Node getOperatorOfTerm(Node n, bool reqCast = false) override
-  {
-    return Node::null();
-  };
+  Node getOperatorOfTerm(Node n) override { return Node::null(); };
 
   Node typeAsNode(TypeNode tni) override { return Node::null(); };
 

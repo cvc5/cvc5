@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -434,24 +434,23 @@ Node QuantAttributes::getQuantIdNumNode( Node q ) {
   }
 }
 
-Node QuantAttributes::mkAttrPreserveStructure()
+Node QuantAttributes::mkAttrPreserveStructure(NodeManager* nm)
 {
-  Node nattr = mkAttrInternal(AttrType::ATTR_PRESERVE_STRUCTURE);
+  Node nattr = mkAttrInternal(nm, AttrType::ATTR_PRESERVE_STRUCTURE);
   PreserveStructureAttribute psa;
   nattr[0].setAttribute(psa, true);
   return nattr;
 }
 
-Node QuantAttributes::mkAttrQuantifierElimination()
+Node QuantAttributes::mkAttrQuantifierElimination(NodeManager* nm)
 {
-  Node nattr = mkAttrInternal(AttrType::ATTR_QUANT_ELIM);
+  Node nattr = mkAttrInternal(nm, AttrType::ATTR_QUANT_ELIM);
   QuantElimAttribute qea;
   nattr[0].setAttribute(qea, true);
   return nattr;
 }
-Node QuantAttributes::mkAttrInternal(AttrType at)
+Node QuantAttributes::mkAttrInternal(NodeManager* nm, AttrType at)
 {
-  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // use internal skolem id so that this method is deterministic
   Node id = nm->mkConstInt(Rational(static_cast<uint32_t>(at)));

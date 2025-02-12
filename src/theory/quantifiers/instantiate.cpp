@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -565,7 +565,7 @@ Node Instantiate::getInstantiation(Node q,
     // to track which trigger caused an instantiation.
     if (id != InferenceId::UNKNOWN)
     {
-      pfTerms.push_back(mkInferenceIdNode(id));
+      pfTerms.push_back(mkInferenceIdNode(nodeManager(), id));
       if (!pfArg.isNull())
       {
         pfTerms.push_back(pfArg);
@@ -587,7 +587,7 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
-                        TrustId::THEORY_PREPROCESS,
+                        TrustId::QUANTIFIERS_INST_REWRITE,
                         true,
                         "Instantiate::getInstantiation:rewrite_inst");
         pf->addStep(newBody, ProofRule::EQ_RESOLVE, {body, proven}, {});

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,7 +142,17 @@ Node Rewriter::rewriteEqualityExt(TNode node)
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
                                       TheoryRewriter* trew)
 {
-  d_theoryRewriters[tid] = trew;
+  if (trew == nullptr)
+  {
+    // if nullptr, use the default (null) theory rewriter.
+    d_nullTr.emplace_back(
+        std::unique_ptr<NoOpTheoryRewriter>(new NoOpTheoryRewriter(d_nm, tid)));
+    d_theoryRewriters[tid] = d_nullTr.back().get();
+  }
+  else
+  {
+    d_theoryRewriters[tid] = trew;
+  }
 }
 
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
@@ -488,7 +498,8 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     ProofGenerator* pg = trn.getGenerator();
     if (pg == nullptr)
     {
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_nm, theoryId);
       // add small step trusted rewrite
       Node rid = mkMethodId(d_nm,
                             isPre ? MethodId::RW_REWRITE_THEORY_PRE

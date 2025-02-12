@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
@@ -74,7 +75,7 @@ Node OpArgIndex::getGroundTerm( ConjectureGenerator * s, std::vector< TNode >& a
     args2.push_back( d_ops[0] );
   }
   args2.insert(args2.end(), args.begin(), args.end());
-  return NodeManager::currentNM()->mkNode(d_op_terms[0].getKind(), args2);
+  return s->nodeManager()->mkNode(d_op_terms[0].getKind(), args2);
 }
 
 void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& terms ) {
@@ -185,6 +186,11 @@ void ConjectureGenerator::setUniversalRelevant( TNode n ) {
 }
 
 bool ConjectureGenerator::isUniversalLessThan( TNode rt1, TNode rt2 ) {
+  //ensure both patterns are registered so that the following assertions will
+  //succeed
+  registerPattern(rt1, rt1.getType());
+  registerPattern(rt2, rt2.getType());
+
   //prefer the one that is (normal, smaller) lexographically
   Assert(d_pattern_is_relevant.find(rt1) != d_pattern_is_relevant.end());
   Assert(d_pattern_is_relevant.find(rt2) != d_pattern_is_relevant.end());
@@ -374,57 +380,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       beginCallDebug();
-      eq::EqualityEngine * ee = getEqualityEngine();
+      eq::EqualityEngine* ee = getEqualityEngine();
       d_conj_count = 0;
-
-      Trace("sg-proc") << "Get eq classes..." << std::endl;
-      d_op_arg_index.clear();
-      d_ground_eqc_map.clear();
-      d_bool_eqc[0] = Node::null();
-      d_bool_eqc[1] = Node::null();
-      std::vector< TNode > eqcs;
-      d_em.clear();
-      eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-      while( !eqcs_i.isFinished() ){
-        TNode r = (*eqcs_i);
-        Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
-        eqcs.push_back( r );
-        if( r.getType().isBoolean() ){
-          if (areEqual(r, d_true))
-          {
-            d_ground_eqc_map[r] = d_true;
-            d_bool_eqc[0] = r;
-          }
-          else if (areEqual(r, d_false))
-          {
-            d_ground_eqc_map[r] = d_false;
-            d_bool_eqc[1] = r;
-          }
-        }
-        d_em[r] = eqcs.size();
-        eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
-        while( !ieqc_i.isFinished() ){
-          TNode n = (*ieqc_i);
-          Trace("sg-proc-debug") << "......term : " << n << std::endl;
-          if( getTermDatabase()->hasTermCurrent( n ) ){
-            if( isHandledTerm( n ) ){
-              std::vector<TNode> areps;
-              for (const Node& nc : n)
-              {
-                areps.push_back(d_qstate.getRepresentative(nc));
-              }
-              d_op_arg_index[r].addTerm(areps, n);
-            }
-          }
-          ++ieqc_i;
-        }
-        ++eqcs_i;
-      }
-      Assert(!d_bool_eqc[0].isNull());
-      Assert(!d_bool_eqc[1].isNull());
-      d_urelevant_terms.clear();
-      Trace("sg-proc") << "...done get eq classes" << std::endl;
-
+      std::vector<TNode> eqcs;
+      getEquivalenceClasses(eqcs);
       Trace("sg-proc") << "Determine ground EQC..." << std::endl;
       bool success;
       do{
@@ -887,6 +846,57 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
+void ConjectureGenerator::getEquivalenceClasses(std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Get eq classes..." << std::endl;
+  d_op_arg_index.clear();
+  d_ground_eqc_map.clear();
+  d_bool_eqc[0] = Node::null();
+  d_bool_eqc[1] = Node::null();
+  d_em.clear();
+  eq::EqualityEngine* ee = getEqualityEngine();
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
+    eqcs.push_back( r );
+    if( r.getType().isBoolean() ){
+      if (areEqual(r, d_true))
+        {
+          d_ground_eqc_map[r] = d_true;
+          d_bool_eqc[0] = r;
+        }
+      else if (areEqual(r, d_false))
+        {
+          d_ground_eqc_map[r] = d_false;
+          d_bool_eqc[1] = r;
+        }
+    }
+    d_em[r] = eqcs.size();
+    eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
+    while( !ieqc_i.isFinished() ){
+      TNode n = (*ieqc_i);
+      Trace("sg-proc-debug") << "......term : " << n << std::endl;
+      if( getTermDatabase()->hasTermCurrent( n ) ){
+        if( isHandledTerm( n ) ){
+          std::vector<TNode> areps;
+          for (const Node& nc : n)
+            {
+              areps.push_back(d_qstate.getRepresentative(nc));
+            }
+          d_op_arg_index[r].addTerm(areps, n);
+        }
+      }
+      ++ieqc_i;
+    }
+    ++eqcs_i;
+  }
+  Assert(!d_bool_eqc[0].isNull());
+  Assert(!d_bool_eqc[1].isNull());
+  d_urelevant_terms.clear();
+  Trace("sg-proc") << "...done get eq classes" << std::endl;
+}
+
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
 
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
@@ -926,23 +936,14 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
             if( optStatsOnly() ){
               d_conj_count++;
             }else{
-              std::vector< Node > bvs;
-              for (const std::pair<const TypeNode, unsigned>& lhs_pattern :
-                   d_pattern_var_id[lhs])
-              {
-                for (unsigned j = 0; j <= lhs_pattern.second; j++)
-                {
-                  bvs.push_back(getFreeVar(lhs_pattern.first, j));
-                }
-              }
-              Node rsg;
-              if( !bvs.empty() ){
-                Node bvl =
-                    nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
-                rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
-              }else{
-                rsg = lhs.eqNode( rhs );
-              }
+              Node body = lhs.eqNode(rhs);
+              std::unordered_set<Node> fvs;
+              expr::getFreeVariables(body, fvs);
+              std::vector<Node> bvs;
+              bvs.insert(bvs.begin(), fvs.begin(), fvs.end());
+              Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
+              Node rsg = NodeManager::mkNode(Kind::FORALL, bvl, body);
+
               rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );
@@ -1826,7 +1827,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
           children.push_back( nc );
         }
       }
-      return NodeManager::currentNM()->mkNode( s->d_func_kind[f], children );
+      return s->d_cg->nodeManager()->mkNode(s->d_func_kind[f], children);
     }
   }else{
     Assert(false);

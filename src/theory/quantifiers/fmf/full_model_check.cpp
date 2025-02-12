@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -224,7 +224,8 @@ void Def::basic_simplify( FirstOrderModelFmc * m ) {
   d_status.clear();
 }
 
-void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
+void Def::simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m)
+{
   Trace("fmc-simplify") << "Simplify definition, #cond = " << d_cond.size() << std::endl;
   basic_simplify( m );
   Trace("fmc-simplify") << "post-basic simplify, #cond = " << d_cond.size() << std::endl;
@@ -543,7 +544,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     }
 
     Trace("fmc-model-simplify") << "Simplifying " << op << "..." << std::endl;
-    fm->d_models[op]->simplify( this, fm );
+    fm->d_models[op]->simplify(nodeManager(), this, fm);
 
     if (TraceIsOn("fmc-model"))
     {
@@ -1098,7 +1099,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       Trace("fmc-debug") << "Simplify the definition..." << std::endl;
       d.debugPrint("fmc-debug", Node::null(), this);
     }
-    d.simplify(this, fm);
+    d.simplify(nodeManager(), this, fm);
     Trace("fmc-debug") << "Done simplifying" << std::endl;
   }
   if (TraceIsOn("fmc-debug"))

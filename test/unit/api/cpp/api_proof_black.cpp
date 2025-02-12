@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hans-Joerg Schurr, Aina Niemetz, Mudathir Mohamed
+ *   Abdalrhman Mohamed, Hans-Joerg Schurr, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,9 +62,10 @@ class TestApiBlackProof : public TestApi
     d_solver->setOption("proof-granularity", "dsl-rewrite");
     Sort intSort = d_tm.getIntegerSort();
     Term x = d_tm.mkConst(intSort, "x");
-    Term twoX = d_tm.mkTerm(Kind::MULT, {d_tm.mkInteger(2), x});
-    Term xPlusX = d_tm.mkTerm(Kind::ADD, {x, x});
-    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {twoX, xPlusX}));
+    Term zero = d_tm.mkInteger(0);
+    Term geq = d_tm.mkTerm(Kind::GEQ, {x, zero});
+    Term leq = d_tm.mkTerm(Kind::LEQ, {zero, x});
+    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {geq, leq}));
     d_solver->checkSat();
     return d_solver->getProof().front();
   }

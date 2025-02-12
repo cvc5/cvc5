@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1007,15 +1007,17 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         Node c = ei->d_constructor.get();
         eqc_cons[ eqc ] = c;
       }else{
-        //if eqc contains a symbol known to datatypes (a selector), then we must assign
-        //should assign constructors to EQC if they have a selector or a tester
+        // If eqc contains a symbol known to datatypes (a selector), then we
+        // must assign should assign constructors to EQC if they have a
+        // selector or a tester.
         bool shouldConsider = ( ei && ei->d_selectors ) || hasTester( eqc );
-        if( shouldConsider ){
+        // We only consider this term additionally if it is relevant.
+        if (shouldConsider && termSet.find(eqc) != termSet.end())
+        {
           nodes.push_back( eqc );
         }
       }
     }
-    //}
     ++eqccs_i;
   }
 
@@ -1029,32 +1031,35 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     Node neqc;
     TypeNode tt = eqc.getType();
     const DType& dt = tt.getDType();
-    if (!d_equalityEngine->hasTerm(eqc))
+    Assert(d_equalityEngine->hasTerm(eqc));
+    Trace("dt-cmi")
+        << "NOTICE : Datatypes: no constructor in equivalence class " << eqc
+        << std::endl;
+    Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
+    EqcInfo* ei = getOrMakeEqcInfo(eqc);
+    std::vector<bool> pcons;
+    getPossibleCons(ei, eqc, pcons);
+    if (TraceIsOn("dt-cmi"))
     {
-      Assert(false);
-    }else{
-      Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
-      Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
-      EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      std::vector< bool > pcons;
-      getPossibleCons( ei, eqc, pcons );
       Trace("dt-cmi") << "Possible constructors : ";
       for( unsigned i=0; i<pcons.size(); i++ ){
         Trace("dt-cmi") << pcons[i] << " ";
       }
       Trace("dt-cmi") << std::endl;
-      for (size_t r = 0; r < 2; r++)
+    }
+    for (size_t r = 0; r < 2; r++)
+    {
+      if (neqc.isNull())
       {
-        if( neqc.isNull() ){
-          for (size_t i = 0, psize = pcons.size(); i < psize; i++)
+        for (size_t i = 0, psize = pcons.size(); i < psize; i++)
+        {
+          // must try the infinite ones first
+          bool cfinite =
+              d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
+          if (pcons[i] && (r == 1) == cfinite)
           {
-            // must try the infinite ones first
-            bool cfinite =
-                d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
-            if( pcons[i] && (r==1)==cfinite ){
-              neqc = utils::getInstCons(eqc, dt, i, shareSel);
-              break;
-            }
+            neqc = utils::getInstCons(eqc, dt, i, shareSel);
+            break;
           }
         }
       }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,7 +89,14 @@ void TheorySep::initializeHeapTypes()
   }
 }
 
-TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheorySep::getTheoryRewriter()
+{
+  if (!options().sep.sep)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheorySep::getProofChecker() { return nullptr; }
 
@@ -1899,12 +1906,12 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc, d_tsid});
+        d_im.conflictExp(id, ProofRule::TRUST, ant, {d_tiid, conc});
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << id << std::endl;
         TrustNode trn = d_im.mkLemmaExp(
-            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc, d_tsid});
+            conc, ProofRule::TRUST, ant, {}, {d_tiid, conc});
         d_im.addPendingLemma(
             trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }

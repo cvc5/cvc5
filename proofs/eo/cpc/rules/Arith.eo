@@ -3,6 +3,7 @@
 (include "../theories/Ints.eo")
 (include "../programs/Arith.eo")
 (include "../programs/Utils.eo")
+(include "../programs/PolyNorm.eo")
 
 ;;;;; ProofRule::ARITH_SUM_UB
 
@@ -285,6 +286,118 @@
                      (and (<= x a) (r2 y b))
                      (and (>= x a) (r1 y b))))))))
 
+;;;;; ProofRule::ARITH_MULT_SIGN
+
+; program: $strip_even_exponent
+; args:
+; - t T: The variable to strip.
+; - m U: The monomial to process.
+; return: >
+;   The result of stripping even exponent of t from the beginning of m.
+(program $strip_even_exponent ((T Type) (t T) (U Type) (m U :list))
+  (T U) U
+  (
+  (($strip_even_exponent t (* t t m)) ($strip_even_exponent t m))
+  (($strip_even_exponent t m)         m)
+  )
+)
+
+; program: $mk_arith_mult_sign_sgn
+; args:
+; - sgn Bool: Whether the current portion of the monomial we have processed is entailed to be positive (resp. negative).
+; - F Bool: A conjunction of the remaining premises we have left to process.
+; - m T: The monomial we are considering.
+; return: >
+;   Whether the monomial we have processed is entailed to be positive (resp. negative).
+(program $mk_arith_mult_sign_sgn ((T Type) (U Type) (F Bool :list) (l Bool) (t T) (z T) (m T :list) (sgn Bool))
+  (Bool Bool T) Bool
+  (
+  (($mk_arith_mult_sign_sgn sgn (and (not (= t z)) F) (* t t m))  ; ensures non-empty
+      (eo::requires (eo::to_z z) 0
+        ($mk_arith_mult_sign_sgn sgn F ($strip_even_exponent t m))))
+  (($mk_arith_mult_sign_sgn sgn (and (> t z) F) (* t m))
+      (eo::requires (eo::to_z z) 0
+        ($mk_arith_mult_sign_sgn sgn F ($strip_even_exponent t m))))
+  (($mk_arith_mult_sign_sgn sgn (and (< t z) F) (* t m))
+      (eo::requires (eo::to_z z) 0
+        ($mk_arith_mult_sign_sgn (eo::not sgn) F ($strip_even_exponent t m))))
+  ; base case
+  (($mk_arith_mult_sign_sgn sgn true 1)   sgn)  
+  ; handles the singleton antecedant case
+  (($mk_arith_mult_sign_sgn sgn l m)      ($mk_arith_mult_sign_sgn sgn (eo::cons and l true) m))
+  )
+)
+
+; rule: arith_mult_sign
+; implements: ProofRule::ARITH_MULT_SIGN
+; args:
+; - F Bool: A conjunction of arithmetic relations.
+; - m T: A monomial.
+; conclusion: >
+;   F implies the arithmetic relation over m that is implied by reasoning about
+;   the sign of the variables in m.
+(declare-rule arith_mult_sign ((T Type) (F Bool) (m T))
+  :args (F m)
+  :conclusion (=> F
+                (eo::define ((r (eo::ite ($mk_arith_mult_sign_sgn true F m) > <)))
+                  (r m ($arith_mk_zero (eo::typeof m)))))
+)
+
+;;;;; ProofRule::ARITH_MULT_ABS_COMPARISON
+
+; program: $mk_arith_mult_abs_comparison_lhs
+; args:
+; - r (-> T U Bool): The relation.
+; - F Bool: A conjunction of the remaining premises we have left to process.
+; return: >
+;   The left hand side of the equality proven by arith_mult_abs_comparison for
+;   r and the remaining premises F.
+(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
+  ((-> T U Bool) Bool) S
+  (
+    (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
+    (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
+    (($mk_arith_mult_abs_comparison_lhs > (and (and (= (abs t) (abs u)) 
+                                                    (not (= t z))) B))  (eo::requires (eo::to_z z) 0 
+                                                                        (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B))))
+    (($mk_arith_mult_abs_comparison_lhs r true)                            1)
+  )
+)
+
+; program: $mk_arith_mult_abs_comparison_rhs
+; args:
+; - r (-> T U Bool): The relation.
+; - F Bool: A conjunction of the remaining premises we have left to process.
+; return: >
+;   The right hand side of the equality proven by arith_mult_abs_comparison for
+;   r and the remaining premises F.
+; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
+(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
+  ((-> T U Bool) Bool) S
+  (
+    (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
+    (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
+    (($mk_arith_mult_abs_comparison_rhs > (and (and (= (abs t) (abs u))
+                                                    (not (= t z))) B))  (eo::requires (eo::to_z z) 0
+                                                                        (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B))))
+    (($mk_arith_mult_abs_comparison_rhs r true)                           1)
+  )
+)
+
+; rule: arith_mult_abs_comparison
+; implements: ProofRule::ARITH_MULT_ABS_COMPARISON
+; premises:
+; - F Bool: A conjunction of arithmetic relations involving absolute value.
+; conclusion: >
+;   The arithmetic relation that is implied by combining the relations in F.
+(declare-rule arith_mult_abs_comparison ((F Bool))
+  :premise-list F and
+  :conclusion (eo::define ((f ($get_fun ($head F))))
+              (f
+                (abs ($mk_arith_mult_abs_comparison_lhs f F))
+                (abs ($mk_arith_mult_abs_comparison_rhs f F))))
+)
+
 ;;;;; ProofRule::ARITH_REDUCTION
 
 ; define: $arith_to_int_reduction
@@ -347,6 +460,81 @@
 (declare-rule arith_reduction ((T Type) (t T))
   :args (t)
   :conclusion ($arith_reduction_pred t)
+)
+
+;;;;; ProofRule::ARITH_POLY_NORM
+
+; rule: arith_poly_norm
+; implements: ProofRule::ARITH_POLY_NORM
+; args:
+; - a U: The left-hand side of the equality.
+; - b U: The right-hand side of the equality.
+; requires: >
+;   That the arithmetic terms a and b are equal up polynomial normalization.
+; conclusion: The given equality.
+(declare-rule arith_poly_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires ((($get_arith_poly_norm a) ($get_arith_poly_norm b)))
+  :conclusion (= a b)
+)
+
+;;;;; ProofRule::ARITH_POLY_NORM_REL
+
+; program: $is_poly_norm_rel_consts
+; args:
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
+; return: >
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign. Returns false for any other relation.
+(program $is_poly_norm_rel_consts ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+  (Bool) Bool
+  (
+    (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (= cx cy))  true)
+    (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts b)          false)
+  )
+)
+
+; program: $remove_to_real
+; args:
+; - t U: The term to process.
+; return: The result of removing an application of to_real from t, if applicable.
+(program $remove_to_real ((U Type) (x U) (T Type))
+  (U) T
+  (
+  (($remove_to_real (to_real x)) x)
+  (($remove_to_real x)           x)
+  )
+)
+
+; rule: arith_poly_norm_rel
+; implements: ProofRule::ARITH_POLY_NORM_REL
+; premises:
+; - eq Bool: >
+;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
+;   are equal modulo polynomial normalization and some scaling factors. These
+;   terms may be of arithmetic or bitvector type.
+; args:
+; - eqr Bool: The equivalence between relations, proven by this rule.
+; requires: >
+;  The constants for this rule are legal, x is equivalent to x1-x2, and y is
+;  equivalent to y1-y2.
+; conclusion: >
+;   An equivalence between relations specified by eqr and justified by eq.
+(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U))
+  :premises ((= (* cx x) (* cy y)))
+  :args ((= (r x1 x2) (r y1 y2)))
+  :requires ((($is_poly_norm_rel_consts (r cx cy)) true)
+             (($remove_to_real x) (- x1 x2))
+             (($remove_to_real y) (- y1 y2)))
+  :conclusion (= (r x1 x2) (r y1 y2))
 )
 
 ;;;;; ProofRewriteRule::ARITH_POW_ELIM

@@ -196,21 +196,6 @@
 (define $get_bv_poly_norm ((m Int :implicit) (w Int) (b (BitVec m)))
   ($poly_mod_coeffs ($get_bv_poly_norm_rec b) w))
 
-; define: $is_poly_norm
-; args:
-; - a T: The first arithmetic term to process, of type Int, Real, or BitVec type.
-; - b T: The second arithmetic term to process, of type Int, Real, or BitVec type.
-; return: true if a and b normalize to the same polynomial
-(define $is_poly_norm ((T Type :implicit) (a T) (b T))
-  (eo::define ((at (eo::typeof a)))
-  (eo::ite (eo::is_eq ($is_arith_type at) true)
-    ; if arithmetic, use arith routine on a and b
-    (eo::is_eq ($get_arith_poly_norm a) ($get_arith_poly_norm b))
-    ; it bitvector, get two to the power of the bitwidth and use bv routine on a and b
-    (eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth at))))
-      (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b)))))
-)
-
 ; program: $arith_poly_to_term_rec
 ; args:
 ; - p @Polynomial: The polynomial to convert to a term.
@@ -232,65 +217,3 @@
 ;   This can be used for normalizing terms according to arithmetic.
 (define $arith_poly_to_term ((T Type :implicit) (t T))
   ($arith_poly_to_term_rec ($get_arith_poly_norm t)))
-
-; program: $is_poly_norm_rel_consts
-; args:
-; - b Bool: >
-;   a formula of the form (r cx cy) where r is a binary relation and cx and
-;   cy are scaling factors.
-; return: >
-;   The result of checking if r is a polynomial normalization relation for a
-;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
-;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
-;   scaling factors must have the same sign. For bitvectors, they must be set to
-;   1. Returns false for any other relation.
-(program $is_poly_norm_rel_consts ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
-  (Bool) Bool
-  (
-    (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (= cx cy))  true)
-    (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts b)          false)
-  )
-)
-
-; program: $remove_to_real
-; args:
-; - t U: The term to process.
-; return: The result of removing an application of to_real from t, if applicable.
-(program $remove_to_real ((U Type) (x U) (T Type))
-  (U) T
-  (
-  (($remove_to_real (to_real x)) x)
-  (($remove_to_real x)           x)
-  )
-)
-
-; program: $mk_poly_norm_rel
-; args:
-; - t U: The left hand side of the premise of ProofRule::ARITH_POLY_NORM_REL.
-; - s U: The right hand side of the premise.
-; - r (-> U U Bool): The relation of the conclusion.
-; return: >
-;   The conclusion of ProofRule::ARITH_POLY_NORM_REL. This program does not
-;   evaluate if the input to this proof rule is invalid.
-(program $mk_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U)
-                            (n Int) (c (BitVec n)) (nil (BitVec n) :list) 
-                            (xb1 (BitVec n)) (xb2 (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)))
-  (U U (-> U U Bool)) Bool
-  (
-    (($mk_poly_norm_rel (* cx x) (* cy y) r)
-        (eo::requires ($is_poly_norm_rel_consts (r cx cy)) true
-        (eo::match ((x1 U) (x2 U) (y1 U) (y2 U))
-          (@pair ($remove_to_real x) ($remove_to_real y))
-          (
-          ((@pair (- x1 x2) (- y1 y2)) (= (r x1 x2) (r y1 y2)))))
-          ))
-    (($mk_poly_norm_rel (bvmul c (bvsub xb1 xb2) nil) (bvmul c (bvsub yb1 yb2) nil) =)
-        (eo::requires (eo::to_z c) 1
-        (eo::requires (eo::to_z nil) 1
-          (= (= xb1 xb2) (= yb1 yb2)))))
-  )
-)
