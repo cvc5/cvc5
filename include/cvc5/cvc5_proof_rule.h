@@ -3583,6 +3583,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_AND_DE_MORGAN),
   /** Auto-generated from RARE rule bool-or-and-distrib */
   EVALUE(BOOL_OR_AND_DISTRIB),
+  /** Auto-generated from RARE rule bool-implies-or-distrib */
+  EVALUE(BOOL_IMPLIES_OR_DISTRIB),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
