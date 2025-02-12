@@ -187,8 +187,9 @@ enum ENUM(ProofRule)
    * Note that cvc5 internally has a notion of which terms denote "values".
    * This property is implemented for any sort that can appear in equalities.
    * A term denotes a value if and only if it is the canonical representation
-   * of a value of that sort. Any two distinct values are semantically disequal
-   * in all models.
+   * of a value of that sort. For example, set values are a chain of unions of
+   * singleton sets whose elements are also values, where this chain is sorted.
+   * Any two distinct values are semantically disequal in all models.
    *
    * In practice, we use this rule only to show the distinctness of non-atomic
    * sort, e.g. Sets, Sequences, Datatypes, Arrays, etc.
