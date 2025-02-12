@@ -2110,7 +2110,7 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
-   * where :math:`d` is a positive number, :math:`t` an arithmetic term and
+   * where :math:`d` is a non-negative number, :math:`t` an arithmetic term and
    * :math:`\texttt{maclaurin}(\exp, n+1, c)` is the :math:`(n+1)`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
    * function evaluated at :math:`c` where :math:`n` is :math:`2 \cdot d`.
