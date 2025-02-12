@@ -1532,10 +1532,10 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
   }
-  // enable MBQI if --mbqi-fast-sygus is provided
-  if (opts.quantifiers.mbqiFastSygus)
+  // enable MBQI if --mbqi-enum is provided
+  if (opts.quantifiers.mbqiEnum)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiEnum");
   }
   if (opts.quantifiers.mbqi)
   {

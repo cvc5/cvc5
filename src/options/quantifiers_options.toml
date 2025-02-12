@@ -209,12 +209,36 @@ name   = "Quantifiers"
   help       = "use model-based quantifier instantiation"
 
 [[option]]
-  name       = "mbqiFastSygus"
+  name       = "mbqiEnum"
   category   = "expert"
-  long       = "mbqi-fast-sygus"
+  long       = "mbqi-enum"
   type       = "bool"
   default    = "false"
   help       = "use fast enumeration to augment instantiations from MBQI"
+
+[[option]]
+  name       = "mbqiEnumExtVarsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-ext-vars-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include variables defined in terms of others in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumFreeSymsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-free-syms-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include free symbols from the body of the quantified formula in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumGlobalSymGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-global-syms-grammar"
+  type       = "bool"
+  default    = "false"
+  help       = "include global symbols from all available assertions in grammars for fast enumerative mbqi"
 
 #### E-matching options
 
