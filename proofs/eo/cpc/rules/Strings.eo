@@ -634,12 +634,12 @@
     (
       (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
                                                             (eo::define ((nrem (eo::is_eq t tr)))
-                                                              ($str_is_multiset_subset_strict ss tr
+                                                              ($str_is_multiset_subset_strict ss tr 
                                                                 ; we update b to true if we successfully remove a character from s
                                                                 (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
-      (($str_is_multiset_subset_strict s t b)             (eo::ite b
+      (($str_is_multiset_subset_strict s t b)             (eo::ite b 
                                                             ; remaining characters in t must be constants only
-                                                            (eo::is_str ($str_collect_word t))
+                                                            (eo::is_str ($str_from_flat_form t false))
                                                             false))
     )
 )

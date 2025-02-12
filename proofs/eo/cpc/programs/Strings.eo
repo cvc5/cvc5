@@ -815,7 +815,7 @@
 
 ; program: $str_flatten_word
 ; args:
-; - t String: A string term, assumed to be a non-empty word constant.
+; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
@@ -823,23 +823,7 @@
   (String) String
   (
     (($str_flatten_word "") "")
-    (($str_flatten_word t)  ($str_cons
-                              (eo::extract t 0 0)
-                              ($str_flatten_word (eo::extract t 1 (eo::len t)))))
-  )
-)
-
-; program: $str_collect_word
-; args:
-; - t String: A string term, assumed to be a concatenation of characters.
-; return: >
-;   The result of "collect" t, for example given (str.++ "A" (str.++ "B" "")),
-;   this returns the term "AB".
-(program $str_collect_word ((t String) (ts String :list))
-  (String) String
-  (
-    (($str_collect_word (str.++ t ts)) (eo::concat t ($str_collect_word ts)))
-    (($str_collect_word "")            "")
+    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
   )
 )
 
@@ -1067,10 +1051,19 @@
   ; intro, flatten, reverse
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
+
+; define: $str_to_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "flat form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) (optionally) reverse.
 (define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
-  ; intro, flatten, reverse
-  ($str_rev rev ($str_nary_intro s))
-)
+  ; intro, reverse
+  ($str_rev rev ($str_nary_intro s)))
 
 ; program: $re_str_to_flat_form
 ; args:
@@ -1102,8 +1095,7 @@
 ;   result to their flat form. Note that other strings in r, i.e. those that
 ;   occur beneath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
-  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
-)
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r))))
 
 ; define: $str_from_flat_form
 ; args:
@@ -1118,12 +1110,20 @@
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
-  ($str_nary_elim ($str_collect ($str_rev rev s)))
-)
+  ($str_nary_elim ($str_collect ($str_rev rev s))))
+
+; define: $str_from_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a term in "flat form" to a term that is in a form that corresponds
+;   to one in cvc5 rewritten form. This is the dual method to
+;   $str_to_nary_form. This consists of the following steps:
+;   (1) (optionally) reverse,
+;   (2) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
-  ; reverse, elim
-  ($str_nary_elim ($str_rev rev s))
-)
+  ($str_nary_elim ($str_rev rev s)))
 
 ; program: $re_str_from_flat_form
 ; args:
@@ -1156,6 +1156,21 @@
 (define $re_from_flat_form ((r RegLan) (rev Bool))
   ; (un?)flatten, reverse, elim
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
+)
+
+; define: $str_is_prefix
+; args:
+; - s U: The first string.
+; - s1 U: The second string.
+; - rev Bool: Whether the two arguments should be reversed.
+; return:
+;   true if s1 is a prefix of s, taking into account flattening, and reversing
+;   the strings if rev is true.
+(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
+  (eo::define ((sf ($str_to_flat_form s rev)))
+  (eo::define ((sf1 ($str_to_flat_form s1 rev)))
+  (eo::define ((U (eo::typeof s)))
+  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
 )
 
 ; note: This is a forward declaration of $str_re_includes below.
@@ -1584,7 +1599,7 @@
 ;   them again and consume from the beginning of the remainder. Finally, we convert
 ;   back from flat form when applicable.
 (define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
-  (eo::define ((ss ($str_to_flat_form s true)))
+  (eo::define ((ss ($str_to_flat_form s true)))  
   (eo::define ((rr ($re_to_flat_form r true)))
   (eo::match ((s1 String) (r1 RegLan))
       ($str_re_consume_rec ss rr @result.null true)
@@ -1655,7 +1670,8 @@
 ; define: $str_overlap
 ; args:
 ; - s (Seq U): The first string, expected to be a string literal.
-; - t (Seq U): The second string, expected to be a string literal.
+; - t (Seq U): The second string, expected to be  a string literal.
+; - rev Bool: Whether we are computing the reverse overlap.
 ; return: >
 ;   The minimum number of characters that must be skipped in s before
 ;   string t can be compatible with it. For example:
@@ -1672,11 +1688,29 @@
       ($str_rev rev ($str_flatten_word s))
       ($str_rev rev ($str_flatten_word t)))))))
 
+; program: $str_has_overlap_rec
+; args:
+; - nil (Seq U): The empty string.
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be in flattened form.
+; return: >
+;   Assuming t is non-empty, this method returns true if s contains t, or a
+;   non-empty suffix of s is a prefix of t.
+(program $str_has_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
+  ((Seq U) (Seq U) (Seq U)) Bool
+  (
+  (($str_has_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
+                                                true
+                                                ($str_has_overlap_rec nil s1 t)))
+  (($str_has_overlap_rec nil nil t)           false)
+  )
+)
+
 
 ; program: $str_has_overlap
 ; args:
-; - s (Seq U): The first string, expected to be a string literal.
-; - t (Seq U): The second string, expected to be a string literal.
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be non-empty and in flattened form.
 ; return: >
 ;   True if s is non-empty and contains t, or
 ;   a non-empty suffix of s is a prefix of t if rev is false, or
@@ -1685,9 +1719,10 @@
 ;   This method is equivalent to theory::strings::Word::hasOverlap in cvc5,
 ;   see theory/strings/word.h.
 (define $str_has_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  ; Note that $str_overlap with always return a value <= the length of s.
-  ; There is overlap only when it is strictly less than the length of s.
-  (eo::gt (eo::len s) ($str_overlap s t rev)))
+  (eo::requires (eo::is_str s) true
+  (eo::requires (eo::is_str t) true
+  (eo::define ((emp ($mk_emptystr (eo::typeof s))))
+    ($str_has_overlap_rec emp ($str_to_flat_form s rev) ($str_to_flat_form t rev))))))
 
 ;;;;; evaluation utils
 
@@ -1783,7 +1818,7 @@
 ;   or the term `(str.to_lower s)` otherwise.
 (define $str_to_lower_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_case_conv_rec ($str_flatten_word s) true)
+    ($str_case_conv_rec ($str_to_flat_form s false) true)
     (str.to_lower s)))
 
 ; define: $str_to_upper_eval
@@ -1794,7 +1829,7 @@
 ;   or the term `(str.to_upper s)` otherwise.
 (define $str_to_upper_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_case_conv_rec ($str_flatten_word s) false)
+    ($str_case_conv_rec ($str_to_flat_form s false) false)
     (str.to_upper s)))
 
 ; define: $str_rev_eval
@@ -1805,7 +1840,7 @@
 ;   or the term `(str.rev s)` otherwise.
 (define $str_rev_eval ((s String))
   (eo::ite (eo::is_str s)
-    ($str_collect_word ($str_rev true ($str_flatten_word s))) ; make reverse flat form and then convert back
+    ($str_from_flat_form ($str_to_flat_form s true) false) ; make reverse flat form and then convert back
     (str.rev s)))
 
 ; program: $str_leq_eval_rec
@@ -1833,7 +1868,7 @@
 ;   or the term `(str.<= s t)` otherwise.
 (define $str_leq_eval ((s String) (t String))
   (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
-    ($str_leq_eval_rec ($str_flatten_word s) ($str_flatten_word t))
+    ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
     (str.<= s t)))
 
 
