@@ -70,6 +70,8 @@
 (include "./rules/Datatypes.eo")
 (include "./rules/Rewrites.eo")
 
+(include "./programs/DistinctValues.eo")
+
 (include "./expert/CpcExpert.eo")
 
 ; disclaimer: >
@@ -299,6 +301,19 @@
 (declare-rule evaluate ((U Type) (t U))
   :args (t)
   :conclusion (= t ($run_evaluate t))
+)
+
+; rule: distinct_values
+; implements: ProofRule::DISTINCT_VALUES
+; args:
+; - t U: The first term.
+; - s U: The second term.
+; requires: Showing that t and s are distinct terms based on reasoning about values.
+; conclusion: The term t is not equal to s.
+(declare-rule distinct_values ((U Type) (t U) (s U))
+  :args (t s)
+  :requires ((($are_distinct_terms t s) true))
+  :conclusion (not (= t s))
 )
 
 ; define: $get_aci_normal_form

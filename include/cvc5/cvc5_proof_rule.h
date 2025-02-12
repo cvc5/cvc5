@@ -169,9 +169,37 @@ enum ENUM(ProofRule)
    * :math:`\texttt{Evalutor::evaluate}` in :cvc5src:`theory/evaluator.h` with an
    * empty substitution.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
+   *
+   * Note this proof rule only applies to atomic sorts, that is, operators on
+   * Int, Real, String, Bool or BitVector.
    * \endverbatim
    */
   EVALUE(EVALUATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Distinct values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t, s}{\neg t = s}
+   *
+   * where :math:`t` and :math:`s` are distinct values.
+   *
+   * Note that cvc5 internally has a notion of which terms denote "values".
+   * This property is implemented for any sort that can appear in equalities.
+   * A term denotes a value if and only if it is the canonical representation
+   * of a value of that sort. For example, set values are a chain of unions of
+   * singleton sets whose elements are also values, where this chain is sorted.
+   * Any two distinct values are semantically disequal in all models.
+   *
+   * In practice, we use this rule only to show the distinctness of non-atomic
+   * sort, e.g. Sets, Sequences, Datatypes, Arrays, etc.
+   *
+   * Note that internally, the notion of value is implemented by the
+   * Node::isConst method.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_VALUES),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- associative/commutative/idempotency/identity normalization**
