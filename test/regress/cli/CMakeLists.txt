@@ -3808,6 +3808,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/sred-cases.smt2
   regress2/strings/str-contains-reduction.smt2
   regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
