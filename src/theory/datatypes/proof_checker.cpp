@@ -37,7 +37,6 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
-  NodeManager* nm = nodeManager();
   if (id == ProofRule::DT_SPLIT)
   {
     Assert(children.empty());
