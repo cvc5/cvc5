@@ -62,9 +62,10 @@ class TestApiBlackProof : public TestApi
     d_solver->setOption("proof-granularity", "dsl-rewrite");
     Sort intSort = d_tm.getIntegerSort();
     Term x = d_tm.mkConst(intSort, "x");
-    Term twoX = d_tm.mkTerm(Kind::MULT, {d_tm.mkInteger(2), x});
-    Term xPlusX = d_tm.mkTerm(Kind::ADD, {x, x});
-    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {twoX, xPlusX}));
+    Term zero = d_tm.mkInteger(0);
+    Term geq = d_tm.mkTerm(Kind::GEQ, {x, zero});
+    Term leq = d_tm.mkTerm(Kind::LEQ, {zero, x});
+    d_solver->assertFormula(d_tm.mkTerm(Kind::DISTINCT, {geq, leq}));
     d_solver->checkSat();
     return d_solver->getProof().front();
   }

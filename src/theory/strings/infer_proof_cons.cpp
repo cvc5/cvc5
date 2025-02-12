@@ -455,8 +455,8 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
       // may need to splice constants
-      mainEqSRew =
-          spliceConstants(env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
+      mainEqSRew = spliceConstants(
+          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -1568,13 +1568,14 @@ Node InferProofCons::spliceConstants(Env& env,
     else if (rule == ProofRule::CONCAT_UNIFY)
     {
       Trace("strings-ipc-splice")
-          << "Splice cprop at " << currT << " / " << currS << ", for conclusion " << conc << std::endl;
-      Assert (!conc.isNull() && conc.getKind()==Kind::EQUAL);
-      for (size_t j=0; j<2; j++)
+          << "Splice cprop at " << currT << " / " << currS
+          << ", for conclusion " << conc << std::endl;
+      Assert(!conc.isNull() && conc.getKind() == Kind::EQUAL);
+      for (size_t j = 0; j < 2; j++)
       {
-        Node src = j==0 ? currT : currS;
-        Node tgt = j==0 ? conc[0] : conc[1];
-        if (src==tgt)
+        Node src = j == 0 ? currT : currS;
+        Node tgt = j == 0 ? conc[0] : conc[1];
+        if (src == tgt)
         {
           continue;
         }
@@ -1587,7 +1588,7 @@ Node InferProofCons::spliceConstants(Env& env,
         std::vector<Node>& vec = j == 0 ? tvec : svec;
         size_t lentgt = Word::getLength(tgt);
         size_t len = Word::getLength(src);
-        if (len<=lentgt)
+        if (len <= lentgt)
         {
           Assert(false) << "Smaller source for unify";
           return eq;

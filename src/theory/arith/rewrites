@@ -67,18 +67,15 @@
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
 (define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
 
+(define-cond-rule arith-int-eq-conflict ((t Int) (c Real))
+  (not (= (to_real (to_int c)) c))
+  (= (to_real t) c)
+  false)
 
-; trancendentals
-
-(define-rule arith-sine-zero () (sin 0/1) 0/1)
-(define-rule arith-sine-pi2 () (sin (* 1/2 real.pi)) 1/1)
-(define-rule arith-cosine-elim ((x Real)) (cos x) (sin (- (* 1/2 real.pi) x)))
-(define-rule arith-tangent-elim ((x Real)) (tan x) (/ (sin x) (cos x)))
-(define-rule arith-secent-elim ((x Real)) (sec x) (/ 1/1 (sin x)))
-(define-rule arith-cosecent-elim ((x Real)) (csc x) (/ 1/1 (cos x)))
-(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
-
-(define-rule arith-pi-not-int () (is_int real.pi) false)
+(define-cond-rule arith-int-geq-tighten ((t Int) (c Real) (cc Int))
+  (and (not (= (to_real (to_int c)) c)) (= cc (+ (to_int c) 1)))
+  (>= (to_real t) c)
+  (>= t cc))
 
 ; absolute value comparisons
 

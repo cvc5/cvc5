@@ -138,6 +138,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_MULT_TANGENT:
+    case ProofRule::ARITH_MULT_SIGN:
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::ARITH_TRANS_EXP_NEG:
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -165,6 +167,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
+    case ProofRule::RE_CONCAT:
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
     case ProofRule::RE_UNFOLD_NEG:
@@ -214,8 +217,10 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       Kind k = pargs[0].getKind();
       switch (k)
       {
+        case Kind::STRING_CONTAINS:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_INDEXOF:
+        case Kind::STRING_INDEXOF_RE:
         case Kind::STRING_REPLACE:
         case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_REPLACE_RE:
@@ -223,7 +228,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_STOI:
         case Kind::STRING_ITOS:
         case Kind::SEQ_NTH:
-        case Kind::STRING_UPDATE: return true;
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ: return true;
         default:
           break;
       }

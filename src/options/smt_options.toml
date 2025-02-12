@@ -150,7 +150,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceUnsatCores"
-  category   = "regular"
+  category   = "common"
   long       = "produce-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -192,7 +192,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkUnsatCores"
-  category   = "regular"
+  category   = "common"
   long       = "check-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -317,7 +317,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unconstrainedSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
@@ -333,7 +333,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "sortInference"
-  category   = "regular"
+  category   = "expert"
   long       = "sort-inference"
   type       = "bool"
   default    = "false"

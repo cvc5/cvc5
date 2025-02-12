@@ -21,7 +21,7 @@ cat << EOF > $REWRITE_SIG
 (include "../theories/Strings.eo")
 (include "../theories/Sets.eo")
 
-(include "../expert/theories/Sets.eo")
+(include "../expert/theories/SetsExt.eo")
 (include "../expert/theories/Transcendentals.eo")
 
 EOF

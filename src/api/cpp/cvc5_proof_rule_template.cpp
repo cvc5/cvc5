@@ -148,6 +148,7 @@ const char* toString(ProofRule rule)
     case ProofRule::STRING_REDUCTION: return "STRING_REDUCTION";
     case ProofRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
     case ProofRule::RE_INTER: return "RE_INTER";
+    case ProofRule::RE_CONCAT: return "RE_CONCAT";
     case ProofRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
@@ -227,6 +228,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+      return "macro-arith-int-eq-conflict";
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+      return "macro-arith-int-geq-tighten";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:

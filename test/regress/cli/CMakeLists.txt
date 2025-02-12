@@ -34,6 +34,7 @@ set(regress_0_tests
   regress0/arith/bug549.cvc.smt2
   regress0/arith/bug569.smt2
   regress0/arith/dd_59_static_learn.smt2
+  regress0/arith/dd_cs_dekker.smt2
   regress0/arith/delta-minimized-row-vector-bug.smtv1.smt2
   regress0/arith/div-chainable.smt2
   regress0/arith/div.01.smt2
@@ -1170,6 +1171,7 @@ set(regress_0_tests
   regress0/options/safe-options2.smt2
   regress0/options/safe-options3.smt2
   regress0/options/safe-opts-warn.smt2
+  regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1495,6 +1497,8 @@ set(regress_0_tests
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
+  regress0/quantifiers/dd_p15_dio_lemma.smt2
+  regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
   regress0/quantifiers/dd_rts-quant-elim-eq-tester.smt2
   regress0/quantifiers/dd_spark2014-pat.smt2
@@ -1594,6 +1598,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
+  regress0/quantifiers/var-elim-ineq-simple.smt2
   regress0/quantifiers/veqt-delta.smt2
   regress0/quoted-symbols.smt2
   regress0/rec-fun-const-parse-bug.smt2
@@ -1878,6 +1883,7 @@ set(regress_0_tests
   regress0/strings/dd_norn_675.smt2
   regress0/strings/dd_rw_984.smt2
   regress0/strings/dd_slog_2087_ctn_split.smt2
+  regress0/strings/dd_slog_stranger_2020.smt2
   regress0/strings/delta-trust-subs.smt2
   regress0/strings/denghan-instance56567.smt2
   regress0/strings/distinct-witness-id.smt2
@@ -1959,6 +1965,8 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/nterm-pc-zalig.smt2
   regress0/strings/parser-syms.cvc.smt2
+  regress0/strings/prefix-multi-var.smt2
+  regress0/strings/prefix-multi-var-emp.smt2
   regress0/strings/prefix-simple-no-pf.smt2
   regress0/strings/prefix-suffix-eval.smt2
   regress0/strings/proj-issue316-regexp-ite.smt2
@@ -1980,6 +1988,7 @@ set(regress_0_tests
   regress0/strings/re-mem-eval-large.smt2
   regress0/strings/re-mem-include-rewrite.smt2
   regress0/strings/re-none-rewrites.smt2
+  regress0/strings/re-str-inference-missing.smt2
   regress0/strings/re-syntax.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -3760,6 +3769,7 @@ set(regress_2_tests
   regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2
   regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2
   regress2/quantifiers/cee-event-wrong-sat.smt2
+  regress2/quantifiers/dd10_sdlx-fix-4.smt2
   regress2/quantifiers/gn-wrong-091018.smt2
   regress2/quantifiers/issue3481-unsat1.smt2
   regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2
@@ -3799,6 +3809,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/str-contains-reduction.smt2
   regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
