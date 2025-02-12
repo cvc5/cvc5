@@ -1566,12 +1566,15 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
       theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
   Trace("brc-macro") << "Show " << premise << " by arith poly norm"
                      << std::endl;
-  if (!cdp->addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise}))
+  bool isBv = eq[0][0].getType().isBitVector();
+  ProofRule rule = isBv ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
+  if (!cdp->addStep(premise, rule, {}, {premise}))
   {
     Trace("brc-macro") << "...fail premise" << std::endl;
     return false;
   }
-  if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {eq}))
+  ProofRule rrule = isBv ? ProofRule::BV_POLY_NORM_EQ : ProofRule::ARITH_POLY_NORM_REL;
+  if (!cdp->addStep(eq, rrule, {premise}, {eq}))
   {
     Trace("brc-macro") << "...fail application" << std::endl;
     return false;
