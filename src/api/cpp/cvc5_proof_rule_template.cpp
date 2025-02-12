@@ -119,6 +119,8 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case ProofRule::BV_POLY_NORM: return "BV_POLY_NORM";
+    case ProofRule::BV_POLY_NORM_EQ: return "BV_POLY_NORM_EQ";
     //================================================= Datatype rules
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";

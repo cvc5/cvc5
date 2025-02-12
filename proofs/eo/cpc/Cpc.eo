@@ -70,8 +70,6 @@
 (include "./rules/Datatypes.eo")
 (include "./rules/Rewrites.eo")
 
-(include "./programs/PolyNorm.eo")
-
 (include "./expert/CpcExpert.eo")
 
 ; disclaimer: >
@@ -301,38 +299,6 @@
 (declare-rule evaluate ((U Type) (t U))
   :args (t)
   :conclusion (= t ($run_evaluate t))
-)
-
-; rule: arith_poly_norm
-; implements: ProofRule::ARITH_POLY_NORM
-; args:
-; - a U: The left-hand side of the equality.
-; - b U: The right-hand side of the equality.
-; requires: >
-;   That the arithmetic/bitvector terms a and b are equal up polynomial
-;   normalization.
-; conclusion: The given equality.
-(declare-rule arith_poly_norm ((U Type) (a U) (b U))
-  :args ((= a b))
-  :requires ((($is_poly_norm a b) true))
-  :conclusion (= a b)
-)
-
-; rule: arith_poly_norm_rel
-; implements: ProofRule::ARITH_POLY_NORM_REL
-; premises:
-; - eq Bool: >
-;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
-;   are equal modulo polynomial normalization and some scaling factors. These
-;   terms may be of arithmetic or bitvector type.
-; args:
-; - eqr Bool: The equivalence between relations, proven by this rule.
-; conclusion: >
-;   An equivalence between relations specified by eqr and justified by eq.
-(declare-rule arith_poly_norm_rel ((U Type) (t U) (s U) (eqr Bool))
-  :premises ((= t s))
-  :args (eqr)
-  :conclusion ($mk_poly_norm_rel t s eqr)
 )
 
 ; define: $get_aci_normal_form
