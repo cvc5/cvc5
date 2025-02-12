@@ -270,7 +270,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       if (isHandledDistinctValues(pargs[0])
           && isHandledDistinctValues(pargs[1]))
       {
-        Trace("alf-printer-debug") << "Can distinct values " << pargs[0] << " "
+        Trace("alf-printer-debug") << "Can distinguish values " << pargs[0] << " "
                                    << pargs[1] << std::endl;
         return true;
       }
