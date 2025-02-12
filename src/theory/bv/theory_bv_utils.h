@@ -86,28 +86,28 @@ bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
 bool isBitblastAtom(Node lit);
 
 /* Create Boolean node representing true. */
-Node mkTrue();
+Node mkTrue(NodeManager* nm);
 /* Create Boolean node representing false. */
-Node mkFalse();
+Node mkFalse(NodeManager* nm);
 /* Create bit-vector node representing a bit-vector of ones of given size. */
-Node mkOnes(unsigned size);
+Node mkOnes(NodeManager* nm, unsigned size);
 /* Create bit-vector node representing a zero bit-vector of given size. */
-Node mkZero(unsigned size);
+Node mkZero(NodeManager* nm, unsigned size);
 /* Create bit-vector node representing a bit-vector value one of given size. */
-Node mkOne(unsigned size);
+Node mkOne(NodeManager* nm, unsigned size);
 /* Create bit-vector node representing the min signed value of given size. */
-Node mkMinSigned(unsigned size);
+Node mkMinSigned(NodeManager* nm, unsigned size);
 /* Create bit-vector node representing the max signed value of given size. */
-Node mkMaxSigned(unsigned size);
+Node mkMaxSigned(NodeManager* nm, unsigned size);
 
 /* Create bit-vector constant of given size and value. */
-Node mkConst(unsigned size, unsigned int value);
-Node mkConst(unsigned size, Integer& value);
+Node mkConst(NodeManager* nm, unsigned size, unsigned int value);
+Node mkConst(NodeManager* nm, unsigned size, Integer& value);
 /* Create bit-vector constant from given bit-vector. */
-Node mkConst(const BitVector& value);
+Node mkConst(NodeManager* nm, const BitVector& value);
 
 /* Create bit-vector variable. */
-Node mkVar(unsigned size);
+Node mkVar(NodeManager* nm, unsigned size);
 
 /* Create n-ary bit-vector node of kind BITVECTOR_AND, BITVECTOR_OR or
  * BITVECTOR_XOR where its children are sorted  */
@@ -115,8 +115,10 @@ Node mkSortedNode(Kind kind, TNode child1, TNode child2);
 Node mkSortedNode(Kind kind, std::vector<Node>& children);
 
 /* Create n-ary node of associative/commutative kind.  */
-template<bool ref_count>
-Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
+template <bool ref_count>
+Node mkNaryNode(NodeManager* nm,
+                Kind k,
+                const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   Assert(k == Kind::AND || k == Kind::OR || k == Kind::XOR
          || k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR
@@ -124,7 +126,7 @@ Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
          || k == Kind::BITVECTOR_SUB || k == Kind::BITVECTOR_MULT);
 
   if (nodes.size() == 1) { return nodes[0]; }
-  return NodeManager::currentNM()->mkNode(k, nodes);
+  return nm->mkNode(k, nodes);
 }
 
 /* Create node of kind NOT. */
@@ -141,7 +143,8 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
 
-  NodeBuilder conjunction(NodeManager::currentNM(), Kind::AND);
+  NodeManager* nm = conjunctions[0].getNodeManager();
+  NodeBuilder conjunction(nm, Kind::AND);
   for (TNode n : all) { conjunction << n; }
   return conjunction;
 }
@@ -160,7 +163,8 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
 
-  NodeBuilder disjunction(NodeManager::currentNM(), Kind::OR);
+  NodeManager* nm = nodes[0].getNodeManager();
+  NodeBuilder disjunction(nm, Kind::OR);
   for (TNode n : all) { disjunction << n; }
   return disjunction;
 }

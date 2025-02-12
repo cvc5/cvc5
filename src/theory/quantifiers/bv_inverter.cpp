@@ -239,6 +239,8 @@ Node BvInverter::solveBvLit(Node sv,
   path.pop_back();
   litk = k = lit.getKind();
 
+  NodeManager* nm = lit.getNodeManager();
+
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
    *       is enabled and the logic is quantified.
    *       We currently do not support Boolean operators
@@ -314,7 +316,7 @@ Node BvInverter::solveBvLit(Node sv,
           << "Compute inverse : " << s_val << " " << mod_val << std::endl;
       Integer inv_val = s_val.modInverse(mod_val);
       Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
-      Node inv = bv::utils::mkConst(w, inv_val);
+      Node inv = bv::utils::mkConst(nm, w, inv_val);
       t = NodeManager::mkNode(Kind::BITVECTOR_MULT, inv, t);
     }
     else if (k == Kind::BITVECTOR_MULT)

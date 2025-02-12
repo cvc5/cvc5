@@ -135,8 +135,9 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
   if (newAssertionType.isBitVector())
   {
     Assert(newAssertionType.getBitVectorSize() == 1);
+    NodeManager* nm = nodeManager();
     newAssertion =
-        nodeManager()->mkNode(Kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+        nm->mkNode(Kind::EQUAL, newAssertion, bv::utils::mkOne(nm, 1));
     newAssertionType = newAssertion.getType();
   }
   Assert(newAssertionType.isBoolean());
@@ -186,16 +187,16 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
 {
   Kind k = n.getKind();
 
+  NodeManager* nm = nodeManager();
   // easy case -- just replace boolean constant
   if (k == Kind::CONST_BOOLEAN)
   {
     updateCache(n,
-                (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
-                                           : bv::utils::mkZero(1));
+                (n == bv::utils::mkTrue(nm)) ? bv::utils::mkOne(nm, 1)
+                                             : bv::utils::mkZero(nm, 1));
     return;
   }
 
-  NodeManager* nm = nodeManager();
   Kind new_kind = k;
   switch (k)
   {
@@ -264,8 +265,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     updateCache(n,
                 nm->mkNode(Kind::ITE,
                            fromCache(n),
-                           bv::utils::mkOne(1),
-                           bv::utils::mkZero(1)));
+                           bv::utils::mkOne(nm, 1),
+                           bv::utils::mkZero(nm, 1)));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -288,7 +289,9 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // have been converted (even constants and variables) when forcing
     // with ITE introductions
     updateCache(
-        n, nm->mkNode(Kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
+        n,
+        nm->mkNode(
+            Kind::ITE, n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)));
     Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;

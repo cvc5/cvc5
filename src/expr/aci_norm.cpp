@@ -74,7 +74,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
       // and return the null node.
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkOnes(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_OR:
@@ -82,13 +82,13 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case Kind::BITVECTOR_XOR:
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkZero(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_MULT:
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkOne(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_CONCAT:

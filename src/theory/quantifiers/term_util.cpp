@@ -410,13 +410,14 @@ Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 Node TermUtil::mkTypeMaxValue(TypeNode tn)
 {
   Node n;
+  NodeManager* nm = NodeManager::currentNM();
   if (tn.isBitVector())
   {
-    n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
+    n = bv::utils::mkOnes(nm, tn.getConst<BitVectorSize>());
   }
   else if (tn.isBoolean())
   {
-    n = NodeManager::currentNM()->mkConst(true);
+    n = nm->mkConst(true);
   }
   return n;
 }

@@ -40,8 +40,8 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
       d_liftCache(),
       d_boolCache(),
-      d_one(bv::utils::mkOne(1)),
-      d_zero(bv::utils::mkZero(1)),
+      d_one(bv::utils::mkOne(nodeManager(), 1)),
+      d_zero(bv::utils::mkZero(nodeManager(), 1)),
       d_statistics(statisticsRegistry()){};
 
 PreprocessingPassResult BVToBool::applyInternal(
@@ -167,7 +167,8 @@ Node BVToBool::convertBvTerm(TNode node)
   if (node.getNumChildren() == 0)
   {
     Assert(node.getKind() == Kind::CONST_BITVECTOR);
-    Node result = node == d_one ? bv::utils::mkTrue() : bv::utils::mkFalse();
+    Node result =
+        node == d_one ? bv::utils::mkTrue(nm) : bv::utils::mkFalse(nm);
     // addToCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
