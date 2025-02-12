@@ -2120,14 +2120,16 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
-   * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
+   * where :math:`d` is a non-negative number, :math:`t` an arithmetic term and
+   * :math:`\texttt{maclaurin}(\exp, n+1, c)` is the :math:`(n+1)`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`c`. The Maclaurin series for the exponential
-   * function is the following:
+   * function evaluated at :math:`c` where :math:`n` is :math:`2 \cdot d`.
+   * The Maclaurin series for the exponential function is the following:
    *
    * .. math::
-   *   \exp(x) = \sum_{n=0}^{\infty} \frac{x^n}{n!}
+   *   \exp(x) = \sum_{i=0}^{\infty} \frac{x^i}{i!}
+   *
+   * This rule furthermore requires that :math:`1 > c^{n+1}/(n+1)!`
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_EXP_APPROX_BELOW),
@@ -2194,7 +2196,7 @@ enum ENUM(ProofRule)
    * negative values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \leq \texttt{secant}(\sin, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2220,7 +2222,7 @@ enum ENUM(ProofRule)
    * positive values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \leq \texttt{upper}(\sin, c)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2239,7 +2241,7 @@ enum ENUM(ProofRule)
    * negative values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \geq \texttt{lower}(\sin, c)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2258,7 +2260,7 @@ enum ENUM(ProofRule)
    * positive values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \geq \texttt{secant}(\sin, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
