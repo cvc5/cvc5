@@ -205,7 +205,12 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[2];
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
-    tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    size_t ds = tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    // needed to provide a larger d
+    if (ds>d)
+    {
+      return Node::null();
+    }
     Evaluator eval(nullptr);
     Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {c});
     return nm->mkNode(

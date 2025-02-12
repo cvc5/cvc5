@@ -89,6 +89,42 @@ Node buildIntegerInequality(Sum&& sum, Kind k);
  */
 Node buildRealInequality(Sum&& sum, Kind k);
 
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @param negated Updated to true if we negated the sum.
+ * @param followLCoeffSign if true, the leading coefficient is made positive,
+ * possibly negating all other coefficients.
+ * @return a pair p such that p.first + p.second (possibly negated) is
+ * equivalent to sum and p.first does not contain constant sums and p.second is
+ * constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm,
+                                   Sum&& sum,
+                                   bool& negated,
+                                   bool followLCoeffSign);
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @return a pair p such that p.first + p.second is equivalent to sum and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum);
+
+/**
+ * Decompose relation a <> b into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param a The first term.
+ * @param b The second term.
+ * @return a pair p such that p.first <> p.second is equivalent to a <> b and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeRelation(NodeManager* nm,
+                                        const Node& a,
+                                        const Node& b);
+
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory

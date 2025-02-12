@@ -80,6 +80,14 @@ name   = "Quantifiers"
   help       = "enable simple variable elimination for quantified formulas"
 
 [[option]]
+  name       = "varEntEqElimQuant"
+  category   = "expert"
+  long       = "var-ent-eq-elim-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
+
+[[option]]
   name       = "varIneqElimQuant"
   category   = "regular"
   long       = "var-ineq-elim-quant"
@@ -201,12 +209,36 @@ name   = "Quantifiers"
   help       = "use model-based quantifier instantiation"
 
 [[option]]
-  name       = "mbqiFastSygus"
+  name       = "mbqiEnum"
   category   = "expert"
-  long       = "mbqi-fast-sygus"
+  long       = "mbqi-enum"
   type       = "bool"
   default    = "false"
   help       = "use fast enumeration to augment instantiations from MBQI"
+
+[[option]]
+  name       = "mbqiEnumExtVarsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-ext-vars-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include variables defined in terms of others in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumFreeSymsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-free-syms-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include free symbols from the body of the quantified formula in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumGlobalSymGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-global-syms-grammar"
+  type       = "bool"
+  default    = "false"
+  help       = "include global symbols from all available assertions in grammars for fast enumerative mbqi"
 
 #### E-matching options
 
@@ -515,7 +547,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fullSaturateQuant"
-  category   = "regular"
+  category   = "common"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
@@ -523,7 +555,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInst"
-  category   = "regular"
+  category   = "common"
   long       = "enum-inst"
   type       = "bool"
   default    = "false"

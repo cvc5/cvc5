@@ -311,6 +311,8 @@
 
 ;;-------------------- Regular expressions
 
+;;;;; ProofRule::RE_INTER
+
 ; rule: re_inter
 ; implements: ProofRule::RE_INTER
 ; premises:
@@ -323,6 +325,38 @@
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
+
+;;;;; ProofRule::RE_CONCAT
+
+; program: $mk_re_concat
+; args:
+; - E: A conjunction of regular expression memberships.
+; return: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(program $mk_re_concat ((Es Bool :list) (s String) (r RegLan))
+  (Bool) Bool
+  (
+  (($mk_re_concat (and (str.in_re s r) Es)) (eo::match ((s1 String) (r1 RegLan))
+                                              ($mk_re_concat Es)
+                                              (((str.in_re s1 r1) (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))))
+  (($mk_re_concat true)                     (str.in_re "" @re.empty))
+  )
+)
+
+; rule: re_concat
+; implements: ProofRule::RE_CONCAT
+; premises:
+; - E [:list]: A conjunction of regular expression memberships.
+; conclusion: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(declare-rule re_concat ((E Bool))
+  :premise-list E and
+  :conclusion ($mk_re_concat E)
+)
+
+;;;;; ProofRule::RE_UNFOLD_POS
 
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
@@ -357,6 +391,8 @@
     ))
 )
 
+;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 ; premises:
@@ -383,6 +419,8 @@
                            (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
+
+;;;;; ProofRule::RE_UNFOLD_NEG
 
 ; rule: re_unfold_neg
 ; implements: ProofRule::RE_UNFOLD_NEG
@@ -526,19 +564,32 @@
   :conclusion (= (re.loop l u r1) r2)
 )
 
-; rule: re-inter-union-inclusion
-; implements: ProofRewriteRule::RE_INTER_UNION_INCLUSION
+; rule: re-inter-inclusion
+; implements: ProofRewriteRule::RE_INTER_INCLUSION
 ; args:
 ; - eq Bool: The equality between regular expressions to prove.
 ; requires: >
-;   showing that the right hand side of the equality is the result of
-;   decomposing the left hand side into a result of a regular expression
-;   inclusion and a remainder.
+;   the left hand side is the intersection of the complement of a regular
+;   expression and one that it includes.
 ; conclusion: The given equality.
-(declare-rule re-inter-union-inclusion ((r1 RegLan) (r2 RegLan))
-  :args ((= r1 r2))
-  :requires ((($str_decompose_and_check_re_inter_union_inclusion r1 r2) true))
-  :conclusion (= r1 r2)
+(declare-rule re-inter-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= (re.inter r1 (re.comp r2)) re.none))
+  :requires ((($str_re_includes r2 r1) true))
+  :conclusion (= (re.inter r1 (re.comp r2)) re.none)
+)
+
+; rule: re-union-inclusion
+; implements: ProofRewriteRule::RE_UNION_INCLUSION
+; args:
+; - eq Bool: The equality between regular expressions to prove.
+; requires: >
+;   the left hand side is the union of the complement of a regular
+;   expression and one that it is included by.
+; conclusion: The given equality.
+(declare-rule re-union-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= (re.union r1 (re.comp r2)) (re.* re.allchar)))
+  :requires ((($str_re_includes r1 r2) true))
+  :conclusion (= (re.union r1 (re.comp r2)) (re.* re.allchar))
 )
 
 ; rule: str-in-re-concat-star-char
@@ -596,7 +647,7 @@
     ((Seq T)) (Seq T)
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
-      (($str_multiset_overapprox (str.substr s n m))   ($str_to_flat_form s false))
+      (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
       (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
       (($str_multiset_overapprox s)                    ($str_to_flat_form s false))
     )

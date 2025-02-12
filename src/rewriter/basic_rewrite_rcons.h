@@ -64,15 +64,12 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
   bool prove(CDProof* cdp,
              Node a,
              Node b,
-             std::vector<std::shared_ptr<ProofNode>>& subgoals,
              TheoryRewriteMode tmode);
   /**
    * There are theory rewrites which cannot be expressed in RARE rules. In this
@@ -82,15 +79,12 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param a The left hand side of the equality.
    * @param b The left hand side of the equality.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    * @param tmode Determines if/when to try THEORY_REWRITE.
    * @return true if we successfully added a proof of (= a b) to cdp.
    */
   bool postProve(CDProof* cdp,
                  Node a,
                  Node b,
-                 std::vector<std::shared_ptr<ProofNode>>& subgoals,
                  TheoryRewriteMode tmode);
   /**
    * Add to cdp a proof of eq from free asumption eqi, where eqi is the result
@@ -110,14 +104,10 @@ class BasicRewriteRCons : protected EnvObj
    * @param cdp The proof to add to.
    * @param id The theory rewrite that proves eq.
    * @param eq The conclusion of the theory rewrite.
-   * @param subgoals The list of proofs introduced when proving eq that
-   * are trusted steps.
    */
-  void ensureProofForTheoryRewrite(
-      CDProof* cdp,
-      ProofRewriteRule id,
-      const Node& eq,
-      std::vector<std::shared_ptr<ProofNode>>& subgoals);
+  void ensureProofForTheoryRewrite(CDProof* cdp,
+                                   ProofRewriteRule id,
+                                   const Node& eq);
 
  private:
   /**
@@ -140,6 +130,18 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT or
+   * ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT or
+   * ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroArithIntRelation(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_DT_CONS_EQ.
@@ -169,6 +171,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroArithStringPredEntail(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroReInterUnionInclusion(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH.
@@ -270,8 +282,7 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
-                        theory::TheoryRewriteCtx ctx,
-                        std::vector<std::shared_ptr<ProofNode>>& subgoals);
+                        theory::TheoryRewriteCtx ctx);
 };
 
 }  // namespace rewriter

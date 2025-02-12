@@ -2042,8 +2042,20 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
         }
       }
     }
+    std::vector<Node> nc1;
+    strings::utils::getConcat(node[0], nc1);
     std::vector<Node> nc2;
     strings::utils::getConcat(node[1], nc2);
+
+    // extended component-wise containment
+    std::vector<Node> nc1rb;
+    std::vector<Node> nc1re;
+    if (se.componentContainsExt(nc1, nc2, nc1rb, nc1re) != -1)
+    {
+      debugExtendedRewrite(node, d_true, "CTN_COMPONENT_EXT");
+      return d_true;
+    }
+
     for (const Node& n : nc2)
     {
       // (str.contains x (str.++ w (str.replace x y x) z)) --->
