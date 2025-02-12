@@ -203,6 +203,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * @param conc The target conclusion of the rule, used if rule is
    * CONCAT_UNIFY.
    * @param isRev Whether rule is being applied in the reverse direction.
+   * @return The result of splicing the appropriate constants (if any) in eq.
    */
   static Node spliceConstants(Env& env,
                               ProofRule rule,
