@@ -1399,21 +1399,17 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot\ldots \cdot t_n \cdot t) = (t_1 \cdot\ldots
-   *   \cdot t_n\cdot s)\mid b}{t = s}
+   *   \inferrule{(r \cdot t) = (r\cdot s)\mid \bot}{t = s}
    *
-   * where :math:`\cdot` stands for string concatenation and :math:`b` indicates
-   * if the direction is reversed.
+   * Alternatively for the reverse:
    *
+   *   \inferrule{(t \cdot r) = (s \cdot r)\mid \top}{t = s}
+   *
+   * where :math:`r` is a concatenation of one or more strings.
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
    * implicit in the concatenation above. For example, if the premise is
    * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
    * :math:`z = \epsilon`.
-   *
-   * Also note that constants are split, such that for :math:`(\mathsf{'abc'}
-   * \cdot x) = (\mathsf{'a'} \cdot y)`, this rule, with argument :math:`\bot`,
-   * concludes :math:`(\mathsf{'bc'} \cdot x) = y`.  This splitting is done only
-   * for constants such that ``Word::splitConstant`` returns non-null.
    * \endverbatim
    */
   EVALUE(CONCAT_EQ),
@@ -1433,6 +1429,8 @@ enum ENUM(ProofRule)
    *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_2) =
    *   \mathit{len}(s_2)\mid \top}{t_2 = s_2}
    *
+   * where :math:`t_2` and :math:`s_2` is a concatenation of zero or more strings.
+   *
    * \endverbatim
    */
   EVALUE(CONCAT_UNIFY),
@@ -1441,16 +1439,14 @@ enum ENUM(ProofRule)
    * **Strings -- Core rules -- Concatenation conflict**
    *
    * .. math::
+   *   \inferrule{(c_1 \cdot t) = (c_2 \cdot s)\mid \bot}{\bot}
    *
-   *   \inferrule{(c_1\cdot t) = (c_2 \cdot s)\mid b}{\bot}
+   * Alternatively for the reverse:
    *
-   * where :math:`b` indicates if the direction is reversed, :math:`c_1,\,c_2`
-   * are constants such that :math:`\texttt{Word::splitConstant}(c_1,c_2,
-   * \mathit{index},b)` is null, in other words, neither is a prefix of the
-   * other. Note it may be the case that one side of the equality denotes the
-   * empty string.
+   * .. math::
+   *   \inferrule{(t \cdot c_1) = (s \cdot c_2)\mid \top}{\bot}
    *
-   * This rule is used exclusively for strings.
+   * where :math:`c_1,\,c_2` are distinct (non-empty) string constants of the same length.
    *
    * \endverbatim
    */
@@ -1460,12 +1456,14 @@ enum ENUM(ProofRule)
    * **Strings -- Core rules -- Concatenation conflict for disequal characters**
    *
    * .. math::
+   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid \bot}{\bot}
    *
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid b}{\bot}
+   * Alternatively for the reverse:
    *
-   * where :math:`t_1` and :math:`s_1` are constants of length one, or otherwise one side
-   * of the equality is the empty sequence and :math:`t_1` or :math:`s_1` corresponding to
-   * that side is the empty sequence.
+   * .. math::
+   *   \inferrule{(t\cdot t_1) = (s \cdot s_1), t_1 \neq s_1 \mid \top}{\bot}
+   *
+   * where :math:`t_1` and :math:`s_1` are applications of :math:`seq.unit`.
    *
    * This rule is used exclusively for sequences.
    *
@@ -1479,8 +1477,8 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid b}{((t_1 = s_1\cdot r)
-   *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\bot$}
+   *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid \bot}{((t_1 = s_1\cdot r)
+   *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
    * where :math:`r` is the purification skolem for
    * :math:`\mathit{ite}(
@@ -1492,8 +1490,8 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid b}{((t_2 = r \cdot s_2)
-   *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}{if $b=\top$}
+   *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid \top}{((t_2 = r \cdot s_2)
+   *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
    * where :math:`r` is the purification Skolem for
    * :math:`\mathit{ite}(
