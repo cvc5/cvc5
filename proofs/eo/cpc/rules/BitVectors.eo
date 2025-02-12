@@ -216,7 +216,7 @@
 ; - a (BitVec n): The left-hand side of the equality.
 ; - b (BitVec n): The right-hand side of the equality.
 ; requires: >
-;   That the bitvector terms a and b are equal up polynomial normalization.
+;   That the bitvector terms a and b are equal up to polynomial normalization.
 ; conclusion: The given equality.
 (declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
