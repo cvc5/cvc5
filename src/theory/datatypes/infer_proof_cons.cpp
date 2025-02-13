@@ -251,12 +251,51 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         //            is-C2(y)  y = x
         //            ----------------- MACRO_SR_PRED_TRANSFORM
         // is-C1(x)   is-C2(x)
-        // ------------------- DT_CLASH
+        // ------------------- 
         // false
-        cdp->addStep(fn,
-                     pol ? ProofRule::DT_CLASH : ProofRule::CONTRA,
-                     {tester1, tester1c},
-                     {});
+        // in the latter, case we prove this by DT_INST + rewriting below.
+        if (!pol)
+        {
+          cdp->addStep(fn, ProofRule::CONTRA,
+                      {tester1, tester1c},
+                      {});
+        }
+        else
+        {
+          // is-C1(x)
+          // ----------- DT_INST + EQ_RESOLVE
+          // x = C1(...)   is-C2(x)
+          // -----------   ----------- DT_INST + EQ_RESOLVE
+          // C1(...) = x   x = C2(...)
+          // ------------------------- TRANS
+          // C1(...) = C2(...)
+          // ----------------- MACRO_DT_CONS_EQ + EQ_RESOLVE
+          /// false
+          Rewriter * rr = d_env.getRewriter();
+          std::vector<Node> insts;
+          for (size_t i=0; i<2; i++)
+          {
+            Node t = i==0 ? tester1 : tester1c;
+            Node inst = rr->rewriteViaRule(ProofRewriteRule::DT_INST, tester1);
+            Assert (!inst.isNull());
+            Assert (inst.getKind()==Kind::EQUAL);
+            Node eq = t.eqNode(inst);
+            cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
+            cdp->addStep(inst, ProofRule::EQ_RESOLVE, {t, eq}, {});
+            if (i==0)
+            {
+              Node instsym = inst[1].eqNode(inst[0]);
+              cdp->addStep(instsym, ProofRule::SYMM, {inst}, {});
+              inst = instsym;
+            }
+            insts.push_back(inst);
+          }
+          Node ceq = insts[0][0].eqNode(insts[1][1]);
+          cdp->addStep(ceq, ProofRule::TRANS, insts, {});
+          Node ceqf = ceq.eqNode(fn);
+          tryRewriteRule(ceqf, conc, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
+          cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
+        }
         success = true;
       }
     }

@@ -31,14 +31,12 @@ DatatypesProofRuleChecker::DatatypesProofRuleChecker(NodeManager* nm)
 void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::DT_SPLIT, this);
-  pc->registerChecker(ProofRule::DT_CLASH, this);
 }
 
 Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
-  NodeManager* nm = nodeManager();
   if (id == ProofRule::DT_SPLIT)
   {
     Assert(children.empty());
@@ -50,18 +48,6 @@ Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
     }
     const DType& dt = tn.getDType();
     return utils::mkSplit(args[0], dt);
-  }
-  else if (id == ProofRule::DT_CLASH)
-  {
-    Assert(children.size() == 2);
-    Assert(args.empty());
-    if (children[0].getKind() != Kind::APPLY_TESTER
-        || children[1].getKind() != Kind::APPLY_TESTER
-        || children[0][0] != children[1][0] || children[0] == children[1])
-    {
-      return Node::null();
-    }
-    return nm->mkConst(false);
   }
   // no rule
   return Node::null();
