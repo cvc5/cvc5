@@ -1,37 +1,6 @@
 (include "../theories/Sets.eo")
 
-;;;;; ProofRewriteRule::SETS_IS_EMPTY_EVAL
-
-; define: $set_is_empty_eval
-; args:
-; - t (Set T): The set to check.
-; return: >
-;   true if we can determine that t is the empty set, false if we can
-;   determine t is not empty. Otherwise this method returns an unevaluated term.
-(define $set_is_empty_eval ((T Type :implicit) (t (Set T)))
-  (eo::match ((U Type) (x U) (s (Set U)))
-    t
-    (
-    ((set.empty U) true)
-    ((set.singleton x) false)
-    ((set.union (set.singleton x) s) false)
-    )
-  )
-)
-
-; rule: sets-is-empty-eval
-; implements: ProofRewriteRule::SETS_IS_EMPTY_EVAL
-; args:
-; - eq Bool: The equality to prove, whose left hand side is an application of set.is_empty.
-; requires: >
-;   showing that the set that set.is_empty is applied to is (or is not) the
-;   empty set, as denoted by the right hand side of eq.
-; conclusion: The given equality.
-(declare-rule sets-is-empty-eval ((T Type) (t (Set T)) (b Bool))
-  :args ((= (set.is_empty t) b))
-  :requires ((($set_is_empty_eval t) b))
-  :conclusion (= (set.is_empty t) b)
-)
+(include "../programs/DistinctValues.eo")
 
 ;;;;; ProofRule::SETS_SINGLETON_INJ
 
@@ -57,6 +26,86 @@
 (declare-rule sets_ext ((T Type) (a (Set T)) (b (Set T)))
   :premises ((not (= a b)))
   :conclusion (not (= (set.member (@sets_deq_diff a b) a) (set.member (@sets_deq_diff a b) b)))
+)
+
+;;;;; ProofRewriteRule::SETS_EVAL_OP
+
+; program: $set_union_to_list
+; args:
+; - s (Set T): The set to process.
+; return: >
+;   A list of elements, whose union is equal to s.
+(program $set_union_to_list ((T Type) (t (Set T)) (e T))
+  ((Set T)) @List
+  (
+    (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
+    (($set_union_to_list (set.empty (Set T)))             @list.nil)
+    (($set_union_to_list (set.singleton e))               (eo::cons @list e @list.nil))
+  )
+)
+
+; program: $eval_sets_inter
+; args:
+; - @List (Set T): The list of elements in the first set left to process.
+; - @List (Set T): The list of elements in the second set.
+; return: >
+;   The elements in the set resulting in the set intersection of the arguments.
+(program $eval_sets_inter ((T Type) (a T) (as @List :list) (bs @List))
+  (@List @List) @List
+  (
+    (($eval_sets_inter (@list a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
+                                         (eo::ite (eo::is_neg (eo::list_find @list bs a))
+                                           (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true r)
+                                           (eo::cons @list a r))))
+    (($eval_sets_inter @list.nil bs)     @list.nil)
+  )
+)
+
+; program: $eval_sets_minus
+; args:
+; - @List (Set T): The list of elements in the first set left to process.
+; - @List (Set T): The list of elements in the second set.
+; return: >
+;   The elements in the set resulting in the set difference of the arguments.
+(program $eval_sets_minus ((T Type) (a T) (as @List :list) (bs @List))
+  (@List @List) @List
+  (
+    (($eval_sets_minus (@list a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
+                                         (eo::ite (eo::is_neg (eo::list_find @list bs a))
+                                           (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
+                                             (eo::cons @list a r))
+                                            r)))
+    (($eval_sets_minus @list.nil bs)     @list.nil)
+  )
+)
+
+; program: $eval_sets_op
+; args:
+; - s (Set T): The set to process, expected to be a set operator applied to values
+; return: >
+;   The result of evaluating the operator.
+(program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)) (r (Set T)))
+  ((Set T)) @List
+  (
+    (($eval_sets_op (set.union s t)) (eo::list_concat @list ($set_union_to_list s) ($set_union_to_list t)))
+    (($eval_sets_op (set.inter s t)) ($eval_sets_inter ($set_union_to_list s) ($set_union_to_list t)))
+    (($eval_sets_op (set.minus s t)) ($eval_sets_minus ($set_union_to_list s) ($set_union_to_list t)))
+  )
+)
+
+; rule: sets-eval-op
+; implements: ProofRewriteRule::SETS_EVAL_OP
+; args:
+; - eq Bool: The equality to prove with this rule between sets a and b.
+; requires: >
+;   The elements in the result of evaluating a are equivalent to those in b.
+; conclusion: The given equality.
+(declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
+  :args ((= a b))
+  :requires ((($nary_is_eq_set @list @list.nil
+                ($eval_sets_op a)
+                ($set_union_to_list b)) true))
+  :conclusion (= a b)
 )
 
 ;;;;; ProofRewriteRule::SETS_INSERT_ELIM
