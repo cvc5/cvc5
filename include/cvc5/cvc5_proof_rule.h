@@ -2851,9 +2851,11 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall x Y.\> F = \forall Y.\> G
    *
-   * where :math:`G` is the result of replacing all literals containing
-   * :math:`x` with a constant. This is applied only when all such literals
-   * are lower (resp. upper) bounds for :math:`x`.
+   * where :math:`F` is a disjunction and where :math:`G` is the
+   * result of dropping all literals containing :math:`x`. This is
+   * applied only when all such literals are lower (resp. upper) bounds
+   * for integer or real variable :math:`x`. Note that :math:`G` may
+   * be false, and :math:`Y` may be empty in which case it is omitted.
    *
    * \endverbatim
    */
