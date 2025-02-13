@@ -247,6 +247,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BV_EQ_SOLVE:
+      if (ensureProofMacroBvEqSolve(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
       if (ensureProofMacroLambdaCaptureAvoid(cdp, eq))
       {
@@ -1464,6 +1470,30 @@ bool BasicRewriteRCons::ensureProofMacroQuantRewriteBody(CDProof* cdp,
   return true;
 }
 
+bool BasicRewriteRCons::ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq)
+{
+  Trace("brc-macro") << "Expand bv eq solve " << eq[0] << " == " << eq[1]
+                     << std::endl;
+  Node ns = nodeManager()->mkNode(Kind::BITVECTOR_SUB, eq[0][0], eq[0][1]);
+  Node nsn = theory::arith::PolyNorm::getPolyNorm(ns);
+  Node zero = theory::bv::utils::mkZero(nsn.getType().getBitVectorSize());
+  Node eqn = nsn.eqNode(zero);
+  Node equiv = eq[0].eqNode(eqn);
+  if (!ensureProofArithPolyNormRel(cdp, equiv))
+  {
+    Trace("brc-macro") << "...fail arith poly norm rel" << std::endl;
+    return false;
+  }
+  Node equiv2 = eqn.eqNode(eq[1]);
+  if (!cdp->addStep(equiv2, ProofRule::EVALUATE, {}, {eqn}))
+  {
+    Trace("brc-macro") << "...fail evaluate" << std::endl;
+    return false;
+  }
+  cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
+  return true;
+}
+
 bool BasicRewriteRCons::ensureProofMacroLambdaCaptureAvoid(CDProof* cdp,
                                                            const Node& eq)
 
@@ -1536,12 +1566,15 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
       theory::arith::PolyNorm::getArithPolyNormRelPremise(eq[0], eq[1], rx, ry);
   Trace("brc-macro") << "Show " << premise << " by arith poly norm"
                      << std::endl;
-  if (!cdp->addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise}))
+  bool isBv = eq[0][0].getType().isBitVector();
+  ProofRule rule = isBv ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
+  if (!cdp->addStep(premise, rule, {}, {premise}))
   {
     Trace("brc-macro") << "...fail premise" << std::endl;
     return false;
   }
-  if (!cdp->addStep(eq, ProofRule::ARITH_POLY_NORM_REL, {premise}, {eq}))
+  ProofRule rrule = isBv ? ProofRule::BV_POLY_NORM_EQ : ProofRule::ARITH_POLY_NORM_REL;
+  if (!cdp->addStep(eq, rrule, {premise}, {eq}))
   {
     Trace("brc-macro") << "...fail application" << std::endl;
     return false;
