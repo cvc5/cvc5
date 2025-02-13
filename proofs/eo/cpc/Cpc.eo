@@ -367,6 +367,43 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRewriteRule::DISTINCT_CARD_CONFLICT
+
+; program: $compute_card
+; args:
+; - T Type: The type.
+; return: The cardinality of T.
+; note: >
+;   This method is used for the proof rule ProofRewriteRule::DISTINCT_CARD_CONFLICT.
+;   We intentionally only handle finite types here, and moreover for simplicity
+;   limit this method to atomic types (Bool and BitVec) only.
+(program $compute_card ((n Int))
+  (Type) Int
+  (
+    (($compute_card Bool)       2)
+    (($compute_card (BitVec n)) ($arith_eval_int_pow_2 n))
+  )
+)
+
+; rule: distinct-card-conflict
+; implements: ProofRewriteRule::DISTINCT_CARD_CONFLICT
+; args:
+; - eq Bool: The equality to prove with this rule between an application of distinct D and false.
+; requires: >
+;   D is a pairwise application of distinct over a list of elements whose
+;   length is larger than the cardinality of the type of those elements.
+; conclusion: The given equality.
+(declare-rule distinct-card-conflict ((D Bool) (elems @List))
+  :args ((= D false))
+  :requires (((eo::define ((elems ($extract_pairwise_args distinct and D)))
+              (eo::define ((first (eo::list_nth @list elems 0)))
+                (eo::gt (eo::list_len @list elems) ($compute_card (eo::typeof first)))))
+              true))
+  :conclusion (= D false)
+)
+
+;;;;; trusted
+
 ; rule: trust
 ; premsies:
 ; - P: A conjunction of the premises passed to this rule.
