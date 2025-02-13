@@ -1546,6 +1546,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
   regress0/quantifiers/issue8923-qe-push-pop.smt2
+  regress0/quantifiers/issue9070-syqi-model.smt2
   regress0/quantifiers/issue9602-rewrite-pow-type.smt2
   regress0/quantifiers/issue9640-vts-iff.smt2
   regress0/quantifiers/lra-triv-gn.smt2
@@ -2609,6 +2610,7 @@ set(regress_1_tests
   regress1/interpolant-subs.smt2
   regress1/interpolant-unk-570.smt2
   regress1/ite5.smt2
+  regress1/issue10042.smt2
   regress1/issue10750-zll-repeat.smt2
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue3970-nl-ext-purify.smt2
@@ -2623,6 +2625,7 @@ set(regress_1_tests
   regress1/issue8958-bv2nat-lazy.smt2
   regress1/issue9057-block-m-lit.smt2
   regress1/issue9112-bv2nat-cg.smt2
+  regress1/issue9407-4.smt2
   regress1/issue9544-difficulty-refcount.smt2
   regress1/issue9573-lr-rewrite.smt2
   regress1/issue9660-bv2nat-static.smt2
