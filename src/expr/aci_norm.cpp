@@ -236,5 +236,105 @@ bool isACINorm(Node a, Node b)
   return (a == bn) || (an == b);
 }
 
+Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn)
+{
+  Node zeroTerm;
+  switch (k)
+  {
+    case Kind::OR: zeroTerm = nm->mkConst(true); break;
+    case Kind::AND:
+    case Kind::SEP_STAR: zeroTerm = nm->mkConst(false); break;
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      // Note that we ignore the type. This is safe since multiplication is
+      // permissive for subtypes.
+      zeroTerm = nm->mkConstInt(Rational(0));
+      break;
+    case Kind::REGEXP_UNION:
+      // universal language
+      zeroTerm = nm->mkNode(Kind::REGEXP_ALL);
+      break;
+    case Kind::REGEXP_INTER:
+      // empty language
+      zeroTerm = nm->mkNode(Kind::REGEXP_NONE);
+      break;
+    case Kind::BITVECTOR_OR:
+      if (tn.isBitVector())
+      {
+        zeroTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+      }
+      break;
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_MULT:
+      // it may be the case that we are an abstract type, which we guard here
+      // and return the null node.
+      if (tn.isBitVector())
+      {
+        zeroTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+      }
+      break;
+    default:
+      // no zero
+      break;
+  }
+  return zeroTerm;
+}
+
+struct AnnihilateTag
+{
+};
+struct AnnihilateComputedTag
+{
+};
+/** Attribute true for expressions with bound variables in them */
+typedef expr::Attribute<AnnihilateTag, bool> AnnihilateAttr;
+typedef expr::Attribute<AnnihilateComputedTag, bool> AnnihilateComputedAttr;
+
+bool isAnnihilate(Kind k)
+{
+  switch (k)
+  {
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR: return true;
+    default: break;
+  }
+  return false;
+}
+
+bool isAnnihilate(Node a, const Node& zero)
+{
+  AnnihilateAttr aa;
+  AnnihilateComputedAttr aca;
+  if (!a.getAttribute(aca))
+  {
+    Kind k = a.getKind();
+    bool isAnnil = false;
+    if (isAnnihilate(k))
+    {
+      for (const Node& ac : a)
+      {
+        if (ac == zero)
+        {
+          isAnnil = true;
+          break;
+        }
+        if (ac.getKind() == k && isAnnihilate(ac, zero))
+        {
+          isAnnil = true;
+          break;
+        }
+      }
+    }
+    a.setAttribute(aa, isAnnil);
+    a.setAttribute(aca, true);
+    return isAnnil;
+  }
+  return a.getAttribute(aa);
+}
+
 }  // namespace expr
 }  // namespace cvc5::internal
