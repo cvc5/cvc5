@@ -508,8 +508,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           for( unsigned r=0; r<2; r++ ){
             TNode nl = q[1][r==0 ? 0 : 1];
             TNode nr = q[1][r==0 ? 1 : 0];
-            Node eq = nl.eqNode( nr );
+            Node eq;
             if( r==1 || std::find( d_conjectures.begin(), d_conjectures.end(), q )==d_conjectures.end() ){
+               eq = nl.eqNode( nr );
               //check if it contains only relevant functions
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
