@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Scott Talbert
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,7 @@ uint32_t getDefaultAlphabetCardinality();
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.
  */
-Node mkAnd(const std::vector<Node>& a);
+Node mkAnd(NodeManager* nm, const std::vector<Node>& a);
 
 /**
  * Adds all (non-duplicate) children of <k> applications from n to conj. For

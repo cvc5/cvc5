@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -120,10 +120,26 @@ Node mkOne(const TypeNode& tn, bool isNeg)
 
 bool isTranscendentalKind(Kind k)
 {
-  // many operators are eliminated during rewriting
-  Assert(k != Kind::TANGENT && k != Kind::COSINE && k != Kind::COSECANT
-         && k != Kind::SECANT && k != Kind::COTANGENT);
-  return k == Kind::EXPONENTIAL || k == Kind::SINE || k == Kind::PI;
+  switch (k)
+  {
+    case Kind::PI:
+    case Kind::EXPONENTIAL:
+    case Kind::SINE:
+    case Kind::COSINE:
+    case Kind::TANGENT:
+    case Kind::COSECANT:
+    case Kind::SECANT:
+    case Kind::COTANGENT:
+    case Kind::ARCSINE:
+    case Kind::ARCCOSINE:
+    case Kind::ARCTANGENT:
+    case Kind::ARCCOSECANT:
+    case Kind::ARCSECANT:
+    case Kind::ARCCOTANGENT:
+    case Kind::SQRT: return true;
+    default: break;
+  }
+  return false;
 }
 
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)

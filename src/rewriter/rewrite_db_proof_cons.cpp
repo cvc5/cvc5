@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,7 +62,6 @@ bool RewriteDbProofCons::prove(
     const Node& b,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
   d_tmode = tmode;
@@ -100,7 +99,7 @@ bool RewriteDbProofCons::prove(
   bool success = false;
   // first try unconverted
   Node eqi;
-  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, subgoals, tmode))
+  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, tmode))
   {
     success = true;
   }
@@ -111,7 +110,7 @@ bool RewriteDbProofCons::prove(
     if (eqi != eq)
     {
       Trace("rpc-debug") << "...now try converted" << std::endl;
-      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, subgoals, tmode))
+      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, tmode))
       {
         success = true;
       }
@@ -126,13 +125,12 @@ bool RewriteDbProofCons::prove(
   {
     // Now try the "post-prove" method as a last resort. We try the unconverted
     // then the converted form of eq, if applicable.
-    if (d_trrc.postProve(cdp, eq[0], eq[1], subgoals, tmode))
+    if (d_trrc.postProve(cdp, eq[0], eq[1], tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
-    else if (eqi != eq
-             && d_trrc.postProve(cdp, eqi[0], eqi[1], subgoals, tmode))
+    else if (eqi != eq && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
     {
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
@@ -156,12 +154,11 @@ bool RewriteDbProofCons::proveEqStratified(
     const Node& eqi,
     int64_t recLimit,
     int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals,
     TheoryRewriteMode tmode)
 {
   bool success = false;
   // first, try the basic utility
-  if (d_trrc.prove(cdp, eqi[0], eqi[1], subgoals, tmode))
+  if (d_trrc.prove(cdp, eqi[0], eqi[1], tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -172,7 +169,7 @@ bool RewriteDbProofCons::proveEqStratified(
     for (int64_t i = 0; i <= recLimit; i++)
     {
       Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-      if (proveEq(cdp, eqi, i, stepLimit, subgoals))
+      if (proveEq(cdp, eqi, i, stepLimit))
       {
         Trace("rpc") << "...success" << std::endl;
         success = true;
@@ -211,17 +208,18 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   {
     return Node::null();
   }
+  theory::Rewriter* rr = d_env.getRewriter();
+  ProofRewriteRule prid =
+      rr->findRule(ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
+  if (prid != ProofRewriteRule::NONE)
+  {
+    // a simple theory rewrite happens to solve it, do not continue
+    return Node::null();
+  }
   Node eq;
   Node eqConv = ai.eqNode(bi);
   if (ai[0] == bi[0])
   {
-    ProofRewriteRule prid = d_env.getRewriter()->findRule(
-        ai, bi, theory::TheoryRewriteCtx::PRE_DSL);
-    if (prid != ProofRewriteRule::NONE)
-    {
-      // a simple theory rewrite happens to solve it, do not continue
-      return Node::null();
-    }
     std::vector<Node> cargs;
     ProofRule cr = expr::getCongRule(ai, cargs);
     // remains to prove their bodies are equal
@@ -283,6 +281,25 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
       return Node::null();
     }
   }
+  else if (ai[0].getNumChildren() > bi[0].getNumChildren())
+  {
+    // maybe unused variables on the left hand side
+    Node aiu = rr->rewriteViaRule(ProofRewriteRule::QUANT_UNUSED_VARS, ai);
+    if (!aiu.isNull())
+    {
+      Assert(aiu != ai);
+      Node eqq = ai.eqNode(aiu);
+      cdp->addTheoryRewriteStep(eqq, ProofRewriteRule::QUANT_UNUSED_VARS);
+      // remains to prove the result of removing variables is equal to
+      // the right hand side.
+      eq = aiu.eqNode(bi);
+      cdp->addStep(eqConv, ProofRule::TRANS, {eqq, eq}, {});
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
   else
   {
     return Node::null();
@@ -311,12 +328,10 @@ Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
   return eq;
 }
 
-bool RewriteDbProofCons::proveEq(
-    CDProof* cdp,
-    const Node& eqi,
-    int64_t recLimit,
-    int64_t stepLimit,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+bool RewriteDbProofCons::proveEq(CDProof* cdp,
+                                 const Node& eqi,
+                                 int64_t recLimit,
+                                 int64_t stepLimit)
 {
   // add one to recursion limit, since it is decremented whenever we
   // initiate the getMatches routine.
@@ -336,7 +351,7 @@ bool RewriteDbProofCons::proveEq(
   {
     ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    ensureProofInternal(cdp, eqi, subgoals);
+    ensureProofInternal(cdp, eqi);
     AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
     return true;
@@ -1008,10 +1023,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   return false;
 }
 
-bool RewriteDbProofCons::ensureProofInternal(
-    CDProof* cdp,
-    const Node& eqi,
-    std::vector<std::shared_ptr<ProofNode>>& subgoals)
+bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
   // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = nodeManager();
@@ -1206,18 +1218,21 @@ bool RewriteDbProofCons::ensureProofInternal(
       }
       else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
       {
+        TypeNode tn =
+            pcur.d_vars.empty() ? cur[0].getType() : cur[0][0].getType();
+        bool isBitVec = (tn.isBitVector());
+        ProofRule pr =
+            isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
         if (pcur.d_vars.empty())
         {
-          cdp->addStep(cur, ProofRule::ARITH_POLY_NORM, {}, {cur});
+          cdp->addStep(cur, pr, {}, {cur});
         }
         else
         {
-          cdp->addStep(
-              pcur.d_vars[0], ProofRule::ARITH_POLY_NORM, {}, {pcur.d_vars[0]});
-          cdp->addStep(cur,
-                       ProofRule::ARITH_POLY_NORM_REL,
-                       {pcur.d_vars[0]},
-                       {ProofRuleChecker::mkKindNode(nm, cur[0].getKind())});
+          ProofRule prr = isBitVec ? ProofRule::BV_POLY_NORM_EQ
+                                   : ProofRule::ARITH_POLY_NORM_REL;
+          cdp->addStep(pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
+          cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
         }
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
@@ -1242,7 +1257,7 @@ bool RewriteDbProofCons::ensureProofInternal(
         {
           Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
           // use the utility, possibly to do macro expansion
-          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur, subgoals);
+          d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur);
         }
       }
     }

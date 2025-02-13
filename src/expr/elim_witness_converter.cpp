@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,8 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
     // must mark that the quantified formula cannot be eliminated by rewriting,
     // so that the form of the quantified formula is preserved for the
     // introduction below.
-    Node psan = theory::quantifiers::QuantAttributes::mkAttrPreserveStructure();
+    Node psan =
+        theory::quantifiers::QuantAttributes::mkAttrPreserveStructure(nm);
     Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, psan);
     nchildren.push_back(ipl);
     // make the quantified formula

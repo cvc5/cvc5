@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -205,7 +205,12 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[2];
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
-    tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    size_t ds = tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    // needed to provide a larger d
+    if (ds>d)
+    {
+      return Node::null();
+    }
     Evaluator eval(nullptr);
     Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {c});
     return nm->mkNode(

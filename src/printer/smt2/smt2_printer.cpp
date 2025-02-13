@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -812,6 +812,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     toStream(out, n[0], nullptr, toDepth);
     out << " ";
     bool needsPrintAnnot = false;
+    size_t dag = options::ioutils::getDagThresh(out);
+    size_t newDepth = (toDepth < 0 ? toDepth : toDepth - 1);
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
@@ -821,14 +823,22 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         if (nck == Kind::INST_PATTERN)
         {
           needsPrintAnnot = true;
-          annot << " :pattern ";
-          toStream(annot, nc, lbind, toDepth);
+          annot << " :pattern (";
+          for (size_t i = 0, nchild = nc.getNumChildren(); i < nchild; i++)
+          {
+            if (i > 0)
+            {
+              annot << " ";
+            }
+            toStream(annot, nc[i], newDepth, dag);
+          }
+          annot << ")";
         }
         else if (nck == Kind::INST_NO_PATTERN)
         {
           needsPrintAnnot = true;
           annot << " :no-pattern ";
-          toStream(annot, nc[0], lbind, toDepth);
+          toStream(annot, nc[0], newDepth, dag);
         }
         else if (nck == Kind::INST_POOL || nck == Kind::INST_ADD_TO_POOL
                  || nck == Kind::SKOLEM_ADD_TO_POOL)
@@ -850,7 +860,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             {
               annot << " ";
             }
-            toStream(annot, nc[i], lbind, toDepth);
+            toStream(annot, nc[i], newDepth, dag);
           }
           annot << ")";
         }
@@ -869,7 +879,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
-              toStream(annot, nc[j], lbind, toDepth);
+              toStream(annot, nc[j], newDepth, dag);
             }
           }
         }
@@ -882,8 +892,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(! ";
       annot << ")";
     }
-    size_t dag = options::ioutils::getDagThresh(out);
-    toStream(out, n[1], toDepth < 0 ? toDepth : toDepth - 1, dag);
+    toStream(out, n[1], newDepth, dag);
     out << annot.str() << ")";
     return true;
   }

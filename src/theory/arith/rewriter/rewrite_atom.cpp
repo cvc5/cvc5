@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -360,6 +360,44 @@ Node buildRealInequality(Sum&& sum, Kind k)
   normalizeLCoeffAbsOne(sum);
   Node rhs = mkConst(-removeConstant(sum));
   return buildRelation(k, collectSum(sum), rhs);
+}
+
+std::pair<Node, Node> decomposeSum(NodeManager* nm,
+                                   Sum&& sum,
+                                   bool& negated,
+                                   bool followLCoeffSign)
+{
+  negated = normalizeGCDLCM(sum, followLCoeffSign);
+  RealAlgebraicNumber constant = removeConstant(sum);
+  Assert(constant.isRational());
+  Node c = nm->mkConstReal(constant.toRational());
+  Node t = collectSum(sum);
+  return std::pair<Node, Node>(t, c);
+}
+
+std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum)
+{
+  bool negated = false;
+  return decomposeSum(nm, std::move(sum), negated, false);
+}
+
+std::pair<Node, Node> decomposeRelation(NodeManager* nm,
+                                        const Node& a,
+                                        const Node& b)
+{
+  Node ar = a.getKind() == Kind::TO_REAL ? a[0] : a;
+  Node br = b.getKind() == Kind::TO_REAL ? b[0] : b;
+  rewriter::Sum sum;
+  rewriter::addToSum(sum, ar, false);
+  rewriter::addToSum(sum, br, true);
+  // decompose the sum into a non-constant and constant part
+  normalizeGCDLCM(sum);
+  RealAlgebraicNumber constant = removeConstant(sum);
+  Assert(constant.isRational());
+  // negate the constant
+  Node c = nm->mkConstReal(-constant.toRational());
+  Node t = collectSum(sum);
+  return std::pair<Node, Node>(t, c);
 }
 
 }  // namespace rewriter

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -118,21 +118,21 @@ class TheoryRewriter
   virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
-   * Performs a pre-rewrite step.
+   * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
-   * Performs a pre-rewrite step, with proofs.
+   * Performs a post-rewrite step, with proofs.
    *
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse postRewriteWithProof(TNode node);
 
   /**
-   * Performs a post-rewrite step.
+   * Performs a pre-rewrite step.
    *
    * @param node The node to rewrite
    */
@@ -233,6 +233,24 @@ class TheoryRewriter
   std::map<TheoryRewriteCtx, std::vector<ProofRewriteRule>> d_pfTheoryRewrites;
   /** Get a pointer to the node manager */
   NodeManager* nodeManager() const;
+};
+
+/**
+ * The null theory rewriter, which does not perform any rewrites. This is used
+ * if a theory does not have an (active) rewriter.
+ */
+class NoOpTheoryRewriter : public TheoryRewriter
+{
+ public:
+  NoOpTheoryRewriter(NodeManager* nm, TheoryId tid);
+  /** Performs a post-rewrite step. */
+  RewriteResponse postRewrite(TNode node) override;
+  /** Performs a pre-rewrite step. */
+  RewriteResponse preRewrite(TNode node) override;
+
+ private:
+  /** The theory id */
+  TheoryId d_tid;
 };
 
 }  // namespace theory

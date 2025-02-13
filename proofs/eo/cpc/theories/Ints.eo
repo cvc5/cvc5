@@ -9,9 +9,6 @@
 ; Divisible predicate.
 (declare-const divisible (-> Int Int Bool))
 
-; The "integer-and" operator, see Zohar et al VMCAI 2022.
-; disclaimer: This function is not in SMT-LIB.
-(declare-const iand (-> Int Int Int Int))
 ; The "integer power of 2" operator.
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const int.pow2 (-> Int Int))

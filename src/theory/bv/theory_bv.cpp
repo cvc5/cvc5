@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -180,14 +180,13 @@ bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 
-Theory::PPAssertStatus TheoryBV::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryBV::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
   Kind k = tin.getNode().getKind();
   if (k == Kind::EQUAL)
   {
-    auto status = Theory::ppAssert(tin, outSubstitutions);
-    if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
+    bool status = Theory::ppAssert(tin, outSubstitutions);
+    if (status)
     {
       return status;
     }
@@ -242,12 +241,12 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
         if (d_valuation.isLegalElimination(extract[0], concat))
         {
           outSubstitutions.addSubstitutionSolved(extract[0], concat, tin);
-          return Theory::PP_ASSERT_STATUS_SOLVED;
+          return true;
         }
       }
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)

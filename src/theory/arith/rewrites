@@ -67,17 +67,15 @@
   (mod_total (+ ts (mod_total r c) ss) c)
   (mod_total (+ ts r ss) c))
 
-; trancendentals
+(define-cond-rule arith-int-eq-conflict ((t Int) (c Real))
+  (not (= (to_real (to_int c)) c))
+  (= (to_real t) c)
+  false)
 
-(define-rule arith-sine-zero () (sin 0/1) 0/1)
-(define-rule arith-sine-pi2 () (sin (* 1/2 real.pi)) 1/1)
-(define-rule arith-cosine-elim ((x Real)) (cos x) (sin (- (* 1/2 real.pi) x)))
-(define-rule arith-tangent-elim ((x Real)) (tan x) (/ (sin x) (cos x)))
-(define-rule arith-secent-elim ((x Real)) (sec x) (/ 1/1 (sin x)))
-(define-rule arith-cosecent-elim ((x Real)) (csc x) (/ 1/1 (cos x)))
-(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
-
-(define-rule arith-pi-not-int () (is_int real.pi) false)
+(define-cond-rule arith-int-geq-tighten ((t Int) (c Real) (cc Int))
+  (and (not (= (to_real (to_int c)) c)) (= cc (+ (to_int c) 1)))
+  (>= (to_real t) c)
+  (>= t cc))
 
 ; absolute value comparisons
 
@@ -104,3 +102,57 @@
     (ite (>= y 0/1)
       (> (- x) y)
       (> (- x) (- y)))))
+
+; ITE lifting
+
+(define-rule arith-geq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (>= (ite C t s) r)
+  (ite C (>= t r) (>= s r)))
+
+(define-rule arith-gt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (> (ite C t s) r)
+  (ite C (> t r) (> s r)))
+
+(define-rule arith-leq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (<= (ite C t s) r)
+  (ite C (<= t r) (<= s r)))
+
+(define-rule arith-lt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
+  (< (ite C t s) r)
+  (ite C (< t r) (< s r)))
+
+; min/max rules
+
+(define-rule arith-min-lt1 ((t ?) (s ?))
+  (<= (ite (< t s) t s) t)
+  true)
+
+(define-rule arith-min-lt2 ((t ?) (s ?))
+  (<= (ite (< t s) t s) s)
+  true)
+
+; The rules for leq, gt are not applied if the arith static learner
+; is applied only to rewritten terms.
+;(define-rule arith-min-leq1 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) t)
+;  true)
+
+;(define-rule arith-min-leq2 ((t ?) (s ?))
+;  (<= (ite (<= t s) t s) s)
+;  true)
+
+;(define-rule arith-max-gt1 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) t)
+;  true)
+
+;(define-rule arith-max-gt2 ((t ?) (s ?))
+;  (>= (ite (> t s) t s) s)
+;  true)
+
+(define-rule arith-max-geq1 ((t ?) (s ?))
+  (>= (ite (>= t s) t s) t)
+  true)
+
+(define-rule arith-max-geq2 ((t ?) (s ?))
+  (>= (ite (>= t s) t s) s)
+  true)
