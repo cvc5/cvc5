@@ -22,6 +22,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "options/strings_options.h"
@@ -167,6 +168,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
+    case ProofRule::RE_CONCAT:
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
     case ProofRule::RE_UNFOLD_NEG:
@@ -186,6 +188,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ACI_NORM:
     case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
+    case ProofRule::BV_POLY_NORM:
+    case ProofRule::BV_POLY_NORM_EQ:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -216,8 +220,10 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       Kind k = pargs[0].getKind();
       switch (k)
       {
+        case Kind::STRING_CONTAINS:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_INDEXOF:
+        case Kind::STRING_INDEXOF_RE:
         case Kind::STRING_REPLACE:
         case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_REPLACE_RE:
@@ -225,7 +231,11 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         case Kind::STRING_STOI:
         case Kind::STRING_ITOS:
         case Kind::SEQ_NTH:
-        case Kind::STRING_UPDATE: return true;
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ:
+        case Kind::STRING_REV:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER: return true;
         default:
           break;
       }
@@ -254,6 +264,17 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       if (canEvaluate(pargs[0]))
       {
         Trace("alf-printer-debug") << "Can evaluate " << pargs[0] << std::endl;
+        return true;
+      }
+    }
+    break;
+    case ProofRule::DISTINCT_VALUES:
+    {
+      if (isHandledDistinctValues(pargs[0])
+          && isHandledDistinctValues(pargs[1]))
+      {
+        Trace("alf-printer-debug") << "Can distinguish values " << pargs[0] << " "
+                                   << pargs[1] << std::endl;
         return true;
       }
     }
@@ -436,23 +457,62 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
         case Kind::BITVECTOR_TO_NAT:
-        case Kind::INT_TO_BITVECTOR: break;
-        case Kind::EQUAL:
-        {
-          TypeNode tn = cur[0].getType();
-          if (!tn.isBoolean() && !tn.isReal() && !tn.isInteger()
-              && !tn.isString() && !tn.isBitVector())
-          {
-            return false;
-          }
-        }
-        break;
+        case Kind::INT_TO_BITVECTOR:
+        case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
           continue;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
+          return false;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return true;
+}
+
+bool AlfPrinter::isHandledDistinctValues(const Node& n)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      // Note we don't currently handle constants in expert theories
+      // or array constants.
+      switch (cur.getKind())
+      {
+        case Kind::CONST_BOOLEAN:
+        case Kind::CONST_INTEGER:
+        case Kind::CONST_RATIONAL:
+        case Kind::CONST_STRING:
+        case Kind::CONST_BITVECTOR:
+        case Kind::SET_SINGLETON:
+        case Kind::SET_UNION:
+        case Kind::SET_EMPTY:
+        case Kind::APPLY_CONSTRUCTOR:
+        case Kind::SEQ_UNIT: break;
+        case Kind::CONST_SEQUENCE:
+          if (!cur.getConst<Sequence>().empty())
+          {
+            // must traverse on component values
+            cur = theory::strings::utils::mkConcatForConstSequence(cur);
+          }
+          break;
+        default:
+          Trace("alf-printer-debug")
+              << "Cannot distinct values " << cur.getKind() << std::endl;
           return false;
       }
       for (const Node& cn : cur)

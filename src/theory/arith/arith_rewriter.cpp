@@ -84,11 +84,15 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_ARITH_STRING_PRED_ENTAIL:
     {
-      // only matters if n contains strings
-      if (!expr::hasSubtermKinds({Kind::STRING_LENGTH}, n))
+      // only matters if n contains integer string operators
+      if (!n.getType().isBoolean() || n.getNumChildren() != 2 || n[0] == n[1]
+          || !expr::hasSubtermKinds(
+              {Kind::STRING_LENGTH, Kind::STRING_INDEXOF, Kind::STRING_STOI},
+              n))
       {
         return Node::null();
       }
+      Trace("macro-arith-str-pred") << "Check entailment " << n << std::endl;
       // Note that we do *not* pass a rewriter here, since the proof rule
       // cannot depend on the rewriter. This makes this rule capture most
       // but not all cases of this kind of reasoning.
@@ -109,8 +113,10 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // first do basic length intro, which rewrites (str.len (str.++ x y))
       // to (+ (str.len x) (str.len y))
       Node nexp = ae.rewriteLengthIntro(tgt);
+      Trace("macro-arith-str-pred") << "...setup to " << nexp << std::endl;
       // Also must make this a "simple" check (isSimple = true).
       Node ret = ae.rewritePredViaEntailment(nexp, true);
+      Trace("macro-arith-str-pred") << "...result = " << ret << std::endl;
       return ret;
     }
     break;

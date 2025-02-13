@@ -24,8 +24,10 @@
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
@@ -452,6 +454,9 @@ bool InferProofCons::convert(Env& env,
       }
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
+      // may need to splice constants
+      mainEqSRew = spliceConstants(
+          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -504,6 +509,9 @@ bool InferProofCons::convert(Env& env,
       else if (infer == InferenceId::STRINGS_N_CONST || infer == InferenceId::STRINGS_F_CONST
                || infer == InferenceId::STRINGS_N_EQ_CONF)
       {
+        // first, splice if necessary
+        mainEqCeq = spliceConstants(
+            env, ProofRule::CONCAT_CONFLICT, psb, mainEqCeq, conc, isRev);
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
@@ -555,14 +563,13 @@ bool InferProofCons::convert(Env& env,
       }
       else
       {
-        bool applySym = false;
         // may need to apply symmetry
         if ((infer == InferenceId::STRINGS_SSPLIT_CST
              || infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
             && t0.isConst())
         {
           Assert(!s0.isConst());
-          applySym = true;
+          mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
           std::swap(t0, s0);
         }
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
@@ -574,7 +581,7 @@ bool InferProofCons::convert(Env& env,
           // one side should match, the other side could be a split constant
           if (conc[0] != t0 && conc[1] != s0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           Assert(conc[0].isConst() == t0.isConst());
@@ -586,6 +593,9 @@ bool InferProofCons::convert(Env& env,
         bool lenSuccess = false;
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
         {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -603,7 +613,7 @@ bool InferProofCons::convert(Env& env,
                  && conc[0][0].getKind() == Kind::EQUAL);
           if (conc[0][0][0] != t0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           // it should be the case that lenConstraint => lenReq
@@ -615,6 +625,9 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST)
         {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -638,7 +651,7 @@ bool InferProofCons::convert(Env& env,
             if (r == 0)
             {
               // may be the other direction
-              applySym = true;
+              mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
               std::swap(t0, s0);
             }
           }
@@ -658,16 +671,6 @@ bool InferProofCons::convert(Env& env,
           Trace("strings-ipc-core")
               << "...failed due to length constraint" << std::endl;
           break;
-        }
-        // apply symmetry if necessary
-        if (applySym)
-        {
-          std::vector<Node> childrenSymm;
-          childrenSymm.push_back(mainEqCeq);
-          // note this explicit step may not be necessary
-          mainEqCeq = psb.tryStep(ProofRule::SYMM, childrenSymm, {});
-          Trace("strings-ipc-core")
-              << "Main equality after SYMM " << mainEqCeq << std::endl;
         }
         if (rule != ProofRule::UNKNOWN)
         {
@@ -1511,6 +1514,168 @@ Node InferProofCons::convertCoreSubs(Env& env,
     return res[1];
   }
   return src;
+}
+
+Node InferProofCons::spliceConstants(Env& env,
+                                     ProofRule rule,
+                                     TheoryProofStepBuffer& psb,
+                                     const Node& eq,
+                                     const Node& conc,
+                                     bool isRev)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("strings-ipc-splice")
+      << "Splice " << rule << " (" << isRev << ") for " << eq << std::endl;
+  std::vector<Node> tvec;
+  std::vector<Node> svec;
+  theory::strings::utils::getConcat(eq[0], tvec);
+  theory::strings::utils::getConcat(eq[1], svec);
+  size_t nts = tvec.size();
+  size_t nss = svec.size();
+  size_t n = nts > nss ? nss : nts;
+  for (size_t i = 0; i < n; i++)
+  {
+    size_t ti = isRev ? nts - i - 1 : i;
+    size_t si = isRev ? nss - i - 1 : i;
+    Node currT = tvec[ti];
+    Node currS = svec[si];
+    if (currT == currS)
+    {
+      continue;
+    }
+    if (rule == ProofRule::CONCAT_EQ)
+    {
+      if (!currT.isConst() || !currS.isConst())
+      {
+        // no need to splice
+        return eq;
+      }
+      // remove the common prefix
+      // get the equal prefix/suffix, strip and add the remainders
+      size_t sindex;
+      Node currR = Word::splitConstant(currT, currS, sindex, isRev);
+      if (currR.isNull())
+      {
+        // no need to splice
+        return eq;
+      }
+      size_t index = sindex == 1 ? si : ti;
+      std::vector<Node>& vec = sindex == 1 ? svec : tvec;
+      Node o = sindex == 1 ? currT : currS;
+      vec[index] = o;
+      vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
+    }
+    else if (rule == ProofRule::CONCAT_UNIFY)
+    {
+      Trace("strings-ipc-splice")
+          << "Splice cprop at " << currT << " / " << currS
+          << ", for conclusion " << conc << std::endl;
+      Assert(!conc.isNull() && conc.getKind() == Kind::EQUAL);
+      for (size_t j = 0; j < 2; j++)
+      {
+        Node src = j == 0 ? currT : currS;
+        Node tgt = j == 0 ? conc[0] : conc[1];
+        if (src == tgt)
+        {
+          continue;
+        }
+        if (!src.isConst() || !tgt.isConst())
+        {
+          Assert(false) << "Non-constant for unify";
+          return eq;
+        }
+        size_t index = j == 0 ? ti : si;
+        std::vector<Node>& vec = j == 0 ? tvec : svec;
+        size_t lentgt = Word::getLength(tgt);
+        size_t len = Word::getLength(src);
+        if (len <= lentgt)
+        {
+          Assert(false) << "Smaller source for unify";
+          return eq;
+        }
+        if (isRev)
+        {
+          vec[index] = Word::suffix(src, lentgt);
+          vec.insert(vec.begin() + index, Word::prefix(src, len - lentgt));
+        }
+        else
+        {
+          vec[index] = Word::prefix(src, lentgt);
+          vec.insert(vec.begin() + index + 1, Word::suffix(src, len - lentgt));
+        }
+      }
+    }
+    else if (rule == ProofRule::CONCAT_CSPLIT)
+    {
+      if (!currS.isConst())
+      {
+        Assert(false) << "Non-constant for csplit";
+        return eq;
+      }
+      // split the first character
+      size_t len = Word::getLength(currS);
+      if (len == 1)
+      {
+        // not needed
+        return eq;
+      }
+      if (isRev)
+      {
+        svec[si] = Word::suffix(currS, 1);
+        svec.insert(svec.begin() + si, Word::prefix(currS, len - 1));
+      }
+      else
+      {
+        svec[si] = Word::prefix(currS, 1);
+        svec.insert(svec.begin() + si + 1, Word::suffix(currS, len - 1));
+      }
+    }
+    else if (rule == ProofRule::CONCAT_CONFLICT)
+    {
+      if (!currT.isConst() || !currS.isConst())
+      {
+        Assert(false) << "Non-constants for concat conflict";
+        return eq;
+      }
+      // isolate a disequal prefix by taking maximal prefix/suffix
+      size_t lens = Word::getLength(currS);
+      size_t lent = Word::getLength(currT);
+      if (lens == lent)
+      {
+        // no need
+        return eq;
+      }
+      std::vector<Node>& vec = lens > lent ? svec : tvec;
+      Node curr = lens > lent ? currS : currT;
+      size_t index = lens > lent ? si : ti;
+      size_t smallLen = lens > lent ? lent : lens;
+      size_t diffLen = lens > lent ? (lens - lent) : (lent - lens);
+      vec[index] =
+          isRev ? Word::suffix(curr, smallLen) : Word::prefix(curr, smallLen);
+      vec.insert(
+          vec.begin() + index + (isRev ? 0 : 1),
+          isRev ? Word::prefix(curr, diffLen) : Word::suffix(curr, diffLen));
+    }
+    else
+    {
+      Assert(false) << "Unknown rule to splice " << rule;
+      return eq;
+    }
+    TypeNode stype = eq[0].getType();
+    Node tr = utils::mkConcat(tvec, stype);
+    Node sr = utils::mkConcat(svec, stype);
+    Node eqr = tr.eqNode(sr);
+    Trace("strings-ipc-splice") << "...splice to " << eqr << std::endl;
+    std::vector<Node> cexp;
+    if (!psb.applyPredTransform(eq, eqr, cexp))
+    {
+      Assert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      return eq;
+    }
+    return eqr;
+  }
+  // no change
+  return eq;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
