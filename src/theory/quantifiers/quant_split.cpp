@@ -52,6 +52,12 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
    *
    * where the variables in q' is reordered from q such that the variable to
    * split comes first.
+   *
+   * Note that this elaboration relies on the fact that the variables
+   * introduced for QuantDSplit::split(nm, q', 0) are the same as those for
+   * QuantDSplit::split(nm, q, n), since q and q' have the same body
+   * and these two splits refer to the same variables, which is the basis
+   * for the bound variables introduced (QDSplitVarAttribute).
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
@@ -323,6 +329,21 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
     cons.push_back(body);
   }
   return nm->mkAnd(cons);
+}
+
+std::shared_ptr<ProofNode> QuantDSplit::getQuantDtSplitProof(Env& env,
+                                                             const Node& q,
+                                                             size_t index)
+{
+  Node qs = split(env.getNodeManager(), q, index);
+  if (qs.isNull())
+  {
+    return nullptr;
+  }
+  Node eq = q.eqNode(qs);
+  QuantDSplitProofGenerator pg(env);
+  pg.notifyLemma(eq, index);
+  return pg.getProofFor(eq);
 }
 
 }  // namespace quantifiers
