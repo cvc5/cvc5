@@ -398,6 +398,15 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
+    else if (d_valuation.needCheck())
+    {
+      // If a theory solver has already sent a lemma in this context, we
+      // know that theory engine will be called to recheck, so we can safely
+      // return unsuccessfully here. Note that the arithmetic solver itself
+      // may be the one that sent the lemma, for instance if we had buffered
+      // lemmas during the call to needsCheckLastEffort.
+      return false;
+    }
     Assert(false) << "A model equality could not be asserted: " << p.first
                   << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
