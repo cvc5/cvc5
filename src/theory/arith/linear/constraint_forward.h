@@ -27,6 +27,9 @@
 #include "cvc5_private.h"
 
 namespace cvc5::internal {
+
+class Rational;
+
 namespace theory {
 namespace arith::linear {
 
