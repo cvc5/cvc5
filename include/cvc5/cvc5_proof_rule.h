@@ -169,9 +169,37 @@ enum ENUM(ProofRule)
    * :math:`\texttt{Evalutor::evaluate}` in :cvc5src:`theory/evaluator.h` with an
    * empty substitution.
    * Note this is equivalent to: ``(REWRITE t MethodId::RW_EVALUATE)``.
+   *
+   * Note this proof rule only applies to atomic sorts, that is, operators on
+   * Int, Real, String, Bool or BitVector.
    * \endverbatim
    */
   EVALUE(EVALUATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- Distinct values**
+   *
+   * .. math::
+   *   \inferrule{- \mid t, s}{\neg t = s}
+   *
+   * where :math:`t` and :math:`s` are distinct values.
+   *
+   * Note that cvc5 internally has a notion of which terms denote "values".
+   * This property is implemented for any sort that can appear in equalities.
+   * A term denotes a value if and only if it is the canonical representation
+   * of a value of that sort. For example, set values are a chain of unions of
+   * singleton sets whose elements are also values, where this chain is sorted.
+   * Any two distinct values are semantically disequal in all models.
+   *
+   * In practice, we use this rule only to show the distinctness of non-atomic
+   * sort, e.g. Sets, Sequences, Datatypes, Arrays, etc.
+   *
+   * Note that internally, the notion of value is implemented by the
+   * Node::isConst method.
+   *
+   * \endverbatim
+   */
+  EVALUE(DISTINCT_VALUES),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- associative/commutative/idempotency/identity normalization**
@@ -1247,6 +1275,31 @@ enum ENUM(ProofRule)
   EVALUE(BV_EAGER_ATOM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Polynomial normalization**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = s}{t = s}
+   *
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials :math:`s` and :math:`t` over bitvectors.
+   * \endverbatim
+   */
+  EVALUE(BV_POLY_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Polynomial normalization for relations**
+   *
+   * .. math::
+   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
+   *            {(x_1 = x_2) = (y_1 = y_2)}
+   *
+   * :math:`c_x` and :math:`c_y` are scaling factors, currently required to
+   * be one.
+   * \endverbatim
+   */
+  EVALUE(BV_POLY_NORM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
    *
    * .. math::
@@ -1687,6 +1740,16 @@ enum ENUM(ProofRule)
   EVALUE(RE_INTER),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Regular expressions -- Concatenation**
+   *
+   * .. math::
+   *
+   *   \inferrule{t_1\in R_1,\,\ldots,\,t_n\in R_n\mid -}{\text{str.++}(t_1, \ldots, t_n)\in \text{re.++}(R_1, \ldots, R_n)}
+   * \endverbatim
+   */
+  EVALUE(RE_CONCAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Regular expressions -- Positive Unfold**
    *
    * .. math::
@@ -1919,8 +1982,7 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid t = s}{t = s}
    *
    * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
-   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic or
-   * bitvectors.
+   * method normalizes polynomials :math:`s` and :math:`t` over arithmetic.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM),
@@ -1932,10 +1994,9 @@ enum ENUM(ProofRule)
    *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
-   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}` for arithmetic and
-   * :math:`\diamond \in \{=\}` for bitvectors. :math:`c_x` and :math:`c_y` are
-   * scaling factors. For :math:`<, \leq, \geq, >`, the scaling factors have the
-   * same sign. For bitvectors, they are set to :math:`1`.
+   * where :math:`\diamond \in \{<, \leq, =, \geq, >\}`. :math:`c_x` and
+   * :math:`c_y` are scaling factors. For :math:`<, \leq, \geq, >`, the scaling
+   * factors have the same sign.
    *
    * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
    * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
@@ -2110,14 +2171,16 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid d,c,t}{t \geq c \rightarrow exp(t) \geq \texttt{maclaurin}(\exp, d, c)}
    *
-   * where :math:`d` is an odd positive number, :math:`t` an arithmetic term and
-   * :math:`\texttt{maclaurin}(\exp, d, c)` is the :math:`d`'th taylor
+   * where :math:`d` is a non-negative number, :math:`t` an arithmetic term and
+   * :math:`\texttt{maclaurin}(\exp, n+1, c)` is the :math:`(n+1)`'th taylor
    * polynomial at zero (also called the Maclaurin series) of the exponential
-   * function evaluated at :math:`c`. The Maclaurin series for the exponential
-   * function is the following:
+   * function evaluated at :math:`c` where :math:`n` is :math:`2 \cdot d`.
+   * The Maclaurin series for the exponential function is the following:
    *
    * .. math::
-   *   \exp(x) = \sum_{n=0}^{\infty} \frac{x^n}{n!}
+   *   \exp(x) = \sum_{i=0}^{\infty} \frac{x^i}{i!}
+   *
+   * This rule furthermore requires that :math:`1 > c^{n+1}/(n+1)!`
    * \endverbatim
    */
   EVALUE(ARITH_TRANS_EXP_APPROX_BELOW),
@@ -2184,7 +2247,7 @@ enum ENUM(ProofRule)
    * negative values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \leq \texttt{secant}(\sin, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2210,7 +2273,7 @@ enum ENUM(ProofRule)
    * positive values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \leq \texttt{upper}(\sin, c)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2229,7 +2292,7 @@ enum ENUM(ProofRule)
    * negative values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,c,lb,ub}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \geq \texttt{lower}(\sin, c)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2248,7 +2311,7 @@ enum ENUM(ProofRule)
    * positive values**
    *
    * .. math::
-   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb land t \leq ub) \rightarrow
+   *   \inferrule{- \mid d,t,lb,ub,l,u}{(t \geq lb \land t \leq ub) \rightarrow
    *   \sin(t) \geq \texttt{secant}(\sin, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term,
@@ -2788,9 +2851,11 @@ enum ENUM(ProofRewriteRule)
    * .. math::
    *   \forall x Y.\> F = \forall Y.\> G
    *
-   * where :math:`G` is the result of replacing all literals containing
-   * :math:`x` with a constant. This is applied only when all such literals
-   * are lower (resp. upper) bounds for :math:`x`.
+   * where :math:`F` is a disjunction and where :math:`G` is the
+   * result of dropping all literals containing :math:`x`. This is
+   * applied only when all such literals are lower (resp. upper) bounds
+   * for integer or real variable :math:`x`. Note that :math:`G` may
+   * be false, and :math:`Y` may be empty in which case it is omitted.
    *
    * \endverbatim
    */
@@ -3571,6 +3636,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_AND_DE_MORGAN),
   /** Auto-generated from RARE rule bool-or-and-distrib */
   EVALUE(BOOL_OR_AND_DISTRIB),
+  /** Auto-generated from RARE rule bool-implies-or-distrib */
+  EVALUE(BOOL_IMPLIES_OR_DISTRIB),
   /** Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
   /** Auto-generated from RARE rule bool-xor-nrefl */
