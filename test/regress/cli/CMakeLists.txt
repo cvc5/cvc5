@@ -295,6 +295,7 @@ set(regress_0_tests
   regress0/bv/bv-int-collapse1.smt2
   regress0/bv/bv-int-collapse2.smt2
   regress0/bv/bv-options4.smt2
+  regress0/bv/bv-term-small-rw-228.smt2
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv2nat-ground-c.smt2
@@ -755,6 +756,7 @@ set(regress_0_tests
   regress0/datatypes/tuple-model.cvc.smt2
   regress0/datatypes/tuple-no-clash.cvc.smt2
   regress0/datatypes/tuple-record-bug.cvc.smt2
+  regress0/datatypes/tuple-update-elim.smt2
   regress0/datatypes/tuple.cvc.smt2
   regress0/datatypes/tuple_update.smt2
   regress0/datatypes/tuples-empty.smt2
@@ -1373,6 +1375,7 @@ set(regress_0_tests
   regress0/proofs/indexof-eval-rw_155.smt2
   regress0/proofs/ios_np_sf.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
+  regress0/proofs/dd_issue2031-bv-var-elim.smt2
   regress0/proofs/issue10278-pf-clone.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
@@ -1488,6 +1491,7 @@ set(regress_0_tests
   regress0/quantifiers/bug290.smt2
   regress0/quantifiers/bug291.smt2
   regress0/quantifiers/bug749-rounding.smt2
+  regress0/quantifiers/var-elim-bv-partial.smt2
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
   regress0/quantifiers/cegqi-needs-justify.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc.smt2
@@ -1501,6 +1505,7 @@ set(regress_0_tests
   regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
   regress0/quantifiers/dd_rts-quant-elim-eq-tester.smt2
+  regress0/quantifiers/dd_small_pipeline_3.smt2
   regress0/quantifiers/dd_spark2014-pat.smt2
   regress0/quantifiers/dd_sym_sat_9_array_rew.smt2
   regress0/quantifiers/dd_O512_prefix_sum_var_elim.smt2
@@ -1868,7 +1873,9 @@ set(regress_0_tests
   regress0/strings/code-eval.smt2
   regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
+  regress0/strings/com-ctn.smt2
   regress0/strings/complement-simple.smt2
+  regress0/strings/cprop-splice.smt2
   regress0/strings/ctn-decompose-3-sym.smt2
   regress0/strings/ctn-decompose-3-sym-nf.smt2
   regress0/strings/ctn-repl-to-ctn.smt2 
@@ -1960,6 +1967,8 @@ set(regress_0_tests
   regress0/strings/model001.smt2
   regress0/strings/more-eval-tests.smt2
   regress0/strings/ncontrib-rewrites.smt2
+  regress0/strings/nctn-concat.smt2
+  regress0/strings/nctn-concat-eq.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-benchmark-489.smt2
   regress0/strings/norn-simp-rew.smt2
@@ -1976,6 +1985,7 @@ set(regress_0_tests
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/replace-find-base.smt2
+  regress0/strings/re-const-elim-rewrite-test.smt2
   regress0/strings/re-consume-bi-dir.smt2
   regress0/strings/re-consume-inter.smt2
   regress0/strings/re-consume-star.smt2
@@ -2009,6 +2019,7 @@ set(regress_0_tests
   regress0/strings/simple-nth-fail.smt2
   regress0/strings/slent_dio_lemma.smt2
   regress0/strings/small_pymongo_repl_char.smt2
+  regress0/strings/soundness-split-ctn.smt2
   regress0/strings/std2.6.1.smt2
   regress0/strings/str_unsound_ext_rew_eq.smt2
   regress0/strings/str-in-re-mixed-include.smt2
@@ -2018,10 +2029,12 @@ set(regress_0_tests
   regress0/strings/str-pred-small-rw_831.smt2
   regress0/strings/str-repl-find-pre.smt2
   regress0/strings/str-rev-simple.smt2
+  regress0/strings/str-term-small-rw_1005.smt2
   regress0/strings/str-term-small-rw_593.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
+  regress0/strings/string-endpoint-rewrite-test.smt2
   regress0/strings/strings-charat.cvc.smt2
   regress0/strings/strings-ext.smt2
   regress0/strings/strings-native-simple.cvc.smt2
@@ -2880,6 +2893,7 @@ set(regress_1_tests
   regress1/quantifiers/dd.bug812-ieval.smt2
   regress1/quantifiers/dd_ghc_macro_quant_prenex.smt2
   regress1/quantifiers/dd_full_xor-rcons-open.smt2
+  regress1/quantifiers/dd_RNDPRE_4_28-subtype-elim.smt2
   regress1/quantifiers/ddatv-delta2.smt2
   regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
