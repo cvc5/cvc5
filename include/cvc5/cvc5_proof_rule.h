@@ -3462,10 +3462,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-mul-one */
-  EVALUE(ARITH_MUL_ONE),
-  /** Auto-generated from RARE rule arith-mul-zero */
-  EVALUE(ARITH_MUL_ZERO),
   /** Auto-generated from RARE rule arith-div-total-real */
   EVALUE(ARITH_DIV_TOTAL_REAL),
   /** Auto-generated from RARE rule arith-div-total-int */
@@ -3480,12 +3476,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_DIV_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-div-total-zero */
   EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-div-total-neg */
+  EVALUE(ARITH_INT_DIV_TOTAL_NEG),
   /** Auto-generated from RARE rule arith-int-mod-total */
   EVALUE(ARITH_INT_MOD_TOTAL),
   /** Auto-generated from RARE rule arith-int-mod-total-one */
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
   /** Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
+  /** Auto-generated from RARE rule arith-int-mod-total-neg */
+  EVALUE(ARITH_INT_MOD_TOTAL_NEG),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -3522,40 +3522,26 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_PLUS_FLATTEN),
   /** Auto-generated from RARE rule arith-mult-flatten */
   EVALUE(ARITH_MULT_FLATTEN),
-  /** Auto-generated from RARE rule arith-mult-dist */
-  EVALUE(ARITH_MULT_DIST),
   /** Auto-generated from RARE rule arith-abs-elim-int */
   EVALUE(ARITH_ABS_ELIM_INT),
   /** Auto-generated from RARE rule arith-abs-elim-real */
   EVALUE(ARITH_ABS_ELIM_REAL),
   /** Auto-generated from RARE rule arith-to-real-elim */
   EVALUE(ARITH_TO_REAL_ELIM),
+  /** Auto-generated from RARE rule arith-to-int-elim */
+  EVALUE(ARITH_TO_INT_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
   EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
   /** Auto-generated from RARE rule arith-div-elim-to-real1 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL1),
   /** Auto-generated from RARE rule arith-div-elim-to-real2 */
   EVALUE(ARITH_DIV_ELIM_TO_REAL2),
+  /** Auto-generated from RARE rule arith-mod-over-mod */
+  EVALUE(ARITH_MOD_OVER_MOD),
   /** Auto-generated from RARE rule arith-int-eq-conflict */
   EVALUE(ARITH_INT_EQ_CONFLICT),
   /** Auto-generated from RARE rule arith-int-geq-tighten */
   EVALUE(ARITH_INT_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-sine-zero */
-  EVALUE(ARITH_SINE_ZERO),
-  /** Auto-generated from RARE rule arith-sine-pi2 */
-  EVALUE(ARITH_SINE_PI2),
-  /** Auto-generated from RARE rule arith-cosine-elim */
-  EVALUE(ARITH_COSINE_ELIM),
-  /** Auto-generated from RARE rule arith-tangent-elim */
-  EVALUE(ARITH_TANGENT_ELIM),
-  /** Auto-generated from RARE rule arith-secent-elim */
-  EVALUE(ARITH_SECENT_ELIM),
-  /** Auto-generated from RARE rule arith-cosecent-elim */
-  EVALUE(ARITH_COSECENT_ELIM),
-  /** Auto-generated from RARE rule arith-cotangent-elim */
-  EVALUE(ARITH_COTANGENT_ELIM),
-  /** Auto-generated from RARE rule arith-pi-not-int */
-  EVALUE(ARITH_PI_NOT_INT),
   /** Auto-generated from RARE rule arith-abs-eq */
   EVALUE(ARITH_ABS_EQ),
   /** Auto-generated from RARE rule arith-abs-int-gt */
@@ -4050,14 +4036,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_UNION_MEMBER),
   /** Auto-generated from RARE rule sets-choose-singleton */
   EVALUE(SETS_CHOOSE_SINGLETON),
-  /** Auto-generated from RARE rule sets-card-singleton */
-  EVALUE(SETS_CARD_SINGLETON),
-  /** Auto-generated from RARE rule sets-card-union */
-  EVALUE(SETS_CARD_UNION),
-  /** Auto-generated from RARE rule sets-card-minus */
-  EVALUE(SETS_CARD_MINUS),
-  /** Auto-generated from RARE rule sets-card-emp */
-  EVALUE(SETS_CARD_EMP),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
@@ -4430,6 +4408,30 @@ enum ENUM(ProofRewriteRule)
   EVALUE(UF_INT2BV_BVULT_EQUIV),
   /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
   EVALUE(UF_INT2BV_BVULE_EQUIV),
+  /** Auto-generated from RARE rule arith-sine-zero */
+  EVALUE(ARITH_SINE_ZERO),
+  /** Auto-generated from RARE rule arith-sine-pi2 */
+  EVALUE(ARITH_SINE_PI2),
+  /** Auto-generated from RARE rule arith-cosine-elim */
+  EVALUE(ARITH_COSINE_ELIM),
+  /** Auto-generated from RARE rule arith-tangent-elim */
+  EVALUE(ARITH_TANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-secent-elim */
+  EVALUE(ARITH_SECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cosecent-elim */
+  EVALUE(ARITH_COSECENT_ELIM),
+  /** Auto-generated from RARE rule arith-cotangent-elim */
+  EVALUE(ARITH_COTANGENT_ELIM),
+  /** Auto-generated from RARE rule arith-pi-not-int */
+  EVALUE(ARITH_PI_NOT_INT),
+  /** Auto-generated from RARE rule sets-card-singleton */
+  EVALUE(SETS_CARD_SINGLETON),
+  /** Auto-generated from RARE rule sets-card-union */
+  EVALUE(SETS_CARD_UNION),
+  /** Auto-generated from RARE rule sets-card-minus */
+  EVALUE(SETS_CARD_MINUS),
+  /** Auto-generated from RARE rule sets-card-emp */
+  EVALUE(SETS_CARD_EMP),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry
