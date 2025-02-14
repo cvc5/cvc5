@@ -34,6 +34,7 @@
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
