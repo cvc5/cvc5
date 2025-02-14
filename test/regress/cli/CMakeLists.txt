@@ -3903,6 +3903,7 @@ set(regress_3_tests
   regress3/incorrect1.smtv1.smt2
   regress3/interpol2.smt2
   regress3/inv_gen_n_c11.sy
+  regress3/issue11616.smt2
   regress3/issue4170.smt2
   regress3/issue4707-bv-to-bool-large.smt2
   regress3/lpsat-goal-9.smt2
