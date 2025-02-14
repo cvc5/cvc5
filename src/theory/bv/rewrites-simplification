@@ -59,7 +59,7 @@
     (e1 ?BitVec)
   )
   (bvite c0 t0 (bvite c1 t0 e1))
-  (bvite (bvnor c0 c1) e1 t0))
+  (bvite (bvand (bvnot c0) (bvnot c1)) e1 t0))
 (define-rule bv-ite-merge-else-else (
     (c0 (_ BitVec 1))
     (c1 (_ BitVec 1))
