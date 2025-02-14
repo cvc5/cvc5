@@ -59,7 +59,7 @@
     (e1 ?BitVec)
   )
   (bvite c0 t0 (bvite c1 t0 e1))
-  (bvite (bvnor c0 c1) e1 t0))
+  (bvite (bvand (bvnot c0) (bvnot c1)) e1 t0))
 (define-rule bv-ite-merge-else-else (
     (c0 (_ BitVec 1))
     (c1 (_ BitVec 1))
@@ -364,14 +364,13 @@
   )
 (define-cond-rule bv-merge-sign-extend-2
   ((x ?BitVec) (i Int) (j Int) (k Int))
-  (and (> j 1) (= k (+ i j)))
+  (and (> j 0) (= k (+ i j)))
   (sign_extend i (zero_extend j x))
   (zero_extend k x)
   )
-(define-cond-rule bv-merge-sign-extend-3
-  ((x ?BitVec) (i Int) (n0 Int))
-  (= n0 0)
-  (sign_extend i (zero_extend n0 x))
+(define-rule bv-merge-sign-extend-3
+  ((x ?BitVec) (i Int))
+  (sign_extend i (zero_extend 0 x))
   (sign_extend i x)
   )
 (define-cond-rule bv-sign-extend-eq-const-1
@@ -424,6 +423,27 @@
   (and
     (= chi (@bv 0 m))
     (= x clo)))
+
+(define-cond-rule bv-zero-extend-ult-const-1
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
+  (def
+    (n (@bvsize x))
+    (clo (extract nm1 0 (@bv c nm)))
+  )
+  (and (= nm1 (- n 1)) (= (@bv c nm) (zero_extend m clo)))
+  (bvult (zero_extend m x) (@bv c nm))
+  (bvult x clo))
+
+(define-cond-rule bv-zero-extend-ult-const-2
+  ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
+  (def
+    (n (@bvsize x))
+    (clo (extract nm1 0 (@bv c nm)))
+  )
+  (and (= nm1 (- n 1)) (= (@bv c nm) (zero_extend m clo)))
+  (bvult (@bv c nm) (zero_extend m x))
+  (bvult clo x))
+
 (define-cond-rule bv-sign-extend-ult-const-1
   ((x ?BitVec) (m Int) (c Int) (nm Int) (nm1 Int))
   (def

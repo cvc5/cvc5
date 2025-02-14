@@ -194,12 +194,12 @@
 
 ; x < y + 1 <=> (not y < x) and y != 1...1
 (define-cond-rule bv-ult-add-one
-  ((x ?BitVec) (y ?BitVec) (c1 ?BitVec) (w Int))
-  (and (= c1 (@bv 1 w)) (= w (@bvsize y)))
-  (bvult x (bvadd y c1))
+  ((x ?BitVec) (ys ?BitVec :list) (zs ?BitVec :list) (c1 ?BitVec) (w Int))
+  (and (= c1 (@bv 1 w)) (= w (@bvsize x)))
+  (bvult x (bvadd ys c1 zs))
   (and
-    (not (= y (bvnot (@bv 0 w))))
-    (not (bvult y x))))
+    (not (= (bvadd ys zs) (bvnot (@bv 0 w))))
+    (not (bvult (bvadd ys zs) x))))
 (define-cond-rule bv-concat-to-mult
   ((x ?BitVec) (i Int) (m Int) (n0 Int) (w Int))
   (and (= (+ 1 i m) (@bvsize x)) (= n0 0) (= w (@bvsize x)))
