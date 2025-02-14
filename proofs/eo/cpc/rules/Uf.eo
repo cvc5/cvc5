@@ -237,7 +237,7 @@
   (
   (($mk_distinct-elim (and (distinct x y) b))   (eo::cons and (not (= x y)) ($mk_distinct-elim b)))
   (($mk_distinct-elim true)                     true)
-  (($mk_distinct-elim (distinct x y))           (eo::cons and (not (= x y)) true))
+  (($mk_distinct-elim (distinct x y))           (not (= x y)))
   )
 )
 
@@ -249,7 +249,7 @@
 ; conclusion: The equality (= b1 b2).
 (declare-rule distinct-elim ((b1 Bool) (b2 Bool))
   :args ((= b1 b2))
-  :requires ((($singleton_elim ($mk_distinct-elim b1)) b2))
+  :requires ((($mk_distinct-elim b1) b2))
   :conclusion (= b1 b2)
 )
 

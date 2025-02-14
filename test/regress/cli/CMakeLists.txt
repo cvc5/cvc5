@@ -292,6 +292,7 @@ set(regress_0_tests
   regress0/bv/bug733.smt2
   regress0/bv/bug734.smt2
   regress0/bv/bv-abstr-bug2.smt2
+  regress0/bv/bv-card-conflict.smt2
   regress0/bv/bv-int-collapse1.smt2
   regress0/bv/bv-int-collapse2.smt2
   regress0/bv/bv-options4.smt2
