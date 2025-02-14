@@ -880,22 +880,15 @@ PreprocessingPassResult Normalize::applyInternal(
     }
 
 
-    std::vector<Node> normalizedNodes;
-    for (const auto& eqClass : eqClasses)
+    uint32_t idx = 0;
+    for (const auto& eqClass: eqClasses)
     {
         for (const auto& ni : eqClass)
         {
-            normalizedNodes.push_back(ni->node);
+            assertionsToPreprocess->replace(idx++, ni->node);
         }
     }
-
-    assertionsToPreprocess->resize(normalizedNodes.size());
-    for (uint32_t i = 0; i < normalizedNodes.size(); ++i)
-    {
-        assertionsToPreprocess->replace(i, normalizedNodes[i]);
-    }
     
-
   return PreprocessingPassResult::NO_CONFLICT;
   
 }
