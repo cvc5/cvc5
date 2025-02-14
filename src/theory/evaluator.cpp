@@ -19,6 +19,7 @@
 
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "theory/uf/function_const.h"
@@ -242,6 +243,12 @@ EvalResult Evaluator::evalInternal(
           doEval = false;
         }
       }
+      else if (currNode.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        // we require special handling below to deal with symbolic indexed
+        // operators.
+        doEval = false;
+      }
     }
     for (const auto& currNodeChild : currNode)
     {
@@ -304,6 +311,19 @@ EvalResult Evaluator::evalInternal(
             // Rewrite the result now, if we use the rewriter. We will see below
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
+          }
+          else if (currNodeVal.getKind()==Kind::APPLY_INDEXED_SYMBOLIC)
+          {
+            // To evaluate a symbolic indexed application, we reconstruct
+            // the node here, and verify that all its arguments are constant
+            // using rewriteApplyIndexedSymbolic.
+            // If successful, we evaluate the result in a separate recursive
+            // call, which will only recurse once.
+            Node rr = builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(currNodeVal);
+            if (rr!=currNodeVal)
+            {
+              currNodeVal = eval(rr, args, vals);
+            }
           }
         }
         needsReconstruct = false;

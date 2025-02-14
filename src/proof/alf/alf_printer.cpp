@@ -376,7 +376,12 @@ bool AlfPrinter::canEvaluate(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      switch (cur.getKind())
+      Kind k = cur.getKind();
+      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        k = cur.getOperator().getConst<GenericOp>().getKind();
+      }
+      switch (k)
       {
         case Kind::ITE:
         case Kind::NOT:
