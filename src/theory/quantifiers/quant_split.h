@@ -76,6 +76,12 @@ class QuantDSplit : public QuantifiersModule {
    * used for ProofRewriteRule::QUANT_DT_SPLIT.
    */
   static Node split(NodeManager* nm, const Node& q, size_t index);
+  /**
+   * Get proof for q = split(nm, q, index).
+   */
+  static std::shared_ptr<ProofNode> getQuantDtSplitProof(Env& env,
+                                                         const Node& q,
+                                                         size_t index);
 
  private:
   /** list of relevant quantifiers asserted in the current context */

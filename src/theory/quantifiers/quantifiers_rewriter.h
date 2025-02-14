@@ -56,6 +56,8 @@ enum RewriteStep
   COMPUTE_PRENEX,
   /** Variable elimination */
   COMPUTE_VAR_ELIMINATION,
+  /** Datatype variable expansion */
+  COMPUTE_DT_VAR_EXPAND,
   /** Conditional splitting */
   COMPUTE_COND_SPLIT,
   /**
@@ -230,9 +232,20 @@ class QuantifiersRewriter : public TheoryRewriter
    * @param q The quantified formula to rewrite.
    * @param pg If provided, stores a set of small step rewrites that suffice
    * to show that q rewrites to the returned quantified formula.
+   * @return the result of rewriting q.
    */
   Node computeRewriteBody(const Node& q,
                           TConvProofGenerator* pg = nullptr) const;
+  /**
+   * compute datatype tester expansion, which implements
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   *
+   * @param nm Pointer to node manager.
+   * @param q The quantified formula to rewrite.
+   * @param index The index of the variable which we split on.
+   * @return The (possibly rewritten) form of q.
+   */
+  static Node computeDtVarExpand(NodeManager* nm, const Node& q, size_t& index);
 
  private:
   /**
