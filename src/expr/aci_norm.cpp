@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM
+ * Definition of ProofRule::ACI_NORM and ProofRule::ANNIHILATE.
  */
 
 #include "expr/aci_norm.h"
@@ -286,7 +286,10 @@ struct AnnihilateTag
 struct AnnihilateComputedTag
 {
 };
-/** Attribute true for expressions with bound variables in them */
+/**
+ * Attribute true for terms that can be annihilated. Note the same attribute
+ * is stored for all kinds.
+ */
 typedef expr::Attribute<AnnihilateTag, bool> AnnihilateAttr;
 typedef expr::Attribute<AnnihilateComputedTag, bool> AnnihilateComputedAttr;
 
@@ -307,32 +310,55 @@ bool isAnnihilate(Kind k)
 
 bool isAnnihilate(Node a, const Node& zero)
 {
+  Kind k = a.getKind();
+  if (!isAnnihilate(k))
+  {
+    return false;
+  }
   AnnihilateAttr aa;
   AnnihilateComputedAttr aca;
-  if (!a.getAttribute(aca))
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
   {
-    Kind k = a.getKind();
-    bool isAnnil = false;
-    if (isAnnihilate(k))
+    cur = visit.back();
+    Assert(cur.getKind() == k);
+    if (cur.getAttribute(aca))
     {
-      for (const Node& ac : a)
+      visit.pop_back();
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      for (const Node& cc : cur)
       {
-        if (ac == zero)
+        if (cc.getKind() == k)
         {
-          isAnnil = true;
-          break;
-        }
-        if (ac.getKind() == k && isAnnihilate(ac, zero))
-        {
-          isAnnil = true;
-          break;
+          visit.push_back(cc);
         }
       }
+      continue;
     }
-    a.setAttribute(aa, isAnnil);
-    a.setAttribute(aca, true);
-    return isAnnil;
-  }
+    visit.pop_back();
+    bool isAnnil = false;
+    for (const Node& cc : cur)
+    {
+      // only annihilates if the child is zero or has the same kind and
+      // annihilates
+      if (cc == zero || (cc.getKind() == k && cc.getAttribute(aa)))
+      {
+        isAnnil = true;
+        break;
+      }
+    }
+    cur.setAttribute(aa, isAnnil);
+    cur.setAttribute(aca, true);
+  } while (!visit.empty());
   return a.getAttribute(aa);
 }
 

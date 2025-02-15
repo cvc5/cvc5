@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM
+ * Definition of ProofRule::ACI_NORM and ProofRule::ANNIHILATE.
  */
 
 #include "cvc5_private.h"
