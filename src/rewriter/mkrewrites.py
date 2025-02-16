@@ -111,7 +111,7 @@ def gen_mk_node(defns, expr):
         die(f'Cannot generate code for {expr}')
 
 
-def gen_rewrite_db_rule(defns, rule):
+def gen_rewrite_db_rule(defns, rule, flag_expert):
     fvs_list = ', '.join(bvar.name for bvar in rule.bvars)
 
     if rule.rhs_context:
@@ -120,9 +120,10 @@ def gen_rewrite_db_rule(defns, rule):
     else:
         assert not rule.is_fixed_point
         fixed_point_arg = 'Node::null()'
+    level = "Level::" + ("EXPERT" if flag_expert else "NORMAL")
     return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
            f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
-           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg});'
+           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg}, {level});'
 
 
 class Rewrites:
@@ -249,7 +250,7 @@ class RewriteDb:
         return f"addRewrites_{self.name}"
 
 
-def gen_individual_rewrite_db(rewrites_file: Path, template):
+def gen_individual_rewrite_db(rewrites_file: Path, template, flag_expert):
     """
     Create rewrite rules from one file only.
     """
@@ -310,7 +311,7 @@ def gen_individual_rewrite_db(rewrites_file: Path, template):
 
     block = []
     for rule in rewrites.rules:
-        block.append(gen_rewrite_db_rule(defns, rule))
+        block.append(gen_rewrite_db_rule(defns, rule, flag_expert))
 
         enum = rule.get_enum()
         ids.append(enum)
@@ -358,8 +359,9 @@ def gen_rewrite_db(args):
 
     decl_individual_rewrites = []
     call_individual_rewrites = []
-    for rewrites_file in args.rewrites_files:
-        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp)
+    rewrites_files = [(False, f) for f in args.rewrites_files] + [(True, f) for f in args.rewrites_files_expert]
+    for flag_expert, rewrites_file in rewrites_files:
+        db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp, flag_expert)
         ids += db.ids
         printer_code += db.printer_code
         decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
@@ -399,9 +401,13 @@ def main():
     subparsers = parser.add_subparsers()
 
     parser_compile = subparsers.add_parser("rewrite-db")
-    parser_compile.add_argument("src_dir", help="Source directory")
-    parser_compile.add_argument("bin_dir", help="Binary directory")
-    parser_compile.add_argument("rewrites_files",
+    parser_compile.add_argument("--src_dir", help="Source directory")
+    parser_compile.add_argument("--bin_dir", help="Binary directory")
+    parser_compile.add_argument("--rewrites_files",
+                                nargs='+',
+                                type=str,
+                                help="Rule files")
+    parser_compile.add_argument("--rewrites_files_expert",
                                 nargs='+',
                                 type=str,
                                 help="Rule files")
