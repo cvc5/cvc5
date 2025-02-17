@@ -238,7 +238,7 @@ enum ENUM(ProofRule)
    * For example, this may show that :math:`(A \wedge ( B \wedge \bot)) = \bot`.
    *
    * This is implemented internally by checking that
-   * :math:`\texttt{expr::isAnnihilate(t, s)} = \top`. For details, see
+   * :math:`\texttt{expr::isAnnihilate(t, z)} = \top`. For details, see
    * :cvc5src:`expr/aci_norm.h`.
    * \endverbatim
    */
