@@ -43,12 +43,6 @@ class IsListTypeClassCallback : public expr::TypeClassCallback
   uint32_t getTypeClass(TNode v) override;
 };
 
-enum class Level
-{
-  NORMAL,
-  EXPERT,
-};
-
 /**
  * A database of conditional rewrite rules. The rules of this class are
  * automatically populated based on the compilation of the rewrite rule files.

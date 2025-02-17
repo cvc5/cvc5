@@ -272,8 +272,12 @@ name   = "Base"
   example-file = "regress0/printer/print_options_auto.smt2"
 [[option.mode.RARE_DB]]
   name = "rare-db"
-  help = "upon initialization, print the entire set of RARE rewrite rules as they are defined in the proof signature."
-  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of RARE rewrite rules as they are defined in the proof signature."
+  help = "upon initialization, print the set of (non-expert) RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db``, upon initialization, cvc5 prints the entire set of (non-expert) RARE rewrite rules as they are defined in the proof signature."
+[[option.mode.RARE_DB_EXPERT]]
+  name = "rare-db-expert"
+  help = "upon initialization, print the set of expert RARE rewrite rules as they are defined in the proof signature."
+  description = "With ``-o rare-db-expert``, upon initialization, cvc5 prints the entire set of expert RARE rewrite rules as they are defined in the proof signature."
 
 # Stores then enabled output tags.
 [[option]]

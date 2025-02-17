@@ -54,6 +54,11 @@
 ;
 ; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
 ; also noted when applicable by disclaimer:.
+;
+; This signature does *not* contain definitions for expert theories and rules.
+; An additional set of theory definitions and rules can be found at
+; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
+; that are not supported by cvc5 when safe mode is enabled.
 ; 
 ; =============================================================================
 

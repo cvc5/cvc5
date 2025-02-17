@@ -58,25 +58,37 @@ PfManager::PfManager(Env& env)
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
     d_rewriteDb.reset(new RewriteDb);
-    if (isOutputOn(OutputTag::RARE_DB))
+    // maybe output rare rules?
+    bool isNormalOut = isOutputOn(OutputTag::RARE_DB);
+    bool isExpertOut = isOutputOn(OutputTag::RARE_DB_EXPERT);
+    if (isNormalOut || isExpertOut)
     {
       if (options().proof.proofFormatMode != options::ProofFormatMode::CPC)
       {
         Warning()
             << "WARNING: Assuming --proof-format=cpc when printing the RARE "
-               "database with -o rare-db"
+               "database with -o rare-db(-expert)"
             << std::endl;
       }
       proof::AlfNodeConverter atp(nodeManager());
       proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
       const std::map<ProofRewriteRule, RewriteProofRule>& rules =
           d_rewriteDb->getAllRules();
-      std::stringstream ss;
       for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
       {
-        alfp.printDslRule(ss, r.first);
+        // only output if the signature level is what we want
+        Level l = r.second.getSignatureLevel();
+        if (l == Level::NORMAL && isNormalOut)
+        {
+          std::ostream& os = output(OutputTag::RARE_DB);
+          alfp.printDslRule(os, r.first);
+        }
+        else if (l == Level::EXPERT && isExpertOut)
+        {
+          std::ostream& os = output(OutputTag::RARE_DB_EXPERT);
+          alfp.printDslRule(os, r.first);
+        }
       }
-      output(OutputTag::RARE_DB) << ss.str();
     }
   }
 
