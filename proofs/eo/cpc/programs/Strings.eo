@@ -53,8 +53,13 @@
 ; - y (Seq T): The second string.
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::list_concat str.++ x y)
-)
+  (eo::list_concat str.++ x y))
+
+; define: $str_head
+; args:
+; - x (Seq T): The string, expected to be a non-empty concatentation.
+; return: the head (first child) of x.
+(define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
 ; define: $str_mk_nth
 ; args:
@@ -848,17 +853,15 @@
 
 ; program: $str_flatten_word
 ; args:
-; - t String: A string term, assumed to be a non-empty word constant.
+; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
 (program $str_flatten_word ((t String))
   (String) String
   (
-    (($str_flatten_word t) 
-      (eo::ite ($str_check_length_one t)
-        ($str_cons t "")
-        ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t))))))
+    (($str_flatten_word "") "")
+    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
   )
 )
 
@@ -1085,6 +1088,20 @@
 (define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, flatten, reverse
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
+)
+
+; define: $str_to_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "nary form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) (optionally) reverse.
+(define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; intro, reverse
+  ($str_rev rev ($str_nary_intro s))
 )
 
 ; program: $re_str_to_flat_form
