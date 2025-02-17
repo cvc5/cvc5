@@ -3,6 +3,7 @@
 (include "../theories/Strings.eo")
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
+(include "../programs/SeqToString.eo")
 
 
 ; This signature is used for both strings and sequences, where we often

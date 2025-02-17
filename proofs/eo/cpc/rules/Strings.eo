@@ -191,7 +191,7 @@
             ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
             (((str.++ s1 s2)
                 (eo::define ((sc ($str_to_flat_form s1 rev)))
-                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
+                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev) false))))
                   (= tc
                     (eo::ite rev
                       (eo::define ((oc ($str_suffix s1 v)))
