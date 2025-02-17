@@ -30,7 +30,8 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * The level for a rewrite, which determines which proof signature they are a part of.
+ * The level for a rewrite, which determines which proof signature they are a
+ * part of.
  */
 enum class Level
 {
