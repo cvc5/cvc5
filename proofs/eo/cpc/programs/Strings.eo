@@ -3,6 +3,7 @@
 (include "../theories/Strings.eo")
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
+(include "../programs/SeqToString.eo")
 
 
 ; This signature is used for both strings and sequences, where we often
@@ -52,8 +53,13 @@
 ; - y (Seq T): The second string.
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::list_concat str.++ x y)
-)
+  (eo::list_concat str.++ x y))
+
+; define: $str_head
+; args:
+; - x (Seq T): The string, expected to be a non-empty concatentation.
+; return: the head (first child) of x.
+(define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
 ; define: $str_mk_nth
 ; args:
@@ -847,17 +853,15 @@
 
 ; program: $str_flatten_word
 ; args:
-; - t String: A string term, assumed to be a non-empty word constant.
+; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
 (program $str_flatten_word ((t String))
   (String) String
   (
-    (($str_flatten_word t) 
-      (eo::ite ($str_check_length_one t)
-        ($str_cons t "")
-        ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t))))))
+    (($str_flatten_word "") "")
+    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
   )
 )
 
@@ -964,39 +968,6 @@
     (($str_strip_prefix t s)                         (@pair t s))
   )
 )
-
-; program: $str_overlap_rec
-; args:
-; - nil (Seq U): The empty string.
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be in flattened form.
-; return: >
-;   The minimum number of characters that must be skipped in s before
-;   string t can be compatible with it. See examples below.
-(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
-  ((Seq U) (Seq U) (Seq U)) Int
-  (
-  (($str_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
-                                            0
-                                            (eo::add 1 ($str_overlap_rec nil s1 t))))
-  (($str_overlap_rec nil s t)             0)
-  )
-)
-
-; define: $str_overlap
-; args:
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be in flattened form.
-; return: >
-;   The minimum number of characters that must be skipped in s before
-;   string t can be compatible with it. For example:
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
-(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  ($str_overlap_rec ($mk_emptystr (eo::typeof s)) s t))
 
 ; program: $str_mk_re_loop_elim_rec
 ; args:
@@ -1117,6 +1088,20 @@
 (define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, flatten, reverse
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
+)
+
+; define: $str_to_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "nary form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) (optionally) reverse.
+(define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; intro, reverse
+  ($str_rev rev ($str_nary_intro s))
 )
 
 ; program: $re_str_to_flat_form
@@ -1692,29 +1677,49 @@
 
 ;;;;; overlap utils
 
-; program: $str_has_overlap_rec
+; program: $str_overlap_rec
 ; args:
-; - nil (Seq U): The empty string.
 ; - s (Seq U): The first string, expected to be in flattened form.
 ; - t (Seq U): The second string, expected to be in flattened form.
 ; return: >
-;   Assuming t is non-empty, this method returns true if s contains t, or a
-;   non-empty suffix of s is a prefix of t.
-(program $str_has_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
-  ((Seq U) (Seq U) (Seq U)) Bool
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. See examples below.
+(program $str_overlap_rec ((s String) (s1 String :list) (t String))
+  (String String) Int
   (
-  (($str_has_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
-                                                true
-                                                ($str_has_overlap_rec nil s1 t)))
-  (($str_has_overlap_rec nil nil t)           false)
+  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ "" (str.++ s s1) t)
+                                        0
+                                        (eo::add 1 ($str_overlap_rec s1 t))))
+  (($str_overlap_rec s t)             0)
   )
 )
+
+; define: $str_overlap
+; args:
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
+; return: >
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. For example:
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
+(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
+  (eo::match ((ss String) (ts String))
+    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
+    (((@pair ss ts) (eo::requires (eo::is_str ss) true
+                    (eo::requires (eo::is_str ts) true
+                      ($str_overlap_rec
+                        ($str_rev rev ($str_flatten_word ss))
+                        ($str_rev rev ($str_flatten_word ts)))))))))
 
 
 ; program: $str_has_overlap
 ; args:
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be non-empty and in flattened form.
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
 ; return: >
 ;   True if s is non-empty and contains t, or
 ;   a non-empty suffix of s is a prefix of t if rev is false, or
@@ -1723,10 +1728,9 @@
 ;   This method is equivalent to theory::strings::Word::hasOverlap in cvc5,
 ;   see theory/strings/word.h.
 (define $str_has_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::requires (eo::is_str s) true
-  (eo::requires (eo::is_str t) true
-  (eo::define ((emp ($mk_emptystr (eo::typeof s))))
-    ($str_has_overlap_rec emp ($str_to_flat_form s rev) ($str_to_flat_form t rev))))))
+  ; Note that $str_overlap with always return a value <= the length of s.
+  ; There is overlap only when it is strictly less than the length of s.
+  (eo::gt ($str_value_len s) ($str_overlap s t rev)))
 
 ;;;;; evaluation utils
 
