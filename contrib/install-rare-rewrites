@@ -33,11 +33,13 @@ sed -i 's/(let/(eo::define/g' $REWRITE_SIG
 
 echo "[install-rare-rewrites] Generate expert CPC Eunoia signature..."
 
-EXPERT_REWRITE_SIG=$DIR/proofs/eo/cpc/rules/expert/RewritesExpert.eo
+EXPERT_REWRITE_SIG=$DIR/proofs/eo/cpc/expert/rules/RewritesExpert.eo
 
 cat << EOF > $EXPERT_REWRITE_SIG
-(include "../expert/theories/SetsExt.eo")
-(include "../expert/theories/Transcendentals.eo")
+(include "../../theories/Reals.eo")
+
+(include "../theories/SetsExt.eo")
+(include "../theories/Transcendentals.eo")
 
 EOF
 
