@@ -1074,10 +1074,9 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   if (!premises.empty())
   {
     // prove input = inputRew by congruence given the premises
-    Node inputRew = proveCong(cdp, input, premises);
-    Node ceq = input.eqNode(inputRew);
+    Node ceq = proveCong(cdp, input, premises);
     transEq.push_back(ceq);
-    input = inputRew;
+    input = ceq[1];
   }
   Trace("brc-macro") << "Run " << rule << " on " << input << std::endl;
   theory::Rewriter* rr = d_env.getRewriter();
