@@ -1,5 +1,7 @@
 (include "../programs/BitVectors.eo")
 
+(include "../programs/PolyNorm.eo")
+
 ;;;;; ProofRewriteRule::BV_REPEAT_ELIM
 
 ; rule: bv-repeat-elim
@@ -206,3 +208,41 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRule::BV_POLY_NORM
+
+; rule: bv_poly_norm
+; implements: ProofRule::BV_POLY_NORM
+; args:
+; - a (BitVec n): The left-hand side of the equality.
+; - b (BitVec n): The right-hand side of the equality.
+; requires: >
+;   That the bitvector terms a and b are equal up to polynomial normalization.
+; conclusion: The given equality.
+(declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires (((eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof a)))))
+                (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
+  :conclusion (= a b)
+)
+
+;;;;; ProofRule::BV_POLY_NORM_EQ
+
+; rule: bv_poly_norm_eq
+; implements: ProofRule::BV_POLY_NORM_EQ
+; premises:
+; - eq Bool: >
+;   An equality stating that terms t and s of the form (bvmul cx (bvsub x1 x2))
+;   and (bvmul cy (bvsub y1 y2)) are equal.
+; args:
+; - eqr Bool: The equivalence between equalities, proven by this rule.
+; requires: >
+;   The constants cx and cy are odd.
+; conclusion: >
+;   An equivalence between equalities specified by eqr and justified by eq.
+(declare-rule bv_poly_norm_eq ((n Int) (cx (BitVec n)) (xb1 (BitVec n)) (xb2 (BitVec n))
+                               (cy (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)) (one (BitVec n) :list))
+  :premises ((= (bvmul cx (bvsub xb1 xb2) one) (bvmul cy (bvsub yb1 yb2) one)))
+  :args ((= (= xb1 xb2) (= yb1 yb2)))
+  :requires (((eo::to_z one) 1) ((eo::zmod (eo::to_z cx) 2) 1) ((eo::zmod (eo::to_z cy) 2) 1))
+  :conclusion (= (= xb1 xb2) (= yb1 yb2))
+)

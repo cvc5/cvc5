@@ -29,6 +29,7 @@ const char* toString(ProofRule rule)
     case ProofRule::SUBS: return "SUBS";
     case ProofRule::MACRO_REWRITE: return "MACRO_REWRITE";
     case ProofRule::EVALUATE: return "EVALUATE";
+    case ProofRule::DISTINCT_VALUES: return "DISTINCT_VALUES";
     case ProofRule::ACI_NORM: return "ACI_NORM";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
@@ -119,6 +120,8 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case ProofRule::BV_POLY_NORM: return "BV_POLY_NORM";
+    case ProofRule::BV_POLY_NORM_EQ: return "BV_POLY_NORM_EQ";
     //================================================= Datatype rules
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
@@ -148,6 +151,7 @@ const char* toString(ProofRule rule)
     case ProofRule::STRING_REDUCTION: return "STRING_REDUCTION";
     case ProofRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
     case ProofRule::RE_INTER: return "RE_INTER";
+    case ProofRule::RE_CONCAT: return "RE_CONCAT";
     case ProofRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
@@ -283,6 +287,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
+    case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
     case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:

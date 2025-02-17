@@ -1,0 +1,167 @@
+(include "../theories/Builtin.eo")
+(include "../theories/Arrays.eo")
+(include "../theories/Arith.eo")
+(include "../theories/BitVectors.eo")
+(include "../theories/Strings.eo")
+(include "../theories/Sets.eo")
+(include "../theories/Datatypes.eo")
+
+(include "Utils.eo")
+(include "Datatypes.eo")
+
+; note: This is a forward declaration of $are_distinct_terms_list below.
+(program $are_distinct_terms_list () (@List Type) Bool)
+
+; define: $are_distinct_terms
+; args:
+; - t T: The first term.
+; - s T: The second term.
+; return: >
+;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
+(define $are_distinct_terms ((T Type :implicit) (t T) (s T))
+  (eo::ite (eo::is_eq t s) false ($are_distinct_terms_list (@list t s) (eo::typeof t))))
+
+; program: $some_pairwise_distinct_term
+; args:
+; - ts T: The first list of terms.
+; - ss T: The second list of terms.
+; return: >
+;   True if there is some term in ts and ss at the same position which can be shown to be semantically distinct.
+;   This program expects ts and ss to be of the same length.
+(program $some_pairwise_distinct_term ((U Type) (t U) (s U) (ts @List :list) (ss @List :list))
+  (@List @List) Bool
+  (
+  (($some_pairwise_distinct_term (@list t ts) (@list s ss))  (eo::ite ($are_distinct_terms t s)
+                                                                true
+                                                                ($some_pairwise_distinct_term ts ss)))
+  (($some_pairwise_distinct_term @list.nil @list.nil)        false)
+  ; unevaluated if different lengths
+  )
+)
+
+;;;;; Theory of sets
+
+; program: $set_is_not_subset
+; args:
+; - t (Set T): The first set terms.
+; - s (Set T): The second set terms.
+; return: >
+;   True if we can show that t is not a subset of s based on reasoning about values.
+(program $set_is_not_subset ((T Type) (t (Set T)) (ts (Set T) :list) (s (Set T)) (ss (Set T) :list) (e1 T) (e2 T))
+  ((Set T) (Set T)) Bool
+  (
+  (($set_is_not_subset (set.empty (Set T)) s)                                 false)
+  (($set_is_not_subset (set.singleton e1) (set.empty (Set T)))                true)
+  (($set_is_not_subset (set.singleton e1) (set.singleton e2))                 ($are_distinct_terms e1 e2))
+  (($set_is_not_subset (set.singleton e1) (set.union (set.singleton e2) ss))  (eo::ite ($are_distinct_terms e1 e2)
+                                                                                ($set_is_not_subset (set.singleton e1) ss)
+                                                                                false))
+  (($set_is_not_subset (set.union (set.singleton e1) ts) s)                   (eo::ite ($set_is_not_subset (set.singleton e1) s)
+                                                                                true
+                                                                                ($set_is_not_subset ts s)))
+
+  )
+)
+
+;;;;; Theory of sequences
+
+; define: $seq_distinct_terms
+; args:
+; - t (Seq T): The first term.
+; - s (Seq T): The second term.
+; return: >
+;   True if we can derive that t and s are distinct based on their length,
+;   or by a character prefix that can be shown distinct.
+(program $seq_distinct_terms ((T Type) (t (Seq T)) (ts (Seq T) :list) (s (Seq T)) (ss (Seq T) :list) (e1 T) (e2 T))
+  ((Seq T) (Seq T)) Bool
+  (
+  ; handle singleton cases
+  (($seq_distinct_terms (seq.unit e1) s)                                     ($seq_distinct_terms (seq.++ (seq.unit e1)) s))
+  (($seq_distinct_terms t (seq.unit e2))                                     ($seq_distinct_terms t (seq.++ (seq.unit e2))))
+  (($seq_distinct_terms (seq.++ (seq.unit e1) ts) (seq.++ (seq.unit e2) ss)) (eo::ite ($are_distinct_terms e1 e2)
+                                                                               true
+                                                                               ($seq_distinct_terms ts ss)))
+  (($seq_distinct_terms t t)                                                 false)
+  (($seq_distinct_terms t s)                                                 true) ; otherwise different length
+  )
+)
+
+;;;;; Theory of datatypes
+
+; define: $dt_distinct_terms
+; args:
+; - t T: The first term, expected to be of datatype type.
+; - s T: The second term, expected to be of datatype type.
+; return: >
+;   True if we can show that t and s denote distinct terms. This is true
+;   if t and s are distinct constructor applications, or are applications
+;   of the same constructor and one of their arguments can be shown distinct.
+(define $dt_distinct_terms ((T Type :implicit) (t T) (s T))
+  (eo::define ((ct ($get_fun t)))
+  (eo::define ((cs ($get_fun s)))
+  (eo::ite (eo::is_eq ($dt_is_cons ct) true)
+    (eo::ite (eo::is_eq ct cs)
+      ; recurse on each argument
+      ($some_pairwise_distinct_term ($dt_arg_list t) ($dt_arg_list s))  ; get the argument list of the datatypes
+      ; otherwise conflicting only if cs is also a constructor
+      (eo::is_eq ($dt_is_cons cs) true))
+    false)))
+)
+
+
+;;;;; Definitions
+
+; define: $are_distinct_terms_type
+; args:
+; - t T: The first term.
+; - s T: The second term.
+; - T Type: The type of the arguments.
+; return: >
+;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
+(program $are_distinct_terms_type ((T Type) (t T) (s T) (U Type) (W Type) (n Int))
+  (T T Type) Bool
+  (
+  (($are_distinct_terms_type t t T)           false)
+  (($are_distinct_terms_type t s Int)         (eo::and (eo::is_z t) (eo::is_z s)))
+  (($are_distinct_terms_type t s Real)        (eo::and (eo::is_q t) (eo::is_q s)))
+  (($are_distinct_terms_type t s String)      (eo::and (eo::is_str t) (eo::is_str s)))
+  (($are_distinct_terms_type t s (BitVec n))  (eo::and (eo::is_bin t) (eo::is_bin s)))
+  (($are_distinct_terms_type t s Bool)        (eo::and (eo::is_bool t) (eo::is_bool s)))
+  (($are_distinct_terms_type t s (Set U))     (eo::or ($set_is_not_subset t s) ($set_is_not_subset s t)))
+  (($are_distinct_terms_type t s (Seq U))     ($seq_distinct_terms t s))
+  (($are_distinct_terms_type t s T)           ($dt_distinct_terms t s)) ; otherwise assume we are a user datatype
+  )
+)
+
+; define: $are_distinct_terms_list_rec
+; args:
+; - t T: The term.
+; - xs @List: A list of terms, each expected to be of type T.
+; - T Type: The type of the arguments.
+; return: >
+;   True if t can be shown to be disequal from all terms in xs.
+(program $are_distinct_terms_list_rec ((T Type) (t T) (s T) (xs @List :list))
+  (T @List Type) Bool
+  (
+  (($are_distinct_terms_list_rec t (@list s xs) T)  (eo::ite ($are_distinct_terms_type t s T)
+                                                      ($are_distinct_terms_list_rec t xs T)
+                                                      false))
+  (($are_distinct_terms_list_rec t @list.nil T)     true)
+  )
+)
+
+; define: $are_distinct_terms_list_rec
+; args:
+; - xs @List: A list of terms, each expected to be of type T.
+; - T Type: The type of the terms in the list.
+; return: >
+;   True if each pair of terms in xs can be shown to be pairwise disequal.
+(program $are_distinct_terms_list ((T Type) (t T) (xs @List :list))
+  (@List Type) Bool
+  (
+  (($are_distinct_terms_list @list.nil T)     true)
+  (($are_distinct_terms_list (@list t xs) T)  (eo::ite ($are_distinct_terms_list_rec t xs T)
+                                                ($are_distinct_terms_list xs T)
+                                                false))
+  )
+)

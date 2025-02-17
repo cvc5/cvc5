@@ -50,7 +50,8 @@ void RewriteDb::addRule(ProofRewriteRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        Node context)
+                        Node context,
+                        Level _level)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> fvsf = fvs;
