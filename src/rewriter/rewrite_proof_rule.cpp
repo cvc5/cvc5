@@ -34,12 +34,14 @@ void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc,
-                            Node context)
+                            Node context,
+            Level _level)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
+  d_level= _level;
   std::map<Node, Node> condDef;
   for (const Node& c : cond)
   {
@@ -278,6 +280,11 @@ void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
     Node cvs = expr::narySubstitute(cv.second, vs, ss);
     dss.push_back(cvs);
   }
+}
+
+Level RewriteProofRule::getSignatureLevel() const
+{
+  return d_level;
 }
 
 }  // namespace rewriter
