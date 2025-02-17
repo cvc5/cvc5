@@ -301,6 +301,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+      return "macro-str-strip-endpoints";
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
       return "str-overlap-split-ctn";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:

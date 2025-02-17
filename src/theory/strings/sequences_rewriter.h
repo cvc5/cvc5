@@ -50,7 +50,15 @@ class SequencesRewriter : public TheoryRewriter
    * cannot be rewritten.
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
-
+  /**
+   * Rewrite based on MACRO_STR_STRIP_ENDPOINTS. We populate nb, nrem, ne such
+   * that n = nb ++ nrem ++ ne, and these components are the appropriate
+   * inputs to a STR_OVERLAP_* rule.
+   */
+  Node rewriteViaMacroStrStripEndpoints(const Node& n,
+                                        std::vector<Node>& nb,
+                                        std::vector<Node>& nrem,
+                                        std::vector<Node>& ne);
  protected:
   /** rewrite regular expression all
    *
