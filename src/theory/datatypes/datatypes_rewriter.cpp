@@ -1158,13 +1158,11 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
-  if (dt.getNumConstructors() > 1)
-  {
-    // must be the right constructor to update
-    Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
-    ret = nm->mkNode(Kind::ITE, tester, ret, n[0]);
-  }
-  return ret;
+  // note it may be that this dt has one constructor, in which case this
+  // tester will rewrite to true.
+  // must be the right constructor to update
+  Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
+  return nm->mkNode(Kind::ITE, tester, ret, n[0]);
 }
 Node DatatypesRewriter::expandNullableLift(Node n)
 {
