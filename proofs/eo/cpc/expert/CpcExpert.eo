@@ -71,7 +71,9 @@
 ;   where one side is treated as a singleton child of the other side. The
 ;   remaining case checks where both terms are not singletons.
 ; conclusion: The given equality.
-; note: This implements ProofRule::ACI_NORM for expert operators.
+; disclaimer: >
+;   This implements ProofRule::ACI_NORM for expert operators, and is
+;   not its own dedicated rule.
 (declare-rule aci_norm_expert ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((eo::define ((an ($get_aci_normal_form_expert a)) (bn ($get_aci_normal_form_expert b)))

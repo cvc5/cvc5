@@ -21,6 +21,7 @@
 #include <ostream>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "expr/sequence.h"
 #include "expr/subs.h"

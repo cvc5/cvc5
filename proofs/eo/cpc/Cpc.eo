@@ -362,6 +362,10 @@
 ;   where one side is treated as a singleton child of the other side. The
 ;   remaining case checks where both terms are not singletons.
 ; conclusion: The given equality.
+; disclaimer: >
+;   This rule implements only the cases of operators that are defined in the
+;   standard signature. Further expert operators are handled in this rule,
+;   which are defined in CpcExpert.eo.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((eo::define ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
