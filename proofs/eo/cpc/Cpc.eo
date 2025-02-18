@@ -71,8 +71,7 @@
 (include "./rules/Rewrites.eo")
 
 (include "./programs/DistinctValues.eo")
-
-(include "./expert/CpcExpert.eo")
+(include "./programs/AciNorm.eo")
 
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
@@ -303,6 +302,8 @@
   :conclusion (= t ($run_evaluate t))
 )
 
+;;;;; ProofRule::DISTINCT_VALUES
+
 ; rule: distinct_values
 ; implements: ProofRule::DISTINCT_VALUES
 ; args:
@@ -316,6 +317,8 @@
   :conclusion (not (= t s))
 )
 
+;;;;; ProofRule::DISTINCT_CARD_CONFLICT
+
 ; define: $get_aci_normal_form
 ; args:
 ; - t S: The term to compute the normal form for.
@@ -327,19 +330,15 @@
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (xf1 (FiniteField m)) (xf2 (FiniteField m) :list)
               (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
       ((or x1 x2)        ($get_aci_norm t))
       ((and x1 x2)       ($get_aci_norm t))
-      ((sep x1 x2)       ($get_aci_norm t))
       ((re.union x1 x2)  ($get_aci_norm t))
       ((re.inter x1 x2)  ($get_aci_norm t))
       ((bvor xb1 xb2)    ($get_aci_norm t))
       ((bvand xb1 xb2)   ($get_aci_norm t))
-      ((ff.add xf1 xf2)  ($get_aci_norm t))
-      ((ff.mul xf1 xf2)  ($get_aci_norm t))
       ((str.++ xs1 xs2)  ($get_a_norm t))
       ((re.++ x1 x2)     ($get_a_norm t))
       (x                 x)
