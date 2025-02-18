@@ -1458,9 +1458,6 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{(t \cdot t_1 \cdot \ldots \cdot t_n) = (s \cdot t_1 \cdot \ldots \cdot t_n)\mid \top}{t = s}
    *
-   *   \inferrule{(t \cdot r) = (s \cdot r)\mid \top}{t = s}
-   *
-   * where :math:`r` is a concatenation of one or more strings.
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
    * implicit in the concatenation above. For example, if the premise is
    * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
@@ -1483,8 +1480,6 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\, \mathit{len}(t_n) =
    *   \mathit{len}(s_m)\mid \top}{t_n = s_m}
-   *
-   * where :math:`t_2` and :math:`s_2` is a concatenation of zero or more strings.
    *
    * \endverbatim
    */
