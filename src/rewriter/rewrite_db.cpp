@@ -152,7 +152,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, _level);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }
