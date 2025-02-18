@@ -64,13 +64,15 @@ class RewriteDb
    * @param b The right hand side of the rule
    * @param cond The condition, or null if this is not a conditional rule
    * @param context The term context, if one exists
+   * @param level Whether this rule is expert
    */
   void addRule(ProofRewriteRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
                Node cond,
-               Node context);
+               Node context,
+               Level level);
   /**
    * Get matches, which incrementally makes callbacks on the notify class
    * ntm for all rules that match eq.

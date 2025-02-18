@@ -19,6 +19,7 @@
 (include "./theories/SepLogic.eo")
 (include "./rules/Transcendentals.eo")
 (include "./rules/SetsExt.eo")
+(include "./rules/RewritesExpert.eo")
 
 (include "../theories/Arrays.eo")
 

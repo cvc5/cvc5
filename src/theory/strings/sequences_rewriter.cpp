@@ -77,6 +77,10 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
+                           TheoryRewriteCtx::POST_DSL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -151,6 +155,13 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return rewriteViaStrReplaceReAllEval(n);
     }
     break;
+    case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
+      return rewriteViaMacroStrSplitCtn(n);
+    case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+    {
+      std::vector<Node> nb, nrem, ne;
+      return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
+    }
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
@@ -1483,6 +1494,135 @@ Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
   return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
 }
 
+Node SequencesRewriter::rewriteViaMacroStrSplitCtn(const Node& node)
+{
+  if (node.getKind() != Kind::STRING_CONTAINS
+      || node[0].getKind() != Kind::STRING_CONCAT || !node[1].isConst()
+      || Word::getLength(node[1]) == 0)  // don't bother if empty string
+  {
+    return Node::null();
+  }
+  Node t = node[1];
+  // Below, we are looking for a constant component of node[0]
+  // has no overlap with node[1], which means we can split.
+  // Notice that if the first or last components had no
+  // overlap, these would have been removed by strip
+  // constant endpoints. Hence, we consider only the inner children.
+  for (size_t i = 1, iend = (node[0].getNumChildren() - 1); i < iend; i++)
+  {
+    // constant contains
+    if (node[0][i].isConst())
+    {
+      // if no overlap, we can split into disjunction
+      if (!Word::hasOverlap(node[0][i], node[1], false)
+          && !Word::hasOverlap(node[1], node[0][i], false))
+      {
+        std::vector<Node> nc0;
+        utils::getConcat(node[0], nc0);
+        std::vector<Node> spl[2];
+        spl[0].insert(spl[0].end(), nc0.begin(), nc0.begin() + i);
+        Assert(i < nc0.size() - 1);
+        spl[1].insert(spl[1].end(), nc0.begin() + i + 1, nc0.end());
+        TypeNode stype = node[0].getType();
+        Node ret = nodeManager()->mkNode(
+            Kind::OR,
+            nodeManager()->mkNode(
+                Kind::STRING_CONTAINS, utils::mkConcat(spl[0], stype), node[1]),
+            nodeManager()->mkNode(Kind::STRING_CONTAINS,
+                                  utils::mkConcat(spl[1], stype),
+                                  node[1]));
+        return ret;
+      }
+    }
+  }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaMacroStrStripEndpoints(
+    const Node& n,
+    std::vector<Node>& nb,
+    std::vector<Node>& nrem,
+    std::vector<Node>& ne)
+{
+  Kind k = n.getKind();
+  std::vector<int> dirs;
+  if (k == Kind::STRING_INDEXOF)
+  {
+    // must start at zero
+    if (!n[2].isConst() || n[2].getConst<Rational>().sgn() != 0)
+    {
+      return Node::null();
+    }
+    // only strip off the end
+    dirs.push_back(-1);
+  }
+  else if (k == Kind::STRING_CONTAINS || k == Kind::STRING_REPLACE)
+  {
+    if (n[1].isConst())
+    {
+      // if constant, we strip from one direction at a time, to ease proof
+      // reconstruction
+      dirs.push_back(-1);
+      dirs.push_back(1);
+    }
+    else
+    {
+      dirs.push_back(0);
+    }
+  }
+  else
+  {
+    return Node::null();
+  }
+
+  std::vector<Node> nc2;
+  utils::getConcat(n[1], nc2);
+  if (nc2.empty())
+  {
+    return Node::null();
+  }
+  // strip endpoints
+  bool success = false;
+  for (int dir : dirs)
+  {
+    nrem.clear();
+    utils::getConcat(n[0], nrem);
+    nb.clear();
+    ne.clear();
+    if (d_stringsEntail.stripConstantEndpoints(nrem, nc2, nb, ne, dir))
+    {
+      success = true;
+      break;
+    }
+  }
+  if (success)
+  {
+    NodeManager* nm = nodeManager();
+    TypeNode stype = n[0].getType();
+    Node rem = utils::mkConcat(nrem, stype);
+    switch (k)
+    {
+      case Kind::STRING_CONTAINS:
+      {
+        return nm->mkNode(Kind::STRING_CONTAINS, rem, n[1]);
+      }
+      case Kind::STRING_REPLACE:
+      {
+        std::vector<Node> cc;
+        cc.insert(cc.end(), nb.begin(), nb.end());
+        cc.push_back(nm->mkNode(Kind::STRING_REPLACE, rem, n[1], n[2]));
+        cc.insert(cc.end(), ne.begin(), ne.end());
+        return utils::mkConcat(cc, stype);
+      }
+      case Kind::STRING_INDEXOF:
+      {
+        return nm->mkNode(Kind::STRING_INDEXOF, rem, n[1], n[2]);
+      }
+      default: break;
+    }
+  }
+  return Node::null();
+}
 
 Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
 {
@@ -2631,13 +2771,11 @@ Node SequencesRewriter::rewriteContains(Node node)
   TypeNode stype = node[0].getType();
 
   // strip endpoints
-  std::vector<Node> nb;
-  std::vector<Node> ne;
-  if (d_stringsEntail.stripConstantEndpoints(nc1, nc2, nb, ne))
+  Node retStr =
+      rewriteViaRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS, node);
+  if (!retStr.isNull())
   {
-    Node ret = nodeManager()->mkNode(
-        Kind::STRING_CONTAINS, utils::mkConcat(nc1, stype), node[1]);
-    return returnRewrite(node, ret, Rewrite::CTN_STRIP_ENDPT);
+    return returnRewrite(node, retStr, Rewrite::CTN_STRIP_ENDPT);
   }
 
   for (const Node& n : nc2)
@@ -2694,43 +2832,12 @@ Node SequencesRewriter::rewriteContains(Node node)
   // splitting
   if (node[0].getKind() == Kind::STRING_CONCAT)
   {
-    if (node[1].isConst())
+    // e.g. (str.contains (str.++ x "AB" y) "C") -->
+    // (or (str.contains x "C") (str.contains y "C")
+    Node ret = rewriteViaMacroStrSplitCtn(node);
+    if (!ret.isNull())
     {
-      Node t = node[1];
-      // Below, we are looking for a constant component of node[0]
-      // has no overlap with node[1], which means we can split.
-      // Notice that if the first or last components had no
-      // overlap, these would have been removed by strip
-      // constant endpoints above.
-      // Hence, we consider only the inner children.
-      for (unsigned i = 1; i < (node[0].getNumChildren() - 1); i++)
-      {
-        // constant contains
-        if (node[0][i].isConst())
-        {
-          Assert (Word::getLength(node[0][i])!=0);
-          // if no overlap, we can split into disjunction
-          if (!Word::hasOverlap(node[0][i], node[1], false)
-              && !Word::hasOverlap(node[1], node[0][i], false))
-          {
-            std::vector<Node> nc0;
-            utils::getConcat(node[0], nc0);
-            std::vector<Node> spl[2];
-            spl[0].insert(spl[0].end(), nc0.begin(), nc0.begin() + i);
-            Assert(i < nc0.size() - 1);
-            spl[1].insert(spl[1].end(), nc0.begin() + i + 1, nc0.end());
-            Node ret = nodeManager()->mkNode(
-                Kind::OR,
-                nodeManager()->mkNode(Kind::STRING_CONTAINS,
-                                      utils::mkConcat(spl[0], stype),
-                                      node[1]),
-                nodeManager()->mkNode(Kind::STRING_CONTAINS,
-                                      utils::mkConcat(spl[1], stype),
-                                      node[1]));
-            return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
-          }
-        }
-      }
+      return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
     }
   }
   else if (node[0].getKind() == Kind::STRING_SUBSTR)
@@ -3020,16 +3127,13 @@ Node SequencesRewriter::rewriteIndexof(Node node)
 
   if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
   {
-    std::vector<Node> cb;
-    std::vector<Node> ce;
-    if (d_stringsEntail.stripConstantEndpoints(
-            children0, children1, cb, ce, -1))
+    Node retStr =
+        rewriteViaRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS, node);
+    if (!retStr.isNull())
     {
-      Node ret = utils::mkConcat(children0, stype);
-      ret = nm->mkNode(Kind::STRING_INDEXOF, ret, node[1], node[2]);
       // For example:
       // str.indexof( str.++( x, "A" ), "B", 0 ) ---> str.indexof( x, "B", 0 )
-      return returnRewrite(node, ret, Rewrite::RPL_PULL_ENDPT);
+      return returnRewrite(node, retStr, Rewrite::RPL_PULL_ENDPT);
     }
   }
 
@@ -3203,19 +3307,11 @@ Node SequencesRewriter::rewriteReplace(Node node)
     // for example,
     //   str.replace( str.++( "b", x, "b" ), "a", y ) --->
     //   str.++( "b", str.replace( x, "a", y ), "b" )
-    std::vector<Node> cb;
-    std::vector<Node> ce;
-    if (d_stringsEntail.stripConstantEndpoints(children0, children1, cb, ce))
+    Node retStr =
+        rewriteViaRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS, node);
+    if (!retStr.isNull())
     {
-      std::vector<Node> cc;
-      cc.insert(cc.end(), cb.begin(), cb.end());
-      cc.push_back(nodeManager()->mkNode(Kind::STRING_REPLACE,
-                                         utils::mkConcat(children0, stype),
-                                         node[1],
-                                         node[2]));
-      cc.insert(cc.end(), ce.begin(), ce.end());
-      Node ret = utils::mkConcat(cc, stype);
-      return returnRewrite(node, ret, Rewrite::RPL_PULL_ENDPT);
+      return returnRewrite(node, retStr, Rewrite::RPL_PULL_ENDPT);
     }
   }
 

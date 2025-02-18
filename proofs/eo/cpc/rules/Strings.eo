@@ -183,22 +183,20 @@
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U)) (t3 (Seq U) :list))
-      ($str_rev rev t)
-      (((str.++ t1 t2 t3)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
-            (((str.++ s1 s2)
-                (eo::define ((sc ($str_to_flat_form s1 rev)))
-                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
-                  (= tc
-                    (eo::ite rev
-                      (eo::define ((oc ($str_suffix s1 v)))
-                      (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
-                      (eo::define ((oc ($str_prefix s1 v)))
-                      (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
-                )))))))))
+    (eo::define ((tn ($str_to_nary_form t rev)))
+    (eo::define ((t1 ($str_head tn)))
+    (eo::define ((t2 (eo::list_nth str.++ tn 1))) ; get the second component
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+    (eo::define ((s1len (eo::len s1)))
+    (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
+    (eo::define ((v (eo::add 1 ($str_overlap s1s t2 rev)))) ; get the overlap, plus one
+      (eo::requires t1 tc
+        (= tc
+          (eo::ite rev
+            (eo::define ((oc ($str_suffix s1 v)))
+              (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
+            (eo::define ((oc ($str_prefix s1 v)))
+              (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))))))))))
 )
 
 ; rule: concat_conflict
@@ -641,40 +639,49 @@
 ; args:
 ; - s (Seq T): the term.
 ; return: >
-;   The multiset over-approximation of s, which is a (flattened) concatenation
-;   term whose components represent an overapproximation of what s may contain.
+;   The multiset over-approximation of s, which is a (flattened) list of
+;   terms which represents an overapproximation of what s may contain.
+;   In particular, note that all string literals are broken up into string
+;   literals of size one.
 (program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
-    ((Seq T)) (Seq T)
+    ((Seq T)) @List
     (
-      (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
+      (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
       (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
-      (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
-      (($str_multiset_overapprox s)                    ($str_to_flat_form s false))
+      (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
+      (($str_multiset_overapprox s)                    (eo::ite ($str_is_empty s)
+                                                          @list.nil
+                                                          (eo::ite (eo::is_str s)
+                                                            (eo::ite (eo::gt (eo::len s) 1)
+                                                              ; if a string constant of size > 1, flatten to characters and add to list
+                                                              ($str_multiset_overapprox ($str_flatten_word s))
+                                                              (@list s))
+                                                            (@list s))))
     )
 )
 
 ; program: $str_is_multiset_subset_strict
 ; args:
-; - s (Seq T): the multiset approximation of a string term.
-; - t (Seq T): the multiset (over)approximation of a string term.
-; - b Bool: whether we have found that a character from s was not contained in t.
+; - s (Seq T): a string term, expected to be in flattened form.
+; - xs @List: the multiset (over)approximation of a string term.
+; - nr @List: the accumulated list of previously processed terms from s that were not removed from xs.
 ; return: >
 ;   True if the string approximated by s is definitely not contained in the string
 ;   approximated by t. We compute this by iteratively removing the components of
-;   s from t, remembering if we have removed a character.
-; note: This method only supports strings currently.
-(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
-    ((Seq T) (Seq T) Bool) Bool
+;   s from t, and then checking if a term in nr is provably distinct from the final xs.
+(program $str_is_multiset_subset_strict ((T Type :implicit) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
+    ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
-                                                            (eo::define ((nrem (eo::is_eq t tr)))
-                                                              ($str_is_multiset_subset_strict ss tr 
-                                                                ; we update b to true if we successfully remove a character from s
-                                                                (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
-      (($str_is_multiset_subset_strict s t b)             (eo::ite b 
-                                                            ; remaining characters in t must be constants only
-                                                            (eo::is_str ($str_from_flat_form t false))
-                                                            false))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
+                                                            (eo::define ((nrem (eo::is_eq xs xsr)))
+                                                              ($str_is_multiset_subset_strict ss xsr
+                                                                ; we add s to the accumulated list if it was not removed from xs
+                                                                (eo::ite nrem (@list s nr) nr)))))
+      (($str_is_multiset_subset_strict emp xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
+                                                              ; if something was in s that is provably distinct from the remainder of t, we succeed
+                                                              true
+                                                              ($str_is_multiset_subset_strict emp xs nr)))
+      (($str_is_multiset_subset_strict emp xs nr)           false)
     )
 )
 
@@ -689,7 +696,7 @@
   :args ((= (str.contains t s) false))
   :requires ((($str_is_multiset_subset_strict
                 ($str_to_flat_form s false)
-                ($str_multiset_overapprox t) false) true))
+                ($str_multiset_overapprox t) @list.nil) true))
   :conclusion (= (str.contains t s) false)
 )
 
@@ -704,12 +711,14 @@
 ;   overlap with the second argument, and the second argument has not forward
 ;   overlap with the middle component of the first argument.
 ; conclusion: The given equality.
-(declare-rule str-overlap-split-ctn ((t String) (s String) (c String) (d String))
-  :args ((= (str.contains (str.++ t c s) d)
+(declare-rule str-overlap-split-ctn ((T Type) (emp (Seq T) :list)
+                                     (t (Seq T)) (s (Seq T)) (c (Seq T)) (d (Seq T)))
+  :args ((= (str.contains (str.++ t c s emp) d)
             (or (str.contains t d) (str.contains s d))))
-  :requires ((($str_has_overlap c d false) false)
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c d false) false)
              (($str_has_overlap d c false) false))
-  :conclusion (= (str.contains (str.++ t c s) d)
+  :conclusion (= (str.contains (str.++ t c s emp) d)
                  (or (str.contains t d) (str.contains s d)))
 )
 
@@ -724,14 +733,16 @@
 ;   and the last components of the arguments to contains have no reverse
 ;   overlap.
 ; conclusion: The given equality.
-(declare-rule str-overlap-endpoints-ctn ((c1 String) (s String) (c2 String)
-                                         (d1 String) (t String) (d2 String))
-  :args ((= (str.contains (str.++ c1 s c2) (str.++ d1 t d2))
-            (str.contains s (str.++ d1 t d2))))
-  :requires ((($str_has_overlap c1 d1 false) false)
+(declare-rule str-overlap-endpoints-ctn ((T Type) (emp (Seq T) :list)
+                                         (c1 (Seq T)) (s (Seq T)) (c2 (Seq T))
+                                         (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)))
+  :args ((= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+            (str.contains s (str.++ d1 t d2 emp))))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c1 d1 false) false)
              (($str_has_overlap c2 d2 true) false))
-  :conclusion (= (str.contains (str.++ c1 s c2) (str.++ d1 t d2))
-                 (str.contains s (str.++ d1 t d2)))
+  :conclusion (= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+                 (str.contains s (str.++ d1 t d2 emp)))
 )
 
 ;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
@@ -744,12 +755,14 @@
 ;  the last components of the first two arguments to indexof have no reverse
 ;  overlap.
 ; conclusion: The given equality.
-(declare-rule str-overlap-endpoints-indexof ((s String) (c String) (t String) (d String))
-  :args ((= (str.indexof (str.++ s c) (str.++ t d) 0)
-            (str.indexof s (str.++ t d) 0)))
-  :requires ((($str_has_overlap c d true) false))
-  :conclusion (= (str.indexof (str.++ s c) (str.++ t d) 0)
-                 (str.indexof s (str.++ t d) 0))
+(declare-rule str-overlap-endpoints-indexof ((T Type) (emp (Seq T) :list)
+                                             (s (Seq T)) (c (Seq T)) (t (Seq T)) (d (Seq T)))
+  :args ((= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+            (str.indexof s (str.++ t d emp) 0)))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c d true) false))
+  :conclusion (= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+                 (str.indexof s (str.++ t d emp) 0))
 )
 
 ;;;;; ProofRewriteRule::STR_OVERLAP_REPLACE
@@ -763,14 +776,16 @@
 ;   overlap, and the last components of the first two arguments to replace have
 ;   no reverse overlap.
 ; conclusion: The given equality.
-(declare-rule str-overlap-endpoints-replace ((c1 String) (s String) (c2 String)
-                                             (d1 String) (t String) (d2 String) (r String))
-  :args ((= (str.replace (str.++ c1 s c2) (str.++ d1 t d2) r)
-            (str.++ c1 (str.replace s (str.++ d1 t d2) r) c2)))
-  :requires ((($str_has_overlap c1 d1 false) false)
+(declare-rule str-overlap-endpoints-replace ((T Type) (emp (Seq T) :list)
+                                             (c1 (Seq T)) (s (Seq T)) (c2 (Seq T))
+                                             (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)) (r (Seq T)))
+  :args ((= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+            (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp)))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c1 d1 false) false)
              (($str_has_overlap c2 d2 true) false))
-  :conclusion (= (str.replace (str.++ c1 s c2) (str.++ d1 t d2) r)
-                 (str.++ c1 (str.replace s (str.++ d1 t d2) r) c2))
+  :conclusion (= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+                 (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp))
 )
 
 ;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
