@@ -1452,13 +1452,12 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(r \cdot t) = (r\cdot s)\mid \bot}{t = s}
+   *   \inferrule{(t_1 \cdot \ldots \cdot t_n \cdot t) = (t_1 \cdot \ldots \cdot t_n \cdot s)\mid \bot}{t = s}
    *
    * Alternatively for the reverse:
    *
-   *   \inferrule{(t \cdot r) = (s \cdot r)\mid \top}{t = s}
+   *   \inferrule{(t \cdot t_1 \cdot \ldots \cdot t_n) = (s \cdot t_1 \cdot \ldots \cdot t_n)\mid \top}{t = s}
    *
-   * where :math:`r` is a concatenation of one or more strings.
    * Notice that :math:`t` or :math:`s` may be empty, in which case they are
    * implicit in the concatenation above. For example, if the premise is
    * :math:`x\cdot z = x`, then this rule, with argument :math:`\bot`, concludes
@@ -1472,17 +1471,15 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_1) =
+   *   \inferrule{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\, \mathit{len}(t_1) =
    *   \mathit{len}(s_1)\mid \bot}{t_1 = s_1}
    *
    * Alternatively for the reverse:
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\, \mathit{len}(t_2) =
-   *   \mathit{len}(s_2)\mid \top}{t_2 = s_2}
-   *
-   * where :math:`t_2` and :math:`s_2` is a concatenation of zero or more strings.
+   *   \inferrule{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\, \mathit{len}(t_n) =
+   *   \mathit{len}(s_m)\mid \top}{t_n = s_m}
    *
    * \endverbatim
    */
@@ -1529,7 +1526,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \inferruleSC{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid \bot}{((t_1 = s_1\cdot r)
    *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
@@ -1542,20 +1539,20 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferruleSC{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) \neq \mathit{len}(s_2)\mid \top}{((t_2 = r \cdot s_2)
-   *   \vee (s_2 = r \cdot t_2)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
+   *   \inferruleSC{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
+   *   \mathit{len}(t_n) \neq \mathit{len}(s_m)\mid \top}{((t_n = r \cdot s_m)
+   *   \vee (s_m = r \cdot t_n)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
    * where :math:`r` is the purification Skolem for
    * :math:`\mathit{ite}(
-   * \mathit{len}(t_2) >= \mathit{len}(s_2),
-   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
-   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
+   * \mathit{len}(t_n) >= \mathit{len}(s_m),
+   * \mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(s_m)),
+   * \mathit{pre}(s_m,\mathit{len}(s_m) - \mathit{len}(t_n)))`
    * and :math:`\epsilon` is the empty string (or sequence).
    *
-   * Above, :math:`\mathit{suf}(x,n)` is shorthand for
-   * :math:`\mathit{substr}(x,n, \mathit{len}(x) - n)` and
-   * :math:`\mathit{pre}(x,n)` is shorthand for :math:`\mathit{substr}(x,0,n)`.
+   * Above, :math:`\mathit{suf}(x,y)` is shorthand for
+   * :math:`\mathit{substr}(x,y, \mathit{len}(x) - y)` and
+   * :math:`\mathit{pre}(x,y)` is shorthand for :math:`\mathit{substr}(x,0,y)`.
    * \endverbatim
    */
   EVALUE(CONCAT_SPLIT),
@@ -1565,7 +1562,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (c \cdot s_2),\,
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (c \cdot t_2 \ldots \cdot s_m),\,
    *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
    *
    * where :math:`r` is the purification skolem for :math:`\mathit{suf}(t_1,1)`.
@@ -1574,11 +1571,11 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot c),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot c)}
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n = (s_1 \cdot \ldots s_{m-1} \cdot c),\,
+   *   \mathit{len}(t_n) \neq 0\mid \top}{(t_n = r\cdot c)}
    *
    * where :math:`r` is the purification skolem for
-   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - 1)`.
+   * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - 1)`.
    * \endverbatim
    */
   EVALUE(CONCAT_CSPLIT),
@@ -1588,7 +1585,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_1) > \mathit{len}(s_1)\mid \bot}{(t_1 = s_1\cdot r)}
    *
    * where :math:`r` is the purification Skolem for
@@ -1601,14 +1598,14 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot t_2) = (s_1 \cdot s_2),\,
-   *   \mathit{len}(t_2) > \mathit{len}(s_2)\mid \top}{(t_2 = r \cdot s_2)}
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m)),\,
+   *   \mathit{len}(t_n) > \mathit{len}(s_m)\mid \top}{(t_n = r \cdot s_m)}
    *
    * where :math:`r` is the purification Skolem for
    * :math:`\mathit{ite}(
-   * \mathit{len}(t_2) >= \mathit{len}(s_2),
-   * \mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(s_2)),
-   * \mathit{pre}(s_2,\mathit{len}(s_2) - \mathit{len}(t_2)))`
+   * \mathit{len}(t_n) >= \mathit{len}(s_m),
+   * \mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(s_m)),
+   * \mathit{pre}(s_m,\mathit{len}(s_m) - \mathit{len}(t_n)))`
    * \endverbatim
    */
   EVALUE(CONCAT_LPROP),
@@ -1618,7 +1615,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot w_1\cdot t_2) = (w_2 \cdot s),\,
+   *   \inferrule{(t_1 \cdot w_1 \cdot \ldots \cdot t_n) = (w_2 \cdot s_2 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = t_3\cdot r)}
    *
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
@@ -1635,18 +1632,18 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot w_1\cdot t_2) = (s \cdot w_2),\,
-   *   \mathit{len}(t_2) \neq 0\mid \top}{(t_2 = r\cdot t_3)}
+   *   \inferrule{(t_1 \cdot \ldots \cdot w_1 \cdot t_n) = (s_1 \cdot \ldots \cdot w_2),\,
+   *   \mathit{len}(t_n) \neq 0\mid \top}{(t_n = r\cdot t_3)}
    *
    * where :math:`w_1,\,w_2` are words, :math:`t_3` is
    * :math:`\mathit{substr}(w_2, \mathit{len}(w_2) - p, p)`, :math:`p` is
    * :math:`\texttt{Word::roverlap}(\mathit{pre}(w_2, \mathit{len}(w_2) - 1),
    * w_1)`, and :math:`r` is the purification skolem for
-   * :math:`\mathit{pre}(t_2,\mathit{len}(t_2) - \mathit{len}(w_3))`.  Note that
+   * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - \mathit{len}(w_3))`.  Note that
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - p)` is the largest prefix of
    * :math:`\mathit{pre}(w_2, \mathit{len}(w_2) - 1)` that can contain a suffix
-   * of :math:`w_1`; since :math:`t_2` is non-empty, :math:`w_3` must therefore
-   * be contained in :math:`t_2`.
+   * of :math:`w_1`; since :math:`t_n` is non-empty, :math:`w_3` must therefore
+   * be contained in :math:`t_n`.
    * \endverbatim
    */
   EVALUE(CONCAT_CPROP),
