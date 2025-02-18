@@ -16,6 +16,7 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/aci_norm.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -48,6 +49,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SCOPE, this);
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
+  pc->registerChecker(ProofRule::DISTINCT_VALUES, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
@@ -281,6 +283,18 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     return args[0].eqNode(res);
+  }
+  else if (id == ProofRule::DISTINCT_VALUES)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    Assert(args[0].getType() == args[1].getType());
+    if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
+    {
+      return Node::null();
+    }
+    // note we don't check for illegal (non-first-class) types here
+    return args[0].eqNode(args[1]).notNode();
   }
   else if (id == ProofRule::ACI_NORM)
   {

@@ -3,6 +3,7 @@
 (include "../theories/Strings.eo")
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
+(include "../programs/SeqToString.eo")
 
 
 ; This signature is used for both strings and sequences, where we often
@@ -22,6 +23,22 @@
   )
 )
 
+; define: $str_value_len
+; args:
+; - s (Seq T): The sequence term.
+; return: >
+;   The length of s, if it denotes a "value-like" sequence, that
+;   is, either a string literal or a concatentation of sequence units.
+(program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
+  ((Seq T)) Int
+  (
+    (($str_value_len (seq.++ (seq.unit e) ss))  (eo::add 1 ($str_value_len ss)))
+    (($str_value_len (@seq.empty (Seq T)))      0)
+    (($str_value_len (seq.unit e))              1)
+    (($str_value_len s)                         (eo::requires (eo::is_str s) true (eo::len s)))
+  )
+)
+
 ; define: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
@@ -36,8 +53,13 @@
 ; - y (Seq T): The second string.
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::list_concat str.++ x y)
-)
+  (eo::list_concat str.++ x y))
+
+; define: $str_head
+; args:
+; - x (Seq T): The string, expected to be a non-empty concatentation.
+; return: the head (first child) of x.
+(define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
 ; define: $str_head
 ; args:
@@ -424,27 +446,28 @@
 
 ;;-------------------- Reductions
 
-; define: $str_check_length_one_or_unit
-; args:
-; - s (Seq T): The sequence term.
-; return: true if s is a constant-like string of length one.
-(program $str_check_length_one_or_unit ((T Type) (s (Seq T)) (t T))
-  ((Seq T)) Bool
-  (
-    (($str_check_length_one_or_unit (seq.unit t))  true)
-    (($str_check_length_one_or_unit s)             (eo::is_eq (eo::len s) 1))
-  )
-)
 
-; In the following, a "reduction predicate" refers to a formula that is used
-; to axiomatize an extended string program in terms of (simpler) programs.
+; define: $str_reduction_pred_case_conv
+; args:
+; - k String: The purification skolem.
+; - x String: The string term argument.
+; - isLower Bool: Whether we are considering str.to_lower (resp. str.to_upper).
+; return: the reduction predicate for term for str.to_lower/str.to_upper applied to x.
+(define $str_reduction_pred_case_conv ((k String) (x String) (isLower Bool))
+  (and (= (str.len x) (str.len k))
+       (forall ((@var.str_index Int))
+         (or (not (>= @var.str_index 0))
+             (not (< @var.str_index (str.len k)))
+             (= (str.to_code (str.substr k @var.str_index 1))
+                (eo::define ((ci (str.to_code (str.substr x @var.str_index 1))))
+                (eo::ite isLower
+                  (ite (and (<= 65 ci) (<= ci 90)) (+ ci 32) ci)
+                  (ite (and (<= 97 ci) (<= ci 122)) (+ ci -32) ci))))))))
 
 ; program: $str_reduction_pred
 ; args:
 ; - t (Seq U): The string term.
 ; return: the reduction predicate for term t of sort s.
-; note: >
-;   The operators listed in comments are missing from the signature currently.
 (program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int)
                               (s String) (r RegLan) (t String))
   (T) Bool
@@ -546,7 +569,7 @@
         (eo::define ((k (@purify (str.update x n y))))
         (ite (and (>= n 0) (> (str.len x) n))
           (eo::define ((k1 (@purify ($str_prefix x n))))
-          (eo::define ((ys (eo::ite ($str_check_length_one_or_unit y) ; optimization for single characters
+          (eo::define ((ys (eo::ite (eo::is_eq ($str_value_len y) 1) ; optimization for single characters
                               y
                               (str.substr y 0 (- (str.len x) n)))))
           (eo::define ((k2 (@purify ($str_suffix_rem x (+ n (str.len ys))))))
@@ -661,10 +684,16 @@
                 (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
                 (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
             )))))))
-
-    ; str.to_lower
-    ; str.to_upper
-    ; str.rev
+    (($str_reduction_pred (str.to_lower x)) ($str_reduction_pred_case_conv (@purify (str.to_lower x)) x true))
+    (($str_reduction_pred (str.to_upper x)) ($str_reduction_pred_case_conv (@purify (str.to_upper x)) x false))
+    (($str_reduction_pred (str.rev x))
+        (eo::define ((k (@purify (str.rev x))))
+          (and (= (str.len x) (str.len k))
+              (forall ((@var.str_index Int))
+                (or
+                  (not (>= @var.str_index 0))
+                  (not (< @var.str_index (str.len k)))
+                  (= (str.substr k @var.str_index 1) (str.substr x (- (str.len x) (+ @var.str_index 1)) 1)))))))
   )
 )
 
@@ -1057,7 +1086,7 @@
 ; - s (Seq U): The string term.
 ; - rev Bool: Whether to reverse s.
 ; return: >
-;   Converts a str.++ application into "flat form" so that we are ready to
+;   Converts a str.++ application into "nary form" so that we are ready to
 ;   process its prefix. This consists of the following steps:
 ;   (1) convert s to n-ary form if it is not already a str.++ application,
 ;   (2) (optionally) reverse.
@@ -1651,27 +1680,25 @@
 
 ; program: $str_overlap_rec
 ; args:
-; - nil (Seq U): The empty string.
 ; - s (Seq U): The first string, expected to be in flattened form.
 ; - t (Seq U): The second string, expected to be in flattened form.
 ; return: >
 ;   The minimum number of characters that must be skipped in s before
 ;   string t can be compatible with it. See examples below.
-(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
-  ((Seq U) (Seq U) (Seq U)) Int
+(program $str_overlap_rec ((s String) (s1 String :list) (t String))
+  (String String) Int
   (
-  (($str_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
-                                            0
-                                            (eo::add 1 ($str_overlap_rec nil s1 t))))
-  (($str_overlap_rec nil s t)             0)
+  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ "" (str.++ s s1) t)
+                                        0
+                                        (eo::add 1 ($str_overlap_rec s1 t))))
+  (($str_overlap_rec s t)             0)
   )
 )
 
 ; define: $str_overlap
 ; args:
-; - s (Seq U): The first string, expected to be a string literal.
-; - t (Seq U): The second string, expected to be  a string literal.
-; - rev Bool: Whether we are computing the reverse overlap.
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
 ; return: >
 ;   The minimum number of characters that must be skipped in s before
 ;   string t can be compatible with it. For example:
@@ -1681,36 +1708,19 @@
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::requires (eo::is_str s) true
-  (eo::requires (eo::is_str t) true
-  (eo::define ((emp ($mk_emptystr (eo::typeof s))))
-    ($str_overlap_rec ($mk_emptystr (eo::typeof s)) 
-      ($str_rev rev ($str_flatten_word s))
-      ($str_rev rev ($str_flatten_word t)))))))
-
-; program: $str_has_overlap_rec
-; args:
-; - nil (Seq U): The empty string.
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be in flattened form.
-; return: >
-;   Assuming t is non-empty, this method returns true if s contains t, or a
-;   non-empty suffix of s is a prefix of t.
-(program $str_has_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
-  ((Seq U) (Seq U) (Seq U)) Bool
-  (
-  (($str_has_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
-                                                true
-                                                ($str_has_overlap_rec nil s1 t)))
-  (($str_has_overlap_rec nil nil t)           false)
-  )
-)
+  (eo::match ((ss String) (ts String))
+    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
+    (((@pair ss ts) (eo::requires (eo::is_str ss) true
+                    (eo::requires (eo::is_str ts) true
+                      ($str_overlap_rec
+                        ($str_rev rev ($str_flatten_word ss))
+                        ($str_rev rev ($str_flatten_word ts)))))))))
 
 
 ; program: $str_has_overlap
 ; args:
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be non-empty and in flattened form.
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
 ; return: >
 ;   True if s is non-empty and contains t, or
 ;   a non-empty suffix of s is a prefix of t if rev is false, or
@@ -1719,10 +1729,9 @@
 ;   This method is equivalent to theory::strings::Word::hasOverlap in cvc5,
 ;   see theory/strings/word.h.
 (define $str_has_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::requires (eo::is_str s) true
-  (eo::requires (eo::is_str t) true
-  (eo::define ((emp ($mk_emptystr (eo::typeof s))))
-    ($str_has_overlap_rec emp ($str_to_flat_form s rev) ($str_to_flat_form t rev))))))
+  ; Note that $str_overlap with always return a value <= the length of s.
+  ; There is overlap only when it is strictly less than the length of s.
+  (eo::gt ($str_value_len s) ($str_overlap s t rev)))
 
 ;;;;; evaluation utils
 

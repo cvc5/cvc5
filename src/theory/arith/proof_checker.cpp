@@ -23,7 +23,6 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
-#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -399,7 +398,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind() != Kind::EQUAL)
+      if (args[0].getKind() != Kind::EQUAL
+          || !args[0][0].getType().isRealOrInt())
       {
         return Node::null();
       }
@@ -429,8 +429,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       Node l = children[0][0];
       Node r = children[0][1];
-      if ((l.getKind() != Kind::MULT && l.getKind() != Kind::BITVECTOR_MULT)
-          || (r.getKind() != Kind::MULT && r.getKind() != Kind::BITVECTOR_MULT))
+      if (l.getKind() != Kind::MULT || r.getKind() != Kind::MULT)
       {
         return Node::null();
       }
@@ -438,8 +437,7 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       lr = lr.getKind() == Kind::TO_REAL ? lr[0] : lr;
       Node rr = r[1];
       rr = rr.getKind() == Kind::TO_REAL ? rr[0] : rr;
-      if ((lr.getKind() != Kind::SUB && lr.getKind() != Kind::BITVECTOR_SUB)
-          || (rr.getKind() != Kind::SUB && rr.getKind() != Kind::BITVECTOR_SUB))
+      if (lr.getKind() != Kind::SUB || rr.getKind() != Kind::SUB)
       {
         return Node::null();
       }
@@ -457,17 +455,6 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
         Rational c1 = cx.getConst<Rational>();
         Rational c2 = cy.getConst<Rational>();
         if (k != Kind::EQUAL && c1.sgn() != c2.sgn())
-        {
-          return Node::null();
-        }
-      }
-      if (cx.getKind() == Kind::CONST_BITVECTOR
-          && cy.getKind() == Kind::CONST_BITVECTOR)
-      {
-        BitVector c1 = cx.getConst<BitVector>();
-        BitVector c2 = cy.getConst<BitVector>();
-        BitVector one = BitVector::mkOne(c1.getSize());
-        if (c1 != one || c2 != one)
         {
           return Node::null();
         }

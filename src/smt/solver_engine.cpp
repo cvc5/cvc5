@@ -190,7 +190,8 @@ void SolverEngine::finishInit()
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
   }
-  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  if (d_env->isOutputOn(OutputTag::RARE_DB)
+      || d_env->isOutputOn(OutputTag::RARE_DB_EXPERT))
   {
     if (!d_env->getOptions().smt.produceProofs
         || options().proof.proofGranularityMode
