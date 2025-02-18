@@ -64,6 +64,8 @@ class PropPfManager : protected EnvObj
 
   /** Presolve, which initializes proof logging */
   void presolve();
+  /** Logs the preprocessing proof, if  */
+  void logPreprocessing();
   /** Postsolve, which finalizes proof logging */
   void postsolve(SatValue result);
   /**
