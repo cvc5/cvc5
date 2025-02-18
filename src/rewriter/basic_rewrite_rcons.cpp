@@ -649,7 +649,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     args.push_back(nodeManager()->mkConstInt(Rational(isLhs ? 1 : -1)));
     Trace("brc-macro") << "- compute sum bound for " << children << " " << args
                        << std::endl;
-    Node sumBound = theory::arith::expandMacroSumUb(children, args, cdp);
+    Node sumBound =
+        theory::arith::expandMacroSumUb(nodeManager(), children, args, cdp);
     Trace("brc-macro") << "- sum bound is " << sumBound << std::endl;
     if (sumBound.isNull())
     {
