@@ -21,6 +21,7 @@
 #include <ostream>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "expr/sequence.h"
 #include "expr/subs.h"
@@ -600,8 +601,36 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
     // Similarly, HO_APP_ENCODE proves an equality between a term of kind
-    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in ALF.
+    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in Eunoia.
+    // BV_EAGER_ATOM also is indistinguishable as the eager atom predicate is
+    // ignored in the printer.
     return "refl";
+  }
+  else if (r == ProofRule::ACI_NORM)
+  {
+    Node eq = pfn->getArguments()[0];
+    Assert(eq.getKind() == Kind::EQUAL);
+    // may have to use the "expert" version.
+    Kind k;
+    if (eq[0].getKind() == eq[1].getKind()
+        || expr::getACINormalForm(eq[0]) == eq[1])
+    {
+      k = eq[0].getKind();
+    }
+    else
+    {
+      k = eq[1].getKind();
+    }
+    std::stringstream ss;
+    ss << "aci_norm";
+    switch (k)
+    {
+      case Kind::SEP_STAR:
+      case Kind::FINITE_FIELD_ADD:
+      case Kind::FINITE_FIELD_MULT: ss << "_expert"; break;
+      default: break;
+    }
+    return ss.str();
   }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
