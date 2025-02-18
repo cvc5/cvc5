@@ -3150,6 +3150,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_STR_EQ_LEN_UNIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string split contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(t, s) =
+   *   \mathit{str.contains}(t_1, s) \vee \mathit{str.contains}(t_2, s)
+   *
+   * where :math:`t_1` and :math:`t_2` are substrings of :math:`t`. This
+   * rule is elaborated using
+   * :cpp:enumerator:`STR_OVERLAP_SPLIT_CTN <cvc5::ProofRewriteRule::STR_OVERLAP_SPLIT_CTN>`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_SPLIT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Macro string strip endpoints**
    *
    * One of the following forms:
