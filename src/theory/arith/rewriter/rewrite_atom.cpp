@@ -138,7 +138,8 @@ bool normalizeGCDLCM(Sum& sum, bool followLCoeffSign = false)
   return negate;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
+std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(NodeManager* nm,
+                                                       Sum& sum)
 {
   auto minit = getLTermIt(sum);
   for (auto it = minit; it != sum.end(); ++it)
@@ -151,7 +152,7 @@ std::pair<Node, RealAlgebraicNumber> removeMinAbsCoeff(Sum& sum)
   }
   if (minit == sum.end())
   {
-    return std::make_pair(mkConst(Integer(1)), Integer(0));
+    return std::make_pair(mkConst(nm, Integer(1)), Integer(0));
   }
   Assert(minit != sum.end());
   auto res = *minit;
@@ -175,12 +176,12 @@ RealAlgebraicNumber removeConstant(Sum& sum)
   return res;
 }
 
-std::pair<Node, RealAlgebraicNumber> removeLTerm(Sum& sum)
+std::pair<Node, RealAlgebraicNumber> removeLTerm(NodeManager* nm, Sum& sum)
 {
   auto it = getLTermIt(sum);
   if (it == sum.end())
   {
-    return std::make_pair(mkConst(Integer(1)), Integer(0));
+    return std::make_pair(mkConst(nm, Integer(1)), Integer(0));
   }
   Assert(it != sum.end());
   auto res = *it;
@@ -250,7 +251,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
 {
   if (auto response = tryEvaluateRelation(kind, left, right); response)
   {
-    return mkConst(*response != negate);
+    return mkConst(NodeManager::currentNM(), *response != negate);
   }
   if (negate)
   {
@@ -259,7 +260,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   return NodeManager::mkNode(kind, left, right);
 }
 
-Node buildIntegerEquality(Sum&& sum)
+Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
                           << std::endl;
@@ -275,11 +276,11 @@ Node buildIntegerEquality(Sum&& sum)
     {
       Trace("arith-rewriter::debug")
           << "\thas non-integer constant, thus false" << std::endl;
-      return mkConst(false);
+      return mkConst(nm, false);
     }
   }
 
-  auto minabscoeff = removeMinAbsCoeff(sum);
+  auto minabscoeff = removeMinAbsCoeff(nm, sum);
   Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff
                                  << ", left with " << sum << std::endl;
   if (minabscoeff.second.sgn() < 0)
@@ -297,19 +298,20 @@ Node buildIntegerEquality(Sum&& sum)
   Trace("arith-rewriter::debug")
       << "\tbuilding " << left << " = " << sum << std::endl;
 
-  Node rhs = collectSum(sum);
+  Node rhs = collectSum(nm, sum);
   Assert(left.getType().isInteger());
   Assert(rhs.getType().isInteger());
   return buildRelation(Kind::EQUAL, left, rhs);
 }
 
-Node buildRealEquality(Sum&& sum)
+Node buildRealEquality(NodeManager* nm, Sum&& sum)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
-  auto lterm = removeLTerm(sum);
+  auto lterm = removeLTerm(nm, sum);
   if (lterm.second.isZero())
   {
-    return buildRelation(Kind::EQUAL, mkConst(Integer(0)), collectSum(sum));
+    return buildRelation(
+        Kind::EQUAL, mkConst(nm, Integer(0)), collectSum(nm, sum));
   }
   RealAlgebraicNumber lcoeff = -lterm.second;
   for (auto& s : sum)
@@ -320,14 +322,14 @@ Node buildRealEquality(Sum&& sum)
   // terms.
   Node lhs = lterm.first;
   lhs = ensureReal(lhs);
-  Node rhs = collectSum(sum);
+  Node rhs = collectSum(nm, sum);
   rhs = ensureReal(rhs);
   Assert(lhs.getType().isReal() || lhs.getType().isFullyAbstract());
   Assert(rhs.getType().isReal() || rhs.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 
-Node buildIntegerInequality(Sum&& sum, Kind k)
+Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
   Trace("arith-rewriter") << "building integer inequality from " << sum
                           << std::endl;
@@ -350,16 +352,16 @@ Node buildIntegerInequality(Sum&& sum, Kind k)
   {
     rhs = rhs.ceiling();
   }
-  auto* nm = NodeManager::currentNM();
-  return buildRelation(Kind::GEQ, collectSum(sum), nm->mkConstInt(rhs), negate);
+  return buildRelation(
+      Kind::GEQ, collectSum(nm, sum), nm->mkConstInt(rhs), negate);
 }
 
-Node buildRealInequality(Sum&& sum, Kind k)
+Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
   Trace("arith-rewriter") << "building real inequality from " << sum << std::endl;
   normalizeLCoeffAbsOne(sum);
-  Node rhs = mkConst(-removeConstant(sum));
-  return buildRelation(k, collectSum(sum), rhs);
+  Node rhs = mkConst(nm, -removeConstant(sum));
+  return buildRelation(k, collectSum(nm, sum), rhs);
 }
 
 std::pair<Node, Node> decomposeSum(NodeManager* nm,
@@ -371,7 +373,7 @@ std::pair<Node, Node> decomposeSum(NodeManager* nm,
   RealAlgebraicNumber constant = removeConstant(sum);
   Assert(constant.isRational());
   Node c = nm->mkConstReal(constant.toRational());
-  Node t = collectSum(sum);
+  Node t = collectSum(nm, sum);
   return std::pair<Node, Node>(t, c);
 }
 
@@ -396,7 +398,7 @@ std::pair<Node, Node> decomposeRelation(NodeManager* nm,
   Assert(constant.isRational());
   // negate the constant
   Node c = nm->mkConstReal(-constant.toRational());
-  Node t = collectSum(sum);
+  Node t = collectSum(nm, sum);
   return std::pair<Node, Node>(t, c);
 }
 
