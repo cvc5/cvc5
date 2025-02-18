@@ -1582,6 +1582,14 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
   return true;
 }
 
+Node BasicRewriteRCons::proveSymm(CDProof* cdp, const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Node eqs = eq[1].eqNode(eq[0]);
+  cdp->addStep(eqs, ProofRule::SYMM, {eq}, {});
+  return eqs;
+}
+
 Node BasicRewriteRCons::proveCong(CDProof* cdp,
                                   const Node& n,
                                   const std::vector<Node>& premises)
@@ -1610,6 +1618,24 @@ Node BasicRewriteRCons::proveCong(CDProof* cdp,
     cdp->addStep(eq, cr, cpremises, cargs);
   }
   return eq;
+}
+
+Node BasicRewriteRCons::proveDualImplication(CDProof* cdp,
+                                             const Node& impl,
+                                             const Node& implrev)
+{
+  Assert(impl.getKind() == Kind::IMPLIES && implrev.getKind() == Kind::IMPLIES
+         && impl[0] == implrev[1] && impl[1] == implrev[0]);
+  NodeManager* nm = nodeManager();
+  Node dualImpl = nm->mkNode(Kind::AND, impl, implrev);
+  cdp->addStep(dualImpl, ProofRule::AND_INTRO, {impl, implrev}, {});
+  Node eqfinal = impl[0].eqNode(impl[1]);
+  Node dualImplEq = nm->mkNode(Kind::EQUAL, dualImpl, eqfinal);
+  Trace("brc-macro") << "- dual implication subgoal " << dualImplEq
+                     << std::endl;
+  cdp->addTrustedStep(dualImplEq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  cdp->addStep(eqfinal, ProofRule::EQ_RESOLVE, {dualImpl, dualImplEq}, {});
+  return eqfinal;
 }
 
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
