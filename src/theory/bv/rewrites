@@ -192,7 +192,8 @@
 
 ; -- Simplify Bitblasting --
 
-; x < y + 1 <=> (not y < x) and y != 1...1
+; x < ys + 1 + zs <=> (not (ys + zs) < x) and (ys + zs) != 1...1
+; we use ys, zs as lists so that 1 may appear on the left or the right of the bvadd term.
 (define-cond-rule bv-ult-add-one
   ((x ?BitVec) (ys ?BitVec :list) (zs ?BitVec :list) (c1 ?BitVec) (w Int))
   (and (= c1 (@bv 1 w)) (= w (@bvsize x)))
