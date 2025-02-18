@@ -606,13 +606,14 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     // ignored in the printer.
     return "refl";
   }
-  else if (r==ProofRule::ACI_NORM)
+  else if (r == ProofRule::ACI_NORM)
   {
     Node eq = pfn->getArguments()[0];
-    Assert (eq.getKind()==Kind::EQUAL);
+    Assert(eq.getKind() == Kind::EQUAL);
     // may have to use the "expert" version.
     Kind k;
-    if (eq[0].getKind()==eq[1].getKind() || expr::getACINormalForm(eq[0])==eq[1])
+    if (eq[0].getKind() == eq[1].getKind()
+        || expr::getACINormalForm(eq[0]) == eq[1])
     {
       k = eq[0].getKind();
     }
@@ -624,13 +625,10 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << "aci_norm";
     switch (k)
     {
-    case Kind::SEP_STAR:
-    case Kind::FINITE_FIELD_ADD:
-    case Kind::FINITE_FIELD_MULT:
-      ss << "_expert";
-      break;
-    default:
-      break;
+      case Kind::SEP_STAR:
+      case Kind::FINITE_FIELD_ADD:
+      case Kind::FINITE_FIELD_MULT: ss << "_expert"; break;
+      default: break;
     }
     return ss.str();
   }
