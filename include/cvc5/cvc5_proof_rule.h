@@ -2638,19 +2638,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_ARRAYS_NORMALIZE_OP),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arrays -- Macro distinct arrays**
-   *
-   * .. math::
-   *   (A = B) = \bot
-   *
-   * where :math:`A` and :math:`B` are distinct array values, that is,
-   * the Node::isConst method returns true for both.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_ARRAYS_DISTINCT_ARRAYS),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Macro normalize constant**
    *
    * .. math::
@@ -3430,21 +3417,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- distinct sets**
-   *
-   * .. math::
-   *   (A = B) = \bot
-   *
-   * where :math:`A` and :math:`B` are distinct set values, that is,
-   * the Node::isConst method returns true for both. This rule
-   * verifies that this returns true for both terms and that these
-   * terms are distinct.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_SETS_DISTINCT_SETS),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets intersection evaluate**
