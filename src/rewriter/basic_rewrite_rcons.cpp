@@ -1582,6 +1582,36 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
   return true;
 }
 
+Node BasicRewriteRCons::proveCong(CDProof* cdp,
+                                  const Node& n,
+                                  const std::vector<Node>& premises)
+{
+  std::vector<Node> cpremises = premises;
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(n, cargs);
+  cpremises.resize(n.getNumChildren());
+  // add REFL if a premise is not provided
+  for (size_t i = 0, npremises = cpremises.size(); i < npremises; i++)
+  {
+    if (cpremises[i].isNull())
+    {
+      Node refl = n[i].eqNode(n[i]);
+      cdp->addStep(refl, ProofRule::REFL, {}, {n[i]});
+      cpremises[i] = refl;
+    }
+  }
+  Trace("brc-macro") << "- cong " << cr << " " << cpremises << " " << cargs
+                     << std::endl;
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node eq = pc->checkDebug(cr, cpremises, cargs);
+  Trace("brc-macro") << "...returns " << eq << std::endl;
+  if (!eq.isNull())
+  {
+    cdp->addStep(eq, cr, cpremises, cargs);
+  }
+  return eq;
+}
+
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
                                          const Node& eq,
                                          theory::TheoryRewriteCtx ctx)
