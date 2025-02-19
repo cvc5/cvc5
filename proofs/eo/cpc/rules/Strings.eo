@@ -883,7 +883,7 @@
   (
     ; handle sequence-specific operators here
     (($seq_eval (seq.nth t n))  (eo::match ((e T))
-                                  (eo::list_nth str.++ t n)
+                                  (eo::list_nth str.++ ($str_to_nary_form t false) n)
                                   (((seq.unit e) e))))
     ; otherwise, we rely on the strings evaluator
     (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
