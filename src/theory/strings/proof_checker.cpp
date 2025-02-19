@@ -71,9 +71,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   NodeManager* nm = nodeManager();
   // core rules for word equations
   if (id == ProofRule::CONCAT_EQ || id == ProofRule::CONCAT_UNIFY
-      || id == ProofRule::CONCAT_SPLIT
-      || id == ProofRule::CONCAT_CSPLIT || id == ProofRule::CONCAT_LPROP
-      || id == ProofRule::CONCAT_CPROP)
+      || id == ProofRule::CONCAT_SPLIT || id == ProofRule::CONCAT_CSPLIT
+      || id == ProofRule::CONCAT_LPROP || id == ProofRule::CONCAT_CPROP)
   {
     Trace("strings-pfcheck") << "Checking id " << id << std::endl;
     Assert(children.size() >= 1);
