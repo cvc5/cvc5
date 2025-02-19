@@ -170,9 +170,8 @@ Node EmbeddingConverter::process(Node q,
       // array constants cannot be used
       if (!tn.isWellFounded())
       {
-        std::stringstream ss;
-        ss << "Failed to construct grammar for " << preGrammarType << " since no ground values can be generated for that type";
-        throw LogicException(ss.str());
+        Warning() << "Warning: Failed to construct grammar for " << preGrammarType << " since no ground values can be generated for that type." << std::endl;
+        return Node::null();
       }
     }
     // Ensure the expanded definition forms are set. This is done after
