@@ -117,7 +117,8 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
     {
       // don't use this just for evaluation
-      if (n.getKind() == Kind::STRING_CONTAINS && (!n[0].isConst() || !n[1].isConst()))
+      if (n.getKind() == Kind::STRING_CONTAINS
+          && (!n[0].isConst() || !n[1].isConst()))
       {
         if (d_stringsEntail.checkMultisetSubset(n[0], n[1]))
         {
@@ -3265,7 +3266,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     Node ret = nm->mkNode(Kind::STRING_CONCAT, node[2], node[0]);
     return returnRewrite(node, ret, Rewrite::RPL_RPL_EMPTY);
   }
-  
+
   // rewrites that apply to both replace and replaceall
   Node rri = rewriteReplaceInternal(node);
   if (!rri.isNull())

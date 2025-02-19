@@ -334,7 +334,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
-    case ProofRewriteRule::SEQ_EVAL_OP:  return true;
+    case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
