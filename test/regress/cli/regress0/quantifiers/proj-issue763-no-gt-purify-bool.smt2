@@ -1,3 +1,4 @@
+; COMMAND-LINE: --mbqi
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x5 (Seq Bool))
