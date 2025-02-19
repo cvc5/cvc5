@@ -57,7 +57,7 @@
                                                                       ; already allocated
                                                                       ($seq_to_string_rec
                                                                         ss
-                                                                        (eo::concat s (eo::to_str id))
+                                                                        (eo::concat s (eo::to_str (eo::add (eo::list_len @list units) (eo::neg id) -1)))
                                                                         units
                                                                         chars
                                                                         n)))))
