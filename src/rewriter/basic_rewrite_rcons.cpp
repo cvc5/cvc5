@@ -966,12 +966,10 @@ bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
   }
   Node len1 = nm->mkNode(Kind::STRING_LENGTH, eqsrc[0]);
   Node len2 = nm->mkNode(Kind::STRING_LENGTH, eqsrc[1]);
-  Node leneq = len1.eqNode(len2);
-  std::vector<Node> cargs;
-  ProofRule cr = expr::getCongRule(len1, cargs);
-  cdfwd.addStep(leneq, cr, {eqsrc}, cargs);
+  Node leneq = proveCong(&cdfwd, len1, {eqsrc});
   Node li[2];
   std::vector<Node> eqi;
+  eqi.resize(2);
   for (size_t i = 0; i < 2; i++)
   {
     Node l = i == 0 ? len1 : len2;
@@ -982,22 +980,13 @@ bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
       Node equiv = l.eqNode(li[i]);
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(equiv);
       cdfwd.addProof(pfn);
-      eqi.push_back(pfn->getResult());
-    }
-    else
-    {
-      Node refl = l.eqNode(l);
-      eqi.push_back(refl);
-      cdfwd.addStep(refl, ProofRule::REFL, {}, {l});
+      eqi[i] = pfn->getResult();
     }
   }
   Node leneqi = li[0].eqNode(li[1]);
   if (leneqi != leneq)
   {
-    cargs.clear();
-    cr = expr::getCongRule(leneq, cargs);
-    Node equiv = leneq.eqNode(leneqi);
-    cdfwd.addStep(equiv, cr, eqi, cargs);
+    Node equiv = proveCong(&cdfwd, leneq, eqi);
     cdfwd.addStep(leneqi, ProofRule::EQ_RESOLVE, {leneq, equiv}, {});
   }
   Trace("brc-macro") << "...length: " << li[0] << " == " << li[1] << std::endl;
@@ -1071,22 +1060,16 @@ bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
     }
     else
     {
-      Node refl = tc.eqNode(tc);
-      cdmid.addStep(refl, ProofRule::REFL, {}, {tc});
-      eqe.push_back(refl);
+      eqe.push_back(Node::null());
     }
   }
-  cargs.clear();
-  cr = expr::getCongRule(srcRew, cargs);
-  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-  Node cres = pc->checkDebug(cr, eqe, cargs);
+  Node cres = proveCong(&cdmid, srcRew, eqe);
   if (cres.isNull())
   {
     Trace("brc-macro") << "...fail cong" << std::endl;
     return false;
   }
   Trace("brc-macro") << "...cong to " << cres[1] << std::endl;
-  cdmid.addStep(cres, cr, eqe, cargs);
   Node tgtRew = eq1p[0][eqFlipped ? 0 : 1];
   Trace("brc-macro") << "...target is " << tgtRew << std::endl;
 
@@ -1112,8 +1095,8 @@ bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
       cdmid.addStep(refl, ProofRule::REFL, {}, {eee[0]});
     }
   }
-  cargs.clear();
-  cr = expr::getCongRule(eq[0], cargs);
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(eq[0], cargs);
   cdmid.addStep(eqqeq, cr, eqee, cargs);
   Node implMid = nm->mkNode(Kind::IMPLIES, eq1p[1], eqqeq);
   cdmid.addStep(implMid, ProofRule::SCOPE, {eqqeq}, empeqs);
