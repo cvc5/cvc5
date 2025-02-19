@@ -264,6 +264,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
     case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+      return "macro-quant-dt-var-expand";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
