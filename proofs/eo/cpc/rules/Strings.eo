@@ -44,12 +44,12 @@
   :conclusion
     (eo::match ((ss U) (ts U))
       ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
+           ($str_to_nary_form s rev)
+           ($str_to_nary_form t rev))
       (((@pair ss ts)
         (= 
-          ($str_from_flat_form ss rev)
-          ($str_from_flat_form ts rev)))))
+          ($str_from_nary_form ss rev)
+          ($str_from_nary_form ts rev)))))
 )
 
 ; rule: concat_unify
@@ -59,12 +59,15 @@
 ; - leq: An equality between the lengths of child strings of s and t.
 ; args:
 ; - rev Bool: Whether we are reasoning about the end of strings s and t.
-; requires: leq refers to children that are prefixes (resp. suffixes) of s and t.
+; requires: >
+;   leq refers to children that are the first (resp. last) components
+;   of s and t.
 ; conclusion: an equality between the given children of s and t. 
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
-  :requires ((($str_is_prefix s s1 rev) true) (($str_is_prefix t t1 rev) true))
+  :requires ((($str_head ($str_to_nary_form s rev)) s1)
+             (($str_head ($str_to_nary_form t rev)) t1))
   :conclusion (= s1 t1)
 )
 
@@ -83,18 +86,13 @@
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 u
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires ($str_check_length_one s1) true    ; checks if char
-                (= u
-                  (eo::ite rev
-                    (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (@purify ($str_suffix_rem u 1)))))))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+      (eo::requires ($str_check_length_one s1) true    ; checks if char
+        (= u
+          (eo::ite rev
+            (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
+            (str.++ s1 (@purify ($str_suffix_rem u 1))))))))
 )
 
 ; rule: concat_split
@@ -111,28 +109,24 @@
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires s1 sc
-                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
-                (and 
-                  (or 
-                    (= t1
-                      (eo::ite rev
-                        (str.++ k s1)
-                        (str.++ s1 k)))
-                    (= s1
-                      (eo::ite rev
-                        (str.++ k t1)
-                        (str.++ t1 k))))
-                    (not (= k ($mk_emptystr (eo::typeof k))))
-                    (> (str.len k) 0)
-                ))))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+    (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+      (eo::requires t1 tc
+      (eo::requires s1 sc
+        (and 
+          (or 
+            (= t1
+              (eo::ite rev
+                (str.++ k s1)
+                (str.++ s1 k)))
+            (= s1
+              (eo::ite rev
+                (str.++ k t1)
+                (str.++ t1 k))))
+            (not (= k ($mk_emptystr (eo::typeof k))))
+            (> (str.len k) 0)
+        ))))))
 )
 
 ; rule: concat_lprop
@@ -149,23 +143,18 @@
   :premises ((= t s) (> (str.len tc) (str.len sc)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires s1 sc
-                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
-                  (and
-                    (= t1
-                      (eo::ite rev
-                        (str.++ k s1)
-                        (str.++ s1 k)))
-                    (not (= k ($mk_emptystr (eo::typeof k))))
-                    (> (str.len k) 0))
-                )))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+      (eo::requires t1 tc
+      (eo::requires s1 sc
+        (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+          (and
+            (= t1
+              (eo::ite rev
+                (str.++ k s1)
+                (str.++ s1 k)))
+            (not (= k ($mk_emptystr (eo::typeof k))))
+            (> (str.len k) 0)))))))
 )
 
 ; rule: concat_cprop
@@ -213,28 +202,13 @@
   :premises ((= s t))
   :args (rev)
   :conclusion
-    ; strip the prefix of the equality
-    (eo::match ((ss String) (ts String))
-      ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
-      (((@pair ss ts)
-          (eo::define ((cs ($str_head_or_empty ss)))
-          (eo::define ((ct ($str_head_or_empty ts)))
-            ; ensure they are disequal, return false
-            (eo::requires
-              (eo::ite ($str_is_empty cs)
-                ($str_check_length_one ct)
-                (eo::ite ($str_check_length_one cs)
-                  (eo::ite ($str_is_empty ct)
-                    true
-                    (eo::ite ($str_check_length_one ct)
-                      (eo::not (eo::is_eq cs ct))
-                      false))
-                  false))
-              true
-              false)))))
-    )
+      (eo::define ((cs ($str_head ($str_to_nary_form s rev))))
+      (eo::define ((ct ($str_head ($str_to_nary_form t rev))))
+        ; ensure they are disequal, return false
+        (eo::requires (eo::is_str cs) true
+        (eo::requires (eo::is_str ct) true
+        (eo::requires (eo::len cs) (eo::len ct)
+          false)))))
 )
 
 ; rule: concat_conflict_deq
@@ -251,16 +225,10 @@
   :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
   :args (rev)
   :conclusion
-    ; strip the prefix of the equality
-    (eo::match ((ss (Seq U)) (ts (Seq U)))
-      ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
-      (((@pair ss ts)
-          ; take the first character from each side, should give x and y
-          (eo::requires ($str_head_or_empty ss) (seq.unit x)
-          (eo::requires ($str_head_or_empty ts) (seq.unit y)
-              false)))))
+    ; take the first character from each side, should give x and y
+    (eo::requires ($str_head ($str_to_nary_form s rev)) (seq.unit x)
+    (eo::requires ($str_head ($str_to_nary_form t rev)) (seq.unit y)
+        false))
 )
 
 ; rule: string_decompose

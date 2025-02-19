@@ -814,21 +814,6 @@
 ; return: true if the length of s evaluates to greater than one, false otherwise.
 (define $str_check_len_gt_one ((s String)) (eo::is_eq (eo::is_neg (eo::add 1 (eo::neg (eo::len s)))) true))
 
-; program: $str_head_or_empty
-; args:
-; - t String: The string term, assumed to be a str.++ list.
-; return: >
-;   The first child of a concatenation or empty string from term t.
-;   If t is of the form (str.++ s ...), return t.
-;   If t is an empty string, return t.
-(program $str_head_or_empty ((U Type) (t (Seq U)) (tail (Seq U) :list))
-  ((Seq U)) (Seq U)
-  (
-    (($str_head_or_empty (str.++ t tail)) t)
-    (($str_head_or_empty t)               ($str_self_if_empty t))
-  )
-)
-
 ; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
@@ -1101,8 +1086,7 @@
 ;   (2) (optionally) reverse.
 (define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, reverse
-  ($str_rev rev ($str_nary_intro s))
-)
+  ($str_rev rev ($str_nary_intro s)))
 
 ; program: $re_str_to_flat_form
 ; args:
@@ -1134,8 +1118,7 @@
 ;   result to their flat form. Note that other strings in r, i.e. those that
 ;   occur beneath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
-  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
-)
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r))))
 
 ; define: $str_from_flat_form
 ; args:
@@ -1150,8 +1133,20 @@
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
-  ($str_nary_elim ($str_collect ($str_rev rev s)))
-)
+  ($str_nary_elim ($str_collect ($str_rev rev s))))
+
+; define: $str_from_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a term in "flat form" to a term that is in a form that corresponds
+;   to one in cvc5 rewritten form. This is the dual method to
+;   $str_to_nary_form. This consists of the following steps:
+;   (1) (optionally) reverse,
+;   (2) eliminate n-ary form to its element if the term is a singleton list.
+(define $str_from_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ($str_nary_elim ($str_rev rev s)))
 
 ; program: $re_str_from_flat_form
 ; args:
