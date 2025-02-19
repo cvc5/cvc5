@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/arrays_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -923,6 +924,11 @@ void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
     Node c = NodeManager::mkGroundTerm(type);
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
+    // don't use array constants if arraysExp is false
+    if (!env.getOptions().arrays.arraysExp && expr::hasSubtermKind(Kind::STORE_ALL, c))
+    {
+      return;
+    }
     ops.push_back(c);
   }
   else if (type.isRoundingMode())

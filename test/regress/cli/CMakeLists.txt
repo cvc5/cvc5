@@ -3789,6 +3789,7 @@ set(regress_2_tests
   regress2/quantifiers/dd10_sdlx-fix-4.smt2
   regress2/quantifiers/gn-wrong-091018.smt2
   regress2/quantifiers/issue3481-unsat1.smt2
+  regress2/quantifiers/issue10805-syqi-no-arr-const.smt2
   regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2
   regress2/quantifiers/javafe.ast.WhileStmt.447.smt2
   regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2
