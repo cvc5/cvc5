@@ -291,7 +291,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       }
     }
     std::vector<Node> consts;
-    mkSygusConstantsForType(nm, tn, consts);
+    mkSygusConstantsForType(env, tn, consts);
     if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
@@ -886,10 +886,11 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
   }
 }
 
-void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
+void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
                                                const TypeNode& type,
                                                std::vector<Node>& ops)
 {
+  NodeManager * nm = env.getNodeManager();
   if (type.isRealOrInt())
   {
     ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
