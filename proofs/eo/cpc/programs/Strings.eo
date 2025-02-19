@@ -61,12 +61,6 @@
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
-; define: $str_head
-; args:
-; - x (Seq T): The string, expected to be a non-empty concatentation.
-; return: the head (first child) of x.
-(define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
-
 ; define: $str_mk_nth
 ; args:
 ; - x (Seq T): The string-like term
