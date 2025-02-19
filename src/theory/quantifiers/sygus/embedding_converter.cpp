@@ -15,10 +15,10 @@
 
 #include "theory/quantifiers/sygus/embedding_converter.h"
 
-#include "smt/logic_exception.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -170,7 +170,10 @@ Node EmbeddingConverter::process(Node q,
       // array constants cannot be used
       if (!tn.isWellFounded())
       {
-        Warning() << "Warning: Failed to construct grammar for " << preGrammarType << " since no ground values can be generated for that type." << std::endl;
+        Warning() << "Warning: Failed to construct grammar for "
+                  << preGrammarType
+                  << " since no ground values can be generated for that type."
+                  << std::endl;
         return Node::null();
       }
     }
