@@ -637,13 +637,17 @@ bool InferProofCons::convert(Env& env,
           // first, splice if necessary
           mainEqCeq = spliceConstants(
               env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
-          // should be a constant conflict
+          // Should be a constant conflict. We use CONCAT_UNIFY to infer an
+          // equality between string or sequence values, which will rewrite to
+          // false below, justifed by EVALUATE or DISTINCT_VALUES after
+          // elaboration.
           rule = ProofRule::CONCAT_UNIFY;
           std::vector<Node> tvecs, svecs;
           theory::strings::utils::getConcat(mainEqCeq[0], tvecs);
           theory::strings::utils::getConcat(mainEqCeq[1], svecs);
           t0 = tvecs[isRev ? tvecs.size() - 1 : 0];
           s0 = svecs[isRev ? svecs.size() - 1 : 0];
+          // add length requirement, which due to the splicing above should hold
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0).eqNode(nm->mkNode(Kind::STRING_LENGTH, s0));
           // should be shown by evaluation
           lenSuccess = psb.applyPredIntro(lenReq, {});
