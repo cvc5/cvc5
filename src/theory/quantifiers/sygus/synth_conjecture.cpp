@@ -173,7 +173,7 @@ void SynthConjecture::assign(Node q)
   // well-founded grammar. In this case, we fail immediately with "unknown".
   if (d_embed_quant.isNull())
   {
-    d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE);
+    d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
     d_qim.setRefutationUnsound(IncompleteId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
     return;
   }
