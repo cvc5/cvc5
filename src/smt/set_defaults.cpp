@@ -63,7 +63,7 @@ namespace smt {
     std::stringstream ss;                                                     \
     ss << "Cannot use --" << options::domain::longName::optName << " due to " \
        << reason << ".";                                                      \
-    throw OptionException(ss.str());                                          \
+    throw FatalOptionException(ss.str());                                     \
   }
 /**
  * Set domain.optName to value due to reason. Notify if value changes.
@@ -212,6 +212,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
         options::ProofGranularityMode::DSL_REWRITE,
         "check-proof-steps");
   }
+  if (opts.driver.dumpProofs)
+  {
+    // should not combine this with proof logging
+    OPTION_EXCEPTION_IF_NOT(proof, proofLog, false, "dump proofs");
+  }
   // if check-proofs, dump-proofs, dump-unsat-cores-lemmas, or proof-mode=full,
   // then proofs being fully enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
@@ -224,7 +229,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       std::stringstream ss;
       ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     SET_AND_NOTIFY(smt, produceProofs, true, "option requiring proofs");
   }
@@ -315,6 +320,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
             smt, proofMode, options::ProofMode::PP_ONLY, "produce difficulty");
       }
     }
+    if (opts.proof.proofLog)
+    {
+      SET_AND_NOTIFY(smt, produceProofs, true, "proof logging");
+      // ensure at least preprocessing proofs are enabled
+      if (opts.smt.proofMode == options::ProofMode::OFF)
+      {
+        SET_AND_NOTIFY_VAL_SYM(
+            smt, proofMode, options::ProofMode::PP_ONLY, "proof logging");
+      }
+    }
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {
@@ -356,6 +371,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
           smt, proofMode, options::ProofMode::FULL_STRICT, "safe options");
     }
   }
+  if (opts.proof.proofLog)
+  {
+    // incompatible with sygus-inst
+    if (opts.quantifiers.sygusInst)
+    {
+      throw OptionException(std::string("Cannot log proofs with sygus-inst"));
+    }
+  }
 
   // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
   // for proof mode.
@@ -372,7 +395,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     {
       std::stringstream ss;
       ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
   }
   if (d_isInternalSubsolver)
@@ -397,7 +420,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   {
     if (opts.quantifiers.sygusInst && isSygus(opts))
     {
-      throw OptionException(std::string(
+      throw FatalOptionException(std::string(
           "SyGuS instantiation quantifiers module cannot be enabled "
           "for SyGuS inputs."));
     }
@@ -425,7 +448,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
         ss << "for the combination of bit-vectors with arrays or uinterpreted ";
         ss << "functions. Try --" << options::bv::longName::bitblastMode << "="
            << options::BitblastMode::LAZY << ".";
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
       SET_AND_NOTIFY(
           bv, bitblastMode, options::BitblastMode::LAZY, "model generation");
@@ -438,7 +461,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
     {
       // requested bitblast=eager in incremental mode, must be QF_BV only.
-      throw OptionException(
+      throw FatalOptionException(
           std::string("Eager bit-blasting is only support in incremental mode "
                       "if the logic is quantifier-free bit-vectors"));
     }
@@ -462,7 +485,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       std::stringstream ss;
       ss << "solving bitvectors as integers is incompatible with --"
          << options::bv::longName::boolToBitvector << ".";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
@@ -480,7 +503,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   {
     if (opts.smt.produceModelsWasSetByUser)
     {
-      throw OptionException(std::string(
+      throw FatalOptionException(std::string(
           "Ackermannization currently does not support model generation."));
     }
     SET_AND_NOTIFY(smt, ackermann, false, "model generation");
@@ -560,7 +583,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     {
       std::stringstream ss;
       ss << reasonNoQuant.str() << " not supported in quantified logics.";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
   }
   // check if we have separation logic heap types
@@ -572,7 +595,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       std::stringstream ss;
       ss << reasonNoSepLogic.str()
          << " not supported when using separation logic.";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
   }
 }
@@ -603,7 +626,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       std::stringstream ss;
       ss << reasonNoInc.str() << " not supported with incremental solving. "
          << suggestNoInc.str();
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
   }
 
@@ -617,7 +640,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       std::stringstream ss;
       ss << reasonNoUc.str() << " not supported with unsat cores";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
   }
   else
@@ -667,7 +690,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       if (opts.bv.boolToBitvectorWasSetByUser)
       {
-        throw OptionException(
+        throw FatalOptionException(
             "bool-to-bv != off not supported with CEGQI BV for quantified "
             "logics");
       }
@@ -777,7 +800,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.bv.boolToBitvectorWasSetByUser)
     {
-      throw OptionException(
+      throw FatalOptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
     SET_AND_NOTIFY_VAL_SYM(
@@ -925,7 +948,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       {
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel << " with model generation.";
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
       SET_AND_NOTIFY(smt, produceModels, false, sOptNoModel);
     }
@@ -936,7 +959,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel
            << " with model generation (produce-assignments).";
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
       SET_AND_NOTIFY(smt, produceAssignments, false, sOptNoModel);
     }
@@ -947,7 +970,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         std::stringstream ss;
         ss << "Cannot use " << sOptNoModel
            << " with model generation (check-models).";
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
       SET_AND_NOTIFY(smt, checkModels, false, sOptNoModel);
     }
@@ -956,7 +979,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
       && !logic.isPure(THEORY_BV) && logic.getLogicString() != "QF_UFBV")
   {
-    throw OptionException(
+    throw FatalOptionException(
         "Eager bit-blasting does not currently support theory combination with "
         "any theory other than UF. ");
   }
@@ -1250,6 +1273,13 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "compute partitions";
     return true;
   }
+  // proof logging not yet supported in incremental mode, which requires
+  // managing how new assertions are printed.
+  if (opts.proof.proofLog)
+  {
+    reason << "proof logging";
+    return true;
+  }
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
@@ -1502,10 +1532,10 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
   }
-  // enable MBQI if --mbqi-fast-sygus is provided
-  if (opts.quantifiers.mbqiFastSygus)
+  // enable MBQI if --mbqi-enum is provided
+  if (opts.quantifiers.mbqiEnum)
   {
-    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiFastSygus");
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, mbqi, true, "mbqiEnum");
   }
   if (opts.quantifiers.mbqi)
   {
@@ -1588,7 +1618,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     {
       std::stringstream ss;
       ss << reasonNoSygus.str() << " not supported in sygus.";
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     // now, set defaults based on sygus
     setDefaultsSygus(opts);
@@ -1890,6 +1920,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.write_smt().debugCheckModels = false;
   opts.write_smt().checkModels = false;
   opts.write_proof().checkProofSteps = false;
+  opts.write_proof().proofLog = false;
 }
 
 }  // namespace smt

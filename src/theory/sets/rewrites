@@ -1,4 +1,4 @@
-; Equality
+; Theory of sets
 
 (define-cond-rule sets-eq-singleton-emp ((x ?Set) (y ?))
   (= x (@set.empty_of_type (@type_of x)))
@@ -64,28 +64,9 @@
   (set.choose (set.singleton x))
   x)
 
-(define-rule sets-card-singleton ((x ?))
-  (set.card (set.singleton x))
-  1)
-
-(define-rule sets-card-union ((s ?Set) (t ?Set))
-  (set.card (set.union s t))
-  (- (+ (set.card s) (set.card t)) (set.card (set.inter s t))))
-
-(define-rule sets-card-minus ((s ?Set) (t ?Set))
-  (set.card (set.minus s t))
-  (- (set.card s) (set.card (set.inter s t))))
-
-(define-cond-rule sets-card-emp ((x ?Set))
-  (= x (@set.empty_of_type (@type_of x)))
-  (set.card x)
-  0)
-
 (define-rule sets-minus-self ((x ?Set))
   (set.minus x x)
   (@set.empty_of_type (@type_of x)))
-
-; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)
 
 (define-rule sets-is-empty-elim ((x ?Set))
   (set.is_empty x)

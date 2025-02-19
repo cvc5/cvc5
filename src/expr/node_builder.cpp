@@ -227,6 +227,7 @@ NodeBuilder& NodeBuilder::append(TNode n)
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
   Assert(!n.isNull()) << "Cannot use NULL Node as a child of a Node";
+  Assert(n.getNodeManager() == d_nm);
   if (n.getKind() == Kind::BUILTIN)
   {
     return *this << NodeManager::operatorToKind(n);
@@ -244,6 +245,7 @@ NodeBuilder& NodeBuilder::append(const TypeNode& typeNode)
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
   Assert(!typeNode.isNull()) << "Cannot use NULL Node as a child of a Node";
+  Assert(typeNode.getNodeManager() == d_nm);
   allocateNvIfNecessaryForAppend();
   expr::NodeValue* nv = typeNode.d_nv;
   nv->inc();

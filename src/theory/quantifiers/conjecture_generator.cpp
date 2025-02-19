@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
@@ -185,6 +186,11 @@ void ConjectureGenerator::setUniversalRelevant( TNode n ) {
 }
 
 bool ConjectureGenerator::isUniversalLessThan( TNode rt1, TNode rt2 ) {
+  //ensure both patterns are registered so that the following assertions will
+  //succeed
+  registerPattern(rt1, rt1.getType());
+  registerPattern(rt2, rt2.getType());
+
   //prefer the one that is (normal, smaller) lexographically
   Assert(d_pattern_is_relevant.find(rt1) != d_pattern_is_relevant.end());
   Assert(d_pattern_is_relevant.find(rt2) != d_pattern_is_relevant.end());
@@ -374,91 +380,11 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       beginCallDebug();
-      eq::EqualityEngine * ee = getEqualityEngine();
+      eq::EqualityEngine* ee = getEqualityEngine();
       d_conj_count = 0;
-
-      Trace("sg-proc") << "Get eq classes..." << std::endl;
-      d_op_arg_index.clear();
-      d_ground_eqc_map.clear();
-      d_bool_eqc[0] = Node::null();
-      d_bool_eqc[1] = Node::null();
-      std::vector< TNode > eqcs;
-      d_em.clear();
-      eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-      while( !eqcs_i.isFinished() ){
-        TNode r = (*eqcs_i);
-        Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
-        eqcs.push_back( r );
-        if( r.getType().isBoolean() ){
-          if (areEqual(r, d_true))
-          {
-            d_ground_eqc_map[r] = d_true;
-            d_bool_eqc[0] = r;
-          }
-          else if (areEqual(r, d_false))
-          {
-            d_ground_eqc_map[r] = d_false;
-            d_bool_eqc[1] = r;
-          }
-        }
-        d_em[r] = eqcs.size();
-        eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
-        while( !ieqc_i.isFinished() ){
-          TNode n = (*ieqc_i);
-          Trace("sg-proc-debug") << "......term : " << n << std::endl;
-          if( getTermDatabase()->hasTermCurrent( n ) ){
-            if( isHandledTerm( n ) ){
-              std::vector<TNode> areps;
-              for (const Node& nc : n)
-              {
-                areps.push_back(d_qstate.getRepresentative(nc));
-              }
-              d_op_arg_index[r].addTerm(areps, n);
-            }
-          }
-          ++ieqc_i;
-        }
-        ++eqcs_i;
-      }
-      Assert(!d_bool_eqc[0].isNull());
-      Assert(!d_bool_eqc[1].isNull());
-      d_urelevant_terms.clear();
-      Trace("sg-proc") << "...done get eq classes" << std::endl;
-
-      Trace("sg-proc") << "Determine ground EQC..." << std::endl;
-      bool success;
-      do{
-        success = false;
-        for( unsigned i=0; i<eqcs.size(); i++ ){
-          TNode r = eqcs[i];
-          if( d_ground_eqc_map.find( r )==d_ground_eqc_map.end() ){
-            std::vector< TNode > args;
-            Trace("sg-pat-debug") << "******* Get ground term for " << r << std::endl;
-            Node n;
-            if (Skolemize::isInductionTerm(options(), r))
-            {
-              n = d_op_arg_index[r].getGroundTerm( this, args );
-            }else{
-              n = r;
-            }
-            if( !n.isNull() ){
-              Trace("sg-pat") << "Ground term for eqc " << r << " : " << std::endl;
-              Trace("sg-pat") << "   " << n << std::endl;
-              d_ground_eqc_map[r] = n;
-              success = true;
-            }else{
-              Trace("sg-pat-debug") << "...could not find ground term." << std::endl;
-            }
-          }
-        }
-      }while( success );
-      //also get ground terms
-      d_ground_terms.clear();
-      for( unsigned i=0; i<eqcs.size(); i++ ){
-        TNode r = eqcs[i];
-        d_op_arg_index[r].getGroundTerms( this, d_ground_terms );
-      }
-      Trace("sg-proc") << "...done determine ground EQC" << std::endl;
+      std::vector<TNode> eqcs;
+      getEquivalenceClasses(eqcs);
+      computeIrrelevantEqcs(eqcs);
 
       //debug printing
       if( TraceIsOn("sg-gen-eqc") ){
@@ -549,8 +475,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           for( unsigned r=0; r<2; r++ ){
             TNode nl = q[1][r==0 ? 0 : 1];
             TNode nr = q[1][r==0 ? 1 : 0];
-            Node eq = nl.eqNode( nr );
+            Node eq;
             if( r==1 || std::find( d_conjectures.begin(), d_conjectures.end(), q )==d_conjectures.end() ){
+               eq = nl.eqNode( nr );
               //check if it contains only relevant functions
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
@@ -887,6 +814,106 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
+void ConjectureGenerator::getEquivalenceClasses(std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Get eq classes..." << std::endl;
+  d_op_arg_index.clear();
+  d_ground_eqc_map.clear();
+  d_bool_eqc[0] = Node::null();
+  d_bool_eqc[1] = Node::null();
+  d_em.clear();
+  eq::EqualityEngine* ee = getEqualityEngine();
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
+    eqcs.push_back( r );
+    if( r.getType().isBoolean() ){
+      if (areEqual(r, d_true))
+        {
+          d_ground_eqc_map[r] = d_true;
+          d_bool_eqc[0] = r;
+        }
+      else if (areEqual(r, d_false))
+        {
+          d_ground_eqc_map[r] = d_false;
+          d_bool_eqc[1] = r;
+        }
+    }
+    d_em[r] = eqcs.size();
+    eq::EqClassIterator ieqc_i = eq::EqClassIterator( r, ee );
+    while( !ieqc_i.isFinished() ){
+      TNode n = (*ieqc_i);
+      Trace("sg-proc-debug") << "......term : " << n << std::endl;
+      if( getTermDatabase()->hasTermCurrent( n ) ){
+        if( isHandledTerm( n ) ){
+          std::vector<TNode> areps;
+          for (const Node& nc : n)
+            {
+              areps.push_back(d_qstate.getRepresentative(nc));
+            }
+          d_op_arg_index[r].addTerm(areps, n);
+        }
+      }
+      ++ieqc_i;
+    }
+    ++eqcs_i;
+  }
+  Assert(!d_bool_eqc[0].isNull());
+  Assert(!d_bool_eqc[1].isNull());
+  d_urelevant_terms.clear();
+  Trace("sg-proc") << "...done get eq classes" << std::endl;
+}
+
+void ConjectureGenerator::computeIrrelevantEqcs(const std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Determine ground EQC..." << std::endl;
+  bool success;
+  do
+  {
+    success = false;
+    for (unsigned i = 0; i < eqcs.size(); i++)
+    {
+      TNode r = eqcs[i];
+      if (d_ground_eqc_map.find(r) == d_ground_eqc_map.end())
+      {
+        std::vector<TNode> args;
+        Trace("sg-pat-debug")
+            << "******* Get ground term for " << r << std::endl;
+        Node n;
+        if (Skolemize::isInductionTerm(options(), r))
+        {
+          n = d_op_arg_index[r].getGroundTerm(this, args);
+        }
+        else
+        {
+          n = r;
+        }
+        if (!n.isNull())
+        {
+          Trace("sg-pat") << "Ground term for eqc " << r << " : " << std::endl;
+          Trace("sg-pat") << "   " << n << std::endl;
+          d_ground_eqc_map[r] = n;
+          success = true;
+        }
+        else
+        {
+          Trace("sg-pat-debug")
+              << "...could not find ground term." << std::endl;
+        }
+      }
+    }
+  } while (success);
+  // also get ground terms
+  d_ground_terms.clear();
+  for (unsigned i = 0; i < eqcs.size(); i++)
+  {
+    TNode r = eqcs[i];
+    d_op_arg_index[r].getGroundTerms(this, d_ground_terms);
+  }
+  Trace("sg-proc") << "...done determine ground EQC" << std::endl;
+}
+
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
 
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
@@ -926,23 +953,14 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
             if( optStatsOnly() ){
               d_conj_count++;
             }else{
-              std::vector< Node > bvs;
-              for (const std::pair<const TypeNode, unsigned>& lhs_pattern :
-                   d_pattern_var_id[lhs])
-              {
-                for (unsigned j = 0; j <= lhs_pattern.second; j++)
-                {
-                  bvs.push_back(getFreeVar(lhs_pattern.first, j));
-                }
-              }
-              Node rsg;
-              if( !bvs.empty() ){
-                Node bvl =
-                    nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
-                rsg = NodeManager::mkNode(Kind::FORALL, bvl, lhs.eqNode(rhs));
-              }else{
-                rsg = lhs.eqNode( rhs );
-              }
+              Node body = lhs.eqNode(rhs);
+              std::unordered_set<Node> fvs;
+              expr::getFreeVariables(body, fvs);
+              std::vector<Node> bvs;
+              bvs.insert(bvs.begin(), fvs.begin(), fvs.end());
+              Node bvl = nodeManager()->mkNode(Kind::BOUND_VAR_LIST, bvs);
+              Node rsg = NodeManager::mkNode(Kind::FORALL, bvl, body);
+
               rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );

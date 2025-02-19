@@ -1,0 +1,84 @@
+; =============================================================================
+;
+; This is porition of CPC that is not supported under cvc5's safe options. It
+; should *not* be included in proofs emitted by safe builds of cvc5 or when
+; --safe-options is enabled. All proofs emitted in such cases will never
+; reference any of the symbols or proof rules defined in this subdirectory.
+;
+; Note the theory definitions in this subdirectory are intended to cover *all* of
+; the experimental theory symbols that cvc5 supports. It also may contain proof
+; rules that are supported when experimental features are enabled, or definitions
+; that are works in progress.
+;
+; =============================================================================
+
+(include "./theories/ArithExt.eo")
+(include "./theories/Bags.eo")
+(include "./theories/FloatingPoints.eo")
+(include "./theories/FiniteFields.eo")
+(include "./theories/SepLogic.eo")
+(include "./rules/Transcendentals.eo")
+(include "./rules/SetsExt.eo")
+(include "./rules/RewritesExpert.eo")
+
+(include "../programs/AciNorm.eo")
+(include "../theories/Arrays.eo")
+
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.card (-> Type Int Bool))
+; disclaimer: this function is not in SMT-LIB.
+(declare-const fmf.combined_card (-> Int Bool))
+
+; Used in the --ho-elim preprocessing pass
+(declare-type @ho-elim-sort (Type))
+(declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
+
+; The arrays equal-range predicate.
+; disclaimer: This function is not in SMT-LIB.
+(declare-const eqrange (-> (! Type :var U :implicit) (! Type :var T :implicit) (! Type :var I :implicit)
+                           (Array U T) (Array U T) I I Bool))
+
+; Dataypes shared selector
+(declare-const @shared_selector (-> (! Type :opaque :var D) (! Type :opaque :var T) (! Int :opaque) D T))
+
+
+; define: $get_aci_normal_form_expert
+; args:
+; - t S: The term to compute the normal form for.
+; return: >
+;   The result of normalizing t for the proof rule aci_norm. In
+;   particular, if t is an application of a known (expert) operator that has the property
+;   of being either associative and commutative (resp. associative) we call
+;   the method $get_aci_norm (resp. $get_a_norm).
+(define $get_aci_normal_form_expert ((S Type :implicit) (t S))
+  (eo::match ((x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
+    t
+    (
+      ((sep x1 x2)       ($get_aci_norm t))
+      ((ff.add xf1 xf2)  ($get_aci_norm t))
+      ((ff.mul xf1 xf2)  ($get_aci_norm t))
+    )
+  )
+)
+
+; rule: aci_norm_expert
+; args:
+; - eq Bool: The equality to be proven by this rule.
+; requires: >
+;   That computing the normal forms via $get_aci_normal_form_expert of the sides of the
+;   given equality between terms a and b suffices to show that a and b are
+;   equivalent. Note that we need three checks. The first two handle the cases
+;   where one side is treated as a singleton child of the other side. The
+;   remaining case checks where both terms are not singletons.
+; conclusion: The given equality.
+; disclaimer: >
+;   This implements ProofRule::ACI_NORM for expert operators, and is
+;   not its own dedicated rule.
+(declare-rule aci_norm_expert ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires (((eo::define ((an ($get_aci_normal_form_expert a)) (bn ($get_aci_normal_form_expert b)))
+              (eo::ite (eo::is_eq an b) true
+              (eo::ite (eo::is_eq a bn) true
+                (eo::is_eq an bn)))) true))
+  :conclusion (= a b)
+)

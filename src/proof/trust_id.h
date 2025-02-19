@@ -28,6 +28,8 @@ namespace cvc5::internal {
 enum class TrustId : uint32_t
 {
   NONE,
+  /** Assertions of the preprocessed input clauses */
+  PREPROCESSED_INPUT,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
   /**
@@ -163,6 +165,10 @@ enum class TrustId : uint32_t
   ARITH_STATIC_LEARN,
   /** A nonlinear comparison lemma that failed proof reconstruction */
   ARITH_NL_COMPARE_LEMMA,
+  /** A conflict coming from the bitblast solver */
+  BV_BITBLAST_CONFLICT,
+  /** A step from BvPpAssert utility */
+  BV_PP_ASSERT,
   /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
   DIAMONDS,
   /** An extended theory rewrite */

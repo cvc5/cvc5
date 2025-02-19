@@ -153,7 +153,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
     Evaluator eval(nullptr);
@@ -179,7 +179,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node t = args[1];
     Node l = args[2];
     Node u = args[3];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
     Evaluator eval(nullptr);
@@ -203,9 +203,14 @@ Node TranscendentalProofRuleChecker::checkInternal(
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node c = args[1];
     Node t = args[2];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
-    tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    size_t ds = tg.getPolynomialApproximationBoundForArg(Kind::EXPONENTIAL, c, d, bounds);
+    // needed to provide a larger d
+    if (ds>d)
+    {
+      return Node::null();
+    }
     Evaluator eval(nullptr);
     Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {c});
     return nm->mkNode(
@@ -287,7 +292,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node ub = args[3];
     Node l = args[4];
     Node u = args[5];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
     Evaluator eval(nullptr);
@@ -314,7 +319,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node c = args[2];
     Node lb = args[3];
     Node ub = args[4];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
     Evaluator eval(nullptr);
@@ -340,7 +345,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node ub = args[3];
     Node l = args[4];
     Node u = args[5];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
     Evaluator eval(nullptr);
@@ -367,7 +372,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Node c = args[2];
     Node lb = args[3];
     Node ub = args[4];
-    TaylorGenerator tg;
+    TaylorGenerator tg(nm);
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
     Evaluator eval(nullptr);

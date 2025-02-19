@@ -29,6 +29,7 @@ const char* toString(ProofRule rule)
     case ProofRule::SUBS: return "SUBS";
     case ProofRule::MACRO_REWRITE: return "MACRO_REWRITE";
     case ProofRule::EVALUATE: return "EVALUATE";
+    case ProofRule::DISTINCT_VALUES: return "DISTINCT_VALUES";
     case ProofRule::ACI_NORM: return "ACI_NORM";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
@@ -119,6 +120,8 @@ const char* toString(ProofRule rule)
     case ProofRule::MACRO_BV_BITBLAST: return "MACRO_BV_BITBLAST";
     case ProofRule::BV_BITBLAST_STEP: return "BV_BITBLAST_STEP";
     case ProofRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
+    case ProofRule::BV_POLY_NORM: return "BV_POLY_NORM";
+    case ProofRule::BV_POLY_NORM_EQ: return "BV_POLY_NORM_EQ";
     //================================================= Datatype rules
     case ProofRule::DT_SPLIT: return "DT_SPLIT";
     case ProofRule::DT_CLASH: return "DT_CLASH";
@@ -148,6 +151,7 @@ const char* toString(ProofRule rule)
     case ProofRule::STRING_REDUCTION: return "STRING_REDUCTION";
     case ProofRule::STRING_EAGER_REDUCTION: return "STRING_EAGER_REDUCTION";
     case ProofRule::RE_INTER: return "RE_INTER";
+    case ProofRule::RE_CONCAT: return "RE_CONCAT";
     case ProofRule::RE_UNFOLD_POS: return "RE_UNFOLD_POS";
     case ProofRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
@@ -227,6 +231,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
+      return "macro-arith-int-eq-conflict";
+    case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
+      return "macro-arith-int-geq-tighten";
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
       return "arith-string-pred-entail";
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
@@ -240,8 +248,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
-    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
-      return "macro-arrays-distinct-arrays";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
@@ -279,6 +285,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
+    case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
     case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
@@ -292,13 +299,26 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::MACRO_STR_SPLIT_CTN: return "macro-str-split-ctn";
+    case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+      return "macro-str-strip-endpoints";
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+      return "str-overlap-split-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+      return "str-overlap-endpoints-ctn";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+      return "str-overlap-endpoints-indexof";
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+      return "str-overlap-endpoints-replace";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-      return "re-inter-union-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
+      return "macro-re-inter-union-inclusion";
+    case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
+    case ProofRewriteRule::RE_UNION_INCLUSION: return "re-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
@@ -307,8 +327,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
-      return "macro-sets-distinct-sets";
     case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
       return "macro-sets-inter-eval";
     case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:

@@ -1,0 +1,14 @@
+(include "../../theories/Arith.eo")
+
+; The "integer-and" operator, see Zohar et al VMCAI 2022.
+; disclaimer: This function is not in SMT-LIB.
+(declare-const iand (-> Int Int Int Int))
+
+; skolems for virtual term substitution
+(declare-const @arith_vts_delta Real)
+(declare-const @arith_vts_delta_free Real)
+(declare-const @arith_vts_infinity (-> (! Type :var T) T))
+(declare-const @arith_vts_infinity_free (-> (! Type :var T) T))
+
+; used by --nl-cov
+(declare-const @indexed_root_predicate (-> Int Bool Real Bool))

@@ -50,7 +50,15 @@ class SequencesRewriter : public TheoryRewriter
    * cannot be rewritten.
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
-
+  /**
+   * Rewrite based on MACRO_STR_STRIP_ENDPOINTS. We populate nb, nrem, ne such
+   * that n = nb ++ nrem ++ ne, and these components are the appropriate
+   * inputs to a STR_OVERLAP_* rule.
+   */
+  Node rewriteViaMacroStrStripEndpoints(const Node& n,
+                                        std::vector<Node>& nb,
+                                        std::vector<Node>& nrem,
+                                        std::vector<Node>& ne);
  protected:
   /** rewrite regular expression all
    *
@@ -147,8 +155,12 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaStrEqLenUnify(const Node& n, Rewrite& rule);
   /** Rewrite based on RE_LOOP_ELIM */
   Node rewriteViaReLoopElim(const Node& n);
-  /** Rewrite based on RE_INTER_UNION_INCLUSION */
-  Node rewriteViaReInterUnionInclusion(const Node& n);
+  /** Rewrite based on MACRO_RE_INTER_UNION_INCLUSION */
+  Node rewriteViaMacroReInterUnionInclusion(const Node& n);
+  /**
+   * Rewrite based on RE_INTER_INCLUSION, or RE_UNION_INCLUSION.
+   */
+  Node rewriteViaReInterUnionInclusion(ProofRewriteRule id, const Node& n);
   /** Rewrite based on STR_IN_RE_EVAL */
   Node rewriteViaStrInReEval(const Node& n);
   /** Rewrite based on STR_IN_RE_CONSUME */
@@ -163,12 +175,16 @@ class SequencesRewriter : public TheoryRewriter
   Node rewriteViaMacroSubstrStripSymLength(const Node& n,
                                            Rewrite& rule,
                                            StringsEntail& sent);
+  /** Rewrite based on MACRO_STR_SPLIT_CTN */
+  Node rewriteViaMacroStrSplitCtn(const Node& n);
   /** Rewrite based on STR_INDEXOF_RE_EVAL */
   Node rewriteViaStrIndexofReEval(const Node& n);
   /** Rewrite based on STR_REPLACE_RE_EVAL */
   Node rewriteViaStrReplaceReEval(const Node& n);
   /** Rewrite based on STR_REPLACE_RE_ALL_EVAL */
   Node rewriteViaStrReplaceReAllEval(const Node& n);
+  /** Rewrite based on one of the STR_OVERLAP_* rules */
+  Node rewriteViaOverlap(ProofRewriteRule id, const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;

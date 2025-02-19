@@ -366,6 +366,48 @@ public:
   TermGenEnv d_tge;
   //consider term canon
   bool considerTermCanon( Node ln, bool genRelevant );
+  /** collect equivalence classes
+   *
+   * This function iterates over the representative 'r'
+   * of each equivalence class and
+   *
+   * - adds 'r' to 'eqcs',
+   * - assigns to 'r' a 1-indexed serial number 'd_em[r]',
+   * - and adds every term 't' in the equivalence class represented by 'r'
+   * to the operator-argument index, which will be used to identify
+   * equivalence classes that do not contain concrete terms and so are
+   * relevant for conjecture generation.
+   */
+  void getEquivalenceClasses(std::vector<TNode>& eqcs);
+  /** compute irrelevant equivalence classes
+   *
+   * This function populates 'd_ground_eqc_map' with irrelevant equivalence
+   * classes.  In other words, it populates this map with key-value pairs
+   * where each key is an irrelevant term that is also the representative of
+   * some equivalence class.  The values are not important.
+   *
+   * In principle a term is *irrelevant* if and only if
+   *
+   *   1. it is not of inductive datatype sort,
+   *   2. OR it is of inductive datatype sort,
+   *     - AND it has an operator which is an *atomic trigger* but not a skolem
+   *     function,
+   *     - AND all of its immediate children -- the operator's arguments -- are
+   *     themselves irrelevant terms,
+   *   3. OR it is equivalent to an irrelevant term in the current model.
+   *
+   * The objective behind defining irrelevance this way is to narrow the set
+   * of *relevant* terms to datatype-sorted terms that are impossible to express
+   * using only non-datatype terms, constructors, selectors,
+   * uninterpreted functions, or other function-like symbols (atomic triggers).
+   *
+   * Consequently the set of relevant terms contains (among other terms)
+   * datatype-sorted skolem constants that represent "arbitrary" values of that
+   * sort rather than "concrete" values.  These are precisely the skolem
+   * constants we may want to translate into universally quantified variables
+   * when synthesizing conjectures.
+   */
+  void computeIrrelevantEqcs(const std::vector<TNode>& eqcs);
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
