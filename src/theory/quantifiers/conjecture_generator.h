@@ -33,7 +33,141 @@ namespace quantifiers {
 
 class ConjectureGenerator;
 
-// operator independent index of arguments for an EQC
+/** operator independent index of arguments for an EQC
+ *
+ * The (almost) inductive definition of the set of irrelevant terms suggests
+ * the following algorithm to compute I, the set of irrelevant equivalence
+ * classes.  It is a standard algorithm that starts from the empty set and
+ * iterates up to a fixed point.
+ *
+ *     declare I and set its value to the empty set
+ *
+ *     for each equivalence class e:
+ *       if the sort of e is not an inductive datatype sort:
+ *         add e to I
+ *
+ *     declare I_old
+ *
+ *     do:
+ *        set I_old to the current value of I
+ *        for each equivalence class e:
+ *          if e is not in I:
+ *            for each term t in e:
+ *              if t has the form f(t_1, ..., t_n) where f is an atomic
+ *              trigger that is not a skolem function and the equivalence class
+ *              of each t_i is in I:
+ *                add e to I
+ *                continue to the next equivalence class
+ *              else
+ *                continue to the next term in e
+ *     while I_old is different from I
+ *
+ * Note the three nested loops in the second phase of the algorithm above.
+ * We can avoid inspecting each element of each equivalence class that is not
+ * already in I by preparing a family of indices, which can be described
+ * abstractly as follows.
+ *
+ * _Definitions_
+ *
+ * - 'E' is the set of representatives of equivalence classes.
+ * - 'F' is the set of function symbols.
+ * - 'T' is the set of terms.
+ * - For a set 'X', X* denotes the set of all strings over X.
+ * - For a set 'X', X+ denotes the set of non-empty strings over X.
+ * - For sets 'X' and 'Y', X x Y denotes their cartesian product.
+ * - 't = u' means the terms t and u are syntactically equal.
+ * - 't ~ u' means the terms t and u are in the same equivalence class according
+ * to the current model
+ *
+ * _Declarations_
+ *
+ * - 'OpArgIndex' is a subset of E+, we intend that OpArgIndex(e e_1 ... e_n) is
+ * true iff the string e e_1 ... e_n denotes an instance of the C++ class named
+ * OpArgIndex
+ *
+ * - '[[e e_1 ... e_n]]' is the instance of the OpArgIndex class denoted by the
+ * string e e_1 ... e_n when OpArgIndex(e e_1 ... e_n) is true, and it is
+ * equal to d_op_arg_index[e].d_child[e_1].(...).d_child[e_n]
+ *
+ * - 'child' is a subset of E+ x E, we intend that child(e e_1 ... e_n, e^) is
+ * true iff the map [[e e_1 ... e_n]].d_child contains e^ as a key.
+ *
+ * - 'ops' : OpArgIndex -> F* is a function where we intend ops(e e_1 ... e_n)
+ * to be the same sequence of function symbols as the vector
+ * [[e e_1 ... e_n]].d_ops
+ *
+ * - 'op_terms' : OpArgIndex -> T* is a function where we intend
+ * op_terms(e e_1 ... e_n) to be the same sequence of terms as the vector
+ * [[e e_1 ... e_n]].d_op_terms
+ *
+ * - 'added' is a subset of E x T where we intend added(e, t) to be true iff
+ * d_op_arg_index[e].addTerm(t) executes successfully.
+ *
+ * _Invariants_
+ *
+ * (i)  child(e e_1 ... e_n, e^)
+ * <==> OpArgIndex(e e_1 ... e_n e^)
+ *
+ * (ii) OpArgIndex(e e_1 ... e_n)
+ *  ==> for all 0 <= i < n. OpArgIndex(e e_1 ... e_i)
+ *
+ * (iii) added(e, f(t_1, ..., t_n))
+ *  <==> OpArgIndex(e e_1 ... e_n)
+ *    /\ there exists j. ops(e e_1 ... e_n)(j) = f
+ *                    /\ op_terms(e e_1 ... e_n)(j) = f(t_1, ..., t_n)
+ *
+ * (iv) d_ops(e e_1 ... e_n) has the same length as |d_op_terms(e e_1 ... e_n)|
+ *
+ * _Additional guarantees_
+ *
+ * In the implementation of getEquivalenceClasses, note that we add
+ * f(t_1, ..., t_n) to d_op_terms[e] when, among satisfying certain other
+ * properties, it is in e's equivalence class. This guarantees that
+ * added(e, f(t_1, ..., t_n)) ==> f(t_1, ..., t_n) ~ e.
+ *
+ * Furthermore the implementation of addTerm ensures that for any equivalence
+ * class representative e and for any two terms t = f(t_1, ..., t_n) and
+ * u = f(u_1, ..., u_n) such that t != u, t ~ e, u ~ e,
+ * and t_i ~ u_i for each i, we that at most one of added(e, t) and
+ * added(e, u) is true.
+ *
+ * _Take-away_
+ *
+ * The problem of deciding whether the equivalence class represented by e is
+ * irrelevant (see comment for computeIrrelevantEqcs) falls to searching for
+ * a string e e_1 ... e_n such that
+ *
+ * - OpArgIndex(e e_1 ... e_n), and
+ * - for all 1 <= i < n. e_i is irrelevant, and
+ * - ops(e e_1 ... e_n) is non-empty.
+ *
+ * as implemented in 'getGroundTerms'.
+ *
+ * We hope is that searching for such a string is more efficient than the
+ * naive approach of iterating over all terms in e's equivalence class and
+ * checking if any one of these terms is irrelevant.
+ *
+ * _Example_
+ *
+ * Let e, e_1, e_2 and e_3 be representatives of equivalence classes.
+ * Suppose we're given that
+ *
+ * - f(t_1,t_2) ~ g(t_3) ~ f(t_4,t_5) ~ f(t_6,t_7) ~ e, and
+ * - t_1 ~ t_3 ~ t_4 ~ t_6 ~ e_1, and
+ * - t_2 ~ t_5 ~ e_2, and
+ * - t_7 ~ e_3
+ *
+ * Suppose also that we add f(t_1,t_2), g(t_3), f(t_4,t_5), and f(t_6,t_7)
+ * to d_op_arg_index[e] in sequence.  The resulting data structure looks like
+ *
+ *   [[e]], d_ops = [], d_op_terms = []
+ *     |
+ * e_1 '-- [[e e_1]], d_ops = [ g ], d_op_terms = [ g(t_3) ]
+ *            |
+ *        e_2 |-- [[e e_1 e_2]], d_ops = [ f ], d_op_terms = [ f(t_4,t_5) ]
+ *            |
+ *        e_3 '-- [[e e_1 e_3]], d_ops = [ f ], d_op_terms = [ f(t_6,t_7) ]
+ */
 class OpArgIndex
 {
 public:
