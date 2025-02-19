@@ -81,6 +81,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
+                           TheoryRewriteCtx::POST_DSL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -162,6 +164,29 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> nb, nrem, ne;
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
+    case ProofRewriteRule::SEQ_EVAL_OP:
+    {
+      // this is a catchall rule for evaluation of operations on constant
+      // sequences
+      TypeNode tn = utils::getOwnerStringType(n);
+      if (tn.isSequence())
+      {
+        for (const Node& nc : n)
+        {
+          if (!nc.isConst())
+          {
+            return Node::null();
+          }
+        }
+        RewriteResponse response = postRewrite(n);
+        Node ret = response.d_node;
+        if (ret.isConst())
+        {
+          return ret;
+        }
+      }
+    }
+    break;
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:

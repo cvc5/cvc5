@@ -2,6 +2,8 @@
 (include "../theories/Quantifiers.eo")
 (include "../programs/Strings.eo")
 
+(include "../programs/SeqToString.eo")
+
 ;;-------------------- Core
 
 ; rule: string_length_pos
@@ -866,4 +868,41 @@
   :args ((= (str.replace_re_all s r t) u))
   :requires ((($str_eval_replace_re_all s r t) u))
   :conclusion (= (str.replace_re_all s r t) u)
+)
+
+
+;;;;; ProofRewriteRule::SEQ_EVAL_OP
+
+; program: $seq_eval
+; args:
+; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
+; return: The result of evaluating t.
+(program $seq_eval ((T Type :implicit) (t T) (n Int))
+  (T) T
+  (
+    ; handle sequence-specific operators here
+    (($seq_eval (seq.nth t n))  (eo::match ((e T))
+                                  (eo::list_nth str.++ t n)
+                                  (((seq.unit e) e))))
+    ; otherwise, we rely on the strings evaluator
+    (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
+                                ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
+                                (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
+                                                        ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
+                                                          (eo::cons @list "" chars)
+                                                          (eo::cons @list (@seq.empty (eo::typeof t)) units)))))))
+  )
+)
+
+; rule: seq-eval-op
+; implements: ProofRewriteRule::SEQ_EVAL_OP
+; args:
+; - eq Bool: The equality between term involving sequences and its evaluation.
+; requires: >
+;   Evaluating the left hand side gives the right hand side.
+; conclusion: The given equality.
+(declare-rule seq-eval-op ((T Type) (t T) (u T))
+  :args ((= t u))
+  :requires ((($seq_eval t) u))
+  :conclusion (= t u)
 )
