@@ -71,7 +71,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
   {
     return tlGrammarTypes;
   }
-  NodeManager * nm = env.getNodeManager();
+  NodeManager* nm = env.getNodeManager();
   // initialize the candidate rewrite
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;

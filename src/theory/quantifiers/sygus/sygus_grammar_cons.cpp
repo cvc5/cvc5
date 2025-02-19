@@ -891,7 +891,7 @@ void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
                                                const TypeNode& type,
                                                std::vector<Node>& ops)
 {
-  NodeManager * nm = env.getNodeManager();
+  NodeManager* nm = env.getNodeManager();
   if (type.isRealOrInt())
   {
     ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
@@ -925,7 +925,8 @@ void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
     // don't use array constants if arraysExp is false
-    if (!env.getOptions().arrays.arraysExp && expr::hasSubtermKind(Kind::STORE_ALL, c))
+    if (!env.getOptions().arrays.arraysExp
+        && expr::hasSubtermKind(Kind::STORE_ALL, c))
     {
       return;
     }
