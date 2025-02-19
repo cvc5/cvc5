@@ -4021,6 +4021,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_1),
   /** Auto-generated from RARE rule bv-zero-extend-eq-const-2 */
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_2),
+  /** Auto-generated from RARE rule bv-zero-extend-ult-const-1 */
+  EVALUE(BV_ZERO_EXTEND_ULT_CONST_1),
+  /** Auto-generated from RARE rule bv-zero-extend-ult-const-2 */
+  EVALUE(BV_ZERO_EXTEND_ULT_CONST_2),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-1 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_1),
   /** Auto-generated from RARE rule bv-sign-extend-ult-const-2 */
