@@ -288,6 +288,35 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
   /**
+   * Prove symmetry of equality eq, in particular this proves eq[1] == eq[0]
+   * where eq is an equality and adds it to cdp.
+   */
+  Node proveSymm(CDProof* cdp, const Node& eq);
+  /**
+   * Prove congruence for left hand side term n.
+   * If n is a term of the form (f t1 ... tn), this proves
+   *  (= (f t1 ... sn) (f s1 .... sn))
+   * where si is different from ti iff premises[i] is the equality (= ti si).
+   * Note that we permit providing null premises[i] in which case si is ti
+   * and we prove (= ti ti) by REFL. For example, given
+   *   n = (f b a c) and premises = { null, a=b, null }
+   * we prove:
+   *   ----- REFL        ---- REFL
+   *   b = b      a = b  c = c
+   *   ------------------------ CONG
+   *   (f b a c) = (f b b c)
+   */
+  Node proveCong(CDProof* cdp,
+                 const Node& n,
+                 const std::vector<Node>& premises);
+  /**
+   * Assuming cdp has proofs of (=> A B) and (=> B A), this ensures we
+   * have a proof of (= A B).
+   */
+  Node proveDualImplication(CDProof* cdp,
+                            const Node& impl,
+                            const Node& implRev);
+  /**
    * Try THEORY_REWRITE with theory::TheoryRewriteCtx ctx.
    */
   bool tryTheoryRewrite(CDProof* cdp,
