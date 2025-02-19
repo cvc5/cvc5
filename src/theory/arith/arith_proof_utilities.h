@@ -42,12 +42,14 @@ namespace arith {
  * This method ensures we do not spuriously introduce mixed arithmetic, which
  * the proof checker for MACRO_ARITH_SCALE_SUM_UB requires.
  */
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs);
 /**
  * Same as above, but with proven formulas.
  */
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Node>& premises,
                                      const std::vector<Node>& coeffs);
 
 /**
@@ -63,7 +65,8 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
  * @param cdp The proof to add steps to.
  * @return The conclusion of the proof rule.
  */
-Node expandMacroSumUb(const std::vector<Node>& children,
+Node expandMacroSumUb(NodeManager* nm,
+                      const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
 

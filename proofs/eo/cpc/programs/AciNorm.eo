@@ -1,0 +1,100 @@
+(include "../programs/Utils.eo")
+
+; program: $singleton_elim_aci
+; args:
+; - f (-> T U S): The function we are considering.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: >
+;   The result of applying singleton elimination for s, where s should
+;   be an application of f. In particular, if s is of the form (f x1 x2) where
+;   x2 is the nil terminator of f, then we return x1. Otherwise, we return s
+;   unchanged.
+; note: >
+;   This method is similar in purpose to $singleton_elim, but insists that
+;   the function and its nil terminator are provided explicitly.
+(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::is_eq x2 id) x1 (f x1 x2)))
+    (($singleton_elim_aci f id x)          x)
+  )
+)
+
+;; =============== for ACI_NORM associative, commutative and idempotent
+
+; program: $ac_append
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s1 S: The first term to process.
+; - s2 S: The second term to process.
+; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
+(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list))
+  ((-> T U S) S S S) S
+  (
+    (($ac_append f id (f x1 x2) (f y1 y2)) (eo::ite (eo::is_eq x1 y1)
+                                             ($ac_append f id (f x1 x2) y2)
+                                           (eo::ite ($compare_var x1 y1)
+                                             (eo::cons f x1 ($ac_append f id x2 (f y1 y2)))
+                                             (eo::cons f y1 ($ac_append f id (f x1 x2) y2)))))
+    (($ac_append f id (f x1 x2) id)        (f x1 x2))
+    (($ac_append f id id (f y1 y2))        (f y1 y2))
+    (($ac_append f id id id)               id)
+  )
+)
+
+; program: $get_aci_norm_rec
+; args:
+; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($get_aci_norm_rec f id (f id x2))   ($get_aci_norm_rec f id x2))
+    (($get_aci_norm_rec f id (f x1 x2))   ($ac_append f id ($get_aci_norm_rec f id x1) ($get_aci_norm_rec f id x2)))
+    (($get_aci_norm_rec f id id)          id)
+    (($get_aci_norm_rec f id x)           (eo::cons f x id))
+  )
+)
+
+; define: $get_aci_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on ACI reasoning.
+(define $get_aci_norm ((T Type :implicit) (t T))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_aci_norm_rec f id t))))))
+)
+
+;; =============== for ACI_NORM associative
+
+; program: $get_a_norm_rec
+; args:
+; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) S S) S
+  (
+    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
+    (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
+    (($get_a_norm_rec f id id)         id)
+    (($get_a_norm_rec f id x)          (eo::cons f x id))
+  )
+)
+
+; define: $get_a_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on associative+identity reasoning.
+(define $get_a_norm ((T Type :implicit) (t T))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
+)
+

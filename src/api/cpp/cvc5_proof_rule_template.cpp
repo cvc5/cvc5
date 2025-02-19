@@ -248,8 +248,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
-    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
-      return "macro-arrays-distinct-arrays";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
@@ -329,8 +327,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
-      return "macro-sets-distinct-sets";
     case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
       return "macro-sets-inter-eval";
     case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:

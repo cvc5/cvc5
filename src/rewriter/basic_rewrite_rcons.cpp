@@ -85,6 +85,17 @@ bool BasicRewriteRCons::prove(CDProof* cdp,
     return true;
   }
 
+  // if (= (= c1 c2) false) where c1, c2 are distinct values
+  if (a.getKind() == Kind::EQUAL && a[0].isConst() && a[1].isConst()
+      && b.isConst() && !b.getConst<bool>())
+  {
+    Node neq = a[0].eqNode(a[1]).notNode();
+    cdp->addStep(neq, ProofRule::DISTINCT_VALUES, {}, {a[0], a[1]});
+    cdp->addStep(eq, ProofRule::FALSE_INTRO, {neq}, {});
+    Trace("trewrite-rcons") << "...DISTINCT_VALUES" << std::endl;
+    return true;
+  }
+
   // try theory rewrite (pre-rare)
   if (tmode == TheoryRewriteMode::STANDARD)
   {
@@ -658,7 +669,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
     args.push_back(nodeManager()->mkConstInt(Rational(isLhs ? 1 : -1)));
     Trace("brc-macro") << "- compute sum bound for " << children << " " << args
                        << std::endl;
-    Node sumBound = theory::arith::expandMacroSumUb(children, args, cdp);
+    Node sumBound =
+        theory::arith::expandMacroSumUb(nodeManager(), children, args, cdp);
     Trace("brc-macro") << "- sum bound is " << sumBound << std::endl;
     if (sumBound.isNull())
     {
@@ -1790,6 +1802,14 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
   return true;
 }
 
+Node BasicRewriteRCons::proveSymm(CDProof* cdp, const Node& eq)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Node eqs = eq[1].eqNode(eq[0]);
+  cdp->addStep(eqs, ProofRule::SYMM, {eq}, {});
+  return eqs;
+}
+
 Node BasicRewriteRCons::proveCong(CDProof* cdp,
                                   const Node& n,
                                   const std::vector<Node>& premises)
@@ -1818,6 +1838,24 @@ Node BasicRewriteRCons::proveCong(CDProof* cdp,
     cdp->addStep(eq, cr, cpremises, cargs);
   }
   return eq;
+}
+
+Node BasicRewriteRCons::proveDualImplication(CDProof* cdp,
+                                             const Node& impl,
+                                             const Node& implrev)
+{
+  Assert(impl.getKind() == Kind::IMPLIES && implrev.getKind() == Kind::IMPLIES
+         && impl[0] == implrev[1] && impl[1] == implrev[0]);
+  NodeManager* nm = nodeManager();
+  Node dualImpl = nm->mkNode(Kind::AND, impl, implrev);
+  cdp->addStep(dualImpl, ProofRule::AND_INTRO, {impl, implrev}, {});
+  Node eqfinal = impl[0].eqNode(impl[1]);
+  Node dualImplEq = nm->mkNode(Kind::EQUAL, dualImpl, eqfinal);
+  Trace("brc-macro") << "- dual implication subgoal " << dualImplEq
+                     << std::endl;
+  cdp->addTrustedStep(dualImplEq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  cdp->addStep(eqfinal, ProofRule::EQ_RESOLVE, {dualImpl, dualImplEq}, {});
+  return eqfinal;
 }
 
 bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,

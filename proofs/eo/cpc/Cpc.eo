@@ -54,6 +54,11 @@
 ;
 ; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
 ; also noted when applicable by disclaimer:.
+;
+; This signature does *not* contain definitions for expert theories and rules.
+; An additional set of theory definitions and rules can be found at
+; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
+; that are not supported by cvc5 when safe mode is enabled.
 ; 
 ; =============================================================================
 
@@ -71,8 +76,7 @@
 (include "./rules/Rewrites.eo")
 
 (include "./programs/DistinctValues.eo")
-
-(include "./expert/CpcExpert.eo")
+(include "./programs/AciNorm.eo")
 
 ; disclaimer: >
 ;   All symbols prefixed by @ are not part of the SMT-LIB standard
@@ -303,6 +307,8 @@
   :conclusion (= t ($run_evaluate t))
 )
 
+;;;;; ProofRule::DISTINCT_VALUES
+
 ; rule: distinct_values
 ; implements: ProofRule::DISTINCT_VALUES
 ; args:
@@ -316,6 +322,8 @@
   :conclusion (not (= t s))
 )
 
+;;;;; ProofRule::DISTINCT_CARD_CONFLICT
+
 ; define: $get_aci_normal_form
 ; args:
 ; - t S: The term to compute the normal form for.
@@ -327,19 +335,15 @@
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (xf1 (FiniteField m)) (xf2 (FiniteField m) :list)
               (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
       ((or x1 x2)        ($get_aci_norm t))
       ((and x1 x2)       ($get_aci_norm t))
-      ((sep x1 x2)       ($get_aci_norm t))
       ((re.union x1 x2)  ($get_aci_norm t))
       ((re.inter x1 x2)  ($get_aci_norm t))
       ((bvor xb1 xb2)    ($get_aci_norm t))
       ((bvand xb1 xb2)   ($get_aci_norm t))
-      ((ff.add xf1 xf2)  ($get_aci_norm t))
-      ((ff.mul xf1 xf2)  ($get_aci_norm t))
       ((str.++ xs1 xs2)  ($get_a_norm t))
       ((re.++ x1 x2)     ($get_a_norm t))
       (x                 x)
@@ -358,6 +362,10 @@
 ;   where one side is treated as a singleton child of the other side. The
 ;   remaining case checks where both terms are not singletons.
 ; conclusion: The given equality.
+; disclaimer: >
+;   This rule implements only the cases of operators that are defined in the
+;   standard signature. Further expert operators are handled in this rule,
+;   which are defined in CpcExpert.eo.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((eo::define ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
@@ -366,6 +374,43 @@
                 (eo::is_eq an bn)))) true))
   :conclusion (= a b)
 )
+
+;;;;; ProofRewriteRule::DISTINCT_CARD_CONFLICT
+
+; program: $compute_card
+; args:
+; - T Type: The type.
+; return: The cardinality of T.
+; note: >
+;   This method is used for the proof rule ProofRewriteRule::DISTINCT_CARD_CONFLICT.
+;   We intentionally only handle finite types here, and moreover for simplicity
+;   limit this method to atomic types (Bool and BitVec) only.
+(program $compute_card ((n Int))
+  (Type) Int
+  (
+    (($compute_card Bool)       2)
+    (($compute_card (BitVec n)) ($arith_eval_int_pow_2 n))
+  )
+)
+
+; rule: distinct-card-conflict
+; implements: ProofRewriteRule::DISTINCT_CARD_CONFLICT
+; args:
+; - eq Bool: The equality to prove with this rule between an application of distinct D and false.
+; requires: >
+;   D is a pairwise application of distinct over a list of elements whose
+;   length is larger than the cardinality of the type of those elements.
+; conclusion: The given equality.
+(declare-rule distinct-card-conflict ((D Bool) (elems @List))
+  :args ((= D false))
+  :requires (((eo::define ((elems ($extract_pairwise_args distinct and D)))
+              (eo::define ((first (eo::list_nth @list elems 0)))
+                (eo::gt (eo::list_len @list elems) ($compute_card (eo::typeof first)))))
+              true))
+  :conclusion (= D false)
+)
+
+;;;;; trusted
 
 ; rule: trust
 ; premsies:
