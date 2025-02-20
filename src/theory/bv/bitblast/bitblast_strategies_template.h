@@ -615,7 +615,7 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(size, size);
+  Node a_size = utils::mkConst(nm, size, size);
 
   std::vector<T> a_size_bits;
   DefaultConstBB(a_size, a_size_bits, bb);
@@ -675,7 +675,7 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   // check for b < log2(n)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(size, size);
+  Node a_size = utils::mkConst(nm, size, size);
 
   std::vector<T> a_size_bits;
   DefaultConstBB(a_size, a_size_bits, bb);
@@ -730,10 +730,12 @@ void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
+  NodeManager* nm = node.getNodeManager();
+
   //   check for b < n
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
-  Node a_size = utils::mkConst(size, size);
+  Node a_size = utils::mkConst(nm, size, size);
 
   std::vector<T> a_size_bits;
   DefaultConstBB(a_size, a_size_bits, bb);

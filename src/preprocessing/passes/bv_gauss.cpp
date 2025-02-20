@@ -79,6 +79,7 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
   std::unordered_map<Node, unsigned>::iterator it;
 
   visit.push_back(expr);
+  NodeManager* nm = nodeManager();
   while (!visit.empty())
   {
     Node n = visit.back();
@@ -148,7 +149,10 @@ uint32_t BVGauss::getMinBwExpr(Node expr)
           for (i = 0, wnz = 0, nc = n.getNumChildren() - 1; i < nc; ++i)
           {
             unsigned wni = bv::utils::getSize(n[i]);
-            if (n[i] != bv::utils::mkZero(wni)) { break; }
+            if (n[i] != bv::utils::mkZero(nm, wni))
+            {
+              break;
+            }
             /* sum of all bit-widths of leading zero concats */
             wnz += wni;
           }
@@ -431,6 +435,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
 
   res = std::unordered_map<Node, Node>();
 
+  NodeManager* nm = nodeManager();
   for (size_t i = 0; i < neqs; ++i)
   {
     Node eq = equations[i];
@@ -496,8 +501,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* Flatten mult expression. */
         n = RewriteRule<FlattenAssocCommut>::run<true>(n);
         /* Split operands into consts and non-consts */
-        NodeBuilder nb_consts(nodeManager(), k);
-        NodeBuilder nb_nonconsts(nodeManager(), k);
+        NodeBuilder nb_consts(nm, k);
+        NodeBuilder nb_nonconsts(nm, k);
         for (const Node& nn : n)
         {
           Node nnrw = rewrite(nn);
@@ -523,7 +528,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         }
         else
         {
-          n0 = bv::utils::mkOne(bv::utils::getSize(n));
+          n0 = bv::utils::mkOne(nm, bv::utils::getSize(n));
         }
         /* n1 is a mult with non-const operands */
         if (nb_nonconsts.getNumChildren() > 1)
@@ -616,7 +621,6 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     Assert(nvars == vvars.size());
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
-    NodeManager* nm = nodeManager();
     if (ret == BVGauss::Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
@@ -652,7 +656,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
           Integer m = iprime - lhs[prow][i];
-          Node bv = bv::utils::mkConst(bv::utils::getSize(vvars[i]), m);
+          Node bv = bv::utils::mkConst(nm, bv::utils::getSize(vvars[i]), m);
           Node mult = nm->mkNode(Kind::BITVECTOR_MULT, vvars[i], bv);
           stack.push_back(mult);
         }
@@ -669,10 +673,11 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
 
           if (rhs[prow] != 0)
           {
-            tmp = nm->mkNode(
-                Kind::BITVECTOR_ADD,
-                bv::utils::mkConst(bv::utils::getSize(vvars[pcol]), rhs[prow]),
-                tmp);
+            tmp =
+                nm->mkNode(Kind::BITVECTOR_ADD,
+                           bv::utils::mkConst(
+                               nm, bv::utils::getSize(vvars[pcol]), rhs[prow]),
+                           tmp);
           }
           Assert(!is_bv_const(tmp));
           res[vvars[pcol]] = nm->mkNode(Kind::BITVECTOR_UREM, tmp, prime);

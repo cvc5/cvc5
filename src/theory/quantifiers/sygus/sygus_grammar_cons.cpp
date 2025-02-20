@@ -898,8 +898,8 @@ void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
   else if (type.isBitVector())
   {
     unsigned size = type.getBitVectorSize();
-    ops.push_back(bv::utils::mkZero(size));
-    ops.push_back(bv::utils::mkOne(size));
+    ops.push_back(bv::utils::mkZero(nm, size));
+    ops.push_back(bv::utils::mkOne(nm, size));
   }
   else if (type.isBoolean())
   {

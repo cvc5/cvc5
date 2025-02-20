@@ -243,7 +243,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
   {
     multKind = Kind::BITVECTOR_MULT;
     addKind = Kind::BITVECTOR_ADD;
-    one = bv::utils::mkOne(tn.getBitVectorSize());
+    one = bv::utils::mkOne(nm, tn.getBitVectorSize());
   }
   else
   {
@@ -289,7 +289,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     else
     {
       Assert(isBv);
-      return bv::utils::mkZero(tn.getBitVectorSize());
+      return bv::utils::mkZero(nm, tn.getBitVectorSize());
     }
   }
   // must sort to ensure this method is idempotent

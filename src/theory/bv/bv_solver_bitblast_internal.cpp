@@ -168,9 +168,10 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     return node;
   }
 
+  NodeManager* nm = node.getNodeManager();
   if (!d_bitblaster->hasBBTerm(node))
   {
-    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+    return initialize ? utils::mkConst(nm, utils::getSize(node), 0u) : Node();
   }
 
   Valuation& val = d_state.getValuation();
@@ -192,7 +193,7 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 }  // namespace bv

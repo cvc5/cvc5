@@ -395,7 +395,7 @@ RewriteResponse toFPSignedBV(NodeManager* nm, TNode node, bool isPreRewrite)
     return RewriteResponse(
         REWRITE_AGAIN_FULL,
         nm->mkNode(Kind::ITE,
-                   node[1].eqNode(bv::utils::mkOne(1)),
+                   node[1].eqNode(bv::utils::mkOne(nm, 1)),
                    nm->mkNode(Kind::FLOATINGPOINT_NEG, fromubv),
                    fromubv));
   }
