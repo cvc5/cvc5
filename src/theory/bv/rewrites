@@ -240,6 +240,8 @@
   (bvxor x y) (bvxor y x))
 (define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
   (bvmul x y) (bvmul y x))
+(define-rule bv-commutative-comp ((x ?BitVec) (y ?BitVec))
+  (bvcomp x y) (bvcomp y x))
 
 
 ; -- Hole filling rules --
@@ -333,3 +335,15 @@
   ((x ?BitVec) (y ?BitVec))
   (bvsub x y)
   (bvadd x (bvneg y)))
+
+(define-rule bv-ite-width-one ((x ?BitVec))
+  (ite (= x (@bv 1 1)) (@bv 1 1) (@bv 0 1))
+  x)
+
+(define-rule bv-eq-xor-solve ((x ?BitVec) (y ?BitVec) (z ?BitVec))
+  (= (= (bvxor x y) z) (= x (bvxor y z)))
+  true)
+
+(define-rule bv-eq-not-solve ((x ?BitVec) (y ?BitVec))
+  (= (= (bvnot x) y) (= x (bvnot y)))
+  true)

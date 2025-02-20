@@ -243,3 +243,9 @@
   (or
     (and (and (= xe (@bv 1 1)) (= ye (@bv 0 1))) (= se (@bv 0 1)))
     (and (and (= xe (@bv 0 1)) (= ye (@bv 1 1))) (= se (@bv 1 1)))))
+
+(define-cond-rule bv-nego-eliminate
+  ((x ?BitVec) (n Int))
+  (= n (- (@bvsize x) 1))
+  (bvnego x)
+  (= x (concat (@bv 1 1) (@bv 0 n))))
