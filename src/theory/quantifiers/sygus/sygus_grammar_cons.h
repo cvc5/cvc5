@@ -101,7 +101,7 @@ class SygusGrammarCons
    * @param type The type to add constants for
    * @param op The vector to add the constants to
    */
-  static void mkSygusConstantsForType(NodeManager* nm,
+  static void mkSygusConstantsForType(const Env& env,
                                       const TypeNode& type,
                                       std::vector<Node>& ops);
 

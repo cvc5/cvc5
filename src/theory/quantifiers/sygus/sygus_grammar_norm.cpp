@@ -453,7 +453,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       // add default constant constructors
       std::vector<Node> ops;
-      SygusGrammarCons::mkSygusConstantsForType(nodeManager(), sygus_type, ops);
+      SygusGrammarCons::mkSygusConstantsForType(d_env, sygus_type, ops);
       for (const Node& op : ops)
       {
         std::stringstream ss;

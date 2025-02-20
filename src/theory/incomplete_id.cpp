@@ -42,6 +42,8 @@ const char* toString(IncompleteId i)
       return "QUANTIFIERS_MAX_INST_ROUNDS";
     case IncompleteId::QUANTIFIERS_SYGUS_SOLVED:
       return "QUANTIFIERS_SYGUS_SOLVED";
+    case IncompleteId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR:
+      return "QUANTIFIERS_SYGUS_NO_WF_GRAMMAR";
     case IncompleteId::SEP: return "SEP";
     case IncompleteId::SETS_HO_CARD: return "SETS_HO_CARD";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";

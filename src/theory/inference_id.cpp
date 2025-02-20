@@ -330,6 +330,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_COMPLETE_ENUM";
     case InferenceId::QUANTIFIERS_SYGUS_SC_INFEASIBLE:
       return "QUANTIFIERS_SYGUS_SC_INFEASIBLE";
+    case InferenceId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR:
+      return "QUANTIFIERS_SYGUS_NO_WF_GRAMMAR";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";

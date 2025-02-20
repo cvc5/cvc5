@@ -66,11 +66,11 @@ class SynthRewRulesPass : public PreprocessingPass
   SynthRewRulesPass(PreprocessingPassContext* preprocContext);
 
   static std::vector<TypeNode> getGrammarsFrom(
-      NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars);
+      Env& env, const std::vector<Node>& assertions, uint64_t nvars);
 
  protected:
   static std::map<TypeNode, TypeNode> constructTopLevelGrammar(
-      NodeManager* nm, const std::vector<Node>& assertions, uint64_t nvars);
+      Env& env, const std::vector<Node>& assertions, uint64_t nvars);
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 };

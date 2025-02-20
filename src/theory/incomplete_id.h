@@ -57,6 +57,8 @@ enum class IncompleteId
   // we solved a negated synthesis conjecture and will terminate as a subsolver
   // with unknown
   QUANTIFIERS_SYGUS_SOLVED,
+  // we failed to construct a grammar for a function-to-synthesize
+  QUANTIFIERS_SYGUS_NO_WF_GRAMMAR,
   // incomplete due to separation logic
   SEP,
   // Higher order operators like sets.map were used in combination with set
