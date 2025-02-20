@@ -14,6 +14,9 @@
 (define-rule bool-impl-true2 ((t Bool)) (=> true t) t)
 (define-rule bool-impl-elim ((t Bool) (s Bool)) (=> t s) (or (not t) s))
 
+; used in proof elaboration
+(define-rule bool-dual-impl-eq ((t Bool) (s Bool)) (and (=> t s) (=> s t)) (= t s))
+
 (define-rule bool-or-true ((xs Bool :list) (ys Bool :list)) (or xs true ys) true)
 (define-rule* bool-or-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b ys) zs) (or xs b ys zs))
 

@@ -3636,6 +3636,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPL_TRUE2),
   /** Auto-generated from RARE rule bool-impl-elim */
   EVALUE(BOOL_IMPL_ELIM),
+  /** Auto-generated from RARE rule bool-dual-impl-eq */
+  EVALUE(BOOL_DUAL_IMPL_EQ),
   /** Auto-generated from RARE rule bool-or-true */
   EVALUE(BOOL_OR_TRUE),
   /** Auto-generated from RARE rule bool-or-flatten */
