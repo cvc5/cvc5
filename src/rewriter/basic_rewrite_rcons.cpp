@@ -224,6 +224,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
+      if (ensureProofMacroStrEqLenUnify(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
     case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
       if (ensureProofMacroOverlap(id, cdp, eq))
@@ -917,6 +923,100 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroStrEqLenUnify(CDProof* cdp,
+                                                      const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand macro str eq len unify for " << eq << std::endl;
+  Assert(eq[1].getKind() == Kind::AND && eq[1].getNumChildren() == 2);
+  // This proves e.g. (= (= (str.++ x y) (str.++ z w)) (and (= x z) (= y w))).
+  // We prove this in two phases
+  Node falsen = nodeManager()->mkConst(false);
+  std::vector<Node> elhs;
+  std::vector<Node> erhs;
+  std::vector<Node> cpremises(eq[1].begin(), eq[1].end());
+  for (const Node& eq1e : cpremises)
+  {
+    Assert(eq1e.getKind() == Kind::EQUAL && eq1e[0].getType().isStringLike());
+    elhs.push_back(eq1e[0]);
+    erhs.push_back(eq1e[1]);
+  }
+  // the proper grouped equality
+  CDProof cdfwd(d_env);
+  Node clhs = nm->mkNode(Kind::STRING_CONCAT, elhs);
+  Node crhs = nm->mkNode(Kind::STRING_CONCAT, erhs);
+  Node ceq = clhs.eqNode(crhs);
+  // NOTE: ceq could be proven equivalent to eq[0]
+
+  Node llhs0 = nm->mkNode(Kind::STRING_LENGTH, elhs[0]);
+  Node lrhs0 = nm->mkNode(Kind::STRING_LENGTH, erhs[0]);
+  Node leq = llhs0.eqNode(lrhs0);
+  // should be provable as a subgoal
+  Trace("brc-macro") << "- subgoal " << leq << std::endl;
+  cdfwd.addTrustedStep(leq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  // prove first component by CONCAT_UNIFY
+  cdfwd.addStep(cpremises[0], ProofRule::CONCAT_UNIFY, {ceq, leq}, {falsen});
+
+  elhs[0] = erhs[0];
+  Node clhs2 = nm->mkNode(Kind::STRING_CONCAT, elhs);
+  std::vector<Node> cargs;
+  ProofRule ccr = expr::getCongRule(clhs2, cargs);
+  Node equiv = clhs2.eqNode(clhs);
+  Node cp0s = cpremises[0][1].eqNode(cpremises[0][0]);
+  Node reflEq = elhs[1].eqNode(elhs[1]);
+  cdfwd.addStep(cp0s, ProofRule::SYMM, {cpremises[0]}, {});
+  cdfwd.addStep(reflEq, ProofRule::REFL, {}, {elhs[1]});
+  cdfwd.addStep(equiv, ccr, {cp0s, reflEq}, cargs);
+  Node equiv2 = clhs2.eqNode(crhs);
+  cdfwd.addStep(equiv2, ProofRule::TRANS, {equiv, ceq}, {});
+  // prove second component by CONCAT_EQ after congruence above
+  cdfwd.addStep(cpremises[1], ProofRule::CONCAT_EQ, {equiv2}, {falsen});
+  // combine two equalities
+  cdfwd.addStep(eq[1], ProofRule::AND_INTRO, cpremises, {});
+  // prove the implication and add to main proof
+  Node impl = nm->mkNode(Kind::IMPLIES, ceq, eq[1]);
+  cdfwd.addStep(impl, ProofRule::SCOPE, {eq[1]}, {ceq});
+  cdp->addProof(cdfwd.getProofFor(impl));
+
+  // reverse proof is easy
+  CDProof cdrev(d_env);
+  cdrev.addStep(
+      cpremises[0], ProofRule::AND_ELIM, {eq[1]}, {nm->mkConstInt(0)});
+  cdrev.addStep(
+      cpremises[1], ProofRule::AND_ELIM, {eq[1]}, {nm->mkConstInt(1)});
+  cargs.clear();
+  ccr = expr::getCongRule(ceq[0], cargs);
+  cdrev.addStep(ceq, ccr, cpremises, cargs);
+  // prove the implication and add to main proof
+  Node implrev = nm->mkNode(Kind::IMPLIES, eq[1], ceq);
+  cdrev.addStep(implrev, ProofRule::SCOPE, {ceq}, {eq[1]});
+  cdp->addProof(cdrev.getProofFor(implrev));
+
+  // now prove dual implication is the same as equality
+  Node eqfinal = proveDualImplication(cdp, impl, implrev);
+
+  // prove eq[0] is equal to the grouped concatenation terms, if necessary
+  if (eq[0] != ceq)
+  {
+    Node eqs1 = eq[0][0].eqNode(clhs);
+    Trace("brc-macro") << "- subgoal " << eqs1 << std::endl;
+    cdp->addTrustedStep(eqs1, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    Node eqs2 = eq[0][1].eqNode(crhs);
+    Trace("brc-macro") << "- subgoal " << eqs2 << std::endl;
+    cdp->addTrustedStep(eqs2, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    Node equivSetup = eq[0].eqNode(ceq);
+    cargs.clear();
+    ccr = expr::getCongRule(eq[0], cargs);
+    cdp->addStep(equivSetup, ccr, {eqs1, eqs2}, cargs);
+    cdp->addStep(eq, ProofRule::TRANS, {equivSetup, eqfinal}, {});
+  }
+  else
+  {
+    Assert(eqfinal == eq);
+  }
   return true;
 }
 

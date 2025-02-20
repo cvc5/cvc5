@@ -193,6 +193,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrEqLenUnify(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_STR_SPLIT_CTN or
    * ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS.
    *
