@@ -888,6 +888,7 @@ PreprocessingPassResult Normalize::applyInternal(
             assertionsToPreprocess->replace(idx++, ni->node);
         }
     }
+    assertionsToPreprocess->resize(idx);
     
   return PreprocessingPassResult::NO_CONFLICT;
   
