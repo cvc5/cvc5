@@ -92,6 +92,8 @@
 ;   @var is an alias of eo::var to ensure the cpc proof does not use eo::var.
 (define @var ((s String) (T Type)) (eo::var s T))
 
+;;;;; ProofRule::EVALUATE
+
 ; program: $run_evaluate
 ; args:
 ; - t S: The term to evaluate.
@@ -295,6 +297,18 @@
   
       (($run_evaluate z)                   z)
     )
+)
+
+; program: $evaluate_list
+; args:
+; - ts @List: The list of terms to evaluate.
+; return: The list containing the result of evaluating the terms in ts.
+(program $evaluate_list ((U Type) (t U) (ts @List :list))
+  (@List) @List
+  (
+  (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
+  (($evaluate_list @list.nil)     @list.nil)
+  )
 )
 
 ; rule: evaluate

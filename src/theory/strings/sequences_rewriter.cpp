@@ -81,6 +81,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
+                           TheoryRewriteCtx::PRE_DSL);
   // make back pointer to this (for rewriting contains)
   se.d_rewriter = this;
 }
@@ -114,7 +116,9 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     }
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
     {
-      if (n.getKind() == Kind::STRING_CONTAINS)
+      // don't use this just for evaluation
+      if (n.getKind() == Kind::STRING_CONTAINS
+          && (!n[0].isConst() || !n[1].isConst()))
       {
         if (d_stringsEntail.checkMultisetSubset(n[0], n[1]))
         {
@@ -162,6 +166,29 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> nb, nrem, ne;
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
+    case ProofRewriteRule::SEQ_EVAL_OP:
+    {
+      // this is a catchall rule for evaluation of operations on constant
+      // sequences
+      TypeNode tn = utils::getOwnerStringType(n);
+      if (tn.isSequence())
+      {
+        for (const Node& nc : n)
+        {
+          if (!nc.isConst())
+          {
+            return Node::null();
+          }
+        }
+        RewriteResponse response = postRewrite(n);
+        Node ret = response.d_node;
+        if (ret.isConst())
+        {
+          return ret;
+        }
+      }
+    }
+    break;
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
@@ -3185,11 +3212,6 @@ Node SequencesRewriter::rewriteReplace(Node node)
   Assert(node.getKind() == Kind::STRING_REPLACE);
   NodeManager* nm = nodeManager();
 
-  if (node[1].isConst() && Word::isEmpty(node[1]))
-  {
-    Node ret = nm->mkNode(Kind::STRING_CONCAT, node[2], node[0]);
-    return returnRewrite(node, ret, Rewrite::RPL_RPL_EMPTY);
-  }
   // the string type
   TypeNode stype = node.getType();
 
@@ -3223,9 +3245,26 @@ Node SequencesRewriter::rewriteReplace(Node node)
         children.push_back(s3);
       }
       children.insert(children.end(), children0.begin() + 1, children0.end());
-      Node ret = utils::mkConcat(children, stype);
+      Node ret;
+      if (children0.size() == 1 && node[2].isConst())
+      {
+        // evaluate the constant, this ensures that we always immediately
+        // evaluate constants immediately, which is important for proof
+        // reconstruction.
+        ret = Word::mkWordFlatten(children);
+      }
+      else
+      {
+        ret = utils::mkConcat(children, stype);
+      }
       return returnRewrite(node, ret, Rewrite::RPL_CONST_FIND);
     }
+  }
+
+  if (node[1].isConst() && Word::isEmpty(node[1]))
+  {
+    Node ret = nm->mkNode(Kind::STRING_CONCAT, node[2], node[0]);
+    return returnRewrite(node, ret, Rewrite::RPL_RPL_EMPTY);
   }
 
   // rewrites that apply to both replace and replaceall

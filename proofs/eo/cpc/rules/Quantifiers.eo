@@ -1,6 +1,7 @@
 (include "../programs/Quantifiers.eo")
 (include "../programs/Datatypes.eo")
 (include "../theories/Quantifiers.eo")
+(include "../theories/BitVectors.eo")
 
 ; rule: instantiate
 ; implements: ProofRule::INSTANTIATE.

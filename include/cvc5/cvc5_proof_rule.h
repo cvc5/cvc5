@@ -3236,6 +3236,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Sequence evaluate operator**
+   *
+   * .. math::
+   *    f(s_1, \ldots, s_n) = t
+   *
+   * where :math:`f` is an operator over sequences and :math:`s_1, \ldots, s_n`
+   * are values, that is, the Node::isConst method returns true for each, and
+   * :math:`t` is the result of evaluating :math:`f` on them.
+   * \endverbatim
+   */
+  EVALUE(SEQ_EVAL_OP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- string indexof regex evaluation**
    *
    * .. math::
