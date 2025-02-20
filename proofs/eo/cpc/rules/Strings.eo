@@ -191,49 +191,6 @@
               (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))))))))))
 )
 
-; rule: concat_conflict
-; implements: ProofRule::CONCAT_CONFLICT
-; premises:
-; - eq: An equality between strings t and s.
-; args:
-; - rev Bool: Whether we are reasoning about the end of strings t and s.
-; conclusion: >
-;   false if the prefix (resp. suffix) involves clashing characters at the same
-;   position.
-; note: This rule is used for strings only, not sequences.
-(declare-rule concat_conflict ((s String) (t String) (rev Bool))
-  :premises ((= s t))
-  :args (rev)
-  :conclusion
-      (eo::define ((cs ($str_head ($str_to_nary_form s rev))))
-      (eo::define ((ct ($str_head ($str_to_nary_form t rev))))
-        ; ensure they are disequal, return false
-        (eo::requires (eo::is_str cs) true
-        (eo::requires (eo::is_str ct) true
-        (eo::requires (eo::len cs) (eo::len ct)
-          false)))))
-)
-
-; rule: concat_conflict_deq
-; implements: ProofRule::CONCAT_CONFLICT_DEQ
-; premises:
-; - eq: An equality between strings s and t.
-; - cdeq: A disequality between two unit terms corresponding to children of s and t.
-; args:
-; - rev Bool: Whether we are reasoning about the end of strings s and t.
-; conclusion: >
-;   false if we can show that cdeq indeed refers to a prefix (resp. suffix) of s and t.
-; note: This rule is used for sequences only, not strings.
-(declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
-  :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
-  :args (rev)
-  :conclusion
-    ; take the first character from each side, should give x and y
-    (eo::requires ($str_head ($str_to_nary_form s rev)) (seq.unit x)
-    (eo::requires ($str_head ($str_to_nary_form t rev)) (seq.unit y)
-        false))
-)
-
 ; rule: string_decompose
 ; implements: ProofRule::STRING_DECOMPOSE
 ; premises:
