@@ -36,8 +36,10 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -218,6 +220,13 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       break;
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       if (ensureProofMacroSubstrStripSymLength(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+    case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
+      if (ensureProofMacroOverlap(id, cdp, eq))
       {
         handledMacro = true;
       }
@@ -908,6 +917,205 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
+                                                CDProof* cdp,
+                                                const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro overlap (" << id << ") for " << eq
+                     << std::endl;
+  NodeManager* nm = nodeManager();
+  Assert(eq[0].getNumChildren() >= 2);
+  Node concat = eq[0][0];
+  TypeNode stype = concat.getType();
+  Node emp = theory::strings::Word::mkEmptyWord(stype);
+  size_t nchildpre = 0;
+  ProofRewriteRule rule;
+  std::vector<Node> premises;
+  if (id == ProofRewriteRule::MACRO_STR_SPLIT_CTN)
+  {
+    Assert(concat.getKind() == Kind::STRING_CONCAT);
+    rule = ProofRewriteRule::STR_OVERLAP_SPLIT_CTN;
+    Assert(eq[1].getKind() == Kind::OR
+           && eq[1][0].getKind() == Kind::STRING_CONTAINS);
+    if (eq[1][0][0].getKind() == Kind::STRING_CONCAT)
+    {
+      nchildpre = eq[1][0][0].getNumChildren();
+    }
+    else if (eq[1][0][0] != emp)
+    {
+      nchildpre = 1;
+    }
+    // partition into three children
+    std::vector<Node> childpre(concat.begin(), concat.begin() + nchildpre);
+    Node cpre = theory::strings::utils::mkConcat(childpre, stype);
+    Node cmid = concat[nchildpre];
+    std::vector<Node> childpost(concat.begin() + nchildpre + 1, concat.end());
+    Node cpost = theory::strings::utils::mkConcat(childpost, stype);
+    Node cgroup = nm->mkNode(Kind::STRING_CONCAT, cpre, cmid, cpost);
+    if (concat != cgroup)
+    {
+      Node eqc = concat.eqNode(cgroup);
+      if (!cdp->addStep(eqc, ProofRule::ACI_NORM, {}, {eqc}))
+      {
+        Assert(false);
+        return false;
+      }
+      premises.push_back(eqc);
+    }
+  }
+  else
+  {
+    Assert(id == ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS);
+    theory::strings::ArithEntail ae(nullptr);
+    theory::strings::StringsEntail se(nullptr, ae);
+    theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
+    std::vector<Node> nb, nc1, ne;
+    // replay the strip endpoint operation
+    Kind k = eq[0].getKind();
+    Node res = srew.rewriteViaMacroStrStripEndpoints(eq[0], nb, nc1, ne);
+    if (res != eq[1])
+    {
+      Assert(false);
+      return false;
+    }
+    std::vector<Node> nc2;
+    theory::strings::utils::getConcat(eq[0][1], nc2);
+    std::vector<Node> newChildren[2];
+    for (size_t i = 0; i < 2; i++)
+    {
+      std::vector<Node>& vec = i == 0 ? nb : ne;
+      if (i == 0 && k == Kind::STRING_INDEXOF)
+      {
+        Assert(vec.empty());
+        continue;
+      }
+      else if (i == 1)
+      {
+        // placeholder for the middle term
+        newChildren[0].push_back(emp);
+        newChildren[1].push_back(emp);
+      }
+      if (vec.empty())
+      {
+        newChildren[0].push_back(emp);
+        newChildren[1].push_back(emp);
+        continue;
+      }
+      if (vec.size() != 1)
+      {
+        Trace("brc-macro") << "...fail due to multiple stripped components"
+                           << std::endl;
+        Assert(false);
+        return false;
+      }
+      newChildren[0].push_back(vec[0]);
+      // should be the case since we don't rewrite from both sides if
+      // the second term is a constant.
+      Assert(!nc2.empty());
+      size_t index2 = (i == 0 ? 0 : nc2.size() - 1);
+      if (i == 0)
+      {
+        newChildren[1].push_back(nc2[index2]);
+        nc2.erase(nc2.begin(), nc2.begin() + 1);
+      }
+      else
+      {
+        newChildren[1].push_back(nc2[index2]);
+        nc2.pop_back();
+      }
+    }
+    size_t remIndex = k == Kind::STRING_INDEXOF ? 0 : 1;
+    newChildren[0][remIndex] = theory::strings::utils::mkConcat(nc1, stype);
+    newChildren[1][remIndex] = theory::strings::utils::mkConcat(nc2, stype);
+    Trace("brc-macro") << "First child processed to : " << eq[0][0]
+                       << " == " << newChildren[0] << std::endl;
+    Trace("brc-macro") << "Second child processed to : " << eq[0][1]
+                       << " == " << newChildren[1] << std::endl;
+    // now, check if the children changed, if so add to premises
+    Node g1 = theory::strings::utils::mkConcat(newChildren[0], stype);
+    Node g2 = theory::strings::utils::mkConcat(newChildren[1], stype);
+    // the first may involve more than ACI_NORM, we use a subgoal
+    if (g1 != eq[0][0])
+    {
+      Node eqc = eq[0][0].eqNode(g1);
+      cdp->addTrustedStep(
+          eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      premises.push_back(eqc);
+    }
+    // the second should just be ACI_NORM
+    if (g2 != eq[0][1])
+    {
+      // add the REFL step if we didnt change above
+      if (g1 == eq[0][0])
+      {
+        Node refl = eq[0][0].eqNode(eq[0][0]);
+        cdp->addStep(refl, ProofRule::REFL, {}, {eq[0][0]});
+        premises.push_back(refl);
+      }
+      Node eqc = eq[0][1].eqNode(g2);
+      if (!cdp->addStep(eqc, ProofRule::ACI_NORM, {}, {eqc}))
+      {
+        Assert(false);
+        Trace("brc-macro") << "...failed ACI_NORM" << std::endl;
+        return false;
+      }
+      premises.push_back(eqc);
+    }
+    switch (k)
+    {
+      case Kind::STRING_CONTAINS:
+        rule = ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN;
+        break;
+      case Kind::STRING_INDEXOF:
+        rule = ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF;
+        break;
+      case Kind::STRING_REPLACE:
+        rule = ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE;
+        break;
+      default: return false;
+    }
+  }
+  // cgroup is now the proper version of concat and we have proved (if
+  // necessary) that concat = cgroup.
+  Node input = eq[0];
+  // if we rewrote children above
+  std::vector<Node> transEq;
+  if (!premises.empty())
+  {
+    // prove input = inputRew by congruence given the premises
+    Node ceq = proveCong(cdp, input, premises);
+    transEq.push_back(ceq);
+    input = ceq[1];
+  }
+  Trace("brc-macro") << "Run " << rule << " on " << input << std::endl;
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node ret = rr->rewriteViaRule(rule, input);
+  if (ret.isNull())
+  {
+    Trace("brc-macro") << "...failed rewrite" << std::endl;
+    return false;
+  }
+  // add the rewrite
+  Node equiv = input.eqNode(ret);
+  cdp->addTheoryRewriteStep(equiv, rule);
+  transEq.push_back(equiv);
+  if (ret != eq[1])
+  {
+    // should rewrite e.g. via ACI_NORM
+    Node eqpost = ret.eqNode(eq[1]);
+    Trace("brc-macro") << "- post-process subgoal " << eqpost << std::endl;
+    cdp->addTrustedStep(
+        eqpost, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    transEq.push_back(eqpost);
+  }
+  // apply transitivity if necessary
+  if (transEq.size() > 1)
+  {
+    cdp->addStep(eq, ProofRule::TRANS, transEq, {});
+  }
   return true;
 }
 
