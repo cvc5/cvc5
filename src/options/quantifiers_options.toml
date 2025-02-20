@@ -1597,7 +1597,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfInt"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-int"
   type       = "bool"
   default    = "false"
@@ -1605,7 +1605,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfReal"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-real"
   type       = "bool"
   default    = "false"
@@ -1629,10 +1629,10 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-midpoint"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]

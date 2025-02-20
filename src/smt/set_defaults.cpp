@@ -886,12 +886,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // set all defaults in the quantifiers theory, which includes sygus
   setDefaultsQuantifiers(logic, opts);
 
-  // shared selectors are generally not good to combine with standard
-  // quantifier techniques e.g. E-matching
-  if (logic.isQuantified() && !usesSygus(opts))
+  // Shared selectors are generally not good to combine with standard
+  // quantifier techniques e.g. E-matching.
+  // We only enable them if SyGuS is enabled.
+  if (isSygus(opts))
   {
     SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, dtSharedSelectors, false, "quantified logic without SyGuS");
+        datatypes, dtSharedSelectors, true, "SyGuS");
   }
 
   if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
