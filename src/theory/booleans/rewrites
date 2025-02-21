@@ -42,16 +42,16 @@
 
 ; We only permit distributing from the first child, or otherwise this rule
 ; could apply to fix point on all AND children of an OR at once.
-(define-rule* bool-or-and-distrib ((y1 Bool) (y2 Bool) (y3 Bool :list) (zs Bool :list))
-  (or (and y1 y2 y3) zs)
-  (or (and y2 y3) zs)
+(define-rule* bool-or-and-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (zs Bool :list))
+  (or (and y1 y2 ys) zs)
+  (or (and y2 ys) zs)
   (and (or y1 zs) _))
 
 ; Used for diamonds preprocessing
-(define-rule* bool-implies-or-distrib ((y1 Bool) (y2 Bool) (y3 Bool :list) (zs Bool))
-  (=> (or y1 y2 y3) zs)
-  (=> (or y2 y3) zs)
-  (and (=> y1 zs) _))
+(define-rule* bool-implies-or-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (z Bool))
+  (=> (or y1 y2 ys) z)
+  (=> (or y2 ys) z)
+  (and (=> y1 z) _))
 
 (define-rule bool-xor-refl ((x Bool)) (xor x x) false)
 (define-rule bool-xor-nrefl ((x Bool)) (xor x (not x)) true)
