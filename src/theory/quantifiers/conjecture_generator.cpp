@@ -390,25 +390,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         debugPrintIrrelevantEqcs(eqcs);
       }
 
-      Trace("sg-proc") << "Compute relevant eqc..." << std::endl;
-      d_tge.d_relevant_eqc[0].clear();
-      d_tge.d_relevant_eqc[1].clear();
-      for( unsigned i=0; i<eqcs.size(); i++ ){
-        TNode r = eqcs[i];
-        std::map< TNode, Node >::iterator it = d_ground_eqc_map.find( r );
-        unsigned index = 1;
-        if( it==d_ground_eqc_map.end() ){
-          index = 0;
-        }
-        //based on unproven conjectures? TODO
-        d_tge.d_relevant_eqc[index].push_back( r );
-      }
-      Trace("sg-gen-tg-debug") << "Initial relevant eqc : ";
-      for( unsigned i=0; i<d_tge.d_relevant_eqc[0].size(); i++ ){
-        Trace("sg-gen-tg-debug") << "e" << d_em[d_tge.d_relevant_eqc[0][i]] << " ";
-      }
-      Trace("sg-gen-tg-debug") << std::endl;
-      Trace("sg-proc") << "...done compute relevant eqc" << std::endl;
+      computeRelevantEqcs(eqcs);
 
 
       Trace("sg-proc") << "Collect signature information..." << std::endl;
@@ -926,6 +908,32 @@ void ConjectureGenerator::debugPrintIrrelevantEqcs(
       }
     }
   }
+}
+
+void ConjectureGenerator::computeRelevantEqcs(const std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Compute relevant eqc..." << std::endl;
+  d_tge.d_relevant_eqc[0].clear();
+  d_tge.d_relevant_eqc[1].clear();
+  for (unsigned i = 0; i < eqcs.size(); i++)
+  {
+    TNode r = eqcs[i];
+    std::map<TNode, Node>::iterator it = d_ground_eqc_map.find(r);
+    unsigned index = 1;
+    if (it == d_ground_eqc_map.end())
+    {
+      index = 0;
+    }
+    // based on unproven conjectures? TODO
+    d_tge.d_relevant_eqc[index].push_back(r);
+  }
+  Trace("sg-gen-tg-debug") << "Initial relevant eqc : ";
+  for (unsigned i = 0; i < d_tge.d_relevant_eqc[0].size(); i++)
+  {
+    Trace("sg-gen-tg-debug") << "e" << d_em[d_tge.d_relevant_eqc[0][i]] << " ";
+  }
+  Trace("sg-gen-tg-debug") << std::endl;
+  Trace("sg-proc") << "...done compute relevant eqc" << std::endl;
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
