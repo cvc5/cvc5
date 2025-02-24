@@ -34,10 +34,6 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
   initializeRewrites();
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EQ_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EXTRACT_SIGN_EXTEND,
-                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_ASHR_BY_CONST,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_OR_SIMPLIFY,
@@ -45,8 +41,6 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_AND_SIMPLIFY,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_MULT_SLT_MULT,
                            TheoryRewriteCtx::POST_DSL);
@@ -123,18 +117,12 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
       BV_PROOF_REWRITE_CASE(ExtractConcat)
-    case ProofRewriteRule::MACRO_BV_EXTRACT_SIGN_EXTEND:
-      BV_PROOF_REWRITE_CASE(ExtractSignExtend)
-    case ProofRewriteRule::MACRO_BV_ASHR_BY_CONST:
-      BV_PROOF_REWRITE_CASE(AshrByConst)
     case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY:
       BV_PROOF_REWRITE_CASE(OrSimplify)
     case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
       BV_PROOF_REWRITE_CASE(AndSimplify)
     case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
       BV_PROOF_REWRITE_CASE(XorSimplify)
-    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
-      BV_PROOF_REWRITE_CASE(AndOrXorConcatPullUp)
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
       BV_PROOF_REWRITE_CASE(MultSltMult)
     case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
