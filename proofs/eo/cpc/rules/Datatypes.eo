@@ -302,7 +302,7 @@
 ; args:
 ; - c U: The remaining term to process.
 ; - a T: The value to replace as an argument of t.
-; - n Int: The argument position (from the end) which a should be placed.
+; - n Int: The argument position (from the end) which a should replace.
 ; return: >
 ;   The result of updating the n^th argument from the end in t.
 (program $dt_collapse_updater_rhs ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
@@ -317,7 +317,7 @@
 ; args:
 ; - c U: The remaining tuple term to process.
 ; - a T: The value to replace as an argument of t.
-; - n Int: The argument position which a should be placed.
+; - n Int: The argument position which a should replace.
 ; return: >
 ;   The result of updating the n^th argument in t.
 (program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (f (-> T U)) (x T) (a T) (b T) (n Int) (ts W :list))
