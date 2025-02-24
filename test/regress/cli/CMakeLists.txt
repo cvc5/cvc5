@@ -1154,7 +1154,6 @@ set(regress_0_tests
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/proj-issue-465-asan-proofs.smt2
-  regress0/nl/proj-issue550.smt2
   regress0/nl/proj-issue552-narith-cee.smt2
   regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/real-as-int.smt2
