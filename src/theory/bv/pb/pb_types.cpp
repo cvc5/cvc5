@@ -10,7 +10,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * TODO(alanctprado)
+ * Implements pseudo-Boolean types and utilities, including:
+ * - Enumerations for pseudo-Boolean values and solver states.
+ * - Classes for pseudo-Boolean variables and literals.
+ * - Classes for pseudo-Boolean constraints and constraint sets, with
+ *   constraints stored as Nodes to leverage hash consing.
  */
 
 #include "theory/bv/pb/pb_types.h"
