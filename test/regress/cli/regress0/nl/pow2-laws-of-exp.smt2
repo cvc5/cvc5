@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status unsat)
+(declare-const x Int)
+(declare-const y Int)
+(assert (distinct (* (^ 2 x) (^ 2 y)) (^ 2 (+ x y))))
+(check-sat)
+(exit)
