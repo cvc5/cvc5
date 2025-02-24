@@ -125,7 +125,20 @@ SygusGrammar SygusGrammarCons::mkDefaultGrammar(const Env& env,
     if (it != typeToNtSym.end())
     {
       Assert(!it->second.empty());
-      g.addRule(it->second[0], r);
+      // If constant, add to *all* non-terminal rules of the type. This means
+      // that constants from the input are added to the "constant" denominator.
+      // Note this may introduce division by zero.
+      if (r.isConst())
+      {
+        for (const Node & nt : it->second)
+        {
+          g.addRule(nt, r);
+        }
+      }
+      else
+      {
+        g.addRule(it->second[0], r);
+      }
     }
   }
   for (size_t i = 0; i < s_nstages; i++)
