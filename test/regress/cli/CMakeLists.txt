@@ -1154,6 +1154,7 @@ set(regress_0_tests
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/proj-issue-465-asan-proofs.smt2
+  regress0/nl/proj-issue550.smt2
   regress0/nl/proj-issue552-narith-cee.smt2
   regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/real-as-int.smt2
@@ -1412,8 +1413,11 @@ set(regress_0_tests
   regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
   regress0/proofs/proj-issue528-ufpfchecker.smt2
   regress0/proofs/proj-issue529-open-pf.smt2
+  regress0/proofs/proj-issue544-nassume.smt2
   regress0/proofs/proj-issue554.smt2
   regress0/proofs/proj-issue589.smt2
+  regress0/proofs/proj-issue606.smt2
+  regress0/proofs/proj-issue669-nassume.smt2
   regress0/proofs/proj-issue696.smt2
   regress0/proofs/proj-issue698.smt2
   regress0/proofs/proj-issue711-open-sat-proof.smt2
