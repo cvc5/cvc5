@@ -212,8 +212,10 @@ enum ENUM(ProofRule)
    * This method normalizes currently based on two kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
-   * (2) those that are associative and have an identity element (examples
-   * are str.++, re.++).
+   * (2) those that are associative, commutative and have an identity
+   * element (bvxor),
+   * (3) those that are associative and have an identity element (examples
+   * are concat, str.++, re.++).
    * \endverbatim
    */
   EVALUE(ACI_NORM),

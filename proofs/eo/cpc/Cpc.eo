@@ -336,7 +336,7 @@
   :conclusion (not (= t s))
 )
 
-;;;;; ProofRule::DISTINCT_CARD_CONFLICT
+;;;;; ProofRule::ACI_NORM
 
 ; define: $get_aci_normal_form
 ; args:
@@ -352,14 +352,16 @@
               (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
-      ((or x1 x2)        ($get_aci_norm t))
-      ((and x1 x2)       ($get_aci_norm t))
-      ((re.union x1 x2)  ($get_aci_norm t))
-      ((re.inter x1 x2)  ($get_aci_norm t))
-      ((bvor xb1 xb2)    ($get_aci_norm t))
-      ((bvand xb1 xb2)   ($get_aci_norm t))
+      ((or x1 x2)        ($get_aci_norm t true))
+      ((and x1 x2)       ($get_aci_norm t true))
+      ((re.union x1 x2)  ($get_aci_norm t true))
+      ((re.inter x1 x2)  ($get_aci_norm t true))
+      ((bvor xb1 xb2)    ($get_aci_norm t true))
+      ((bvand xb1 xb2)   ($get_aci_norm t true))
+      ((bvxor xb1 xb2)   ($get_aci_norm t false))
       ((str.++ xs1 xs2)  ($get_a_norm t))
       ((re.++ x1 x2)     ($get_a_norm t))
+      ((concat xb1 xb2)  ($get_a_norm t))
       (x                 x)
     )
   )
