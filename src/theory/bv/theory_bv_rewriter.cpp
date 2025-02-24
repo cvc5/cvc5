@@ -34,13 +34,9 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
   initializeRewrites();
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EQ_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIMINATE,
+  registerProofRewriteRule(ProofRewriteRule::BV_UMULO_ELIM,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIMINATE,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_MULT_SIMPLIFY,
+  registerProofRewriteRule(ProofRewriteRule::BV_SMULO_ELIM,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::BV_BITWISE_SLICING,
                            TheoryRewriteCtx::POST_DSL);
@@ -101,13 +97,10 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::BV_UMULO_ELIMINATE:
+    case ProofRewriteRule::BV_UMULO_ELIM:
       BV_PROOF_REWRITE_CASE(UmuloEliminate)
-    case ProofRewriteRule::BV_SMULO_ELIMINATE:
+    case ProofRewriteRule::BV_SMULO_ELIM:
       BV_PROOF_REWRITE_CASE(SmuloEliminate)
-    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
-      BV_PROOF_REWRITE_CASE(AddCombineLikeTerms)
-    case ProofRewriteRule::BV_MULT_SIMPLIFY: BV_PROOF_REWRITE_CASE(MultSimplify)
     case ProofRewriteRule::BV_BITWISE_SLICING:
       BV_PROOF_REWRITE_CASE(BitwiseSlicing)
     case ProofRewriteRule::BV_REPEAT_ELIM:
