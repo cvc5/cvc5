@@ -542,6 +542,20 @@ public:
    * when synthesizing conjectures.
    */
   void computeIrrelevantEqcs(const std::vector<TNode>& eqcs);
+  /** print information related to the computation of irrelevant equivalence
+   * classes
+   *
+   * This function requires that the contents of the input vector 'eqcs' are
+   * exactly the representatives of each equivalence class in the current model.
+   *
+   * For each element e of eqcs other than nodeManager()->mkConst(false), this
+   * function prints all terms t ~ e such that t is active (according to the
+   * term database) and t is not an equality.  If e is computed irrelevant (see
+   * computeIrrelevantEqcs) this function also prints a term that explains why e
+   * is irrelevant.
+   */
+  void debugPrintIrrelevantEqcs(const std::vector<TNode>& eqcs);
+
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
