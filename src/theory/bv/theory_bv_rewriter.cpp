@@ -34,7 +34,7 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
   initializeRewrites();
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EQ_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_ASHR_BY_CONST,
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_OR_SIMPLIFY,
                            TheoryRewriteCtx::POST_DSL);
