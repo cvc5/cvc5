@@ -3026,32 +3026,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BV_EXTRACT_CONCAT),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Macro extract sign extend **
-   *
-   * .. math::
-   *    a = b
-   *
-   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
-   * rule ExtractSignExtend.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_BV_EXTRACT_SIGN_EXTEND),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Macro arithmetic shift right by constant **
-   *
-   * .. math::
-   *    a = b
-   *
-   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
-   * rule AshrByConst.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_BV_ASHR_BY_CONST),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Macro or simplify **
    *
    * .. math::
@@ -3089,19 +3063,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(MACRO_BV_XOR_SIMPLIFY),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Macro and/or/xor concat pullup **
-   *
-   * .. math::
-   *    a = b
-   *
-   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
-   * rule AndOrXorConcatPullup.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_BV_AND_OR_XOR_CONCAT_PULLUP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Macro multiply signed less than multiply **

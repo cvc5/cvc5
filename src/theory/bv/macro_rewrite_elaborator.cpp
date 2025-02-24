@@ -49,7 +49,6 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForExtractConcat(cdp, eq);
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
       return ensureProofForMultSltMult(cdp, eq);
-    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:break;
     default: break;
   }
   return false;
