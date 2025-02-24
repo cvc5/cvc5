@@ -27,6 +27,7 @@
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/bv/macro_rewrite_elaborator.h"
 
 namespace cvc5::internal {
 namespace rewriter {
@@ -357,6 +358,8 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /** The BV rewrite elaborator */
+  theory::bv::MacroRewriteElaborator d_bvRewElab;
 };
 
 }  // namespace rewriter
