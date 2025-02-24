@@ -1009,7 +1009,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       size_t cindex = DType::cindexOf(op);
       if (dt.isTuple())
       {
-        out << "(_ tuple.update " << DType::indexOf(op) << ")";
+        out << "(_ tuple.update " << index << ")";
       }
       else
       {

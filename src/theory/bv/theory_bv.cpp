@@ -249,7 +249,6 @@ TrustNode TheoryBV::ppStaticRewrite(TNode atom)
       Node res = RewriteRule<SolveEq>::run<false>(atom);
       if (res != atom)
       {
-        res = d_env.getRewriter()->rewrite(res);
         return TrustNode::mkTrustRewrite(atom, res);
       }
     }

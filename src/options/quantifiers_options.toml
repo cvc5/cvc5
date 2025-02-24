@@ -44,7 +44,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "prenexQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "prenex-quant=MODE"
   type       = "PrenexQuantMode"
   default    = "SIMPLE"
