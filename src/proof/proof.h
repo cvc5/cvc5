@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
@@ -138,7 +139,7 @@ class CDProof : protected EnvObj, public ProofGenerator
 {
  public:
   /**
-   * @param pnm The proof node manager responsible for constructor ProofNode
+   * @param env Reference to the environment
    * @param c The context this proof depends on
    * @param name The name of this proof (for debugging)
    * @param autoSymm Whether this proof automatically adds symmetry steps based

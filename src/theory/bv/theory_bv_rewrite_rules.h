@@ -722,60 +722,6 @@ struct LinearRewriteStrategy {
   }
 };
 
-template <
-  typename R1,
-  typename R2  = RewriteRule<EmptyRule>,
-  typename R3  = RewriteRule<EmptyRule>,
-  typename R4  = RewriteRule<EmptyRule>,
-  typename R5  = RewriteRule<EmptyRule>,
-  typename R6  = RewriteRule<EmptyRule>,
-  typename R7  = RewriteRule<EmptyRule>,
-  typename R8  = RewriteRule<EmptyRule>,
-  typename R9  = RewriteRule<EmptyRule>,
-  typename R10 = RewriteRule<EmptyRule>,
-  typename R11 = RewriteRule<EmptyRule>,
-  typename R12 = RewriteRule<EmptyRule>,
-  typename R13 = RewriteRule<EmptyRule>,
-  typename R14 = RewriteRule<EmptyRule>,
-  typename R15 = RewriteRule<EmptyRule>,
-  typename R16 = RewriteRule<EmptyRule>,
-  typename R17 = RewriteRule<EmptyRule>,
-  typename R18 = RewriteRule<EmptyRule>,
-  typename R19 = RewriteRule<EmptyRule>,
-  typename R20 = RewriteRule<EmptyRule>
-  >
-struct FixpointRewriteStrategy {
-  static Node apply(TNode node) {
-    Node previous = node; 
-    Node current = node;
-    do {
-      previous = current;
-      if (R1::applies(current)) current  = R1::template run<false>(current);
-      if (R2::applies(current)) current  = R2::template run<false>(current);
-      if (R3::applies(current)) current  = R3::template run<false>(current);
-      if (R4::applies(current)) current  = R4::template run<false>(current);
-      if (R5::applies(current)) current  = R5::template run<false>(current);
-      if (R6::applies(current)) current  = R6::template run<false>(current);
-      if (R7::applies(current)) current  = R7::template run<false>(current);
-      if (R8::applies(current)) current  = R8::template run<false>(current);
-      if (R9::applies(current)) current  = R9::template run<false>(current);
-      if (R10::applies(current)) current = R10::template run<false>(current);
-      if (R11::applies(current)) current = R11::template run<false>(current);
-      if (R12::applies(current)) current = R12::template run<false>(current);
-      if (R13::applies(current)) current = R13::template run<false>(current);
-      if (R14::applies(current)) current = R14::template run<false>(current);
-      if (R15::applies(current)) current = R15::template run<false>(current);
-      if (R16::applies(current)) current = R16::template run<false>(current);
-      if (R17::applies(current)) current = R17::template run<false>(current);
-      if (R18::applies(current)) current = R18::template run<false>(current);
-      if (R19::applies(current)) current = R19::template run<false>(current);
-      if (R20::applies(current)) current = R20::template run<false>(current);
-    } while (previous != current);
-
-    return current;
-  }
-};
-
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -160,7 +160,7 @@ uint64_t Trigger::addInstantiations()
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
     for (const Node& gt : d_groundTerms)
     {
-      if (!ee->hasTerm(gt))
+      if (!ee->hasTerm(gt) && !gt.getType().isBoolean())
       {
         Node k = SkolemManager::mkPurifySkolem(gt);
         Node eq = k.eqNode(gt);

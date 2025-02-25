@@ -395,9 +395,16 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       else
       {
+        Assert(id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ);
         // assume empty attribute
         QAttributes qa;
-        getVarElimIneq(n[1], args, vars, subs, qa);
+        Node ret = getVarElimIneq(n[1], args, qa);
+        if (!ret.isNull() && !args.empty())
+        {
+          Node vlist = d_nm->mkNode(Kind::BOUND_VAR_LIST, args);
+          ret = d_nm->mkNode(Kind::FORALL, vlist, ret);
+        }
+        return ret;
       }
       // if we eliminated a variable, update body and reprocess
       if (!vars.empty())
@@ -1487,10 +1494,8 @@ bool QuantifiersRewriter::hasVarElim(Node n,
   return getVarElimInternal(n, n, pol, args, vars, subs, lits);
 }
 
-bool QuantifiersRewriter::getVarElimIneq(Node body,
+Node QuantifiersRewriter::getVarElimIneq(Node body,
                                          std::vector<Node>& args,
-                                         std::vector<Node>& bounds,
-                                         std::vector<Node>& subs,
                                          QAttributes& qa) const
 {
   Trace("var-elim-quant-debug") << "getVarElimIneq " << body << std::endl;
@@ -1514,32 +1519,33 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   // The set of variables that we know we can not eliminate
   std::unordered_set<Node> ineligVars;
   // compute the entailed literals
-  QuantPhaseReq qpr(body);
-  // map to track which literals we have already processed, and hence can be
-  // excluded from the free variables check in the latter half of this method.
-  std::map<Node, int> processed;
-  for (const std::pair<const Node, bool>& pr : qpr.d_phase_reqs)
+  std::vector<Node> lits;
+  if (body.getKind() == Kind::OR)
+  {
+    lits.insert(lits.begin(), body.begin(), body.end());
+  }
+  else
+  {
+    lits.push_back(body);
+  }
+  for (const Node& l : lits)
   {
     // an inequality that is entailed with a given polarity
-    Node lit = pr.first;
-    bool pol = pr.second;
+    bool pol = l.getKind() == Kind::NOT;
+    Node lit = pol ? l[0] : l;
     Trace("var-elim-quant-debug") << "Process inequality bounds : " << lit
                                   << ", pol = " << pol << "..." << std::endl;
+    std::map<Node, Node> msum;
     bool canSolve = lit.getKind() == Kind::GEQ
                     || (lit.getKind() == Kind::EQUAL
                         && lit[0].getType().isRealOrInt() && !pol);
-    if (!canSolve)
+    if (!canSolve || !ArithMSum::getMonomialSumLit(lit, msum))
     {
+      // not an inequality, or failed to compute, we cannot use this and all
+      // variables in it are ineligible.
+      expr::getFreeVariables(lit, ineligVars);
       continue;
     }
-    // solve the inequality
-    std::map<Node, Node> msum;
-    if (!ArithMSum::getMonomialSumLit(lit, msum))
-    {
-      // not an inequality, cannot use
-      continue;
-    }
-    processed[lit] = pol ? -1 : 1;
     for (const std::pair<const Node, Node>& m : msum)
     {
       if (!m.first.isNull() && ineligVars.find(m.first) == ineligVars.end())
@@ -1586,136 +1592,84 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         {
           // compute variables in itm->first, these are not eligible for
           // elimination
-          std::unordered_set<Node> fvs;
-          expr::getFreeVariables(m.first, fvs);
-          for (const Node& v : fvs)
-          {
-            Trace("var-elim-ineq-debug")
-                << "...ineligible " << v
-                << " since it is contained in monomial." << std::endl;
-            num_bounds.erase(v);
-            ineligVars.insert(v);
-          }
+          expr::getFreeVariables(m.first, ineligVars);
         }
       }
     }
   }
-
+  if (!qa.d_ipl.isNull())
+  {
+    // do not eliminate variables that occur in the annotation
+    expr::getFreeVariables(qa.d_ipl, ineligVars);
+  }
   // collect all variables that have only upper/lower bounds
   std::map<Node, bool> elig_vars;
+  // the variable to eliminate
+  Node v;
+  bool vIsUpper = true;
   for (const std::pair<const Node, std::map<int, std::map<Node, bool>>>& nb :
        num_bounds)
   {
+    if (ineligVars.find(nb.first) != ineligVars.end())
+    {
+      continue;
+    }
     if (nb.second.find(1) == nb.second.end())
     {
       Trace("var-elim-ineq-debug")
           << "Variable " << nb.first << " has only lower bounds." << std::endl;
-      elig_vars[nb.first] = false;
+      v = nb.first;
+      vIsUpper = false;
+      break;
     }
     else if (nb.second.find(-1) == nb.second.end())
     {
       Trace("var-elim-ineq-debug")
           << "Variable " << nb.first << " has only upper bounds." << std::endl;
-      elig_vars[nb.first] = true;
+      v = nb.first;
+      vIsUpper = true;
+      break;
     }
   }
-  if (elig_vars.empty())
+  if (v.isNull())
   {
-    return false;
+    // no eligible variables
+    return Node::null();
   }
-  std::vector<Node> inactive_vars;
-  std::map<Node, std::map<int, bool> > visited;
-  // traverse the body, invalidate variables if they occur in places other than
-  // the bounds they occur in
-  std::unordered_map<TNode, std::unordered_set<int>> evisited;
-  std::vector<TNode> evisit;
-  std::vector<int> evisit_pol;
-  TNode ecur;
-  int ecur_pol;
-  evisit.push_back(body);
-  evisit_pol.push_back(1);
-  if (!qa.d_ipl.isNull())
-  {
-    // do not eliminate variables that occur in the annotation
-    evisit.push_back(qa.d_ipl);
-    evisit_pol.push_back(0);
-  }
-  do
-  {
-    ecur = evisit.back();
-    evisit.pop_back();
-    ecur_pol = evisit_pol.back();
-    evisit_pol.pop_back();
-    std::unordered_set<int>& epp = evisited[ecur];
-    if (epp.find(ecur_pol) == epp.end())
-    {
-      epp.insert(ecur_pol);
-      if (elig_vars.find(ecur) != elig_vars.end())
-      {
-        // variable contained in a place apart from bounds, no longer eligible
-        // for elimination
-        elig_vars.erase(ecur);
-        Trace("var-elim-ineq-debug") << "...found occurrence of " << ecur
-                                     << ", mark ineligible" << std::endl;
-      }
-      else
-      {
-        bool rec = true;
-        bool pol = ecur_pol >= 0;
-        bool hasPol = ecur_pol != 0;
-        if (hasPol)
-        {
-          std::map<Node, int>::iterator itx = processed.find(ecur);
-          if (itx != processed.end() && itx->second == ecur_pol)
-          {
-            // already processed this literal as a bound
-            rec = false;
-          }
-        }
-        if (rec)
-        {
-          for (unsigned j = 0, size = ecur.getNumChildren(); j < size; j++)
-          {
-            bool newHasPol;
-            bool newPol;
-            QuantPhaseReq::getPolarity(ecur, j, hasPol, pol, newHasPol, newPol);
-            evisit.push_back(ecur[j]);
-            evisit_pol.push_back(newHasPol ? (newPol ? 1 : -1) : 0);
-          }
-        }
-      }
-    }
-  } while (!evisit.empty() && !elig_vars.empty());
-
-  bool ret = false;
   NodeManager* nm = nodeManager();
-  for (const std::pair<const Node, bool>& ev : elig_vars)
+  Trace("var-elim-ineq-debug")
+      << v << " is eligible for elimination." << std::endl;
+  // Get the literals that corresponded to bounds for the given variable.
+  // These can be dropped from the disjunction of the quantified formula,
+  // which is justified based on an infinite projection of the eliminated
+  // variable.
+  std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
+  std::unordered_set<Node> boundLits;
+  for (size_t i = 0; i < 2; i++)
   {
-    Node v = ev.first;
-    Trace("var-elim-ineq-debug")
-        << v << " is eligible for elimination." << std::endl;
-    // do substitution corresponding to infinite projection, all literals
-    // involving unbounded variable go to true/false
-    // disequalities of eligible variables are also eliminated
-    std::map<int, std::map<Node, bool>>& nbv = num_bounds[v];
-    for (size_t i = 0; i < 2; i++)
+    size_t nindex = i == 0 ? (vIsUpper ? 1 : -1) : 0;
+    for (const std::pair<const Node, bool>& nb : nbv[nindex])
     {
-      size_t nindex = i == 0 ? (elig_vars[v] ? 1 : -1) : 0;
-      for (const std::pair<const Node, bool>& nb : nbv[nindex])
-      {
-        Trace("var-elim-ineq-debug")
-            << "  subs : " << nb.first << " -> " << nb.second << std::endl;
-        bounds.push_back(nb.first);
-        subs.push_back(nm->mkConst(nb.second));
-      }
+      Trace("var-elim-ineq-debug")
+          << "  subs : " << nb.first << " -> " << nb.second << std::endl;
+      boundLits.insert(nb.first);
     }
-    // eliminate from args
-    std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
-    Assert(ita != args.end());
-    args.erase(ita);
-    ret = true;
   }
-  return ret;
+  // eliminate from args
+  std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
+  Assert(ita != args.end());
+  args.erase(ita);
+  // we leave the literals that did not involve the variable we eliminated
+  std::vector<Node> remLits;
+  for (const Node& l : lits)
+  {
+    Node atom = l.getKind() == Kind::NOT ? l[0] : l;
+    if (boundLits.find(atom) == boundLits.end())
+    {
+      remLits.push_back(l);
+    }
+  }
+  return nm->mkOr(remLits);
 }
 
 Node QuantifiersRewriter::computeVarElimination(Node body,
@@ -1740,7 +1694,12 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
   // variable elimination based on one-direction inequalities
   if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)
   {
-    getVarElimIneq(body, args, vars, subs, qa);
+    Node vibBody = getVarElimIneq(body, args, qa);
+    if (!vibBody.isNull())
+    {
+      Trace("var-elim-quant-debug") << "...returns " << vibBody << std::endl;
+      return vibBody;
+    }
   }
   // if we eliminated a variable, update body and reprocess
   if (!vars.empty())
