@@ -2836,12 +2836,10 @@ Node SequencesRewriter::rewriteContains(Node node)
   utils::getConcat(node[1], nc2);
 
   // component-wise containment
-  std::vector<Node> nc1rb;
-  std::vector<Node> nc1re;
-  if (d_stringsEntail.componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  Node cret = rewriteViaRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN, node);
+  if (!cret.isNull())
   {
-    Node ret = nodeManager()->mkConst(true);
-    return returnRewrite(node, ret, Rewrite::CTN_COMPONENT);
+    return returnRewrite(node, cret, Rewrite::CTN_COMPONENT);
   }
   TypeNode stype = node[0].getType();
 
