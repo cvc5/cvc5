@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implements pseudo-Boolean types and utilities, including:
+ * Defines pseudo-Boolean types and utilities, including:
  * - Enumerations for pseudo-Boolean values and solver states.
  * - Classes for pseudo-Boolean variables and literals.
  * - Classes for pseudo-Boolean constraints and constraint sets, with
