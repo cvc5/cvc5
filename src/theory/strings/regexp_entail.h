@@ -139,6 +139,16 @@ class RegExpEntail
                              std::map<std::pair<Node, Node>, bool>& cache);
   /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
+  /**
+   * Get generalized constant regular expression.
+   * Given a (possibly non-constant) string, return the most specific regular
+   * expression that is constant and contains the string. For example, given
+   * (str.++ x "A" y), this method returns (re.++ Sigma* (str.to_re "A")
+   * Sigma*). If the regular expression is equivalent to Sigma*, the null node
+   * is returned.
+   */
+  Node getGeneralizedConstRegExp(const Node& n);
+
  private:
   /**
    * Does the substring of s starting at index_start occur in constant regular
