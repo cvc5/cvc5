@@ -36,6 +36,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -2225,6 +2226,42 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
     return false;
   }
   return true;
+}
+
+Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
+{
+  NodeManager* nm = nodeManager();
+  theory::strings::RegExpEntail re(nm, nullptr);
+  Node gre = re.getGeneralizedConstRegExp(n);
+  Assert(!gre.isNull());
+  std::vector<Node> ncs, rcs;
+  if (n.getKind() == Kind::STRING_CONCAT)
+  {
+    Assert(gre.getKind() == Kind::REGEXP_CONCAT);
+    ncs.insert(ncs.end(), n.begin(), n.end());
+    rcs.insert(rcs.end(), gre.begin(), gre.end());
+  }
+  else
+  {
+    ncs.push_back(n);
+    rcs.push_back(gre);
+  }
+  Assert(ncs.size() == rcs.size());
+  std::vector<Node> premises;
+  for (size_t i = 0, nchild = rcs.size(); i < nchild; i++)
+  {
+    Node mem = nm->mkNode(Kind::STRING_IN_REGEXP, ncs[i], rcs[i]);
+    cdp->addTrustedStep(mem, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    premises.push_back(mem);
+  }
+  if (premises.size() == 1)
+  {
+    return premises[0];
+  }
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node memc = pc->checkDebug(ProofRule::RE_CONCAT, premises, {});
+  cdp->addStep(memc, ProofRule::RE_CONCAT, premises, {});
+  return memc;
 }
 
 Node BasicRewriteRCons::proveSymm(CDProof* cdp, const Node& eq)

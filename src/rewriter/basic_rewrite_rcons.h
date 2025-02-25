@@ -333,6 +333,13 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
   /**
+   * Prove that any string term is in a regular expression that characterizes
+   * it. Return the proven regular expression. For example, given (str.++ x "A"
+   * y), this method returns (str.in_re (str.++ x "A" y) (re.++ Sigma*
+   * (str.to_re "A") Sigma*)).
+   */
+  Node proveGeneralReMembership(CDProof* cdp, const Node& n);
+  /**
    * Prove symmetry of equality eq, in particular this proves eq[1] == eq[0]
    * where eq is an equality and adds it to cdp.
    */
