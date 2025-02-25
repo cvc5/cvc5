@@ -244,8 +244,8 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
-    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
-      if (ensureProofMacroStrConstNCtnConcat(cdp, eq))
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      if (ensureProofMacroStrInReInclusion(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1455,88 +1455,66 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   return true;
 }
 
-bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
-                                                           const Node& eq)
+bool BasicRewriteRCons::ensureProofMacroStrInReInclusion(CDProof* cdp,
+                                                         const Node& eq)
 {
-  Trace("brc-macro") << "Expand macro str const nctn concat " << eq
+  Trace("brc-macro") << "Expand macro str in re inclusion for " << eq
                      << std::endl;
-  Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
+  Assert(eq[0].getKind() == Kind::STRING_IN_REGEXP);
   NodeManager* nm = nodeManager();
-  // We assume eq[0] is true and derive a contradiction. This is based
-  // on (str.contains s t) => (= s (str.++ k1 t k2)) by string eager reduction,
-  // (str.++ k1 t k2) in (re.++ Sigma* (str.to_re t) Sigma*) and
-  // ~ s in (re.++ Sigma* (str.to_re t) Sigma*).
-  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-  Node er = pc->checkDebug(ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
-  Assert(!er.isNull());
-  cdp->addStep(er, ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
-  Trace("brc-macro") << "...eager reduce: " << er << std::endl;
-  Node truen = nm->mkConst(true);
-  Node eqt = eq[0].eqNode(truen);
-  cdp->addStep(eqt, ProofRule::TRUE_INTRO, {eq[0]}, {});
-  Node eqi = proveCong(cdp, er, {eqt});
-  if (eqi.isNull())
-  {
-    Trace("brc-macro") << "...failed cong" << std::endl;
-    Assert(false);
-    return false;
-  }
-  Trace("brc-macro") << "...cong " << eqi << std::endl;
-  AlwaysAssert(eqi[1].getKind() == Kind::ITE);
-  Node eqi2 = eqi[1].eqNode(eqi[1][1]);
-  cdp->addTrustedStep(eqi2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  Node truen = eq[1];
+  Assert(truen.isConst() && truen.getConst<bool>());
+  // proof by contradiction
 
-  Node ere = er.eqNode(eqi[1][1]);
-  cdp->addStep(ere, ProofRule::TRANS, {eqi, eqi2}, {});
-  cdp->addStep(eqi[1][1], ProofRule::EQ_RESOLVE, {er, ere}, {});
+  // start by proving e.g.
+  // (str.in_re (str.++ x "A" y) (re.++ Sigma* (str.to_re "A") Sigma*))
+  Node trivMemc = proveGeneralReMembership(cdp, eq[0][0]);
+  Trace("brc-macro") << "Trivial membership: " << trivMemc << std::endl;
 
-  // flatten
-  Node concat = eqi[1][1][1];
-  AlwaysAssert(concat.getKind() == Kind::STRING_CONCAT
-               && concat.getNumChildren() == 3);
-  std::vector<Node> cc;
-  cc.push_back(concat[0]);
-  cc.insert(cc.end(), concat[1].begin(), concat[1].end());
-  cc.push_back(concat[2]);
-  Node cf = nm->mkNode(Kind::STRING_CONCAT, cc);
-  Node eqa = concat.eqNode(cf);
-  if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
-  {
-    Trace("brc-macro") << "...failed ACI" << std::endl;
-    Assert(false);
-    return false;
-  }
-  Node eqsf = eqi[1][1][0].eqNode(cf);
-  cdp->addStep(eqsf, ProofRule::TRANS, {eqi[1][1], eqa}, {});
-  Node eqsfs = proveSymm(cdp, eqsf);
-  Trace("brc-macro") << "Have : " << eqsfs << std::endl;
-
-  Node mem = proveGeneralReMembership(cdp, cf);
-  Trace("brc-macro") << "Membership : " << mem << std::endl;
-
-  Node memc = proveCong(cdp, mem, {eqsfs});
-  Trace("brc-macro") << "Cong membership : " << memc << std::endl;
-
+  // then take intersection with the complement of the RE given in the LHS
+  Node comp = nm->mkNode(Kind::REGEXP_COMPLEMENT, eq[0][1]);
+  Node inter = nm->mkNode(Kind::REGEXP_INTER, trivMemc[1], comp);
+  Trace("brc-macro") << "Rewrite inclusion: " << inter << std::endl;
   theory::Rewriter* rr = d_env.getRewriter();
-  Node res = rr->rewriteViaRule(ProofRewriteRule::STR_IN_RE_EVAL, memc[1]);
-  if (res.isNull() || res != eq[1])
+  Node res = rr->rewriteViaRule(ProofRewriteRule::RE_INTER_INCLUSION, inter);
+  Trace("brc-macro") << "...returned " << res << std::endl;
+  if (res.isNull())
   {
-    Trace("brc-macro") << "...failed str in eval" << std::endl;
     Assert(false);
     return false;
   }
-  Node eqf = memc[1].eqNode(res);
-  cdp->addTheoryRewriteStep(eqf, ProofRewriteRule::STR_IN_RE_EVAL);
+  // should have an RE inclusion
+  Node inclusionEq = inter.eqNode(res);
+  cdp->addTheoryRewriteStep(inclusionEq, ProofRewriteRule::RE_INTER_INCLUSION);
 
-  Node meqf = mem.eqNode(eq[1]);
-  cdp->addStep(meqf, ProofRule::TRANS, {memc, eqf}, {});
+  Node memNeg = eq[0].notNode();
+  Node memComp = nm->mkNode(Kind::STRING_IN_REGEXP, eq[0][0], comp);
+  Node compEq = memNeg.eqNode(memComp);
+  cdp->addTrustedStep(compEq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  cdp->addStep(memComp, ProofRule::EQ_RESOLVE, {memNeg, compEq}, {});
 
-  cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {mem, meqf}, {});
+  Node imem = nm->mkNode(Kind::STRING_IN_REGEXP, eq[0][0], inter);
+  cdp->addStep(imem, ProofRule::RE_INTER, {trivMemc, memComp}, {});
 
-  Node nctn = eq[0].notNode();
-  cdp->addStep(nctn, ProofRule::SCOPE, {eq[1]}, {eq[0]});
-  cdp->addStep(eq, ProofRule::FALSE_INTRO, {nctn}, {});
+  Node meq = proveCong(cdp, imem, {Node::null(), inclusionEq});
+  Assert(!meq.isNull());
+  Node noneMem = meq[1];
 
+  Node falsen = nm->mkConst(false);
+  Node noneFalseEq = noneMem.eqNode(falsen);
+  cdp->addTrustedStep(noneFalseEq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+
+  Node imemFalse = imem.eqNode(falsen);
+  cdp->addStep(imemFalse, ProofRule::TRANS, {meq, noneFalseEq}, {});
+  cdp->addStep(falsen, ProofRule::EQ_RESOLVE, {imem, imemFalse}, {});
+
+  Node memDoubleNeg = memNeg.notNode();
+  cdp->addStep(memDoubleNeg, ProofRule::SCOPE, {falsen}, {memNeg});
+
+  Node deq = memDoubleNeg.eqNode(eq[0]);
+  cdp->addTrustedStep(deq, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  cdp->addStep(eq[0], ProofRule::EQ_RESOLVE, {memDoubleNeg, deq}, {});
+  cdp->addStep(eq, ProofRule::TRUE_INTRO, {eq[0]}, {});
   return true;
 }
 

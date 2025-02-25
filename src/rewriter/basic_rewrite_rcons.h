@@ -228,14 +228,14 @@ class BasicRewriteRCons : protected EnvObj
                                const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
-   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   * ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION.
    *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by
-   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   * ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofMacroStrConstNCtnConcat(CDProof* cdp, const Node& eq);
+  bool ensureProofMacroStrInReInclusion(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
