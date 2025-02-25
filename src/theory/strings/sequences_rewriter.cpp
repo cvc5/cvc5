@@ -77,6 +77,10 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT,
+                           TheoryRewriteCtx::DSL_SUBCALL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
@@ -159,6 +163,29 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       return rewriteViaStrReplaceReAllEval(n);
     }
     break;
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+    {
+      if (n.getKind() == Kind::STRING_CONTAINS
+          && n[0].getKind() == Kind::CONST_STRING)
+      {
+        NodeManager* nm = nodeManager();
+        RegExpEntail re(nm, nullptr);
+        Node re2 = re.getGeneralizedConstRegExp(n[1]);
+        if (!re2.isNull())
+        {
+          Node re2s =
+              nm->mkNode(Kind::REGEXP_CONCAT, d_sigmaStar, re2, d_sigmaStar);
+          String s = n[0].getConst<String>();
+          if (!RegExpEntail::testConstStringInRegExp(s, re2s))
+          {
+            return nm->mkConst(false);
+          }
+        }
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      return rewriteViaMacroStrInReInclusion(n);
     case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
       return rewriteViaMacroStrSplitCtn(n);
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
@@ -1521,6 +1548,29 @@ Node SequencesRewriter::rewriteViaMacroSubstrStripSymLength(const Node& node,
   return sent.rewriteViaMacroSubstrStripSymLength(node, rule, ch1, ch2);
 }
 
+Node SequencesRewriter::rewriteViaMacroStrInReInclusion(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_IN_REGEXP)
+  {
+    return Node::null();
+  }
+  // check regular expression inclusion
+  // This makes a regular expression that contains all possible model values
+  // for x, and checks whether r includes this regular expression. If so,
+  // the membership rewrites to true.
+  RegExpEntail re(nodeManager(), nullptr);
+  Node reForX = re.getGeneralizedConstRegExp(n[0]);
+  // only chance of success is if there was at least one constant
+  if (!reForX.isNull())
+  {
+    if (RegExpEntail::regExpIncludes(n[1], reForX))
+    {
+      return d_true;
+    }
+  }
+  return Node::null();
+}
+
 Node SequencesRewriter::rewriteViaMacroStrSplitCtn(const Node& node)
 {
   if (node.getKind() != Kind::STRING_CONTAINS
@@ -2157,31 +2207,10 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   // This makes a regular expression that contains all possible model values
   // for x, and checks whether r includes this regular expression. If so,
   // the membership rewrites to true.
-  std::vector<Node> mchildren;
-  utils::getConcat(x, mchildren);
-  Assert(!mchildren.empty());
-  bool hasConstant = false;
-  for (Node& m : mchildren)
+  Node ret = rewriteViaMacroStrInReInclusion(node);
+  if (!ret.isNull())
   {
-    if (m.isConst())
-    {
-      m = nm->mkNode(Kind::STRING_TO_REGEXP, m);
-      hasConstant = true;
-    }
-    else
-    {
-      m = d_sigmaStar;
-    }
-  }
-  if (hasConstant)
-  {
-    Node reForX = mchildren.size() == 1
-                      ? mchildren[0]
-                      : nm->mkNode(Kind::REGEXP_CONCAT, mchildren);
-    if (RegExpEntail::regExpIncludes(r, reForX))
-    {
-      return returnRewrite(node, d_true, Rewrite::RE_IN_INCLUSION);
-    }
+    return returnRewrite(node, ret, Rewrite::RE_IN_INCLUSION);
   }
   return node;
 }
@@ -2718,13 +2747,12 @@ Node SequencesRewriter::rewriteContains(Node node)
         Node ret = nb;
         return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
       }
-      else if (node[1].getKind() == Kind::STRING_CONCAT)
+      else
       {
-        int firstc, lastc;
-        if (!d_stringsEntail.canConstantContainConcat(
-                node[0], node[1], firstc, lastc))
+        Node ret =
+            rewriteViaRule(ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT, node);
+        if (!ret.isNull())
         {
-          Node ret = nodeManager()->mkConst(false);
           return returnRewrite(node, ret, Rewrite::CTN_NCONST_CTN_CONCAT);
         }
       }

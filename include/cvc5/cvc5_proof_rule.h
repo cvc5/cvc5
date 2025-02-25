@@ -3238,6 +3238,33 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string constant no contains concatenation**
+   *
+   * .. math::
+   *   \mathit{str.contains}(c, \mathit{str.++}(t_1, \ldots, t_n)) = \bot
+   *
+   * where :math:`c` is not contained in :math:`R_t`, where
+   * the regular expression :math:`R_t` overapproximates the possible
+   * values of :math:`\mathit{str.++}(t_1, \ldots, t_n)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_CONST_NCTN_CONCAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string in regular expression inclusion**
+   *
+   * .. math::
+   *   \mathit{str.in_re}(s, R) = \top
+   *
+   * where :math:`R` includes the regular expression :math:`R_s`
+   * which overapproximates the possible values of string :math:`s`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_IN_RE_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Sequence evaluate operator**
    *
    * .. math::
