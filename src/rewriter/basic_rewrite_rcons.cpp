@@ -1456,13 +1456,17 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
   theory::Rewriter* rr = d_env.getRewriter();
   Node qm = rr->rewriteViaRule(ProofRewriteRule::QUANT_MERGE_PRENEX, eq[0]);
   Trace("brc-macro") << "...non-macro to " << qm << std::endl;
-  if (qm.isNull())
+  std::vector<Node> transEq;
+  if (!qm.isNull())
   {
-    Assert(false);
-    return false;
+    Node equiv = eq[0].eqNode(qm);
+    cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
+    transEq.push_back(equiv);
   }
-  Node equiv = eq[0].eqNode(qm);
-  cdp->addTheoryRewriteStep(equiv, ProofRewriteRule::QUANT_MERGE_PRENEX);
+  else
+  {
+    qm = eq[0];
+  }
   if (qm == eq[1])
   {
     return true;
@@ -1476,8 +1480,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
   }
   Node equiv2 = qm.eqNode(qmu);
   cdp->addTheoryRewriteStep(equiv2, ProofRewriteRule::QUANT_UNUSED_VARS);
-  std::vector<Node> transEq;
-  transEq.push_back(equiv);
   transEq.push_back(equiv2);
   if (qmu != eq[1])
   {
@@ -1495,7 +1497,10 @@ bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
     cdp->addStep(equiv3s, ProofRule::SYMM, {equiv3}, {});
     transEq.push_back(equiv3s);
   }
-  cdp->addStep(eq, ProofRule::TRANS, transEq, {});
+  if (transEq.size() > 1)
+  {
+    cdp->addStep(eq, ProofRule::TRANS, transEq, {});
+  }
   return true;
 }
 
