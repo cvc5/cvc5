@@ -400,13 +400,14 @@
 ; - zero U: The zero element of f.
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
-(program $is_annihilate_rec ((T Type) (U Type) (f (-> T U U)) (a U) (b U) (zero U))
+(program $is_annihilate_rec ((T Type) (U Type) (f (-> T U U)) (a T) (b U) (zero U))
   ((-> T U U) U U) Bool
   (
-    (($is_annihilate_rec f zero zero)    true)
-    (($is_annihilate_rec f (f a b) zero) (eo::ite ($is_annihilate_rec f a zero)
+    (($is_annihilate_rec f zero zero)     true)
+    (($is_annihilate_rec f (f a b) zero)  (eo::ite ($is_annihilate_rec f a zero)
                                             true
                                             ($is_annihilate_rec f b zero)))
+    (($is_annihilate_rec f b zero)        false)
   )
 )
 
