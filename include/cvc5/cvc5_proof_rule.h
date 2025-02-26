@@ -3623,6 +3623,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_EQ_CONFLICT),
   /** Auto-generated from RARE rule arith-int-geq-tighten */
   EVALUE(ARITH_INT_GEQ_TIGHTEN),
+  /** Auto-generated from RARE rule arith-divisible-elim */
+  EVALUE(ARITH_DIVISIBLE_ELIM),
   /** Auto-generated from RARE rule arith-abs-eq */
   EVALUE(ARITH_ABS_EQ),
   /** Auto-generated from RARE rule arith-abs-int-gt */
