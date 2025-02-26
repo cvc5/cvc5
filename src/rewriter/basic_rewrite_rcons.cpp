@@ -37,6 +37,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -246,6 +247,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       break;
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
       if (ensureProofMacroStrComponentCtn(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+      if (ensureProofMacroStrConstNCtnConcat(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1461,6 +1468,91 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   return true;
 }
 
+bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
+                                                           const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro str const nctn concat " << eq
+                     << std::endl;
+  Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
+  NodeManager* nm = nodeManager();
+  // We assume eq[0] is true and derive a contradiction. This is based
+  // on (str.contains s t) => (= s (str.++ k1 t k2)) by string eager reduction,
+  // (str.++ k1 t k2) in (re.++ Sigma* (str.to_re t) Sigma*) and
+  // ~ s in (re.++ Sigma* (str.to_re t) Sigma*).
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node er = pc->checkDebug(ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
+  Assert(!er.isNull());
+  cdp->addStep(er, ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
+  Trace("brc-macro") << "...eager reduce: " << er << std::endl;
+  Node truen = nm->mkConst(true);
+  Node eqt = eq[0].eqNode(truen);
+  cdp->addStep(eqt, ProofRule::TRUE_INTRO, {eq[0]}, {});
+  Node eqi = proveCong(cdp, er, {eqt});
+  if (eqi.isNull())
+  {
+    Trace("brc-macro") << "...failed cong" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Trace("brc-macro") << "...cong " << eqi << std::endl;
+  AlwaysAssert(eqi[1].getKind() == Kind::ITE);
+  Node eqi2 = eqi[1].eqNode(eqi[1][1]);
+  cdp->addTrustedStep(eqi2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+
+  Node ere = er.eqNode(eqi[1][1]);
+  cdp->addStep(ere, ProofRule::TRANS, {eqi, eqi2}, {});
+  cdp->addStep(eqi[1][1], ProofRule::EQ_RESOLVE, {er, ere}, {});
+
+  // flatten
+  Node concat = eqi[1][1][1];
+  AlwaysAssert(concat.getKind() == Kind::STRING_CONCAT
+               && concat.getNumChildren() == 3);
+  std::vector<Node> cc;
+  cc.push_back(concat[0]);
+  cc.insert(cc.end(), concat[1].begin(), concat[1].end());
+  cc.push_back(concat[2]);
+  Node cf = nm->mkNode(Kind::STRING_CONCAT, cc);
+  Node eqa = concat.eqNode(cf);
+  if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
+  {
+    Trace("brc-macro") << "...failed ACI" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Node eqsf = eqi[1][1][0].eqNode(cf);
+  cdp->addStep(eqsf, ProofRule::TRANS, {eqi[1][1], eqa}, {});
+  Node eqsfs = proveSymm(cdp, eqsf);
+  Trace("brc-macro") << "Have : " << eqsfs << std::endl;
+
+  Node mem = proveGeneralReMembership(cdp, cf);
+  Trace("brc-macro") << "Membership : " << mem << std::endl;
+
+  Node memc = proveCong(cdp, mem, {eqsfs});
+  Trace("brc-macro") << "Cong membership : " << memc << std::endl;
+
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node res = rr->rewriteViaRule(ProofRewriteRule::STR_IN_RE_EVAL, memc[1]);
+  if (res.isNull() || res != eq[1])
+  {
+    Trace("brc-macro") << "...failed str in eval" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Node eqf = memc[1].eqNode(res);
+  cdp->addTheoryRewriteStep(eqf, ProofRewriteRule::STR_IN_RE_EVAL);
+
+  Node meqf = mem.eqNode(eq[1]);
+  cdp->addStep(meqf, ProofRule::TRANS, {memc, eqf}, {});
+
+  cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {mem, meqf}, {});
+
+  Node nctn = eq[0].notNode();
+  cdp->addStep(nctn, ProofRule::SCOPE, {eq[1]}, {eq[0]});
+  cdp->addStep(eq, ProofRule::FALSE_INTRO, {nctn}, {});
+
+  return true;
+}
+
 bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
                                                         const Node& eq)
 {
@@ -2220,6 +2312,42 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
     return false;
   }
   return true;
+}
+
+Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
+{
+  NodeManager* nm = nodeManager();
+  theory::strings::RegExpEntail re(nm, nullptr);
+  Node gre = re.getGeneralizedConstRegExp(n);
+  Assert(!gre.isNull());
+  std::vector<Node> ncs, rcs;
+  if (n.getKind() == Kind::STRING_CONCAT)
+  {
+    Assert(gre.getKind() == Kind::REGEXP_CONCAT);
+    ncs.insert(ncs.end(), n.begin(), n.end());
+    rcs.insert(rcs.end(), gre.begin(), gre.end());
+  }
+  else
+  {
+    ncs.push_back(n);
+    rcs.push_back(gre);
+  }
+  Assert(ncs.size() == rcs.size());
+  std::vector<Node> premises;
+  for (size_t i = 0, nchild = rcs.size(); i < nchild; i++)
+  {
+    Node mem = nm->mkNode(Kind::STRING_IN_REGEXP, ncs[i], rcs[i]);
+    cdp->addTrustedStep(mem, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    premises.push_back(mem);
+  }
+  if (premises.size() == 1)
+  {
+    return premises[0];
+  }
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node memc = pc->checkDebug(ProofRule::RE_CONCAT, premises, {});
+  cdp->addStep(memc, ProofRule::RE_CONCAT, premises, {});
+  return memc;
 }
 
 Node BasicRewriteRCons::proveSymm(CDProof* cdp, const Node& eq)
