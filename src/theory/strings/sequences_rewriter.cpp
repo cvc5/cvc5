@@ -199,10 +199,8 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> nb, nrem, ne;
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
-<<<<<<< HEAD
     case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
       return rewriteViaMacroReInterUnionConstElim(n);
-=======
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
     {
       if (n.getKind() == Kind::STRING_CONTAINS)
@@ -221,7 +219,6 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
->>>>>>> 9826a0eb9f73c1cb4c56d68364ca1191cd3b0cde
     case ProofRewriteRule::SEQ_EVAL_OP:
     {
       // this is a catchall rule for evaluation of operations on constant
