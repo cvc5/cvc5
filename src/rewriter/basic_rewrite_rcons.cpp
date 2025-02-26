@@ -1461,7 +1461,6 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   return true;
 }
 
-<<<<<<< HEAD
 bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
                                                            const Node& eq)
 {
@@ -1544,7 +1543,9 @@ bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
   cdp->addStep(nctn, ProofRule::SCOPE, {eq[1]}, {eq[0]});
   cdp->addStep(eq, ProofRule::FALSE_INTRO, {nctn}, {});
 
-=======
+  return true;
+}
+
 bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
                                                         const Node& eq)
 {
@@ -1594,7 +1595,6 @@ bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
   Node eq2 = ctng.eqNode(eq[1]);
   cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
->>>>>>> 9826a0eb9f73c1cb4c56d68364ca1191cd3b0cde
   return true;
 }
 
