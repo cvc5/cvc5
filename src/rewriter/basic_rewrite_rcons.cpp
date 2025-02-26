@@ -33,6 +33,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -269,6 +270,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
       if (ensureProofMacroQuantVarElimEq(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+      if (ensureProofMacroDtVarExpand(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1972,6 +1979,27 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroDtVarExpand(CDProof* cdp,
+                                                    const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro dt var expand " << eq << std::endl;
+  // just need to find the index
+  size_t index;
+  Node qn = theory::quantifiers::QuantifiersRewriter::computeDtVarExpand(
+      nodeManager(), eq[0], index);
+  if (qn == eq[1])
+  {
+    // use the utility to get the proof
+    std::shared_ptr<ProofNode> pfn =
+        theory::quantifiers::QuantDSplit::getQuantDtSplitProof(
+            d_env, eq[0], index);
+    Assert(pfn->getResult() == eq);
+    cdp->addProof(pfn);
+    return true;
+  }
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,

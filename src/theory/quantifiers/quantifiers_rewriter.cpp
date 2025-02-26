@@ -57,11 +57,6 @@ namespace quantifiers {
  * - QRewMiniscopeAttribute: cached on (v, q, i) where q is being miniscoped
  * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
  * that q binds.
- * - QRewDtExpandAttribute: cached on (F, lit, a) where lit is the tested
- * literal used for expanding a quantified datatype variable in quantified
- * formula with body F, and a is the rational corresponding to the argument
- * position of the variable, e.g. lit is ((_ is C) x) and x is
- * replaced by (C y1 ... yn), where the argument position of yi is i.
  */
 struct QRewPrenexAttributeId
 {
@@ -71,10 +66,6 @@ struct QRewMiniscopeAttributeId
 {
 };
 using QRewMiniscopeAttribute = expr::Attribute<QRewMiniscopeAttributeId, Node>;
-struct QRewDtExpandAttributeId
-{
-};
-using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -88,6 +79,7 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
     case COMPUTE_PROCESS_TERMS: out << "COMPUTE_PROCESS_TERMS"; break;
     case COMPUTE_PRENEX: out << "COMPUTE_PRENEX"; break;
     case COMPUTE_VAR_ELIMINATION: out << "COMPUTE_VAR_ELIMINATION"; break;
+    case COMPUTE_DT_VAR_EXPAND: out << "COMPUTE_DT_VAR_EXPAND"; break;
     case COMPUTE_COND_SPLIT: out << "COMPUTE_COND_SPLIT"; break;
     case COMPUTE_EXT_REWRITE: out << "COMPUTE_EXT_REWRITE"; break;
     default: out << "UnknownRewriteStep"; break;
@@ -120,6 +112,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
+                           TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_REWRITE_BODY,
                            TheoryRewriteCtx::PRE_DSL);
@@ -343,6 +337,21 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         return Node::null();
       }
       return QuantDSplit::split(nodeManager(), n, 0);
+    }
+    break;
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+    {
+      if (n.getKind() != Kind::FORALL)
+      {
+        return Node::null();
+      }
+      size_t index;
+      Node nn = computeDtVarExpand(nodeManager(), n, index);
+      if (nn != n)
+      {
+        return nn;
+      }
+      return Node::null();
     }
     break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
@@ -1311,58 +1320,8 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
     pol = !pol;
     Assert(lit.getKind() != Kind::NOT);
   }
-  NodeManager* nm = nodeManager();
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
-  if (lit.getKind() == Kind::APPLY_TESTER && pol
-      && lit[0].getKind() == Kind::BOUND_VARIABLE
-      && d_opts.quantifiers.dtVarExpandQuant)
-  {
-    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
-                         << std::endl;
-    std::vector<Node>::iterator ita =
-        std::find(args.begin(), args.end(), lit[0]);
-    if (ita != args.end())
-    {
-      vars.push_back(lit[0]);
-      Node tester = lit.getOperator();
-      int index = datatypes::utils::indexOf(tester);
-      const DType& dt = datatypes::utils::datatypeOf(tester);
-      const DTypeConstructor& c = dt[index];
-      std::vector<Node> newChildren;
-      Node cons = c.getConstructor();
-      TypeNode tspec;
-      // take into account if parametric
-      if (dt.isParametric())
-      {
-        TypeNode ltn = lit[0].getType();
-        tspec = c.getInstantiatedConstructorType(ltn);
-        cons = c.getInstantiatedConstructor(ltn);
-      }
-      else
-      {
-        tspec = cons.getType();
-      }
-      newChildren.push_back(cons);
-      std::vector<Node> newVars;
-      BoundVarManager* bvm = nm->getBoundVarManager();
-      for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
-      {
-        TypeNode tn = tspec[j];
-        Node rn = nm->mkConstInt(Rational(j));
-        Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
-        Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
-        newChildren.push_back(v);
-        newVars.push_back(v);
-      }
-      subs.push_back(nm->mkNode(Kind::APPLY_CONSTRUCTOR, newChildren));
-      Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/"
-                           << vars[0] << std::endl;
-      args.erase(ita);
-      args.insert(args.end(), newVars.begin(), newVars.end());
-      return true;
-    }
-  }
   // all eliminations below guarded by varElimQuant()
   if (!d_opts.quantifiers.varElimQuant)
   {
@@ -1717,6 +1676,38 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
     Trace("var-elim-quant") << "Return " << body << std::endl;
   }
   return body;
+}
+
+Node QuantifiersRewriter::computeDtVarExpand(NodeManager* nm,
+                                             const Node& q,
+                                             size_t& index)
+{
+  std::vector<Node> lits;
+  if (q[1].getKind() == Kind::OR)
+  {
+    lits.insert(lits.end(), q[1].begin(), q[1].end());
+  }
+  else
+  {
+    lits.push_back(q[1]);
+  }
+  for (const Node& lit : lits)
+  {
+    if (lit.getKind() == Kind::NOT && lit[0].getKind() == Kind::APPLY_TESTER
+        && lit[0][0].getKind() == Kind::BOUND_VARIABLE)
+    {
+      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+      {
+        if (q[0][i] == lit[0][0])
+        {
+          index = i;
+          // quant dt split for the given variable
+          return QuantDSplit::split(nm, q, i);
+        }
+      }
+    }
+  }
+  return q;
 }
 
 Node QuantifiersRewriter::computePrenex(Node q,
@@ -2315,9 +2306,11 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
-    return (d_opts.quantifiers.varElimQuant
-            || d_opts.quantifiers.dtVarExpandQuant)
-           && is_std && !is_strict_trigger;
+    return d_opts.quantifiers.varElimQuant && is_std && !is_strict_trigger;
+  }
+  else if (computeOption == COMPUTE_DT_VAR_EXPAND)
+  {
+    return d_opts.quantifiers.dtVarExpandQuant && is_std && !is_strict_trigger;
   }
   else
   {
@@ -2386,6 +2379,11 @@ Node QuantifiersRewriter::computeOperation(Node f,
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
     n = computeVarElimination( n, args, qa );
+  }
+  else if (computeOption == COMPUTE_DT_VAR_EXPAND)
+  {
+    size_t index;
+    return computeDtVarExpand(nodeManager(), f, index);
   }
   Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
   if( f[1]==n && args.size()==f[0].getNumChildren() ){

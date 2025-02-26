@@ -2787,6 +2787,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_DT_SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro datatype variable expand **
+   *
+   * .. math::
+   *   (\forall Y x Z.\> F) = (\forall Y X_1 Z. F_1) \vee \cdots \vee (\forall Y X_n Z. F_n)
+   *
+   * where :math:`x` is of a datatype type with constructors
+   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
+   * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`, and
+   * :math:`F` entails :math:`\mathit{is}_c(x)` for some :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_DT_VAR_EXPAND),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro connected free variable partitioning**
    *
    * .. math::
