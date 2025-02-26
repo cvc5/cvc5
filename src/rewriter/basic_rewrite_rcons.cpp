@@ -243,6 +243,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+      if (ensureProofMacroStrComponentCtn(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
       if (ensureProofMacroQuantMergePrenex(cdp, eq))
       {
@@ -1445,6 +1451,58 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   {
     cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   }
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
+                                                        const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro str component ctn " << eq << std::endl;
+  Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
+  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::StringsEntail se(nullptr, ae);
+  std::vector<Node> nc1, nc2;
+  theory::strings::utils::getConcat(eq[0][0], nc1);
+  theory::strings::utils::getConcat(eq[0][1], nc2);
+  std::vector<Node> nc1rb, nc1re;
+  if (se.componentContains(nc1, nc2, nc1rb, nc1re, true) == -1)
+  {
+    return false;
+  }
+  Trace("brc-macro") << "...paritioned to " << nc1rb << " " << nc1 << " "
+                     << nc1re << std::endl;
+  // group the LHS so that it contains the RHS verbatim as the middle child
+  // for example (str.contains (str.++ x y z w) (str.++ y z)) --->
+  // (str.contains (str.++ x (str.++ y z) w) (str.++ y z))
+  TypeNode stype = eq[0][0].getType();
+  NodeManager* nm = nodeManager();
+  std::vector<Node> cc;
+  if (!nc1rb.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1rb, stype));
+  }
+  if (!nc1.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1, stype));
+  }
+  if (!nc1re.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1re, stype));
+  }
+  Node cg = theory::strings::utils::mkConcat(cc, stype);
+  Node equiv = eq[0][0].eqNode(cg);
+  cdp->addTrustedStep(
+      equiv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(eq[0], cargs);
+  Node refl = eq[0][1].eqNode(eq[0][1]);
+  Node ctng = nm->mkNode(Kind::STRING_CONTAINS, cg, eq[0][1]);
+  Node eq1 = eq[0].eqNode(ctng);
+  cdp->addStep(refl, ProofRule::REFL, {}, {eq[0][1]});
+  cdp->addStep(eq1, cr, {equiv, refl}, cargs);
+  Node eq2 = ctng.eqNode(eq[1]);
+  cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
   return true;
 }
 

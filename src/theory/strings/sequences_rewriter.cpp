@@ -89,6 +89,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   // as it is partly subsumed by RARE rewrites for intersection.
   registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
                            TheoryRewriteCtx::PRE_DSL);
   // make back pointer to this (for rewriting contains)
@@ -197,8 +199,29 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> nb, nrem, ne;
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
+<<<<<<< HEAD
     case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
       return rewriteViaMacroReInterUnionConstElim(n);
+=======
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+    {
+      if (n.getKind() == Kind::STRING_CONTAINS)
+      {
+        std::vector<Node> nc1;
+        utils::getConcat(n[0], nc1);
+        std::vector<Node> nc2;
+        utils::getConcat(n[1], nc2);
+        // component-wise containment, note we do not use the extended version
+        std::vector<Node> nc1rb;
+        std::vector<Node> nc1re;
+        if (d_stringsEntail.componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+        {
+          return nodeManager()->mkConst(true);
+        }
+      }
+    }
+    break;
+>>>>>>> 9826a0eb9f73c1cb4c56d68364ca1191cd3b0cde
     case ProofRewriteRule::SEQ_EVAL_OP:
     {
       // this is a catchall rule for evaluation of operations on constant
@@ -2860,12 +2883,10 @@ Node SequencesRewriter::rewriteContains(Node node)
   utils::getConcat(node[1], nc2);
 
   // component-wise containment
-  std::vector<Node> nc1rb;
-  std::vector<Node> nc1re;
-  if (d_stringsEntail.componentContains(nc1, nc2, nc1rb, nc1re) != -1)
+  Node cret = rewriteViaRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN, node);
+  if (!cret.isNull())
   {
-    Node ret = nodeManager()->mkConst(true);
-    return returnRewrite(node, ret, Rewrite::CTN_COMPONENT);
+    return returnRewrite(node, cret, Rewrite::CTN_COMPONENT);
   }
   TypeNode stype = node[0].getType();
 
