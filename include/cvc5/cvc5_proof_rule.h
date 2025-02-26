@@ -3294,6 +3294,35 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_STR_IN_RE_INCLUSION),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro regular expression intersection/union constant elimination**
+   *
+   * One of the following forms:
+   *
+   * .. math::
+   *   \mathit{re.union}(R) = \mathit{re.union}(R')
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string in :math:`R_i`
+   * and :math:`R'` is the result of removing :math:`\mathit{str.to_re(c)}` from :math:`R`.
+   *
+   * .. math::
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(R')
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string in :math:`R_i`
+   * and :math:`R'` is the result of removing :math:`R_i` from :math:`R`.
+   *
+   * .. math::
+   *   \mathit{re.inter}(R) = \mathit{re.none}
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string not in :math:`R_i`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_RE_INTER_UNION_CONST_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Sequence evaluate operator**
    *
    * .. math::

@@ -85,6 +85,10 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_SPLIT_CTN,
                            TheoryRewriteCtx::POST_DSL);
+  // MACRO_RE_INTER_UNION_CONST_ELIM should always be called at post-dsl
+  // as it is partly subsumed by RARE rewrites for intersection.
+  registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_COMPONENT_CTN,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::SEQ_EVAL_OP,
@@ -195,6 +199,8 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> nb, nrem, ne;
       return rewriteViaMacroStrStripEndpoints(n, nb, nrem, ne);
     }
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
+      return rewriteViaMacroReInterUnionConstElim(n);
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
     {
       if (n.getKind() == Kind::STRING_CONTAINS)
@@ -1086,11 +1092,9 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       << "Strings::rewriteAndOrRegExp start " << node << std::endl;
   NodeManager* nm = nodeManager();
   std::vector<Node> node_vec;
-  std::vector<Node> polRegExp[2];
   // list of constant string regular expressions (str.to_re c)
   std::vector<Node> constStrRe;
-  // list of all other regular expressions
-  std::vector<Node> otherRe;
+  bool changed = false;
   for (const Node& ni : node)
   {
     Kind nik = ni.getKind();
@@ -1103,6 +1107,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
           node_vec.push_back(nic);
         }
       }
+      changed = true;
     }
     else if (nik == Kind::REGEXP_NONE)
     {
@@ -1143,110 +1148,54 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
         constStrRe.push_back(ni);
       }
-      else
-      {
-        otherRe.push_back(ni);
-        uint32_t pindex = nik == Kind::REGEXP_COMPLEMENT ? 1 : 0;
-        Node nia = pindex == 1 ? ni[0] : ni;
-        polRegExp[pindex].push_back(nia);
-      }
       node_vec.push_back(ni);
     }
+    else
+    {
+      changed = true;
+    }
   }
-  Trace("strings-rewrite-debug")
-      << "Partition constant components " << constStrRe.size() << " / "
-      << otherRe.size() << std::endl;
-  // go back and process constant strings against the others
-  if (!constStrRe.empty())
+  // if we already changed due to flattening, return already
+  if (changed)
   {
-    std::unordered_set<Node> toRemove;
-    for (const Node& c : constStrRe)
+    Node retNode = node;
+    if (node_vec.empty())
     {
-      Assert(c.getKind() == Kind::STRING_TO_REGEXP
-             && c[0].getKind() == Kind::CONST_STRING);
-      cvc5::internal::String s = c[0].getConst<String>();
-      for (const Node& r : otherRe)
+      if (nk == Kind::REGEXP_INTER)
       {
-        Trace("strings-rewrite-debug")
-            << "Check " << c << " vs " << r << std::endl;
-        // skip if already removing, or not constant
-        if (!RegExpEntail::isConstRegExp(r)
-            || toRemove.find(r) != toRemove.end())
-        {
-          Trace("strings-rewrite-debug") << "...skip" << std::endl;
-          continue;
-        }
-        // test whether c from (str.to_re c) is in r
-        if (RegExpEntail::testConstStringInRegExp(s, r))
-        {
-          Trace("strings-rewrite-debug") << "...included" << std::endl;
-          if (nk == Kind::REGEXP_INTER)
-          {
-            // (re.inter .. (str.to_re c) .. R ..) --->
-            // (re.inter .. (str.to_re c) .. ..) when c in R
-            toRemove.insert(r);
-          }
-          else
-          {
-            // (re.union .. (str.to_re c) .. R ..) --->
-            // (re.union .. .. R ..) when c in R
-            toRemove.insert(c);
-            break;
-          }
-        }
-        else
-        {
-          Trace("strings-rewrite-debug") << "...not included" << std::endl;
-          if (nk == Kind::REGEXP_INTER)
-          {
-            // (re.inter .. (str.to_re c) .. R ..) ---> re.none
-            // if c is not a member of R.
-            Node ret = nm->mkNode(Kind::REGEXP_NONE);
-            return returnRewrite(
-                node, ret, Rewrite::RE_INTER_CONST_RE_CONFLICT);
-          }
-        }
+        retNode =
+            nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
+      }
+      else
+      {
+        retNode = nm->mkNode(Kind::REGEXP_NONE);
       }
     }
-    if (!toRemove.empty())
+    else
     {
-      std::vector<Node> nodeVecTmp;
-      node_vec.swap(nodeVecTmp);
-      for (const Node& nvt : nodeVecTmp)
-      {
-        if (toRemove.find(nvt) == toRemove.end())
-        {
-          node_vec.push_back(nvt);
-        }
-      }
+      retNode = node_vec.size() == 1 ? node_vec[0] : nm->mkNode(nk, node_vec);
+    }
+    if (retNode != node)
+    {
+      // flattening and removing children, based on loop above
+      return returnRewrite(node, retNode, Rewrite::RE_ANDOR_FLATTEN);
     }
   }
+  // try to eliminate components via constant membership tests
+  Node retNode = rewriteViaMacroReInterUnionConstElim(node);
+  if (!retNode.isNull())
+  {
+    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_CONST_REMOVE);
+  }
+
   // use inclusion tests
-  Node retNode = rewriteViaMacroReInterUnionInclusion(node);
+  retNode = rewriteViaMacroReInterUnionInclusion(node);
   if (!retNode.isNull())
   {
     return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
   }
-  if (node_vec.empty())
-  {
-    if (nk == Kind::REGEXP_INTER)
-    {
-      retNode = nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
-    }
-    else
-    {
-      retNode = nm->mkNode(Kind::REGEXP_NONE);
-    }
-  }
-  else
-  {
-    retNode = node_vec.size() == 1 ? node_vec[0] : nm->mkNode(nk, node_vec);
-  }
-  if (retNode != node)
-  {
-    // flattening and removing children, based on loop above
-    return returnRewrite(node, retNode, Rewrite::RE_ANDOR_FLATTEN);
-  }
+
+  // otherwise there is no change
   return node;
 }
 
@@ -1718,6 +1667,101 @@ Node SequencesRewriter::rewriteViaMacroStrStripEndpoints(
       default: break;
     }
   }
+  return Node::null();
+}
+
+Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n)
+{
+  Kind k = n.getKind();
+  if (k != Kind::REGEXP_INTER && k != Kind::REGEXP_UNION)
+  {
+    return Node::null();
+  }
+  std::vector<Node> constStrRe;
+  std::vector<Node> otherRe;
+  for (const Node& nc : n)
+  {
+    if (!RegExpEntail::isConstRegExp(nc))
+    {
+      continue;
+    }
+    if (nc.getKind() == Kind::STRING_TO_REGEXP)
+    {
+      Assert(nc[0].isConst());
+      constStrRe.push_back(nc);
+    }
+    else
+    {
+      otherRe.push_back(nc);
+    }
+  }
+
+  if (constStrRe.empty() || otherRe.empty())
+  {
+    return Node::null();
+  }
+  // go back and process constant strings against the others
+  std::unordered_set<Node> toRemove;
+  for (const Node& c : constStrRe)
+  {
+    Assert(c.getKind() == Kind::STRING_TO_REGEXP && c[0].isConst());
+    String s = c[0].getConst<String>();
+    for (const Node& r : otherRe)
+    {
+      Assert(RegExpEntail::isConstRegExp(r));
+      Trace("strings-rewrite-debug")
+          << "Check " << c << " vs " << r << std::endl;
+      // skip if already removing, or not constant
+      if (toRemove.find(r) != toRemove.end())
+      {
+        Trace("strings-rewrite-debug") << "...skip" << std::endl;
+        continue;
+      }
+      // test whether c from (str.to_re c) is in r
+      if (RegExpEntail::testConstStringInRegExp(s, r))
+      {
+        Trace("strings-rewrite-debug") << "...included" << std::endl;
+        if (k == Kind::REGEXP_INTER)
+        {
+          // (re.inter .. (str.to_re c) .. R ..) --->
+          // (re.inter .. (str.to_re c) .. ..) when c in R
+          toRemove.insert(r);
+        }
+        else
+        {
+          // (re.union .. (str.to_re c) .. R ..) --->
+          // (re.union .. .. R ..) when c in R
+          toRemove.insert(c);
+          break;
+        }
+      }
+      else
+      {
+        Trace("strings-rewrite-debug") << "...not included" << std::endl;
+        if (k == Kind::REGEXP_INTER)
+        {
+          // (re.inter .. (str.to_re c) .. R ..) ---> re.none
+          // if c is not a member of R.
+          return nodeManager()->mkNode(Kind::REGEXP_NONE);
+        }
+      }
+    }
+  }
+
+  if (!toRemove.empty())
+  {
+    std::vector<Node> vec;
+    for (const Node& nc : n)
+    {
+      if (toRemove.find(nc) == toRemove.end())
+      {
+        vec.push_back(nc);
+      }
+    }
+    Assert(!vec.empty());
+    return vec.size() == 1 ? vec[0] : nodeManager()->mkNode(k, vec);
+  }
+
   return Node::null();
 }
 
