@@ -310,6 +310,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "str-overlap-endpoints-indexof";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
       return "str-overlap-endpoints-replace";
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+      return "macro-str-component-ctn";
     case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
       return "macro-str-const-nctn-concat";
     case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
