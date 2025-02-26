@@ -244,11 +244,11 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser, uint64_t timeout)
       : d_ctx(ctx),
         d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
-        d_timeout(ctx.solver().getOptionInfo("tlimit").uintValue())
+        d_timeout(timeout)
   {
   }
 
@@ -458,10 +458,10 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
   if (total_timeout == 0)
   {
-    total_timeout = 1200;
+    total_timeout = 1'200'000; // miliseconds
   }
 
-  PortfolioProcessPool pool(ctx, d_parser);  // ctx.parseCommands(d_parser));
+  PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
 
   return pool.run(strategy);
 #else
