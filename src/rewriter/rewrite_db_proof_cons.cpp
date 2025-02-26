@@ -333,8 +333,7 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
                                  int64_t recLimit,
                                  int64_t stepLimit)
 {
-  // add one to recursion limit, since it is decremented whenever we
-  // initiate the getMatches routine.
+  // currently always add one to recursion limit
   d_currRecLimit = recLimit + 1;
   d_currStepLimit = stepLimit;
   RewriteProofStatus id;
@@ -364,7 +363,6 @@ RewriteProofStatus RewriteDbProofCons::proveInternal(const Node& eqi)
   d_currProving.insert(eqi);
   ++d_statTotalAttempts;
   // eqi should not hold trivially and should not be cached
-  Assert(d_currRecLimit > 0);
   Trace("rpc-debug2") << "proveInternal " << eqi << std::endl;
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
