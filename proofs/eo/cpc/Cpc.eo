@@ -368,42 +368,54 @@
 )
 
 
-; program: $get_annihilate
+; program: $is_annihilate_rec
 ; args:
 ; - f (-> T U U): The type of function we are searching over, expected to be right-assoc-nil.
 ; - t U: The term to compute whether it annilates.
 ; - zero U: The zero element of f.
 ; return: >
-;   zero, if it is found as a subterm of t beneath f-applications.
-(program $get_annihilate_rec ((T Type) (U Type) (f (-> T U U)) (a U) (b U) (zero U))
-  ((-> T U U) U U) U
+;   true, if zero is found as a subterm of t beneath f-applications.
+(program $is_annihilate_rec ((T Type) (U Type) (f (-> T U U)) (a U) (b U) (zero U))
+  ((-> T U U) U U) Bool
   (
-    (($get_annihilate_rec f zero zero)    zero)
-    (($get_annihilate_rec f (f a b) zero) (eo::ite (eo::is_eq ($get_annihilate_rec f a zero) zero)
-                                            zero
-                                            ($get_annihilate_rec f b zero)))
+    (($is_annihilate_rec f zero zero)    true)
+    (($is_annihilate_rec f (f a b) zero) (eo::ite ($is_annihilate_rec f a zero)
+                                            true
+                                            ($is_annihilate_rec f b zero)))
   )
 )
 
-; program: $get_annihilate
+; program: $get_zero
 ; args:
 ; - t S: The term to compute whether it annilates.
 ; return: >
 ;   The zero element for t, if it is found.
-(define $get_annihilate ((S Type :implicit) (t S))
+(define $get_zero ((S Type :implicit) (t S))
   (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list))
     t
     (
-    ((or x1 x2)        ($get_annihilate_rec or t true))
-    ((and x1 x2)       ($get_annihilate_rec and t false))
-    ((re.union x1 x2)  ($get_annihilate_rec re.union t re.all))
-    ((re.inter x1 x2)  ($get_annihilate_rec re.inter t re.none))
-    ((bvor xb1 xb2)    ($get_annihilate_rec bvor t ($bv_ones ($bv_bitwidth (eo::typeof xb1)))))
-    ((bvand xb1 xb2)   ($get_annihilate_rec bvand t (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0)))
+    ((or x1 x2)        true)
+    ((and x1 x2)       false)
+    ((re.union x1 x2)  re.all)
+    ((re.inter x1 x2)  re.none)
+    ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
+    ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
     )
   )
 )
+
+; define: $is_annihilate
+; args:
+; - t U: The term to compute whether it annilates.
+; - zero U: The zero element of the function of t.
+; return: >
+;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
+(define $is_annihilate ((S Type :implicit) (t S) (zero S))
+  (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
+  (eo::match ((T Type) (U Type) (f (-> T U U)) (t1 T) (t2 U))
+    t
+    (((f t1 t2) ($is_annihilate_rec f t zero))))))
 
 ; rule: annihilate
 ; implements: ProofRule::ANNIHILATE
@@ -414,7 +426,7 @@
 ; conclusion: The given equality.
 (declare-rule annihilate ((U Type) (t U) (zero U))
   :args ((= t zero))
-  :requires ((($get_annihilate t) zero))
+  :requires ((($is_annihilate t zero) true))
   :conclusion (= t zero)
 )
 
