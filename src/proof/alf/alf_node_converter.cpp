@@ -54,7 +54,9 @@ BaseAlfNodeConverter::BaseAlfNodeConverter(NodeManager* nm) : NodeConverter(nm)
 
 AlfNodeConverter::AlfNodeConverter(NodeManager* nm) : BaseAlfNodeConverter(nm)
 {
-  d_sortType = nm->mkSort("sortType");
+  // use builtin operator type as the type of sorts, which makes a difference
+  // e.g. for converting terms of kind SORT_TO_TERM.
+  d_sortType = nm->builtinOperatorType();
 }
 
 AlfNodeConverter::~AlfNodeConverter() {}
@@ -155,7 +157,7 @@ Node AlfNodeConverter::postConvert(Node n)
     // must ensure we print higher-order function applications with "_"
     if (!n.getOperator().isVar())
     {
-    TypeNode tn = n.getType();
+      TypeNode tn = n.getType();
       std::vector<Node> args;
       args.push_back(n.getOperator());
       args.insert(args.end(), n.begin(), n.end());
@@ -321,6 +323,10 @@ Node AlfNodeConverter::postConvert(Node n)
     // https://github.com/cvc5/cvc5-wishues/issues/156: if the smt2 printer
     // is refactored to silently ignore this kind, this case can be deleted.
     return n[0];
+  }
+  else if (k == Kind::SORT_TO_TERM)
+  {
+    return typeAsNode(n.getConst<SortToTerm>().getType());
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {
@@ -524,17 +530,14 @@ Node AlfNodeConverter::getOperatorOfTerm(Node n)
         size_t index = DType::indexOf(op);
         const DType& dt = DType::datatypeOf(op);
         size_t cindex = DType::cindexOf(op);
-        opName << "update";
         if (dt.isTuple())
         {
-          std::vector<Node> args;
-          args.push_back(d_nm->mkConstInt(cindex));
-          Node ssym = mkInternalApp(
-              "tuple.select", args, dt[cindex][index].getSelector().getType());
-          indices.push_back(ssym);
+          opName << "tuple.update";
+          indices.push_back(d_nm->mkConstInt(index));
         }
         else
         {
+          opName << "update";
           indices.push_back(dt[cindex][index].getSelector());
         }
       }

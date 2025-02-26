@@ -106,6 +106,9 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
     }
     else
     {
+      // should not eliminate shadowing from lambda, since order of variables
+      // matters.
+      Assert(q.getKind() != Kind::LAMBDA);
       Node vn = getElimShadowVar(q, q, i);
       vars.push_back(vn);
       childChanged = true;

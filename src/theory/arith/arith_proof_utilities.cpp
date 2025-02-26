@@ -22,22 +22,25 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Pf>& pfs,
                                      const std::vector<Node>& coeffs)
 {
   Assert(pfs.size() == coeffs.size());
+
   std::vector<Node> premises;
   for (const Pf& p : pfs)
   {
     premises.push_back(p->getResult());
   }
-  return getMacroSumUbCoeff(premises, coeffs);
+  return getMacroSumUbCoeff(nm, premises, coeffs);
 }
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Node>& premises,
                                      const std::vector<Node>& coeffs)
 {
   Assert(premises.size() == coeffs.size());
-  NodeManager* nm = NodeManager::currentNM();
+
   std::vector<Node> ret;
   TypeNode itype = nm->integerType();
   TypeNode rtype = nm->realType();
@@ -56,7 +59,8 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Node>& premises,
   return ret;
 }
 
-Node expandMacroSumUb(const std::vector<Node>& children,
+Node expandMacroSumUb(NodeManager* nm,
+                      const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp)
 {
@@ -70,7 +74,6 @@ Node expandMacroSumUb(const std::vector<Node>& children,
     Trace("macro::arith") << "   args: " << args << std::endl;
   }
   Assert(args.size() == children.size());
-  NodeManager* nm = NodeManager::currentNM();
   ProofStepBuffer steps{cdp->getManager()->getChecker()};
 
   // Scale all children, accumulating

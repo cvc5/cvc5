@@ -90,7 +90,9 @@ poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
  * multiplications with one or use NONLINEAR_MULT where regular MULT may be
  * sufficient), so it may be sensible to rewrite it afterwards.
  */
-cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
+cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
+                                       const poly::Polynomial& p,
+                                       VariableMapper& vm);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
@@ -176,11 +178,11 @@ class PolyConverter
   /**
    * Get the lower bound for the given ran, which is a constant real.
    */
-  static Node ran_to_lower(const RealAlgebraicNumber& ran);
+  static Node ran_to_lower(NodeManager* nm, const RealAlgebraicNumber& ran);
   /**
    * Get the upper bound for the given ran, which is a constant real.
    */
-  static Node ran_to_upper(const RealAlgebraicNumber& ran);
+  static Node ran_to_upper(NodeManager* nm, const RealAlgebraicNumber& ran);
 
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
   static RealAlgebraicNumber node_to_ran(const Node& n,
