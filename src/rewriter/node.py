@@ -130,6 +130,7 @@ class Op(Enum):
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
     IS_INT = ('is_int', 'IS_INTEGER')
+    DIVISIBLE = ('divisible', 'DIVISIBLE')
     
     SINE = ('sin', 'SINE')
     COSINE = ('cos', 'COSINE')

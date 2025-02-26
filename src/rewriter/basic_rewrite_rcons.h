@@ -228,6 +228,26 @@ class BasicRewriteRCons : protected EnvObj
                                const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_COMPONENT_CTN.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_COMPONENT_CTN.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrComponentCtn(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrConstNCtnConcat(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION.
    *
    * @param cdp The proof to add to.
@@ -276,6 +296,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroQuantVarElimEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroDtVarExpand(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MINISCOPE.

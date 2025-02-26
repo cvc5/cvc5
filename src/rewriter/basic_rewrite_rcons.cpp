@@ -33,6 +33,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -244,6 +245,18 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+      if (ensureProofMacroStrComponentCtn(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+      if (ensureProofMacroStrConstNCtnConcat(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
     case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
       if (ensureProofMacroStrInReInclusion(cdp, eq))
       {
@@ -270,6 +283,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
       if (ensureProofMacroQuantVarElimEq(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+      if (ensureProofMacroDtVarExpand(cdp, eq))
       {
         handledMacro = true;
       }
@@ -1455,6 +1474,143 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   return true;
 }
 
+bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
+                                                        const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro str component ctn " << eq << std::endl;
+  Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
+  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::StringsEntail se(nullptr, ae);
+  std::vector<Node> nc1, nc2;
+  theory::strings::utils::getConcat(eq[0][0], nc1);
+  theory::strings::utils::getConcat(eq[0][1], nc2);
+  std::vector<Node> nc1rb, nc1re;
+  if (se.componentContains(nc1, nc2, nc1rb, nc1re, true) == -1)
+  {
+    return false;
+  }
+  Trace("brc-macro") << "...paritioned to " << nc1rb << " " << nc1 << " "
+                     << nc1re << std::endl;
+  // group the LHS so that it contains the RHS verbatim as the middle child
+  // for example (str.contains (str.++ x y z w) (str.++ y z)) --->
+  // (str.contains (str.++ x (str.++ y z) w) (str.++ y z))
+  TypeNode stype = eq[0][0].getType();
+  NodeManager* nm = nodeManager();
+  std::vector<Node> cc;
+  if (!nc1rb.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1rb, stype));
+  }
+  if (!nc1.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1, stype));
+  }
+  if (!nc1re.empty())
+  {
+    cc.push_back(theory::strings::utils::mkConcat(nc1re, stype));
+  }
+  Node cg = theory::strings::utils::mkConcat(cc, stype);
+  Node equiv = eq[0][0].eqNode(cg);
+  cdp->addTrustedStep(
+      equiv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(eq[0], cargs);
+  Node refl = eq[0][1].eqNode(eq[0][1]);
+  Node ctng = nm->mkNode(Kind::STRING_CONTAINS, cg, eq[0][1]);
+  Node eq1 = eq[0].eqNode(ctng);
+  cdp->addStep(refl, ProofRule::REFL, {}, {eq[0][1]});
+  cdp->addStep(eq1, cr, {equiv, refl}, cargs);
+  Node eq2 = ctng.eqNode(eq[1]);
+  cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {eq1, eq2}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroStrConstNCtnConcat(CDProof* cdp,
+                                                           const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro str const nctn concat " << eq
+                     << std::endl;
+  Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
+  NodeManager* nm = nodeManager();
+  // We assume eq[0] is true and derive a contradiction. This is based
+  // on (str.contains s t) => (= s (str.++ k1 t k2)) by string eager reduction,
+  // (str.++ k1 t k2) in (re.++ Sigma* (str.to_re t) Sigma*) and
+  // ~ s in (re.++ Sigma* (str.to_re t) Sigma*).
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node er = pc->checkDebug(ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
+  Assert(!er.isNull());
+  cdp->addStep(er, ProofRule::STRING_EAGER_REDUCTION, {}, {eq[0]});
+  Trace("brc-macro") << "...eager reduce: " << er << std::endl;
+  Node truen = nm->mkConst(true);
+  Node eqt = eq[0].eqNode(truen);
+  cdp->addStep(eqt, ProofRule::TRUE_INTRO, {eq[0]}, {});
+  Node eqi = proveCong(cdp, er, {eqt});
+  if (eqi.isNull())
+  {
+    Trace("brc-macro") << "...failed cong" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Trace("brc-macro") << "...cong " << eqi << std::endl;
+  AlwaysAssert(eqi[1].getKind() == Kind::ITE);
+  Node eqi2 = eqi[1].eqNode(eqi[1][1]);
+  cdp->addTrustedStep(eqi2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+
+  Node ere = er.eqNode(eqi[1][1]);
+  cdp->addStep(ere, ProofRule::TRANS, {eqi, eqi2}, {});
+  cdp->addStep(eqi[1][1], ProofRule::EQ_RESOLVE, {er, ere}, {});
+
+  // flatten
+  Node concat = eqi[1][1][1];
+  AlwaysAssert(concat.getKind() == Kind::STRING_CONCAT
+               && concat.getNumChildren() == 3);
+  std::vector<Node> cc;
+  cc.push_back(concat[0]);
+  cc.insert(cc.end(), concat[1].begin(), concat[1].end());
+  cc.push_back(concat[2]);
+  Node cf = nm->mkNode(Kind::STRING_CONCAT, cc);
+  Node eqa = concat.eqNode(cf);
+  if (!cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa}))
+  {
+    Trace("brc-macro") << "...failed ACI" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Node eqsf = eqi[1][1][0].eqNode(cf);
+  cdp->addStep(eqsf, ProofRule::TRANS, {eqi[1][1], eqa}, {});
+  Node eqsfs = proveSymm(cdp, eqsf);
+  Trace("brc-macro") << "Have : " << eqsfs << std::endl;
+
+  Node mem = proveGeneralReMembership(cdp, cf);
+  Trace("brc-macro") << "Membership : " << mem << std::endl;
+
+  Node memc = proveCong(cdp, mem, {eqsfs});
+  Trace("brc-macro") << "Cong membership : " << memc << std::endl;
+
+  theory::Rewriter* rr = d_env.getRewriter();
+  Node res = rr->rewriteViaRule(ProofRewriteRule::STR_IN_RE_EVAL, memc[1]);
+  if (res.isNull() || res != eq[1])
+  {
+    Trace("brc-macro") << "...failed str in eval" << std::endl;
+    Assert(false);
+    return false;
+  }
+  Node eqf = memc[1].eqNode(res);
+  cdp->addTheoryRewriteStep(eqf, ProofRewriteRule::STR_IN_RE_EVAL);
+
+  Node meqf = mem.eqNode(eq[1]);
+  cdp->addStep(meqf, ProofRule::TRANS, {memc, eqf}, {});
+
+  cdp->addStep(eq[1], ProofRule::EQ_RESOLVE, {mem, meqf}, {});
+
+  Node nctn = eq[0].notNode();
+  cdp->addStep(nctn, ProofRule::SCOPE, {eq[1]}, {eq[0]});
+  cdp->addStep(eq, ProofRule::FALSE_INTRO, {nctn}, {});
+
+  return true;
+}
+
 bool BasicRewriteRCons::ensureProofMacroStrInReInclusion(CDProof* cdp,
                                                          const Node& eq)
 {
@@ -1517,7 +1673,6 @@ bool BasicRewriteRCons::ensureProofMacroStrInReInclusion(CDProof* cdp,
   cdp->addStep(eq, ProofRule::TRUE_INTRO, {eq[0]}, {});
   return true;
 }
-
 bool BasicRewriteRCons::ensureProofMacroQuantMergePrenex(CDProof* cdp,
                                                          const Node& eq)
 {
@@ -1984,6 +2139,27 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimEq(CDProof* cdp,
   Node beq = body1.eqNode(body2);
   cdp->addStep(beq, ProofRule::TRANS, finalTransEq, {});
   return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroDtVarExpand(CDProof* cdp,
+                                                    const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro dt var expand " << eq << std::endl;
+  // just need to find the index
+  size_t index;
+  Node qn = theory::quantifiers::QuantifiersRewriter::computeDtVarExpand(
+      nodeManager(), eq[0], index);
+  if (qn == eq[1])
+  {
+    // use the utility to get the proof
+    std::shared_ptr<ProofNode> pfn =
+        theory::quantifiers::QuantDSplit::getQuantDtSplitProof(
+            d_env, eq[0], index);
+    Assert(pfn->getResult() == eq);
+    cdp->addProof(pfn);
+    return true;
+  }
+  return false;
 }
 
 bool BasicRewriteRCons::ensureProofMacroQuantMiniscope(CDProof* cdp,
