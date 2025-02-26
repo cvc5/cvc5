@@ -527,7 +527,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   PortfolioStrategy s;
   if (isOneOf(logic, "QF_LRA"))
   {
-    s.add(0.2)
+    s.add(0.166666667)
         .set("miplib-trick")
         .set("miplib-trick-subs", "4")
         .set("use-approx")
@@ -563,41 +563,41 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_NIA"))
   {
-    s.add(0.42)
+    s.add(0.35)
         .set("nl-ext-tplanes")
         .set("decision", "justification")
         .set("fp-exp");
-    s.add(0.06)
+    s.add(0.05)
         .set("nl-ext-tplanes")
         .set("decision", "internal")
         .set("fp-exp");
-    s.add(0.06)
+    s.add(0.05)
         .unset("nl-ext-tplanes")
         .set("decision", "internal")
         .set("fp-exp");
-    s.add(0.06)
+    s.add(0.05)
         .unset("arith-brab")
         .set("nl-ext-tplanes")
         .set("decision", "internal")
         .set("fp-exp");
     // totals to more than 100%, but smaller bit-widths usually fail quickly
-    s.add(0.3)
+    s.add(0.25)
         .set("solve-int-as-bv", "2")
         .set("bitblast", "eager")
         .set("fp-exp");
-    s.add(0.3)
+    s.add(0.25)
         .set("solve-int-as-bv", "4")
         .set("bitblast", "eager")
         .set("fp-exp");
-    s.add(0.3)
+    s.add(0.25)
         .set("solve-int-as-bv", "8")
         .set("bitblast", "eager")
         .set("fp-exp");
-    s.add(0.3)
+    s.add(0.25)
         .set("solve-int-as-bv", "16")
         .set("bitblast", "eager")
         .set("fp-exp");
-    s.add(0.6)
+    s.add(0.5)
         .set("solve-int-as-bv", "32")
         .set("bitblast", "eager")
         .set("fp-exp");
@@ -605,8 +605,8 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_NRA"))
   {
-    s.add(0.6).set("decision", "justification").set("fp-exp");
-    s.add(0.3)
+    s.add(0.5).set("decision", "justification").set("fp-exp");
+    s.add(0.25)
         .set("decision", "internal")
         .unset("nl-cov")
         .set("nl-ext", "full")
@@ -639,66 +639,66 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
                    "UFFPDTNIRA"))
   {
     // initial runs
-    s.add(0.03).set("simplification", "none").set("enum-inst").set("fp-exp");
-    s.add(0.03).unset("e-matching").set("enum-inst").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("simplification", "none").set("enum-inst").set("fp-exp");
+    s.add(0.025).unset("e-matching").set("enum-inst").set("fp-exp");
+    s.add(0.025)
         .unset("e-matching")
         .set("enum-inst")
         .set("enum-inst-sum")
         .set("fp-exp");
     // trigger selections
-    s.add(0.03).set("relevant-triggers").set("enum-inst").set("fp-exp");
-    s.add(0.03).set("trigger-sel", "max").set("enum-inst").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("relevant-triggers").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("trigger-sel", "max").set("enum-inst").set("fp-exp");
+    s.add(0.025)
         .set("multi-trigger-when-single")
         .set("enum-inst")
         .set("fp-exp");
-    s.add(0.03)
+    s.add(0.025)
         .set("multi-trigger-when-single")
         .set("multi-trigger-priority")
         .set("enum-inst")
         .set("fp-exp");
-    s.add(0.03).set("multi-trigger-cache").set("enum-inst").set("fp-exp");
-    s.add(0.03).unset("multi-trigger-linear").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("multi-trigger-cache").set("enum-inst").set("fp-exp");
+    s.add(0.025).unset("multi-trigger-linear").set("enum-inst").set("fp-exp");
     // other
-    s.add(0.03).set("pre-skolem-quant", "on").set("enum-inst").set("fp-exp");
-    s.add(0.03).set("inst-when", "full").set("enum-inst").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("pre-skolem-quant", "on").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("inst-when", "full").set("enum-inst").set("fp-exp");
+    s.add(0.025)
         .unset("e-matching")
         .unset("cbqi")
         .set("enum-inst")
         .set("fp-exp");
-    s.add(0.03).set("enum-inst").set("quant-ind").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("enum-inst").set("quant-ind").set("fp-exp");
+    s.add(0.025)
         .set("decision", "internal")
         .set("simplification", "none")
         .unset("inst-no-entail")
         .unset("cbqi")
         .set("enum-inst")
         .set("fp-exp");
-    s.add(0.03)
+    s.add(0.025)
         .set("decision", "internal")
         .set("enum-inst")
         .set("enum-inst-sum")
         .set("fp-exp");
-    s.add(0.03).set("term-db-mode", "relevant").set("enum-inst").set("fp-exp");
-    s.add(0.03).set("enum-inst-interleave").set("enum-inst").set("fp-exp");
-    s.add(0.03).set("preregister-mode", "lazy").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("term-db-mode", "relevant").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("enum-inst-interleave").set("enum-inst").set("fp-exp");
+    s.add(0.025).set("preregister-mode", "lazy").set("enum-inst").set("fp-exp");
     // finite model find
-    s.add(0.03).set("finite-model-find").set("fmf-mbqi", "none").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("finite-model-find").set("fmf-mbqi", "none").set("fp-exp");
+    s.add(0.025)
         .set("finite-model-find")
         .set("decision", "internal")
         .set("fp-exp");
-    s.add(0.03)
+    s.add(0.025)
         .set("finite-model-find")
         .set("macros-quant")
         .set("macros-quant-mode", "all")
         .set("fp-exp");
-    s.add(0.06).set("finite-model-find").set("e-matching").set("fp-exp");
-    s.add(0.06).set("mbqi").set("fp-exp");
+    s.add(0.05).set("finite-model-find").set("e-matching").set("fp-exp");
+    s.add(0.05).set("mbqi").set("fp-exp");
     // long runs
-    s.add(0.18)
+    s.add(0.15)
         .set("finite-model-find")
         .set("decision", "internal")
         .set("fp-exp");
@@ -707,19 +707,19 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   else if (isOneOf(logic, "UFBV"))
   {
     // most problems in UFBV are essentially BV
-    s.add(0.15).set("sygus-inst").set("fp-exp");
-    s.add(0.15).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
-    s.add(0.3)
+    s.add(0.125).set("sygus-inst").set("fp-exp");
+    s.add(0.125).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
+    s.add(0.25)
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal")
         .set("fp-exp");
-    s.add(0.3)
+    s.add(0.25)
         .set("mbqi-enum")
         .unset("cegqi")
         .unset("sygus-inst")
         .set("fp-exp");
-    s.add(0.03)
+    s.add(0.025)
         .set("enum-inst")
         .unset("cegqi-innermost")
         .set("global-negate")
@@ -729,20 +729,20 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "ABV", "BV"))
   {
-    s.add(0.08).set("enum-inst").set("fp-exp");
-    s.add(0.08).set("sygus-inst").set("fp-exp");
-    s.add(0.08).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
-    s.add(0.3)
+    s.add(0.066666667).set("enum-inst").set("fp-exp");
+    s.add(0.066666667).set("sygus-inst").set("fp-exp");
+    s.add(0.066666667).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
+    s.add(0.25)
         .set("mbqi-enum")
         .unset("cegqi")
         .unset("sygus-inst")
         .set("fp-exp");
-    s.add(0.3)
+    s.add(0.25)
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal").set("fp-exp");
-    s.add(0.03).set("enum-inst").unset("cegqi-bv").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("enum-inst").unset("cegqi-bv").set("fp-exp");
+    s.add(0.025)
         .set("enum-inst")
         .set("cegqi-bv-ineq", "eq-slack")
         .set("fp-exp");
@@ -750,21 +750,21 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA", "BVFPLRA"))
   {
-    s.add(0.3)
+    s.add(0.25)
         .set("mbqi-enum")
         .unset("cegqi")
         .unset("sygus-inst")
         .set("fp-exp");
-    s.add(0.3).set("enum-inst").set("nl-ext-tplanes").set("fp-exp");
-    s.add(0.06).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
+    s.add(0.25).set("enum-inst").set("nl-ext-tplanes").set("fp-exp");
+    s.add(0.05).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
     s.add().set("sygus-inst");
   }
   else if (isOneOf(logic, "LIA", "LRA"))
   {
-    s.add(0.03).set("enum-inst").set("fp-exp");
-    s.add(0.3).set("enum-inst").set("cegqi-nested-qe").set("fp-exp");
-    s.add(0.03).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
-    s.add(0.03)
+    s.add(0.025).set("enum-inst").set("fp-exp");
+    s.add(0.25).set("enum-inst").set("cegqi-nested-qe").set("fp-exp");
+    s.add(0.025).set("mbqi").unset("cegqi").unset("sygus-inst").set("fp-exp");
+    s.add(0.025)
         .set("mbqi-enum")
         .unset("cegqi")
         .unset("sygus-inst")
@@ -776,17 +776,17 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_AUFBV"))
   {
-    s.add(0.6).set("fp-exp");
+    s.add(0.5).set("fp-exp");
     s.add().set("decision", "stoponly");
   }
   else if (isOneOf(logic, "QF_ABV"))
   {
-    s.add(0.05)
+    s.add(0.041666667)
         .set("ite-simp")
         .set("simp-with-care")
         .set("repeat-simp")
         .set("fp-exp");
-    s.add(0.5).set("fp-exp");
+    s.add(0.416666667).set("fp-exp");
     s.add()
         .set("ite-simp")
         .set("simp-with-care")
@@ -819,7 +819,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_ALIA"))
   {
-    s.add(0.14).set("decision", "justification").set("fp-exp");
+    s.add(0.116666667).set("decision", "justification").set("fp-exp");
     s.add()
         .set("decision", "stoponly")
         .unset("arrays-eager-index")
@@ -827,7 +827,7 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_S", "QF_SLIA"))
   {
-    s.add(0.3)
+    s.add(0.25)
         .set("strings-exp")
         .set("strings-fmf")
         .unset("jh-rlv-order")
