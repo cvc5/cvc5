@@ -111,7 +111,7 @@ UFBV)
   trywith 150 --sygus-inst
   trywith 150 --mbqi --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --cegqi-nested-qe --decision=internal
-  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
+  trywith 300 --mbqi-enum --no-cegqi --no-sygus-inst
   trywith 30 --enum-inst --no-cegqi-innermost --global-negate
   finishwith --finite-model-find
   ;;
@@ -119,7 +119,7 @@ ABV|BV)
   trywith 80 --enum-inst
   trywith 80 --sygus-inst
   trywith 80 --mbqi --no-cegqi --no-sygus-inst
-  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
+  trywith 300 --mbqi-enum --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --cegqi-nested-qe --decision=internal
   trywith 30 --enum-inst --no-cegqi-bv
   trywith 30 --enum-inst --cegqi-bv-ineq=eq-slack
@@ -127,7 +127,7 @@ ABV|BV)
   finishwith --enum-inst --no-cegqi-innermost --global-negate
   ;;
 ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA|BVFPLRA)
-  trywith 300 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
+  trywith 300 --mbqi-enum --no-cegqi --no-sygus-inst
   trywith 300 --enum-inst --nl-ext-tplanes
   trywith 60 --mbqi --no-cegqi --no-sygus-inst
   finishwith --sygus-inst
@@ -136,7 +136,7 @@ LIA|LRA)
   trywith 30 --enum-inst
   trywith 300 --enum-inst --cegqi-nested-qe
   trywith 30 --mbqi --no-cegqi --no-sygus-inst
-  trywith 30 --mbqi-fast-sygus --no-cegqi --no-sygus-inst
+  trywith 30 --mbqi-enum --no-cegqi --no-sygus-inst
   finishwith --enum-inst --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)

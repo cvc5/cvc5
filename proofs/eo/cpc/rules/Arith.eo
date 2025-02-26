@@ -3,6 +3,7 @@
 (include "../theories/Ints.eo")
 (include "../programs/Arith.eo")
 (include "../programs/Utils.eo")
+(include "../programs/PolyNorm.eo")
 
 ;;;;; ProofRule::ARITH_SUM_UB
 
@@ -459,6 +460,81 @@
 (declare-rule arith_reduction ((T Type) (t T))
   :args (t)
   :conclusion ($arith_reduction_pred t)
+)
+
+;;;;; ProofRule::ARITH_POLY_NORM
+
+; rule: arith_poly_norm
+; implements: ProofRule::ARITH_POLY_NORM
+; args:
+; - a U: The left-hand side of the equality.
+; - b U: The right-hand side of the equality.
+; requires: >
+;   That the arithmetic terms a and b are equal up polynomial normalization.
+; conclusion: The given equality.
+(declare-rule arith_poly_norm ((U Type) (a U) (b U))
+  :args ((= a b))
+  :requires ((($get_arith_poly_norm a) ($get_arith_poly_norm b)))
+  :conclusion (= a b)
+)
+
+;;;;; ProofRule::ARITH_POLY_NORM_REL
+
+; program: $is_poly_norm_rel_consts
+; args:
+; - b Bool: >
+;   a formula of the form (r cx cy) where r is a binary relation and cx and
+;   cy are scaling factors.
+; return: >
+;   The result of checking if r is a polynomial normalization relation for a
+;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
+;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
+;   scaling factors must have the same sign. Returns false for any other relation.
+(program $is_poly_norm_rel_consts ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+  (Bool) Bool
+  (
+    (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (= cx cy))  true)
+    (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts b)          false)
+  )
+)
+
+; program: $remove_to_real
+; args:
+; - t U: The term to process.
+; return: The result of removing an application of to_real from t, if applicable.
+(program $remove_to_real ((U Type) (x U) (T Type))
+  (U) T
+  (
+  (($remove_to_real (to_real x)) x)
+  (($remove_to_real x)           x)
+  )
+)
+
+; rule: arith_poly_norm_rel
+; implements: ProofRule::ARITH_POLY_NORM_REL
+; premises:
+; - eq Bool: >
+;   An equality stating that terms t and s of the form (- x1 x2) and (- y1 y2)
+;   are equal modulo polynomial normalization and some scaling factors. These
+;   terms may be of arithmetic or bitvector type.
+; args:
+; - eqr Bool: The equivalence between relations, proven by this rule.
+; requires: >
+;  The constants for this rule are legal, x is equivalent to x1-x2, and y is
+;  equivalent to y1-y2.
+; conclusion: >
+;   An equivalence between relations specified by eqr and justified by eq.
+(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U))
+  :premises ((= (* cx x) (* cy y)))
+  :args ((= (r x1 x2) (r y1 y2)))
+  :requires ((($is_poly_norm_rel_consts (r cx cy)) true)
+             (($remove_to_real x) (- x1 x2))
+             (($remove_to_real y) (- y1 y2)))
+  :conclusion (= (r x1 x2) (r y1 y2))
 )
 
 ;;;;; ProofRewriteRule::ARITH_POW_ELIM

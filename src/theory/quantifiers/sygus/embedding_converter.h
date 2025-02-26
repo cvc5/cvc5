@@ -54,6 +54,10 @@ class EmbeddingConverter : protected EnvObj
    * to synthesis must be of the form
    *   templates[i]{ templates_arg[i] -> t }
    * for some t if !templates[i].isNull().
+   *
+   * This may return null if we are unable to construct a well founded
+   * grammar for a function-to-synthesize, which indicates that it is not
+   * possible to process this quantified formula with SyGuS.
    */
   Node process(Node q,
                const std::map<Node, Node>& templates,

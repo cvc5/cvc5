@@ -1,0 +1,12 @@
+; trancendentals
+
+(define-rule arith-sine-zero () (sin 0/1) 0/1)
+(define-rule arith-sine-pi2 () (sin (* 1/2 real.pi)) 1/1)
+(define-rule arith-cosine-elim ((x Real)) (cos x) (sin (- (* 1/2 real.pi) x)))
+(define-rule arith-tangent-elim ((x Real)) (tan x) (/ (sin x) (cos x)))
+(define-rule arith-secent-elim ((x Real)) (sec x) (/ 1/1 (sin x)))
+(define-rule arith-cosecent-elim ((x Real)) (csc x) (/ 1/1 (cos x)))
+(define-rule arith-cotangent-elim ((x Real)) (cot x) (/ (cos x) (sin x)))
+
+(define-rule arith-pi-not-int () (is_int real.pi) false)
+
