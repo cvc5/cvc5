@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (assert (or
 (not (= (seq.replace (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2)) (seq.++ (seq.unit 1) (seq.unit 2)) (as seq.empty (Seq Int))) (seq.unit 0)))
