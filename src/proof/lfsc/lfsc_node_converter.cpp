@@ -1116,7 +1116,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         || k == Kind::SUB || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
         || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-        || k == Kind::NEG || k == Kind::POW)
+        || k == Kind::NEG || k == Kind::POW || k == Kind::DIVISIBLE)
     {
       // currently allow subtyping
       opName << "a.";
