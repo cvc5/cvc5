@@ -2459,6 +2459,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Bitvector invert solve**
+   *
+   * .. math::
+   *   ((t_1 = t_2) = (x = r)) = \top
+   *
+   * where :math:`x` occurs on an invertible path in :math:`t_1 = t_2`
+   * and has solved form :math:`r`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_BV_INVERT_SOLVE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Integer equality conflict**
    *
    * .. math::
