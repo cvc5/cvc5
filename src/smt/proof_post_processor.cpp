@@ -961,7 +961,8 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   }
   else if (id == ProofRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Node sumBounds = theory::arith::expandMacroSumUb(children, args, cdp);
+    Node sumBounds =
+        theory::arith::expandMacroSumUb(nodeManager(), children, args, cdp);
     Assert(!sumBounds.isNull());
     Assert(res.isNull() || sumBounds == res);
     return sumBounds;

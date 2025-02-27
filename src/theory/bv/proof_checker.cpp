@@ -16,6 +16,7 @@
 #include "theory/bv/proof_checker.h"
 
 #include "theory/arith/arith_poly_norm.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
 namespace cvc5::internal {
@@ -108,10 +109,8 @@ Node BVProofRuleChecker::checkInternal(ProofRule id,
     if (cx.getKind() == Kind::CONST_BITVECTOR
         && cy.getKind() == Kind::CONST_BITVECTOR)
     {
-      BitVector c1 = cx.getConst<BitVector>();
-      BitVector c2 = cy.getConst<BitVector>();
-      BitVector one = BitVector::mkOne(c1.getSize());
-      if (c1 != one || c2 != one)
+      // must be odd
+      if (!bv::utils::getBit(cx, 0) || !bv::utils::getBit(cy, 0))
       {
         return Node::null();
       }

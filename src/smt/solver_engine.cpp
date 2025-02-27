@@ -190,7 +190,8 @@ void SolverEngine::finishInit()
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
   }
-  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  if (d_env->isOutputOn(OutputTag::RARE_DB)
+      || d_env->isOutputOn(OutputTag::RARE_DB_EXPERT))
   {
     if (!d_env->getOptions().smt.produceProofs
         || options().proof.proofGranularityMode
@@ -1029,9 +1030,8 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    NodeManager* nm = d_env->getNodeManager();
     gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
-        nm, asserts, nvars);
+        *d_env.get(), asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"

@@ -1105,6 +1105,9 @@ void TheoryStrings::computeCareGraph()
     }
     if( has_trigger_arg ){
       TypeNode ft = utils::getOwnerStringType(f1);
+      AlwaysAssert(ft.isStringLike())
+          << "Unexpected term in getOwnerStringType : " << f1 << ", type "
+          << ft;
       std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
       index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();

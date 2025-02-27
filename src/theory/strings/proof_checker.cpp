@@ -113,27 +113,6 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Node currS = svec[isRev ? (nchilds - 1 - index) : index];
         if (currT != currS)
         {
-          if (currT.isConst() && currS.isConst())
-          {
-            size_t sindex;
-            // get the equal prefix/suffix, strip and add the remainders
-            Node currR = Word::splitConstant(currT, currS, sindex, isRev);
-            if (!currR.isNull())
-            {
-              // add the constant to remainder vec
-              std::vector<Node>& rem = sindex == 0 ? tremVec : sremVec;
-              rem.push_back(currR);
-              // ignore the current component
-              index++;
-              // In other words, if we have (currS,currT) = ("ab","abc"), then
-              // we proceed to the next component and add currR = "c" to
-              // tremVec.
-            }
-            // otherwise if we are not the same prefix, then both will be added
-            // Notice that we do not add maximal prefixes, in other words,
-            // ("abc", "abd") may be added to the remainder vectors, and not
-            // ("c", "d").
-          }
           break;
         }
         index++;
@@ -174,18 +153,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         {
           continue;
         }
-        // could be a spliced constant
-        bool success = false;
-        if (term.isConst() && l[0].isConst())
-        {
-          size_t lenL = Word::getLength(l[0]);
-          success = (isRev && l[0] == Word::suffix(term, lenL))
-                    || (!isRev && l[0] == Word::prefix(term, lenL));
-        }
-        if (!success)
-        {
-          return Node::null();
-        }
+        return Node::null();
       }
       return children[1][0][0].eqNode(children[1][1][0]);
     }
@@ -193,17 +161,14 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
              || id == ProofRule::CONCAT_CONFLICT_DEQ)
     {
       Assert(children.size() >= 1 && children.size() <= 2);
-      if (!t0.isConst() || !s0.isConst())
+      if (!t0.isConst() || !s0.isConst() || t0 == s0)
       {
         // not constants
         return Node::null();
       }
-      size_t sindex;
-      Node r0 = Word::splitConstant(t0, s0, sindex, isRev);
-      if (!r0.isNull())
+      if (Word::getLength(t0) != Word::getLength(s0))
       {
-        // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
-        // versa.
+        // Not a conflict due to constants if not the same length
         return Node::null();
       }
       // if a disequality was provided, ensure that it is correct
@@ -248,7 +213,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || !s0.getType().isStringLike() || Word::isEmpty(s0))
+      // note we guard that the length must be one here, despite
+      // CoreSolver::getConclusion allow splicing below.
+      if (!s0.isConst() || !s0.getType().isStringLike()
+          || Word::getLength(s0) != 1)
       {
         return Node::null();
       }

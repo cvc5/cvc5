@@ -1,0 +1,112 @@
+; =============================================================================
+;
+; This file defines a compilation of sequence values to strings. A sequence
+; value is a concatenation of sequence characters (seq.unit c) where c is itself
+; a value. Each sequence character is mapped to unique string character. This
+; mapping is done is such a way that each sequence character
+;   (seq.unit c1) ... (seq.unit cn)
+; are such that c1 ... cn denote provably distinct terms (see DistinctValues.eo).
+; If this is not the case, then the side conditions below will not evaluate.
+;
+; The mapping from sequence characters to string characters is arbitrary, in
+; particular, the first sequence character is assigned the code point 0, the
+; second 1, and so on. This mapping can be tracked as a pair of parallel lists
+; e.g. if it is necessary to convert from the string back to its corresponding
+; sequence.
+;
+; It is also important to note that these methods will not evaluate if the term
+; to convert contains a number of sequence characters more than the number of
+; code points allowed by SMT-LIB string literals (196608).
+;
+; =============================================================================
+
+
+(include "Utils.eo")
+(include "DistinctValues.eo")
+
+(include "../theories/Datatypes.eo")
+
+; program: $seq_to_string_rec
+; args:
+; - t (Seq T): a sequence term, expected to be a sequence value.
+; - s String: the accumulated string we have converted so far.
+; - units @List: an accumulated list of sequence characters we have converted.
+; - chars @List: an accumulated list of string literals of size one corresponding to the conversion of units.
+; - n Int: the length of units/chars.
+; return: >
+;   A tuple containing the result of converting t, and the substitution
+;   (units and chars) that was used to convert it.
+(program $seq_to_string_rec ((T Type) (t T) (ss (Seq T) :list) (s String) (units @List) (chars @List) (n Int))
+  ((Seq T) String @List @List Int) (Tuple String @List @List)
+  (
+    (($seq_to_string_rec (seq.unit t) s units chars n)              (eo::define ((u (seq.unit t)))
+                                                                    ($seq_to_string_rec (eo::cons seq.++ u (@seq.empty (eo::typeof u))) s units chars n)))
+    (($seq_to_string_rec (seq.++ (seq.unit t) ss) s units chars n)  (eo::define ((u (seq.unit t)))
+                                                                    (eo::define ((id (eo::list_find @list units u)))
+                                                                    (eo::ite (eo::is_neg id)
+                                                                      ; allocate new
+                                                                      ; requires proving that the current character is distinct from all others
+                                                                      (eo::requires ($are_distinct_terms_list_rec u units (eo::typeof u)) true
+                                                                        (eo::define ((nchar (eo::to_str n)))
+                                                                        ($seq_to_string_rec
+                                                                          ss
+                                                                          (eo::concat s nchar)
+                                                                          (eo::cons @list u units)
+                                                                          (eo::cons @list nchar chars)
+                                                                          (eo::add n 1))))
+                                                                      ; already allocated
+                                                                      ($seq_to_string_rec
+                                                                        ss
+                                                                        (eo::concat s (eo::to_str (eo::add (eo::list_len @list units) (eo::neg id) -1)))
+                                                                        units
+                                                                        chars
+                                                                        n)))))
+    (($seq_to_string_rec (@seq.empty T) s units chars n)            (tuple s units chars))
+  )
+)
+
+; program: $seq_to_string
+; args:
+; - t (Seq T): a sequence term, expected to be a sequence value.
+; return: >
+;   The result of converting t to a string based on the above method.
+(define $seq_to_string ((T Type :implicit) (s (Seq T)))
+  (eo::ite (eo::is_str s)
+    s   ; may already be a string
+    (eo::match ((ss String) (nunits @List) (nchars @List))
+      ($seq_to_string_rec s "" @list.nil @list.nil 0)
+      (((tuple ss nunits nchars) ss)))))
+
+
+; program: $seq_to_string_op_rec
+; args:
+; - t T: a term, possibly containing subterms that are sequence values.
+; - units @List: an accumulated list of sequence characters we have converted.
+; - chars @List: an accumulated list of string literals of size one corresponding to the conversion of units.
+; return: >
+;   A tuple containing the result of converting t, and the substitution
+;   (units and chars) that was used to convert it.
+(program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (S Type) (V Type) (u V) (ts (Seq V) :list))
+  (T @List @List) (Tuple S @List @List)
+  (
+  (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
+  (($seq_to_string_op_rec (@seq.empty (Seq V)) units chars)     (tuple "" units chars))
+  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((S1 Type) (fs S1) (nunits1 @List) (nchars1 @List))
+                                                                  ($seq_to_string_op_rec f units chars)
+                                                                  (((tuple fs nunits1 nchars1)
+                                                                    (eo::match ((S2 Type) (bs S2) (nunits2 @List) (nchars2 @List))
+                                                                      ($seq_to_string_op_rec b nunits1 nchars1)
+                                                                      (((tuple bs nunits2 nchars2) (tuple (fs bs) nunits2 nchars2))))))))
+  (($seq_to_string_op_rec b units chars)                        (tuple b units chars))
+  )
+)
+
+; define: $seq_to_string_pair
+; args:
+; - t (Seq T): a term, expected to be a string or sequence value.
+; - s (Seq T): a term, expected to be a string or sequence value.
+; return: A pair of strings that are the result of simultaneously converting t and s to strings.
+(define $seq_to_string_pair ((T Type :implicit) (s (Seq T)) (t (Seq T)))
+  (eo::ite (eo::is_str s)
+    (eo::requires (eo::is_str t) true (@pair s t))  ; if s and t are already strings, return them.
+    (eo::list_nth tuple ($seq_to_string_op_rec (@pair s t) @list.nil @list.nil) 0)))
