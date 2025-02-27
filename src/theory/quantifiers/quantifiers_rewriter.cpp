@@ -1236,7 +1236,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
   for (const Node& cvar : active_args)
   {
     // solve for the variable on this path using the inverter
-    std::vector<unsigned> path;
+    std::vector<uint32_t> path;
     Node slit = binv.getPathToPv(lit, cvar, path);
     // check if the path had a kind that does not preserve equivalence of the
     // overall literal
@@ -1251,7 +1251,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
           slit = Node::null();
           break;
         }
-        unsigned p = path[npath - i - 1];
+        uint32_t p = path[npath - i - 1];
         curr = curr[p];
       }
     }

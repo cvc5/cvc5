@@ -128,7 +128,7 @@ static bool isInvertible(Kind k, unsigned index)
 Node BvInverter::getPathToPv(Node lit,
                              Node pv,
                              Node sv,
-                             std::vector<unsigned>& path,
+                             std::vector<uint32_t>& path,
                              std::unordered_set<TNode>& visited)
 {
   if (visited.find(lit) == visited.end())
@@ -176,7 +176,7 @@ Node BvInverter::getPathToPv(Node lit,
                              Node pv,
                              Node sv,
                              Node pvs,
-                             std::vector<unsigned>& path,
+                             std::vector<uint32_t>& path,
                              bool projectNl)
 {
   std::unordered_set<TNode> visited;
@@ -224,13 +224,13 @@ static Node dropChild(Node n, unsigned index)
 
 Node BvInverter::solveBvLit(Node sv,
                             Node lit,
-                            std::vector<unsigned>& path,
+                            std::vector<uint32_t>& path,
                             BvInverterQuery* m)
 {
   Assert(!path.empty());
 
   bool pol = true;
-  unsigned index;
+  uint32_t index;
   Kind k, litk;
 
   Assert(!path.empty());
