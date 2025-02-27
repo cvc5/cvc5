@@ -34,6 +34,21 @@ class Rewriter;
 
 namespace smt {
 
+/** A response to requiresWitnessFormTransform/requiresWitnessFormIntro */
+enum WitnessReq
+{
+  // we require converting to witness form and rewriting again
+  WITNESS_AND_REWRITE,
+  // we require converting to witness form
+  WITNESS,
+  // we require rewriting again
+  REWRITE,
+  // we don't require anything
+  NONE
+};
+/** Print method */
+std::ostream& operator<<(std::ostream& out, WitnessReq wr);
+  
 /**
  * The witness form proof generator, which acts as a wrapper around a
  * TConvProofGenerator for adding rewrite steps for witness introduction.
@@ -63,16 +78,16 @@ class WitnessFormGenerator : protected EnvObj, public ProofGenerator
    *   Rewriter::rewrite(toWitness(t)) == Rewriter::rewrite(toWitness(s))
    * The rule MACRO_SR_PRED_TRANSFORM concludes t == s if the above holds.
    * This method returns false if:
-   *   Rewriter::rewrite(t) == Rewriter::rewrite(s)
+   *   rewriteViaMethod(t, idr) == rewriteViaMethod(s, idr)
    * which means that the proof of the above fact does not need to do
    * witness form conversion to prove conclusions of MACRO_SR_PRED_TRANSFORM.
    */
-  bool requiresWitnessFormTransform(Node t, Node s, MethodId idr) const;
+  WitnessReq requiresWitnessFormTransform(Node t, Node s, MethodId idr) const;
   /**
    * Same as above, with s = true. This is intended for use with
    * MACRO_SR_PRED_INTRO.
    */
-  bool requiresWitnessFormIntro(Node t, MethodId idr) const;
+  WitnessReq requiresWitnessFormIntro(Node t, MethodId idr) const;
   /**
    * Get witness form equalities. This returns a set of equalities of the form:
    *   k = toWitness(k)
@@ -88,6 +103,8 @@ class WitnessFormGenerator : protected EnvObj, public ProofGenerator
    * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
+  /** The true node */
+  Node d_true;
   /** The rewriter we are using */
   theory::Rewriter* d_rewriter;
   /** The term conversion proof generator */
