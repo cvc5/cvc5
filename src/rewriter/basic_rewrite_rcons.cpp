@@ -2276,7 +2276,7 @@ bool BasicRewriteRCons::ensureProofMacroBvEqSolve(CDProof* cdp, const Node& eq)
                      << std::endl;
   Node ns = nodeManager()->mkNode(Kind::BITVECTOR_SUB, eq[0][0], eq[0][1]);
   Node nsn = theory::arith::PolyNorm::getPolyNorm(ns);
-  Node zero = theory::bv::utils::mkZero(nsn.getType().getBitVectorSize());
+  Node zero = theory::bv::utils::mkZero(nodeManager(), nsn.getType().getBitVectorSize());
   Node eqn = nsn.eqNode(zero);
   Node equiv = eq[0].eqNode(eqn);
   if (!ensureProofArithPolyNormRel(cdp, equiv))
