@@ -39,7 +39,8 @@ Node BvInstantiatorUtil::getPvCoeff(TNode pv, TNode n) const
 
   if (n == pv)
   {
-    coeff = bv::utils::mkOne(bv::utils::getSize(pv));
+    NodeManager* nm = nodeManager();
+    coeff = bv::utils::mkOne(nm, bv::utils::getSize(pv));
   }
   /* All multiplications are normalized to pv * (t1 * t2). */
   else if (n.getKind() == Kind::BITVECTOR_MULT
@@ -115,7 +116,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   }
   coeff = rewrite(coeff);
   unsigned size_coeff = bv::utils::getSize(coeff);
-  Node zero = bv::utils::mkZero(size_coeff);
+  Node zero = bv::utils::mkZero(nm, size_coeff);
   if (coeff == zero)
   {
     return zero;
@@ -123,7 +124,7 @@ Node BvInstantiatorUtil::normalizePvMult(
   Node result;
   if (found_pv)
   {
-    if (coeff == bv::utils::mkOne(size_coeff))
+    if (coeff == bv::utils::mkOne(nm, size_coeff))
     {
       return pv;
     }
@@ -228,7 +229,7 @@ Node BvInstantiatorUtil::normalizePvPlus(
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
     leafs = rewrite(leafs);
-    Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
+    Node zero = bv::utils::mkZero(nm, bv::utils::getSize(pv));
     /* pv * 0 + t --> t */
     if (pv_mult_coeffs.isNull() || pv_mult_coeffs == zero)
     {
@@ -319,13 +320,13 @@ Node BvInstantiatorUtil::normalizePvEqual(
   }
   else
   {
-    rhs = bv::utils::mkZero(bv::utils::getSize(pv));
+    rhs = bv::utils::mkZero(nm, bv::utils::getSize(pv));
   }
   rhs = rewrite(rhs);
 
   if (lhs == rhs)
   {
-    return bv::utils::mkTrue();
+    return bv::utils::mkTrue(nm);
   }
 
   Node result = lhs.eqNode(rhs);
