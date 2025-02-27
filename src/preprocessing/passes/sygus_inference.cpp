@@ -309,11 +309,15 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   if (!rrSygus->getSubsolverSynthSolutions(synth_sols))
   {
     // failed, conjecture was infeasible
-    std::stringstream ss;
-    ss << "Translated to sygus, but failed to show problem to be satisfiable "
-          "with --sygus-inference.";
-    throw LogicException(ss.str());
-    return true;
+    if (options().quantifiers.sygusInference
+           == options::SygusInferenceMode::ON)
+    {
+      std::stringstream ss;
+      ss << "Translated to sygus, but failed to show problem to be satisfiable "
+            "with --sygus-inference.";
+      throw LogicException(ss.str());
+    }
+    return false;
   }
 
   std::vector<Node> final_ff;
