@@ -23,7 +23,8 @@ namespace cvc5::internal {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
-    : d_rewriter(env.getRewriter()),
+    : EnvObj(env),
+      d_rewriter(env.getRewriter()),
       d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
@@ -117,14 +118,17 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
   return tw;
 }
 
-bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
+bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s, MethodId idr) const
 {
-  return d_rewriter->rewrite(t) != d_rewriter->rewrite(s);
+  Node tr = d_env.rewriteViaMethod(t, idr);
+  Node sr =  d_env.rewriteViaMethod(s, idr);
+  Trace("ajr-temp") << " Rewrites : " << tr << " " << sr << " " << idr << std::endl;
+  return d_env.rewriteViaMethod(t, idr) != d_env.rewriteViaMethod(s, idr);
 }
 
-bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
+bool WitnessFormGenerator::requiresWitnessFormIntro(Node t, MethodId idr) const
 {
-  Node tr = d_rewriter->rewrite(t);
+  Node tr = d_env.rewriteViaMethod(t, idr);
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
