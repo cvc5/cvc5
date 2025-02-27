@@ -258,6 +258,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroStrInReInclusion(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroReInterUnionConstElim(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
    *
    * @param cdp The proof to add to.
