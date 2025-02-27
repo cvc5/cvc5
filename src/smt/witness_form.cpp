@@ -21,16 +21,14 @@
 
 namespace cvc5::internal {
 namespace smt {
-  
+
 std::ostream& operator<<(std::ostream& out, WitnessReq wr)
 {
   switch (wr)
   {
     case WitnessReq::WITNESS_AND_REWRITE: out << "WITNESS_AND_REWRITE"; break;
     case WitnessReq::WITNESS: out << "WITNESS"; break;
-    case WitnessReq::REWRITE:
-      out << "REWRITE";
-      break;
+    case WitnessReq::REWRITE: out << "REWRITE"; break;
     case WitnessReq::NONE: out << "NONE"; break;
   }
   return out;
@@ -133,23 +131,24 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
   return tw;
 }
 
-WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s, MethodId idr) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(
+    Node t, Node s, MethodId idr) const
 {
   Node tr = d_env.rewriteViaMethod(t, idr);
-  Node sr =  d_env.rewriteViaMethod(s, idr);
-  if (tr==sr)
+  Node sr = d_env.rewriteViaMethod(s, idr);
+  if (tr == sr)
   {
     // rewriting via the method is enough
     return WitnessReq::NONE;
   }
-  if (rewrite(tr)==rewrite(sr))
+  if (rewrite(tr) == rewrite(sr))
   {
     // calling ordinary rewrite after (extended) rewriting is enough
     return WitnessReq::REWRITE;
   }
   Node trw = SkolemManager::getOriginalForm(tr);
   Node srw = SkolemManager::getOriginalForm(sr);
-  if (trw==srw)
+  if (trw == srw)
   {
     // witness is enough
     return WitnessReq::WITNESS;
@@ -157,7 +156,8 @@ WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s, Me
   return WitnessReq::WITNESS_AND_REWRITE;
 }
 
-WitnessReq WitnessFormGenerator::requiresWitnessFormIntro(Node t, MethodId idr) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormIntro(Node t,
+                                                          MethodId idr) const
 {
   return requiresWitnessFormTransform(t, d_true, idr);
 }

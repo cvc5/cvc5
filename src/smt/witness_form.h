@@ -21,9 +21,9 @@
 #include <unordered_set>
 
 #include "proof/conv_proof_generator.h"
+#include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
-#include "proof/method_id.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -48,7 +48,7 @@ enum WitnessReq
 };
 /** Print method */
 std::ostream& operator<<(std::ostream& out, WitnessReq wr);
-  
+
 /**
  * The witness form proof generator, which acts as a wrapper around a
  * TConvProofGenerator for adding rewrite steps for witness introduction.
