@@ -26,9 +26,6 @@
 #include "expr/node.h"
 
 namespace cvc5::internal {
-
-class Options;
-
 namespace theory {
 
 class Rewriter;
@@ -56,7 +53,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter(const Options& opts, Rewriter* r = nullptr);
+  BvInverter(Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -128,8 +125,6 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
-  /** Reference to options */
-  const Options& d_opts;
   /** (Optional) rewriter used as helper in getInversionNode */
   Rewriter* d_rewriter;
   /** Dummy variables for each type */
