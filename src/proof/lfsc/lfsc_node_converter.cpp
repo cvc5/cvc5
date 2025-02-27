@@ -1029,6 +1029,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "bit";
       }
+      else if (k==Kind::DIVISIBLE)
+      {
+        opName << "a.divisible";
+      }
       else
       {
         opName << printer::smt2::Smt2Printer::smtKindString(k);
@@ -1116,7 +1120,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
         || k == Kind::SUB || k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
         || k == Kind::INTS_DIVISION || k == Kind::INTS_DIVISION_TOTAL
         || k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL
-        || k == Kind::NEG || k == Kind::POW || k == Kind::DIVISIBLE)
+        || k == Kind::NEG || k == Kind::POW)
     {
       // currently allow subtyping
       opName << "a.";
