@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/arrays_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -291,7 +292,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       }
     }
     std::vector<Node> consts;
-    mkSygusConstantsForType(nm, tn, consts);
+    mkSygusConstantsForType(env, tn, consts);
     if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
@@ -886,10 +887,11 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
   }
 }
 
-void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
+void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
                                                const TypeNode& type,
                                                std::vector<Node>& ops)
 {
+  NodeManager* nm = env.getNodeManager();
   if (type.isRealOrInt())
   {
     ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
@@ -922,6 +924,12 @@ void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
     Node c = NodeManager::mkGroundTerm(type);
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
+    // don't use array constants if arraysExp is false
+    if (!env.getOptions().arrays.arraysExp
+        && expr::hasSubtermKind(Kind::STORE_ALL, c))
+    {
+      return;
+    }
     ops.push_back(c);
   }
   else if (type.isRoundingMode())

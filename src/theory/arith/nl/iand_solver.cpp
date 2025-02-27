@@ -33,12 +33,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-IAndSolver::IAndSolver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+IAndSolver::IAndSolver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env),
       d_im(im),
       d_model(model),
+      d_iandUtils(env.getNodeManager()),
       d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();

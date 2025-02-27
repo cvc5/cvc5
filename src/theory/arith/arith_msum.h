@@ -110,7 +110,7 @@ class ArithMSum
    * Note this utility is agnostic to types, it will return the integer 0 if
    * msum is empty.
    */
-  static Node mkNode(const std::map<Node, Node>& msum);
+  static Node mkNode(NodeManager* nm, const std::map<Node, Node>& msum);
 
   /** make coefficent term
    *
