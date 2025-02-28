@@ -66,6 +66,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
+list(APPEND CMAKE_PREFIX_PATH "/home/an/git/dev/build-cms/deps")
+
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
 endif()
@@ -545,7 +547,7 @@ if(USE_CRYPTOMINISAT)
   # CryptoMiniSat requires pthreads support
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
-  find_package(CryptoMiniSat 5.8 REQUIRED)
+  find_package(CryptoMiniSat 5.11.2 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 

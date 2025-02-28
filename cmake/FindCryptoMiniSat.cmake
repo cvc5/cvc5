@@ -80,10 +80,6 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   set_target_properties(
     CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}"
   )
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                             "${CryptoMiniSat_INCLUDE_DIR}"
-  )
 endif()
 
 set(CryptoMiniSat_FOUND TRUE)
