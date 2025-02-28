@@ -66,8 +66,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
-list(APPEND CMAKE_PREFIX_PATH "/home/an/git/dev/build-cms/deps")
-
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
 endif()
