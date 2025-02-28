@@ -66,7 +66,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   endif()
 
   ## Minimum supported version
-  set(CaDiCaL_FIND_VERSION "2.0.0")
+  set(CaDiCaL_FIND_VERSION "1.6.0")
   ## Maximum supported version
   set(CaDiCaL_FIND_VERSION_MAX "2.0.0")
 
