@@ -88,6 +88,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   if (assertions.empty())
   {
     Trace("sygus-infer") << "...fail: empty assertions." << std::endl;
+    Warning() << "Cannot convert to sygus since there are no assertions."
+              << std::endl;
     return false;
   }
 
@@ -154,6 +156,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
       {
         Trace("sygus-infer")
             << "...fail: non-standard top-level quantifier." << std::endl;
+        Warning() << "Cannot convert to sygus since there is a non-standard "
+                     "top-level quantified formula: "
+                  << pas << std::endl;
         return false;
       }
       // infer prefix
@@ -217,6 +222,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
         {
           Trace("sygus-infer")
               << "...fail: non-top-level quantifier." << std::endl;
+          Warning() << "Cannot convert to sygus since there is a non-top-level "
+                       "quantified formula: "
+                    << cur << std::endl;
           return false;
         }
         for (const TNode& cn : cur)
@@ -231,6 +239,9 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   // no functions to synthesize
   if (free_functions.empty())
   {
+    Warning()
+        << "Cannot convert to sygus since there are no free function symbols."
+        << std::endl;
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
     return false;
   }
@@ -298,6 +309,13 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   if (!rrSygus->getSubsolverSynthSolutions(synth_sols))
   {
     // failed, conjecture was infeasible
+    if (options().quantifiers.sygusInference == options::SygusInferenceMode::ON)
+    {
+      std::stringstream ss;
+      ss << "Translated to sygus, but failed to show problem to be satisfiable "
+            "with --sygus-inference.";
+      throw LogicException(ss.str());
+    }
     return false;
   }
 
