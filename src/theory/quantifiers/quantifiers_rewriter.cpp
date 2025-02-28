@@ -1217,6 +1217,17 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
   Assert(lit.getKind() == Kind::EQUAL);
   // TODO (#1494) : linearize the literal using utility
 
+  // if the option varEntEqElimQuant is disabled, we must preserve equivalence
+  // when solving the variable, meaning that BITVECTOR_CONCAT cannot be
+  // on the path to the variable.
+  std::unordered_set<Kind> disallowedKinds;
+  if (!d_opts.quantifiers.varEntEqElimQuant)
+  {
+    // concatenation does not perserve equivalence i.e.
+    // (concat x y) = z is not equivalent to x = ((_ extract n m) z)
+    disallowedKinds.insert(Kind::BITVECTOR_CONCAT);
+  }
+
   // compute a subset active_args of the bound variables args that occur in lit
   std::vector<Node> active_args;
   computeArgVec(args, active_args, lit);
@@ -1225,8 +1236,25 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
   for (const Node& cvar : active_args)
   {
     // solve for the variable on this path using the inverter
-    std::vector<unsigned> path;
+    std::vector<uint32_t> path;
     Node slit = binv.getPathToPv(lit, cvar, path);
+    // check if the path had a kind that does not preserve equivalence of the
+    // overall literal
+    if (!disallowedKinds.empty())
+    {
+      Node curr = lit;
+      for (size_t i = 0, npath = path.size(); i < npath; i++)
+      {
+        Trace("quant-velim-bv") << "On path: " << curr << std::endl;
+        if (disallowedKinds.find(curr.getKind()) != disallowedKinds.end())
+        {
+          slit = Node::null();
+          break;
+        }
+        uint32_t p = path[npath - i - 1];
+        curr = curr[p];
+      }
+    }
     if (!slit.isNull())
     {
       Node slv = binv.solveBvLit(cvar, lit, path, nullptr);
