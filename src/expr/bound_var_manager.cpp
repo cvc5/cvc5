@@ -22,14 +22,9 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
+BoundVarManager::BoundVarManager() {}
 
 BoundVarManager::~BoundVarManager() {}
-
-void BoundVarManager::enableKeepCacheValues(bool isEnabled)
-{
-  d_keepCacheVals = isEnabled;
-}
 
 void BoundVarManager::setNameAttr(Node v, const std::string& name)
 {
@@ -58,6 +53,30 @@ Node BoundVarManager::getCacheValue(size_t i)
 Node BoundVarManager::getCacheValue(TNode cv, size_t i)
 {
   return getCacheValue(cv, getCacheValue(i));
+}
+
+Node BoundVarManager::mkBoundVar(BoundVarId id, Node n, TypeNode tn)
+{
+  std::tuple<BoundVarId, TypeNode, Node> key(id, tn, n);
+  std::map<std::tuple<BoundVarId, TypeNode, Node>, Node>::iterator it =
+      d_cache.find(key);
+  if (it != d_cache.end())
+  {
+    return it->second;
+  }
+  Node v = NodeManager::mkBoundVar(tn);
+  d_cache[key] = v;
+  return v;
+}
+
+Node BoundVarManager::mkBoundVar(BoundVarId id,
+                                 Node n,
+                                 const std::string& name,
+                                 TypeNode tn)
+{
+  Node v = mkBoundVar(id, n, tn);
+  setNameAttr(v, name);
+  return v;
 }
 
 }  // namespace cvc5::internal
