@@ -42,6 +42,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::FUN_BOUND_VAR_LIST: return "FUN_BOUND_VAR_LIST";
     case BoundVarId::ELIM_SHADOW: return "ELIM_SHADOW";
     case BoundVarId::QUANT_DT_EXPAND: return "QUANT_DT_EXPAND";
+    case BoundVarId::QUANT_DT_SPLIT: return "QUANT_DT_SPLIT";
     case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
     case BoundVarId::QUANT_REW_PRENEX: return "QUANT_REW_PRENEX";
     case BoundVarId::QUANT_SYGUS_BUILTIN_FV: return "QUANT_SYGUS_BUILTIN_FV";

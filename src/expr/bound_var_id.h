@@ -116,6 +116,12 @@ enum class BoundVarId
    */
   QUANT_DT_EXPAND,
   /**
+   * Cached on (q, v, i) where QuantDSplit::split is called
+   * to split the variable v of q. We introduce bound variables, where the i^th
+   * variable created in that method is cached based on i.
+   */
+  QUANT_DT_SPLIT,
+  /**
    * Cached on (v, q, i) where q is being miniscoped
    * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
    * that q binds.
