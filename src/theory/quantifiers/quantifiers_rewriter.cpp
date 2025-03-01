@@ -1389,9 +1389,9 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
             std::find(args.begin(), args.end(), v_slv);
         if (ita != args.end())
         {
-          solvedVar = v_slv;
           if (isVarElim(v_slv, lit[1 - i]))
           {
+            solvedVar = v_slv;
             solvedSubs = lit[1 - i];
             if (!tpol)
             {
