@@ -18,6 +18,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -164,6 +165,17 @@ Node EmbeddingConverter::process(Node q,
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
           d_env, preGrammarType, sfvl, trules);
+      // this can happen only in very rare cases, e.g. where we are asking
+      // to generate a grammar for arrays and no ground values exist and
+      // array constants cannot be used
+      if (!tn.isWellFounded())
+      {
+        Warning() << "Warning: Failed to construct grammar for "
+                  << preGrammarType
+                  << " since no ground values can be generated for that type."
+                  << std::endl;
+        return Node::null();
+      }
     }
     // Ensure the expanded definition forms are set. This is done after
     // normalization above.

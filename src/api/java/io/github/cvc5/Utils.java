@@ -77,17 +77,15 @@ public class Utils
   }
 
   /**
-   * Transfers all bytes from the provided {@link InputStream} to the specified {@link
-   * FileOutputStream}.
+   * Transfers all bytes from the provided {@link InputStream} to the specified
+   * {@link FileOutputStream}.
    *
-   * <p>Note: This method replicates the functionality of {@link
-   * InputStream#transferTo(OutputStream)}, which was introduced in Java 9 (currently, the minimum
-   * required Java version is 1.8)</p>
+   * <p>Note: This method replicates the functionality of InputStream#transferTo(OutputStream),
+   * which was introduced in Java 9 (currently, the minimum required Java version is 1.8)</p>
    *
    * @param inputStream The input stream from which data is read
    * @param outputStream The output stream to which data is written
    * @throws IOException If an I/O error occurs during reading or writing
-   * @see InputStream#transferTo(OutputStream)
    */
   public static void transferTo(InputStream inputStream, FileOutputStream outputStream)
       throws IOException

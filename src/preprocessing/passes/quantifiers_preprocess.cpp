@@ -51,6 +51,10 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
       Trace("quantifiers-preprocess")
           << "   ...got " << (*assertionsToPreprocess)[i] << endl;
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
 

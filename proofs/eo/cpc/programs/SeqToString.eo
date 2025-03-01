@@ -57,7 +57,7 @@
                                                                       ; already allocated
                                                                       ($seq_to_string_rec
                                                                         ss
-                                                                        (eo::concat s (eo::to_str id))
+                                                                        (eo::concat s (eo::to_str (eo::add (eo::list_len @list units) (eo::neg id) -1)))
                                                                         units
                                                                         chars
                                                                         n)))))
@@ -89,7 +89,6 @@
 (program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (S Type) (V Type) (u V) (ts (Seq V) :list))
   (T @List @List) (Tuple S @List @List)
   (
-  (($seq_to_string_op_rec (seq.++ (seq.unit u) ts) units chars) ($seq_to_string_rec (seq.++ (seq.unit u) ts) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (@seq.empty (Seq V)) units chars)     (tuple "" units chars))
   (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((S1 Type) (fs S1) (nunits1 @List) (nchars1 @List))
