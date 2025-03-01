@@ -1232,7 +1232,7 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
   std::vector<Node> active_args;
   computeArgVec(args, active_args, lit);
 
-  BvInverter binv(d_opts);
+  BvInverter binv;
   for (const Node& cvar : active_args)
   {
     // solve for the variable on this path using the inverter
