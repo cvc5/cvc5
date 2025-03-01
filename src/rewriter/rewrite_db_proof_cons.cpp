@@ -333,7 +333,8 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
                                  int64_t recLimit,
                                  int64_t stepLimit)
 {
-  // currently always add one to recursion limit
+  // add one to recursion limit, since it is decremented whenever we
+  // initiate the getMatches routine.
   d_currRecLimit = recLimit + 1;
   d_currStepLimit = stepLimit;
   RewriteProofStatus id;
@@ -452,11 +453,6 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
                                      std::vector<Node>& subs)
 {
   // if we reach our step limit, do not continue trying
-  if (d_currStepLimit == 0)
-  {
-    return false;
-  }
-  d_currStepLimit--;
   Trace("rpc-debug2") << "[steps remaining: " << d_currStepLimit << "]"
                       << std::endl;
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
@@ -823,7 +819,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       // already holds, continue
       continue;
     }
-    if (!doRecurse || (decRecLimit && d_currRecLimit==0))
+    if (!doRecurse || (decRecLimit && d_currRecLimit == 0))
     {
       // we can't apply recursion, return false
       Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
@@ -837,15 +833,20 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   if (!condToProve.empty())
   {
     // we could only add condToProve if d_currRecLimit>0 above.
-    Assert (!decRecLimit || d_currRecLimit>0);
+    Assert(!decRecLimit || d_currRecLimit > 0);
     if (decRecLimit)
     {
       d_currRecLimit--;
+      if (d_currStepLimit == 0)
+      {
+        return false;
+      }
+      d_currStepLimit--;
     }
     Trace("rpc-debug") << "Recurse rule "
-                        << (id == RewriteProofStatus::DSL ? toString(r)
-                                                          : toString(id))
-                        << std::endl;
+                       << (id == RewriteProofStatus::DSL ? toString(r)
+                                                         : toString(id))
+                       << std::endl;
     bool recSuccess = true;
     // if no trivial failures, go back and try to recursively prove
     for (const Node& cond : condToProve)
