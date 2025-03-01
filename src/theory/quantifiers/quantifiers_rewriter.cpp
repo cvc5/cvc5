@@ -24,10 +24,11 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "proof/conv_proof_generator.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/quant_split.h"
@@ -1072,7 +1073,9 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         std::vector<Node> tmpArgs = args;
         for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
         {
-          if (getVarElimLit(body, b[j], false, tmpArgs, vars, subs))
+          bool pol = b[j].getKind() == Kind::NOT;
+          Node batom = pol ? b[j][0] : b[j];
+          if (getVarElimLit(body, batom, pol, tmpArgs, vars, subs))
           {
             Trace("cond-var-split-debug") << "Variable elimination in child #"
                                           << j << " under " << i << std::endl;
@@ -1147,29 +1150,31 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 
 Node QuantifiersRewriter::getVarElimEq(Node lit,
                                        const std::vector<Node>& args,
-                                       Node& var) const
+                                       Node& var,
+                                       CDProof* cdp) const
 {
   Assert(lit.getKind() == Kind::EQUAL);
   Node slv;
   TypeNode tt = lit[0].getType();
   if (tt.isRealOrInt())
   {
-    slv = getVarElimEqReal(lit, args, var);
+    slv = getVarElimEqReal(lit, args, var, cdp);
   }
   else if (tt.isBitVector())
   {
-    slv = getVarElimEqBv(lit, args, var);
+    slv = getVarElimEqBv(lit, args, var, cdp);
   }
   else if (tt.isStringLike())
   {
-    slv = getVarElimEqString(lit, args, var);
+    slv = getVarElimEqString(lit, args, var, cdp);
   }
   return slv;
 }
 
 Node QuantifiersRewriter::getVarElimEqReal(Node lit,
                                            const std::vector<Node>& args,
-                                           Node& var) const
+                                           Node& var,
+                                           CDProof* cdp) const
 {
   // for arithmetic, solve the equality
   std::map<Node, Node> msum;
@@ -1194,6 +1199,13 @@ Node QuantifiersRewriter::getVarElimEqReal(Node lit,
       if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
       {
         var = itm->first;
+        if (cdp != nullptr)
+        {
+          Node eq = var.eqNode(val);
+          Node eqslv = lit.eqNode(eq);
+          cdp->addTrustedStep(
+              eqslv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+        }
         return val;
       }
     }
@@ -1203,7 +1215,8 @@ Node QuantifiersRewriter::getVarElimEqReal(Node lit,
 
 Node QuantifiersRewriter::getVarElimEqBv(Node lit,
                                          const std::vector<Node>& args,
-                                         Node& var) const
+                                         Node& var,
+                                         CDProof* cdp) const
 {
   if (TraceIsOn("quant-velim-bv"))
   {
@@ -1227,53 +1240,59 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
     // (concat x y) = z is not equivalent to x = ((_ extract n m) z)
     disallowedKinds.insert(Kind::BITVECTOR_CONCAT);
   }
+  else if (cdp != nullptr)
+  {
+    // does not support proofs
+    return Node::null();
+  }
 
   // compute a subset active_args of the bound variables args that occur in lit
   std::vector<Node> active_args;
   computeArgVec(args, active_args, lit);
 
-  BvInverter binv(d_opts);
   for (const Node& cvar : active_args)
   {
-    // solve for the variable on this path using the inverter
-    std::vector<uint32_t> path;
-    Node slit = binv.getPathToPv(lit, cvar, path);
-    // check if the path had a kind that does not preserve equivalence of the
-    // overall literal
-    if (!disallowedKinds.empty())
+    Node slv = booleans::TheoryBoolRewriter::getBvInvertSolve(
+        d_nm, lit, cvar, disallowedKinds);
+    if (!slv.isNull())
     {
-      Node curr = lit;
-      for (size_t i = 0, npath = path.size(); i < npath; i++)
-      {
-        Trace("quant-velim-bv") << "On path: " << curr << std::endl;
-        if (disallowedKinds.find(curr.getKind()) != disallowedKinds.end())
-        {
-          slit = Node::null();
-          break;
-        }
-        uint32_t p = path[npath - i - 1];
-        curr = curr[p];
-      }
-    }
-    if (!slit.isNull())
-    {
-      Node slv = binv.solveBvLit(cvar, lit, path, nullptr);
-      Trace("quant-velim-bv") << "...solution : " << slv << std::endl;
-      if (!slv.isNull())
+      // if this is a proper variable elimination, that is, var = slv where
+      // var is not in the free variables of slv, then we can return this
+      // as the variable elimination for lit.
+      if (isVarElim(cvar, slv))
       {
         var = cvar;
-        // if this is a proper variable elimination, that is, var = slv where
-        // var is not in the free variables of slv, then we can return this
-        // as the variable elimination for lit.
-        if (isVarElim(var, slv))
+        // If we require a proof...
+        if (cdp != nullptr)
         {
-          return slv;
+          Node eq = var.eqNode(slv);
+          Node eqslv = lit.eqNode(eq);
+          // usually just arith poly norm, e.g. if
+          //   (= (bvadd x s) t) = (= x (bvsub t s))
+          Rational rx, ry;
+          if (arith::PolyNorm::isArithPolyNormRel(lit, eq, rx, ry))
+          {
+            // will elaborate with BV_POLY_NORM_EQ
+            cdp->addTrustedStep(
+                eqslv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+          }
+          else
+          {
+            // Otherwise we add (= (= t s) (= x r)) = true as a step
+            // with MACRO_BOOL_BV_INVERT_SOLVE. This ensures that further
+            // elaboration can replay the proof, knowing which variable we
+            // solved for. This is used if arith poly norm does not suffice,
+            // e.g. (= t (bvxor x s)) = (= x (bvxor t s)).
+            Node truen = nodeManager()->mkConst(true);
+            Node eqslvti = eqslv.eqNode(truen);
+            // use trusted step, will elaborate
+            cdp->addTrustedStep(
+                eqslvti, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+            cdp->addStep(eqslv, ProofRule::TRUE_ELIM, {eqslvti}, {});
+          }
         }
+        return slv;
       }
-    }
-    else
-    {
-      Trace("quant-velim-bv") << "...non-invertible path." << std::endl;
     }
   }
 
@@ -1282,13 +1301,14 @@ Node QuantifiersRewriter::getVarElimEqBv(Node lit,
 
 Node QuantifiersRewriter::getVarElimEqString(Node lit,
                                              const std::vector<Node>& args,
-                                             Node& var) const
+                                             Node& var,
+                                             CDProof* cdp) const
 {
   Assert(lit.getKind() == Kind::EQUAL);
   // The reasoning below involves equality entailment as
   // (= (str.++ s x t) r) entails (= x (str.substr r (str.len s) _)),
   // but these equalities are not equivalent.
-  if (!d_opts.quantifiers.varEntEqElimQuant)
+  if (!d_opts.quantifiers.varEntEqElimQuant || cdp != nullptr)
   {
     return Node::null();
   }
@@ -1340,14 +1360,10 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
                                         bool pol,
                                         std::vector<Node>& args,
                                         std::vector<Node>& vars,
-                                        std::vector<Node>& subs) const
+                                        std::vector<Node>& subs,
+                                        CDProof* cdp) const
 {
-  if (lit.getKind() == Kind::NOT)
-  {
-    lit = lit[0];
-    pol = !pol;
-    Assert(lit.getKind() != Kind::NOT);
-  }
+  Assert(lit.getKind() != Kind::NOT);
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
   // all eliminations below guarded by varElimQuant()
@@ -1384,6 +1400,16 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
             Trace("var-elim-quant")
                 << "Variable eliminate based on equality : " << v_slv << " -> "
                 << slv << std::endl;
+            if (cdp != nullptr)
+            {
+              Node eq = v_slv.eqNode(slv);
+              Node litn = pol ? lit : lit.notNode();
+              Node eqslv = litn.eqNode(eq);
+              cdp->addTrustedStep(
+                  eqslv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+              Trace("var-elim-quant")
+                  << "...add trusted step " << eqslv << std::endl;
+            }
             vars.push_back(v_slv);
             subs.push_back(slv);
             args.erase(ita);
@@ -1398,8 +1424,18 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
     if( ita!=args.end() ){
       Trace("var-elim-bool") << "Variable eliminate : " << lit << std::endl;
+      Node c = nodeManager()->mkConst(pol);
+      if (cdp != nullptr)
+      {
+        // x = (x=true) or (not x) = (x = false)
+        Node eq = lit.eqNode(c);
+        Node litn = pol ? lit : lit.notNode();
+        Node eqslv = litn.eqNode(eq);
+        cdp->addTrustedStep(
+            eqslv, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      }
       vars.push_back( lit );
-      subs.push_back(nodeManager()->mkConst(pol));
+      subs.push_back(c);
       args.erase( ita );
       return true;
     }
@@ -1407,7 +1443,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   if (lit.getKind() == Kind::EQUAL && pol)
   {
     Node var;
-    Node slv = getVarElimEq(lit, args, var);
+    Node slv = getVarElimEq(lit, args, var, cdp);
     if (!slv.isNull())
     {
       Assert(!var.isNull());
@@ -1432,9 +1468,10 @@ bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs,
-                                     std::vector<Node>& lits) const
+                                     std::vector<Node>& lits,
+                                     CDProof* cdp) const
 {
-  return getVarElimInternal(body, body, false, args, vars, subs, lits);
+  return getVarElimInternal(body, body, false, args, vars, subs, lits, cdp);
 }
 
 bool QuantifiersRewriter::getVarElimInternal(Node body,
@@ -1443,7 +1480,8 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              std::vector<Node>& args,
                                              std::vector<Node>& vars,
                                              std::vector<Node>& subs,
-                                             std::vector<Node>& lits) const
+                                             std::vector<Node>& lits,
+                                             CDProof* cdp) const
 {
   Kind nk = n.getKind();
   while (nk == Kind::NOT)
@@ -1456,14 +1494,14 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
   {
     for (const Node& cn : n)
     {
-      if (getVarElimInternal(body, cn, pol, args, vars, subs, lits))
+      if (getVarElimInternal(body, cn, pol, args, vars, subs, lits, cdp))
       {
         return true;
       }
     }
     return false;
   }
-  if (getVarElimLit(body, n, pol, args, vars, subs))
+  if (getVarElimLit(body, n, pol, args, vars, subs, cdp))
   {
     lits.emplace_back(pol ? n : n.notNode());
     return true;
@@ -1663,8 +1701,7 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
                                                 std::vector<Node>& args,
                                                 QAttributes& qa) const
 {
-  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.dtVarExpandQuant
-      && !d_opts.quantifiers.varIneqElimQuant)
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.varIneqElimQuant)
   {
     return body;
   }
