@@ -24,6 +24,8 @@
 #include "expr/algorithm/flatten.h"
 #include "expr/node_value.h"
 #include "proof/conv_proof_generator.h"
+#include "proof/proof.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "util/cardinality.h"
 
 namespace cvc5::internal {
@@ -35,6 +37,8 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_NNF_NORM,
+                           TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
 }
 
@@ -48,6 +52,29 @@ Node TheoryBoolRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       if (nn != n)
       {
         return nn;
+      }
+    }
+    break;
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
+    {
+      if (n.getKind() != Kind::EQUAL || n[0].getKind() != Kind::EQUAL
+          || n[1].getKind() != Kind::EQUAL)
+      {
+        return Node::null();
+      }
+      Node v = n[1][0];
+      TypeNode tn = v.getType();
+      if (!v.isVar() || !tn.isBitVector())
+      {
+        return Node::null();
+      }
+      std::unordered_set<Kind> disallowedKinds;
+      disallowedKinds.insert(Kind::BITVECTOR_CONCAT);
+      NodeManager* nm = nodeManager();
+      Node slv = getBvInvertSolve(nm, n[0], v, disallowedKinds);
+      if (slv == n[1][1])
+      {
+        return nm->mkConst(true);
       }
     }
     break;
@@ -278,6 +305,107 @@ Node TheoryBoolRewriter::computeNnfNorm(NodeManager* nm,
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+Node TheoryBoolRewriter::getBvInvertSolve(
+    NodeManager* nm,
+    const Node& lit,
+    const Node& var,
+    std::unordered_set<Kind>& disallowedKinds,
+    CDProof* cdp)
+{
+  quantifiers::BvInverter binv;
+  // solve for the variable on this path using the inverter
+  std::vector<unsigned> path;
+  Node slit = binv.getPathToPv(lit, var, path);
+  // check if the path had a kind that does not preserve equivalence of the
+  // overall literal
+  if (!disallowedKinds.empty())
+  {
+    Node curr = lit;
+    for (size_t i = 0, npath = path.size(); i < npath; i++)
+    {
+      Trace("quant-velim-bv") << "On path: " << curr << std::endl;
+      if (disallowedKinds.find(curr.getKind()) != disallowedKinds.end())
+      {
+        slit = Node::null();
+        break;
+      }
+      unsigned p = path[npath - i - 1];
+      curr = curr[p];
+    }
+    Assert(slit.isNull() || curr == var);
+  }
+  if (slit.isNull())
+  {
+    return Node::null();
+  }
+  std::vector<Node> ts;
+  if (cdp != nullptr)
+  {
+    Node curr = lit;
+    for (size_t i = 0, npath = path.size(); i < npath; i++)
+    {
+      unsigned p = path[npath - i - 1];
+      curr = curr[p];
+      ts.push_back(curr);
+    }
+    Assert(ts.back() == var);
+    ts.pop_back();
+    std::reverse(ts.begin(), ts.end());
+  }
+  Node ret = binv.solveBvLit(var, lit, path, nullptr);
+  if (cdp != nullptr)
+  {
+    Node slvEq = var.eqNode(ret);
+    Trace("quant-velim-bv") << "Prove source: " << lit << std::endl;
+    Trace("quant-velim-bv") << "Prove target: " << slvEq << std::endl;
+    Trace("quant-velim-bv") << "Terms: " << ts << std::endl;
+    Node curr = slvEq;
+    // Each of the steps below can either be handled by BV_POLY_NORM_EQ,
+    // or the RARE rules bv-eq-xor-solve or bv-eq-not-solve.
+    std::vector<Node> transEq;
+    for (const Node& t : ts)
+    {
+      Node next = t.eqNode(curr[1][0]);
+      Trace("quant-velim-bv") << "- " << next << " == " << curr << std::endl;
+      Node eqc = next.eqNode(curr);
+      if (t.getKind() == Kind::BITVECTOR_XOR && curr[0] != t[0])
+      {
+        // flip to match the expected pattern of RARE rule bv-eq-xor-solve.
+        Node tf = nm->mkNode(Kind::BITVECTOR_XOR, t[1], t[0]);
+        Node nextf = tf.eqNode(curr[1][0]);
+        Node eqcf = nextf.eqNode(curr);
+        transEq.push_back(eqcf);
+        cdp->addTrustedStep(
+            eqcf, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+        eqc = next.eqNode(nextf);
+      }
+      transEq.push_back(eqc);
+      cdp->addTrustedStep(
+          eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      curr = next;
+    }
+    if (curr != lit)
+    {
+      // likely symmetry
+      Node eqc = lit.eqNode(curr);
+      transEq.push_back(eqc);
+      cdp->addTrustedStep(
+          eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    }
+    Node eqf = lit.eqNode(slvEq);
+    if (transEq.size() > 1)
+    {
+      std::reverse(transEq.begin(), transEq.end());
+      cdp->addStep(eqf, ProofRule::TRANS, transEq, {});
+    }
+    else
+    {
+      Assert(transEq[0] == eqf);
+    }
+  }
+  return ret;
 }
 
 RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {

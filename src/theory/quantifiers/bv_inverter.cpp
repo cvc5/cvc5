@@ -31,8 +31,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(const Options& opts, Rewriter* r)
-    : d_opts(opts), d_rewriter(r)
+BvInverter::BvInverter(Rewriter* r)
+    : d_rewriter(r)
 {
 }
 
@@ -349,7 +349,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == Kind::BITVECTOR_CONCAT)
     {
-      if (litk == Kind::EQUAL && d_opts.quantifiers.cegqiBvConcInv)
+      if (litk == Kind::EQUAL)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
