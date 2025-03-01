@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --var-ent-eq-elim-quant
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun s () String)

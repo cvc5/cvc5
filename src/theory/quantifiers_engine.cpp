@@ -179,6 +179,12 @@ void QuantifiersEngine::ppNotifyAssertions(
   {
     mdl->ppNotifyAssertions(assertions);
   }
+  if (options().quantifiers.mbqi)
+  {
+    // may need to be notified of assertions, for mbqi-enum
+    quantifiers::InstStrategyMbqi* mi = d_qmodules->d_mbqi.get();
+    mi->ppNotifyAssertions(assertions);
+  }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){

@@ -473,9 +473,9 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
   Assert(node.getKind() == Kind::INT_TO_BITVECTOR);
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
-    NodeManager* nm = nodeManager();
     const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
     Node resultNode = nm->mkConst(
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
@@ -494,7 +494,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     if (osize > isize)
     {
       // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
-      Node zero = bv::utils::mkZero(osize - isize);
+      Node zero = bv::utils::mkZero(nm, osize - isize);
       Node concat =
           nodeManager()->mkNode(Kind::BITVECTOR_CONCAT, zero, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, concat);

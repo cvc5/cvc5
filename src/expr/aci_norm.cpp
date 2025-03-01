@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM
+ * Definition of ProofRule::ACI_NORM.
  */
 
 #include "expr/aci_norm.h"
@@ -74,7 +74,7 @@ Node getNullTerminator(Kind k, TypeNode tn)
       // and return the null node.
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkOnes(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_OR:
@@ -82,13 +82,13 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case Kind::BITVECTOR_XOR:
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkZero(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_MULT:
       if (tn.isBitVector())
       {
-        nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
+        nullTerm = theory::bv::utils::mkOne(nm, tn.getBitVectorSize());
       }
       break;
     case Kind::BITVECTOR_CONCAT:
@@ -133,10 +133,16 @@ bool isAssocCommIdem(Kind k)
   return false;
 }
 
+bool isAssocComm(Kind k)
+{
+  return (k==Kind::BITVECTOR_XOR);
+}
+
 bool isAssoc(Kind k)
 {
   switch (k)
   {
+    case Kind::BITVECTOR_CONCAT:
     case Kind::STRING_CONCAT:
     case Kind::REGEXP_CONCAT: return true;
     default: break;
@@ -161,7 +167,8 @@ Node getACINormalForm(Node a)
   }
   Kind k = a.getKind();
   bool aci = isAssocCommIdem(k);
-  if (!aci && !isAssoc(k))
+  bool ac = isAssocComm(k) || aci;
+  if (!ac && !isAssoc(k))
   {
     // not associative, return self
     a.setAttribute(nfa, a);
@@ -201,7 +208,7 @@ Node getACINormalForm(Node a)
       children.push_back(cur);
     }
   } while (!toProcess.empty());
-  if (aci)
+  if (ac)
   {
     // sort if commutative
     std::sort(children.begin(), children.end());

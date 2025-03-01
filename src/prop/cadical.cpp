@@ -1212,7 +1212,8 @@ SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
-  return toSatValueLit(d_solver->val(toCadicalLit(l)));
+  auto val = d_solver->val(toCadicalLit(l.getSatVariable()));
+  return toSatValueLit(l.isNegated() ? -val : val);
 }
 
 uint32_t CadicalSolver::getAssertionLevel() const

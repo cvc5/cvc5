@@ -1,5 +1,5 @@
 ; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
-; EXPECT: (error "Error in option parsing: --solve-bv-as-int=bitwise does not support quantifiers")
+; EXPECT: (error "--solve-bv-as-int=bitwise does not support quantifiers")
 ; EXIT: 1
 (set-logic BV)
 (declare-const x (_ BitVec 8))

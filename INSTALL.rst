@@ -207,7 +207,7 @@ CryptoMiniSat (Optional SAT solver)
 can be used for solving bit-vector problems with eager bit-blasting. This
 dependency may improve performance. It can be downloaded and built
 automatically. Configure cvc5 with ``configure.sh --cryptominisat`` to build
-with this dependency.
+with this dependency. Minimum version required is ``5.11.2``.
 
 
 Kissat (Optional SAT solver)

@@ -67,6 +67,8 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 
   # Minimum supported version
   set(CaDiCaL_FIND_VERSION "1.6.0")
+  # Maximum supported version
+  set(CaDiCaL_FIND_VERSION_MAX "2.0.0")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required

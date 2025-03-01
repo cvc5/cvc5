@@ -1029,6 +1029,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       {
         opName << "bit";
       }
+      else if (k==Kind::DIVISIBLE)
+      {
+        opName << "a.divisible";
+      }
       else
       {
         opName << printer::smt2::Smt2Printer::smtKindString(k);
