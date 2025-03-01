@@ -1,3 +1,5 @@
+; EXPECT: sat
+(set-logic ALL)
 (declare-const a (Array (_ BitVec 8) (_ BitVec 8))) 
 (declare-const b (Array (_ BitVec 8) (_ BitVec 8))) 
 (declare-const x (_ BitVec 8)) 
