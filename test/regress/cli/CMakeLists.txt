@@ -161,6 +161,8 @@ set(regress_0_tests
   regress0/arrays/issue9043_4.smt2
   regress0/arrays/issue10494.smt2
   regress0/arrays/issue10494-2.smt2
+  regress0/arrays/proj-issue322-has-term.smt2
+  regress0/arrays/proj-issue391-minisat-elim.smt2
   regress0/arrays/proj-issue467-cm.smt2
   regress0/arrays/proj-issue506-ms-var-elim.smt2
   regress0/arrays/proj-issue545-array-nconst.smt2
@@ -1156,6 +1158,7 @@ set(regress_0_tests
   regress0/nl/proj-issue-451-ran-combination-1.smt2
   regress0/nl/proj-issue-451-ran-combination-2.smt2
   regress0/nl/proj-issue-465-asan-proofs.smt2
+  regress0/nl/proj-issue550-nl-rlv.smt2
   regress0/nl/proj-issue552-narith-cee.smt2
   regress0/nl/proj-issue637-rr-type.smt2
   regress0/nl/real-as-int.smt2
@@ -1345,6 +1348,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/printer/unsat-core-dagify.smt2
   regress0/proj-issue307-get-value-re.smt2
+  regress0/proj-issue614-minisat.smt2
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
@@ -1578,6 +1582,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
+  regress0/quantifiers/proj-issue411-bv-as-int.smt2
   regress0/quantifiers/proj-issue512-has-skolem.smt2
   regress0/quantifiers/proj-issue608-mbqi-cegqi.smt2
   regress0/quantifiers/proj-issue688.smt2
