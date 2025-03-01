@@ -3957,6 +3957,7 @@ set(regress_4_tests
   regress4/instance_1151.smtv1.smt2
   regress4/NEQ016_size5.smtv1.smt2
   regress4/siegel-nl-bases.smt2
+  regress4/swap_t1_pp_nf_ai_00010_004.cvc.smt2
   regress4/unsat-circ-reduce.smt2
   regress4/xs-11-20-5-2-5-3.smt2
   regress4/xs-11-20-5-2-5-3.smtv1.smt2
