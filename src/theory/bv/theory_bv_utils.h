@@ -187,6 +187,9 @@ Node mkConcat(std::vector<Node>& children);
 /* Create concat by repeating given node n times.
  * Returns given node if n = 1. */
 Node mkConcat(TNode node, unsigned repeat);
+/* Create concat by repeating given node n times.
+ * Returns given node if n = 1. */
+Node mkRepeat(TNode node, unsigned repeat);
 
 /* Create bit-vector addition node representing the increment of given node. */
 Node mkInc(TNode t);
