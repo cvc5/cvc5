@@ -55,7 +55,7 @@ void generateEncoding(
     std::string& encoding,
     std::map<std::string, int32_t>& role)
 {
-    std::stack<Node> stack;
+    std::stack<std::pair<Node, Node>> stack; // Pair of node, parent
     std::unordered_map<Node, bool> visited;
     std::unordered_map<Node, uint32_t> subtreeIdMap;
     std::unordered_map<std::string, uint32_t> symbolMap;
@@ -65,11 +65,12 @@ void generateEncoding(
 
     std::vector<std::string> nodeEncodings;
 
-    stack.push(root);
+    stack.push({root, root});
 
     while (!stack.empty())
     {
-        Node n = stack.top();
+        // Get current node and its parent
+        auto [n, parent] = stack.top();
 
         auto [it, inserted] = visited.emplace(n, false);
         if (inserted)
@@ -83,7 +84,8 @@ void generateEncoding(
                     Node child = n[i];
                     if (visited.find(child) == visited.end())
                     {
-                        stack.push(child);
+                        // Push child with current node n as its parent
+                        stack.push({child, n});
                     }
                 }
             }
@@ -93,7 +95,7 @@ void generateEncoding(
                 if (n.isVar())
                 {
                     std::string symbol = n.toString();
-                    if (role.find(symbol) == role.end())
+                    if (role.find(symbol) == role.end() && parent.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE) // Ignore variables in INST_ATTRIBUTE (qid)
                     {
                         role[symbol] = cnt;
                     }
