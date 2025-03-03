@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM.
+ * Definition of ProofRule::ACI_NORM and ProofRule::ABSORB.
  */
 
 #include "expr/aci_norm.h"
@@ -241,6 +241,132 @@ bool isACINorm(Node a, Node b)
   // then this would only be the case if the former was chosen as a normal
   // form. Instead, both fail.
   return (a == bn) || (an == b);
+}
+
+Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn)
+{
+  Node zeroTerm;
+  switch (k)
+  {
+    case Kind::OR: zeroTerm = nm->mkConst(true); break;
+    case Kind::AND:
+    case Kind::SEP_STAR: zeroTerm = nm->mkConst(false); break;
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT:
+      // Note that we ignore the type. This is safe since multiplication is
+      // permissive for subtypes.
+      zeroTerm = nm->mkConstInt(Rational(0));
+      break;
+    case Kind::REGEXP_UNION:
+      // universal language
+      zeroTerm = nm->mkNode(Kind::REGEXP_ALL);
+      break;
+    case Kind::REGEXP_INTER:
+      // empty language
+      zeroTerm = nm->mkNode(Kind::REGEXP_NONE);
+      break;
+    case Kind::BITVECTOR_OR:
+      if (tn.isBitVector())
+      {
+        zeroTerm = theory::bv::utils::mkOnes(nm, tn.getBitVectorSize());
+      }
+      break;
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_MULT:
+      // it may be the case that we are an abstract type, which we guard here
+      // and return the null node.
+      if (tn.isBitVector())
+      {
+        zeroTerm = theory::bv::utils::mkZero(nm, tn.getBitVectorSize());
+      }
+      break;
+    default:
+      // no zero
+      break;
+  }
+  return zeroTerm;
+}
+
+struct AbsorbTag
+{
+};
+struct AbsorbComputedTag
+{
+};
+/**
+ * Attribute true for terms that can be absorbd. Note the same attribute
+ * is stored for all kinds.
+ */
+typedef expr::Attribute<AbsorbTag, bool> AbsorbAttr;
+typedef expr::Attribute<AbsorbComputedTag, bool> AbsorbComputedAttr;
+
+bool isAbsorb(Kind k)
+{
+  switch (k)
+  {
+    case Kind::OR:
+    case Kind::AND:
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR: return true;
+    default: break;
+  }
+  return false;
+}
+
+bool isAbsorb(Node a, const Node& zero)
+{
+  Kind k = a.getKind();
+  if (!isAbsorb(k))
+  {
+    return false;
+  }
+  AbsorbAttr aa;
+  AbsorbComputedAttr aca;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(a);
+  do
+  {
+    cur = visit.back();
+    Assert(cur.getKind() == k);
+    if (cur.getAttribute(aca))
+    {
+      visit.pop_back();
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      for (const Node& cc : cur)
+      {
+        if (cc.getKind() == k)
+        {
+          visit.push_back(cc);
+        }
+      }
+      continue;
+    }
+    visit.pop_back();
+    bool isAnnil = false;
+    for (const Node& cc : cur)
+    {
+      // only absorbs if the child is zero or has the same kind and
+      // absorbs
+      if (cc == zero || (cc.getKind() == k && cc.getAttribute(aa)))
+      {
+        isAnnil = true;
+        break;
+      }
+    }
+    cur.setAttribute(aa, isAnnil);
+    cur.setAttribute(aca, true);
+  } while (!visit.empty());
+  return a.getAttribute(aa);
 }
 
 }  // namespace expr

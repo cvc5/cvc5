@@ -31,6 +31,7 @@ const char* toString(ProofRule rule)
     case ProofRule::EVALUATE: return "EVALUATE";
     case ProofRule::DISTINCT_VALUES: return "DISTINCT_VALUES";
     case ProofRule::ACI_NORM: return "ACI_NORM";
+    case ProofRule::ABSORB: return "ABSORB";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";

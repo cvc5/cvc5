@@ -391,6 +391,71 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRule::ABSORB
+
+; program: $is_absorb_rec
+; args:
+; - f (-> T U U): The type of function we are searching over, expected to be right-assoc-nil.
+; - t U: The term to compute whether it simplifies to a zero element.
+; - zero U: The zero element of f.
+; return: >
+;   true, if zero is found as a subterm of t beneath f-applications.
+(program $is_absorb_rec ((T Type) (U Type) (f (-> T U U)) (a T) (b U) (zero U))
+  ((-> T U U) U U) Bool
+  (
+    (($is_absorb_rec f zero zero)     true)
+    (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)
+                                            true
+                                            ($is_absorb_rec f b zero)))
+    (($is_absorb_rec f b zero)        false)
+  )
+)
+
+; program: $get_zero
+; args:
+; - t S: The term to compute whether it simplifies to a zero element.
+; return: >
+;   The zero element for t, if it is found.
+(define $get_zero ((S Type :implicit) (t S))
+  (eo::match ((T Type) (U Type) (x1 T) (x2 U :list) (m Int)
+              (xb1 (BitVec m)) (xb2 (BitVec m) :list))
+    t
+    (
+    ((or x1 x2)        true)
+    ((and x1 x2)       false)
+    ((re.union x1 x2)  re.all)
+    ((re.inter x1 x2)  re.none)
+    ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
+    ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
+    )
+  )
+)
+
+; define: $is_absorb
+; args:
+; - t U: The term to compute whether it simplifies to a zero element.
+; - zero U: The zero element of the function of t.
+; return: >
+;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
+(define $is_absorb ((S Type :implicit) (t S) (zero S))
+  (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
+  (eo::match ((T Type) (U Type) (f (-> T U U)) (t1 T) (t2 U))
+    t
+    (((f t1 t2) ($is_absorb_rec f t zero))))))
+
+; rule: absorb
+; implements: ProofRule::ABSORB
+; args:
+; - eq Bool: The equality to be proven by this rule.
+; requires: >
+;   That t simplifies to a zero element, which is given by the right hand side of eq.
+; conclusion: The given equality.
+(declare-rule absorb ((U Type) (t U) (zero U))
+  :args ((= t zero))
+  :requires ((($is_absorb t zero) true))
+  :conclusion (= t zero)
+)
+
 ;;;;; ProofRewriteRule::DISTINCT_CARD_CONFLICT
 
 ; program: $compute_card
