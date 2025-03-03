@@ -1363,7 +1363,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // In the loop below, we try solving for *both* sides to
       // maximize the determinism of the rewriter. For example,
       // given 2 Boolean variables x and y, when we construct
-      // (no (= (not x) (not y))), the rewriter may order them in
+      // (not (= (not x) (not y))), the rewriter may order them in
       // either direction. Taking the first solved side leads to
       // nondeterminism based on when (not x) and (not y) are constructed.
       // However, if we compare the variables we will always solve
