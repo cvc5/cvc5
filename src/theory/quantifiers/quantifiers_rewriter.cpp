@@ -1360,6 +1360,16 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   {
     if (pol || lit[0].getType().isBoolean())
     {
+      // In the loop below, we try solving for *both* sides to
+      // maximize the determinism of the rewriter. For example,
+      // given 2 Boolean variables x and y, when we construct
+      // (not (= (not x) (not y))), the rewriter may order them in
+      // either direction. Taking the first solved side leads to
+      // nondeterminism based on when (not x) and (not y) are constructed.
+      // However, if we compare the variables we will always solve
+      // x -> y or vice versa based on when x,y are constructed.
+      Node solvedVar;
+      Node solvedSubs;
       for (unsigned i = 0; i < 2; i++)
       {
         bool tpol = pol;
@@ -1369,27 +1379,39 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
           v_slv = v_slv[0];
           tpol = !tpol;
         }
+        // don't solve if we solved the opposite side
+        // and it was smaller.
+        if (!solvedVar.isNull() && v_slv>solvedVar)
+        {
+          break;
+        }
         std::vector<Node>::iterator ita =
             std::find(args.begin(), args.end(), v_slv);
         if (ita != args.end())
         {
           if (isVarElim(v_slv, lit[1 - i]))
           {
-            Node slv = lit[1 - i];
+            solvedVar = v_slv;
+            solvedSubs = lit[1 - i];
             if (!tpol)
             {
-              Assert(slv.getType().isBoolean());
-              slv = slv.negate();
+              Assert(solvedSubs.getType().isBoolean());
+              solvedSubs = solvedSubs.negate();
             }
-            Trace("var-elim-quant")
-                << "Variable eliminate based on equality : " << v_slv << " -> "
-                << slv << std::endl;
-            vars.push_back(v_slv);
-            subs.push_back(slv);
-            args.erase(ita);
-            return true;
           }
         }
+      }
+      if (!solvedVar.isNull())
+      {
+        std::vector<Node>::iterator ita =
+            std::find(args.begin(), args.end(), solvedVar);
+        Trace("var-elim-quant")
+            << "Variable eliminate based on equality : " << solvedVar << " -> "
+            << solvedSubs << std::endl;
+        vars.push_back(solvedVar);
+        subs.push_back(solvedSubs);
+        args.erase(ita);
+        return true;
       }
     }
   }
