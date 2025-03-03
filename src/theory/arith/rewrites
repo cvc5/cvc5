@@ -77,6 +77,11 @@
   (>= (to_real t) c)
   (>= t cc))
 
+(define-cond-rule arith-divisible-elim ((n Int) (t Int))
+  (not (= n 0))
+  (divisible n t)
+  (= (mod_total t n) 0))
+
 ; absolute value comparisons
 
 (define-rule arith-abs-eq ((x ?) (y ?))

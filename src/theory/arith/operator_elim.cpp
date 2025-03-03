@@ -64,10 +64,14 @@ TrustNode OperatorElim::eliminate(Node n,
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, partialOnly, wasNonLinear);
+  if (nn == n)
+  {
+    return TrustNode::null();
+  }
   // logic exception if non-linear
   if (wasNonLinear)
   {
-    if (d_env.getLogicInfo().isLinear())
+    if (logicInfo().isLinear())
     {
       Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
                            << std::endl;
@@ -78,6 +82,14 @@ TrustNode OperatorElim::eliminate(Node n,
       throw LogicException(serr.str());
     }
   }
+  // if transcendental, we don't eliminate if not expert
+  if (isTranscendentalKind(n.getKind()))
+  {
+    if (!options().arith.arithExp)
+    {
+      return TrustNode::null();
+    }
+  }
   // should only be a single lemma, if there is one
   Assert(klems.size() <= 1);
   for (std::pair<Node, Node>& p : klems)
@@ -85,12 +97,8 @@ TrustNode OperatorElim::eliminate(Node n,
     // each skolem lemma can be justified by this class
     lems.emplace_back(mkSkolemLemma(p.first, p.second, n));
   }
-  if (nn != n)
-  {
-    // we can provide a proof for the rewrite as well
-    return TrustNode::mkTrustRewrite(n, nn, this);
-  }
-  return TrustNode::null();
+  // we can provide a proof for the rewrite as well
+  return TrustNode::mkTrustRewrite(n, nn, this);
 }
 
 Node OperatorElim::eliminateOperators(NodeManager* nm,
