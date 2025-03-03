@@ -417,7 +417,7 @@
 ; return: >
 ;   The zero element for t, if it is found.
 (define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
+  (eo::match ((T Type) (U Type) (x1 T) (x2 U :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list))
     t
     (
