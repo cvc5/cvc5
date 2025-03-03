@@ -226,7 +226,7 @@ enum ENUM(ProofRule)
   EVALUE(ACI_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- annihilate**
+   * **Builtin theory -- absorb**
    *
    * .. math::
    *   \inferrule{- \mid t = z}{t = z}
@@ -240,11 +240,11 @@ enum ENUM(ProofRule)
    * For example, this may show that :math:`(A \wedge ( B \wedge \bot)) = \bot`.
    *
    * This is implemented internally by checking that
-   * :math:`\texttt{expr::isAnnihilate(t, z)} = \top`. For details, see
+   * :math:`\texttt{expr::isAbsorb(t, z)} = \top`. For details, see
    * :cvc5src:`expr/aci_norm.h`.
    * \endverbatim
    */
-  EVALUE(ANNIHILATE),
+  EVALUE(ABSORB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**

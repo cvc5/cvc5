@@ -51,7 +51,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::EVALUATE, this);
   pc->registerChecker(ProofRule::DISTINCT_VALUES, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
-  pc->registerChecker(ProofRule::ANNIHILATE, this);
+  pc->registerChecker(ProofRule::ABSORB, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
@@ -311,7 +311,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0];
   }
-  else if (id == ProofRule::ANNIHILATE)
+  else if (id == ProofRule::ABSORB)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
@@ -324,7 +324,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    if (!expr::isAnnihilate(args[0][0], args[0][1]))
+    if (!expr::isAbsorb(args[0][0], args[0][1]))
     {
       return Node::null();
     }

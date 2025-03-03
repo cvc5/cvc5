@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM and ProofRule::ANNIHILATE.
+ * Definition of ProofRule::ACI_NORM and ProofRule::ABSORB.
  */
 
 #include "expr/aci_norm.h"
@@ -287,20 +287,20 @@ Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn)
   return zeroTerm;
 }
 
-struct AnnihilateTag
+struct AbsorbTag
 {
 };
-struct AnnihilateComputedTag
+struct AbsorbComputedTag
 {
 };
 /**
- * Attribute true for terms that can be annihilated. Note the same attribute
+ * Attribute true for terms that can be absorbd. Note the same attribute
  * is stored for all kinds.
  */
-typedef expr::Attribute<AnnihilateTag, bool> AnnihilateAttr;
-typedef expr::Attribute<AnnihilateComputedTag, bool> AnnihilateComputedAttr;
+typedef expr::Attribute<AbsorbTag, bool> AbsorbAttr;
+typedef expr::Attribute<AbsorbComputedTag, bool> AbsorbComputedAttr;
 
-bool isAnnihilate(Kind k)
+bool isAbsorb(Kind k)
 {
   switch (k)
   {
@@ -315,15 +315,15 @@ bool isAnnihilate(Kind k)
   return false;
 }
 
-bool isAnnihilate(Node a, const Node& zero)
+bool isAbsorb(Node a, const Node& zero)
 {
   Kind k = a.getKind();
-  if (!isAnnihilate(k))
+  if (!isAbsorb(k))
   {
     return false;
   }
-  AnnihilateAttr aa;
-  AnnihilateComputedAttr aca;
+  AbsorbAttr aa;
+  AbsorbComputedAttr aca;
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
@@ -355,8 +355,8 @@ bool isAnnihilate(Node a, const Node& zero)
     bool isAnnil = false;
     for (const Node& cc : cur)
     {
-      // only annihilates if the child is zero or has the same kind and
-      // annihilates
+      // only absorbs if the child is zero or has the same kind and
+      // absorbs
       if (cc == zero || (cc.getKind() == k && cc.getAttribute(aa)))
       {
         isAnnil = true;

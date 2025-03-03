@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM and ProofRule::ANNIHILATE.
+ * Definition of ProofRule::ACI_NORM and ProofRule::ABSORB.
  */
 
 #include "cvc5_private.h"
@@ -80,7 +80,7 @@ bool isACINorm(Node a, Node b);
  * @param b The zero element of the function symbol of a.
  * @return true if a and b were successfully shown to be equal.
  */
-bool isAnnihilate(Node a, const Node& zero);
+bool isAbsorb(Node a, const Node& zero);
 
 /**
  * Get the zero element for kind k and type node tn.

@@ -391,11 +391,11 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     Trace("rpc-debug2") << "...proved via congruence + evaluation" << std::endl;
     return RewriteProofStatus::CONG_EVAL;
   }
-  // maybe by annihilate?
+  // maybe by absorb?
   if (proveWithRule(
-          RewriteProofStatus::ANNIHILATE, eqi, {}, {}, false, false, true))
+          RewriteProofStatus::ABSORB, eqi, {}, {}, false, false, true))
   {
-    return RewriteProofStatus::ANNIHILATE;
+    return RewriteProofStatus::ABSORB;
   }
   // standard normalization
   if (proveWithRule(
@@ -665,7 +665,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
   }
-  else if (id == RewriteProofStatus::ANNIHILATE)
+  else if (id == RewriteProofStatus::ABSORB)
   {
     if (!target[1].isConst())
     {
@@ -677,7 +677,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     {
       return false;
     }
-    if (!expr::isAnnihilate(target[0], target[1]))
+    if (!expr::isAbsorb(target[0], target[1]))
     {
       return false;
     }
@@ -1236,9 +1236,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
       }
-      else if (pcur.d_id == RewriteProofStatus::ANNIHILATE)
+      else if (pcur.d_id == RewriteProofStatus::ABSORB)
       {
-        cdp->addStep(cur, ProofRule::ANNIHILATE, {}, {cur});
+        cdp->addStep(cur, ProofRule::ABSORB, {}, {cur});
       }
       else if (pcur.d_id == RewriteProofStatus::ACI_NORM)
       {
