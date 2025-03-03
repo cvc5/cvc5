@@ -364,7 +364,6 @@ RewriteProofStatus RewriteDbProofCons::proveInternal(const Node& eqi)
   d_currProving.insert(eqi);
   ++d_statTotalAttempts;
   // eqi should not hold trivially and should not be cached
-  Assert(d_currRecLimit > 0);
   Trace("rpc-debug2") << "proveInternal " << eqi << std::endl;
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
@@ -414,12 +413,10 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     }
   }
   Trace("rpc-debug2") << "...not proved via builtin tactic" << std::endl;
-  d_currRecLimit--;
   Node prevTarget = d_target;
   d_target = eqi;
   d_db->getMatches(eqi[0], &d_notify);
   d_target = prevTarget;
-  d_currRecLimit++;
   // check if we determined the proof in the above call, which is the case
   // if we succeeded, or we are already marked as a failure at a lower depth.
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
@@ -456,11 +453,6 @@ bool RewriteDbProofCons::notifyMatch(const Node& s,
                                      std::vector<Node>& subs)
 {
   // if we reach our step limit, do not continue trying
-  if (d_currStepLimit == 0)
-  {
-    return false;
-  }
-  d_currStepLimit--;
   Trace("rpc-debug2") << "[steps remaining: " << d_currStepLimit << "]"
                       << std::endl;
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
@@ -558,6 +550,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   std::vector<Node> impliedSs;
   Node transEq;
   ProvenInfo pic;
+  // whether we require decrementing the recursion limit to apply this rule
+  bool decRecLimit = true;
   if (id == RewriteProofStatus::CONG)
   {
     size_t nchild = target[0].getNumChildren();
@@ -589,6 +583,9 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
     }
+    // congruence (f(a) = f(b)) <= (a = b) is treated as a "propagation", i.e.
+    // it does not require decrementing the recursion limit, as a heuristic.
+    decRecLimit = false;
   }
   else if (id == RewriteProofStatus::CONG_EVAL)
   {
@@ -658,6 +655,8 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Node eq = target[0];
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
+    // also treated as a "propagation" heuristic
+    decRecLimit = false;
   }
   else if (id == RewriteProofStatus::ACI_NORM)
   {
@@ -820,7 +819,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       // already holds, continue
       continue;
     }
-    if (!doRecurse)
+    if (!doRecurse || (decRecLimit && d_currRecLimit == 0))
     {
       // we can't apply recursion, return false
       Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
@@ -829,17 +828,47 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     // save, to check below
     condToProve.push_back(cond);
   }
-  // if no trivial failures, go back and try to recursively prove
-  for (const Node& cond : condToProve)
+  // if we have any sub-conditions to prove, we require decrementing the
+  // recursion limit
+  if (!condToProve.empty())
   {
-    Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
-    // recursively check if the condition holds
-    RewriteProofStatus cid = proveInternal(cond);
-    if (cid == RewriteProofStatus::FAIL)
+    // we could only add condToProve if d_currRecLimit>0 above.
+    Assert(!decRecLimit || d_currRecLimit > 0);
+    if (decRecLimit)
     {
-      // print reason for failure
-      Trace("rpc-infer-debug")
-          << "required: " << cond << " for " << id << std::endl;
+      d_currRecLimit--;
+      if (d_currStepLimit == 0)
+      {
+        return false;
+      }
+      d_currStepLimit--;
+    }
+    Trace("rpc-debug") << "Recurse rule "
+                       << (id == RewriteProofStatus::DSL ? toString(r)
+                                                         : toString(id))
+                       << std::endl;
+    bool recSuccess = true;
+    // if no trivial failures, go back and try to recursively prove
+    for (const Node& cond : condToProve)
+    {
+      Trace("rpc-infer-sc") << "Check condition: " << cond << std::endl;
+      // recursively check if the condition holds
+      RewriteProofStatus cid = proveInternal(cond);
+      if (cid == RewriteProofStatus::FAIL)
+      {
+        // print reason for failure
+        Trace("rpc-infer-debug")
+            << "required: " << cond << " for " << id << std::endl;
+        recSuccess = false;
+        break;
+      }
+    }
+    if (decRecLimit)
+    {
+      d_currRecLimit++;
+    }
+    if (!recSuccess)
+    {
       return false;
     }
   }
@@ -950,6 +979,8 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   for (size_t i = 0; i < 2; i++)
   {
     ev[i] = doEvaluate(eqi[i]);
+    Trace("rpc-debug2") << "...evaluate " << eqi[i] << " to " << ev[i]
+                        << std::endl;
     if (ev[i].isNull())
     {
       // does not evaluate
