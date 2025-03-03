@@ -655,7 +655,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     Node eq = target[0];
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
-    // also treated as a "propagation" as a heuristic
+    // also treated as a "propagation" heuristic
     decRecLimit = false;
   }
   else if (id == RewriteProofStatus::ACI_NORM)
