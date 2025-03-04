@@ -316,7 +316,7 @@ Node TheoryBoolRewriter::getBvInvertSolve(
 {
   quantifiers::BvInverter binv;
   // solve for the variable on this path using the inverter
-  std::vector<unsigned> path;
+  std::vector<uint32_t> path;
   Node slit = binv.getPathToPv(lit, var, path);
   // check if the path had a kind that does not preserve equivalence of the
   // overall literal
@@ -331,7 +331,7 @@ Node TheoryBoolRewriter::getBvInvertSolve(
         slit = Node::null();
         break;
       }
-      unsigned p = path[npath - i - 1];
+      uint32_t p = path[npath - i - 1];
       curr = curr[p];
     }
     Assert(slit.isNull() || curr == var);
@@ -346,7 +346,7 @@ Node TheoryBoolRewriter::getBvInvertSolve(
     Node curr = lit;
     for (size_t i = 0, npath = path.size(); i < npath; i++)
     {
-      unsigned p = path[npath - i - 1];
+      uint32_t p = path[npath - i - 1];
       curr = curr[p];
       ts.push_back(curr);
     }
