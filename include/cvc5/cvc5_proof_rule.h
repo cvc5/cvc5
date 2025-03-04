@@ -207,8 +207,9 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. For details, see
-   * :cvc5src:`expr/nary_term_util.h`.
+   * where :math:`t` and :math:`s` are equivalent modulo associativity
+   * and identity elements, and (optionally) commutativity and idempotency.
+   *
    * This method normalizes currently based on two kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
@@ -216,9 +217,34 @@ enum ENUM(ProofRule)
    * element (bvxor),
    * (3) those that are associative and have an identity element (examples
    * are concat, str.++, re.++).
+   *
+   * This is implemented internally by checking that
+   * :math:`\texttt{expr::isACINorm(t, s)} = \top`. For details, see
+   * :cvc5src:`expr/aci_norm.h`.
    * \endverbatim
    */
   EVALUE(ACI_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- absorb**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = z}{t = z}
+   *
+   * where :math:`t` contains :math:`z` as a subterm, where :math:`z`
+   * is a zero element.
+   *
+   * In particular, :math:`t` is expected to be an application of a
+   * function with a zero element :math:`z`, and :math:`z` is contained
+   * as a subterm of :math:`t` beneath applications of that function.
+   * For example, this may show that :math:`(A \wedge ( B \wedge \bot)) = \bot`.
+   *
+   * This is implemented internally by checking that
+   * :math:`\texttt{expr::isAbsorb(t, z)} = \top`. For details, see
+   * :cvc5src:`expr/aci_norm.h`.
+   * \endverbatim
+   */
+  EVALUE(ABSORB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**
