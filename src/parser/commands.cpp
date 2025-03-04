@@ -131,6 +131,25 @@ void Cmd::invoke(cvc5::Solver* solver,
   out << std::flush;
 }
 
+void Cmd::invokeAndPrintResult(cvc5::Solver* solver,
+                               parser::SymManager* sm)
+{
+  invoke(solver, sm);
+  // the output stream reference is retrieved here since it might change after
+  // invoking a (set-option :out ...) command
+  std::ostream &out = solver->getDriverOptions().out();
+  if (!ok())
+  {
+    out << *d_commandStatus;
+  }
+  else
+  {
+    printResult(solver, out);
+  }
+  // always flush the output
+  out << std::flush;
+}
+
 std::string Cmd::toString() const
 {
   std::stringstream ss;

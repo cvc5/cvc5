@@ -44,7 +44,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "prenexQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "prenex-quant=MODE"
   type       = "PrenexQuantMode"
   default    = "SIMPLE"
@@ -1702,14 +1702,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "try to solve non-linear bv literals using model value projections"
-
-[[option]]
-  name       = "cegqiBvConcInv"
-  category   = "expert"
-  long       = "cegqi-bv-concat-inv"
-  type       = "bool"
-  default    = "true"
-  help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
 ### Reduction options
 

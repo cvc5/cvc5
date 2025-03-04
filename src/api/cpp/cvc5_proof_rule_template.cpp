@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * Implementation of proof rule.
- */
+ // */
 
 #include <cvc5/cvc5_proof_rule.h>
 
@@ -31,6 +31,7 @@ const char* toString(ProofRule rule)
     case ProofRule::EVALUATE: return "EVALUATE";
     case ProofRule::DISTINCT_VALUES: return "DISTINCT_VALUES";
     case ProofRule::ACI_NORM: return "ACI_NORM";
+    case ProofRule::ABSORB: return "ABSORB";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
@@ -231,6 +232,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
     case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
@@ -264,6 +266,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
     case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+      return "macro-quant-dt-var-expand";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
@@ -310,6 +314,15 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "str-overlap-endpoints-indexof";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
       return "str-overlap-endpoints-replace";
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+      return "macro-str-component-ctn";
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+      return "macro-str-const-nctn-concat";
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      return "macro-str-in-re-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
+      return "macro-re-inter-union-const-elim";
+    case ProofRewriteRule::SEQ_EVAL_OP: return "seq-eval-op";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:

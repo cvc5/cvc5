@@ -21,6 +21,19 @@
 (declare-const @list.nil @List)
 (declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
 
+; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
+(program $evaluate_list () (@List) @List)
+
+; define: $evaluate
+; args:
+; - t S: The term to evaluate.
+; return: The result of evaluating t.
+; note: >
+;   This method is defined in terms of the forward declaration $evaluate_list here.
+;   The implementation of this method depends on defining the evaluation for all
+;   theories and thus is contained in Cpc.eo.
+(define $evaluate ((T Type :implicit) (t T)) (eo::list_nth @list ($evaluate_list (@list t)) 0))
+
 ; program: $get_fun
 ; args:
 ; - t S: The term to inspect.
