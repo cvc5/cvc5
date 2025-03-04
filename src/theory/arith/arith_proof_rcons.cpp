@@ -15,7 +15,6 @@
 
 #include "theory/arith/arith_proof_rcons.h"
 
-#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/proof_node.h"
@@ -26,31 +25,6 @@
 namespace cvc5::internal {
 namespace theory {
 namespace arith {
-
-/**
- * Arithmetic substitution term context.
- */
-class ArithSubsTermContext : public TermContext
-{
- public:
-  ArithSubsTermContext() {}
-  /** The initial value: valid. */
-  uint32_t initialValue() const override { return 0; }
-  /** Compute the value of the index^th child of t whose hash is tval */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
-  {
-    if (tval == 0)
-    {
-      // if we should not traverse, return 1
-      if (!ArithSubs::shouldTraverse(t))
-      {
-        return 1;
-      }
-      return 0;
-    }
-    return tval;
-  }
-};
 
 ArithProofRCons::ArithProofRCons(Env& env, TrustId id) : EnvObj(env), d_id(id)
 {
@@ -113,7 +87,8 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     tcnv.addRewriteStep(m.first, val, &cdp);
     return true;
   }
-  Trace("arith-proof-rcons") << "...failed solve equality (no factor)" << std::endl;
+  Trace("arith-proof-rcons")
+      << "...failed solve equality (no factor)" << std::endl;
   return false;
 }
 
@@ -191,7 +166,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
       std::map<Node, Node> boundingLits[2];
       for (const Node& a : assumps)
       {
-        if (solved.find(a)!=solved.end())
+        if (solved.find(a) != solved.end())
         {
           // already solved
           continue;
@@ -209,7 +184,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
           break;
         }
         // if its an equality, try to turn it into a substitution
-        if (asr.getKind()==Kind::EQUAL)
+        if (asr.getKind() == Kind::EQUAL)
         {
           // must remember the proof prior to changing the substitution
           std::shared_ptr<ProofNode> pfn;
@@ -279,10 +254,9 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
           // reconstruct the literals of the form
           // (>= t c1) and (not (>= t c2)).
           Node l1 = applySR(asubs, bl.second);
-          Assert(l1.getKind() != Kind::NOT);
+          l1 = l1.getKind() == Kind::NOT ? l1[0] : l1;
           Node l2 = applySR(asubs, itb->second);
-          Assert(l2.getKind() == Kind::NOT);
-          l2 = l2[0];
+          l2 = l2.getKind() == Kind::NOT ? l2[0] : l2;
           Trace("arith-proof-rcons") << "......dual binding lits " << l1
                                      << ", not " << l2 << std::endl;
           Assert(l1.getKind() == Kind::GEQ && l2.getKind() == Kind::GEQ);
