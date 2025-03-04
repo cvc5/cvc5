@@ -96,17 +96,22 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       std::vector<Node> eargs;
       eargs.push_back(candidates[i]);
       Node ret = nm->mkNode(Kind::DT_SYGUS_EVAL, eargs);
-      if (ret.getType().isRegExp())
-      {
-        // cannot do evaluation unfolding for regular expressions
-        d_doEvalUnfold = false;
-        break;
-      }
       if (!vs.empty())
       {
         Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
         eargs.insert(eargs.end(), vs.begin(), vs.end());
-        ret = nm->mkNode(Kind::LAMBDA, lvl, ret);
+        ret = nm->mkNode(Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
+      }
+      else
+      {
+        ret = nm->mkNode(Kind::DT_SYGUS_EVAL, eargs);
+      }
+      TypeNode rt = ret.getType();
+      if (rt.isRegExp() || (rt.isFunction() && rt.getRangeType().isRegExp()))
+      {
+        // cannot do evaluation unfolding for regular expressions
+        d_doEvalUnfold = false;
+        break;
       }
       d_euSubs.add(conj[0][i], ret);
     }
