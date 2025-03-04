@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Hans-Joerg Schurr
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,13 +64,15 @@ class RewriteDb
    * @param b The right hand side of the rule
    * @param cond The condition, or null if this is not a conditional rule
    * @param context The term context, if one exists
+   * @param level Whether this rule is expert
    */
   void addRule(ProofRewriteRule id,
                const std::vector<Node> fvs,
                Node a,
                Node b,
                Node cond,
-               Node context);
+               Node context,
+               Level level);
   /**
    * Get matches, which incrementally makes callbacks on the notify class
    * ntm for all rules that match eq.

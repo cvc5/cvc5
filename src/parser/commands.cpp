@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,6 +119,25 @@ void Cmd::invoke(cvc5::Solver* solver,
                  std::ostream& out)
 {
   invoke(solver, sm);
+  if (!ok())
+  {
+    out << *d_commandStatus;
+  }
+  else
+  {
+    printResult(solver, out);
+  }
+  // always flush the output
+  out << std::flush;
+}
+
+void Cmd::invokeAndPrintResult(cvc5::Solver* solver,
+                               parser::SymManager* sm)
+{
+  invoke(solver, sm);
+  // the output stream reference is retrieved here since it might change after
+  // invoking a (set-option :out ...) command
+  std::ostream &out = solver->getDriverOptions().out();
   if (!ok())
   {
     out << *d_commandStatus;

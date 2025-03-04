@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -223,14 +223,14 @@ namespace {
  */
 struct CollectMonomialData
 {
-  CollectMonomialData(VariableMapper& v) : d_vm(v) {}
+  CollectMonomialData(NodeManager* nm, VariableMapper& v) : d_vm(v), d_nm(nm) {}
 
   /** Mapper from poly variables to cvc5 variables */
   VariableMapper& d_vm;
   /** Collections of the monomial terms */
   std::vector<Node> d_terms;
   /** Caches the current node manager */
-  NodeManager* d_nm = NodeManager::currentNM();
+  NodeManager* d_nm;
 };
 /**
  * Callback for lp_polynomial_traverse. Assumes data is actually a
@@ -263,9 +263,11 @@ void collect_monomials(const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm)
+cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
+                                       const poly::Polynomial& p,
+                                       VariableMapper& vm)
 {
-  CollectMonomialData cmd(vm);
+  CollectMonomialData cmd(nm, vm);
   // Do the actual conversion
   lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
 
@@ -835,9 +837,9 @@ Node PolyConverter::ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
   return Node::null();
 }
 
-Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
+Node PolyConverter::ran_to_lower(NodeManager* nm,
+                                 const RealAlgebraicNumber& ran)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)
@@ -852,9 +854,9 @@ Node PolyConverter::ran_to_lower(const RealAlgebraicNumber& ran)
   return witness;
 }
 
-Node PolyConverter::ran_to_upper(const RealAlgebraicNumber& ran)
+Node PolyConverter::ran_to_upper(NodeManager* nm,
+                                 const RealAlgebraicNumber& ran)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Node ran_variable = NodeManager::mkBoundVar(nm->realType());
   Node witness = ran_to_node(ran, ran_variable);
   if (witness.getKind() == Kind::WITNESS)

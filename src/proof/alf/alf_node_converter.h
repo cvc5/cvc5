@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -134,8 +134,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
    * signature.
    */
   Node maybeMkSkolemFun(Node k);
-  /** Is k a kind that is printed as an indexed operator in ALF? */
-  static bool isIndexedOperatorKind(Kind k);
+  /** Is op an ambiguous datatype constructor? */
+  bool isAmbiguousDtConstructor(const Node& op);
   /** Do we handle the given skolem id? */
   static bool isHandledSkolemId(SkolemId id);
   /** Get indices for printing the operator of n in the ALF format */
@@ -148,6 +148,8 @@ class AlfNodeConverter : public BaseAlfNodeConverter
   std::map<Node, size_t> d_constIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
+  /** Cache for isAmbiguousDtConstructor */
+  std::map<Node, bool> d_ambDt;
 };
 
 }  // namespace proof

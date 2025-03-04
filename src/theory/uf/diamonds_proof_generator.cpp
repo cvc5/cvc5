@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,8 @@
 #include "theory/uf/diamonds_proof_generator.h"
 
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -167,10 +169,95 @@ void DiamondsProofGenerator::ppStaticLearn(TNode n,
 
 std::shared_ptr<ProofNode> DiamondsProofGenerator::getProofFor(Node fact)
 {
-  Trace("valid-witness") << "Prove " << fact << std::endl;
-  // proofs not yet supported
+  NodeManager* nm = nodeManager();
   CDProof cdp(d_env);
-  cdp.addTrustedStep(fact, TrustId::DIAMONDS, {}, {});
+  Trace("diamonds-proof") << "Prove " << fact << std::endl;
+  Assert(fact.getKind() == Kind::IMPLIES);
+  // fact is of the form
+  //   (=> (or (and (= a1 b1) (= c1 d1)) (and (= a2 b2) (= c2 d2))) (= e f))
+  // where
+  //   (=> (and (= a1 b1) (= c1 d1)) (= e f)) by transitivity and
+  //   (=> (and (= a2 b2) (= c2 d2)) (= e f)) by transitivity.
+  Node antec = fact[0];
+  Assert(antec.getKind() == Kind::OR);
+  Node conc = fact[1];
+  Assert(conc.getKind() == Kind::EQUAL);
+  std::vector<Node> children(fact.begin(), fact.end());
+  std::vector<Node> conj;
+  for (size_t i = 0, nchild = antec.getNumChildren(); i < nchild; i++)
+  {
+    children[0] = antec[i];
+    conj.push_back(nm->mkNode(Kind::IMPLIES, children));
+  }
+  Trace("diamonds-proof") << "Conjunction to prove " << conj << std::endl;
+  for (const Node& c : conj)
+  {
+    Assert(c.getKind() == Kind::IMPLIES);
+    Assert(c[0].getKind() == Kind::AND);
+    Assert(c[1] == conc);
+    // must use another CDProof since we will prove conc multiple times
+    CDProof cdpi(d_env);
+    // give a proof in terms of scope and trans
+    std::vector<Node> acc(c[0].begin(), c[0].end());
+    bool success = false;
+    for (size_t i = 0; i < 2; i++)
+    {
+      Assert(acc[i].getKind() == Kind::EQUAL);
+      for (size_t j = 0; j < 2; j++)
+      {
+        if (acc[i][j] == conc[0])
+        {
+          Node aco = acc[i][1 - j];
+          std::vector<Node> transEq;
+          transEq.push_back(acc[i][j].eqNode(aco));
+          size_t jo = aco == acc[1 - i][0] ? 0 : 1;
+          Assert(acc[1 - i][jo] == aco);
+          transEq.push_back(acc[1 - i][jo].eqNode(acc[1 - i][1 - jo]));
+          Assert(acc[1 - i][1 - jo] == conc[1]);
+          // e = h    h = f
+          // ---------------- TRANS
+          // e = f
+          // where (= e h) and (= h f) are equivalent to
+          // to e.g. (and (= a1 b1) (= c1 d1)) when i=0.
+          cdpi.addStep(conc, ProofRule::TRANS, transEq, {});
+          success = true;
+          break;
+        }
+      }
+      if (success)
+      {
+        break;
+      }
+    }
+    if (success)
+    {
+      // close with scope
+      // proves (=> (and (= a1 b1) (= c1 d1)) (= e f)) when i=0
+      std::shared_ptr<ProofNode> pfn = cdpi.getProofFor(conc);
+      pfn = d_env.getProofNodeManager()->mkScope(pfn, acc);
+      // add to main proof
+      cdp.addProof(pfn);
+    }
+    else
+    {
+      // if failed we add a trust step
+      cdp.addTrustedStep(c, TrustId::DIAMONDS, {}, {});
+    }
+  }
+  // proves (and
+  //          (=> (and (= a1 b1) (= c1 d1)) (= e f))
+  //          (=> (and (= a2 b2) (= c2 d2)) (= e f)))
+  Node cc = nm->mkAnd(conj);
+  cdp.addStep(cc, ProofRule::AND_INTRO, conj, {});
+  // proves
+  // (= cc
+  //    (=> (or (and (= a1 b1) (= c1 d1)) (and (= a2 b2) (= c2 d2))) (= e f)))
+  // where cc is defined above.
+  Node eqc = cc.eqNode(fact);
+  // this rewrite should be reconstructable via RARE rule
+  // bool-implies-or-distrib
+  cdp.addTrustedStep(eqc, TrustId::DIAMONDS, {}, {});
+  cdp.addStep(fact, ProofRule::EQ_RESOLVE, {cc, eqc}, {});
   return cdp.getProofFor(fact);
 }
 

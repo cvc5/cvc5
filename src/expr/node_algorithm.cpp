@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,27 +158,37 @@ bool hasSubtermKind(Kind k, Node n)
 }
 
 bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     Node n)
+                     TNode n)
 {
   if (ks.empty())
   {
     return false;
   }
   std::unordered_set<TNode> visited;
+  return hasSubtermKinds(ks, n, visited) != Kind::UNDEFINED_KIND;
+}
+
+Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     TNode n,
+                     std::unordered_set<TNode>& visited)
+{
+  Assert(!ks.empty());
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
+  Kind k;
   do
   {
     cur = visit.back();
     visit.pop_back();
     if (visited.find(cur) == visited.end())
     {
-      visited.insert(cur);
-      if (ks.find(cur.getKind()) != ks.end())
+      k = cur.getKind();
+      if (ks.find(k) != ks.end())
       {
-        return true;
+        return k;
       }
+      visited.insert(cur);
       if (cur.hasOperator())
       {
         visit.push_back(cur.getOperator());
@@ -186,7 +196,7 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
-  return false;
+  return Kind::UNDEFINED_KIND;
 }
 
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)

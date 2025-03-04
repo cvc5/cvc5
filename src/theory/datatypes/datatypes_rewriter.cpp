@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -383,11 +383,15 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (kind == Kind::MATCH)
   {
-    Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
-    Node ret = expandMatch(in);
-    Trace("dt-rewrite-match")
-        << "Rewrite match: " << in << " ... " << ret << std::endl;
-    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    // only rewrite if expert
+    if (d_opts.datatypes.datatypesExp)
+    {
+      Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
+      Node ret = expandMatch(in);
+      Trace("dt-rewrite-match")
+          << "Rewrite match: " << in << " ... " << ret << std::endl;
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   else if (kind == Kind::MATCH_BIND_CASE)
   {
@@ -1158,13 +1162,11 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
-  if (dt.getNumConstructors() > 1)
-  {
-    // must be the right constructor to update
-    Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
-    ret = nm->mkNode(Kind::ITE, tester, ret, n[0]);
-  }
-  return ret;
+  // note it may be that this dt has one constructor, in which case this
+  // tester will rewrite to true.
+  // must be the right constructor to update
+  Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
+  return nm->mkNode(Kind::ITE, tester, ret, n[0]);
 }
 Node DatatypesRewriter::expandNullableLift(Node n)
 {

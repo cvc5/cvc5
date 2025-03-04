@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,6 +169,14 @@ void SynthConjecture::assign(Node q)
   d_embed_quant = d_embConv->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
+  // In very rare cases, the above call will return null if we construct a
+  // well-founded grammar. In this case, we fail immediately with "unknown".
+  if (d_embed_quant.isNull())
+  {
+    d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
+    d_qim.setRefutationUnsound(IncompleteId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
+    return;
+  }
 
   if (!sc.isNull())
   {

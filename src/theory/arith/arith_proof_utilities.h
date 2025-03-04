@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,14 @@ namespace arith {
  * This method ensures we do not spuriously introduce mixed arithmetic, which
  * the proof checker for MACRO_ARITH_SCALE_SUM_UB requires.
  */
-std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Pf>& pfs,
+                                     const std::vector<Node>& coeffs);
+/**
+ * Same as above, but with proven formulas.
+ */
+std::vector<Node> getMacroSumUbCoeff(NodeManager* nm,
+                                     const std::vector<Node>& premises,
                                      const std::vector<Node>& coeffs);
 
 /**
@@ -58,7 +65,8 @@ std::vector<Node> getMacroSumUbCoeff(const std::vector<Pf>& pfs,
  * @param cdp The proof to add steps to.
  * @return The conclusion of the proof rule.
  */
-Node expandMacroSumUb(const std::vector<Node>& children,
+Node expandMacroSumUb(NodeManager* nm,
+                      const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
 

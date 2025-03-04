@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -337,7 +337,7 @@ Node eliminateBv2Nat(TNode node)
   const unsigned size = bv::utils::getSize(node[0]);
   NodeManager* const nm = NodeManager::currentNM();
   const Node z = nm->mkConstInt(Rational(0));
-  const Node bvone = bv::utils::mkOne(1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   Integer i = 1;
   std::vector<Node> children;
@@ -358,8 +358,8 @@ Node eliminateInt2Bv(TNode node)
 {
   const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
   NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = bv::utils::mkZero(1);
-  const Node bvone = bv::utils::mkOne(1);
+  const Node bvzero = bv::utils::mkZero(nm, 1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   std::vector<Node> v;
   Integer i = 2;

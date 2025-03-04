@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Dejan Jovanovic
+ *   Andrew Reynolds, Tim King, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Arithmetic static learner
  */
 
 #include "cvc5_private.h"
@@ -51,7 +48,15 @@ public:
 
  void addBound(TNode n);
  /**
-  * Get proof for fact
+  * Get proof for fact, which was a lemma constructed by this class (added
+  * to the learned vector in a call to staticLearning). We expect
+  * fact to be roughly one of these forms, modulo rewriting:
+  *
+  * 1. (<r> (ite (<r> t s) t s) t)
+  * 2. (<r> (ite (<r> t s) t s) s)
+  * 3. (=> (and (<r> t c) (<r> s c)) (<r> (ite C t s) c)) where c is a value.
+  *
+  * for some arithmetic inequality relation <r>.
   */
  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
  /** identify this proof generator */

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Hans-Joerg Schurr, Ying Sheng, Aina Niemetz
+#   Abdalrhman Mohamed, Aina Niemetz, Hans-Joerg Schurr
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -63,9 +63,10 @@ def create_rewrite_proof(tm, solver):
     solver.setOption("proof-granularity", "dsl-rewrite")
     int_sort = tm.getIntegerSort()
     x = tm.mkConst(int_sort, "x")
-    two_x = tm.mkTerm(Kind.MULT, tm.mkInteger(2), x)
-    x_plus_x = tm.mkTerm(Kind.ADD, x, x)
-    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, two_x, x_plus_x))
+    zero = tm.mkInteger(0)
+    geq = tm.mkTerm(Kind.GEQ, x, zero)
+    leq = tm.mkTerm(Kind.LEQ, zero, x)
+    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, geq, leq))
     solver.checkSat()
     return solver.getProof()[0]
 

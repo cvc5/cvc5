@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,12 +46,14 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     d_rewriter = d_slvEngine->getEnv().getRewriter();
     // allow recursive approximations
     d_arithEntail.reset(new ArithEntail(d_rewriter, true));
+    d_strEntail.reset(new StringsEntail(d_rewriter, *d_arithEntail.get()));
     d_seqRewriter.reset(new SequencesRewriter(
-        d_nodeManager, d_rewriter, *d_arithEntail.get(), nullptr));
+        d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr));
   }
 
   Rewriter* d_rewriter;
   std::unique_ptr<ArithEntail> d_arithEntail;
+  std::unique_ptr<StringsEntail> d_strEntail;
   std::unique_ptr<SequencesRewriter> d_seqRewriter;
 
   void inNormalForm(Node t)
@@ -288,7 +290,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
-  StringsRewriter sr(d_nodeManager, d_rewriter, *d_arithEntail.get(), nullptr);
+  StringsRewriter sr(
+      d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -598,7 +601,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
 {
-  StringsRewriter sr(d_nodeManager, d_rewriter, *d_arithEntail.get(), nullptr);
+  StringsRewriter sr(
+      d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -1621,11 +1625,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
 
   // Same normal form for:
   //
-  // (= "" (str.replace "A" x y))
+  // (and (= y "") (= x "A"))
   //
   // (= "A" (str.replace "" y x))
-  Node empty_repl_axy = d_nodeManager->mkNode(
-      Kind::EQUAL, empty, d_nodeManager->mkNode(Kind::STRING_REPLACE, a, x, y));
+  Node empty_repl_axy =
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, y, empty),
+                            d_nodeManager->mkNode(Kind::EQUAL, x, a));
   Node eq_a_repl = d_nodeManager->mkNode(
       Kind::EQUAL, a, d_nodeManager->mkNode(Kind::STRING_REPLACE, empty, y, x));
   sameNormalForm(empty_repl_axy, eq_a_repl);

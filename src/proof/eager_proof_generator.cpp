@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -124,6 +124,19 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // construction above.
   std::shared_ptr<ProofNode> pfs = pnm->mkNode(ProofRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
+}
+
+TrustNode EagerProofGenerator::mkTrustNodeTrusted(Node conc,
+                                                  TrustId id,
+                                                  const std::vector<Node>& exp,
+                                                  const std::vector<Node>& args,
+                                                  bool isConflict)
+{
+  std::vector<Node> targs;
+  targs.push_back(mkTrustId(nodeManager(), id));
+  targs.push_back(isConflict ? conc.notNode() : conc);
+  targs.insert(targs.end(), args.begin(), args.end());
+  return mkTrustNode(conc, ProofRule::TRUST, exp, targs, isConflict);
 }
 
 TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,

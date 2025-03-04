@@ -31,7 +31,6 @@ runs:
           libtinfo-dev \
           libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
-        echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
         echo "::endgroup::"
 
     - name: Install software for cross-compiling for arm64 Linux
@@ -117,7 +116,6 @@ runs:
           ccache \
           gnu-sed
         echo "SED=gsed" >> $GITHUB_ENV
-        echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
         echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
         echo "::endgroup::"
 

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,10 +30,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsEntail::StringsEntail(Rewriter* r,
-                             ArithEntail& aent,
-                             SequencesRewriter* rewriter)
-    : d_rr(r), d_arithEntail(aent), d_rewriter(rewriter)
+StringsEntail::StringsEntail(Rewriter* r, ArithEntail& aent)
+    : d_rr(r), d_arithEntail(aent)
 {
 }
 
@@ -234,9 +232,33 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                                      bool computeRemainder,
                                      int remainderDir)
 {
+  return componentContainsInternal(
+      false, n1, n2, nb, ne, computeRemainder, remainderDir);
+}
+
+int StringsEntail::componentContainsExt(std::vector<Node>& n1,
+                                        std::vector<Node>& n2,
+                                        std::vector<Node>& nb,
+                                        std::vector<Node>& ne,
+                                        bool computeRemainder,
+                                        int remainderDir)
+{
+  return componentContainsInternal(
+      true, n1, n2, nb, ne, computeRemainder, remainderDir);
+}
+
+int StringsEntail::componentContainsInternal(bool isExt,
+                                             std::vector<Node>& n1,
+                                             std::vector<Node>& n2,
+                                             std::vector<Node>& nb,
+                                             std::vector<Node>& ne,
+                                             bool computeRemainder,
+                                             int remainderDir)
+{
   Assert(nb.empty());
   Assert(ne.empty());
   Trace("strings-entail") << "Component contains: " << std::endl;
+  Trace("strings-entail") << "isExt = " << isExt << std::endl;
   Trace("strings-entail") << "n1 = " << n1 << std::endl;
   Trace("strings-entail") << "n2 = " << n2 << std::endl;
   // if n2 is a singleton, we can do optimized version here
@@ -246,7 +268,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
     {
       Node n1rb;
       Node n1re;
-      if (componentContainsBase(n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
+      if (componentContainsBase(
+              isExt, n1[i], n2[0], n1rb, n1re, 0, computeRemainder))
       {
         if (computeRemainder)
         {
@@ -290,7 +313,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
       Node n1rb_first;
       Node n1re_first;
       // first component of n2 must be a suffix
-      if (componentContainsBase(n1[i],
+      if (componentContainsBase(isExt,
+                                n1[i],
                                 n2[0],
                                 n1rb_first,
                                 n1re_first,
@@ -306,7 +330,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
             Node n1rb_last;
             Node n1re_last;
             // last component of n2 must be a prefix
-            if (componentContainsBase(n1[i + j],
+            if (componentContainsBase(isExt,
+                                      n1[i + j],
                                       n2[j],
                                       n1rb_last,
                                       n1re_last,
@@ -362,8 +387,13 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
   return -1;
 }
 
-bool StringsEntail::componentContainsBase(
-    Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder)
+bool StringsEntail::componentContainsBase(bool isExt,
+                                          Node n1,
+                                          Node n2,
+                                          Node& n1rb,
+                                          Node& n1re,
+                                          int dir,
+                                          bool computeRemainder)
 {
   Assert(n1rb.isNull());
   Assert(n1re.isNull());
@@ -423,7 +453,7 @@ bool StringsEntail::componentContainsBase(
         }
       }
     }
-    else if (computeRemainder)
+    else if (!isExt || computeRemainder)
     {
       // Note the cases below would require constructing new terms
       // as part of the remainder components. Thus, this is only checked
@@ -667,16 +697,12 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
+Node StringsEntail::checkContains(Node a, Node b)
 {
   Node ctn = NodeManager::mkNode(Kind::STRING_CONTAINS, a, b);
 
-  if (fullRewriter)
+  if (d_rr != nullptr)
   {
-    if (d_rr == nullptr)
-    {
-      return Node::null();
-    }
     ctn = d_rr->rewrite(ctn);
   }
   else
@@ -690,10 +716,6 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
     {
       prev = ctn;
       ctn = d_rewriter->rewriteContains(ctn);
-      if (ctn != prev)
-      {
-        ctn = d_rewriter->postProcessRewrite(prev, ctn);
-      }
     } while (prev != ctn && ctn.getKind() == Kind::STRING_CONTAINS);
   }
 
@@ -703,17 +725,26 @@ Node StringsEntail::checkContains(Node a, Node b, bool fullRewriter)
 
 bool StringsEntail::checkNonEmpty(Node a)
 {
+  if (a.isConst())
+  {
+    return Word::getLength(a) != 0;
+  }
   Node len = NodeManager::mkNode(Kind::STRING_LENGTH, a);
-  len = d_rr->rewrite(len);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(len, true);
 }
 
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
+  if (s.isConst())
+  {
+    size_t len = Word::getLength(s);
+    return strict ? (len == 1) : (len <= 1);
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(Kind::STRING_LENGTH, s);
-  len = d_rr->rewrite(len);
+  len = d_arithEntail.rewriteArith(len);
   return d_arithEntail.check(one, len)
          && (!strict || d_arithEntail.check(len, true));
 }
@@ -841,11 +872,11 @@ Node StringsEntail::checkHomogeneousString(Node a)
 Node StringsEntail::getMultisetApproximation(Node a)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (a.getKind() == Kind::STRING_SUBSTR)
+  while (a.getKind() == Kind::STRING_SUBSTR)
   {
-    return a[0];
+    a = a[0];
   }
-  else if (a.getKind() == Kind::STRING_REPLACE)
+  if (a.getKind() == Kind::STRING_REPLACE)
   {
     return getMultisetApproximation(
         nm->mkNode(Kind::STRING_CONCAT, a[0], a[2]));
@@ -983,21 +1014,18 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
     cs.push_back(yiLen[0]);
   }
 
-  NodeBuilder nb(nm, Kind::AND);
   // (= x (str.++ y1' ... ym'))
-  if (!cs.empty())
-  {
-    nb << nm->mkNode(Kind::EQUAL, x, utils::mkConcat(cs, stype));
-  }
+  std::vector<Node> eqs;
+  Node mainEq = nm->mkNode(Kind::EQUAL, x, utils::mkConcat(cs, stype));
+  eqs.push_back(mainEq);
   // (= y1'' "") ... (= yk'' "")
   for (const Node& zeroLen : zeroLens)
   {
     Assert(std::find(y.begin(), y.end(), zeroLen[0]) != y.end());
-    nb << nm->mkNode(Kind::EQUAL, zeroLen[0], emp);
+    eqs.push_back(nm->mkNode(Kind::EQUAL, zeroLen[0], emp));
   }
-
   // (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
-  return nb.constructNode();
+  return nm->mkAnd(eqs);
 }
 
 Node StringsEntail::rewriteViaMacroSubstrStripSymLength(const Node& node,

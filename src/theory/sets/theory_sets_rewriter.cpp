@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,8 +46,6 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_DISTINCT_SETS,
-                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_INTER_EVAL,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_MINUS_EVAL,
@@ -82,16 +80,6 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
           elems = nm->mkNode(Kind::SET_UNION, singleton, elems);
         }
         return elems;
-      }
-    }
-    break;
-    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
-    {
-      if (n.getKind() == Kind::EQUAL && n[0].isConst() && n[1].isConst()
-          && n[0] != n[1])
-      {
-        Assert(n[0].getType().isSet());
-        return d_nm->mkConst(false);
       }
     }
     break;

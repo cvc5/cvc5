@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -410,13 +410,14 @@ Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 Node TermUtil::mkTypeMaxValue(TypeNode tn)
 {
   Node n;
+  NodeManager* nm = NodeManager::currentNM();
   if (tn.isBitVector())
   {
-    n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
+    n = bv::utils::mkOnes(nm, tn.getConst<BitVectorSize>());
   }
   else if (tn.isBoolean())
   {
-    n = NodeManager::currentNM()->mkConst(true);
+    n = nm->mkConst(true);
   }
   return n;
 }

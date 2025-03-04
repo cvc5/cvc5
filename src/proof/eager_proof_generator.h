@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,10 @@
 #define CVC5__PROOF__EAGER_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 #include "proof/proof_generator.h"
-#include "cvc5/cvc5_proof_rule.h"
+#include "proof/trust_id.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -137,6 +138,24 @@ class EagerProofGenerator : protected EnvObj, public ProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& args,
                         bool isConflict = false);
+  /**
+   * Same as above, but with a trusted id.
+   *
+   * @param conc The conclusion of the rule, or its negation if isConflict is
+   * true.
+   * @param id The trust id of the proof concluding conc
+   * @param exp The explanation (premises) to the proof concluding conc,
+   * @param args The arguments to the proof concluding conc,
+   * @param isConflict Whether the returned trust node is a conflict (otherwise
+   * it is a lemma),
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of (exp => conc), or of conc if exp is empty.
+   */
+  TrustNode mkTrustNodeTrusted(Node conc,
+                               TrustId id,
+                               const std::vector<Node>& exp,
+                               const std::vector<Node>& args,
+                               bool isConflict = false);
   /**
    * Make trust node from a single step proof of a rewrite. This is a
    * convenience function that avoids the need to explictly construct ProofNode

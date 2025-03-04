@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -356,6 +356,8 @@ class CpcTester(Tester):
             )
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
+            # note this line is not necessary if in a safe build
+            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()

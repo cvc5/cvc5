@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,6 +249,7 @@ PolyVector requiredCoefficientsLazard(const poly::Polynomial& p,
  * false.
  */
 PolyVector requiredCoefficientsLazardModified(
+    NodeManager* nm,
     const poly::Polynomial& p,
     const poly::Assignment& assignment,
     VariableMapper& vm,
@@ -268,15 +269,14 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  auto zero = nm->mkConstReal(Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::mkNode(
-        Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
+        Kind::EQUAL, nl::as_cvc_polynomial(nm, coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten =
-      rewriter->extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
+  Node rewritten = rewriter->extendedRewrite(nm->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);
@@ -301,8 +301,11 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
         << std::endl;
     Trace("cdcac::projection")
         << "LMod: "
-        << requiredCoefficientsLazardModified(
-               p, d_assignment, d_constraints.varMapper(), d_env.getRewriter())
+        << requiredCoefficientsLazardModified(d_env.getNodeManager(),
+                                              p,
+                                              d_assignment,
+                                              d_constraints.varMapper(),
+                                              d_env.getRewriter())
         << std::endl;
     Trace("cdcac::projection")
         << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
@@ -315,8 +318,11 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
     case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::nlCovProjectionMode::LAZARDMOD:
-      return requiredCoefficientsLazardModified(
-          p, d_assignment, d_constraints.varMapper(), d_env.getRewriter());
+      return requiredCoefficientsLazardModified(d_env.getNodeManager(),
+                                                p,
+                                                d_assignment,
+                                                d_constraints.varMapper(),
+                                                d_env.getRewriter());
     default:
       Assert(false);
       return requiredCoefficientsOriginal(p, d_assignment);

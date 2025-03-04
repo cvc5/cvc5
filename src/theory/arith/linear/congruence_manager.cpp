@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -184,7 +184,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   NodeBuilder reasonBuilder(nodeManager(), Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
-  Node reason = mkAndFromBuilder(reasonBuilder);
+  Node reason = mkAndFromBuilder(nodeManager(), reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
   if (isProofEnabled())
   {
@@ -226,7 +226,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
     pf = d_pnm->mkNode(
         ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
   }
-  Node reason = mkAndFromBuilder(nb);
+  Node reason = mkAndFromBuilder(nodeManager(), nb);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason, pf);
@@ -251,7 +251,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     pf->printDebug(Trace("arith::cong::notzero"));
     Trace("arith::cong::notzero") << std::endl;
   }
-  Node reason = mkAndFromBuilder(nb);
+  Node reason = mkAndFromBuilder(nodeManager(), nb);
   if (isProofEnabled())
   {
     if (c->getType() == ConstraintType::Disequality)
@@ -282,7 +282,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       // Trick for getting correct, opposing signs.
       std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
                               nm->mkConstInt(Rational(cSign))};
-      std::vector<Node> coeffUse = getMacroSumUbCoeff(pfs, coeff);
+      std::vector<Node> coeffUse = getMacroSumUbCoeff(nm, pfs, coeff);
       const auto sumPf =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, pfs, coeffUse);
       const auto botPf = d_pnm->mkNode(
@@ -359,7 +359,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     TrustNode texpC = explainInternal(x);
     Node expC = texpC.getNode();
     ConstraintCP negC = c->getNegation();
-    Node neg = Constraint::externalExplainByAssertions({negC});
+    Node neg = Constraint::externalExplainByAssertions(nodeManager(), {negC});
     Node conf = expC.andNode(neg);
     Node finalPf = flattenAnd(conf);
 
@@ -635,7 +635,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
   NodeBuilder nb(nodeManager(), Kind::AND);
   auto pf = c->externalExplainByAssertions(nb);
-  Node reason = mkAndFromBuilder(nb);
+  Node reason = mkAndFromBuilder(nodeManager(), nb);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
@@ -656,7 +656,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   NodeBuilder nb(nm, Kind::AND);
   auto pfLb = lb->externalExplainByAssertions(nb);
   auto pfUb = ub->externalExplainByAssertions(nb);
-  Node reason = mkAndFromBuilder(nb);
+  Node reason = mkAndFromBuilder(nodeManager(), nb);
 
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = nm->mkConstRealOrInt(

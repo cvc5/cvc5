@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1212,7 +1212,8 @@ SatValue CadicalSolver::value(SatLiteral l) { return d_propagator->value(l); }
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
   Assert(d_inSatMode);
-  return toSatValueLit(d_solver->val(toCadicalLit(l)));
+  auto val = d_solver->val(toCadicalLit(l.getSatVariable()));
+  return toSatValueLit(l.isNegated() ? -val : val);
 }
 
 uint32_t CadicalSolver::getAssertionLevel() const

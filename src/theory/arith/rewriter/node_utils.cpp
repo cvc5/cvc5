@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,25 +27,28 @@ Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
   if (monomial.isConst())
   {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
+    return mkConst(NodeManager::currentNM(),
+                   multiplicity * monomial.getConst<Rational>());
   }
   if (multiplicity.isOne())
   {
     return monomial;
   }
-  return NodeManager::mkNode(Kind::MULT, mkConst(multiplicity), monomial);
+  return NodeManager::mkNode(
+      Kind::MULT, mkConst(NodeManager::currentNM(), multiplicity), monomial);
 }
 
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
-  Node mterm = mkConst(multiplicity);
+  Node mterm = mkConst(NodeManager::currentNM(), multiplicity);
   if (mterm.isConst())
   {
     return mkMultTerm(mterm.getConst<Rational>(), monomial);
   }
   if (monomial.isConst())
   {
-    return mkConst(multiplicity * monomial.getConst<Rational>());
+    return mkConst(NodeManager::currentNM(),
+                   multiplicity * monomial.getConst<Rational>());
   }
   std::vector<Node> prod;
   prod.emplace_back(mterm);
@@ -61,14 +64,15 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
   return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
 }
 
-Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
+Node mkMultTerm(NodeManager* nm,
+                const RealAlgebraicNumber& multiplicity,
                 std::vector<Node>&& monomial)
 {
   if (monomial.empty())
   {
-    return mkConst(multiplicity);
+    return mkConst(nm, multiplicity);
   }
-  Node mterm = mkConst(multiplicity);
+  Node mterm = mkConst(nm, multiplicity);
   if (mterm.isConst())
   {
     std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
@@ -77,7 +81,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity,
   monomial.emplace_back(mterm);
   std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
   Assert(monomial.size() >= 2);
-  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, monomial);
+  return nm->mkNode(Kind::NONLINEAR_MULT, monomial);
 }
 
 TNode removeToReal(TNode t) { return t.getKind() == Kind::TO_REAL ? t[0] : t; }

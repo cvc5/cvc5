@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -67,6 +67,8 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
 
   # Minimum supported version
   set(CaDiCaL_FIND_VERSION "1.6.0")
+  # Maximum supported version
+  set(CaDiCaL_FIND_VERSION_MAX "2.0.0")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,9 +129,8 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(NodeManager* nm, const std::map<Node, Node>& msum)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (std::map<Node, Node>::const_iterator it = msum.begin(); it != msum.end();
        ++it)
@@ -302,7 +301,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(msum);
+      rem = mkNode(NodeManager::currentNM(), msum);
       return true;
     }
   }

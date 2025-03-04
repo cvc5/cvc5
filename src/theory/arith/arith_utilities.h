@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Andrew Reynolds
+ *   Tim King, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,9 +38,7 @@ typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
 
-inline Node mkBoolNode(bool b){
-  return NodeManager::currentNM()->mkConst<bool>(b);
-}
+inline Node mkBoolNode(NodeManager* nm, bool b) { return nm->mkConst<bool>(b); }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
 inline bool isRelationOperator(Kind k)
@@ -231,11 +229,11 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
   }
 }
 
-inline Node mkAndFromBuilder(NodeBuilder& nb)
+inline Node mkAndFromBuilder(NodeManager* nm, NodeBuilder& nb)
 {
   Assert(nb.getKind() == Kind::AND);
   switch (nb.getNumChildren()) {
-    case 0: return mkBoolNode(true);
+    case 0: return mkBoolNode(nm, true);
     case 1:
       return nb[0];
     default:
@@ -276,9 +274,8 @@ inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
-inline Node mkPi()
+inline Node mkPi(NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNullaryOperator(nm->realType(), Kind::PI);
 }
 /** Join kinds, where k1 and k2 are arithmetic relations returns an

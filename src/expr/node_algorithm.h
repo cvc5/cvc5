@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,18 @@ bool hasSubtermKind(Kind k, Node n);
  * @return true iff there is a term in n that has any kind ks
  */
 bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     Node n);
+                     TNode n);
+
+/**
+ * @param ks The kinds of node to check
+ * @param n The node to search in.
+ * @param visited A cache of nodes we have already visited (and did not contain
+ * a kind in ks)
+ * @return the illegal kind we found
+ */
+Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     TNode n,
+                     std::unordered_set<TNode>& visited);
 
 /**
  * Check if the node n has a subterm that occurs in t.

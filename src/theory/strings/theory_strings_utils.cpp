@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -452,8 +452,7 @@ TypeNode getOwnerStringType(Node n)
   {
     tn = n.getType();
   }
-  AlwaysAssert(tn.isStringLike())
-      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  // otherwise return null
   return tn;
 }
 

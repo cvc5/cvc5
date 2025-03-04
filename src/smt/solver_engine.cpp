@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -190,7 +190,8 @@ void SolverEngine::finishInit()
     d_ucManager.reset(new UnsatCoreManager(
         *d_env.get(), *d_smtSolver.get(), *d_pfManager.get()));
   }
-  if (d_env->isOutputOn(OutputTag::RARE_DB))
+  if (d_env->isOutputOn(OutputTag::RARE_DB)
+      || d_env->isOutputOn(OutputTag::RARE_DB_EXPERT))
   {
     if (!d_env->getOptions().smt.produceProofs
         || options().proof.proofGranularityMode
@@ -1029,9 +1030,8 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    NodeManager* nm = d_env->getNodeManager();
     gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
-        nm, asserts, nvars);
+        *d_env.get(), asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"
@@ -2013,6 +2013,7 @@ Node SolverEngine::getAbductNext()
   bool success = d_abductSolver->getAbductNext(abd);
   // notify the state of whether the get-abduct-next call was successful
   d_state->notifyGetAbduct(success);
+  endCall();
   Assert(success == !abd.isNull());
   return abd;
 }
@@ -2160,7 +2161,7 @@ void SolverEngine::setOption(const std::string& key,
   {
     if (key == "trace")
     {
-      throw OptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages with safe-options");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2169,15 +2170,17 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safeOptions is true.";
+         << " cannot be set when safe-options is true.";
       // If we are setting to a default value, the exception can be avoided
-      // by omitting.
+      // by omitting the expert option.
       if (getOption(key) == value)
       {
+        // note this is not the case for options which safe-options explicitly
+        // disables.
         ss << " The value for " << key << " is already its current value ("
-           << value << "). Omitting this option will avoid this exception.";
+           << value << "). Omitting this option may avoid this exception.";
       }
-      throw OptionException(ss.str());
+      throw FatalOptionException(ss.str());
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
@@ -2193,7 +2196,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safeOptions is true.";
+           << " and " << key << ") when safe-options is true.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
@@ -2204,12 +2207,13 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            ss << " The value for " << rkey
-               << " is already its current value (" << rvalue
-               << "). Omitting this option will avoid this exception.";
+            // note this is not the case for options which safe-options
+            // explicitly disables.
+            ss << " The value for " << rkey << " is already its current value ("
+               << rvalue << "). Omitting this option may avoid this exception.";
           }
         }
-        throw OptionException(ss.str());
+        throw FatalOptionException(ss.str());
       }
     }
   }

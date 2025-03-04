@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -160,7 +160,7 @@ uint64_t Trigger::addInstantiations()
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
     for (const Node& gt : d_groundTerms)
     {
-      if (!ee->hasTerm(gt))
+      if (!ee->hasTerm(gt) && !gt.getType().isBoolean())
       {
         Node k = SkolemManager::mkPurifySkolem(gt);
         Node eq = k.eqNode(gt);

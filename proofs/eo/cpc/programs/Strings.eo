@@ -3,6 +3,7 @@
 (include "../theories/Strings.eo")
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
+(include "../programs/SeqToString.eo")
 
 
 ; This signature is used for both strings and sequences, where we often
@@ -22,6 +23,22 @@
   )
 )
 
+; define: $str_value_len
+; args:
+; - s (Seq T): The sequence term.
+; return: >
+;   The length of s, if it denotes a "value-like" sequence, that
+;   is, either a string literal or a concatentation of sequence units.
+(program $str_value_len ((T Type) (s (Seq T)) (e T) (ss (Seq T) :list))
+  ((Seq T)) Int
+  (
+    (($str_value_len (seq.++ (seq.unit e) ss))  (eo::add 1 ($str_value_len ss)))
+    (($str_value_len (@seq.empty (Seq T)))      0)
+    (($str_value_len (seq.unit e))              1)
+    (($str_value_len s)                         (eo::requires (eo::is_str s) true (eo::len s)))
+  )
+)
+
 ; define: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
@@ -36,8 +53,13 @@
 ; - y (Seq T): The second string.
 ; return: the concatenation of strings x and y, treated as lists.
 (define $str_concat ((T Type :implicit) (x (Seq T)) (y (Seq T)))
-  (eo::list_concat str.++ x y)
-)
+  (eo::list_concat str.++ x y))
+
+; define: $str_head
+; args:
+; - x (Seq T): The string, expected to be a non-empty concatentation.
+; return: the head (first child) of x.
+(define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
 
 ; define: $str_mk_nth
 ; args:
@@ -192,6 +214,67 @@
   (eo::ite (eo::is_str s)
     ($str_eval_str_in_re_rec s 0 r @re.null)
     (str.in_re s r)))
+
+;;;;; first match utilities
+
+; define: $str_first_match_rec_smallest
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect, assumed to contain s.
+; - m Int: The current prefix size of s we are considering.
+; - lens Int: The length of s.
+; return: >
+;   The size of the smallest prefix of s that is contained in r.
+(program $str_first_match_rec_smallest ((s String) (r RegLan) (n Int) (m Int) (lens Int))
+  (String RegLan Int Int) Int
+  (
+    (($str_first_match_rec_smallest s r m lens)   (eo::define ((ss (eo::extract s 0 (eo::add m -1))))
+                                                  (eo::ite ($str_eval_str_in_re ss r)
+                                                    m
+                                                    (eo::requires (eo::is_eq m lens) false
+                                                      ($str_first_match_rec_smallest s r (eo::add m 1) lens)))))
+  )
+)
+
+; define: $str_first_match_rec
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; - rs RegLan: Equivalent to (re.++ r re.all), used for finding whether a prefix of s is contained in r.
+; - n Int: The position of the original string we are searching.
+; - lens Int: The length of s.
+; return: >
+;   A pair of the form (n+n', n+m') where the first shortest match of r in s is
+;   at start position n' and end position m', or (-1, -1) if r does not match
+;   any substring of s.
+(program $str_first_match_rec ((s String) (r RegLan) (rs RegLan) (n Int) (lens Int))
+  (String RegLan RegLan Int Int) (@Pair Int Int)
+  (
+    (($str_first_match_rec s r rs n lens)  (eo::ite ($str_eval_str_in_re s rs)
+                                            ; found (superstring) match, now find the smallest exact match
+                                            (@pair n (eo::add n ($str_first_match_rec_smallest s r 0 lens)))
+                                            (eo::ite (eo::is_eq lens 0)
+                                              ; we are at the end of s, did not find a match
+                                              (@pair -1 -1)
+                                              ; move to the next position in s
+                                              (eo::define ((lsm1 (eo::add lens -1)))
+                                                ($str_first_match_rec (eo::extract s 1 lsm1) r rs (eo::add n 1) lsm1)))))
+  )
+)
+
+; define: $str_first_match
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   A pair of the form (n, m) where the first shortest match of r in s is at
+;   start position n and end position m, or (-1, -1) if r does not match any
+;   substring of s.
+(define $str_first_match ((s String) (r RegLan))
+  (eo::define ((lens (eo::len s)))
+  (eo::define ((rs (re.++ r re.all)))
+  (eo::requires (eo::is_str s) true
+    ($str_first_match_rec s r rs 0 lens)))))
 
 ;;-------------------- Skolem terms
 
@@ -357,76 +440,64 @@
 
 ;;-------------------- Reductions
 
-; In the following, a "reduction predicate" refers to a formula that is used
-; to axiomatize an extended string program in terms of (simpler) programs.
 
-; program: $str_reduction_substr
+; define: $str_reduction_pred_case_conv
 ; args:
-; - x (Seq U): The first argument to str.substr.
-; - n Int: The second argument to str.substr.
-; - m Int: The third argument to str.substr.
-; return: the reduction predicate for (str.substr x n m) of sort U.
-(program $str_reduction_substr ((U Type) (x (Seq U)) (n Int) (m Int))
-  ((Seq U) Int Int) Bool
-  (
-    (($str_reduction_substr x n m)
-      (eo::define ((k (@purify (str.substr x n m))))
-      (eo::define ((npm (+ n m)))
-      (eo::define ((k1 (@purify ($str_prefix x n))))
-      (eo::define ((k2 (@purify ($str_suffix_rem x npm))))
-      (ite
-        ; condition
-        (and (>= n 0)(> (str.len x) n) (> m 0))
-        ; if branch
-        (and (= x (str.++ k1 k k2))
-            (= (str.len k1) n)
-            (or (= (str.len k2) (- (str.len x) npm))
-                (= (str.len k2) 0))
-            (<= (str.len k) m))
-        ; else branch
-        (= k ($mk_emptystr (eo::typeof x)))
-        ))))))
-  )
-)
-
-; program: $str_reduction_indexof
-; args:
-; - x (Seq U): The first argument to str.indexof.
-; - y (Seq U): The second argument to str.indexof.
-; - n Int: The third argument to str.indexof.
-; return: the reduction predicate for (str.indexof x y n) of sort U.
-(program $str_reduction_indexof ((U Type) (x (Seq U)) (y (Seq U)) (n Int))
-  ((Seq U) (Seq U) Int) Bool
-  (
-    (($str_reduction_indexof x y n)
-      (eo::define ((k (@purify (str.indexof x y n))))
-      (eo::define ((xn (str.substr x n (- (str.len x) n))))
-      (eo::define ((k1 (@purify ($str_first_ctn_pre xn y))))
-      (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
-      (ite
-        (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
-        (= k (eo::neg 1))
-        (ite
-          (= y ($mk_emptystr (eo::typeof x)))
-          (= k n)
-          (and (= xn (str.++ k1 y k2))
-              (not (str.contains
-                        (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y))
-              (= k (+ n (str.len k1)))))))))))
-  )
-)
+; - k String: The purification skolem.
+; - x String: The string term argument.
+; - isLower Bool: Whether we are considering str.to_lower (resp. str.to_upper).
+; return: the reduction predicate for term for str.to_lower/str.to_upper applied to x.
+(define $str_reduction_pred_case_conv ((k String) (x String) (isLower Bool))
+  (and (= (str.len x) (str.len k))
+       (forall ((@var.str_index Int))
+         (or (not (>= @var.str_index 0))
+             (not (< @var.str_index (str.len k)))
+             (= (str.to_code (str.substr k @var.str_index 1))
+                (eo::define ((ci (str.to_code (str.substr x @var.str_index 1))))
+                (eo::ite isLower
+                  (ite (and (<= 65 ci) (<= ci 90)) (+ ci 32) ci)
+                  (ite (and (<= 97 ci) (<= ci 122)) (+ ci -32) ci))))))))
 
 ; program: $str_reduction_pred
 ; args:
 ; - t (Seq U): The string term.
 ; return: the reduction predicate for term t of sort s.
-; note: >
-;   The operators listed in comments are missing from the signature currently.
-(program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int) (s String))
+(program $str_reduction_pred ((T Type) (U Type) (x (Seq U)) (y (Seq U)) (z (Seq U)) (n Int) (m Int)
+                              (s String) (r RegLan) (t String))
   (T) Bool
   (
-    (($str_reduction_pred (str.substr x n m)) ($str_reduction_substr x n m))
-    (($str_reduction_pred (str.indexof x y n)) ($str_reduction_indexof x y n))
+    (($str_reduction_pred (str.contains x y))
+      (eo::define ((k (@purify (str.contains x y))))
+      (= k (not (forall ((@var.str_index Int))
+        (or
+          (not (>= @var.str_index 0))
+          (not (<= @var.str_index (- (str.len x) (str.len y))))
+          (not (= (str.substr x @var.str_index (str.len y)) y))))))))
+    (($str_reduction_pred (str.substr x n m))
+      (eo::define ((k (@purify (str.substr x n m))))
+      (eo::define ((npm (+ n m)))
+      (eo::define ((k1 (@purify ($str_prefix x n))))
+      (eo::define ((k2 (@purify ($str_suffix_rem x npm))))
+      (ite (and (>= n 0)(> (str.len x) n) (> m 0))
+        (and (= x (str.++ k1 k k2))
+            (= (str.len k1) n)
+            (or (= (str.len k2) (- (str.len x) npm))
+                (= (str.len k2) 0))
+            (<= (str.len k) m))
+        (= k ($mk_emptystr (eo::typeof x)))))))))
+    (($str_reduction_pred (str.indexof x y n))
+      (eo::define ((k (@purify (str.indexof x y n))))
+      (eo::define ((xn (str.substr x n (- (str.len x) n))))
+      (eo::define ((k1 (@purify ($str_first_ctn_pre xn y))))
+      (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
+      (ite (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
+        (= k -1)
+        (ite (= y ($mk_emptystr (eo::typeof x)))
+          (= k n)
+          (and (= xn (str.++ k1 y k2))
+              (not (str.contains
+                        (str.++ k1 (str.substr y 0 (- (str.len y) 1))) y))
+              (= k (+ n (str.len k1)))))))))))
     (($str_reduction_pred (str.replace x y z)) 
         (eo::define ((k (@purify (str.replace x y z))))
         (ite (= y ($mk_emptystr (eo::typeof y)))
@@ -488,16 +559,135 @@
               (and (= x (str.++ k1 (seq.unit k) k2))
                    (= (str.len k1) n)
                    (= (str.len k2) (- (str.len x) (+ n 1)))))))))
-
-    ; str.update
-    ; str.to_int
-    ; str.replaceall
-    ; str.replace_re
-    ; str.replace_re_all
-    ; str.to_lower
-    ; str.to_upper
-    ; str.rev
-    ; str.leq
+    (($str_reduction_pred (str.update x n y))
+        (eo::define ((k (@purify (str.update x n y))))
+        (ite (and (>= n 0) (> (str.len x) n))
+          (eo::define ((k1 (@purify ($str_prefix x n))))
+          (eo::define ((ys (eo::ite (eo::is_eq ($str_value_len y) 1) ; optimization for single characters
+                              y
+                              (str.substr y 0 (- (str.len x) n)))))
+          (eo::define ((k2 (@purify ($str_suffix_rem x (+ n (str.len ys))))))
+          (eo::define ((k3 (@purify (str.substr x n (str.len ys)))))
+          (and (= k (str.++ k1 ys k2))
+               (= x (str.++ k1 k3 k2))
+               (= (str.len k1) n)
+               (= (str.len ys) (str.len k3)))))))
+          (= k x))))
+    (($str_reduction_pred (str.replace_all x y z))
+        (eo::define ((k (@purify (str.replace_all x y z))))
+        (eo::define ((numOcc (@strings_num_occur x y)))
+        (eo::define ((result (@strings_replace_all_result (str.replace_all x y z))))
+        (eo::define ((occIndex (@strings_occur_index x y)))
+        (ite (= y ($mk_emptystr (eo::typeof x)))
+          (= k x)
+          (and (>= numOcc 0)
+               (= k (result 0))
+               (= (result numOcc) (str.substr x (occIndex numOcc) (str.len x)))
+               (= (occIndex 0) 0)
+               (= (str.indexof x y (occIndex numOcc)) -1)
+               (forall ((@var.str_index Int))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index numOcc))
+                    (eo::define ((ii (str.indexof x y (occIndex @var.str_index))))
+                    (eo::define ((oi (occIndex @var.str_index)))
+                      (and (not (= ii -1))
+                           (= (result @var.str_index)
+                              (str.++ (str.substr x oi (- ii oi)) z (result (+ @var.str_index 1))))
+                           (= (occIndex (+ @var.str_index 1)) (+ ii (str.len y)))))))))))))))
+    (($str_reduction_pred (str.replace_re s r t))
+        (eo::define ((k (@purify (str.replace_re s r t))))
+        (eo::define ((k1 (@re_first_match_pre s r)))
+        (eo::define ((k2 (@re_first_match s r)))
+        (eo::define ((k3 (@re_first_match_post s r)))
+        (ite (= (str.indexof_re s r 0) -1)
+          (= k s)
+          (and (= s (str.++ k1 k2 k3))
+               (= (str.len k1) (str.indexof_re s r 0))
+               (forall ((@var.str_length Int))
+                  (or
+                    (not (>= @var.str_length 0))
+                    (not (< @var.str_length (str.len k2)))
+                    (not (str.in_re (str.substr k2 0 @var.str_length) r))))
+               (str.in_re k2 r)
+               (= k (str.++ k1 t k3)))))))))
+    (($str_reduction_pred (str.replace_re_all s r t))
+        (eo::define ((k (@purify (str.replace_re_all s r t))))
+        (eo::define ((numOcc (@strings_num_occur_re s r)))
+        (eo::define ((result (@strings_replace_all_result (str.replace_re_all s r t))))
+        (eo::define ((occIndex (@strings_occur_index_re s r)))
+        (eo::define ((occLen (@strings_occur_len_re s r)))
+        (eo::define ((rnemp (re.diff r (str.to_re ""))))
+        (eo::define ((ssl (str.substr s (occIndex numOcc) (str.len s))))
+        (ite (= (str.indexof_re s rnemp 0) -1)
+          (= k s)
+          (and (> numOcc 0)
+               (= k (result 0))
+               (= (result numOcc) ssl)
+               (= (occIndex 0) 0)
+               (= (str.indexof_re ssl rnemp 0) -1)
+               (forall ((@var.str_index Int))
+                  (eo::define ((ip1 (+ @var.str_index 1)))
+                  (or
+                    (not (>= @var.str_index 0))
+                    (not (< @var.str_index numOcc))
+                    (eo::define ((olen1 (occLen ip1)))
+                    (eo::define ((oindex1 (occIndex ip1)))
+                    (eo::define ((oindex (occIndex @var.str_index)))
+                    (eo::define ((ii (- oindex1 olen1)))
+                      (and (> olen1 0)
+                           (= oindex1 (+ (str.indexof_re s rnemp (occIndex @var.str_index)) olen1))
+                           (str.in_re (str.substr s ii olen1) rnemp)
+                           (forall ((@var.str_length Int))
+                             (or
+                               (not (> @var.str_length 0))
+                               (not (< @var.str_length olen1))
+                               (not (str.in_re (str.substr s ii @var.str_length) r))))
+                           (= (result @var.str_index)
+                              (str.++ (str.substr s oindex (- ii oindex)) t (result (+ @var.str_index 1))))
+                      ))))))))))))))))))
+    (($str_reduction_pred (str.indexof_re s r n))
+        (eo::define ((k (@purify (str.indexof_re s r n))))
+        (ite (or (> n (str.len s)) (> 0 n))
+          (= k -1)
+          (ite (str.in_re "" r)
+            (= k n)
+            (and (forall ((@var.str_index Int) (@var.str_length Int))
+                   (or
+                     (not (>= @var.str_index n))
+                     (not (< @var.str_index (ite (= k -1) (str.len s) k)))
+                     (not (> @var.str_length 0))
+                     (not (<= @var.str_length (- (str.len s) @var.str_index)))
+                     (not (str.in_re (str.substr s @var.str_index @var.str_length) r))))
+                 (or (= k -1)
+                     (and (>= k n)
+                          (not (forall ((@var.str_length Int)) (or
+                                 (not (>= @var.str_length 0))
+                                 (not (<= @var.str_length (- (str.len s) k)))
+                                 (not (str.in_re (str.substr s k @var.str_length) r))))))))))))
+    (($str_reduction_pred (str.<= s t))
+        (eo::define ((k (@purify (str.<= s t))))
+        (ite (= s t) k
+          (not (forall ((@var.str_index Int))
+            (or
+              (not (>= @var.str_index 0))
+              (not (<= @var.str_index (str.len s)))
+              (not (<= @var.str_index (str.len t)))
+              (not (= (str.substr s 0 @var.str_index) (str.substr t 0 @var.str_index)))
+              (ite k
+                (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
+                (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
+            )))))))
+    (($str_reduction_pred (str.to_lower x)) ($str_reduction_pred_case_conv (@purify (str.to_lower x)) x true))
+    (($str_reduction_pred (str.to_upper x)) ($str_reduction_pred_case_conv (@purify (str.to_upper x)) x false))
+    (($str_reduction_pred (str.rev x))
+        (eo::define ((k (@purify (str.rev x))))
+          (and (= (str.len x) (str.len k))
+              (forall ((@var.str_index Int))
+                (or
+                  (not (>= @var.str_index 0))
+                  (not (< @var.str_index (str.len k)))
+                  (= (str.substr k @var.str_index 1) (str.substr x (- (str.len x) (+ @var.str_index 1)) 1)))))))
   )
 )
 
@@ -624,21 +814,6 @@
 ; return: true if the length of s evaluates to greater than one, false otherwise.
 (define $str_check_len_gt_one ((s String)) (eo::is_eq (eo::is_neg (eo::add 1 (eo::neg (eo::len s)))) true))
 
-; program: $str_head_or_empty
-; args:
-; - t String: The string term, assumed to be a str.++ list.
-; return: >
-;   The first child of a concatenation or empty string from term t.
-;   If t is of the form (str.++ s ...), return t.
-;   If t is an empty string, return t.
-(program $str_head_or_empty ((U Type) (t (Seq U)) (tail (Seq U) :list))
-  ((Seq U)) (Seq U)
-  (
-    (($str_head_or_empty (str.++ t tail)) t)
-    (($str_head_or_empty t)               ($str_self_if_empty t))
-  )
-)
-
 ; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
@@ -663,17 +838,15 @@
 
 ; program: $str_flatten_word
 ; args:
-; - t String: A string term, assumed to be a non-empty word constant.
+; - t String: A string term, assumed to be a string literal.
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
 (program $str_flatten_word ((t String))
   (String) String
   (
-    (($str_flatten_word t) 
-      (eo::ite ($str_check_length_one t)
-        ($str_cons t "")
-        ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t))))))
+    (($str_flatten_word "") "")
+    (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
   )
 )
 
@@ -780,39 +953,6 @@
     (($str_strip_prefix t s)                         (@pair t s))
   )
 )
-
-; program: $str_overlap_rec
-; args:
-; - nil (Seq U): The empty string.
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be in flattened form.
-; return: >
-;   The minimum number of characters that must be skipped in s before
-;   string t can be compatible with it. See examples below.
-(program $str_overlap_rec ((U Type) (s (Seq U)) (s1 (Seq U) :list) (t (Seq U)) (nil (Seq U)))
-  ((Seq U) (Seq U) (Seq U)) Int
-  (
-  (($str_overlap_rec nil (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ nil (str.++ s s1) t)
-                                            0
-                                            (eo::add 1 ($str_overlap_rec nil s1 t))))
-  (($str_overlap_rec nil s t)             0)
-  )
-)
-
-; define: $str_overlap
-; args:
-; - s (Seq U): The first string, expected to be in flattened form.
-; - t (Seq U): The second string, expected to be in flattened form.
-; return: >
-;   The minimum number of characters that must be skipped in s before
-;   string t can be compatible with it. For example:
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
-;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
-(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)))
-  ($str_overlap_rec ($mk_emptystr (eo::typeof s)) s t))
 
 ; program: $str_mk_re_loop_elim_rec
 ; args:
@@ -935,6 +1075,19 @@
   ($str_rev rev ($str_flatten ($str_nary_intro s)))
 )
 
+; define: $str_to_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a str.++ application into "nary form" so that we are ready to
+;   process its prefix. This consists of the following steps:
+;   (1) convert s to n-ary form if it is not already a str.++ application,
+;   (2) (optionally) reverse.
+(define $str_to_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ; intro, reverse
+  ($str_rev rev ($str_nary_intro s)))
+
 ; program: $re_str_to_flat_form
 ; args:
 ; - rev Bool: Whether to reverse the strings that occur in r.
@@ -965,8 +1118,7 @@
 ;   result to their flat form. Note that other strings in r, i.e. those that
 ;   occur beneath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
-  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r)))
-)
+  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r))))
 
 ; define: $str_from_flat_form
 ; args:
@@ -981,8 +1133,20 @@
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $str_from_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; reverse, collect, elim
-  ($str_nary_elim ($str_collect ($str_rev rev s)))
-)
+  ($str_nary_elim ($str_collect ($str_rev rev s))))
+
+; define: $str_from_nary_form
+; args:
+; - s (Seq U): The string term.
+; - rev Bool: Whether to reverse s.
+; return: >
+;   Converts a term in "flat form" to a term that is in a form that corresponds
+;   to one in cvc5 rewritten form. This is the dual method to
+;   $str_to_nary_form. This consists of the following steps:
+;   (1) (optionally) reverse,
+;   (2) eliminate n-ary form to its element if the term is a singleton list.
+(define $str_from_nary_form ((U Type :implicit) (s (Seq U)) (rev Bool))
+  ($str_nary_elim ($str_rev rev s)))
 
 ; program: $re_str_from_flat_form
 ; args:
@@ -1198,57 +1362,6 @@
                                                               false)))))
 
   )
-)
-
-; define: $str_check_re_union_inclusion
-; args:
-; - r RegLan: The regular expression to check.
-; return: >
-;   true if r is an application of re.union with 2 children for which
-;   regular expression inclusion shows r is equivalent to (re.* re.allchar).
-(define $str_check_re_union_inclusion ((r RegLan))
-  (eo::match ((r1 RegLan) (r2 RegLan))
-  r
-  (
-    ((re.union (re.comp r1) r2) ($str_re_includes r2 r1))
-    ((re.union r1 (re.comp r2)) ($str_re_includes r1 r2))
-  ))
-)
-
-; define: $str_check_re_inter_inclusion
-; args:
-; - r RegLan: The regular expression to check.
-; return: >
-;   true if r is an application of re.inter with 2 children for which
-;   regular expression inclusion shows r is equivalent to re.none.
-(define $str_check_re_inter_inclusion ((r RegLan))
-  (eo::match ((r1 RegLan) (r2 RegLan))
-  r
-  (
-    ((re.inter (re.comp r1) r2) ($str_re_includes r1 r2))
-    ((re.inter r1 (re.comp r2)) ($str_re_includes r2 r1))
-  ))
-)
-
-; program: $str_decompose_and_check_re_inter_union_inclusion
-; args:
-; - r : The regular expression to check.
-; - rr : The rewritten form of r.
-; return: >
-;   true if r can be rewritten to rr via the rule
-;   ProofRewriteRule::RE_INTER_UNION_INCLUSION. In particular, we first verify
-;   that rr has the result of the inclusion as the first child. We then subtract
-;   the remainder (rr1) to find the regular expressions that are relevant for this
-;   inference.
-(define $str_decompose_and_check_re_inter_union_inclusion ((r RegLan) (rr RegLan))
-  (eo::match ((rr1 RegLan :list))
-  rr
-  (
-  ((re.union (re.* re.allchar) rr1) ($str_check_re_union_inclusion ($nary_diff re.union re.none r rr1)))
-  ((re.* re.allchar)                ($str_check_re_union_inclusion r))
-  ((re.inter re.none rr1)           ($str_check_re_inter_inclusion ($nary_diff re.inter re.all r rr1)))
-  (re.none                          ($str_check_re_inter_inclusion r))
-  ))
 )
 
 ; program: $str_arith_entail_simple
@@ -1557,6 +1670,65 @@
   )
 )
 
+;;;;; overlap utils
+
+; program: $str_overlap_rec
+; args:
+; - s (Seq U): The first string, expected to be in flattened form.
+; - t (Seq U): The second string, expected to be in flattened form.
+; return: >
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. See examples below.
+(program $str_overlap_rec ((s String) (s1 String :list) (t String))
+  (String String) Int
+  (
+  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ "" (str.++ s s1) t)
+                                        0
+                                        (eo::add 1 ($str_overlap_rec s1 t))))
+  (($str_overlap_rec s t)             0)
+  )
+)
+
+; define: $str_overlap
+; args:
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
+; return: >
+;   The minimum number of characters that must be skipped in s before
+;   string t can be compatible with it. For example:
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "C" "D" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "B" "") = 1
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "E" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
+;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
+(define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
+  (eo::match ((ss String) (ts String))
+    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
+    (((@pair ss ts) (eo::requires (eo::is_str ss) true
+                    (eo::requires (eo::is_str ts) true
+                      ($str_overlap_rec
+                        ($str_rev rev ($str_flatten_word ss))
+                        ($str_rev rev ($str_flatten_word ts)))))))))
+
+
+; program: $str_has_overlap
+; args:
+; - s (Seq U): The first string, expected to be a string or sequence value.
+; - t (Seq U): The second string, expected to be a string or sequence value.
+; return: >
+;   True if s is non-empty and contains t, or
+;   a non-empty suffix of s is a prefix of t if rev is false, or
+;   a non-empty prefix of s is a suffix of t if rev is true.
+; note: >
+;   This method is equivalent to theory::strings::Word::hasOverlap in cvc5,
+;   see theory/strings/word.h.
+(define $str_has_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
+  ; Note that $str_overlap with always return a value <= the length of s.
+  ; There is overlap only when it is strictly less than the length of s.
+  (eo::gt ($str_value_len s) ($str_overlap s t rev)))
+
+;;;;; evaluation utils
+
 ; program: $str_from_int_eval_rec
 ; args:
 ; - n Int: The integer to process, expected to be non-negative.
@@ -1701,3 +1873,39 @@
   (eo::ite (eo::and (eo::is_str s) (eo::is_str t))
     ($str_leq_eval_rec ($str_to_flat_form s false) ($str_to_flat_form t false))
     (str.<= s t)))
+
+
+; program: $str_eval_replace_all_rec
+; args:
+; - s String: A string.
+; - t String: A string to find.
+; - u String: A string to replace with.
+; - n Int: The result of finding t in s.
+; - lent Int: The length of t.
+; return: >
+;   The result of evaluating (str.replace_all s t u).
+(program $str_eval_replace_all_rec ((s String) (t String) (u String) (n Int) (lent Int))
+  (String String String Int Int) String
+  (
+  (($str_eval_replace_all_rec s t u -1 lent)  s)
+  (($str_eval_replace_all_rec s t u n lent)   (eo::define ((snext (eo::extract s (eo::add n lent) (eo::len s))))
+                                              (eo::concat
+                                                (eo::extract s 0 (eo::add n -1))
+                                                u
+                                                ($str_eval_replace_all_rec snext t u (eo::find snext t) lent))))
+  )
+)
+
+; program: $str_eval_replace_all_rec
+; args:
+; - s String: A string.
+; - t String: A string to find.
+; - u String: A string to replace with.
+; return: >
+;   The result of evaluating (str.replace_all s t u).
+(define $str_eval_replace_all ((s String) (t String) (u String))
+  (eo::ite (eo::and (eo::is_str s) (eo::is_str t) (eo::is_str u))
+    (eo::ite (eo::is_eq t "")
+      s
+      ($str_eval_replace_all_rec s t u (eo::find s t) (eo::len t)))
+    (str.replace_all s t u)))

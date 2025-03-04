@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,10 +57,12 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_arithEntail(env.getRewriter(), options().strings.stringRecArithApprox),
+      d_arithEntail(d_env.getRewriter(),
+                    options().strings.stringRecArithApprox),
+      d_strEntail(d_env.getRewriter(), d_arithEntail),
       d_rewriter(env.getNodeManager(),
-                 env.getRewriter(),
                  d_arithEntail,
+                 d_strEntail,
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       d_eagerSolver(options().strings.stringEagerSolver
@@ -1103,6 +1105,9 @@ void TheoryStrings::computeCareGraph()
     }
     if( has_trigger_arg ){
       TypeNode ft = utils::getOwnerStringType(f1);
+      AlwaysAssert(ft.isStringLike())
+          << "Unexpected term in getOwnerStringType : " << f1 << ", type "
+          << ft;
       std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
       index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();

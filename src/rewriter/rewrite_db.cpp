@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +50,8 @@ void RewriteDb::addRule(ProofRewriteRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        Node context)
+                        Node context,
+                        Level _level)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> fvsf = fvs;
@@ -151,7 +152,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, _level);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }

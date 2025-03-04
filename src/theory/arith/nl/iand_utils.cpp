@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Aina Niemetz
+ *   Yoni Zohar, Makai Mann, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,10 +37,9 @@ static Rational intpow2(uint32_t b)
   return Rational(Integer(2).pow(b), Integer(1));
 }
 
-Node pow2(uint32_t k)
+Node pow2(NodeManager* nm, uint32_t k)
 {
   Assert(k >= 0);
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkConstInt(Rational(intpow2(k)));
 }
 
@@ -49,19 +48,19 @@ bool oneBitAnd(bool a, bool b) { return (a && b); }
 // computes (bv_to_int ((_ extract i+size-1 i) (int_to_bv x))))
 Node intExtract(Node x, uint32_t i, uint32_t size)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Assert(size > 0);
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   Node extract = NodeManager::mkNode(
       Kind::INTS_MODULUS_TOTAL,
-      NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
-      pow2(size));
+      NodeManager::mkNode(Kind::INTS_DIVISION_TOTAL, x, pow2(nm, i * size)),
+      pow2(nm, size));
   return extract;
 }
 
-IAndUtils::IAndUtils()
+IAndUtils::IAndUtils(NodeManager* nm) : d_nm(nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
   d_one = nm->mkConstInt(Rational(1));
   d_two = nm->mkConstInt(Rational(2));
@@ -73,7 +72,6 @@ Node IAndUtils::createITEFromTable(
     uint32_t granularity,
     const std::map<std::pair<int64_t, int64_t>, uint64_t>& table)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Assert(granularity <= 8);
   uint64_t num_of_values = ((uint64_t)pow(2, granularity));
   // The table represents a function from pairs of integers to integers, where
@@ -82,7 +80,7 @@ Node IAndUtils::createITEFromTable(
   Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
   // start with the default, most common value.
   // this value is represented in the table by (-1, -1).
-  Node ite = nm->mkConstInt(Rational(table.at(std::make_pair(-1, -1))));
+  Node ite = d_nm->mkConstInt(Rational(table.at(std::make_pair(-1, -1))));
   for (uint64_t i = 0; i < num_of_values; i++)
   {
     for (uint64_t j = 0; j < num_of_values; j++)
@@ -97,9 +95,11 @@ Node IAndUtils::createITEFromTable(
           Kind::ITE,
           NodeManager::mkNode(
               Kind::AND,
-              NodeManager::mkNode(Kind::EQUAL, x, nm->mkConstInt(Rational(i))),
-              NodeManager::mkNode(Kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
-          nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
+              NodeManager::mkNode(
+                  Kind::EQUAL, x, d_nm->mkConstInt(Rational(i))),
+              NodeManager::mkNode(
+                  Kind::EQUAL, y, d_nm->mkConstInt(Rational(j)))),
+          d_nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
           ite);
     }
   }
@@ -111,7 +111,6 @@ Node IAndUtils::createSumNode(Node x,
                               uint32_t bvsize,
                               uint32_t granularity)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Assert(0 < granularity && granularity <= 8);
   // Standardize granularity.
   // If it is greater than bvsize, it is set to bvsize.
@@ -138,7 +137,7 @@ Node IAndUtils::createSumNode(Node x,
   // number of elements in the sum expression
   uint32_t sumSize = bvsize / granularity;
   // initialize the sum
-  Node sumNode = nm->mkConstInt(Rational(0));
+  Node sumNode = d_nm->mkConstInt(Rational(0));
   // compute the table for the current granularity if needed
   if (d_bvandTable.find(granularity) == d_bvandTable.end())
   {
@@ -157,7 +156,7 @@ Node IAndUtils::createSumNode(Node x,
     sumNode = NodeManager::mkNode(
         Kind::ADD,
         sumNode,
-        NodeManager::mkNode(Kind::MULT, pow2(i * granularity), sumPart));
+        NodeManager::mkNode(Kind::MULT, pow2(d_nm, i * granularity), sumPart));
   }
   return sumNode;
 }
@@ -261,8 +260,7 @@ void IAndUtils::addDefaultValue(
 Node IAndUtils::twoToK(unsigned k) const
 {
   // could be faster
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(Kind::POW, d_two, nm->mkConstInt(Rational(k)));
+  return d_nm->mkNode(Kind::POW, d_two, d_nm->mkConstInt(Rational(k)));
 }
 
 Node IAndUtils::twoToKMinusOne(unsigned k) const

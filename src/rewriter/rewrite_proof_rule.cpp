@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
+ *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,19 +34,22 @@ void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& fvs,
                             const std::vector<Node>& cond,
                             Node conc,
-                            Node context)
+                            Node context,
+                            Level _level)
 {
   // not initialized yet
   Assert(d_cond.empty() && d_fvs.empty());
   d_id = id;
   d_userFvs = userFvs;
+  d_level = _level;
   std::map<Node, Node> condDef;
   for (const Node& c : cond)
   {
     if (!expr::getListVarContext(c, d_listVarCtx))
     {
-      Unhandled()
-          << "Ambiguous context for list variables in condition of rule " << id;
+      Unhandled() << "Ambiguous or illegal context for list variables in "
+                     "condition of rule "
+                  << id;
     }
     d_cond.push_back(c);
     if (c.getKind() == Kind::EQUAL && c[0].getKind() == Kind::BOUND_VARIABLE)
@@ -58,7 +61,8 @@ void RewriteProofRule::init(ProofRewriteRule id,
   d_context = context;
   if (!expr::getListVarContext(conc, d_listVarCtx))
   {
-    Unhandled() << "Ambiguous context for list variables in conclusion of rule "
+    Unhandled() << "Ambiguous or illegal context for list variables in "
+                   "conclusion of rule "
                 << id;
   }
 
@@ -277,6 +281,8 @@ void RewriteProofRule::getConditionalDefinitions(const std::vector<Node>& vs,
     dss.push_back(cvs);
   }
 }
+
+Level RewriteProofRule::getSignatureLevel() const { return d_level; }
 
 }  // namespace rewriter
 }  // namespace cvc5::internal

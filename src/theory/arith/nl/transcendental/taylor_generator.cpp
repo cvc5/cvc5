@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,9 +28,8 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TaylorGenerator::TaylorGenerator()
-    : d_taylor_real_fv(NodeManager::mkBoundVar(
-        "x", NodeManager::currentNM()->realType()))
+TaylorGenerator::TaylorGenerator(NodeManager* nm)
+    : d_taylor_real_fv(NodeManager::mkBoundVar("x", nm->realType())), d_nm(nm)
 {
 }
 
@@ -46,12 +45,10 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
     return itt->second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-
   // the current factorial `counter!`
   Integer factorial = 1;
   // the current variable power `x^counter`
-  Node varpow = nm->mkConstReal(Rational(1));
+  Node varpow = d_nm->mkConstReal(Rational(1));
   std::vector<Node> sum;
   for (std::uint64_t counter = 1; counter <= n; ++counter)
   {
@@ -60,7 +57,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       // Maclaurin series for exponential:
       //   \sum_{n=0}^\infty x^n / n!
       sum.push_back(
-          nm->mkNode(Kind::DIVISION, varpow, nm->mkConstReal(factorial)));
+          d_nm->mkNode(Kind::DIVISION, varpow, d_nm->mkConstReal(factorial)));
     }
     else if (k == Kind::SINE)
     {
@@ -69,19 +66,19 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       if (counter % 2 == 0)
       {
         int sign = (counter % 4 == 0 ? -1 : 1);
-        sum.push_back(nm->mkNode(Kind::MULT,
-                                 nm->mkNode(Kind::DIVISION,
-                                            nm->mkConstReal(sign),
-                                            nm->mkConstReal(factorial)),
-                                 varpow));
+        sum.push_back(d_nm->mkNode(Kind::MULT,
+                                   d_nm->mkNode(Kind::DIVISION,
+                                                d_nm->mkConstReal(sign),
+                                                d_nm->mkConstReal(factorial)),
+                                   varpow));
       }
     }
     factorial *= counter;
-    varpow = nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow);
+    varpow = d_nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow);
   }
-  Node taylor_sum = (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::ADD, sum));
+  Node taylor_sum = (sum.size() == 1 ? sum[0] : d_nm->mkNode(Kind::ADD, sum));
   Node taylor_rem =
-      nm->mkNode(Kind::DIVISION, varpow, nm->mkConstReal(factorial));
+      d_nm->mkNode(Kind::DIVISION, varpow, d_nm->mkConstReal(factorial));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -97,7 +94,6 @@ void TaylorGenerator::getPolynomialApproximationBounds(
   auto it = d_poly_bounds[k].find(d);
   if (it == d_poly_bounds[k].end())
   {
-    NodeManager* nm = NodeManager::currentNM();
     // n is the Taylor degree we are currently considering
     std::uint64_t n = 2 * d;
     // n must be even
@@ -112,17 +108,17 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     if (k == Kind::EXPONENTIAL)
     {
       pbounds.d_lower = taylor_sum;
-      pbounds.d_upperNeg = nm->mkNode(Kind::ADD, taylor_sum, ru);
-      pbounds.d_upperPos =
-          nm->mkNode(Kind::MULT,
-                     taylor_sum,
-                     nm->mkNode(Kind::ADD, nm->mkConstReal(Rational(1)), ru));
+      pbounds.d_upperNeg = d_nm->mkNode(Kind::ADD, taylor_sum, ru);
+      pbounds.d_upperPos = d_nm->mkNode(
+          Kind::MULT,
+          taylor_sum,
+          d_nm->mkNode(Kind::ADD, d_nm->mkConstReal(Rational(1)), ru));
     }
     else
     {
       Assert(k == Kind::SINE);
-      Node l = nm->mkNode(Kind::SUB, taylor_sum, ru);
-      Node u = nm->mkNode(Kind::ADD, taylor_sum, ru);
+      Node l = d_nm->mkNode(Kind::SUB, taylor_sum, ru);
+      Node u = d_nm->mkNode(Kind::ADD, taylor_sum, ru);
       pbounds.d_lower = l;
       pbounds.d_upperNeg = u;
       pbounds.d_upperPos = u;
@@ -194,15 +190,14 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf,
   Kind k = tf.getKind();
   if (csign == 0)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // at zero, its trivial
     if (k == Kind::SINE)
     {
-      Node zero = nm->mkConstReal(Rational(0));
+      Node zero = d_nm->mkConstReal(Rational(0));
       return std::pair<Node, Node>(zero, zero);
     }
     Assert(k == Kind::EXPONENTIAL);
-    Node one = nm->mkConstReal(Rational(1));
+    Node one = d_nm->mkConstReal(Rational(1));
     return std::pair<Node, Node>(one, one);
   }
   bool isNeg = csign == -1;

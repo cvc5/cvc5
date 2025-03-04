@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -342,6 +342,15 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       // add predicate trigger for testers and equalities
       // Get triggered for both equal and dis-equal
       d_state.addEqualityEngineTriggerPredicate(n);
+      break;
+    case Kind::MATCH:
+    {
+      Assert (!options().datatypes.datatypesExp);
+      std::stringstream ss;
+      ss << "Match terms not available in this configuration, try "
+            "--datatypes-exp.";
+      throw LogicException(ss.str());
+    }
       break;
     default:
       // do initial lemmas (e.g. for dt.size)
