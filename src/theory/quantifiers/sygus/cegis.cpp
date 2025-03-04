@@ -95,7 +95,7 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       }
       std::vector<Node> eargs;
       eargs.push_back(candidates[i]);
-      Node ret = nm->mkNode(Kind::DT_SYGUS_EVAL, eargs);
+      Node ret;
       if (!vs.empty())
       {
         Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
