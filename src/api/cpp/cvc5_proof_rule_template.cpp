@@ -292,6 +292,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-bv-and-simplify";
     case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
       return "macro-bv-xor-simplify";
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      return "macro-bv-and-or-xor-concat-pullup";
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
       return "macro-bv-mult-slt-mult";
     case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:

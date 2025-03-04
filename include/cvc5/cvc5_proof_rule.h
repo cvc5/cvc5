@@ -3065,6 +3065,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BV_XOR_SIMPLIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro and/or/xor concat pullup **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule AndOrXorConcatPullup.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_AND_OR_XOR_CONCAT_PULLUP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Macro multiply signed less than multiply **
    *
    * .. math::

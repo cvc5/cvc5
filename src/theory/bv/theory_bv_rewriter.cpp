@@ -42,6 +42,8 @@ TheoryBVRewriter::TheoryBVRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_MULT_SLT_MULT,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE,
@@ -123,6 +125,8 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       BV_PROOF_REWRITE_CASE(AndSimplify)
     case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
       BV_PROOF_REWRITE_CASE(XorSimplify)
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      BV_PROOF_REWRITE_CASE(AndOrXorConcatPullUp)
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
       BV_PROOF_REWRITE_CASE(MultSltMult)
     case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
