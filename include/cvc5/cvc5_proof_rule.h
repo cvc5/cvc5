@@ -4082,6 +4082,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_OR_CONCAT_PULLUP),
   /** Auto-generated from RARE rule bv-xor-concat-pullup */
   EVALUE(BV_XOR_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-and-concat-pullup2 */
+  EVALUE(BV_AND_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-or-concat-pullup2 */
+  EVALUE(BV_OR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup2 */
+  EVALUE(BV_XOR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-and-concat-pullup3 */
+  EVALUE(BV_AND_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-or-concat-pullup3 */
+  EVALUE(BV_OR_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup3 */
+  EVALUE(BV_XOR_CONCAT_PULLUP3),
   /** Auto-generated from RARE rule bv-bitwise-idemp-1 */
   EVALUE(BV_BITWISE_IDEMP_1),
   /** Auto-generated from RARE rule bv-bitwise-idemp-2 */
