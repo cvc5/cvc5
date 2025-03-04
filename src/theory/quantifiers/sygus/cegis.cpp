@@ -41,7 +41,8 @@ Cegis::Cegis(Env& env,
       d_eval_unfold(tds->getEvalUnfold()),
       d_cexClosedEnum(false),
       d_cegis_sampler(env),
-      d_usingSymCons(false)
+      d_usingSymCons(false),
+      d_doEvalUnfold(false)
 {
 }
 
