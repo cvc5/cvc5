@@ -405,11 +405,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
           return false;
         }
       }
-      else if (ck == Kind::ITE)
-      {
-        return false;
-      }
-      else if (cur.isVar())
+      else if (!utils::isRegExpKind(ck))
       {
         return false;
       }
