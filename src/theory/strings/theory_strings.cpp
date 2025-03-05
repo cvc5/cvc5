@@ -1131,6 +1131,12 @@ void TheoryStrings::notifySharedTerm(TNode n)
   {
     d_termReg.registerSubterms(n);
   }
+  if (n.getType().isRegExp())
+  {
+    std::stringstream ss;
+    ss << "Regular expression terms are not supported in theory combination";
+    throw LogicException(ss.str());
+  }
 }
 
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
