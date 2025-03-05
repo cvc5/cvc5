@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
   return os;
 }
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env), d_bvRewElab(env)
 {
 
 }
@@ -334,6 +334,15 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
       {
         handledMacro = true;
       }
+      break;
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+    case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      handledMacro = d_bvRewElab.ensureProofFor(cdp, id, eq);
       break;
     default: break;
   }

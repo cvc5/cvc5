@@ -289,6 +289,21 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+      return "macro-bv-extract-concat";
+    case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY: return "macro-bv-or-simplify";
+    case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
+      return "macro-bv-and-simplify";
+    case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+      return "macro-bv-xor-simplify";
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      return "macro-bv-and-or-xor-concat-pullup";
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+      return "macro-bv-mult-slt-mult";
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+      return "macro-bv-concat-extract-merge";
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      return "macro-bv-concat-constant-merge";
     case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
