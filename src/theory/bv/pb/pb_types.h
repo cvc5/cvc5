@@ -32,6 +32,10 @@ namespace theory {
 namespace bv {
 namespace pb {
 
+class PbLiteral;
+struct PbLiteralHash;
+typedef std::unordered_map<PbLiteral, Node, PbLiteralHash> PbLiteralToNodeMap;
+
 /**
  * Represents the possible values of a Pseudo-Boolean variable.
  * These values are used to describe the assignment or state of a variable.
@@ -54,9 +58,10 @@ class PbVariable
   explicit PbVariable(const int& id);
 
   friend std::ostream& operator<<(std::ostream& os, const PbVariable& var);
+  bool operator==(const PbVariable& other) const;
 
  private:
-  std::string id;
+  std::string d_id;
 };
 
 /**
@@ -70,12 +75,20 @@ class PbLiteral
   explicit PbLiteral(const int& id, const bool p = true);
 
   friend std::ostream& operator<<(std::ostream& os, const PbLiteral& var);
+  bool operator==(const PbLiteral& other) const;
 
-  Node toNode(NodeManager* nm) const;
+  Node toNode(PbLiteralToNodeMap& map, NodeManager* nm) const;
 
  private:
-  PbVariable variable;
-  bool polarity;
+  PbVariable d_variable;
+  bool d_polarity;
+};
+
+/** Hash functor. */
+struct PbLiteralHash {
+    size_t operator()(const PbLiteral& lit) const {
+        return std::hash<std::string>()((std::ostringstream() << lit).str());
+    }
 };
 
 /**
@@ -90,21 +103,23 @@ class PbConstraint
                         const std::vector<Integer>& coefficients,
                         Kind relationalOperator,
                         const Integer& constant,
+                        PbLiteralToNodeMap& map,
                         NodeManager* nm);
   explicit PbConstraint(const PbLiteral& literal,
                         const Integer& coefficient,
                         Kind relationalOperator,
                         const Integer& constant,
+                        PbLiteralToNodeMap& map,
                         NodeManager* nm);
   Node toNode() const;
 
  private:
-  Node constraint;
+  Node d_constraint;
   std::vector<Node> generateProducts(const std::vector<PbLiteral>& literals,
                                      const std::vector<Integer>& coefficients,
+                                     PbLiteralToNodeMap& map,
                                      NodeManager* nm);
 };
-
 
 /**
  * Represents a set of pseudo-Boolean constraints.
@@ -117,7 +132,7 @@ class PbConstraintSet
                            NodeManager* nm);
 
  private:
-  Node constraintSet;
+  Node d_constraintSet;
 };
 
 }  // namespace pb
