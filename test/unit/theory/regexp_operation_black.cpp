@@ -140,5 +140,39 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
   doesNotInclude(_a_abc_, _abc_);
 }
 
+TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
+{
+  RegExpEntail re(d_nodeManager, nullptr);
+
+  TypeNode strType = d_nodeManager->stringType();
+  TypeNode intType = d_nodeManager->integerType();
+
+  Node abc = d_nodeManager->mkConst(String("abc"));
+  Node a = d_nodeManager->mkDummySkolem("a", intType);
+  Node s = d_nodeManager->mkDummySkolem("s", strType);
+  Node fia = d_nodeManager->mkNode(Kind::STRING_ITOS, a);
+  Node fils = d_nodeManager->mkNode(
+      Kind::STRING_ITOS, d_nodeManager->mkNode(Kind::STRING_LENGTH, s));
+
+  Node sigma = d_nodeManager->mkNode(Kind::REGEXP_ALLCHAR);
+  Node sigmaStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, sigma);
+  Node rabc = d_nodeManager->mkNode(Kind::STRING_TO_REGEXP,
+                                    d_nodeManager->mkConst(String("abc")));
+  Node digRange = d_nodeManager->mkNode(Kind::REGEXP_RANGE,
+                                        d_nodeManager->mkConst(String("0")),
+                                        d_nodeManager->mkConst(String("9")));
+  Node digRangeStar = d_nodeManager->mkNode(Kind::REGEXP_STAR, digRange);
+  Node digRangePlus =
+      d_nodeManager->mkNode(Kind::REGEXP_CONCAT, digRange, digRangeStar);
+
+  ASSERT_TRUE(re.getGeneralizedConstRegExp(s).isNull());
+  ASSERT_EQ(re.getGeneralizedConstRegExp(fia), digRangeStar);
+  ASSERT_EQ(re.getGeneralizedConstRegExp(fils), digRangePlus);
+  ASSERT_EQ(re.getGeneralizedConstRegExp(abc), rabc);
+
+  Node ss = d_nodeManager->mkNode(Kind::STRING_CONCAT, s, s);
+  ASSERT_TRUE(re.getGeneralizedConstRegExp(ss).isNull());
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

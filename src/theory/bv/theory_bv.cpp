@@ -249,7 +249,6 @@ TrustNode TheoryBV::ppStaticRewrite(TNode atom)
       Node res = RewriteRule<SolveEq>::run<false>(atom);
       if (res != atom)
       {
-        res = d_env.getRewriter()->rewrite(res);
         return TrustNode::mkTrustRewrite(atom, res);
       }
     }
@@ -317,7 +316,7 @@ void TheoryBV::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
         if (utils::isOne(s[0]) && utils::isOne(p[0][0])
             && utils::isOne(p[1][0]))
         {
-          Node zero = utils::mkZero(utils::getSize(s));
+          Node zero = utils::mkZero(nodeManager(), utils::getSize(s));
           TNode b = p[0];
           TNode c = p[1];
           // (s : 1 << S) = (b : 1 << B) + (c : 1 << C)

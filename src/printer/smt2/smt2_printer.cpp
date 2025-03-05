@@ -1009,7 +1009,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       size_t cindex = DType::cindexOf(op);
       if (dt.isTuple())
       {
-        out << "(_ tuple.update " << DType::indexOf(op) << ")";
+        out << "(_ tuple.update " << index << ")";
       }
       else
       {
@@ -1217,6 +1217,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::TO_INTEGER: return "to_int";
     case Kind::TO_REAL: return "to_real";
     case Kind::POW: return "^";
+    case Kind::DIVISIBLE: return "divisible";
 
     // arrays theory
     case Kind::SELECT: return "select";
