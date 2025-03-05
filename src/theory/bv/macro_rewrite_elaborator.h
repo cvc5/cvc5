@@ -58,10 +58,13 @@ class MacroRewriteElaborator : protected EnvObj
    * Elaborate a rewrite eq that was proven by a concat merge rule.
    *
    * @param cdp The proof to add to.
+   * @param id The (macro) rewrite id that proved the rewrite.
    * @param eq The rewrite proven.
    * @return true if added a closed proof of eq to cdp.
    */
-  bool ensureProofForConcatMerge(CDProof* cdp, const Node& eq);
+  bool ensureProofForConcatMerge(CDProof* cdp,
+                                 ProofRewriteRule id,
+                                 const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by MACRO_BV_EXTRACT_CONCAT.
    *
@@ -78,6 +81,15 @@ class MacroRewriteElaborator : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofForMultSltMult(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * MACRO_BV_AND_OR_XOR_CONCAT_PULLUP.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofForAndOrXorConcatPullup(CDProof* cdp, const Node& eq);
   /**
    * Prove congruence for left hand side term n.
    * If n is a term of the form (f t1 ... tn), this proves
