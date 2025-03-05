@@ -18,10 +18,11 @@
  */
 
 #include "theory/bv/pb/pb_types.h"
-#include "util/rational.h"
-#include "util/string.h"
 
 #include <sstream>
+
+#include "util/rational.h"
+#include "util/string.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,13 +45,19 @@ bool PbVariable::operator==(const PbVariable& other) const
 }
 
 PbLiteral::PbLiteral(const PbVariable& var, const bool p)
-    : d_variable(var), d_polarity(p) {}
+    : d_variable(var), d_polarity(p)
+{
+}
 
 PbLiteral::PbLiteral(const Integer& id, const bool p)
-    : d_variable(PbVariable(id)), d_polarity(p) {}
+    : d_variable(PbVariable(id)), d_polarity(p)
+{
+}
 
 PbLiteral::PbLiteral(const int& id, const bool p)
-    : d_variable(PbVariable(id)), d_polarity(p) {}
+    : d_variable(PbVariable(id)), d_polarity(p)
+{
+}
 
 std::ostream& operator<<(std::ostream& os, const PbLiteral& lit)
 {
@@ -113,9 +120,7 @@ std::vector<Node> PbConstraint::generateProducts(
   Assert(literals.size() == coefficients.size());
 
   auto createTerm = [&nm, &map](const PbLiteral& lit, const Integer& coef) {
-    return nm->mkNode(Kind::MULT,
-                      nm->mkConstInt(coef),
-                      lit.toNode(map, nm));
+    return nm->mkNode(Kind::MULT, nm->mkConstInt(coef), lit.toNode(map, nm));
   };
 
   std::vector<Node> terms(literals.size());
@@ -127,10 +132,7 @@ std::vector<Node> PbConstraint::generateProducts(
   return terms;
 }
 
-Node PbConstraint::toNode() const
-{
-  return d_constraint;
-}
+Node PbConstraint::toNode() const { return d_constraint; }
 
 PbConstraintSet::PbConstraintSet(const std::set<PbConstraint> constraints,
                                  NodeManager* nm)
@@ -142,7 +144,6 @@ PbConstraintSet::PbConstraintSet(const std::set<PbConstraint> constraints,
                  [](const PbConstraint& x) { return x.toNode(); });
   d_constraintSet = nm->mkNode(Kind::SEXPR, constraint_vector);
 }
-
 
 }  // namespace pb
 }  // namespace bv

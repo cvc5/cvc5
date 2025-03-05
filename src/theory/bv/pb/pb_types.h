@@ -22,10 +22,10 @@
 #ifndef CVC5__THEORY__BV__PB__PB_TYPES_H
 #define CVC5__THEORY__BV__PB__PB_TYPES_H
 
-#include "util/integer.h"
-#include "expr/node.h"
-
 #include <string>
+
+#include "expr/node.h"
+#include "util/integer.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,13 +40,23 @@ typedef std::unordered_map<PbLiteral, Node, PbLiteralHash> PbLiteralToNodeMap;
  * Represents the possible values of a Pseudo-Boolean variable.
  * These values are used to describe the assignment or state of a variable.
  */
-enum class PbValue { UNKNOWN, TRUE, FALSE };
+enum class PbValue
+{
+  UNKNOWN,
+  TRUE,
+  FALSE
+};
 
 /**
  * Represents the possible states of a Pseudo-Boolean solver.
  * These states indicate the outcome or current status of the solver.
  */
-enum class PbSolveState { UNKNOWN, SAT, UNSAT };
+enum class PbSolveState
+{
+  UNKNOWN,
+  SAT,
+  UNSAT
+};
 
 /**
  * A pseudo-Boolean variable identified by a unique ID.
@@ -85,10 +95,12 @@ class PbLiteral
 };
 
 /** Hash functor. */
-struct PbLiteralHash {
-    size_t operator()(const PbLiteral& lit) const {
-        return std::hash<std::string>()((std::ostringstream() << lit).str());
-    }
+struct PbLiteralHash
+{
+  size_t operator()(const PbLiteral& lit) const
+  {
+    return std::hash<std::string>()((std::ostringstream() << lit).str());
+  }
 };
 
 /**
