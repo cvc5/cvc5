@@ -388,7 +388,10 @@ class PortfolioProcessPool
       // mark as analyzed
       Trace("portfolio") << "Finished " << job.d_config << std::endl;
       // terminate the corresponding timeout process if it is still running
-      kill(job.d_timeout, SIGKILL);
+      if (job.d_timeout > 0)
+      {
+        kill(job.d_timeout, SIGKILL);
+      }
       job.d_state = JobState::DONE;
       --d_running;
       // check if exited normally
