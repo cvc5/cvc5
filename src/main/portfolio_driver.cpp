@@ -44,7 +44,8 @@ enum SolveStatus : int
 };
 
 bool ExecutionContext::solveContinuous(parser::InputParser* parser,
-                                       bool stopAtSetLogic)
+                                       bool stopAtSetLogic,
+                                       bool stopAtCheckSat)
 {
   Command cmd;
   bool interrupted = false;
@@ -62,8 +63,15 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
     {
       break;
     }
-    status = d_executor->doCommand(&cmd);
     Cmd* cc = cmd.d_cmd.get();
+    if (stopAtCheckSat)
+    {
+      if (dynamic_cast<CheckSatCommand*>(cc) != nullptr)
+      {
+        break;
+      }
+    }
+    status = d_executor->doCommand(&cmd);
     if (cc->interrupted() && status == 0)
     {
       interrupted = true;
@@ -84,6 +92,13 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
     }
   }
   return status;
+}
+
+bool ExecutionContext::runCheckSatCommand(CommandExecutor* pExecutor)
+{
+  std::shared_ptr<Cmd> cmd(new CheckSatCommand());
+  Command command(cmd);
+  return pExecutor->doCommand(&command);
 }
 
 std::vector<Command> ExecutionContext::parseCommands(
@@ -316,13 +331,23 @@ class PortfolioProcessPool
     {
       job.d_errPipe.dup(STDERR_FILENO);
       job.d_outPipe.dup(STDOUT_FILENO);
-      job.d_config.applyOptions(d_ctx.solver());
+
+      TermManager& tm = d_ctx.solver().getTermManager();
+      std::unique_ptr<cvc5::Solver> slv = std::make_unique<cvc5::Solver>(tm);
+      job.d_config.applyOptions(*slv);
+      std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
+      for (Term& t : assertions)
+      {
+        slv->assertFormula(t);
+      }
       // 0 = solved, 1 = not solved
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      if (d_ctx.solveContinuous(d_parser, false))
+      std::unique_ptr<CommandExecutor> pExecutor =
+          std::make_unique<CommandExecutor>(slv);
+      if (d_ctx.runCheckSatCommand(pExecutor.get()))
       // if (d_ctx.solveCommands(d_commands))
       {
-        Result res = d_ctx.d_executor->getResult();
+        Result res = pExecutor->getResult();
         if (res.isSat() || res.isUnsat())
         {
           rc = SolveStatus::STATUS_SOLVED;
@@ -466,6 +491,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     total_timeout = 1'200'000; // miliseconds
   }
 
+  ctx.solveContinuous(d_parser, false, true);
   PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
 
   return pool.run(strategy);
