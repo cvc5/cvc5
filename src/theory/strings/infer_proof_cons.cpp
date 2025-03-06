@@ -102,7 +102,7 @@ void InferProofCons::packArgs(Node conc,
                               const std::vector<Node>& exp,
                               std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conc.getNodeManager();
   args.push_back(conc);
   args.push_back(mkInferenceIdNode(nm, infer));
   args.push_back(nm->mkConst(isRev));
@@ -190,7 +190,7 @@ bool InferProofCons::convert(Env& env,
     Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
     psb.addStep(ProofRule::ASSUME, {}, {ec}, ec);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conc.getNodeManager();
   Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
   {
