@@ -121,43 +121,137 @@
 
 ; AndOrXorConcatPullUp
 (define-cond-rule bv-and-concat-pullup
-  ((x ?BitVec) (y ?BitVec)
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize x))
+    (nx (@bvsize (bvand xs ws)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
-  (bvand x (concat ys z y))
+  (bvand xs (concat ys z y) ws)
   (concat
-    (bvand (extract nxm1 ny x) (concat ys z)) ; Recur on this
-    (bvand (extract nym1 0 x) y)
+    (bvand (extract nxm1 ny (bvand xs ws)) (concat ys z))
+    (bvand (extract nym1 0 (bvand xs ws)) y)
   ))
 (define-cond-rule bv-or-concat-pullup
-  ((x ?BitVec) (y ?BitVec)
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize x))
+    (nx (@bvsize (bvor xs ws)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
-  (bvor x (concat ys z y))
+  (bvor xs (concat ys z y) ws)
   (concat
-    (bvor (extract nxm1 ny x) (concat ys z)) ; Recur on this
-    (bvor (extract nym1 0 x) y)
+    (bvor (extract nxm1 ny (bvor xs ws)) (concat ys z))
+    (bvor (extract nym1 0 (bvor xs ws)) y)
   ))
 (define-cond-rule bv-xor-concat-pullup
-  ((x ?BitVec) (y ?BitVec) (z ?BitVec) (ys ?BitVec :list) (nxm1 Int) (ny Int) (nym1 Int))
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize x))
+    (nx (@bvsize (bvxor xs ws)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
-  (bvxor x (concat ys z y))
+  (bvxor xs (concat ys z y) ws)
   (concat
-    (bvxor (extract nxm1 ny x) (concat ys z)) ; Recur on this
-    (bvxor (extract nym1 0 x) y)
+    (bvxor (extract nxm1 ny (bvxor xs ws)) (concat ys z))
+    (bvxor (extract nym1 0 (bvxor xs ws)) y)
   ))
 
+
+(define-cond-rule bv-and-concat-pullup2
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
+  (def
+    (s (@bvsize (bvand xs ws)))
+    (sy (@bvsize (concat y ys)))
+  )
+  (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
+  (bvand xs (concat z y ys) ws)
+  (concat
+    (bvand (extract nxm1 ny (bvand xs ws)) z)
+    (bvand (extract nym1 0 (bvand xs ws)) (concat y ys))
+  ))
+(define-cond-rule bv-or-concat-pullup2
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
+  (def
+    (s (@bvsize (bvor xs ws)))
+    (sy (@bvsize (concat y ys)))
+  )
+  (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
+  (bvor xs (concat z y ys) ws)
+  (concat
+    (bvor (extract nxm1 ny (bvor xs ws)) z)
+    (bvor (extract nym1 0 (bvor xs ws)) (concat y ys))
+  ))
+(define-cond-rule bv-xor-concat-pullup2
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (ys ?BitVec :list)
+   (nxm1 Int) (ny Int) (nym1 Int))
+  (def
+    (s (@bvsize (bvxor xs ws)))
+    (sy (@bvsize (concat y ys)))
+  )
+  (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
+  (bvxor xs (concat z y ys) ws)
+  (concat
+    (bvxor (extract nxm1 ny (bvxor xs ws)) z)
+    (bvxor (extract nym1 0 (bvxor xs ws)) (concat y ys))
+  ))
+
+(define-cond-rule bv-and-concat-pullup3
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (u ?BitVec)
+   (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
+  (def
+    (s (@bvsize (bvand xs ws)))
+    (su (@bvsize u))
+    (sy (@bvsize y))
+  )
+  (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
+  (bvand xs (concat z y u) ws)
+  (concat
+    (bvand (extract nxm1 nyu (bvand xs ws)) z)
+    (bvand (extract nyum1 nu (bvand xs ws)) y)
+    (bvand (extract num1 0 (bvand xs ws)) u)
+  ))
+(define-cond-rule bv-or-concat-pullup3
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (u ?BitVec)
+   (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
+  (def
+    (s (@bvsize (bvor xs ws)))
+    (su (@bvsize u))
+    (sy (@bvsize y))
+  )
+  (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
+  (bvor xs (concat z y u) ws)
+  (concat
+    (bvor (extract nxm1 nyu (bvor xs ws)) z)
+    (bvor (extract nyum1 nu (bvor xs ws)) y)
+    (bvor (extract num1 0 (bvor xs ws)) u)
+  ))
+(define-cond-rule bv-xor-concat-pullup3
+  ((xs ?BitVec :list) (ws ?BitVec :list) (y ?BitVec)
+   (z ?BitVec) (u ?BitVec)
+   (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
+  (def
+    (s (@bvsize (bvxor xs ws)))
+    (su (@bvsize u))
+    (sy (@bvsize y))
+  )
+  (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
+  (bvxor xs (concat z y u) ws)
+  (concat
+    (bvxor (extract nxm1 nyu (bvxor xs ws)) z)
+    (bvxor (extract nyum1 nu (bvxor xs ws)) y)
+    (bvxor (extract num1 0 (bvxor xs ws)) u)
+  ))
 
 (define-rule bv-bitwise-idemp-1 ((x ?BitVec)) (bvand x x) x)
 (define-rule bv-bitwise-idemp-2 ((x ?BitVec)) (bvor x x) x)
