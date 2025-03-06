@@ -241,7 +241,7 @@ void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
       argTypes[i].push_back(type);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   for (std::pair<const unsigned, std::vector<unsigned>>& wp : weightsToIndices)
   {
     unsigned w = wp.first;
@@ -675,8 +675,7 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
     // ensure all variables are unique
     childrenToShape(children);
   }
-  d_currTerm =
-      NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
+  d_currTerm = d_tn.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
   return d_currTerm;
 }
 
@@ -1087,7 +1086,7 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
 Node SygusEnumerator::TermEnumMaster::convertShape(
     Node n, std::map<TypeNode, size_t>& vcounter)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
