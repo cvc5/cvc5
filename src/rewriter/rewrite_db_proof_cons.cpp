@@ -97,6 +97,8 @@ bool RewriteDbProofCons::prove(
   }
   ++d_statTotalInputs;
   bool success = false;
+  // Convert here, which will be used in an initial step and at postProve
+  // below.
   Node eqi = d_rdnc.convert(eq);
   if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, tmode))
   {
@@ -112,18 +114,15 @@ bool RewriteDbProofCons::prove(
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
+    else if (eqi != eq && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
+    {
+      Trace("rpc") << "...success (post-prove basic)" << std::endl;
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
+      success = true;
+    }
     else
     {
-      if (eqi != eq && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
-      {
-        Trace("rpc") << "...success (post-prove basic)" << std::endl;
-        d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
-        success = true;
-      }
-      else
-      {
-        Trace("rpc") << "...fail" << std::endl;
-      }
+      Trace("rpc") << "...fail" << std::endl;
     }
   }
   return success;
@@ -138,7 +137,7 @@ bool RewriteDbProofCons::proveEqStratified(
     TheoryRewriteMode tmode)
 {
   bool success = false;
-  // first, try the basic utility
+  // first, try the basic utility without/with conversion
   if (d_trrc.prove(cdp, eq[0], eq[1], tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
@@ -152,7 +151,8 @@ bool RewriteDbProofCons::proveEqStratified(
   }
   else
   {
-    // prove the equality
+    // prove the (uncoverted) equality, where the RARE strategy may chose to
+    // convert it via RewriteProofStatus::ENCODE if necessary.
     for (int64_t i = 0; i <= recLimit; i++)
     {
       Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
