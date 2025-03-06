@@ -103,6 +103,11 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   if(NOT HAVE_UNLOCKED_IO)
     string(APPEND CaDiCaL_CXXFLAGS " -DNUNLOCKED")
   endif()
+  # check for closefrom
+  check_symbol_exists("closefrom" "fcntl.h" HAVE_CLOSEFROM)
+  if(NOT HAVE_CLOSEFROM)
+    string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
+  endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are
   # found because they are not necessarily installed at /usr/include anymore.
