@@ -194,7 +194,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,
                                            std::vector<Node>& gts)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;

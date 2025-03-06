@@ -4034,6 +4034,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_COMMUTATIVE_XOR),
   /** Auto-generated from RARE rule bv-commutative-mul */
   EVALUE(BV_COMMUTATIVE_MUL),
+  /** Auto-generated from RARE rule bv-commutative-comp */
+  EVALUE(BV_COMMUTATIVE_COMP),
   /** Auto-generated from RARE rule bv-or-zero */
   EVALUE(BV_OR_ZERO),
   /** Auto-generated from RARE rule bv-mul-one */
@@ -4070,6 +4072,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_NEG_IDEMP),
   /** Auto-generated from RARE rule bv-sub-eliminate */
   EVALUE(BV_SUB_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ite-width-one */
+  EVALUE(BV_ITE_WIDTH_ONE),
+  /** Auto-generated from RARE rule bv-ite-width-one-not */
+  EVALUE(BV_ITE_WIDTH_ONE_NOT),
+  /** Auto-generated from RARE rule bv-eq-xor-solve */
+  EVALUE(BV_EQ_XOR_SOLVE),
+  /** Auto-generated from RARE rule bv-eq-not-solve */
+  EVALUE(BV_EQ_NOT_SOLVE),
   /** Auto-generated from RARE rule bv-ugt-eliminate */
   EVALUE(BV_UGT_ELIMINATE),
   /** Auto-generated from RARE rule bv-uge-eliminate */
@@ -4130,6 +4140,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_USUBO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ssubo-eliminate */
   EVALUE(BV_SSUBO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-nego-eliminate */
+  EVALUE(BV_NEGO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
   /** Auto-generated from RARE rule bv-ite-const-children-1 */
@@ -4174,6 +4186,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_OR_CONCAT_PULLUP),
   /** Auto-generated from RARE rule bv-xor-concat-pullup */
   EVALUE(BV_XOR_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-and-concat-pullup2 */
+  EVALUE(BV_AND_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-or-concat-pullup2 */
+  EVALUE(BV_OR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup2 */
+  EVALUE(BV_XOR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-and-concat-pullup3 */
+  EVALUE(BV_AND_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-or-concat-pullup3 */
+  EVALUE(BV_OR_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup3 */
+  EVALUE(BV_XOR_CONCAT_PULLUP3),
   /** Auto-generated from RARE rule bv-bitwise-idemp-1 */
   EVALUE(BV_BITWISE_IDEMP_1),
   /** Auto-generated from RARE rule bv-bitwise-idemp-2 */

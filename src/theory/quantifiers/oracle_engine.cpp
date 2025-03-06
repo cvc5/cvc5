@@ -315,7 +315,7 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
   Assert(oracleNode.getKind() == Kind::ORACLE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = oracleNode.getNodeManager();
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST,
                         nm->mkNode(Kind::INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;
