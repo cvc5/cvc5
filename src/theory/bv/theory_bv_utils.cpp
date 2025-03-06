@@ -363,10 +363,14 @@ Node mkConcat(TNode t1, TNode t2)
 Node mkConcat(std::vector<Node>& children)
 {
   if (children.size() > 1)
+  {
     return children[0].getNodeManager()->mkNode(Kind::BITVECTOR_CONCAT,
                                                 children);
+  }
   else
+  {
     return children[0];
+  }
 }
 
 Node mkConcat(TNode node, unsigned repeat)
