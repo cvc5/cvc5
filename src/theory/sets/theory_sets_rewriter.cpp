@@ -69,7 +69,6 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-<<<<<<< HEAD
     case ProofRewriteRule::SETS_EVAL_OP:
     {
       if (n.getNumChildren() != 2 || !n[0].isConst() || !n[1].isConst())
@@ -78,11 +77,6 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       Kind k = n.getKind();
       if (k == Kind::SET_INTER)
-=======
-    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
-    {
-      if (n.getKind() == Kind::SET_INTER && n[0].isConst() && n[1].isConst())
->>>>>>> acff956c75c7df6a19cd616c3141b67c4c1eae91
       {
         std::set<Node> left = NormalForm::getElementsFromNormalConstant(n[0]);
         std::set<Node> right = NormalForm::getElementsFromNormalConstant(n[1]);
