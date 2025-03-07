@@ -1207,7 +1207,9 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   Node k = getTermSkolemFor( n );
   Node n_ic =
       utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
-  Assert (n_ic == rewrite(n_ic));
+  // generally n_ic is in rewritten form but this is not the case if
+  // n is not in rewritten form, e.g. if another theory added an unrewritten
+  // term to the equality engine.
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
 }

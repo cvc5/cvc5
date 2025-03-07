@@ -140,8 +140,6 @@ const char* toString(ProofRule rule)
     //================================================= String rules
     case ProofRule::CONCAT_EQ: return "CONCAT_EQ";
     case ProofRule::CONCAT_UNIFY: return "CONCAT_UNIFY";
-    case ProofRule::CONCAT_CONFLICT: return "CONCAT_CONFLICT";
-    case ProofRule::CONCAT_CONFLICT_DEQ: return "CONCAT_CONFLICT_DEQ";
     case ProofRule::CONCAT_SPLIT: return "CONCAT_SPLIT";
     case ProofRule::CONCAT_CSPLIT: return "CONCAT_CSPLIT";
     case ProofRule::CONCAT_LPROP: return "CONCAT_LPROP";
@@ -355,13 +353,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
-      return "macro-sets-inter-eval";
-    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
-      return "macro-sets-minus-eval";
-    case ProofRewriteRule::SETS_UNION_NORM: return "sets-union-norm";
-    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
-      return "sets-is-empty-eval";
+    case ProofRewriteRule::SETS_EVAL_OP: return "sets-eval-op";
     case ProofRewriteRule::SETS_INSERT_ELIM:
       return "sets-insert-elim";
       //================================================= RARE rules
