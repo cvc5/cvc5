@@ -3407,7 +3407,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           else
           {
             assump.push_back(possibleConflict);
-          }          
+          }
           Node falsen = nodeManager()->mkConst(false);
           CDProof cdp(d_env);
           cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
@@ -3446,7 +3446,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       {
         tryNew = false;
         std::vector<TrustNode> possibleLemmas = roundRobinBranch();
-        Trace("arith-round-robin") << "...consider " << possibleLemmas.size() << " lemmas" << std::endl;
+        Trace("arith-round-robin") << "...consider " << possibleLemmas.size()
+                                   << " lemmas" << std::endl;
         if (!possibleLemmas.empty())
         {
           ++(d_statistics.d_externalBranchAndBounds);
@@ -3454,7 +3455,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           for (const TrustNode& possibleLemma : possibleLemmas)
           {
             Node lem = possibleLemma.getProven();
-            if (lemmas.find(lem)!=lemmas.end())
+            if (lemmas.find(lem) != lemmas.end())
             {
               Trace("arith-round-robin") << "..already fail lemma" << std::endl;
               continue;
@@ -3476,15 +3477,15 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           {
             // increment the next variable we are looking at
             ArithVar numVars = d_partialModel.getNumberOfVariables();
-            Assert (numVars>0);
+            Assert(numVars > 0);
             d_nextIntegerCheckVar++;
-            if (d_nextIntegerCheckVar==numVars)
+            if (d_nextIntegerCheckVar == numVars)
             {
               d_nextIntegerCheckVar = 0;
             }
           }
         }
-      }while (!emmittedConflictOrSplit && tryNew);
+      } while (!emmittedConflictOrSplit && tryNew);
     }
 
     if (options().arith.maxCutsInContext <= d_cutCount)
