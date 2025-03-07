@@ -3407,7 +3407,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           else
           {
             assump.push_back(possibleConflict);
-          }
+          }          
           Node falsen = nodeManager()->mkConst(false);
           CDProof cdp(d_env);
           cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
@@ -3439,20 +3439,52 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
 
     if(!emmittedConflictOrSplit) {
-      std::vector<TrustNode> possibleLemmas = roundRobinBranch();
-      if (!possibleLemmas.empty())
+      bool tryNew;
+      std::unordered_set<Node> lemmas;
+      Trace("arith-round-robin") << "Round robin branch..." << std::endl;
+      do
       {
-        ++(d_statistics.d_externalBranchAndBounds);
-        d_cutCount = d_cutCount + 1;
-        for (const TrustNode& possibleLemma : possibleLemmas)
+        tryNew = false;
+        std::vector<TrustNode> possibleLemmas = roundRobinBranch();
+        Trace("arith-round-robin") << "...consider " << possibleLemmas.size() << " lemmas" << std::endl;
+        if (!possibleLemmas.empty())
         {
-          Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
-          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+          ++(d_statistics.d_externalBranchAndBounds);
+          d_cutCount = d_cutCount + 1;
+          for (const TrustNode& possibleLemma : possibleLemmas)
           {
-            emmittedConflictOrSplit = true;
+            Node lem = possibleLemma.getProven();
+            if (lemmas.find(lem)!=lemmas.end())
+            {
+              Trace("arith-round-robin") << "..already fail lemma" << std::endl;
+              continue;
+            }
+            lemmas.insert(lem);
+            tryNew = true;
+            Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
+            if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+            {
+              emmittedConflictOrSplit = true;
+              Trace("arith-round-robin") << "..success lemma" << std::endl;
+            }
+            else
+            {
+              Trace("arith-round-robin") << "..failed lemma" << std::endl;
+            }
+          }
+          if (!emmittedConflictOrSplit)
+          {
+            // increment the next variable we are looking at
+            ArithVar numVars = d_partialModel.getNumberOfVariables();
+            Assert (numVars>0);
+            d_nextIntegerCheckVar++;
+            if (d_nextIntegerCheckVar==numVars)
+            {
+              d_nextIntegerCheckVar = 0;
+            }
           }
         }
-      }
+      }while (!emmittedConflictOrSplit && tryNew);
     }
 
     if (options().arith.maxCutsInContext <= d_cutCount)
