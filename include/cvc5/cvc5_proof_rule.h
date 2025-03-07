@@ -1514,42 +1514,6 @@ enum ENUM(ProofRule)
   EVALUE(CONCAT_UNIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict**
-   *
-   * .. math::
-   *   \inferrule{(c_1 \cdot t) = (c_2 \cdot s)\mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t \cdot c_1) = (s \cdot c_2)\mid \top}{\bot}
-   *
-   * where :math:`c_1,\,c_2` are distinct (non-empty) string constants of the same length.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict for disequal characters**
-   *
-   * .. math::
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t\cdot t_1) = (s \cdot s_1), t_1 \neq s_1 \mid \top}{\bot}
-   *
-   * where :math:`t_1` and :math:`s_1` are applications of :math:`seq.unit`.
-   *
-   * This rule is used exclusively for sequences.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT_DEQ),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
    *
    * .. math::
@@ -3657,67 +3621,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets intersection evaluate**
+   * **Sets -- sets evaluate operator**
    *
    * .. math::
-   *   \mathit{set.inter}(t_1, t_2) = t
+   *   \mathit{f}(t_1, t_2) = t
    *
-   * where :math:`t_1` and :math:`t_2` are set values, that is,
-   * the Node::isConst method returns true for both, and
-   * where :math:`t` is an intersection of the component elements of
+   * where :math:`f` is one of :math:`\mathit{set.inter}, \mathit{set.minus}, \mathit{set.union}`,
+   * and :math:`t` is the result of evaluating :math:`f` on
    * :math:`t_1` and :math:`t_2`.
    *
-   * \endverbatim
-   */
-  EVALUE(MACRO_SETS_INTER_EVAL),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets minus evaluate**
-   *
-   * .. math::
-   *   \mathit{set.minus}(t_1, t_2) = t
-   *
-   * where :math:`t_1` and :math:`t_2` are set values, that is,
-   * the Node::isConst method returns true for both, and
-   * where :math:`t` is the difference of the component elements of
-   * :math:`t_1` and :math:`t_2`.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_SETS_MINUS_EVAL),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets union normalize**
-   *
-   * .. math::
-   *   \mathit{set.union}(t_1, t_2) = t
-   * 
-   * where :math:`t` is a union of the component elements of
-   * :math:`t_1` and :math:`t_2`.
-   * 
    * Note we use this rule only when :math:`t_1` and :math:`t_2` are set values,
    * that is, the Node::isConst method returns true for both.
    *
    * \endverbatim
    */
-  EVALUE(SETS_UNION_NORM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- empty tester evaluation**
-   *
-   * .. math::
-   *   \mathit{sets.is\_empty}(\epsilon) = \top
-   *
-   * where :math:`\epsilon` is the empty set, or alternatively:
-   *
-   * .. math::
-   *   \mathit{sets.is\_empty}(c) = \bot
-   *
-   * where :math:`c` is a constant set that is not the empty set.
-   *
-   * \endverbatim
-   */
-  EVALUE(SETS_IS_EMPTY_EVAL),
+  EVALUE(SETS_EVAL_OP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets insert elimination**
