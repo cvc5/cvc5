@@ -130,7 +130,7 @@ void generateEncoding(
                     if (opNode.isVar())
                     {
                         std::string symbol = opNode.toString();
-                        if (role.find(symbol) == role.end())
+                        if (role.find(symbol) == role.end() && n.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE)
                         {
                             role[symbol] = cnt;
                         }
@@ -164,7 +164,7 @@ void generateEncoding(
                     {
                         // Update role map
                         std::string symbol = child.toString();
-                        if (role.find(symbol) == role.end())
+                        if (role.find(symbol) == role.end() && n.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE)
                         {
                             role[symbol] = cnt;
                         }
