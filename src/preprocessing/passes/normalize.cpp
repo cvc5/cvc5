@@ -573,6 +573,141 @@ void collectTypes(TNode n,
 
 
 
+Node renameQid(
+    const Node& n,
+    std::unordered_map<Node, Node>& qidRenamed,
+    std::unordered_map<std::string, std::string>& normalizedName,
+    NodeManager* nodeManager)
+{
+  // Map to cache normalized nodes.
+  std::unordered_map<Node, Node> normalized;
+  // Map to track visited nodes (false: first visit; true: processed).
+  std::unordered_map<Node, bool> visited;
+  // Stack for iterative traversal.
+  // Each element is a pair: (current node, its parent).
+  std::stack<std::pair<Node, Node>> stack;
+  // Global counter for qid renaming (starting at 1).
+  static int qidCounter = 1;
+
+  // Push the root node with a null parent.
+  stack.push({n, Node()});
+
+  while (!stack.empty())
+  {
+    // Get current node and its parent.
+    auto [current, parent] = stack.top();
+
+    // Try inserting current node into visited.
+    auto [it, inserted] = visited.emplace(current, false);
+    if (inserted)
+    {
+      // First time seeing this node.
+      if (current.isConst() || current.isVar())
+      {
+        // Check if current is a variable and qualifies as a qid.
+        // A qid is defined as a variable whose parent has kind INST_ATTRIBUTE.
+        if (current.isVar() &&
+            (!parent.isNull() && parent.getKind() == cvc5::internal::Kind::INST_ATTRIBUTE))
+        {
+          // If we already renamed this variable, use that renaming.
+          auto it_qid = qidRenamed.find(current);
+          if (it_qid != qidRenamed.end())
+          {
+            normalized[current] = it_qid->second;
+          }
+          else
+          {
+            // Otherwise, generate a new name "q00000001", "q00000002", etc.
+            std::string new_var_name =
+              "q" + std::string(8 - numDigits(qidCounter), '0') + std::to_string(qidCounter);
+            qidCounter++;
+
+            // Create a new dummy skolem (or qid variable) with the new name.
+            Node ret = nodeManager->getSkolemManager()->mkDummySkolem(
+                new_var_name,
+                current.getType(),
+                "renamed qid " + current.toString() + " to " + new_var_name,
+                SkolemFlags::SKOLEM_EXACT_NAME
+            );
+            qidRenamed[current] = ret;
+            normalized[current] = ret;
+            normalizedName[current.toString()] = new_var_name;
+          }
+        }
+        else
+        {
+          // Otherwise, leave the node unchanged.
+          normalized[current] = current;
+        }
+        // Mark this node as processed.
+        visited[current] = true;
+        stack.pop();
+      }
+      else
+      {
+        // For non-const and non-var nodes, push their children (with current as parent)
+        // in reverse order to preserve left-to-right traversal.
+        for (int i = current.getNumChildren() - 1; i >= 0; --i)
+        {
+          Node child = current[i];
+          stack.push({child, current});
+        }
+        // For APPLY_UF nodes, push the operator.
+        if (current.getKind() == cvc5::internal::Kind::APPLY_UF)
+        {
+          Node op = current.getOperator();
+          stack.push({op, current});
+        }
+        // Leave the node for a second visit.
+      }
+    }
+    else if (!it->second)
+    {
+      // Second time visiting the node: all its children have been processed.
+      std::vector<Node> children;
+      if (current.getKind() == cvc5::internal::Kind::APPLY_UF)
+      {
+        // Add the normalized operator.
+        auto opIt = normalized.find(current.getOperator());
+        Assert(opIt != normalized.end());
+        children.push_back(opIt->second);
+      }
+      else if (current.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        // For parameterized nodes, include the operator.
+        children.push_back(current.getOperator());
+      }
+      // Add normalized children.
+      for (size_t i = 0; i < current.getNumChildren(); i++)
+      {
+        Node child = current[i];
+        auto childIt = normalized.find(child);
+        Assert(childIt != normalized.end());
+        children.push_back(childIt->second);
+      }
+      // Reconstruct the node with its normalized children.
+      Node ret = nodeManager->mkNode(current.getKind(), children);
+      normalized[current] = ret;
+      visited[current] = true;
+      stack.pop();
+    }
+    else
+    {
+      // Node already processed.
+      stack.pop();
+    }
+  }
+
+  return normalized[n];
+}
+
+
+
+
+
+
+
+
 PreprocessingPassResult Normalize::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
@@ -880,6 +1015,22 @@ PreprocessingPassResult Normalize::applyInternal(
                 return false;
             });
     }
+
+
+
+    //////////////////////////////////////////////////////////////////////
+    // Step 7: Reassign qid top to bottom
+    std::unordered_map<Node, Node> qidRenamed;
+    for (const auto& eqClass : eqClasses)
+    {
+      for (const auto& ni : eqClass)
+      {            
+        Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager);  
+        ni->node = renamed;          
+      }
+    }
+    
+
 
 
     uint32_t idx = 0;
