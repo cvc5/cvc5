@@ -353,13 +353,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
-      return "macro-sets-inter-eval";
-    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
-      return "macro-sets-minus-eval";
-    case ProofRewriteRule::SETS_UNION_NORM: return "sets-union-norm";
-    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
-      return "sets-is-empty-eval";
+    case ProofRewriteRule::SETS_EVAL_OP: return "sets-eval-op";
     case ProofRewriteRule::SETS_INSERT_ELIM:
       return "sets-insert-elim";
       //================================================= RARE rules
