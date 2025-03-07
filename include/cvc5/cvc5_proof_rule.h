@@ -1338,18 +1338,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(DT_SPLIT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Clash**
-   *
-   * .. math::
-   *
-   *   \inferruleSC{\mathit{is}_{C_i}(t), \mathit{is}_{C_j}(t)\mid -}{\bot}
-   *   {if $i\neq j$}
-   *
-   * \endverbatim
-   */
-  EVALUE(DT_CLASH),
 
   /**
    * \verbatim embed:rst:leading-asterisk
