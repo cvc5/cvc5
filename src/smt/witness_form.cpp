@@ -22,8 +22,21 @@
 namespace cvc5::internal {
 namespace smt {
 
+std::ostream& operator<<(std::ostream& out, WitnessReq wr)
+{
+  switch (wr)
+  {
+    case WitnessReq::WITNESS_AND_REWRITE: out << "WITNESS_AND_REWRITE"; break;
+    case WitnessReq::WITNESS: out << "WITNESS"; break;
+    case WitnessReq::REWRITE: out << "REWRITE"; break;
+    case WitnessReq::NONE: out << "NONE"; break;
+  }
+  return out;
+}
+
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
-    : d_rewriter(env.getRewriter()),
+    : EnvObj(env),
+      d_rewriter(env.getRewriter()),
       d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
@@ -34,6 +47,7 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
       d_wintroPf(env, nullptr, nullptr, "WfGenerator::LazyCDProof"),
       d_pskPf(env, nullptr, "WfGenerator::PurifySkolemProof")
 {
+  d_true = nodeManager()->mkConst(true);
 }
 
 std::shared_ptr<ProofNode> WitnessFormGenerator::getProofFor(Node eq)
@@ -117,15 +131,35 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
   return tw;
 }
 
-bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(
+    Node t, Node s, MethodId idr) const
 {
-  return d_rewriter->rewrite(t) != d_rewriter->rewrite(s);
+  Node tr = d_env.rewriteViaMethod(t, idr);
+  Node sr = d_env.rewriteViaMethod(s, idr);
+  if (tr == sr)
+  {
+    // rewriting via the method is enough
+    return WitnessReq::NONE;
+  }
+  if (rewrite(tr) == rewrite(sr))
+  {
+    // calling ordinary rewrite after (extended) rewriting is enough
+    return WitnessReq::REWRITE;
+  }
+  Node trw = SkolemManager::getOriginalForm(tr);
+  Node srw = SkolemManager::getOriginalForm(sr);
+  if (trw == srw)
+  {
+    // witness is enough
+    return WitnessReq::WITNESS;
+  }
+  return WitnessReq::WITNESS_AND_REWRITE;
 }
 
-bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormIntro(Node t,
+                                                          MethodId idr) const
 {
-  Node tr = d_rewriter->rewrite(t);
-  return !tr.isConst() || !tr.getConst<bool>();
+  return requiresWitnessFormTransform(t, d_true, idr);
 }
 
 const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const

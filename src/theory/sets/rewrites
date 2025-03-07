@@ -71,3 +71,7 @@
 (define-rule sets-is-empty-elim ((x ?Set))
   (set.is_empty x)
   (= x (@set.empty_of_type (@type_of x))))
+
+(define-rule sets-is-singleton-elim ((x ?Set))
+  (set.is_singleton x)
+  (= x (set.singleton (set.choose x))))

@@ -548,16 +548,29 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
   Term* current = reinterpret_cast<Term*>(pointer);
   std::wstring termString = current->getStringValue();
 
-  size_t length = termString.length();
-  jchar* unicode = new jchar[length];
-  const wchar_t* s = termString.c_str();
-  for (size_t i = 0; i < length; i++)
+  std::u16string utf16String;
+  for (wchar_t wc : termString)
   {
-    unicode[i] = s[i];
+    if (wc <= 0xFFFF)
+    {
+      // BMP character (directly store it)
+      utf16String.push_back(static_cast<char16_t>(wc));
+    }
+    else
+    {
+      // Convert to surrogate pair
+      wchar_t codepoint = wc - 0x10000;
+      char16_t highSurrogate =
+          static_cast<char16_t>((codepoint >> 10) + 0xD800);
+      char16_t lowSurrogate =
+          static_cast<char16_t>((codepoint & 0x3FF) + 0xDC00);
+      utf16String.push_back(highSurrogate);
+      utf16String.push_back(lowSurrogate);
+    }
   }
-  jstring ret = env->NewString(unicode, length);
-  delete[] unicode;
-  return ret;
+
+  return env->NewString(reinterpret_cast<const jchar*>(utf16String.c_str()),
+                        utf16String.length());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

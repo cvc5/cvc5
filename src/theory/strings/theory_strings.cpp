@@ -1105,6 +1105,9 @@ void TheoryStrings::computeCareGraph()
     }
     if( has_trigger_arg ){
       TypeNode ft = utils::getOwnerStringType(f1);
+      AlwaysAssert(ft.isStringLike())
+          << "Unexpected term in getOwnerStringType : " << f1 << ", type "
+          << ft;
       std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
       index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
@@ -1127,6 +1130,12 @@ void TheoryStrings::notifySharedTerm(TNode n)
   if (!options().strings.stringEagerReg)
   {
     d_termReg.registerSubterms(n);
+  }
+  if (n.getType().isRegExp())
+  {
+    std::stringstream ss;
+    ss << "Regular expression terms are not supported in theory combination";
+    throw LogicException(ss.str());
   }
 }
 

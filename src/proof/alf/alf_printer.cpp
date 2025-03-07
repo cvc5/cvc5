@@ -21,6 +21,7 @@
 #include <ostream>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "expr/sequence.h"
 #include "expr/subs.h"
@@ -186,6 +187,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
+    case ProofRule::ABSORB:
     case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::BV_POLY_NORM:
@@ -290,6 +292,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
     case ProofRewriteRule::BV_TO_NAT_ELIM:
@@ -307,6 +310,8 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DT_CONS_EQ:
     case ProofRewriteRule::DT_CONS_EQ_CLASH:
     case ProofRewriteRule::DT_CYCLE:
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER:
+    case ProofRewriteRule::DT_UPDATER_ELIM:
     case ProofRewriteRule::QUANT_MERGE_PRENEX:
     case ProofRewriteRule::QUANT_MINISCOPE_AND:
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
@@ -326,15 +331,13 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::RE_INTER_INCLUSION:
     case ProofRewriteRule::RE_UNION_INCLUSION:
     case ProofRewriteRule::BV_REPEAT_ELIM:
-    case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::BV_BITWISE_SLICING:
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
-      // only strings are supported, since it is non-trivial to show
-      // distinctness of sequence characters.
-      return n[0][0].getType().isString();
+    case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
@@ -602,8 +605,36 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
     // Similarly, HO_APP_ENCODE proves an equality between a term of kind
-    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in ALF.
+    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in Eunoia.
+    // BV_EAGER_ATOM also is indistinguishable as the eager atom predicate is
+    // ignored in the printer.
     return "refl";
+  }
+  else if (r == ProofRule::ACI_NORM)
+  {
+    Node eq = pfn->getArguments()[0];
+    Assert(eq.getKind() == Kind::EQUAL);
+    // may have to use the "expert" version.
+    Kind k;
+    if (eq[0].getKind() == eq[1].getKind()
+        || expr::getACINormalForm(eq[0]) == eq[1])
+    {
+      k = eq[0].getKind();
+    }
+    else
+    {
+      k = eq[1].getKind();
+    }
+    std::stringstream ss;
+    ss << "aci_norm";
+    switch (k)
+    {
+      case Kind::SEP_STAR:
+      case Kind::FINITE_FIELD_ADD:
+      case Kind::FINITE_FIELD_MULT: ss << "_expert"; break;
+      default: break;
+    }
+    return ss.str();
   }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {

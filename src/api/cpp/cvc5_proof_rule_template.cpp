@@ -11,7 +11,7 @@
  * ****************************************************************************
  *
  * Implementation of proof rule.
- */
+ // */
 
 #include <cvc5/cvc5_proof_rule.h>
 
@@ -31,6 +31,7 @@ const char* toString(ProofRule rule)
     case ProofRule::EVALUATE: return "EVALUATE";
     case ProofRule::DISTINCT_VALUES: return "DISTINCT_VALUES";
     case ProofRule::ACI_NORM: return "ACI_NORM";
+    case ProofRule::ABSORB: return "ABSORB";
     case ProofRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case ProofRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case ProofRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
@@ -231,6 +232,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
     case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
@@ -248,8 +250,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
-    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
-      return "macro-arrays-distinct-arrays";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:
@@ -266,6 +266,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::QUANT_MINISCOPE_OR: return "quant-miniscope-or";
     case ProofRewriteRule::QUANT_MINISCOPE_ITE: return "quant-miniscope-ite";
     case ProofRewriteRule::QUANT_DT_SPLIT: return "quant-dt-split";
+    case ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND:
+      return "macro-quant-dt-var-expand";
     case ProofRewriteRule::MACRO_QUANT_PARTITION_CONNECTED_FV:
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
@@ -287,6 +289,22 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DT_COLLAPSE_UPDATER: return "dt-collapse-updater";
     case ProofRewriteRule::DT_UPDATER_ELIM: return "dt-updater-elim";
     case ProofRewriteRule::DT_MATCH_ELIM: return "dt-match-elim";
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+      return "macro-bv-extract-concat";
+    case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY: return "macro-bv-or-simplify";
+    case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
+      return "macro-bv-and-simplify";
+    case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+      return "macro-bv-xor-simplify";
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      return "macro-bv-and-or-xor-concat-pullup";
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+      return "macro-bv-mult-slt-mult";
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+      return "macro-bv-concat-extract-merge";
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      return "macro-bv-concat-constant-merge";
+    case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
     case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
     case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
     case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
@@ -300,6 +318,9 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-str-eq-len-unify-prefix";
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return "macro-str-eq-len-unify";
+    case ProofRewriteRule::MACRO_STR_SPLIT_CTN: return "macro-str-split-ctn";
+    case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+      return "macro-str-strip-endpoints";
     case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
       return "str-overlap-split-ctn";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
@@ -308,6 +329,15 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "str-overlap-endpoints-indexof";
     case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
       return "str-overlap-endpoints-replace";
+    case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
+      return "macro-str-component-ctn";
+    case ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT:
+      return "macro-str-const-nctn-concat";
+    case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
+      return "macro-str-in-re-inclusion";
+    case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
+      return "macro-re-inter-union-const-elim";
+    case ProofRewriteRule::SEQ_EVAL_OP: return "seq-eval-op";
     case ProofRewriteRule::STR_INDEXOF_RE_EVAL: return "str-indexof-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_EVAL: return "str-replace-re-eval";
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
