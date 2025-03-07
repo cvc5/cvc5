@@ -301,17 +301,10 @@ void InstStrategyMbqi::process(Node q)
   if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
-    std::vector<std::pair<Node, InferenceId>> auxLemmas;
     if (d_msenum->constructInstantiation(
-            q, query, vars, smvs, mvToFreshVar, auxLemmas))
+            q, query, vars, smvs, mvToFreshVar))
     {
       Trace("mbqi-enum") << "Successfully added instantiation." << std::endl;
-      for (std::pair<Node, InferenceId>& al : auxLemmas)
-      {
-        Trace("mbqi-aux-lemma") << "Auxiliary lemma: " << al.second << " : "
-                                << al.first << std::endl;
-        d_qim.lemma(al.first, al.second);
-      }
       return;
     }
     Trace("mbqi-enum")
