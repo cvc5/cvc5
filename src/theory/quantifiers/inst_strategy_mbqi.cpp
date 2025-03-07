@@ -301,8 +301,7 @@ void InstStrategyMbqi::process(Node q)
   if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
-    if (d_msenum->constructInstantiation(
-            q, query, vars, smvs, mvToFreshVar))
+    if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))
     {
       Trace("mbqi-enum") << "Successfully added instantiation." << std::endl;
       return;
