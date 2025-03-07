@@ -26,6 +26,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/macro_rewrite_elaborator.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
@@ -130,6 +131,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolBvInvertSolve(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT or
@@ -414,6 +425,8 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /** The BV rewrite elaborator */
+  theory::bv::MacroRewriteElaborator d_bvRewElab;
 };
 
 }  // namespace rewriter

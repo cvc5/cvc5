@@ -1472,11 +1472,12 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
+  NodeManager* nm = tn.getNodeManager();
   if (tn.isInteger())
   {
-    return mkConstInt(r);
+    return nm->mkConstInt(r);
   }
-  return mkConstReal(r);
+  return nm->mkConstReal(r);
 }
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)

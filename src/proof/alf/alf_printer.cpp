@@ -162,8 +162,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CPROP:
-    case ProofRule::CONCAT_CONFLICT:
-    case ProofRule::CONCAT_CONFLICT_DEQ:
     case ProofRule::CONCAT_SPLIT:
     case ProofRule::CONCAT_LPROP:
     case ProofRule::STRING_LENGTH_POS:
@@ -187,6 +185,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::HO_APP_ENCODE:
     case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
+    case ProofRule::ABSORB:
     case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::BV_POLY_NORM:
@@ -318,7 +317,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
-    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::SETS_EVAL_OP:
     case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:

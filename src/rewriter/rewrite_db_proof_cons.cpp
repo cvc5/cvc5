@@ -390,6 +390,12 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     Trace("rpc-debug2") << "...proved via congruence + evaluation" << std::endl;
     return RewriteProofStatus::CONG_EVAL;
   }
+  // maybe by absorb?
+  if (proveWithRule(
+          RewriteProofStatus::ABSORB, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::ABSORB;
+  }
   // standard normalization
   if (proveWithRule(
           RewriteProofStatus::ACI_NORM, eqi, {}, {}, false, false, true))
@@ -657,6 +663,24 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     pic.d_vars.push_back(eq);
     // also treated as a "propagation" heuristic
     decRecLimit = false;
+  }
+  else if (id == RewriteProofStatus::ABSORB)
+  {
+    if (!target[1].isConst())
+    {
+      return false;
+    }
+    Node zero = expr::getZeroElement(
+        nodeManager(), target[0].getKind(), target[0].getType());
+    if (zero != target[1])
+    {
+      return false;
+    }
+    if (!expr::isAbsorb(target[0], target[1]))
+    {
+      return false;
+    }
+    pic.d_id = id;
   }
   else if (id == RewriteProofStatus::ACI_NORM)
   {
@@ -1242,6 +1266,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
+      }
+      else if (pcur.d_id == RewriteProofStatus::ABSORB)
+      {
+        cdp->addStep(cur, ProofRule::ABSORB, {}, {cur});
       }
       else if (pcur.d_id == RewriteProofStatus::ACI_NORM)
       {

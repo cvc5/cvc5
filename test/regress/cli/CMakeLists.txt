@@ -337,8 +337,10 @@ set(regress_0_tests
   regress0/bv/bvproof3.smt2
   regress0/bv/bvsimple.cvc.smt2
   regress0/bv/bvsmod.smt2
+  regress0/bv/bvult-large-triv.smt2
   regress0/bv/bvule-elim-conv.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
+  regress0/bv/concat-extract-merge-adj-ex.smt2
   regress0/bv/core/a78test0002.smtv1.smt2
   regress0/bv/core/a95test0002.smtv1.smt2
   regress0/bv/core/bitvec0.delta01.smtv1.smt2
@@ -418,6 +420,12 @@ set(regress_0_tests
   regress0/bv/core/slice-19.smtv1.smt2
   regress0/bv/core/slice-20.smtv1.smt2
   regress0/bv/dd_fuzz21.smt2
+  regress0/bv/dd_run_0000.smt2
+  regress0/bv/dd_run_0000-and-or-pullup.smt2
+  regress0/bv/dd_run_0000-and-or-pullup-2.smt2
+  regress0/bv/dd.773_sqlite3.smt2
+  regress0/bv/dd.kmdf_osrusbfx2_exe_testapp.c.smt2
+  regress0/bv/dd.try_small_difret.smt2
   regress0/bv/div_mod.cvc.smt2
   regress0/bv/div-zero-eval-tests.smt2
   regress0/bv/divtest_2_5.smt2
@@ -500,6 +508,7 @@ set(regress_0_tests
   regress0/bv/holes/ashr-by-const-2.smt2 # Could not find rule?
   regress0/bv/holes/ashr-zero.smt2
   regress0/bv/holes/bitwise-not-or.smt2
+  regress0/bv/holes/bvcomp-hole-qurt.smt2
   regress0/bv/holes/bv-ite-width-one.smt2
   regress0/bv/holes/commutative-add.smt2
   regress0/bv/holes/commutative-add.smt2 # Subsumed by ARITH_POLY_NORM
@@ -623,6 +632,7 @@ set(regress_0_tests
   regress0/bv/issue9519.smt2
   regress0/bv/issue10057.smt2
   regress0/bv/le-elim-conv.smt2
+  regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -637,6 +647,7 @@ set(regress_0_tests
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
+  regress0/bv/overflow/smulo1b.smt2
   regress0/bv/overflow/smulo2.smt2
   regress0/bv/overflow/usubo1.smt2
   regress0/bv/overflow/usubo2.smt2
@@ -751,6 +762,7 @@ set(regress_0_tests
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/proj-issue578-clash-pf.smt2
+  regress0/datatypes/proj-issue620-inst-const-no-rew.smt2
   regress0/datatypes/proj-issue752-ipc.smt2
   regress0/datatypes/proj-issue754-check-model.smt2
   regress0/datatypes/rec1.cvc.smt2
@@ -783,6 +795,7 @@ set(regress_0_tests
   regress0/datatypes/wrong-sel-simp.cvc.smt2
   regress0/datatypes/yoni-cyclic.smt2
   regress0/dd.bad-conv-rewrite.smt2
+  regress0/dd_arith_bv_conv-rpf.smt2
   regress0/decision/aufbv-fuzz01.smtv1.smt2
   regress0/decision/bitvec0.delta01.smtv1.smt2
   regress0/decision/bitvec0.smtv1.smt2
@@ -1517,8 +1530,11 @@ set(regress_0_tests
   regress0/quantifiers/cond-var-elim-binary.smt2
   regress0/quantifiers/dd_check-cc_bvxor.smt2
   regress0/quantifiers/dd_check-cc_bvxor-mpath.smt2
+  regress0/quantifiers/dd_check_cc_bvxor_x_s_4.smt2
   regress0/quantifiers/dd_check_eq_bvnot_32bit.smt2
+  regress0/quantifiers/dd_check_ic_sext_4_4.smt2
   regress0/quantifiers/dd_german169_semi_eval.smt2
+  regress0/quantifiers/dd_kmdf_osrubvfx2.smt2
   regress0/quantifiers/dd_p15_dio_lemma.smt2
   regress0/quantifiers/dd_psyco_186-ineq-elim.smt2
   regress0/quantifiers/dd_quick_sort-q-rew.smt2
@@ -1740,6 +1756,7 @@ set(regress_0_tests
   regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/proj-issue642-cycle-irr.smt2
   regress0/seq/proj-issue653.smt2
+  regress0/seq/proj-issue708-explain.smt2
   regress0/seq/proj-issue747-cmi-len-split.smt2
   regress0/seq/proj-issue753-ae.smt2
   regress0/seq/quant_len_trigger.smt2
@@ -1943,6 +1960,7 @@ set(regress_0_tests
   regress0/strings/issue11164-double-purify.smt2
   regress0/strings/issue11168.smt2
   regress0/strings/issue11197-str-ipc.smt2
+  regress0/strings/issue11703-re-uf.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -1984,6 +2002,7 @@ set(regress_0_tests
   regress0/strings/issue9784.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
+  regress0/strings/large-unify.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/leq.smt2
   regress0/strings/loop-wrong-sem.smt2
@@ -2804,6 +2823,7 @@ set(regress_1_tests
   regress1/proj-issue255-2-interpol.smt2
   regress1/proj-issue255-3-interpol.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
+  regress1/proj-issue410-subs-dt-interpol.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2

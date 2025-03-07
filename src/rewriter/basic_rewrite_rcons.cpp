@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
   return os;
 }
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env), d_bvRewElab(env)
 {
 
 }
@@ -191,6 +191,12 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   {
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM:
       if (ensureProofMacroBoolNnfNorm(cdp, eq))
+      {
+        handledMacro = true;
+      }
+      break;
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
+      if (ensureProofMacroBoolBvInvertSolve(cdp, eq))
       {
         handledMacro = true;
       }
@@ -329,6 +335,15 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+    case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      handledMacro = d_bvRewElab.ensureProofFor(cdp, id, eq);
+      break;
     default: break;
   }
   if (handledMacro)
@@ -367,6 +382,22 @@ bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,
   std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
   Trace("brc-macro") << "...proof is " << *pfn.get() << std::endl;
   cdp->addProof(pfn);
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroBoolBvInvertSolve(CDProof* cdp,
+                                                          const Node& eq)
+{
+  Trace("brc-macro") << "Expand Bool BV invert solve " << eq[0]
+                     << " == " << eq[1] << std::endl;
+  Assert(eq[0].getKind() == Kind::EQUAL);
+  Assert(eq[0][0].getKind() == Kind::EQUAL
+         && eq[0][1].getKind() == Kind::EQUAL);
+  std::unordered_set<Kind> disallowedKinds;
+  theory::booleans::TheoryBoolRewriter::getBvInvertSolve(
+      nodeManager(), eq[0][0], eq[0][1][0], disallowedKinds, cdp);
+  // finish proof
+  cdp->addStep(eq, ProofRule::TRUE_INTRO, {eq[0]}, {});
   return true;
 }
 
