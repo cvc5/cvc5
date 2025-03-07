@@ -1961,6 +1961,7 @@ set(regress_0_tests
   regress0/strings/issue11168.smt2
   regress0/strings/issue11197-str-ipc.smt2
   regress0/strings/issue11703-re-uf.smt2
+  regress0/strings/issue11710-numeric-max.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
