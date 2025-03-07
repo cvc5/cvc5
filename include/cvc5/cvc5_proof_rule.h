@@ -1514,42 +1514,6 @@ enum ENUM(ProofRule)
   EVALUE(CONCAT_UNIFY),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict**
-   *
-   * .. math::
-   *   \inferrule{(c_1 \cdot t) = (c_2 \cdot s)\mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t \cdot c_1) = (s \cdot c_2)\mid \top}{\bot}
-   *
-   * where :math:`c_1,\,c_2` are distinct (non-empty) string constants of the same length.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict for disequal characters**
-   *
-   * .. math::
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t\cdot t_1) = (s \cdot s_1), t_1 \neq s_1 \mid \top}{\bot}
-   *
-   * where :math:`t_1` and :math:`s_1` are applications of :math:`seq.unit`.
-   *
-   * This rule is used exclusively for sequences.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT_DEQ),
-  /**
-   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
    *
    * .. math::
