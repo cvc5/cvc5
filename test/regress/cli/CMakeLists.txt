@@ -762,6 +762,7 @@ set(regress_0_tests
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/proj-issue474-app-cons-value.smt2
   regress0/datatypes/proj-issue578-clash-pf.smt2
+  regress0/datatypes/proj-issue620-inst-const-no-rew.smt2
   regress0/datatypes/proj-issue752-ipc.smt2
   regress0/datatypes/proj-issue754-check-model.smt2
   regress0/datatypes/rec1.cvc.smt2
@@ -1755,6 +1756,7 @@ set(regress_0_tests
   regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/proj-issue642-cycle-irr.smt2
   regress0/seq/proj-issue653.smt2
+  regress0/seq/proj-issue708-explain.smt2
   regress0/seq/proj-issue747-cmi-len-split.smt2
   regress0/seq/proj-issue753-ae.smt2
   regress0/seq/quant_len_trigger.smt2
@@ -2821,6 +2823,7 @@ set(regress_1_tests
   regress1/proj-issue255-2-interpol.smt2
   regress1/proj-issue255-3-interpol.smt2
   regress1/proj-issue406-diff-unsat-core.smt2
+  regress1/proj-issue410-subs-dt-interpol.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proj-issue539-rew-bv2nat.smt2
   regress1/proj-issue542.smt2

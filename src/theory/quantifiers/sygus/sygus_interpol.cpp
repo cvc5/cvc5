@@ -68,6 +68,7 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
 void SygusInterpol::createVariables(bool needsShared)
 {
   NodeManager* nm = nodeManager();
+  std::vector<Node> newSyms;
   for (const Node& s : d_syms)
   {
     TypeNode tn = s.getType();
@@ -82,6 +83,7 @@ void SygusInterpol::createVariables(bool needsShared)
     std::stringstream ss;
     ss << s;
     Node var = NodeManager::mkBoundVar(tn);
+    newSyms.push_back(s);
     d_vars.push_back(var);
     Node vlv = NodeManager::mkBoundVar(ss.str(), tn);
     // set that this variable encodes the term s
@@ -95,6 +97,7 @@ void SygusInterpol::createVariables(bool needsShared)
       d_varTypesShared.push_back(tn);
     }
   }
+  d_syms = newSyms;
   // make the sygus variable list
   if (!d_vlvsShared.empty())
   {
