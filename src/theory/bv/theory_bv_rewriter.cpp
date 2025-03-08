@@ -399,9 +399,8 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite)
 RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
 {
   TRY_REWRITE(ConcatFlatten)
+  TRY_REWRITE(ConcatExtractMerge)
   Node resultNode = LinearRewriteStrategy<
-      // Merge the adjacent extracts on non-constants
-      RewriteRule<ConcatExtractMerge>,
       // Remove extracts that have no effect
       ApplyRuleToChildren<Kind::BITVECTOR_CONCAT, ExtractWhole>,
       // Merge the adjacent extracts on constants
