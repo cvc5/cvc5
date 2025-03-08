@@ -52,7 +52,11 @@ class ExecutionContext
    * has been parsed.
    * Returns true if the commands have been executed without being interrupted.
    */
-  bool solveContinuous(parser::InputParser* parser, bool stopAtSetLogic);
+  bool solveContinuous(parser::InputParser* parser,
+                       bool stopAtSetLogic,
+                       bool stopAtCheckSat = false);
+
+  bool runCheckSatCommand(CommandExecutor* pExecutor);
 
   /**
    * Execute the given commands.
