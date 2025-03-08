@@ -48,7 +48,7 @@ TermRegistry::TermRegistry(Env& env,
       d_hasStrCode(false),
       d_hasSeqUpdate(false),
       d_skCache(nodeManager(), env.getRewriter()),
-      d_aent(env.getRewriter()),
+      d_aent(nodeManager(), env.getRewriter()),
       d_functionsTerms(context()),
       d_inputVars(userContext()),
       d_preregisteredTerms(context()),
@@ -79,7 +79,7 @@ void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node lemma;
   Kind tk = t.getKind();
   if (tk == Kind::STRING_TO_CODE)
@@ -172,7 +172,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 
 Node TermRegistry::lengthPositive(Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node emp = Word::mkEmptyWord(t.getType());
   Node tlen = nm->mkNode(Kind::STRING_LENGTH, t);

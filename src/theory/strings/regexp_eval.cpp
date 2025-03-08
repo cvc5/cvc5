@@ -166,7 +166,7 @@ class NfaState
           // the string, each connected via single characters
           const std::vector<unsigned>& vec = str.getVec();
           NfaState* curr = s;
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = r.getNodeManager();
           for (size_t i = 0, nvec = vec.size(); i < nvec; i++)
           {
             std::vector<unsigned> charVec{vec[i]};

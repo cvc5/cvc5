@@ -21,7 +21,7 @@ namespace strings {
 
 RegExpEnumerator::RegExpEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<RegExpEnumerator>(type),
-      d_senum(NodeManager::currentNM()->stringType(), tep)
+      d_senum(type.getNodeManager()->stringType(), tep)
 {
 }
 
@@ -33,7 +33,7 @@ RegExpEnumerator::RegExpEnumerator(const RegExpEnumerator& enumerator)
 
 Node RegExpEnumerator::operator*()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getType().getNodeManager();
   return nm->mkNode(Kind::STRING_TO_REGEXP, *d_senum);
 }
 

@@ -54,7 +54,7 @@ Node StringsPreprocess::reduce(Node t,
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   Node negOne = nm->mkConstInt(Rational(-1));
@@ -1125,7 +1125,7 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   // It is possible to have an extension where (STRING_NTH x i) is generated
   // here for a new STRING_NTH kind, if there was a native way of handling nth
   // for strings, but this is not explored here.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   if (x.getType().isString())
   {
     Node one = nm->mkConstInt(Rational(1));

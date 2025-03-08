@@ -45,7 +45,7 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     Options opts;
     d_rewriter = d_slvEngine->getEnv().getRewriter();
     // allow recursive approximations
-    d_arithEntail.reset(new ArithEntail(d_rewriter, true));
+    d_arithEntail.reset(new ArithEntail(d_nodeManager, d_rewriter, true));
     d_strEntail.reset(new StringsEntail(d_rewriter, *d_arithEntail.get()));
     d_seqRewriter.reset(new SequencesRewriter(
         d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr));
