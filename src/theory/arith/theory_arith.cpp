@@ -398,6 +398,10 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
+    else if (d_valuation.needCheck())
+    {
+      return false;
+    }
     Assert(false) << "A model equality could not be asserted: " << p.first
                   << " == " << p.second << std::endl;
     // If we failed to assert an equality, it is likely due to theory
