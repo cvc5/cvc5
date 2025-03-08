@@ -118,9 +118,3 @@
 (declare-const - (-> (! Type :var T :implicit)
                      (! T :requires (($is_arith_type T) true))
                      T))
-
-; skolems for virtual term substitution
-(declare-const @arith_vts_delta Real)
-(declare-const @arith_vts_delta_free Real)
-(declare-const @arith_vts_infinity (-> (! Type :var T) T))
-(declare-const @arith_vts_infinity_free (-> (! Type :var T) T))

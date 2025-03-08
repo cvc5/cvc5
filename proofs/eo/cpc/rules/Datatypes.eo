@@ -243,7 +243,7 @@
 
 ;;;;; ProofRewriteRule::DT_CYCLE
 
-; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
+; note: This is a forward declaration of $dt_find_cycle_list below.
 ; note: >
 ;   Since forward declarations must have a ground type signature, we wrap
 ;   the term to find (the s argument of dt-cycle) in a list.
