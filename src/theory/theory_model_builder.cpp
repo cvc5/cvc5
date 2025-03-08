@@ -588,7 +588,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         }
 
         // (3) Finally, process assignable information
-        evaluable = true;
+        // We are evaluable typically if we are not assignable. However the
+        // one exception is that higher-order variables when in HOL should be
+        // considered neither assignable nor evaluable, which we check for here.
+        evaluable = !n.isVar();
         // expressions that are not assignable should not be given assignment
         // exclusion sets
         Assert(!tm->getAssignmentExclusionSet(n, esetGroup, eset));
@@ -939,6 +942,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         ++i;
         if (evaluableEqc.find(*i2) != evaluableEqc.end())
         {
+          Trace("model-builder")
+              << "  ...do not assign to evaluatable eqc " << *i2 << std::endl;
           // we never assign to evaluable equivalence classes
           continue;
         }
