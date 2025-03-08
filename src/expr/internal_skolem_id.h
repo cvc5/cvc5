@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Skolem manager utility.
+ * Internal skolem identifiers
  */
 
 #include "cvc5_private.h"
@@ -19,8 +19,6 @@
 #define CVC5__EXPR__INTERNAL_SKOLEM_ID_H
 
 #include <string>
-
-#include "expr/internal_skolem_id.h"
 
 namespace cvc5::internal {
 

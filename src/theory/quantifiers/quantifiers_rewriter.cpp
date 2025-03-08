@@ -48,25 +48,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/**
- * Attributes used for constructing bound variables in a canonical way. These
- * are attributes that map to bound variable, introduced for the following
- * purposes:
- * - QRewPrenexAttribute: cached on (v, body) where we are prenexing bound
- * variable v in a nested quantified formula within the given body.
- * - QRewMiniscopeAttribute: cached on (v, q, i) where q is being miniscoped
- * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
- * that q binds.
- */
-struct QRewPrenexAttributeId
-{
-};
-using QRewPrenexAttribute = expr::Attribute<QRewPrenexAttributeId, Node>;
-struct QRewMiniscopeAttributeId
-{
-};
-using QRewMiniscopeAttribute = expr::Attribute<QRewMiniscopeAttributeId, Node>;
-
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
   switch (s)
@@ -1803,7 +1784,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
           {
             Node ii = nm->mkConstInt(index);
             Node cacheVal = nm->mkNode(Kind::SEXPR, {q, body, v, ii});
-            vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
+            vv = bvm->mkBoundVar(BoundVarId::QUANT_REW_PRENEX, cacheVal, vt);
             index++;
           } while (std::find(argVec.begin(), argVec.end(), vv) != argVec.end());
         }
@@ -2083,7 +2064,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
           {
             TypeNode vt = v.getType();
             Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
-            Node vv = bvm->mkBoundVar<QRewMiniscopeAttribute>(cacheVal, vt);
+            Node vv =
+                bvm->mkBoundVar(BoundVarId::QUANT_REW_MINISCOPE, cacheVal, vt);
             argsc.push_back(vv);
           }
         }
