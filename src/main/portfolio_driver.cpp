@@ -495,7 +495,12 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   if (ctx.solveContinuous(d_parser, false, true))
   {
     PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
-    return pool.run(strategy);
+    bool solved = pool.run(strategy);
+    if (!solved)
+    {
+      std::cout << "unknown" << std::endl;
+    }
+    return solved;
   }
   return false;
 #else
