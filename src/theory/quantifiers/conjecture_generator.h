@@ -555,7 +555,20 @@ public:
    * is irrelevant.
    */
   void debugPrintIrrelevantEqcs(const std::vector<TNode>& eqcs);
-
+  /** compute relevant equivalence classes
+   *
+   * This function requires that the contents of the input vector eqcs are
+   * exactly the representatives of each equivalence class in the current model.
+   *
+   * This function guarantees that
+   *
+   * - the contents of d_tge.d_relevant_eqc[0] are exactly the relevant
+   * equivalence class representatives in eqcs,
+   * - the contents of d_tge.d_relevant_eqc[1] are exactly the irrelevant
+   * equivalence class representatives in eqcs, and
+   * - eqcs is unchanged.
+   */
+  void computeRelevantEqcs(const std::vector<TNode>& eqcs);
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
