@@ -32,9 +32,7 @@ namespace theory {
 namespace bv {
 namespace pb {
 
-class PbLiteral;
-struct PbLiteralHash;
-typedef std::unordered_map<PbLiteral, Node, PbLiteralHash> PbLiteralToNodeMap;
+class PbNodeManager;
 
 /**
  * Represents the possible values of a Pseudo-Boolean variable.
@@ -76,18 +74,20 @@ class PbVariable
 
 /**
  * A pseudo-Boolean literal, consisting of a variable and its polarity.
+ * Polarity is represented by a boolean. If true, the literal represents the
+ * variable. If false, the literal represents the negated variable.
  */
 class PbLiteral
 {
  public:
-  explicit PbLiteral(const PbVariable& var, const bool p = true);
-  explicit PbLiteral(const Integer& id, const bool p = true);
-  explicit PbLiteral(const int& id, const bool p = true);
+  explicit PbLiteral(const PbVariable& var, const bool polarity = true);
+  explicit PbLiteral(const Integer& id, const bool polarity = true);
+  explicit PbLiteral(const int& id, const bool polarity = true);
 
   friend std::ostream& operator<<(std::ostream& os, const PbLiteral& var);
   bool operator==(const PbLiteral& other) const;
 
-  Node toNode(PbLiteralToNodeMap& map, NodeManager* nm) const;
+  Node toNode(PbNodeManager& pbNodeManager) const;
 
  private:
   PbVariable d_variable;
@@ -103,49 +103,49 @@ struct PbLiteralHash
   }
 };
 
-/**
- * Represents a pseudo-Boolean constraint, which is a linear inequality or
- * equality involving pseudo-Boolean literals and coefficients.
- * The constraint is stored in a Node to leverage hash consing.
- */
-class PbConstraint
-{
- public:
-  explicit PbConstraint(const std::vector<PbLiteral>& literals,
-                        const std::vector<Integer>& coefficients,
-                        Kind relationalOperator,
-                        const Integer& constant,
-                        PbLiteralToNodeMap& map,
-                        NodeManager* nm);
-  explicit PbConstraint(const PbLiteral& literal,
-                        const Integer& coefficient,
-                        Kind relationalOperator,
-                        const Integer& constant,
-                        PbLiteralToNodeMap& map,
-                        NodeManager* nm);
-  Node toNode() const;
+// /**
+//  * Represents a pseudo-Boolean constraint, which is a linear inequality or
+//  * equality involving pseudo-Boolean literals and coefficients.
+//  * The constraint is stored in a Node to leverage hash consing.
+//  */
+// class PbConstraint
+// {
+//  public:
+//   explicit PbConstraint(const std::vector<PbLiteral>& literals,
+//                         const std::vector<Integer>& coefficients,
+//                         Kind relationalOperator,
+//                         const Integer& constant,
+//                         PbLiteralToNodeMap& map,
+//                         NodeManager* nm);
+//   explicit PbConstraint(const PbLiteral& literal,
+//                         const Integer& coefficient,
+//                         Kind relationalOperator,
+//                         const Integer& constant,
+//                         PbLiteralToNodeMap& map,
+//                         NodeManager* nm);
+//   Node toNode() const;
 
- private:
-  Node d_constraint;
-  std::vector<Node> generateProducts(const std::vector<PbLiteral>& literals,
-                                     const std::vector<Integer>& coefficients,
-                                     PbLiteralToNodeMap& map,
-                                     NodeManager* nm);
-};
+//  private:
+//   Node d_constraint;
+//   std::vector<Node> generateProducts(const std::vector<PbLiteral>& literals,
+//                                      const std::vector<Integer>& coefficients,
+//                                      PbLiteralToNodeMap& map,
+//                                      NodeManager* nm);
+// };
 
-/**
- * Represents a set of pseudo-Boolean constraints.
- * The set of constraints is stored in a Node to leverage hash consing.
- */
-class PbConstraintSet
-{
- public:
-  explicit PbConstraintSet(const std::set<PbConstraint> constraints,
-                           NodeManager* nm);
+// /**
+//  * Represents a set of pseudo-Boolean constraints.
+//  * The set of constraints is stored in a Node to leverage hash consing.
+//  */
+// class PbConstraintSet
+// {
+//  public:
+//   explicit PbConstraintSet(const std::set<PbConstraint> constraints,
+//                            NodeManager* nm);
 
- private:
-  Node d_constraintSet;
-};
+//  private:
+//   Node d_constraintSet;
+// };
 
 }  // namespace pb
 }  // namespace bv

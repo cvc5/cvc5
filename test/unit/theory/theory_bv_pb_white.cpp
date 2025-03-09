@@ -17,6 +17,7 @@
 
 #include "test_smt.h"
 #include "theory/bv/pb/pb_types.h"
+#include "theory/bv/pb/pb_node_manager.h"
 
 namespace cvc5::internal {
 
@@ -29,49 +30,47 @@ class TestTheoryBvPbWhite : public TestSmt
 TEST_F(TestTheoryBvPbWhite, PbVariableEqualsString)
 {
   theory::bv::pb::PbVariable variable(42);
-  std::string variableString = (std::ostringstream() << variable).str();
-  EXPECT_EQ(variableString, "x42");
+  std::string variable_string = (std::ostringstream() << variable).str();
+  EXPECT_EQ(variable_string, "x42");
 }
 
 TEST_F(TestTheoryBvPbWhite, PbLiteralEqualsString)
 {
   theory::bv::pb::PbLiteral literal(42);
-  std::string literalString = (std::ostringstream() << literal).str();
-  EXPECT_EQ(literalString, "x42");
+  std::string literal_string = (std::ostringstream() << literal).str();
+  EXPECT_EQ(literal_string, "x42");
 }
 
 TEST_F(TestTheoryBvPbWhite, PbLiteralNegativeEqualsString)
 {
   theory::bv::pb::PbLiteral literal(42, false);
-  std::string literalString = (std::ostringstream() << literal).str();
-  EXPECT_EQ(literalString, "~x42");
+  std::string literal_string = (std::ostringstream() << literal).str();
+  EXPECT_EQ(literal_string, "~x42");
 }
 
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeEqualsString)
 {
   theory::bv::pb::PbLiteral literal(42);
-  theory::bv::pb::PbLiteralToNodeMap map;
-  Node literalNode = literal.toNode(map, d_nodeManager);
-  EXPECT_EQ(literalNode.toString(), "x42");
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  Node literal_node = literal.toNode(pb_nm);
+  EXPECT_EQ(literal_node.toString(), "x42");
 }
 
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeInsertion)
 {
   theory::bv::pb::PbLiteral literal(42);
-  theory::bv::pb::PbLiteralToNodeMap map;
-  Node literalNode = literal.toNode(map, d_nodeManager);
-  EXPECT_TRUE(map.count(literal));
-  EXPECT_EQ(map[literal], literalNode);
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  EXPECT_EQ(pb_nm.countLiterals(), 0);
+  literal.toNode(pb_nm);
+  EXPECT_EQ(pb_nm.countLiterals(), 1);
 }
 
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeRecovery)
 {
   theory::bv::pb::PbLiteral literal(42);
-  Node literalNode = d_nodeManager->mkBoundVar(
-      (std::ostringstream() << literal).str(), d_nodeManager->booleanType());
-  theory::bv::pb::PbLiteralToNodeMap map;
-  map[literal] = literalNode;
-  EXPECT_EQ(literal.toNode(map, d_nodeManager), literalNode);
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  Node literal_node = pb_nm.literalToNode(literal);
+  EXPECT_EQ(literal.toNode(pb_nm), literal_node);
 }
 
 }  // namespace test

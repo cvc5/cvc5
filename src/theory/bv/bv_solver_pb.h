@@ -22,13 +22,12 @@
 #include "theory/bv/bv_solver.h"
 
 namespace cvc5::internal {
-
 namespace theory {
 namespace bv {
 namespace pb {
 
-class NotifyResetAssertions;
-class BBRegistrar;
+class PseudoBooleanSolver;
+class PseudoBooleanBlaster;
 
 /**
  * PB-blasting decision procedure for the theory of bit-vectors.
@@ -50,66 +49,52 @@ class BVSolverPseudoBoolean : public BVSolver
                         TheoryInferenceManager& inferMgr);
   ~BVSolverPseudoBoolean() = default;
 
-  /** TODO(alanctprado): document */
   bool needsEqualityEngine(EeSetupInfo& esi) override;
 
-  /** TODO(alanctprado): document */
   void preRegisterTerm(TNode n) override;
 
-  /** TODO(alanctprado): document */
   void postCheck(Theory::Effort level) override;
 
-  /** TODO(alanctprado): document */
   bool preNotifyFact(TNode atom,
                      bool pol,
                      TNode fact,
                      bool isPrereg,
                      bool isInternal) override;
 
-  /** TODO(alanctprado): document */
   TrustNode explain(TNode n) override;
 
-  /** TODO(alanctprado): document */
   std::string identify() const override;
 
-  /** TODO(alanctprado): document */
   void computeRelevantTerms(std::set<Node>& termSet) override;
 
-  /** TODO(alanctprado): document */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  /** TODO(alanctprado): document */
   Node getValue(TNode node, bool initialize) override;
 
  private:
   /** Initialize pseudo-boolean solver. */
   void initPbSolver();
 
-  /** PB solver back end (configured via options::bvPbSolver). */
-  // std::unique_ptr<PseudoBooleanSolver<Node>> d_pbSolver;
+  /** PB solver back end. */
+  std::unique_ptr<PseudoBooleanSolver, void (*)(PseudoBooleanSolver*)>
+      d_pbSolver;
   /** Bit-blaster used to bit-blast atoms/terms. */
-  // std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
+  std::unique_ptr<PseudoBooleanBlaster, void (*)(PseudoBooleanBlaster*)>
+      d_pbBlaster;
 
   /**
-   * TODO(alanctprado): document
    * PB-blast queue for facts sent to this solver.
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_facts;
 
   /**
-   * TODO(alanctprado): document
    * PB-blast list for facts sent to this solver.
    * Used as input for the PB Solver.
    * Gets populated on postCheck().
    */
   context::CDList<Node> d_assumptions;
-
-  /** Debugging */
-  std::string getTermVariables(TNode term);
-  void debugSatisfiedAtom(TNode atom);
-  void debugSatisfiedTerm(TNode term);
 };
 
 }  // namespace pb
