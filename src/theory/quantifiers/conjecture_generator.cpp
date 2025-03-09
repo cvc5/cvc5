@@ -402,71 +402,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
 
 
-      Trace("sg-proc") << "Build theorem index..." << std::endl;
-      d_ue_canon.clear();
-      d_thm_index.clear();
-      std::vector< Node > provenConj;
-      quantifiers::FirstOrderModel* m = d_treg.getModel();
-      for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
-        Node q = m->getAssertedQuantifier( i );
-        Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
-        Node conjEq;
-        if (q[1].getKind() == Kind::EQUAL)
-        {
-          bool isSubsume = false;
-          bool inEe = false;
-          for( unsigned r=0; r<2; r++ ){
-            TNode nl = q[1][r==0 ? 0 : 1];
-            TNode nr = q[1][r==0 ? 1 : 0];
-            Node eq;
-            if( r==1 || std::find( d_conjectures.begin(), d_conjectures.end(), q )==d_conjectures.end() ){
-               eq = nl.eqNode( nr );
-              //check if it contains only relevant functions
-              if( d_tge.isRelevantTerm( eq ) ){
-                //make it canonical
-                Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_termCanon.getCanonicalTerm(eq);
-              }else{
-                eq = Node::null();
-              }
-            }
-            if( !eq.isNull() ){
-              if( r==0 ){
-                inEe = d_ee_conjectures.find( q[1] )!=d_ee_conjectures.end();
-                if( !inEe ){
-                  //add to universal equality engine
-                  Node nlu = getUniversalRepresentative(eq[0], true);
-                  Node nru = getUniversalRepresentative(eq[1], true);
-                  if (areUniversalEqual(nlu, nru))
-                  {
-                    isSubsume = true;
-                    //set inactive (will be ignored by other modules)
-                    m->setQuantifierActive(q, false);
-                  }
-                  else
-                  {
-                    Node exp;
-                    d_ee_conjectures[q[1]] = true;
-                    d_uequalityEngine.assertEquality(
-                        nlu.eqNode(nru), true, exp);
-                  }
-                }
-                Trace("sg-conjecture") << "*** CONJECTURE : currently proven" << (isSubsume ? " and subsumed" : "");
-                Trace("sg-conjecture") << " : " << q[1] << std::endl;
-                provenConj.push_back( q );
-              }
-              if( !isSubsume ){
-                Trace("thm-db-debug") << "Adding theorem to database " << eq[0] << " == " << eq[1] << std::endl;
-                d_thm_index.addTheorem( eq[0], eq[1] );
-              }else{
-                break;
-              }
-            }else{
-              break;
-            }
-          }
-        }
-      }
+      std::vector<Node> provenConj = buildTheoremIndex();
       //examine status of other conjectures
       for( unsigned i=0; i<d_conjectures.size(); i++ ){
         Node q = d_conjectures[i];
@@ -934,6 +870,93 @@ void ConjectureGenerator::computeRelevantEqcs(const std::vector<TNode>& eqcs)
   }
   Trace("sg-gen-tg-debug") << std::endl;
   Trace("sg-proc") << "...done compute relevant eqc" << std::endl;
+}
+
+std::vector<Node> ConjectureGenerator::buildTheoremIndex()
+{
+  Trace("sg-proc") << "Build theorem index..." << std::endl;
+  d_ue_canon.clear();
+  d_thm_index.clear();
+  std::vector<Node> provenConj;
+  quantifiers::FirstOrderModel* m = d_treg.getModel();
+  for (unsigned i = 0; i < m->getNumAssertedQuantifiers(); i++)
+  {
+    Node q = m->getAssertedQuantifier(i);
+    Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
+    Node conjEq;
+    if (q[1].getKind() == Kind::EQUAL)
+    {
+      bool isSubsume = false;
+      bool inEe = false;
+      for (unsigned r = 0; r < 2; r++)
+      {
+        TNode nl = q[1][r == 0 ? 0 : 1];
+        TNode nr = q[1][r == 0 ? 1 : 0];
+        Node eq;
+        if (r == 1
+            || std::find(d_conjectures.begin(), d_conjectures.end(), q)
+                   == d_conjectures.end())
+        {
+          eq = nl.eqNode(nr);
+          // check if it contains only relevant functions
+          if (d_tge.isRelevantTerm(eq))
+          {
+            // make it canonical
+            Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
+            eq = d_termCanon.getCanonicalTerm(eq);
+          }
+          else
+          {
+            eq = Node::null();
+          }
+        }
+        if (!eq.isNull())
+        {
+          if (r == 0)
+          {
+            inEe = d_ee_conjectures.find(q[1]) != d_ee_conjectures.end();
+            if (!inEe)
+            {
+              // add to universal equality engine
+              Node nlu = getUniversalRepresentative(eq[0], true);
+              Node nru = getUniversalRepresentative(eq[1], true);
+              if (areUniversalEqual(nlu, nru))
+              {
+                isSubsume = true;
+                // set inactive (will be ignored by other modules)
+                m->setQuantifierActive(q, false);
+              }
+              else
+              {
+                Node exp;
+                d_ee_conjectures[q[1]] = true;
+                d_uequalityEngine.assertEquality(nlu.eqNode(nru), true, exp);
+              }
+            }
+            Trace("sg-conjecture") << "*** CONJECTURE : currently proven"
+                                   << (isSubsume ? " and subsumed" : "");
+            Trace("sg-conjecture") << " : " << q[1] << std::endl;
+            provenConj.push_back(q);
+          }
+          if (!isSubsume)
+          {
+            Trace("thm-db-debug") << "Adding theorem to database " << eq[0]
+                                  << " == " << eq[1] << std::endl;
+            d_thm_index.addTheorem(eq[0], eq[1]);
+          }
+          else
+          {
+            break;
+          }
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+  }
+  return provenConj;
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
