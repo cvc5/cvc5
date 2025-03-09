@@ -403,49 +403,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
 
       std::vector<Node> provenConj = buildTheoremIndex();
-      //examine status of other conjectures
-      for( unsigned i=0; i<d_conjectures.size(); i++ ){
-        Node q = d_conjectures[i];
-        if( std::find( provenConj.begin(), provenConj.end(), q )==provenConj.end() ){
-          //check each skolem variable
-          bool disproven = true;
-          std::vector<Node> skolems;
-          d_qim.getSkolemize()->getSkolemConstantsInduction(q, skolems);
-          Trace("sg-conjecture") << "    CONJECTURE : ";
-          std::vector< Node > ce;
-          for (unsigned j = 0; j < skolems.size(); j++)
-          {
-            TNode rk = getRepresentative(skolems[j]);
-            std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( rk );
-            //check if it is a ground term
-            if( git==d_ground_eqc_map.end() ){
-              Trace("sg-conjecture") << "ACTIVE : " << q;
-              if( TraceIsOn("sg-gen-eqc") ){
-                Trace("sg-conjecture") << " { ";
-                for (unsigned k = 0; k < skolems.size(); k++)
-                {
-                  Trace("sg-conjecture") << skolems[k] << (j == k ? "*" : "")
-                                         << " ";
-                }
-                Trace("sg-conjecture") << "}";
-              }
-              Trace("sg-conjecture") << std::endl;
-              disproven = false;
-              break;
-            }else{
-              ce.push_back( git->second );
-            }
-          }
-          if( disproven ){
-            Trace("sg-conjecture") << "disproven : " << q << " : ";
-            for (unsigned j = 0, ceSize = ce.size(); j < ceSize; j++)
-            {
-              Trace("sg-conjecture") << q[0][j] << " -> " << ce[j] << " ";
-            }
-            Trace("sg-conjecture") << std::endl;
-          }
-        }
-      }
+      debugPrintUnprovenConjectures(provenConj);
       Trace("thm-db") << "Theorem database is : " << std::endl;
       d_thm_index.debugPrint( "thm-db" );
       Trace("thm-db") << std::endl;
@@ -957,6 +915,64 @@ std::vector<Node> ConjectureGenerator::buildTheoremIndex()
     }
   }
   return provenConj;
+}
+
+void ConjectureGenerator::debugPrintUnprovenConjectures(
+    const std::vector<Node>& provenConj)
+{
+  if (TraceIsOn("sg-conjecture"))
+  {
+    // examine status of other conjectures
+    for (unsigned i = 0; i < d_conjectures.size(); i++)
+    {
+      Node q = d_conjectures[i];
+      if (std::find(provenConj.begin(), provenConj.end(), q) == provenConj.end())
+      {
+        // check each skolem variable
+        bool disproven = true;
+        std::vector<Node> skolems;
+        d_qim.getSkolemize()->getSkolemConstantsInduction(q, skolems);
+        Trace("sg-conjecture") << "    CONJECTURE : ";
+        std::vector<Node> ce;
+        for (unsigned j = 0; j < skolems.size(); j++)
+        {
+          TNode rk = getRepresentative(skolems[j]);
+          std::map<TNode, Node>::iterator git = d_ground_eqc_map.find(rk);
+          // check if it is a ground term
+          if (git == d_ground_eqc_map.end())
+          {
+            Trace("sg-conjecture") << "ACTIVE : " << q;
+            if (TraceIsOn("sg-gen-eqc"))
+            {
+              Trace("sg-conjecture") << " { ";
+              for (unsigned k = 0; k < skolems.size(); k++)
+              {
+                Trace("sg-conjecture")
+                    << skolems[k] << (j == k ? "*" : "") << " ";
+              }
+              Trace("sg-conjecture") << "}";
+            }
+            Trace("sg-conjecture") << std::endl;
+            disproven = false;
+            break;
+          }
+          else
+          {
+            ce.push_back(git->second);
+          }
+        }
+        if (disproven)
+        {
+          Trace("sg-conjecture") << "disproven : " << q << " : ";
+          for (unsigned j = 0, ceSize = ce.size(); j < ceSize; j++)
+          {
+            Trace("sg-conjecture") << q[0][j] << " -> " << ce[j] << " ";
+          }
+          Trace("sg-conjecture") << std::endl;
+        }
+      }
+    }
+  }
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }
