@@ -1961,6 +1961,7 @@ set(regress_0_tests
   regress0/strings/issue11168.smt2
   regress0/strings/issue11197-str-ipc.smt2
   regress0/strings/issue11703-re-uf.smt2
+  regress0/strings/issue11710-numeric-max.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2936,6 +2937,7 @@ set(regress_1_tests
   regress1/quantifiers/cee-os-delta.smt2
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/choice-move-delta-relt.smt2
+  regress1/quantifiers/choice-unk-ho-no-deadlock.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
