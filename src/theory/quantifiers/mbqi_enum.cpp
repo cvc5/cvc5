@@ -313,7 +313,9 @@ bool MbqiEnum::constructInstantiation(
       }
     } while (!success);
   }
-  return true;
+  // try the instantiation
+  return d_parent.tryInstantiation(
+      q, mvs, InferenceId::QUANTIFIERS_INST_MBQI_ENUM, mvFreshVar);
 }
 }  // namespace quantifiers
 }  // namespace theory
