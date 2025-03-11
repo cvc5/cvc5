@@ -42,6 +42,9 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
     case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
     case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
       return ensureProofForSimplify(cdp, eq);
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      return ensureProofForConcatMerge(cdp, id, eq);
     default: break;
   }
   // TODO PR #11676
@@ -100,6 +103,106 @@ bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
   }
   cdp->addStep(eq, ProofRule::TRANS, transEq, {});
   return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForConcatMerge(CDProof* cdp,
+                                                       ProofRewriteRule id,
+                                                       const Node& eq)
+{
+  // below, we group portions of the concatenation into a form in which they
+  // can be rewritten in isolation. We prove the grouping by ACI_NORM, then
+  // prove the individual rewrites by either a RARE rule for ConcatExtractMerge
+  // (if merging extracts) or by evaluate (if merging constants).
+  NodeManager* nm = nodeManager();
+  Node concat = eq[0];
+  std::vector<Node> children;
+  std::vector<Node> curr;
+  Node currRew;
+  Kind ck = Kind::UNDEFINED_KIND;
+  TConvProofGenerator tcpg(d_env);
+  for (size_t i = 0, nchild = concat.getNumChildren(); i <= nchild; i++)
+  {
+    Node next = i < nchild ? concat[i] : Node::null();
+    bool merged = false;
+    if (!curr.empty() && next.getKind() == ck
+        && ((ck == Kind::CONST_BITVECTOR
+             && id == ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE)
+            || (ck == Kind::BITVECTOR_EXTRACT
+                && id == ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE)))
+    {
+      if (ck == Kind::BITVECTOR_EXTRACT)
+      {
+        Assert(curr.size() == 1);
+        curr[0] = nm->mkNode(Kind::BITVECTOR_CONCAT, curr[0], next);
+        currRew = nm->mkNode(Kind::BITVECTOR_CONCAT, currRew, next);
+        Node rcr = RewriteRule<ConcatExtractMerge>::run<true>(currRew);
+        if (rcr != currRew)
+        {
+          Trace("bv-rew-elab")
+              << "- r-step: " << currRew << " " << rcr << std::endl;
+          // single rewrite step
+          tcpg.addRewriteStep(currRew,
+                              rcr,
+                              nullptr,
+                              false,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          currRew = rcr;
+          merged = true;
+        }
+        else
+        {
+          // an adjacent extract, but one that did not merge
+          curr[0] = currRew[0];
+        }
+      }
+      else
+      {
+        Assert(ck == Kind::CONST_BITVECTOR);
+        curr.push_back(next);
+        merged = true;
+      }
+    }
+    if (!merged)
+    {
+      if (!curr.empty())
+      {
+        Node rem;
+        if (curr.size() > 1)
+        {
+          rem = nm->mkNode(Kind::BITVECTOR_CONCAT, curr);
+          Node rr = evaluate(rem, {}, {});
+
+          tcpg.addRewriteStep(rem, rr, ProofRule::EVALUATE, {}, {rem});
+        }
+        else
+        {
+          rem = curr[0];
+        }
+        children.push_back(rem);
+        curr.clear();
+      }
+      curr.push_back(next);
+      currRew = next;
+      ck = next.getKind();
+    }
+  }
+  Node gc = children.size() == 1 ? children[0]
+                                 : nm->mkNode(Kind::BITVECTOR_CONCAT, children);
+  Node equiv1 = eq[0].eqNode(gc);
+  Trace("bv-rew-elab") << "- grouped concat: " << equiv1 << std::endl;
+  cdp->addStep(equiv1, ProofRule::ACI_NORM, {}, {equiv1});
+
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(gc);
+  cdp->addProof(pfn);
+  Node equiv2 = pfn->getResult();
+  Trace("bv-rew-elab") << "- rewritten: " << equiv2 << std::endl;
+  if (equiv2[1] == eq[1])
+  {
+    cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
+    return true;
+  }
+  Assert(false) << "...mismatch " << equiv2[1] << " " << eq[1];
+  return false;
 }
 
 Node MacroRewriteElaborator::proveCong(CDProof* cdp,

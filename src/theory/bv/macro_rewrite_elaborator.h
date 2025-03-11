@@ -55,6 +55,17 @@ class MacroRewriteElaborator : protected EnvObj
    */
   bool ensureProofForSimplify(CDProof* cdp, const Node& eq);
   /**
+   * Elaborate a rewrite eq that was proven by a concat merge rule.
+   *
+   * @param cdp The proof to add to.
+   * @param id The (macro) rewrite id that proved the rewrite.
+   * @param eq The rewrite proven.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofForConcatMerge(CDProof* cdp,
+                                 ProofRewriteRule id,
+                                 const Node& eq);
+  /**
    * Prove congruence for left hand side term n.
    * If n is a term of the form (f t1 ... tn), this proves
    *  (= (f t1 ... sn) (f s1 .... sn))
