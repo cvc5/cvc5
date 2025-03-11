@@ -92,7 +92,7 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
 
 Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = atom.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(Kind::STRING_LENGTH, x);
@@ -542,7 +542,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   }
   // only aggressive rewrites below here
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = atom.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(Kind::STRING_LENGTH, x);
