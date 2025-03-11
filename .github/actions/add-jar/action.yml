@@ -25,15 +25,7 @@ runs:
         echo "::group::Create JAR contents (Linux)"
         mkdir ${{ inputs.jar-libs-dir }}
         cd ${{ inputs.jar-libs-dir }}
-        cat > filenames.txt <<EOF
-        libgmp.so.10
-        libpoly.so.0
-        libpolyxx.so.0
-        libcvc5.so.1
-        libcvc5parser.so.1
-        libcvc5jni.so
-        EOF
-        cat filenames.txt | xargs -I {} cp ${{ inputs.install-path }}/lib/{} .
+        cp ${{ inputs.install-path }}/lib/libcvc5jni.so .
         echo "::endgroup::"
 
     - name: Create JAR contents (macOS)
@@ -43,15 +35,7 @@ runs:
         echo "::group::Create JAR contents (macOS)"
         mkdir ${{ inputs.jar-libs-dir }}
         cd ${{ inputs.jar-libs-dir }}
-        cat > filenames.txt <<EOF
-        libgmp.10.dylib
-        libpoly.0.dylib
-        libpolyxx.0.dylib
-        libcvc5.1.dylib
-        libcvc5parser.1.dylib
-        libcvc5jni.dylib
-        EOF
-        cat filenames.txt | xargs -I {} cp ${{ inputs.install-path }}/lib/{} .
+        cp ${{ inputs.install-path }}/lib/libcvc5jni.dylib .
         echo "::endgroup::"
 
     - name: Create JAR contents (Windows)
@@ -61,17 +45,10 @@ runs:
         echo "::group::Create JAR contents (Windows)"
         mkdir ${{ inputs.jar-libs-dir }}
         cd ${{ inputs.jar-libs-dir }}
-        cat > filenames.txt <<EOF
-        libwinpthread-1.dll
-        libgcc_s_seh-1.dll
-        libstdc++-6.dll
-        libpoly.dll
-        libpolyxx.dll
-        libcvc5.dll
-        libcvc5parser.dll
-        cvc5jni.dll
-        EOF
-        cat filenames.txt | xargs -I {} cp ${{ inputs.install-path }}/bin/{} .
+        cp ${{ inputs.install-path }}/bin/libwinpthread-1.dll .
+        cp ${{ inputs.install-path }}/bin/libgcc_s_seh-1.dll .
+        cp ${{ inputs.install-path }}/bin/libstdc++-6.dll .
+        cp ${{ inputs.install-path }}/bin/cvc5jni.dll .
         echo "::endgroup::"
 
     - name: Create JAR
