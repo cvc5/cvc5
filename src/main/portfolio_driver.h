@@ -56,7 +56,9 @@ class ExecutionContext
                        bool stopAtSetLogic,
                        bool stopAtCheckSat = false);
 
-  bool runCheckSatCommand(CommandExecutor* pExecutor);
+  bool runCheckSatCommand();
+
+  bool runResetCommand();
 
   /**
    * Execute the given commands.

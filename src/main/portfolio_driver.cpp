@@ -94,11 +94,18 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
   return status;
 }
 
-bool ExecutionContext::runCheckSatCommand(CommandExecutor* pExecutor)
+bool ExecutionContext::runCheckSatCommand()
 {
   std::shared_ptr<Cmd> cmd(new CheckSatCommand());
   Command command(cmd);
-  return pExecutor->doCommand(&command);
+  return d_executor->doCommand(&command);
+}
+
+bool ExecutionContext::runResetCommand()
+{
+  std::shared_ptr<Cmd> cmd(new ResetCommand());
+  Command command(cmd);
+  return d_executor->doCommand(&command);
 }
 
 std::vector<Command> ExecutionContext::parseCommands(
@@ -332,22 +339,20 @@ class PortfolioProcessPool
       job.d_errPipe.dup(STDERR_FILENO);
       job.d_outPipe.dup(STDOUT_FILENO);
 
-      TermManager& tm = d_ctx.solver().getTermManager();
-      std::unique_ptr<cvc5::Solver> slv = std::make_unique<cvc5::Solver>(tm);
-      job.d_config.applyOptions(*slv);
       std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
+      d_ctx.runResetCommand();
+      job.d_config.applyOptions(d_ctx.solver());
+
       for (Term& t : assertions)
       {
-        slv->assertFormula(t);
+        d_ctx.solver().assertFormula(t);
       }
       // 0 = solved, 1 = not solved
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      std::unique_ptr<CommandExecutor> pExecutor =
-          std::make_unique<CommandExecutor>(slv);
-      if (d_ctx.runCheckSatCommand(pExecutor.get()))
+      if (d_ctx.runCheckSatCommand())
       // if (d_ctx.solveCommands(d_commands))
       {
-        Result res = pExecutor->getResult();
+        Result res = d_ctx.d_executor->getResult();
         if (res.isSat() || res.isUnsat())
         {
           rc = SolveStatus::STATUS_SOLVED;
