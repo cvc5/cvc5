@@ -34,16 +34,23 @@ import java.util.Locale;
 public class Utils
 {
   public enum OS {
-    WINDOWS, MAC, LINUX, UNKNOWN;
+    WINDOWS,
+    MAC,
+    LINUX,
+    UNKNOWN;
 
     public static final OS CURRENT = detectOS();
 
-    private static OS detectOS() {
-        String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-        if (osName.startsWith("windows")) return WINDOWS;
-        if (osName.startsWith("mac")) return MAC;
-        if (osName.startsWith("linux")) return LINUX;
-        return UNKNOWN;
+    private static OS detectOS()
+    {
+      String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+      if (osName.startsWith("windows"))
+        return WINDOWS;
+      if (osName.startsWith("mac"))
+        return MAC;
+      if (osName.startsWith("linux"))
+        return LINUX;
+      return UNKNOWN;
     }
   }
 
@@ -128,18 +135,13 @@ public class Utils
       try
       {
         List<String> filenames;
-        switch (OS.CURRENT) {
+        switch (OS.CURRENT)
+        {
           case WINDOWS:
             filenames = Arrays.asList(
-              "libwinpthread-1.dll",
-              "libgcc_s_seh-1.dll",
-              "libstdc++-6.dll",
-              "cvc5jni.dll"
-            );
+                "libwinpthread-1.dll", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "cvc5jni.dll");
             break;
-          case MAC:
-            filenames = Arrays.asList("libcvc5jni.dylib");
-            break;
+          case MAC: filenames = Arrays.asList("libcvc5jni.dylib"); break;
           default:
             // We assume it is Linux or a Unix-based system.
             // If not, there's nothing more we can do anyway.
