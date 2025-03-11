@@ -49,6 +49,7 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForExtractConcat(cdp, eq);
     default: break;
   }
+  // TODO PR #11676
   return false;
 }
 
