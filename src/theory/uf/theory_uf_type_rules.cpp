@@ -228,6 +228,14 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
     argTypes.push_back((*i).getTypeOrNull());
   }
   TypeNode rangeType = n[1].getTypeOrNull();
+  // We expect flattened function types, i.e. the return type is not a function
+  if (rangeType.isFunction())
+  {
+    std::vector<TypeNode> fargs = rangeType.getArgTypes();
+    argTypes.insert(argTypes.end(), fargs.begin(), fargs.end());
+    rangeType = rangeType.getRangeType();
+    Assert (!rangeType.isFunction());
+  }
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
