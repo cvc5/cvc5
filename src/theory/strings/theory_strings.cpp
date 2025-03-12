@@ -57,7 +57,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_arithEntail(d_env.getRewriter(),
+      d_arithEntail(env.getNodeManager(),
+                    d_env.getRewriter(),
                     options().strings.stringRecArithApprox),
       d_strEntail(d_env.getRewriter(), d_arithEntail),
       d_rewriter(env.getNodeManager(),
@@ -105,10 +106,9 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_absModelCounter(0),
       d_strGapModelCounter(0),
       d_cpacb(*this),
-      d_psrewPg(env.isTheoryProofProducing()
-                    ? new TrustProofGenerator(
-                          env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
-                    : nullptr)
+      d_psrewPg(env.isTheoryProofProducing() ? new TrustProofGenerator(
+                    env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
+                                             : nullptr)
 {
   d_termReg.finishInit(&d_im);
 

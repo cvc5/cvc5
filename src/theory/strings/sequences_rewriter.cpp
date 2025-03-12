@@ -120,7 +120,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // Rewrite without using the rewriter as a subutility, which ensures
       // that we can reconstruct the reasoning in a proof.
       Rewrite rule;
-      ArithEntail ae(nullptr);
+      ArithEntail ae(nodeManager(), nullptr);
       StringsEntail sent(nullptr, ae);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
