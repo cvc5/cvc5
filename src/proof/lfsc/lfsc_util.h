@@ -55,9 +55,6 @@ enum class LfscRule : uint32_t
   PROCESS_SCOPE,
   // arithmetic
   ARITH_SUM_UB,
-  // sequences uses a different form of the concat conflict rule which takes
-  // an explicit disequality
-  CONCAT_CONFLICT_DEQ,
 
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,

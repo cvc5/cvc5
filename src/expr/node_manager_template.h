@@ -720,7 +720,7 @@ class NodeManager
    * Make constant real or int, which calls one of the above methods based
    * on the type tn.
    */
-  Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
+  static Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
 
   /**
    * Make a real algebraic number node from a RealAlgebraicNumber.

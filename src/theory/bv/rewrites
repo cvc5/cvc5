@@ -157,20 +157,22 @@
   (bvnot (bvxor x xs))
   (bvxor (bvnot x) xs))
 
-(define-rule* bv-and-simplify-1
-  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
-  (bvand xs x ys x zs)
-  (bvand xs x ys zs))
+(define-cond-rule bv-and-simplify-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec) (w Int))
+  (= w (@bvsize x))
+  (bvand xs (bvnot x) ys x zs)
+  (@bv 0 w))
 (define-cond-rule bv-and-simplify-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec) (w Int))
   (= w (@bvsize x))
   (bvand xs x ys (bvnot x) zs)
   (@bv 0 w))
 
-(define-rule* bv-or-simplify-1
-  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec))
-  (bvor xs x ys x zs)
-  (bvor xs x ys zs))
+(define-cond-rule bv-or-simplify-1
+  ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec) (w Int))
+  (= w (@bvsize x))
+  (bvor xs (bvnot x) ys x zs)
+  (bvnot (@bv 0 w)))
 (define-cond-rule bv-or-simplify-2
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec) (w Int))
   (= w (@bvsize x))
@@ -208,27 +210,27 @@
   (bvmul x (bvshl (@bv 1 w) (@bv m w))))
 
 (define-cond-rule bv-mult-slt-mult-1
-  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
-  (and (= tn (@bvsize t)) (= an (@bvsize a)))
+  ((x ?BitVec) (y ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
+  (and (= tn (@bvsize x)) (= an (@bvsize a)))
   (bvslt
-    (bvmul (sign_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (sign_extend n y) (sign_extend m a))
     (bvmul (sign_extend n x) (sign_extend m a))
   )
   (and
-    (not (= t (@bv 0 tn)))
+    (not (= (bvsub y x) (@bv 0 tn)))
     (not (= a (@bv 0 an)))
-    (= (bvslt (bvadd x t) x) (bvsgt a (@bv 0 an)))))
+    (= (bvslt y x) (bvsgt a (@bv 0 an)))))
 (define-cond-rule bv-mult-slt-mult-2
-  ((x ?BitVec) (t ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
-  (and (= tn (@bvsize t)) (= an (@bvsize a)))
+  ((x ?BitVec) (y ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
+  (and (= tn (@bvsize x)) (= an (@bvsize a)))
   (bvslt
-    (bvmul (zero_extend n (bvadd x t)) (sign_extend m a))
+    (bvmul (zero_extend n y) (sign_extend m a))
     (bvmul (zero_extend n x) (sign_extend m a))
   )
   (and
-    (not (= t (@bv 0 tn)))
+    (not (= (bvsub y x) (@bv 0 tn)))
     (not (= a (@bv 0 an)))
-    (= (bvult (bvadd x t) x) (bvsgt a (@bv 0 an)))))
+    (= (bvult y x) (bvsgt a (@bv 0 an)))))
 
 
 ; -- Commutativity --
@@ -240,6 +242,8 @@
   (bvxor x y) (bvxor y x))
 (define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
   (bvmul x y) (bvmul y x))
+(define-rule bv-commutative-comp ((x ?BitVec) (y ?BitVec))
+  (bvcomp x y) (bvcomp y x))
 
 
 ; -- Hole filling rules --
@@ -333,3 +337,19 @@
   ((x ?BitVec) (y ?BitVec))
   (bvsub x y)
   (bvadd x (bvneg y)))
+
+(define-rule bv-ite-width-one ((x ?BitVec))
+  (ite (= x (@bv 1 1)) (@bv 1 1) (@bv 0 1))
+  x)
+
+(define-rule bv-ite-width-one-not ((x ?BitVec))
+  (ite (= x (@bv 0 1)) (@bv 1 1) (@bv 0 1))
+  (bvnot x))
+
+(define-rule bv-eq-xor-solve ((x ?BitVec) (y ?BitVec) (z ?BitVec))
+  (= (= (bvxor x y) z) (= x (bvxor z y)))
+  true)
+
+(define-rule bv-eq-not-solve ((x ?BitVec) (y ?BitVec))
+  (= (= (bvnot x) y) (= x (bvnot y)))
+  true)

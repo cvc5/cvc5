@@ -42,8 +42,7 @@ inline Node RewriteRule<SizeEliminate>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<SizeEliminate>(" << node << ")"
                       << std::endl;
   TNode a = node[0];
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(utils::getSize(node[0])));
+  return node.getNodeManager()->mkConstInt(Rational(utils::getSize(node[0])));
 }
 
 template <>
@@ -757,7 +756,7 @@ inline Node RewriteRule<SaddoEliminate>::apply(TNode node)
   //  1) negative + negative = positive
   //  2) positive + positive = negative
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   uint32_t size = node[0].getType().getBitVectorSize();
   Node zero = utils::mkZero(nm, 1);
   Node one = utils::mkOne(nm, 1);
@@ -851,7 +850,7 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
                       << std::endl;
 
   uint32_t size = node[0].getType().getBitVectorSize();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   Node one = utils::mkOne(nm, 1);
 
   if (size == 1)
@@ -918,7 +917,7 @@ inline Node RewriteRule<UsuboEliminate>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<UsuboEliminate>(" << node << ")"
                       << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   Node one = utils::mkOne(nm, 1);
 
   Node zextOp = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(1));
@@ -948,7 +947,7 @@ inline Node RewriteRule<SsuboEliminate>::apply(TNode node)
   //  1) negative - positive = positive
   //  2) postive - negative = negative
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   uint32_t size = node[0].getType().getBitVectorSize();
   Node one = utils::mkOne(nm, 1);
   Node zero = utils::mkZero(nm, 1);
