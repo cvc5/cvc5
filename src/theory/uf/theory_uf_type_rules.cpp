@@ -81,6 +81,9 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   TypeNode ret = fType.getRangeType();
+  // If partially applied, we return the function type. Note we generally
+  // never construct APPLY_UF like this; moreover all such APPLY_UF terms are
+  // rewritten to HO_APPLY chains.
   if (n.getNumChildren() != fType.getNumChildren() - 1)
   {
     std::vector<TypeNode> argTypes(fType.begin() + n.getNumChildren(),
