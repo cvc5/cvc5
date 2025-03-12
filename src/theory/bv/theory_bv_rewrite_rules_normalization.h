@@ -344,7 +344,7 @@ static inline void addToChildren(TNode term,
                                  BitVector coeff,
                                  std::vector<Node> &children)
 {
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = term.getNodeManager();
   if (coeff == BitVector(size, (unsigned)0))
   {
     return;
@@ -1500,7 +1500,7 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<NormalizeEqAddNeg>(" << node << ")"
                       << std::endl;
 
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   NodeBuilder nb_lhs(nm, Kind::BITVECTOR_ADD);
   NodeBuilder nb_rhs(nm, Kind::BITVECTOR_ADD);
 

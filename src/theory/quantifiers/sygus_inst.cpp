@@ -178,7 +178,7 @@ void addSpecialValues(const TypeNode& tn, std::vector<Node>& extra_cons)
   if (tn.isBitVector())
   {
     uint32_t size = tn.getBitVectorSize();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = tn.getNodeManager();
     extra_cons.push_back(bv::utils::mkOnes(nm, size));
     extra_cons.push_back(bv::utils::mkMinSigned(nm, size));
     extra_cons.push_back(bv::utils::mkMaxSigned(nm, size));

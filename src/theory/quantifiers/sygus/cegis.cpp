@@ -41,7 +41,8 @@ Cegis::Cegis(Env& env,
       d_eval_unfold(tds->getEvalUnfold()),
       d_cexClosedEnum(false),
       d_cegis_sampler(env),
-      d_usingSymCons(false)
+      d_usingSymCons(false),
+      d_doEvalUnfold(false)
 {
 }
 
@@ -80,6 +81,7 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
   if (options().quantifiers.sygusEvalUnfoldMode
       != options::SygusEvalUnfoldMode::NONE)
   {
+    d_doEvalUnfold = true;
     NodeManager* nm = nodeManager();
     for (size_t i = 0, nvars = conj[0].getNumChildren(); i < nvars; i++)
     {
@@ -104,6 +106,13 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
       else
       {
         ret = nm->mkNode(Kind::DT_SYGUS_EVAL, eargs);
+      }
+      TypeNode rt = ret.getType();
+      if (rt.isRegExp() || (rt.isFunction() && rt.getRangeType().isRegExp()))
+      {
+        // cannot do evaluation unfolding for regular expressions
+        d_doEvalUnfold = false;
+        break;
       }
       d_euSubs.add(conj[0][i], ret);
     }
@@ -237,9 +246,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  bool doEvalUnfold = (doGen
-                       && options().quantifiers.sygusEvalUnfoldMode
-                              != options::SygusEvalUnfoldMode::NONE);
+  bool doEvalUnfold = (doGen && d_doEvalUnfold);
   if (doEvalUnfold)
   {
     Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
@@ -552,9 +559,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
   // must be closed enumerable
-  if (d_cexClosedEnum
-      && options().quantifiers.sygusEvalUnfoldMode
-             != options::SygusEvalUnfoldMode::NONE)
+  if (d_cexClosedEnum && d_doEvalUnfold)
   {
     // Make the refinement lemma and add it to lems.
     // This lemma is guarded by the parent's conjecture, which has the semantics

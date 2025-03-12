@@ -243,6 +243,8 @@ class Cegis : public SygusModule
    *   f -> (lambda ((x Int) (y Int)) (DT_SYGUS_EVAL_UNFOLD d_f x y)).
    */
   Subs d_euSubs;
+  /** True if we are doing evaluation unfolding for this conjecture */
+  bool d_doEvalUnfold;
 };
 
 }  // namespace quantifiers

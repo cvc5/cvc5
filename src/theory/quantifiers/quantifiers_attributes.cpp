@@ -145,7 +145,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       Node atom = q[1].getKind() == Kind::NOT ? q[1][0] : q[1];
       bool pol = q[1].getKind() != Kind::NOT;
       if( atom==h ){
-        return NodeManager::currentNM()->mkConst( pol );
+        return q.getNodeManager()->mkConst(pol);
       }
     }
   }
@@ -208,7 +208,7 @@ void QuantAttributes::computeAttributes( Node q ) {
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
   Trace("quant-attr-debug") << "Compute attributes for " << q << std::endl;
   if( q.getNumChildren()==3 ){
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = q.getNodeManager();
     qa.d_ipl = q[2];
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       Kind k = q[2][i].getKind();
@@ -490,7 +490,7 @@ bool QuantAttributes::getInstantiationLevel(const Node& n, uint64_t& level)
 
 Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = bvl.getNodeManager();
   Node v = NodeManager::mkDummySkolem(
       name, nm->booleanType(), "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node attr = nm->mkConst(String("qid"));

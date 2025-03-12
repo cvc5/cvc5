@@ -305,7 +305,7 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children)
     return children[0];
   }
   std::sort(children.begin(), children.end());
-  return NodeManager::currentNM()->mkNode(kind, children);
+  return children[0].getNodeManager()->mkNode(kind, children);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -331,7 +331,7 @@ Node mkXor(TNode node1, TNode node2)
 
 Node mkSignExtend(TNode node, unsigned amount)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   Node signExtendOp =
       nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(amount));
   return nm->mkNode(signExtendOp, node);
@@ -341,14 +341,14 @@ Node mkSignExtend(TNode node, unsigned amount)
 
 Node mkExtract(TNode node, unsigned high, unsigned low)
 {
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   Node extractOp = nm->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
   return nm->mkNode(extractOp, node);
 }
 
 Node mkBit(TNode node, unsigned index)
 {
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   Node bitOp = nm->mkConst<BitVectorBit>(BitVectorBit(index));
   return nm->mkNode(bitOp, node);
 }
@@ -363,9 +363,11 @@ Node mkConcat(TNode t1, TNode t2)
 Node mkConcat(std::vector<Node>& children)
 {
   if (children.size() > 1)
-    return NodeManager::currentNM()->mkNode(Kind::BITVECTOR_CONCAT, children);
-  else
-    return children[0];
+  {
+    return children[0].getNodeManager()->mkNode(Kind::BITVECTOR_CONCAT,
+                                                children);
+  }
+  return children[0];
 }
 
 Node mkConcat(TNode node, unsigned repeat)

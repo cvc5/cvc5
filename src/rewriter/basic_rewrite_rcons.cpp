@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
   return os;
 }
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env)
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env), d_bvRewElab(env)
 {
 
 }
@@ -335,6 +335,15 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
         handledMacro = true;
       }
       break;
+    case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
+    case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+    case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
+    case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+      handledMacro = d_bvRewElab.ensureProofFor(cdp, id, eq);
+      break;
     default: break;
   }
   if (handledMacro)
@@ -594,7 +603,7 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
 {
   Assert(eq.getKind() == Kind::EQUAL);
   Trace("brc-macro") << "Expand entailment for " << eq << std::endl;
-  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::ArithEntail ae(nodeManager(), nullptr);
   Node lhs = eq[0];
   Node eqi = eq;
   // First normalize LT/GT/LEQ to GEQ.
@@ -981,7 +990,7 @@ bool BasicRewriteRCons::ensureProofMacroSubstrStripSymLength(CDProof* cdp,
   Assert(lhs.getKind() == Kind::STRING_SUBSTR);
   theory::strings::Rewrite rule;
   // call the same utility that proved it
-  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::ArithEntail ae(nm, nullptr);
   theory::strings::StringsEntail sent(nullptr, ae);
   std::vector<Node> ch1;
   std::vector<Node> ch2;
@@ -1064,7 +1073,7 @@ bool BasicRewriteRCons::ensureProofMacroStrEqLenUnifyPrefix(CDProof* cdp,
   Trace("brc-macro") << "Expand macro str eq len unify prefix " << eq
                      << std::endl;
   NodeManager* nm = nodeManager();
-  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::ArithEntail ae(nm, nullptr);
   theory::strings::StringsEntail sent(nullptr, ae);
 
   Assert(eq[1].getKind() == Kind::AND);
@@ -1423,7 +1432,7 @@ bool BasicRewriteRCons::ensureProofMacroOverlap(ProofRewriteRule id,
   else
   {
     Assert(id == ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS);
-    theory::strings::ArithEntail ae(nullptr);
+    theory::strings::ArithEntail ae(nm, nullptr);
     theory::strings::StringsEntail se(nullptr, ae);
     theory::strings::SequencesRewriter srew(nm, ae, se, nullptr);
     std::vector<Node> nb, nc1, ne;
@@ -1578,7 +1587,7 @@ bool BasicRewriteRCons::ensureProofMacroStrComponentCtn(CDProof* cdp,
 {
   Trace("brc-macro") << "Expand macro str component ctn " << eq << std::endl;
   Assert(eq[0].getKind() == Kind::STRING_CONTAINS);
-  theory::strings::ArithEntail ae(nullptr);
+  theory::strings::ArithEntail ae(nodeManager(), nullptr);
   theory::strings::StringsEntail se(nullptr, ae);
   std::vector<Node> nc1, nc2;
   theory::strings::utils::getConcat(eq[0][0], nc1);
