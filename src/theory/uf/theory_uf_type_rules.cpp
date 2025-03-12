@@ -83,7 +83,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
   TypeNode ret = fType.getRangeType();
   if (n.getNumChildren() != fType.getNumChildren() - 1)
   {
-    std::vector<TypeNode> argTypes(fType.begin()+n.getNumChildren(), fType.end()-1);
+    std::vector<TypeNode> argTypes(fType.begin() + n.getNumChildren(),
+                                   fType.end() - 1);
     ret = nodeManager->mkFunctionType(argTypes, ret);
   }
   return ret;
