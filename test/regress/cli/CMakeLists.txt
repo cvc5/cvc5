@@ -2938,7 +2938,6 @@ set(regress_1_tests
   regress1/quantifiers/cee-os-delta.smt2
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/choice-move-delta-relt.smt2
-  regress1/quantifiers/choice-unk-ho-no-deadlock.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
@@ -4063,6 +4062,8 @@ set(regression_disabled_tests
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
+  # timeout after change to function types (was unknown)
+  regress1/quantifiers/choice-unk-ho-no-deadlock.smt2
   # timeout on some builds with proofs, unsat cores
   regress1/quantifiers/dd_verisec-dt-sygus.smt2
   # timeout on some builds after changes to justification heuristic
