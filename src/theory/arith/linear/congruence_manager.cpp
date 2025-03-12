@@ -18,12 +18,13 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_proof_utilities.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -31,7 +32,6 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "proof/conv_proof_generator.h"
 
 using namespace cvc5::internal::kind;
 
@@ -418,11 +418,11 @@ bool ArithCongruenceManager::propagate(TNode x){
         // (not (>= (+ f(x) (* -1 f(x))) 0)).
         ArithSubsTermContext astc;
         TConvProofGenerator tcnv(d_env,
-                                nullptr,
-                                TConvPolicy::FIXPOINT,
-                                TConvCachePolicy::NEVER,
-                                "ArithRConsTConv",
-                                &astc);
+                                 nullptr,
+                                 TConvPolicy::FIXPOINT,
+                                 TConvCachePolicy::NEVER,
+                                 "ArithRConsTConv",
+                                 &astc);
         tcnv.addRewriteStep(peq[0], peq[1], &cdp);
         std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
         Node negr = pfna->getResult()[1];
@@ -431,15 +431,14 @@ bool ArithCongruenceManager::propagate(TNode x){
         Assert(!res.isNull());
         if (!res.isNull())
         {
-          cdp.addStep(falsen,
-                      ProofRule::MACRO_SR_PRED_TRANSFORM,
-                      {negr},
-                      {falsen});
+          cdp.addStep(
+              falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {negr}, {falsen});
           success = true;
-          if (negr!=neg)
+          if (negr != neg)
           {
             cdp.addProof(pfna);
-            cdp.addStep(negr, ProofRule::EQ_RESOLVE, {neg, pfna->getResult()}, {});
+            cdp.addStep(
+                negr, ProofRule::EQ_RESOLVE, {neg, pfna->getResult()}, {});
           }
         }
       }
