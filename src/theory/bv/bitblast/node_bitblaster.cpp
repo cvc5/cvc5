@@ -110,9 +110,10 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
 
 Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
 {
+  NodeManager* nm = a.getNodeManager();
   if (!hasBBTerm(a))
   {
-    return utils::mkConst(utils::getSize(a), 0u);
+    return utils::mkConst(nm, utils::getSize(a), 0u);
   }
 
   bool assignment;
@@ -133,7 +134,7 @@ Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)

@@ -1,5 +1,9 @@
 This file contains a summary of important user-visible changes.
 
+## Changes
+
+- Bumped CaDiCaL to version 2.1.3.
+
 cvc5 1.2.1
 ==========
 

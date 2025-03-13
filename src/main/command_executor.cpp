@@ -131,8 +131,7 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 {
   bool status = solverInvoke(d_solver.get(),
                              d_symman->toSymManager(),
-                             cmd,
-                             d_solver->getDriverOptions().out());
+                             cmd);
 
   cvc5::Result res;
   bool hasResult = false;
@@ -219,8 +218,7 @@ bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 
 bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
                                    SymManager* sm,
-                                   Cmd* cmd,
-                                   std::ostream& out)
+                                   Cmd* cmd)
 {
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
@@ -240,7 +238,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
     return true;
   }
 
-  cmd->invoke(solver, sm, out);
+  cmd->invokeAndPrintResult(solver, sm);
   return !cmd->fail();
 }
 

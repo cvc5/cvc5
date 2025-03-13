@@ -54,7 +54,7 @@ Node StringsPreprocess::reduce(Node t,
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   Node negOne = nm->mkConstInt(Rational(-1));
@@ -910,10 +910,10 @@ Node StringsPreprocess::reduce(Node t,
                           nm->mkNode(Kind::ADD, ci, offset),
                           ci);
 
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, i),
-                            nm->mkNode(Kind::LT, i, lenr));
-    Node body = nm->mkNode(Kind::OR, bound.negate(), ri.eqNode(res));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, lenr).notNode(),
+                           ri.eqNode(res));
     Node rangeA = utils::mkForallInternal(nm, bvi, body);
 
     // upper 65 ... 90
@@ -947,10 +947,10 @@ Node StringsPreprocess::reduce(Node t,
     Node ssr = nm->mkNode(Kind::STRING_SUBSTR, r, i, one);
     Node ssx = nm->mkNode(Kind::STRING_SUBSTR, x, revi, one);
 
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, i),
-                            nm->mkNode(Kind::LT, i, lenr));
-    Node body = nm->mkNode(Kind::OR, bound.negate(), ssr.eqNode(ssx));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, lenr).notNode(),
+                           ssr.eqNode(ssx));
     Node rangeA = utils::mkForallInternal(nm, bvi, body);
     // assert:
     //   len(r) = len(x) ^
@@ -1125,7 +1125,7 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   // It is possible to have an extension where (STRING_NTH x i) is generated
   // here for a new STRING_NTH kind, if there was a native way of handling nth
   // for strings, but this is not explored here.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   if (x.getType().isString())
   {
     Node one = nm->mkConstInt(Rational(1));

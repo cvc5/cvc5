@@ -81,6 +81,11 @@ class CVC5_EXPORT Cmd
   virtual void invoke(cvc5::Solver* solver,
                       parser::SymManager* sm,
                       std::ostream& out);
+  /**
+   * Same as invoke, but prints the result to the output stream associated to the solver.
+   */
+  virtual void invokeAndPrintResult(cvc5::Solver* solver,
+                                    parser::SymManager* sm);
 
   /**
    * @return A string representation of this result.

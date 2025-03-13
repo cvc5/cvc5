@@ -380,107 +380,17 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       beginCallDebug();
-      eq::EqualityEngine* ee = getEqualityEngine();
       d_conj_count = 0;
       std::vector<TNode> eqcs;
       getEquivalenceClasses(eqcs);
-      Trace("sg-proc") << "Determine ground EQC..." << std::endl;
-      bool success;
-      do{
-        success = false;
-        for( unsigned i=0; i<eqcs.size(); i++ ){
-          TNode r = eqcs[i];
-          if( d_ground_eqc_map.find( r )==d_ground_eqc_map.end() ){
-            std::vector< TNode > args;
-            Trace("sg-pat-debug") << "******* Get ground term for " << r << std::endl;
-            Node n;
-            if (Skolemize::isInductionTerm(options(), r))
-            {
-              n = d_op_arg_index[r].getGroundTerm( this, args );
-            }else{
-              n = r;
-            }
-            if( !n.isNull() ){
-              Trace("sg-pat") << "Ground term for eqc " << r << " : " << std::endl;
-              Trace("sg-pat") << "   " << n << std::endl;
-              d_ground_eqc_map[r] = n;
-              success = true;
-            }else{
-              Trace("sg-pat-debug") << "...could not find ground term." << std::endl;
-            }
-          }
-        }
-      }while( success );
-      //also get ground terms
-      d_ground_terms.clear();
-      for( unsigned i=0; i<eqcs.size(); i++ ){
-        TNode r = eqcs[i];
-        d_op_arg_index[r].getGroundTerms( this, d_ground_terms );
-      }
-      Trace("sg-proc") << "...done determine ground EQC" << std::endl;
-
+      computeIrrelevantEqcs(eqcs);
       //debug printing
-      if( TraceIsOn("sg-gen-eqc") ){
-        for( unsigned i=0; i<eqcs.size(); i++ ){
-          TNode r = eqcs[i];
-          //print out members
-          bool firstTime = true;
-          bool isFalse = areEqual(r, d_false);
-          eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-          while( !eqc_i.isFinished() ){
-            TNode n = (*eqc_i);
-            if (getTermDatabase()->hasTermCurrent(n)
-                && getTermDatabase()->isTermActive(n)
-                && (n.getKind() != Kind::EQUAL || isFalse))
-            {
-              if( firstTime ){
-                Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
-                firstTime = false;
-              }
-              if( n.hasOperator() ){
-                Trace("sg-gen-eqc") << "   (" << n.getOperator();
-                for (const Node& nc : n)
-                {
-                  TNode ar = d_qstate.getRepresentative(nc);
-                  Trace("sg-gen-eqc") << " e" << d_em[ar];
-                }
-                Trace("sg-gen-eqc") << ") :: " << n << std::endl;
-              }else{
-                Trace("sg-gen-eqc") << "   " << n << std::endl;
-              }
-            }
-            ++eqc_i;
-          }
-          if( !firstTime ){
-            Trace("sg-gen-eqc") << "}" << std::endl;
-            //print out ground term
-            std::map< TNode, Node >::iterator it = d_ground_eqc_map.find( r );
-            if( it!=d_ground_eqc_map.end() ){
-              Trace("sg-gen-eqc") << "- Ground term : " << it->second << std::endl;
-            }
-          }
-        }
+      if( TraceIsOn("sg-gen-eqc") )
+      {
+        debugPrintIrrelevantEqcs(eqcs);
       }
 
-      Trace("sg-proc") << "Compute relevant eqc..." << std::endl;
-      d_tge.d_relevant_eqc[0].clear();
-      d_tge.d_relevant_eqc[1].clear();
-      for( unsigned i=0; i<eqcs.size(); i++ ){
-        TNode r = eqcs[i];
-        std::map< TNode, Node >::iterator it = d_ground_eqc_map.find( r );
-        unsigned index = 1;
-        if( it==d_ground_eqc_map.end() ){
-          index = 0;
-        }
-        //based on unproven conjectures? TODO
-        d_tge.d_relevant_eqc[index].push_back( r );
-      }
-      Trace("sg-gen-tg-debug") << "Initial relevant eqc : ";
-      for( unsigned i=0; i<d_tge.d_relevant_eqc[0].size(); i++ ){
-        Trace("sg-gen-tg-debug") << "e" << d_em[d_tge.d_relevant_eqc[0][i]] << " ";
-      }
-      Trace("sg-gen-tg-debug") << std::endl;
-      Trace("sg-proc") << "...done compute relevant eqc" << std::endl;
+      computeRelevantEqcs(eqcs);
 
 
       Trace("sg-proc") << "Collect signature information..." << std::endl;
@@ -492,70 +402,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
 
 
-      Trace("sg-proc") << "Build theorem index..." << std::endl;
-      d_ue_canon.clear();
-      d_thm_index.clear();
-      std::vector< Node > provenConj;
-      quantifiers::FirstOrderModel* m = d_treg.getModel();
-      for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
-        Node q = m->getAssertedQuantifier( i );
-        Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
-        Node conjEq;
-        if (q[1].getKind() == Kind::EQUAL)
-        {
-          bool isSubsume = false;
-          bool inEe = false;
-          for( unsigned r=0; r<2; r++ ){
-            TNode nl = q[1][r==0 ? 0 : 1];
-            TNode nr = q[1][r==0 ? 1 : 0];
-            Node eq = nl.eqNode( nr );
-            if( r==1 || std::find( d_conjectures.begin(), d_conjectures.end(), q )==d_conjectures.end() ){
-              //check if it contains only relevant functions
-              if( d_tge.isRelevantTerm( eq ) ){
-                //make it canonical
-                Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_termCanon.getCanonicalTerm(eq);
-              }else{
-                eq = Node::null();
-              }
-            }
-            if( !eq.isNull() ){
-              if( r==0 ){
-                inEe = d_ee_conjectures.find( q[1] )!=d_ee_conjectures.end();
-                if( !inEe ){
-                  //add to universal equality engine
-                  Node nlu = getUniversalRepresentative(eq[0], true);
-                  Node nru = getUniversalRepresentative(eq[1], true);
-                  if (areUniversalEqual(nlu, nru))
-                  {
-                    isSubsume = true;
-                    //set inactive (will be ignored by other modules)
-                    m->setQuantifierActive(q, false);
-                  }
-                  else
-                  {
-                    Node exp;
-                    d_ee_conjectures[q[1]] = true;
-                    d_uequalityEngine.assertEquality(
-                        nlu.eqNode(nru), true, exp);
-                  }
-                }
-                Trace("sg-conjecture") << "*** CONJECTURE : currently proven" << (isSubsume ? " and subsumed" : "");
-                Trace("sg-conjecture") << " : " << q[1] << std::endl;
-                provenConj.push_back( q );
-              }
-              if( !isSubsume ){
-                Trace("thm-db-debug") << "Adding theorem to database " << eq[0] << " == " << eq[1] << std::endl;
-                d_thm_index.addTheorem( eq[0], eq[1] );
-              }else{
-                break;
-              }
-            }else{
-              break;
-            }
-          }
-        }
-      }
+      std::vector<Node> provenConj = buildTheoremIndex();
       //examine status of other conjectures
       for( unsigned i=0; i<d_conjectures.size(); i++ ){
         Node q = d_conjectures[i];
@@ -895,6 +742,221 @@ void ConjectureGenerator::getEquivalenceClasses(std::vector<TNode>& eqcs)
   Assert(!d_bool_eqc[1].isNull());
   d_urelevant_terms.clear();
   Trace("sg-proc") << "...done get eq classes" << std::endl;
+}
+
+void ConjectureGenerator::computeIrrelevantEqcs(const std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Determine ground EQC..." << std::endl;
+  bool success;
+  do
+  {
+    success = false;
+    for (unsigned i = 0; i < eqcs.size(); i++)
+    {
+      TNode r = eqcs[i];
+      if (d_ground_eqc_map.find(r) == d_ground_eqc_map.end())
+      {
+        std::vector<TNode> args;
+        Trace("sg-pat-debug")
+            << "******* Get ground term for " << r << std::endl;
+        Node n;
+        if (Skolemize::isInductionTerm(options(), r))
+        {
+          n = d_op_arg_index[r].getGroundTerm(this, args);
+        }
+        else
+        {
+          n = r;
+        }
+        if (!n.isNull())
+        {
+          Trace("sg-pat") << "Ground term for eqc " << r << " : " << std::endl;
+          Trace("sg-pat") << "   " << n << std::endl;
+          d_ground_eqc_map[r] = n;
+          success = true;
+        }
+        else
+        {
+          Trace("sg-pat-debug")
+              << "...could not find ground term." << std::endl;
+        }
+      }
+    }
+  } while (success);
+  // also get ground terms
+  d_ground_terms.clear();
+  for (unsigned i = 0; i < eqcs.size(); i++)
+  {
+    TNode r = eqcs[i];
+    d_op_arg_index[r].getGroundTerms(this, d_ground_terms);
+  }
+  Trace("sg-proc") << "...done determine ground EQC" << std::endl;
+}
+
+void ConjectureGenerator::debugPrintIrrelevantEqcs(
+    const std::vector<TNode>& eqcs)
+{
+  eq::EqualityEngine* ee = getEqualityEngine();
+  for (unsigned i = 0; i < eqcs.size(); i++)
+  {
+    TNode r = eqcs[i];
+    // print out members
+    bool firstTime = true;
+    bool isFalse = areEqual(r, d_false);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
+    while (!eqc_i.isFinished())
+    {
+      TNode n = (*eqc_i);
+      if (getTermDatabase()->hasTermCurrent(n)
+          && getTermDatabase()->isTermActive(n)
+          && (n.getKind() != Kind::EQUAL || isFalse))
+      {
+        if (firstTime)
+        {
+          Trace("sg-gen-eqc") << "e" << d_em[r] << " : { " << std::endl;
+          firstTime = false;
+        }
+        if (n.hasOperator())
+        {
+          Trace("sg-gen-eqc") << "   (" << n.getOperator();
+          for (const Node& nc : n)
+          {
+            TNode ar = d_qstate.getRepresentative(nc);
+            Trace("sg-gen-eqc") << " e" << d_em[ar];
+          }
+          Trace("sg-gen-eqc") << ") :: " << n << std::endl;
+        }
+        else
+        {
+          Trace("sg-gen-eqc") << "   " << n << std::endl;
+        }
+      }
+      ++eqc_i;
+    }
+    if (!firstTime)
+    {
+      Trace("sg-gen-eqc") << "}" << std::endl;
+      // print out ground term
+      std::map<TNode, Node>::iterator it = d_ground_eqc_map.find(r);
+      if (it != d_ground_eqc_map.end())
+      {
+        Trace("sg-gen-eqc") << "- Ground term : " << it->second << std::endl;
+      }
+    }
+  }
+}
+
+void ConjectureGenerator::computeRelevantEqcs(const std::vector<TNode>& eqcs)
+{
+  Trace("sg-proc") << "Compute relevant eqc..." << std::endl;
+  d_tge.d_relevant_eqc[0].clear();
+  d_tge.d_relevant_eqc[1].clear();
+  for (unsigned i = 0; i < eqcs.size(); i++)
+  {
+    TNode r = eqcs[i];
+    std::map<TNode, Node>::iterator it = d_ground_eqc_map.find(r);
+    unsigned index = 1;
+    if (it == d_ground_eqc_map.end())
+    {
+      index = 0;
+    }
+    // based on unproven conjectures? TODO
+    d_tge.d_relevant_eqc[index].push_back(r);
+  }
+  Trace("sg-gen-tg-debug") << "Initial relevant eqc : ";
+  for (unsigned i = 0; i < d_tge.d_relevant_eqc[0].size(); i++)
+  {
+    Trace("sg-gen-tg-debug") << "e" << d_em[d_tge.d_relevant_eqc[0][i]] << " ";
+  }
+  Trace("sg-gen-tg-debug") << std::endl;
+  Trace("sg-proc") << "...done compute relevant eqc" << std::endl;
+}
+
+std::vector<Node> ConjectureGenerator::buildTheoremIndex()
+{
+  Trace("sg-proc") << "Build theorem index..." << std::endl;
+  d_ue_canon.clear();
+  d_thm_index.clear();
+  std::vector<Node> provenConj;
+  quantifiers::FirstOrderModel* m = d_treg.getModel();
+  for (unsigned i = 0; i < m->getNumAssertedQuantifiers(); i++)
+  {
+    Node q = m->getAssertedQuantifier(i);
+    Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
+    Node conjEq;
+    if (q[1].getKind() == Kind::EQUAL)
+    {
+      bool isSubsume = false;
+      bool inEe = false;
+      for (unsigned r = 0; r < 2; r++)
+      {
+        TNode nl = q[1][r == 0 ? 0 : 1];
+        TNode nr = q[1][r == 0 ? 1 : 0];
+        Node eq;
+        if (r == 1
+            || std::find(d_conjectures.begin(), d_conjectures.end(), q)
+                   == d_conjectures.end())
+        {
+          eq = nl.eqNode(nr);
+          // check if it contains only relevant functions
+          if (d_tge.isRelevantTerm(eq))
+          {
+            // make it canonical
+            Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
+            eq = d_termCanon.getCanonicalTerm(eq);
+          }
+          else
+          {
+            eq = Node::null();
+          }
+        }
+        if (!eq.isNull())
+        {
+          if (r == 0)
+          {
+            inEe = d_ee_conjectures.find(q[1]) != d_ee_conjectures.end();
+            if (!inEe)
+            {
+              // add to universal equality engine
+              Node nlu = getUniversalRepresentative(eq[0], true);
+              Node nru = getUniversalRepresentative(eq[1], true);
+              if (areUniversalEqual(nlu, nru))
+              {
+                isSubsume = true;
+                // set inactive (will be ignored by other modules)
+                m->setQuantifierActive(q, false);
+              }
+              else
+              {
+                Node exp;
+                d_ee_conjectures[q[1]] = true;
+                d_uequalityEngine.assertEquality(nlu.eqNode(nru), true, exp);
+              }
+            }
+            Trace("sg-conjecture") << "*** CONJECTURE : currently proven"
+                                   << (isSubsume ? " and subsumed" : "");
+            Trace("sg-conjecture") << " : " << q[1] << std::endl;
+            provenConj.push_back(q);
+          }
+          if (!isSubsume)
+          {
+            Trace("thm-db-debug") << "Adding theorem to database " << eq[0]
+                                  << " == " << eq[1] << std::endl;
+            d_thm_index.addTheorem(eq[0], eq[1]);
+          }
+          else
+          {
+            break;
+          }
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+  }
+  return provenConj;
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }

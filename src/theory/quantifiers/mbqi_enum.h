@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H
-#define CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MBQI_ENUM_H
+#define CVC5__THEORY__QUANTIFIERS__MBQI_ENUM_H
 
 #include <map>
 #include <unordered_map>
@@ -108,14 +108,14 @@ class MQuantInfo
 };
 
 /**
- * MbqiFastSygus, which postprocesses an instantiation from MBQI based on
+ * MbqiEnum, which postprocesses an instantiation from MBQI based on
  * sygus enumeration.
  */
-class MbqiFastSygus : protected EnvObj
+class MbqiEnum : protected EnvObj
 {
  public:
-  MbqiFastSygus(Env& env, InstStrategyMbqi& parent);
-  ~MbqiFastSygus() {}
+  MbqiEnum(Env& env, InstStrategyMbqi& parent);
+  ~MbqiEnum() {}
 
   /**
    * Updates mvs to the desired instantiation of q. Returns true if successful.
@@ -160,4 +160,4 @@ class MbqiFastSygus : protected EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANTIFIERS__MBQI_FAST_SYGUS_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MBQI_ENUM_H */

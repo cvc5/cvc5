@@ -26,6 +26,7 @@
 namespace cvc5::internal {
 
 class TConvProofGenerator;
+class CDProof;
 
 namespace theory {
 namespace booleans {
@@ -60,6 +61,26 @@ class TheoryBoolRewriter : public TheoryRewriter
   static Node computeNnfNorm(NodeManager* nm,
                              const Node& n,
                              TConvProofGenerator* pg = nullptr);
+
+  /**
+   * Get BV invert solve, given input t1 = t2 and variable x, returns the solved
+   * form r for x, where x = r is equivalent to t1 = t2.
+   *
+   * @param nm Pointer to node manager.
+   * @param lit The node to rewrite.
+   * @param var The variable to solve for.
+   * @param disallowedKinds The set of kinds we are not allowed to traverse on
+   * the path to var.
+   * @param cdp If provided, we add a proof of (= lit ret) to cdp, where ret is
+   * the equality returned by this method.
+   * @return The right hand side r corresponding to the solved form for var in
+   * lit, or null if we fail.
+   */
+  static Node getBvInvertSolve(NodeManager* nm,
+                               const Node& lit,
+                               const Node& var,
+                               std::unordered_set<Kind>& disallowedKinds,
+                               CDProof* cdp = nullptr);
 
  protected:
   /**

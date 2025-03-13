@@ -13,7 +13,7 @@
  * A class for augmenting model-based instantiations via fast sygus enumeration.
  */
 
-#include "theory/quantifiers/mbqi_fast_sygus.h"
+#include "theory/quantifiers/mbqi_enum.h"
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
@@ -54,9 +54,12 @@ void MVarInfo::initialize(Env& env,
     trules.insert(trules.end(), vs.begin(), vs.end());
   }
   // include free symbols from body of quantified formula if applicable
-  std::unordered_set<Node> syms;
-  expr::getSymbols(q[1], syms);
-  trules.insert(trules.end(), syms.begin(), syms.end());
+  if (env.getOptions().quantifiers.mbqiEnumFreeSymsGrammar)
+  {
+    std::unordered_set<Node> syms;
+    expr::getSymbols(q[1], syms);
+    trules.insert(trules.end(), syms.begin(), syms.end());
+  }
   // include the external terminal rules
   for (const Node& symbol : etrules)
   {
@@ -65,19 +68,20 @@ void MVarInfo::initialize(Env& env,
       trules.push_back(symbol);
     }
   }
+  Trace("mbqi-fast-enum") << "Symbols: " << trules << std::endl;
   SygusGrammarCons sgc;
   Node bvl;
   TypeNode tng = sgc.mkDefaultSygusType(env, retType, bvl, trules);
-  if (TraceIsOn("mbqi-model-enum"))
+  if (TraceIsOn("mbqi-fast-enum"))
   {
-    Trace("mbqi-model-enum") << "Enumerate terms for " << retType;
+    Trace("mbqi-fast-enum") << "Enumerate terms for " << retType;
     if (!d_lamVars.isNull())
     {
-      Trace("mbqi-model-enum") << ", variable list " << d_lamVars;
+      Trace("mbqi-fast-enum") << ", variable list " << d_lamVars;
     }
-    Trace("mbqi-model-enum") << std::endl;
-    Trace("mbqi-model-enum") << "Based on grammar:" << std::endl;
-    Trace("mbqi-model-enum")
+    Trace("mbqi-fast-enum") << std::endl;
+    Trace("mbqi-fast-enum") << "Based on grammar:" << std::endl;
+    Trace("mbqi-fast-enum")
         << printer::smt2::Smt2Printer::sygusGrammarString(tng) << std::endl;
   }
   d_senum.reset(new SygusTermEnumerator(env, tng));
@@ -139,21 +143,22 @@ void MQuantInfo::initialize(Env& env, InstStrategyMbqi& parent, const Node& q)
     else
     {
       d_nindices.push_back(index);
-      // Include variables defined in terms of others we are not enumerating.
+      // include variables defined in terms of others if applicable
+      if (env.getOptions().quantifiers.mbqiEnumExtVarsGrammar)
+      {
+        etrules.push_back(v);
+      }
+    }
+  }
+  // include the global symbols if applicable
+  if (env.getOptions().quantifiers.mbqiEnumGlobalSymGrammar)
+  {
+    const context::CDHashSet<Node>& gsyms = parent.getGlobalSyms();
+    for (const Node& v : gsyms)
+    {
       etrules.push_back(v);
     }
   }
-  // Get free symbols from body of quantified formula here
-  std::unordered_set<Node> syms;
-  expr::getSymbols(q[1], syms);
-  for (const Node& symbol : syms)
-  {
-    if (std::find(etrules.begin(), etrules.end(), symbol) == etrules.end())
-    {
-      etrules.push_back(symbol);
-    }
-  }
-  Trace("mbqi-model-enum") << "Terminals: " << etrules << std::endl;
   // initialize the variables we are instantiating
   for (size_t index : d_indices)
   {
@@ -179,14 +184,14 @@ bool MQuantInfo::shouldEnumerate(const TypeNode& tn)
   return true;
 }
 
-MbqiFastSygus::MbqiFastSygus(Env& env, InstStrategyMbqi& parent)
+MbqiEnum::MbqiEnum(Env& env, InstStrategyMbqi& parent)
     : EnvObj(env), d_parent(parent)
 {
   d_subOptions.copyValues(options());
   smt::SetDefaults::disableChecking(d_subOptions);
 }
 
-MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
+MQuantInfo& MbqiEnum::getOrMkQuantInfo(const Node& q)
 {
   auto [it, inserted] = d_qinfo.try_emplace(q);
   if (inserted)
@@ -196,7 +201,7 @@ MQuantInfo& MbqiFastSygus::getOrMkQuantInfo(const Node& q)
   return it->second;
 }
 
-bool MbqiFastSygus::constructInstantiation(
+bool MbqiEnum::constructInstantiation(
     const Node& q,
     const Node& query,
     const std::vector<Node>& vars,

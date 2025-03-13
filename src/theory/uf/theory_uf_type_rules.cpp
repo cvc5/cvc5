@@ -38,6 +38,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
                                  bool check,
                                  std::ostream* errOut)
 {
+  Assert(n.getKind() == Kind::APPLY_UF);
   TNode f = n.getOperator();
   TypeNode fType = f.getTypeOrNull();
   if (!fType.isFunction())
@@ -56,14 +57,6 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    if (n.getNumChildren() != fType.getNumChildren() - 1)
-    {
-      if (errOut)
-      {
-        (*errOut) << "number of arguments does not match the function type";
-      }
-      return TypeNode::null();
-    }
     TNode::iterator argument_it = n.begin();
     TNode::iterator argument_it_end = n.end();
     TypeNode::iterator argument_type_it = fType.begin();
@@ -87,7 +80,17 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  return fType.getRangeType();
+  TypeNode ret = fType.getRangeType();
+  // If partially applied, we return the function type. Note we generally
+  // never construct APPLY_UF like this; moreover all such APPLY_UF terms are
+  // rewritten to HO_APPLY chains.
+  if (n.getNumChildren() != fType.getNumChildren() - 1)
+  {
+    std::vector<TypeNode> argTypes(fType.begin() + n.getNumChildren(),
+                                   fType.end() - 1);
+    ret = nodeManager->mkFunctionType(argTypes, ret);
+  }
+  return ret;
 }
 
 TypeNode CardinalityConstraintOpTypeRule::preComputeType(NodeManager* nm,
