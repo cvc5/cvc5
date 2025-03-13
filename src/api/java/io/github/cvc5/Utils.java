@@ -27,10 +27,33 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class Utils
 {
+  public enum OS {
+    WINDOWS,
+    MAC,
+    LINUX,
+    UNKNOWN;
+
+    public static final OS CURRENT = detectOS();
+
+    private static OS detectOS()
+    {
+      String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+      if (osName.startsWith("windows"))
+        return WINDOWS;
+      if (osName.startsWith("mac"))
+        return MAC;
+      if (osName.startsWith("linux"))
+        return LINUX;
+      return UNKNOWN;
+    }
+  }
+
   public static final String LIBPATH_IN_JAR = "/cvc5-libs";
 
   private static boolean areLibrariesLoaded = false;
@@ -38,42 +61,6 @@ public class Utils
   static
   {
     loadLibraries();
-  }
-
-  /**
-   * Reads a text file from the specified path within the JAR file and returns a list of library
-   * filenames.
-   * @param pathInJar The path to the text file inside the JAR
-   * @return a list of filenames read from the file
-   * @throws FileNotFoundException If the text file does not exist
-   * @throws IOException If an I/O error occurs
-   */
-  public static List<String> readLibraryFilenames(String pathInJar)
-      throws FileNotFoundException, IOException
-  {
-    List<String> filenames = new ArrayList<>();
-
-    // Load the input stream from the resource path within the JAR
-    try (InputStream inputStream = Utils.class.getResourceAsStream(pathInJar))
-    {
-      // Check if the input stream is null (resource not found)
-      if (inputStream == null)
-      {
-        throw new FileNotFoundException("Resource not found: " + pathInJar);
-      }
-
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
-      {
-        String line;
-        // Read each line from the file and add it to the list
-        while ((line = reader.readLine()) != null)
-        {
-          filenames.add(line);
-        }
-      }
-    }
-
-    return filenames;
   }
 
   /**
@@ -147,8 +134,19 @@ public class Utils
     {
       try
       {
-        // Try to extract the libraries from a JAR in the classpath
-        List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
+        List<String> filenames;
+        switch (OS.CURRENT)
+        {
+          case WINDOWS:
+            filenames = Arrays.asList(
+                "libwinpthread-1.dll", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "cvc5jni.dll");
+            break;
+          case MAC: filenames = Arrays.asList("libcvc5jni.dylib"); break;
+          default:
+            // We assume it is Linux or a Unix-based system.
+            // If not, there's nothing more we can do anyway.
+            filenames = Arrays.asList("libcvc5jni.so");
+        }
 
         // Create a temporary directory to store the libraries
         Path tempDir = Files.createTempDirectory("cvc5-libs");

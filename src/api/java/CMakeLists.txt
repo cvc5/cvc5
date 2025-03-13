@@ -244,8 +244,27 @@ if(DEFINED JNI_HOME)
   endif()
 endif()
 
-# find jni package
-find_package(JNI REQUIRED)
+if(BUILD_SHARED_LIBS)
+  # Find JNI package
+  find_package(JNI REQUIRED)
+else()
+  # When a static build is enabled, we still build a JNI shared library,
+  # but all cvc5 dependencies are statically linked to it. To do that,
+  # we need to find the shared JNI libraries for Java.
+  # Save the original suffixes
+  set(_original_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  # Temporarily add appropriate suffixes to find JNI libraries
+  if (WIN32)
+    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES .dll)
+  else()
+    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib)
+  endif()
+  # Find JNI package
+  find_package(JNI REQUIRED)
+  # Restore the original suffixes
+  set(CMAKE_FIND_LIBRARY_SUFFIXES "${_original_suffixes}")
+endif()
+
 message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JNI_INCLUDE_DIRS     : ${JNI_INCLUDE_DIRS}")
 message(STATUS "JNI_LIBRARIES        : ${JNI_LIBRARIES} ")
@@ -280,8 +299,15 @@ set(jni_files
   jni/term.cpp
   jni/term_manager.cpp)
 
-add_library(cvc5jni ${jni_files})
+# Enforce the build of a shared library
+add_library(cvc5jni SHARED ${jni_files})
 add_dependencies(cvc5jni generate-jni-headers)
+
+if(WIN32 AND NOT BUILD_SHARED_LIBS)
+  # Ensure that cvc5jni does not expect DLL imports,
+  # but static linking
+  target_compile_definitions(cvc5jni PRIVATE CVC5_STATIC_DEFINE)
+endif()
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
