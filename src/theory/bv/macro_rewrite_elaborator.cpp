@@ -49,9 +49,10 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForExtractConcat(cdp, eq);
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
       return ensureProofForMultSltMult(cdp, eq);
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      return ensureProofForAndOrXorConcatPullup(cdp, eq);
     default: break;
   }
-  // TODO PR #11676
   return false;
 }
 
@@ -353,6 +354,66 @@ bool MacroRewriteElaborator::ensureProofForMultSltMult(CDProof* cdp,
   Node equiv1 = pfn->getResult();
   Trace("bv-rew-elab") << "- cast to zero extend: " << equiv1 << std::endl;
   Node equiv2 = equiv1[1].eqNode(eq[1]);
+  cdp->addTrustedStep(
+      equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
+                                                                const Node& eq)
+{
+  // The elaboration below handles the case where a constant appears in the
+  // middle of a concatenation term that is being pulled up.
+  // (bvor xs (concat t1 ... tn c s1 ... sm) ws) ---> (concat ...)
+  // This method groups the concatenation term so that it matches the expected
+  // form of RARE rewrites bv-*-concat-pullup3. In particular we rewrite:
+  // (bvor xs (concat t1 ... tn c s1 ... sm) ws) --->
+  // (bvor xs (concat (concat t1 ... tn) c (concat s1 ... sm)) ws).
+  NodeManager* nm = nodeManager();
+  TConvProofGenerator tcpg(d_env);
+  bool addedRewrite = false;
+  for (const TNode& c : eq[0])
+  {
+    if (c.getKind() == Kind::BITVECTOR_CONCAT)
+    {
+      for (size_t i = 0, nchild = c.getNumChildren(); i < nchild; i++)
+      {
+        if (c[i].isConst() && i > 0 && i + 1 < nchild)
+        {
+          std::vector<Node> cpre(c.begin(), c.begin() + i);
+          Node npre = cpre.size() == 1
+                          ? cpre[0]
+                          : nm->mkNode(Kind::BITVECTOR_CONCAT, cpre);
+          std::vector<Node> cpost(c.begin() + i + 1, c.end());
+          Node npost = cpost.size() == 1
+                           ? cpost[0]
+                           : nm->mkNode(Kind::BITVECTOR_CONCAT, cpost);
+          Node cg = nm->mkNode(Kind::BITVECTOR_CONCAT, {npre, c[i], npost});
+          Trace("ajr-temp") << "Groupd " << c << " to " << cg << std::endl;
+          Assert(cg.getType() == c.getType());
+          // should be shown by ACI_NORM
+          tcpg.addRewriteStep(c,
+                              cg,
+                              nullptr,
+                              false,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          addedRewrite = true;
+          break;
+        }
+      }
+    }
+  }
+  if (!addedRewrite)
+  {
+    Assert(false) << "Failed to elaborate and-or-xor-concat-pullup";
+    return false;
+  }
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  cdp->addProof(pfn);
+  Node equiv1 = pfn->getResult();
+  Node equiv2 = equiv1[1].eqNode(eq[1]);
+  // should be shown by bv-*-concat-pullup3
   cdp->addTrustedStep(
       equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
