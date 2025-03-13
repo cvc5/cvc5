@@ -76,29 +76,6 @@
 ; return: true if the i^th bit of a is set.
 (define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
   (eo::is_eq (eo::extract a i i) #b1))
-
-; program: $bv_const_to_bitlist_rec
-; args:
-; - c (BitVec n): The bitvector constant to process.
-; - i Int: The index we are currently processing.
-; return: the bitlist for a starting with index i.
-(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
-  ((BitVec n) Int) (BitVec n)
-  (
-    (($bv_const_to_bitlist_rec c -1)  @bv_empty)
-    (($bv_const_to_bitlist_rec c i)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i -1))))
-  )
-)
-
-; define: $bv_const_to_bitlist
-; args:
-; - c (BitVec n): The bitvector constant to process.
-; return: >
-;   The bitlist for c, which is a term of the form
-;   (@from_bools a1 ...(@from_bools an @bv_empty)) where a1...an are
-;   the bits of c, considered in little endian form.
-(define $bv_const_to_bitlist ((n Int :implicit) (c (BitVec n)))
-  ($bv_const_to_bitlist_rec c (eo::add (eo::len c) -1)))
   
 ; define: $nary_app
 ; args:
