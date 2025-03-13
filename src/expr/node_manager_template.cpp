@@ -926,6 +926,26 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
+  // we always ensure that the function is "flat", i.e. it does not
+  // return a function. We turn (-> T (-> U V)) into (-> T U V).
+  TypeNode rangeType = sorts[sorts.size() - 1];
+  std::vector<TypeNode> flattenArgTypes;
+  while (rangeType.isFunction())
+  {
+    std::vector<TypeNode> argTypes = rangeType.getArgTypes();
+    flattenArgTypes.insert(
+        flattenArgTypes.end(), argTypes.begin(), argTypes.end());
+    rangeType = rangeType.getRangeType();
+  }
+  if (!flattenArgTypes.empty())
+  {
+    std::vector<TypeNode> newSorts(sorts.begin(), sorts.end());
+    newSorts.pop_back();
+    newSorts.insert(
+        newSorts.end(), flattenArgTypes.begin(), flattenArgTypes.end());
+    newSorts.push_back(rangeType);
+    return mkTypeNode(Kind::FUNCTION_TYPE, newSorts);
+  }
   return mkTypeNode(Kind::FUNCTION_TYPE, sorts);
 }
 

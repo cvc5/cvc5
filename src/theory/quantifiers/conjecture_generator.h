@@ -569,6 +569,37 @@ public:
    * - eqcs is unchanged.
    */
   void computeRelevantEqcs(const std::vector<TNode>& eqcs);
+  /** build theorem index from universally quantified formulas
+   *
+   * We look at all asserted formulas q of the below form and try to add their
+   * data to both the theorem index (d_thm_index) and the universal equality
+   * engine (d_uequalityEngine).
+   *
+   *     q := (forall x_1,...,x_n. l = r)
+   *
+   * However the theorem index expects equalities (t = u) that are in canonical
+   * form, contain only *relevant* function symbols, and are not *subsumed*
+   * (entailed in the universal equality engine). Therefore if q's body (l = r)
+   * contains an irrelevant function symbol, we skip over q.  Otherwise we
+   * canonize (l = r) to (l' = r') and check if it is subsumed.  If it is, we
+   * skip over q.  At this point we know that (l' = r') is relevant, canonical
+   * and not subsumed, so we (1) ensure that the equivalence classes of l' and
+   * r' are merged in the universal equality engine, and (2) add both (l' = r')
+   * and the canonical form of (r = l) to the theorem index.
+   *
+   * We also return all *proven conjectures* in a vector.  These are conjectures
+   * that had been proposed in prior rounds (elements of d_conjectures) and are
+   * asserted true in the current model.
+   *
+   * *Note.* There appear to be some unstated assumptions in the code.
+   * - if q is in d_conjectures it is assumed that its body (l = r) contains
+   * only relevant function symbols and is already in canonical form, and
+   * - if (l = r) is in the equality engine it is assumed that its canonical
+   * form (l' = r') is not subsumed and also that the equivalence classes of l'
+   * and r' do not have to be merged in the universal equality engine.  (I'm not
+   * sure that this is right.)
+   */
+  std::vector<Node> buildTheoremIndex();
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
