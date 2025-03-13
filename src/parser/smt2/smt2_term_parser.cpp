@@ -1253,9 +1253,10 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         }
         break;
       case Token::SYMBOL:
+      case Token::QUOTED_SYMBOL:
       case Token::HEX_LITERAL:
         // (_ char <hex_literal>) expects a hex literal
-        symbols.push_back(d_lex.tokenStr());
+        symbols.push_back(tokenStrToSymbol(tok));
         break;
       default:
         d_lex.unexpectedTokenError(
