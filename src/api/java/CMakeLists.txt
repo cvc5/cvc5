@@ -191,7 +191,12 @@ add_custom_command(
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
-if(NOT DEFINED JAVA_HOME AND NOT WIN32)
+# JNI_HOME, if defined, specifies the path to the JNI libraries
+if(NOT DEFINED JNI_HOME AND DEFINED ENV{JNI_HOME})
+  set(JNI_HOME $ENV{JNI_HOME})
+endif()
+
+if(NOT DEFINED JAVA_HOME AND NOT DEFINED JNI_HOME AND NOT WIN32)
   # If there are multiple versions of Java on the system,
   # CMake might find a version of JNI that differs from
   # the version of the Java executable. To address this,
@@ -210,6 +215,33 @@ if(NOT DEFINED JAVA_HOME AND NOT WIN32)
   # Extract the path from the line
   string(REPLACE "java.home = " "" JAVA_HOME "${java_home_line}")
   message(STATUS "JAVA_HOME: ${JAVA_HOME}")
+endif()
+
+if(DEFINED JNI_HOME)
+  message(STATUS "JNI_HOME: ${JNI_HOME}")
+  set(JAVA_HOME "${JNI_HOME}") # FindJNI uses JAVA_HOME
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    # If cross-compiling, we need to set the JNI variables manually
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/jawt.lib")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/jvm.lib")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/win32")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/libjawt.dylib")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/libjvm.dylib")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/darwin")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    else()
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/libjawt.so")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/libjvm.so")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/linux")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    endif()
+  endif()
 endif()
 
 # find jni package
