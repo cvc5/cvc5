@@ -475,7 +475,6 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     return ctx.solveContinuous(d_parser, false);
   }
 #if HAVE_SYS_WAIT_H
-  solver.setOption("fp-exp", "true");
   ctx.solveContinuous(d_parser, true);
 
   if (!ctx.d_logic)
