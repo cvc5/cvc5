@@ -30,26 +30,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the valid positions in a string, used
- * for axiomatizing the behavior of some term.
- */
-struct IndexVarAttributeId
-{
-};
-typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the valid lengths of a string, used for
- * axiomatizing the behavior of some term.
- */
-struct LengthVarAttributeId
-{
-};
-typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
-
 SkolemCache::SkolemCache(NodeManager* nm, Rewriter* rr) : d_nm(nm), d_rr(rr)
 {
   d_strType = d_nm->stringType();
@@ -284,14 +264,16 @@ Node SkolemCache::mkIndexVar(NodeManager* nm, Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   // Note that proof rules may depend on the name of this variable.
-  return bvm->mkBoundVar<IndexVarAttribute>(t, "@var.str_index", intType);
+  return bvm->mkBoundVar(
+      BoundVarId::STRINGS_INDEX, t, "@var.str_index", intType);
 }
 
 Node SkolemCache::mkLengthVar(NodeManager* nm, Node t)
 {
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
-  return bvm->mkBoundVar<LengthVarAttribute>(t, "@var.str_length", intType);
+  return bvm->mkBoundVar(
+      BoundVarId::STRINGS_LENGTH, t, "@var.str_length", intType);
 }
 
 Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)

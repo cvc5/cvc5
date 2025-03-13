@@ -17,7 +17,6 @@
 
 #include <sstream>
 
-#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -479,23 +478,13 @@ Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
   return quantifiers::BoundedIntegers::mkBoundedForall(nm, bvl, body);
 }
 
-/**
- * Mapping to the variable used for binding the witness term for the abstract
- * value below.
- */
-struct StringValueForLengthVarAttributeId
-{
-};
-typedef expr::Attribute<StringValueForLengthVarAttributeId, Node>
-    StringValueForLengthVarAttribute;
-
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
   NodeManager* nm = n.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node cacheVal = BoundVarManager::getCacheValue(n, len);
-  Node v = bvm->mkBoundVar<StringValueForLengthVarAttribute>(
-      cacheVal, "s", n.getType());
+  Node v = bvm->mkBoundVar(
+      BoundVarId::STRINGS_VALUE_FOR_LENGTH, cacheVal, "s", n.getType());
   Node pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(len);
   // return (witness ((v String)) (= (str.len v) len))
   Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, v);

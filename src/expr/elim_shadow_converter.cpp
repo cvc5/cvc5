@@ -15,25 +15,12 @@
 
 #include "expr/elim_shadow_converter.h"
 
-#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
-
-/**
- * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
- * shadowed variable v, which is quantified by a subformula q' of quantified
- * formula q. Shadowed variables may be introduced when e.g. quantified formulas
- * appear on the right hand sides of substitutions in preprocessing. They are
- * eliminated by the rewriter.
- */
-struct QElimShadowAttributeId
-{
-};
-using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 ElimShadowNodeConverter::ElimShadowNodeConverter(NodeManager* nm, const Node& q)
     : NodeConverter(nm), d_closure(q)
@@ -84,7 +71,7 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node ii = nm->mkConstInt(Rational(i));
   Node cacheVal = BoundVarManager::getCacheValue(q, n, ii);
-  return bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, n[0][i].getType());
+  return bvm->mkBoundVar(BoundVarId::ELIM_SHADOW, cacheVal, n[0][i].getType());
 }
 
 Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
