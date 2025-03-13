@@ -600,6 +600,20 @@ public:
    * sure that this is right.)
    */
   std::vector<Node> buildTheoremIndex();
+  /* examine status of conjectures
+   *
+   * This is a debug printing function that does not modify the state of the
+   * conjecture generator.  We iterate over all unproven conjectures q.  If all
+   * of q's bound variables are irrelevant, we claim that q has been *disproven*
+   * and print the values of these bound variables as a counterexample to q.  If
+   * at least one of q's bound variables is still relevant we print all of q's
+   * relevant bound variables and claim that q remains *active*.
+   *
+   * *Note.* From the documentation for buildTheoremIndex(), any element of
+   * d_conjectures that is not in provenConj is considered an unproven
+   * conjecture.
+   */
+  void debugPrintUnprovenConjectures(const std::vector<Node>& provenConj);
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
