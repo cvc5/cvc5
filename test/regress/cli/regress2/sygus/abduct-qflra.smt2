@@ -1,0 +1,5 @@
+(set-logic QF_LRA)
+(declare-fun A () Real)
+(declare-fun B () Real)
+(assert (>= A 500.0))
+(get-abduct G1_abduct (= A (* B 0.87)))
