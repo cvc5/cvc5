@@ -75,8 +75,9 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
  public:
   CadicalPropagator(prop::TheoryProxy* proxy,
                     context::Context* context,
-                    CaDiCaL::Solver& solver)
-      : d_proxy(proxy), d_context(*context), d_solver(solver)
+                    CaDiCaL::Solver& solver,
+                    StatisticsRegistry& stats)
+      : d_proxy(proxy), d_context(*context), d_solver(solver), d_stats(stats)
   {
     d_var_info.emplace_back();  // 0: Not used
   }
@@ -91,6 +92,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void notify_assignment(const std::vector<int>& lits) override
   {
+    ++d_stats.notifyAssignment;
     if (d_found_solution)
     {
       return;
@@ -171,6 +173,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     {
       return;
     }
+    ++d_stats.notifyFixedAssignment;
 
     Trace("cadical::propagator")
         << "notif::fixed assignment: " << slit << std::endl;
@@ -194,6 +197,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     d_decisions.emplace_back();
     Trace("cadical::propagator")
         << "notif::decision: new level " << d_decisions.size() << std::endl;
+    ++d_stats.notifyNewDecision;
   }
 
   /**
@@ -247,6 +251,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     d_proxy->notifyBacktrack();
     // Clear the propgations since they are not valid anymore.
     d_propagations.clear();
+    ++d_stats.notifyBacktrack;
 
     Trace("cadical::propagator") << "notif::backtrack end" << std::endl;
   }
@@ -270,6 +275,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
       return true;
     }
 
+    ++d_stats.cbCheckFoundModel;
     // CaDiCaL may backtrack while importing clauses, which can result in some
     // clauses not being processed. Make sure to add all clauses before
     // checking the model.
@@ -374,6 +380,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     {
       return 0;
     }
+    ++d_stats.cbDecide;
     bool stopSearch = false;
     bool requirePhase = false;
     SatLiteral lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
@@ -435,6 +442,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     {
       return 0;
     }
+    ++d_stats.cbPropagate;
     Trace("cadical::propagator") << "cb::propagate" << std::endl;
     if (d_propagations.empty())
     {
@@ -461,6 +469,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   int cb_add_reason_clause_lit(int propagated_lit) override
   {
+    ++d_stats.cbAddReasonClauseLit;
     // Get reason for propagated_lit.
     if (!d_processing_reason)
     {
@@ -504,6 +513,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   bool cb_has_external_clause(bool& is_forgettable) override
   {
+    ++d_stats.cbHasExternalClause;
     is_forgettable = false;
     return !d_new_clauses.empty();
   }
@@ -516,6 +526,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   int cb_add_external_clause_lit() override
   {
+    ++d_stats.cbAddExternalClauseLit;
     Assert(!d_new_clauses.empty());
     CadicalLit lit = d_new_clauses.front();
     d_new_clauses.pop_front();
@@ -832,6 +843,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void renotify_fixed()
   {
+    ++d_stats.renotifyFixed;
     for (const auto& lit : d_renotify_fixed)
     {
       Trace("cadical::propagator")
@@ -844,6 +856,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
       // level at which the variable was fixed, so that it will be renotified,
       // if needed in lower user levels.
       d_var_info[lit.getSatVariable()].level_fixed = current_user_level();
+      ++d_stats.renotifyFixedLit;
     }
     d_renotify_fixed.clear();
   }
@@ -977,6 +990,47 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /** Flag indicating if SAT solver is in search(). */
   bool d_in_search = false;
+
+  struct Statistics
+  {
+    Statistics(StatisticsRegistry& stats)
+        : renotifyFixed(
+              stats.registerInt("cadical::propagator::renotify_fixed")),
+          renotifyFixedLit(
+              stats.registerInt("cadical::propagator::renotify_fixed_lit")),
+          notifyAssignment(
+              stats.registerInt("cadical::propagator::notify_assignment")),
+          notifyFixedAssignment(stats.registerInt(
+              "cadical::propagator::notify_fixed_assignment")),
+          notifyNewDecision(
+              stats.registerInt("cadical::propagator::notify_new_decision")),
+          notifyBacktrack(
+              stats.registerInt("cadical::propagator::notify_backtrack")),
+          cbCheckFoundModel(
+              stats.registerInt("cadical::propagator::cb_check_found_model")),
+          cbDecide(stats.registerInt("cadical::propagator::cb_decide")),
+          cbPropagate(stats.registerInt("cadical::propagator::cb_propagate")),
+          cbAddReasonClauseLit(stats.registerInt(
+              "cadical::propagator::cb_add_reason_clause_lit")),
+          cbHasExternalClause(
+              stats.registerInt("cadical::propagator::cb_has_external_clause")),
+          cbAddExternalClauseLit(stats.registerInt(
+              "cadical::propagator::cb_add_external_clause_lit"))
+    {
+    }
+    IntStat renotifyFixed;
+    IntStat renotifyFixedLit;
+    IntStat notifyAssignment;
+    IntStat notifyFixedAssignment;
+    IntStat notifyNewDecision;
+    IntStat notifyBacktrack;
+    IntStat cbCheckFoundModel;
+    IntStat cbDecide;
+    IntStat cbPropagate;
+    IntStat cbAddReasonClauseLit;
+    IntStat cbHasExternalClause;
+    IntStat cbAddExternalClauseLit;
+  } d_stats;
 };
 
 class ClauseLearner : public CaDiCaL::Learner
@@ -1262,7 +1316,8 @@ void CadicalSolver::initialize(prop::TheoryProxy* theoryProxy,
                                PropPfManager* ppm)
 {
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(theoryProxy, d_context, *d_solver));
+  d_propagator.reset(new CadicalPropagator(
+      theoryProxy, d_context, *d_solver, statisticsRegistry()));
   if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
