@@ -340,8 +340,12 @@ class PortfolioProcessPool
       job.d_outPipe.dup(STDOUT_FILENO);
 
       std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
+      std::string logic = d_ctx.solver().getLogic();
+
       d_ctx.runResetCommand();
+
       job.d_config.applyOptions(d_ctx.solver());
+      d_ctx.solver().setLogic(logic);
 
       for (Term& t : assertions)
       {
