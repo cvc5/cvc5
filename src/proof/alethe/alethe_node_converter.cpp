@@ -183,9 +183,26 @@ Node AletheNodeConverter::postConvert(Node n)
               Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
                                              cacheVals);
               Assert(!sk.isNull());
+              if (d_skolems.find(sk) != d_skolems.end())
+              {
+                continue;
+              }
               Assert(d_skolemsAux.find(sk) != d_skolemsAux.end())
                   << "Could not find sk " << sk;
               d_skolems[sk] = d_skolemsAux[sk];
+            }
+            // as a sanity check, if there is any aux skolem not saved, we do so
+            // here otherwise we would lose this definition, since we'll not
+            // build a witness for it in another oppontinury because the skolem
+            // will not be revisited
+            for (const auto& [sk, lostWitness] : d_skolemsAux)
+            {
+              if (d_skolems.find(sk) == d_skolems.end())
+              {
+                d_skolems[sk] = lostWitness;
+                Trace("alethe-conv") << "\twill lose witness for " << sk << ": "
+                                     << lostWitness << std::endl;
+              }
             }
             d_skolemsAux.clear();
           }
