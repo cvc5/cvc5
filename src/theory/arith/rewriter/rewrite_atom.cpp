@@ -251,7 +251,7 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
 {
   if (auto response = tryEvaluateRelation(kind, left, right); response)
   {
-    return mkConst(NodeManager::currentNM(), *response != negate);
+    return mkConst(left.getNodeManager(), *response != negate);
   }
   if (negate)
   {

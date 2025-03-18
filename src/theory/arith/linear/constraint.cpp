@@ -743,7 +743,8 @@ void ConstraintRule::print(std::ostream& out, bool produceProofs) const
   out << "}";
 }
 
-bool Constraint::wellFormedFarkasProof() const {
+bool Constraint::wellFormedFarkasProof(NodeManager* nm) const
+{
   Assert(hasProof());
 
   const ConstraintRule& cr = getConstraintRule();
@@ -768,7 +769,7 @@ bool Constraint::wellFormedFarkasProof() const {
   const ArithVariables& vars = d_database->getArithVariables();
 
   DeltaRational rhs(0);
-  Node lhs = Polynomial::mkZero().getNode();
+  Node lhs = Polynomial::mkZero(nm).getNode();
 
   RationalVector::const_iterator coeffIterator = cr.d_farkasCoefficients->end()-1;
   RationalVector::const_iterator coeffBegin = cr.d_farkasCoefficients->begin();
@@ -1295,7 +1296,10 @@ void Constraint::propagate(){
  * ---
  *  1*(x <= a) + (-1)*(x > b) => (0 <= a-b)
  */
-void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
+void Constraint::impliedByUnate(NodeManager* nm,
+                                ConstraintCP imp,
+                                bool nowInConflict)
+{
   Trace("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
   Assert(!hasProof());
   Assert(imp->hasProof());
@@ -1330,10 +1334,11 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
     Trace("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
 
-  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
+  if (TraceIsOn("constraints::wffp") && !wellFormedFarkasProof(nm))
+  {
     getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
   }
-  Assert(wellFormedFarkasProof());
+  Assert(wellFormedFarkasProof(nm));
 }
 
 void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInConflict){
@@ -1441,7 +1446,11 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   for i in [0,a.size) : coeff[i] corresponds to a[i], and
  *   coeff.back() corresponds to the current constraint.
  */
-void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
+void Constraint::impliedByFarkas(NodeManager* nm,
+                                 const ConstraintCPVec& a,
+                                 RationalVectorCP coeffs,
+                                 bool nowInConflict)
+{
   Trace("constraints::pf") << "impliedByFarkas(" << this;
   if (TraceIsOn("constraints::pf")) {
     for (const ConstraintCP& p : a)
@@ -1484,12 +1493,12 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   if(TraceIsOn("constraint::conflictCommit") && inConflict()){
     Trace("constraint::conflictCommit") << "inConflict@impliedByFarkas " << this << std::endl;
   }
-  if(TraceIsOn("constraints::wffp") && !wellFormedFarkasProof()){
+  if (TraceIsOn("constraints::wffp") && !wellFormedFarkasProof(nm))
+  {
     getConstraintRule().print(Trace("constraints::wffp"), d_produceProofs);
   }
-  Assert(wellFormedFarkasProof());
+  Assert(wellFormedFarkasProof(nm));
 }
-
 
 void Constraint::setInternalAssumption(bool nowInConflict){
   Trace("constraints::pf") << "setInternalAssumption(" << this;
@@ -2253,13 +2262,13 @@ void ConstraintDatabase::outputUnateInequalityLemmas(
 bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
   if(cons->negationHasProof()){
     Trace("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
-    cons->impliedByUnate(ant, true);
+    cons->impliedByUnate(nodeManager(), ant, true);
     d_raiseConflict.raiseConflict(cons, InferenceId::ARITH_CONF_UNATE_PROP);
     return true;
   }else if(!cons->isTrue()){
     ++d_statistics.d_unatePropagateImplications;
     Trace("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
-    cons->impliedByUnate(ant, false);
+    cons->impliedByUnate(nodeManager(), ant, false);
     cons->tryToPropagate();
     return false;
   } else {

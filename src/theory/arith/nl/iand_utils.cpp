@@ -48,7 +48,7 @@ bool oneBitAnd(bool a, bool b) { return (a && b); }
 // computes (bv_to_int ((_ extract i+size-1 i) (int_to_bv x))))
 Node intExtract(Node x, uint32_t i, uint32_t size)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   Assert(size > 0);
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
