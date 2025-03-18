@@ -42,7 +42,11 @@ public:
   /** Virtual destructor */
   virtual ~SatSolver() { }
 
-  /** Assert a clause in the solver. */
+  /**
+   * Add clause to SAT solver.
+   * @param clause    The clause to add.
+   * @param removable True to indicate that this clause is not irredundant.
+   */
   virtual ClauseId addClause(SatClause& clause,
                              bool removable) = 0;
 
@@ -61,10 +65,18 @@ public:
    */
   virtual SatVariable newVar(bool isTheoryAtom, bool canErase) = 0;
 
-  /** Create a new (or return an existing) boolean variable representing the constant true */
+  /**
+   * Create a new (or return an existing) boolean variable representing the
+   * constant true.
+   * @return The variable representing true.
+   */
   virtual SatVariable trueVar() = 0;
 
-  /** Create a new (or return an existing) boolean variable representing the constant false */
+  /**
+   * Create a new (or return an existing) boolean variable representing the
+   * constant false.
+   * @return The variable representing false.
+   */
   virtual SatVariable falseVar() = 0;
 
   /** Check the satisfiability of the added clauses */
