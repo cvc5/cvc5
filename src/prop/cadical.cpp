@@ -92,7 +92,17 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void notify_assignment(const std::vector<int>& lits) override
   {
+    if (Trace("cadical::propagator").isConnected())
+    {
+      Trace("cadical::propagator") << "notif::assignments: { ";
+      for (auto lit : lits)
+      {
+        Trace("cadical::propagator") << lit << " ";
+      }
+      Trace("cadical::propagator") << "}" << std::endl;
+    }
     ++d_stats.notifyAssignment;
+    
     if (d_found_solution)
     {
       return;
@@ -312,6 +322,9 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
     if (d_var_info.size() != size)
     {
+      Trace("cadical::propagator") << "cb::check_found_model end: new "
+                                      "variables added via theory decision"
+                                   << std::endl;
       return false;
     }
     // Theory engine may trigger a recheck, unless new variables were added
