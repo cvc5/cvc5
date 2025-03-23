@@ -175,7 +175,7 @@ Node AletheNodeConverter::postConvert(Node n)
         {
           if (std::find(d_skolemsList.begin(), d_skolemsList.end(), n)
               == d_skolemsList.end())
-            {
+          {
             d_skolemsList.push_back(n);
           }
           return n;
