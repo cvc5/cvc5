@@ -107,6 +107,7 @@ Node AletheNodeConverter::postConvert(Node n)
         // ignore purification skolems
         if (sfi != SkolemId::PURIFY)
         {
+          d_skolemsList.push_back(n);
           d_skolems[n] = conv;
         }
         return conv;
@@ -169,46 +170,16 @@ Node AletheNodeConverter::postConvert(Node n)
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
         Trace("alethe-conv") << ".. witness: " << witness << "\n";
         witness = convert(witness);
+        d_skolems[n] = witness;
         if (d_defineSkolems)
         {
-          d_skolemsAux[n] = witness;
-          if (index == quant[0].getNumChildren() - 1)
-          {
-            Trace("alethe-conv")
-                << "....populate map from aux : " << d_skolemsAux << "\n";
-            for (size_t i = index + 1; i > 0; --i)
+          if (std::find(d_skolemsList.begin(), d_skolemsList.end(), n)
+              == d_skolemsList.end())
             {
-              std::vector<Node> cacheVals{quant,
-                                          d_nm->mkConstInt(Rational(i - 1))};
-              Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                             cacheVals);
-              Assert(!sk.isNull());
-              if (d_skolems.find(sk) != d_skolems.end())
-              {
-                continue;
-              }
-              Assert(d_skolemsAux.find(sk) != d_skolemsAux.end())
-                  << "Could not find sk " << sk;
-              d_skolems[sk] = d_skolemsAux[sk];
-            }
-            // as a sanity check, if there is any aux skolem not saved, we do so
-            // here otherwise we would lose this definition, since we'll not
-            // build a witness for it in another oppontinury because the skolem
-            // will not be revisited
-            for (const auto& [sk, lostWitness] : d_skolemsAux)
-            {
-              if (d_skolems.find(sk) == d_skolems.end())
-              {
-                d_skolems[sk] = lostWitness;
-                Trace("alethe-conv") << "\twill lose witness for " << sk << ": "
-                                     << lostWitness << std::endl;
-              }
-            }
-            d_skolemsAux.clear();
+            d_skolemsList.push_back(n);
           }
           return n;
         }
-        d_skolems[n] = witness;
         return witness;
       }
       std::stringstream ss;
@@ -536,6 +507,11 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
 {
   return d_skolems;
+}
+
+const std::vector<Node>& AletheNodeConverter::getSkolemList()
+{
+  return d_skolemsList;
 }
 
 }  // namespace proof
