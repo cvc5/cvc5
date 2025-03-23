@@ -66,7 +66,7 @@ class AletheNodeConverter : public BaseAlfNodeConverter
    */
   const std::map<Node, Node>& getSkolemDefinitions();
 
-  /** Retrive ordered list of Skolems.  This list is ordered so that a Skolem
+  /** Retrieve ordered list of Skolems.  This list is ordered so that a Skolem
    * whose definition depends on another Skolem will come after that Skolem.
    */
   const std::vector<Node>& getSkolemList();
