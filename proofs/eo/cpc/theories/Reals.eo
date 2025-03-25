@@ -18,4 +18,6 @@
                            Real) :left-assoc)
 
 ; skolems
-(declare-const @div_by_zero (-> Real Real))
+(declare-const @div_by_zero (-> (! Type :var T :implicit)
+                                (! T :requires (($is_arith_type T) true))
+                                Real))
