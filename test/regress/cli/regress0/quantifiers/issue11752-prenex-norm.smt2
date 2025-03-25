@@ -1,4 +1,4 @@
-; COMMAND-LINE: --prenex-quant=norm
+; COMMAND-LINE: --prenex-quant=norm -q
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x Bool)
