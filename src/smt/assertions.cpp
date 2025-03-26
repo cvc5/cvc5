@@ -129,7 +129,9 @@ void Assertions::addFormula(TNode n,
           << "Define fun: " << n[0] << " = " << n[1] << std::endl;
       NodeManager* nm = nodeManager();
       TrustSubstitutionMap& tsm = d_env.getTopLevelSubstitutions();
-      if (!isFunDef && tsm.get().hasSubstitution(n[0]))
+      if (!isFunDef
+          && (tsm.get().hasSubstitution(n[0])
+              || n[1].getKind() != Kind::LAMBDA))
       {
         return;
       }
