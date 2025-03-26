@@ -87,7 +87,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
           vars.begin(), vars.end(), subs.begin(), subs.end());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-    if (!canUseAsApplyUfOperator(node.getOperator()))
+    // note that for sanity we ensure that partially applied APPLY_UF (those
+    // with function return type) are rewritten here, although these should
+    // in general be avoided e.g. during parsing.
+    if (!canUseAsApplyUfOperator(node.getOperator())
+        || node.getType().isFunction())
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }

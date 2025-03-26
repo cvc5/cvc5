@@ -400,9 +400,10 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
   Node sign_bit = utils::mkExtract(a, size-1, size-1);
   
   if (amount >= Integer(size)) {
-    // if we are shifting more than the length of the bitvector return n repetitions
-    // of the first bit
-    return utils::mkConcat(sign_bit, size); 
+    // if we are shifting more than the length of the bitvector return n
+    // repetitions of the first bit use repeat, which enables RARE
+    // reconstruction to succeed
+    return utils::mkRepeat(sign_bit, size);
   }
   
   // make sure we do not lose information casting
@@ -412,8 +413,8 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
   if (uint32_amount == 0) {
     return a; 
   }
-  
-  Node left = utils::mkConcat(sign_bit, uint32_amount); 
+
+  Node left = utils::mkRepeat(sign_bit, uint32_amount);
   Node right = utils::mkExtract(a, size - 1, uint32_amount);
   return utils::mkConcat(left, right); 
 }
@@ -558,7 +559,7 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
   Kind kind = node.getKind();
   TNode concat;
   Node x, y, z, c;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   NodeBuilder xb(nm, kind);
   NodeBuilder yb(nm, Kind::BITVECTOR_CONCAT);
   NodeBuilder zb(nm, Kind::BITVECTOR_CONCAT);
@@ -1413,7 +1414,7 @@ Node RewriteRule<ExtractMultLeadingBit>::apply(TNode node) {
   // Node extract2 = utils::mkExtract(node[1], k - 1, 0);
   // Node k_zeroes = utils::mkConst(n - k, 0u);
 
-  // NodeManager *nm = NodeManager::currentNM();
+  // NodeManager *nm = node.getNodeManager();
   // Node new_mult = nm->mkNode(Kind::BITVECTOR_MULT, extract1, extract2);
   // Node result = utils::mkExtract(nm->mkNode(Kind::BITVECTOR_CONCAT, k_zeroes,
   // new_mult), high, low);
@@ -1746,7 +1747,7 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   unsigned amount1 =
       node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   if (node[0].getKind() == Kind::BITVECTOR_ZERO_EXTEND)
   {
     unsigned amount2 = node[0]
@@ -2069,7 +2070,7 @@ inline bool RewriteRule<IneqElimConversion>::applies(TNode node)
 template <>
 inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   std::vector<Node> children;
   for (const Node& nc : node)
   {
@@ -2327,7 +2328,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   std::tie(ml[0], ml[1], is_sext) = extract_ext_tuple(node[0]);
   std::tie(mr[0], mr[1], std::ignore) = extract_ext_tuple(node[1]);
 
-  TNode addxt, x, t, a;
+  TNode addxt, x, a;
   if (ml[0].getKind() == Kind::BITVECTOR_ADD)
   {
     addxt = ml[0];
@@ -2341,9 +2342,11 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   }
 
   x = (mr[0] == a) ? mr[1] : mr[0];
-  t = (addxt[0] == x) ? addxt[1] : addxt[0];
-
-  NodeManager *nm = NodeManager::currentNM();
+  // Make the subtraction term (bvsub (bvadd x t) x) or (bvsub (bvadd t x) x),
+  // which will simplify to t. We use this instead of t to simplify the number
+  // of cases needed for proof reconstruction.
+  NodeManager* nm = node.getNodeManager();
+  Node t = nm->mkNode(Kind::BITVECTOR_SUB, addxt, x);
   Node zero_t = utils::mkZero(nm, utils::getSize(t));
   Node zero_a = utils::mkZero(nm, utils::getSize(a));
 

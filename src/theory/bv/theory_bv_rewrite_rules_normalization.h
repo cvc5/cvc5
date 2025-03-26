@@ -128,11 +128,8 @@ inline Node RewriteRule<ExtractSignExtend>::apply(TNode node)
     unsigned top = utils::getSize(extendee) - 1;
     Node most_significant_bit = utils::mkExtract(extendee, top, top);
     std::vector<Node> bits;
-    for (unsigned i = 0; i < high - low + 1; ++i)
-    {
-      bits.push_back(most_significant_bit);
-    }
-    resultNode = utils::mkConcat(bits);
+    // use repeat, which enables RARE reconstruction to succeed
+    resultNode = utils::mkRepeat(most_significant_bit, high - low + 1);
   }
   Trace("bv-rewrite") << "                           =>" << resultNode
                       << std::endl;
@@ -344,7 +341,7 @@ static inline void addToChildren(TNode term,
                                  BitVector coeff,
                                  std::vector<Node> &children)
 {
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = term.getNodeManager();
   if (coeff == BitVector(size, (unsigned)0))
   {
     return;
@@ -1500,7 +1497,7 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<NormalizeEqAddNeg>(" << node << ")"
                       << std::endl;
 
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   NodeBuilder nb_lhs(nm, Kind::BITVECTOR_ADD);
   NodeBuilder nb_rhs(nm, Kind::BITVECTOR_ADD);
 

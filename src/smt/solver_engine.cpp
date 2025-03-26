@@ -182,8 +182,6 @@ void SolverEngine::finishInit()
 
   if (d_env->getOptions().smt.produceProofs)
   {
-    // ensure bound variable uses canonical bound variables
-    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager

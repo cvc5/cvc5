@@ -120,7 +120,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // Rewrite without using the rewriter as a subutility, which ensures
       // that we can reconstruct the reasoning in a proof.
       Rewrite rule;
-      ArithEntail ae(nullptr);
+      ArithEntail ae(nodeManager(), nullptr);
       StringsEntail sent(nullptr, ae);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
@@ -2512,7 +2512,9 @@ Node SequencesRewriter::rewriteSubstr(Node node)
           return returnRewrite(node, ret, Rewrite::SS_CONST_START_OOB);
         }
       }
-      if (node[2].getConst<Rational>() > rMaxInt)
+      Rational endPt(node[1].getConst<Rational>()
+                     + node[2].getConst<Rational>());
+      if (endPt > rMaxInt)
       {
         // take up to the end of the string
         size_t lenS = Word::getLength(s);
@@ -2528,6 +2530,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       {
         uint32_t len =
             node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+        // should not overflow due to checks above
+        Assert(start == 0 || start + len > len);
         if (start + len > Word::getLength(node[0]))
         {
           // take up to the end of the string
