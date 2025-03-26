@@ -3770,6 +3770,7 @@ set(regress_1_tests
   regress1/timeout_core_soft.smt2
   regress1/timeout_core_soft_simple.smt2
   regress1/trim.cvc.smt2
+  regress1/ubv-sbv-sat.smt2
   regress1/ubv-sbv-unsat.smt2
   regress1/uf2.smt2
   regress1/uflia/DRAGON_11_e1_2450.ec.minimized.smt2
