@@ -35,6 +35,7 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::COVERINGS_INIT: return os << "COVERINGS_INIT";
     case InferStep::COVERINGS_FULL: return os << "COVERINGS_FULL";
     case InferStep::NL_FACTORING: return os << "NL_FACTORING";
+    case InferStep::NL_FLATTEN_EQ: return os << "NL_FLATTEN_EQ";
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
     case InferStep::IAND_INITIAL: return os << "IAND_INITIAL";

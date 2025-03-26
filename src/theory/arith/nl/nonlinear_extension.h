@@ -176,6 +176,7 @@ class NonlinearExtension : EnvObj
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
 
+  void checkFlattenEq();
   /** run check strategy
    *
    * Check assertions for consistency in the effort LAST_CALL with a subset of

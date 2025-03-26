@@ -439,6 +439,35 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
+void NonlinearExtension::checkFlattenEq()
+{
+  std::vector<Node>& mvs = d_extState.d_ms_vars;
+  ArithSubs as;
+  std::map<Node, Node> repToSubs;
+  std::map<Node, Node>::iterator itr;
+  eq::EqualityEngine* ee = d_astate.getEqualityEngine();
+  for (const Node& v : mvs)
+  {
+    Assert (!as.contains(v));
+    Node vr = ee->getRepresentative(v);
+    itr = repToSubs.find(vr);
+    if (itr!=repToSubs.end())
+    {
+      // induces a cycle???
+      Node vrs = as.getSubs(vr);
+      Assert (!vrs.isNull());
+      continue;
+    }
+    // find a legal non-linear mult term in its equivalence class
+    eq::EqClassIterator eqci = eq::EqClassIterator(vr, ee);
+    while (!eqci.isFinished())
+    {
+      Node n = (*eqci);
+      ++eqci;
+    }
+  }
+}
+  
 void NonlinearExtension::runStrategy(Theory::Effort effort,
                                      const std::vector<Node>& assertions,
                                      const std::vector<Node>& false_asserts,
@@ -491,6 +520,9 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_extState.init(xts);
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
+        break;
+      case InferStep::NL_FLATTEN_EQ:
+        checkFlattenEq();
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
