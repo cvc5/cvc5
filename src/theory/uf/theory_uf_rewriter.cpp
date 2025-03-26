@@ -149,6 +149,24 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   {
     return rewriteIntToBV(node);
   }
+  else if (k ==Kind::BITVECTOR_UBV_TO_INT)
+  {
+    // for now, just convert the kind
+    NodeManager * nm = nodeManager();
+    Node r = nm->mkNode(Kind::BITVECTOR_TO_NAT, node[0]);
+    return RewriteResponse(REWRITE_AGAIN_FULL, r);
+  }
+  else if (k ==Kind::BITVECTOR_SBV_TO_INT)
+  {
+    NodeManager * nm = nodeManager();
+    Node r = nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, node[0]);
+    const uint32_t size = node[0].getType().getBitVectorSize();
+    Node ttm = nm->mkConstInt(Rational(Integer(2).pow(size)));
+    Node ex = bv::utils::mkExtract(node[0], size-1, size-1);
+    Node cond = nm->mkNode(Kind::EQUAL, ex, bv::utils::mkZero(nm, 1));
+    Node rite = nm->mkNode(Kind::ITE, cond, r, nm->mkNode(Kind::SUB, r, ttm));
+    return RewriteResponse(REWRITE_AGAIN_FULL, rite);
+  }
   return RewriteResponse(REWRITE_DONE, node);
 }
 
