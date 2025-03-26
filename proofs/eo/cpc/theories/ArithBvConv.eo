@@ -17,8 +17,8 @@
 )
 
 ; disclaimer: >
-;   This function is not a function in SMT-LIB, it is a synonym of the SMT-LIB
-;   standard operator int_to_bv.
+;   This function is not a function in SMT-LIB. It is a (deprecated) synonym of
+;   the SMT-LIB standard operator int_to_bv.
 (define int2bv () int_to_bv)
 
 ; disclaimer: >
