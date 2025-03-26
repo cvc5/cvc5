@@ -63,11 +63,13 @@ class AletheNodeConverter : public BaseAlfNodeConverter
   Node getOriginalAssumption(Node n);
 
   /** Retrieve a mapping between Skolems and their converted definitions.
-   *
-   * Note that this mapping is ordered in a way that a Skolem whose definition
-   * depends on another Skolem will come after that Skolem in the map.
    */
   const std::map<Node, Node>& getSkolemDefinitions();
+
+  /** Retrieve ordered list of Skolems.  This list is ordered so that a Skolem
+   * whose definition depends on another Skolem will come after that Skolem.
+   */
+  const std::vector<Node>& getSkolemList();
 
   Node mkInternalSymbol(const std::string& name,
                         TypeNode tn,
@@ -104,8 +106,9 @@ class AletheNodeConverter : public BaseAlfNodeConverter
 
   /** Map between Skolems and their converted definitions. */
   std::map<Node, Node> d_skolems;
-  /** Auxiliary map for maintaining the expected order in the above map. */
-  std::map<Node, Node> d_skolemsAux;
+  /** Ordered Skolems such that a given entry does not have subterms occurring
+   * in subsequent entries. */
+  std::vector<Node> d_skolemsList;
 };
 
 }  // namespace proof
