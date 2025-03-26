@@ -443,26 +443,33 @@ void NonlinearExtension::checkFlattenEq()
 {
   std::vector<Node>& mvs = d_extState.d_ms_vars;
   ArithSubs as;
-  std::map<Node, Node> repToSubs;
-  std::map<Node, Node>::iterator itr;
+  std::unordered_set<Node> repsProcessed;
+  std::unordered_set<Node>::iterator itr;
   eq::EqualityEngine* ee = d_astate.getEqualityEngine();
   for (const Node& v : mvs)
   {
     Assert (!as.contains(v));
     Node vr = ee->getRepresentative(v);
-    itr = repToSubs.find(vr);
-    if (itr!=repToSubs.end())
+    itr = repsProcessed.find(vr);
+    if (itr!=repsProcessed.end())
     {
-      // induces a cycle???
-      Node vrs = as.getSubs(vr);
-      Assert (!vrs.isNull());
       continue;
     }
     // find a legal non-linear mult term in its equivalence class
     eq::EqClassIterator eqci = eq::EqClassIterator(vr, ee);
+    std::vector<Node> baseTerms;
+    std::vector<Node> nlTerms;
     while (!eqci.isFinished())
     {
       Node n = (*eqci);
+      if (n.getKind()==Kind::NONLINEAR_MULT)
+      {
+        nlTerms.push_back(n);
+      }
+      else
+      {
+        baseTerms.push_back(n);
+      }
       ++eqci;
     }
   }
