@@ -277,7 +277,7 @@
   (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
   a
   (
-  ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
+  ((= a1 a2)        ($bv_mk_bitblast_step_eq a1 a2))
   ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
   ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
   (a1               (eo::ite (eo::is_bin a)
