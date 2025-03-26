@@ -466,12 +466,13 @@ void NonlinearExtension::checkFlattenEq()
       {
         nlTerms.push_back(n);
       }
-      else
+      else if (std::find(mvs.begin(), mvs.end(), n)!=mvs.end())
       {
         baseTerms.push_back(n);
       }
       ++eqci;
     }
+    // try to find an NL term that does not induce a cycle with any baseTerm
   }
 }
   
