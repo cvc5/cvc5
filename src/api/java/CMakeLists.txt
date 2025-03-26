@@ -315,6 +315,13 @@ target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
 
+if (WIN32 AND NOT BUILD_SHARED_LIBS)
+  # Statically link all libraries, including MinGW-w64 libraries
+  set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_START_STATIC ON)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_END_STATIC ON)
+endif()
+
 # Java on Windows expects the JNI libraries without the prefix
 if (WIN32)
   set_target_properties(cvc5jni PROPERTIES PREFIX "")
