@@ -1222,10 +1222,10 @@ EvalResult Evaluator::evalInternal(
         {
           BitVector res = results[currNode[0]].d_bv;
           const uint32_t size = currNode[0].getType().getBitVectorSize();
-          if (res.isBitSet(size-1))
+          if (res.isBitSet(size - 1))
           {
             Rational ttm = Rational(Integer(2).pow(size));
-            results[currNode] = EvalResult(Rational(res.toInteger())-ttm);
+            results[currNode] = EvalResult(Rational(res.toInteger()) - ttm);
           }
           else
           {
