@@ -4,7 +4,7 @@ This file contains a summary of important user-visible changes.
 
 - We now support the SMT-LIB version 2.7 standard syntax for arithmetic
   bit-vector conversion functions whose smt2 syntax is `int_to_bv`, `ubv_to_int`
-  and `sbv_to_int`. The first maps the existing kind `Kind::INT_TO_BITVECTOR`.
+  and `sbv_to_int`. The first maps to the existing kind `Kind::INT_TO_BITVECTOR`.
   The kinds `Kind::BITVECTOR_UBV_TO_INT` and `Kind::BITVECTOR_SBV_TO_INT`
   are added to the API for the latter two. Note the syntax `int2bv` and `bv2nat`
   as well as the kind `Kind::BITVECTOR_TO_NAT` are now deprecated.
