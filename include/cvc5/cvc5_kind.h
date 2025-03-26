@@ -2053,6 +2053,40 @@ enum ENUM(Kind)
    */
   EVALUE(BITVECTOR_TO_NAT),
   /**
+   * Bit-vector conversion, unsigned bit-vector to integer.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  EVALUE(BITVECTOR_UBV_TO_INT),
+  /**
+   * Bit-vector conversion, signed bit-vector to integer.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of bit-vector Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  EVALUE(BITVECTOR_SBV_TO_INT),
+  /**
    * Converts a list of Bool terms to a bit-vector.
    *
    * - Arity: ``n > 0``
