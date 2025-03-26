@@ -157,7 +157,7 @@
   )
 )
 
-; program: $bv_bitblast_slt
+; program: $bv_bitblast_slt_impl
 ; args:
 ; - x T: The left hand side of the signed inequality predicate, whose bits have been reversed.
 ; - y T: The right hand side of the signed inequality predicate, whose bits have been reversed.
