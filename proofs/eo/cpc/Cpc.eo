@@ -297,8 +297,8 @@
       (($run_evaluate (ubv_to_int xb))     (eo::to_z ($run_evaluate xb)))
       (($run_evaluate (sbv_to_int xb))     (eo::define ((ex ($run_evaluate xb)))
                                              (eo::ite ($bv_sign_bit xb)
-                                               (eo::add ex (eo::neg ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof xb)))))
-                                               ex)))
+                                               (eo::add (eo::to_z ex) (eo::neg ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof xb)))))
+                                               (eo::to_z ex))))
   
       (($run_evaluate z)                   z)
     )
