@@ -439,7 +439,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
-void NonlinearExtension::checkFlattenEq()
+void NonlinearExtension::checkFlattenMonomials()
 {
   std::vector<Node>& mvec = d_extState.d_ms_vars;
   Trace("nl-ff") << "=== Compute flatten eq" << std::endl;
@@ -654,8 +654,8 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;
-      case InferStep::NL_FLATTEN_EQ:
-        checkFlattenEq();
+      case InferStep::NL_FLATTEN_MON:
+        checkFlattenMonomials();
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
