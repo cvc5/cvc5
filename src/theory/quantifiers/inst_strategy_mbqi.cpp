@@ -322,7 +322,7 @@ bool InstStrategyMbqi::tryInstantiation(
   std::vector<Node> terms;
   // try to convert those terms to an instantiation
   std::unordered_map<Node, Node> tmpConvertMap;
-  for (const Node& v : terms)
+  for (const Node& v : mvs)
   {
     Node vc = convertFromModel(v, tmpConvertMap, mvToFreshVar);
     if (vc.isNull())
