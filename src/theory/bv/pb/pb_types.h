@@ -103,49 +103,49 @@ struct PbLiteralHash
   }
 };
 
-// /**
-//  * Represents a pseudo-Boolean constraint, which is a linear inequality or
-//  * equality involving pseudo-Boolean literals and coefficients.
-//  * The constraint is stored in a Node to leverage hash consing.
-//  */
-// class PbConstraint
-// {
-//  public:
-//   explicit PbConstraint(const std::vector<PbLiteral>& literals,
-//                         const std::vector<Integer>& coefficients,
-//                         Kind relationalOperator,
-//                         const Integer& constant,
-//                         PbLiteralToNodeMap& map,
-//                         NodeManager* nm);
-//   explicit PbConstraint(const PbLiteral& literal,
-//                         const Integer& coefficient,
-//                         Kind relationalOperator,
-//                         const Integer& constant,
-//                         PbLiteralToNodeMap& map,
-//                         NodeManager* nm);
-//   Node toNode() const;
+/**
+ * Represents a pseudo-Boolean constraint, which is a linear inequality or
+ * equality involving pseudo-Boolean literals and coefficients.
+ * The constraint is stored in a Node to leverage hash consing.
+ */
+class PbConstraint
+{
+ public:
+  explicit PbConstraint(const std::vector<PbLiteral>& literals,
+                        const std::vector<Integer>& coefficients,
+                        Kind relationalOperator,
+                        const Integer& constant,
+                        PbNodeManager& pbNodeManager,
+                        NodeManager* nodeManager);
+  explicit PbConstraint(const PbLiteral& literal,
+                        const Integer& coefficient,
+                        Kind relationalOperator,
+                        const Integer& constant,
+                        PbNodeManager& pbNodeManager,
+                        NodeManager* nodeManager);
+  Node toNode() const;
 
-//  private:
-//   Node d_constraint;
-//   std::vector<Node> generateProducts(const std::vector<PbLiteral>& literals,
-//                                      const std::vector<Integer>& coefficients,
-//                                      PbLiteralToNodeMap& map,
-//                                      NodeManager* nm);
-// };
+ private:
+  Node d_constraint;
+  std::vector<Node> generateProducts(const std::vector<PbLiteral>& literals,
+                                     const std::vector<Integer>& coefficients,
+                                     PbNodeManager& pbNodeManager,
+                                     NodeManager* nodeManager);
+};
 
-// /**
-//  * Represents a set of pseudo-Boolean constraints.
-//  * The set of constraints is stored in a Node to leverage hash consing.
-//  */
-// class PbConstraintSet
-// {
-//  public:
-//   explicit PbConstraintSet(const std::set<PbConstraint> constraints,
-//                            NodeManager* nm);
+/**
+ * Represents a set of pseudo-Boolean constraints.
+ * The set of constraints is stored in a Node to leverage hash consing.
+ */
+class PbConstraintSet
+{
+ public:
+  explicit PbConstraintSet(const std::set<PbConstraint> constraints,
+                           NodeManager* nm);
 
-//  private:
-//   Node d_constraintSet;
-// };
+ private:
+  Node d_constraintSet;
+};
 
 }  // namespace pb
 }  // namespace bv

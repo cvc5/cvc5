@@ -77,70 +77,75 @@ Node PbLiteral::toNode(PbNodeManager& pbNodeManager) const
   return pbNodeManager.literalToNode(*this);
 }
 
-// PbConstraint::PbConstraint(const std::vector<PbLiteral>& literals,
-//                            const std::vector<Integer>& coefficients,
-//                            Kind relationalOperator,
-//                            const Integer& constant,
-//                            PbLiteralToNodeMap& map,
-//                            NodeManager* nm)
-// {
-//   std::vector<Node> terms = generateProducts(literals, coefficients, map, nm);
-//   terms.push_back(nm->mkConstInt(0));  // Ensure ADD has at least two operands
-//   Node lhs = nm->mkNode(Kind::ADD, terms);
-//   Node rhs = nm->mkConstInt(constant);
-//   d_constraint = nm->mkNode(relationalOperator, lhs, rhs);
-// }
+PbConstraint::PbConstraint(const std::vector<PbLiteral>& literals,
+                           const std::vector<Integer>& coefficients,
+                           Kind relationalOperator,
+                           const Integer& constant,
+                           PbNodeManager& pbNodeManager,
+                           NodeManager* nodeManager)
+{
+  std::vector<Node> terms =
+      generateProducts(literals, coefficients, pbNodeManager, nodeManager);
+  terms.push_back(
+      nodeManager->mkConstInt(0));  // Ensure ADD has at least two operands
+  Node lhs = nodeManager->mkNode(Kind::ADD, terms);
+  Node rhs = nodeManager->mkConstInt(constant);
+  d_constraint = nodeManager->mkNode(relationalOperator, lhs, rhs);
+}
 
-// PbConstraint::PbConstraint(const PbLiteral& literal,
-//                            const Integer& coefficient,
-//                            Kind relationalOperator,
-//                            const Integer& constant,
-//                            PbLiteralToNodeMap& map,
-//                            NodeManager* nm)
-// {
-//   Node term = nm->mkNode(
-//       Kind::MULT, nm->mkConstInt(coefficient), literal.toNode(map, nm));
-//   Node lhs =
-//       nm->mkNode(Kind::ADD,
-//                  term,
-//                  nm->mkConstInt(0));  // Ensure ADD has at least two operands
-//   Node rhs = nm->mkConstInt(constant);
-//   d_constraint = nm->mkNode(relationalOperator, lhs, rhs);
-// }
+PbConstraint::PbConstraint(const PbLiteral& literal,
+                           const Integer& coefficient,
+                           Kind relationalOperator,
+                           const Integer& constant,
+                           PbNodeManager& pbNodeManager,
+                           NodeManager* nodeManager)
+{
+  Node term = nodeManager->mkNode(Kind::MULT,
+                                  nodeManager->mkConstInt(coefficient),
+                                  literal.toNode(pbNodeManager));
+  Node lhs = nodeManager->mkNode(
+      Kind::ADD,
+      term,
+      nodeManager->mkConstInt(0));  // Ensure ADD has at least two operands
+  Node rhs = nodeManager->mkConstInt(constant);
+  d_constraint = nodeManager->mkNode(relationalOperator, lhs, rhs);
+}
 
-// std::vector<Node> PbConstraint::generateProducts(
-//     const std::vector<PbLiteral>& literals,
-//     const std::vector<Integer>& coefficients,
-//     PbLiteralToNodeMap& map,
-//     NodeManager* nm)
-// {
-//   Assert(literals.size() == coefficients.size());
+std::vector<Node> PbConstraint::generateProducts(
+    const std::vector<PbLiteral>& literals,
+    const std::vector<Integer>& coefficients,
+    PbNodeManager& pbNodeManager,
+    NodeManager* nodeManager)
+{
+  Assert(literals.size() == coefficients.size());
 
-//   auto createTerm = [&nm, &map](const PbLiteral& lit, const Integer& coef) {
-//     return nm->mkNode(Kind::MULT, nm->mkConstInt(coef), lit.toNode(map, nm));
-//   };
+  auto createTerm = [&nodeManager, &pbNodeManager](const PbLiteral& lit,
+                                                   const Integer& coef) {
+    return nodeManager->mkNode(
+        Kind::MULT, nodeManager->mkConstInt(coef), lit.toNode(pbNodeManager));
+  };
 
-//   std::vector<Node> terms(literals.size());
-//   std::transform(literals.begin(),
-//                  literals.end(),
-//                  coefficients.begin(),
-//                  terms.begin(),
-//                  createTerm);
-//   return terms;
-// }
+  std::vector<Node> terms(literals.size());
+  std::transform(literals.begin(),
+                 literals.end(),
+                 coefficients.begin(),
+                 terms.begin(),
+                 createTerm);
+  return terms;
+}
 
-// Node PbConstraint::toNode() const { return d_constraint; }
+Node PbConstraint::toNode() const { return d_constraint; }
 
-// PbConstraintSet::PbConstraintSet(const std::set<PbConstraint> constraints,
-//                                  NodeManager* nm)
-// {
-//   std::vector<Node> constraint_vector(constraints.size());
-//   std::transform(constraints.begin(),
-//                  constraints.end(),
-//                  constraint_vector.begin(),
-//                  [](const PbConstraint& x) { return x.toNode(); });
-//   d_constraintSet = nm->mkNode(Kind::SEXPR, constraint_vector);
-// }
+PbConstraintSet::PbConstraintSet(const std::set<PbConstraint> constraints,
+                                 NodeManager* nm)
+{
+  std::vector<Node> constraint_vector(constraints.size());
+  std::transform(constraints.begin(),
+                 constraints.end(),
+                 constraint_vector.begin(),
+                 [](const PbConstraint& x) { return x.toNode(); });
+  d_constraintSet = nm->mkNode(Kind::SEXPR, constraint_vector);
+}
 
 }  // namespace pb
 }  // namespace bv
