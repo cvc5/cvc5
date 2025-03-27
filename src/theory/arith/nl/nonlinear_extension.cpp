@@ -441,38 +441,163 @@ Result::Status NonlinearExtension::modelBasedRefinement(
 
 void NonlinearExtension::checkFlattenEq()
 {
-  std::vector<Node>& mvs = d_extState.d_ms_vars;
+  std::vector<Node>& mvec = d_extState.d_ms_vars;
+  Trace("nl-ff") << "=== Compute flatten eq" << std::endl;
+  Trace("nl-ff") << "- vars: " << mvec << std::endl;
+  std::unordered_set<Node> mvs(mvec.begin(), mvec.end());
   ArithSubs as;
-  std::unordered_set<Node> repsProcessed;
-  std::unordered_set<Node>::iterator itr;
+  std::map<Node, Node> repsProcessed;
+  std::map<Node, Node>::iterator itr;
+  std::map<Node, Node> ffMap;
   eq::EqualityEngine* ee = d_astate.getEqualityEngine();
-  for (const Node& v : mvs)
+  eq::EqClassesIterator eqcsi= eq::EqClassesIterator(ee);
+  while (!eqcsi.isFinished())
   {
-    Assert (!as.contains(v));
-    Node vr = ee->getRepresentative(v);
-    itr = repsProcessed.find(vr);
-    if (itr!=repsProcessed.end())
+    Node vr = (*eqcsi);
+    ++eqcsi;
+    if (!vr.getType().isRealOrInt())
     {
       continue;
     }
+    Trace("nl-ff") << "- Representative " << vr << std::endl;
     // find a legal non-linear mult term in its equivalence class
     eq::EqClassIterator eqci = eq::EqClassIterator(vr, ee);
-    std::vector<Node> baseTerms;
+    std::unordered_set<Node> baseTerms;
     std::vector<Node> nlTerms;
+    Node cr;
+    Node firstBaseTerm;
     while (!eqci.isFinished())
     {
       Node n = (*eqci);
       if (n.getKind()==Kind::NONLINEAR_MULT)
       {
         nlTerms.push_back(n);
+        Trace("nl-ff") << "  - mult: " << n << std::endl;
       }
-      else if (std::find(mvs.begin(), mvs.end(), n)!=mvs.end())
+      else if (n.isConst())
       {
-        baseTerms.push_back(n);
+        Assert (cr.isNull());
+        cr = n;
+      }
+      else if (mvs.find(n)!=mvs.end())
+      {
+        baseTerms.insert(n);
+        if (firstBaseTerm.isNull())
+        {
+          firstBaseTerm = n;
+        }
+        Trace("nl-ff") << "  - var: " << n << std::endl;
       }
       ++eqci;
     }
+    // don't care about constants?
+    /*
+    // if there is a constant, all terms map to constant
+    if (!cr.isNull())
+    {
+      for (const Node& b : baseTerms)
+      {
+        as.add(b, cr);
+      }
+      repsProcessed[vr] = cr;
+      continue;
+    }
+    */
+    Node rep;
     // try to find an NL term that does not induce a cycle with any baseTerm
+    for (const Node& n : nlTerms)
+    {
+      Node ns = rewrite(as.apply(n));
+      std::map<Node, size_t> ff;
+      Assert (ns.getKind()!=Kind::MULT);
+      if (ns.getKind()==Kind::NONLINEAR_MULT)
+      {
+        for (const Node& nsc : ns)
+        {
+          ff[nsc]++;
+        }
+      }
+      else
+      {
+        ff[ns]++;
+      }
+      bool cyclic = false;
+      for (std::pair<const Node, size_t>& f : ff)
+      {
+        if (baseTerms.find(f.first)!=baseTerms.end())
+        {
+          Trace("nl-ff") << "Cyclic: " << n << " == " << ns << ", in equivalence class of " << f.first << std::endl;
+          cyclic = true;
+        }
+      }
+      if (!cyclic)
+      {
+        rep = ns;
+      }
+      itr = ffMap.find(ns);
+      if (itr!=ffMap.end())
+      {
+        Trace("nl-ff") << "*** Infer: " << n << " == " << itr->second << ", both equal to " << ns << std::endl;
+      }
+      ffMap[ns] = n;
+    }
+    if (baseTerms.empty())
+    {
+      Trace("nl-ff") << "...no base terms, continue." << std::endl;
+      // don't care
+      repsProcessed[vr] = vr;
+      continue;
+    }
+    if (rep.isNull())
+    {
+      if (baseTerms.size()==1)
+      {
+        Trace("nl-ff") << "...only one base term, no (acyclic) nl term, continue." << std::endl;
+        // don't care
+        repsProcessed[vr] = vr;
+        continue;
+      }
+      rep = firstBaseTerm;
+    }
+    Trace("nl-ff") << "...choose rep: " << rep << std::endl;
+    Assert (!rep.isNull());
+    // map all base terms to representative
+    ArithSubs asTmp;
+    for (const Node& b : baseTerms)
+    {
+      if (b!=rep)
+      {
+        asTmp.add(b, rep);
+      }
+    }
+    // apply to range
+    for (size_t i = 0, ns = as.d_subs.size(); i < ns; i++)
+    {
+      as.d_subs[i] = asTmp.applyArith(as.d_subs[i]);
+    }
+    as.append(asTmp);
+    repsProcessed[vr] = rep;
+    std::map<Node, Node> ffMapNew;
+    std::vector<Node> ffMapOld;
+    for (std::pair<const Node, Node>& ff : ffMap)
+    {
+      Node fnew = asTmp.apply(ff.first);
+      if (fnew!=ff.first)
+      {
+        fnew = rewrite(fnew);
+        ffMapNew[fnew] = ff.second;
+        ffMapOld.emplace_back(ff.first);
+      }
+    }
+    for (const Node& f : ffMapOld)
+    {
+      ffMap.erase(f);
+    }
+    for (std::pair<const Node, Node>& ff : ffMapNew)
+    {
+      ffMap[ff.first] = ff.second;
+    }
+    
   }
 }
   

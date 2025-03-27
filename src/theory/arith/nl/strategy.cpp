@@ -139,6 +139,7 @@ void Strategy::initializeStrategy(const Options& options)
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
   }
+  one << InferStep::NL_FLATTEN_EQ << InferStep::BREAK;
   if (options.arith.nlExt == options::NlExtMode::FULL)
   {
     one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
