@@ -169,7 +169,7 @@ name   = "Proof"
 
 [[option]]
   name       = "printDotClusters"
-  category   = "regular"
+  category   = "expert"
   long       = "print-dot-clusters"
   type       = "bool"
   default    = "false"

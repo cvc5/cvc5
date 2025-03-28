@@ -133,7 +133,7 @@ name   = "Base"
   help       = "exit after preprocessing input"
 
 [[option]]
-  category   = "regular"
+  category   = "expert"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
