@@ -1,5 +1,6 @@
 (include "../theories/Arith.eo")
 (include "../theories/Builtin.eo")
+(include "../theories/Quantifiers.eo")
 (include "../theories/Strings.eo")
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
@@ -440,6 +441,8 @@
 
 ;;-------------------- Reductions
 
+; In the following, a "reduction predicate" refers to a formula that is used
+; to axiomatize an extended string program in terms of (simpler) programs.
 
 ; define: $str_reduction_pred_case_conv
 ; args:
@@ -857,12 +860,9 @@
 ;   The result of "flattening" all children of t. For example, given
 ;   (str.++ "AB" x "CD"), this returns the term
 ;   (str.++ "A" (str.++ "B" (str.++ x (str.++ "C" (str.++ "D" ""))))).
-(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list) (tail2 (Seq U) :list))
+(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list))
   ((Seq U)) (Seq U)
   (
-    ; required for sequences
-    (($str_flatten (str.++ (str.++ t tail2) tail)) 
-        ($str_concat (str.++ t tail2) ($str_flatten tail)))
     (($str_flatten (str.++ t tail))
         ; otherwise, check whether t is a word constant of length greater than one
         (eo::ite ($str_check_len_gt_one t)
@@ -1181,21 +1181,6 @@
   ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
 )
 
-; define: $str_is_prefix
-; args:
-; - s U: The first string.
-; - s1 U: The second string.
-; - rev Bool: Whether the two arguments should be reversed.
-; return:
-;   true if s1 is a prefix of s, taking into account flattening, and reversing
-;   the strings if rev is true.
-(define $str_is_prefix ((U Type :implicit) (s U) (s1 U) (rev Bool))
-  (eo::define ((sf ($str_to_flat_form s rev)))
-  (eo::define ((sf1 ($str_to_flat_form s1 rev)))
-  (eo::define ((U (eo::typeof s)))
-  ($nary_is_prefix str.++ ($mk_emptystr U) sf1 sf))))
-)
-
 ; note: This is a forward declaration of $str_re_includes below.
 (program $str_re_includes () (RegLan RegLan) Bool)
 
@@ -1341,7 +1326,7 @@
   (RegLan RegLan) Bool
   (
   (($str_re_includes r1 r1)                               true)
-  (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1))
+  (($str_re_includes r1 (str.to_re s1))                   ($str_eval_str_in_re s1 r1)) ; requires constant s1/r1
   (($str_re_includes (str.to_re s1) r1)                   false)
   (($str_re_includes (re.range s1 s2) (re.range s3 s4))   (eo::define ((z1 (eo::to_z s1)))
                                                           (eo::define ((z2 (eo::to_z s2)))
@@ -1366,12 +1351,12 @@
 
 ; program: $str_arith_entail_simple
 ; args:
-; - n Int: An integer term to process.
+; - n T: An arithmetic term to process.
 ; return: >
 ;   true if we can show n is greater than or equal 0 using the fact that length
 ;   is non-negative and basic properties of arithmetic.
-(program $str_arith_entail_simple ((s String) (n1 Int) (n2 Int :list))
-  (Int) Bool
+(program $str_arith_entail_simple ((T Type) (s String) (n1 T) (n2 T :list))
+  (T) Bool
   (
     (($str_arith_entail_simple (str.len s)) true)
     (($str_arith_entail_simple (+ n1 n2))   (eo::ite ($str_arith_entail_simple n1) ($str_arith_entail_simple n2) false))
