@@ -218,6 +218,66 @@
 (define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
   ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
 
+;;; bitwise
+
+; program: $bv_mk_bitblast_step_bitwise
+; args:
+; - bf (-> (BitVec n) (BitVec n) (BitVec n)): The bitvector function.
+; - f (-> T T Bool): The binary function to apply.
+; - a (BitVec n): The term we are bitblasting, expected to be an application of bf to list of bits.
+; - ac (BitVec n): The accumulated return value.
+; return: the bitblasted version of a.
+(program $bv_mk_bitblast_step_bitwise ((T Type) (n Int) (bf (-> (BitVec n) (BitVec n) (BitVec n))) 
+                                       (f (-> T T Bool)) (a1 (BitVec n)) (a2 (BitVec n) :list) (ac (BitVec n)))
+  ((-> (BitVec n) (BitVec n) (BitVec n)) (-> T T Bool) (BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_bitwise bf f (bf a1 a2) ac)    ($bv_mk_bitblast_step_bitwise bf f a2 ($bv_bitblast_apply_binary f ac a1)))
+  (($bv_mk_bitblast_step_bitwise bf f a2 ac)            ac)
+  )
+)
+
+;;; addition
+
+; program: $bv_ripple_carry_adder_2
+; args:
+; - a1 (BitVec n): The first term to add, a list of bits.
+; - a2 (BitVec n): The second term to add, a list of bits.
+; - carry Bool: The current carry bit.
+; - ac (BitVec m): The accumulated return value.
+; return: a pair corresponding to the final carry bit and accumulated result.
+(program $bv_ripple_carry_adder_2 ((n Int) (m Int) (b1 Bool) (b2 Bool) (a1 (BitVec n) :list) (a2 (BitVec n) :list) (carry Bool) (res (BitVec m)))
+  ((BitVec n) (BitVec n) Bool (BitVec m)) (@Pair Bool (BitVec n))
+  (
+  (($bv_ripple_carry_adder_2 (@from_bools b1 a1) (@from_bools b2 a2) carry res) ($bv_ripple_carry_adder_2 a1 a2 
+                                                                                  (or (and b1 b2) (and (xor b1 b2) carry))
+                                                                                  (eo::cons @from_bools (xor (xor b1 b2) carry) res)))
+  (($bv_ripple_carry_adder_2 @bv_empty @bv_empty carry res)                     (@pair carry ($nary_reverse res)))
+  )
+)
+
+; program: $bv_ripple_carry_adder
+; args:
+; - a1 (BitVec n): The first term to add, a list of bits.
+; - a2 (BitVec n): The second term to add, a list of bits.
+; - carry Bool: The current carry bit.
+; return: the result of adding a1 and a2.
+(define $bv_ripple_carry_adder ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (carry Bool))
+  (eo::match ((m Int) (carryr Bool) (res (BitVec m)))
+    ($bv_ripple_carry_adder_2 a1 a2 carry @bv_empty)
+    (((@pair carryr res) res))))
+
+; define: $bv_mk_bitblast_step_add
+; args:
+; - a (BitVec n): An addition term over arguments that are lists of bits.
+; - ac (BitVec n): The accumulated return value, a list of bits.
+; return: the bitblasted term for a, given already processed arguments ac.
+(program $bv_mk_bitblast_step_add ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (ac (BitVec n)))
+  ((BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_add (bvadd a1 a2) ac) ($bv_mk_bitblast_step_add a2 ($bv_ripple_carry_adder ac a1 false)))
+  (($bv_mk_bitblast_step_add a2 ac)            ac)
+  )
+)
 
 ; program: $bv_const_to_bitlist_rec
 ; args:
