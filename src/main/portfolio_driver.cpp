@@ -68,6 +68,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
     {
       if (dynamic_cast<CheckSatCommand*>(cc) != nullptr)
       {
+        d_hasReadCheckSat = true;
         break;
       }
     }
@@ -501,7 +502,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     total_timeout = 1'200'000; // miliseconds
   }
 
-  if (ctx.solveContinuous(d_parser, false, true))
+  bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
+  if (uninterrupted && ctx.d_hasReadCheckSat)
   {
     PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
     bool solved = pool.run(strategy);
@@ -511,7 +513,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     }
     return solved;
   }
-  return false;
+  return uninterrupted;
 #else
   Warning() << "Can't run portfolio without <sys/wait.h>.";
   return ctx.solveContinuous(d_parser, false);
@@ -570,7 +572,8 @@ bool isOneOf(const std::string& logic, T&&... list)
   return ((logic == list) || ...);
 }
 
-PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving, const std::string& logic)
+PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving,
+                                               const std::string& logic)
 {
   if (incremental_solving)
   {
@@ -582,14 +585,13 @@ PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving, const s
   }
 }
 
-PortfolioStrategy PortfolioDriver::getIncrementalStrategy(const std::string& logic)
+PortfolioStrategy PortfolioDriver::getIncrementalStrategy(
+    const std::string& logic)
 {
   PortfolioStrategy s;
   if (isOneOf(logic, "QF_AUFLIA"))
   {
-    s.add()
-        .unset("arrays-eager-index")
-        .set("arrays-eager-lemmas");
+    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas");
   }
   else if (isOneOf(logic, "QF_BV"))
   {
@@ -602,7 +604,8 @@ PortfolioStrategy PortfolioDriver::getIncrementalStrategy(const std::string& log
   return s;
 }
 
-PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(const std::string& logic)
+PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
+    const std::string& logic)
 {
   PortfolioStrategy s;
   if (isOneOf(logic, "QF_LRA"))
