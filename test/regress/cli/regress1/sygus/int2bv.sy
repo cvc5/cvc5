@@ -4,7 +4,7 @@
 (synth-fun f ((x Int)) (_ BitVec 4)
   ((Start (_ BitVec 4)) (StartInt Int))
   (
-  (Start (_ BitVec 4) (#b0000 #b0001 ((_ int2bv 4) StartInt)))
+  (Start (_ BitVec 4) (#b0000 #b0001 ((_ int_to_bv 4) StartInt)))
   (StartInt Int (0 1 x (+ StartInt StartInt)))
   )
 )
