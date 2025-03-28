@@ -33,6 +33,15 @@ name   = "Driver"
   help       = "regular command line reference"
 
 [[option]]
+  name       = "helpCategories"
+  category   = "common"
+  long       = "help-categories"
+  type       = "bool"
+  default    = "false"
+  alternate  = false
+  help       = "Print summary of options for each category"
+
+[[option]]
   name       = "showConfiguration"
   category   = "common"
   long       = "show-config"

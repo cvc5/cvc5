@@ -38,6 +38,7 @@ extern int optreset;
 #include "base/check.h"
 #include "base/output.h"
 #include "options/option_exception.h"
+#include "options/options_public.h"
 #include "util/didyoumean.h"
 
 #include <cstring>
@@ -91,6 +92,37 @@ void printUsage(const std::string& binary, std::ostream& os, bool printRegular)
     os << additionalOptionsDescription << std::endl;
   }
   os << optionsFootnote << std::endl;
+}
+
+void printUsageCategories(cvc5::Solver& solver,
+                          std::ostream& os)
+{
+  std::stringstream ssCommon;
+  std::stringstream ssRegular;
+  std::stringstream ssExpert;
+  for (const auto& name : options::getNames())
+  {
+    auto info = solver.getOptionInfo(name);
+    // skip if an expert option
+    if (info.isExpert)
+    {
+      ssExpert << name << std::endl;
+    }
+    else if (info.isRegular)
+    {
+      ssRegular << name << std::endl;
+    }
+    else
+    {
+      ssCommon << name << std::endl;
+    }
+  }
+  os << "Common options:" << std::endl;
+  os << ssCommon.str();
+  os << "Regular options:" << std::endl;
+  os << ssRegular.str();
+  os << "Expert options:" << std::endl;
+  os << ssExpert.str();
 }
 
 /**
