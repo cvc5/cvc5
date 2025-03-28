@@ -443,7 +443,7 @@ void NonlinearExtension::checkFlattenMonomials()
 {
   std::vector<Node>& mvec = d_extState.d_ms_vars;
   Trace("nl-ff") << "=== Compute flatten eq" << std::endl;
-  Trace("nl-ff") << "- vars: " << mvec << std::endl;
+  Trace("nl-ff") << "vars: " << mvec << std::endl;
   std::unordered_set<Node> mvs(mvec.begin(), mvec.end());
   ArithSubs as;
   std::map<Node, Node> repsProcessed;
