@@ -151,7 +151,9 @@ class PortfolioDriver
   bool solve(std::unique_ptr<CommandExecutor>& executor);
 
  private:
-  PortfolioStrategy getStrategy(const std::string& logic);
+  PortfolioStrategy getStrategy(bool incremental_solving, const std::string& logic);
+  PortfolioStrategy getIncrementalStrategy(const std::string& logic);
+  PortfolioStrategy getNonIncrementalStrategy(const std::string& logic);
 
   /** The parser we use to get the commands */
   parser::InputParser* d_parser;

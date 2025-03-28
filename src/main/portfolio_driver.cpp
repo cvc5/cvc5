@@ -486,7 +486,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     return ctx.solveContinuous(d_parser, false);
   }
 
-  PortfolioStrategy strategy = getStrategy(*ctx.d_logic);
+  bool incremental_solving = solver.getOption("incremental") == "true";
+  PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
   Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
@@ -569,7 +570,39 @@ bool isOneOf(const std::string& logic, T&&... list)
   return ((logic == list) || ...);
 }
 
-PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
+PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving, const std::string& logic)
+{
+  if (incremental_solving)
+  {
+    return getIncrementalStrategy(logic);
+  }
+  else
+  {
+    return getNonIncrementalStrategy(logic);
+  }
+}
+
+PortfolioStrategy PortfolioDriver::getIncrementalStrategy(const std::string& logic)
+{
+  PortfolioStrategy s;
+  if (isOneOf(logic, "QF_AUFLIA"))
+  {
+    s.add()
+        .unset("arrays-eager-index")
+        .set("arrays-eager-lemmas");
+  }
+  else if (isOneOf(logic, "QF_BV"))
+  {
+    s.add().set("bitblast", "eager");
+  }
+  else
+  {
+    s.add();
+  }
+  return s;
+}
+
+PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(const std::string& logic)
 {
   PortfolioStrategy s;
   if (isOneOf(logic, "QF_LRA"))
