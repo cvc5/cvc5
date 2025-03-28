@@ -3,7 +3,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "ackermann"
-  category   = "regular"
+  category   = "expert"
   long       = "ackermann"
   type       = "bool"
   default    = "false"

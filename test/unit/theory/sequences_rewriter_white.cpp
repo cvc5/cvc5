@@ -45,7 +45,7 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     Options opts;
     d_rewriter = d_slvEngine->getEnv().getRewriter();
     // allow recursive approximations
-    d_arithEntail.reset(new ArithEntail(d_rewriter, true));
+    d_arithEntail.reset(new ArithEntail(d_nodeManager, d_rewriter, true));
     d_strEntail.reset(new StringsEntail(d_rewriter, *d_arithEntail.get()));
     d_seqRewriter.reset(new SequencesRewriter(
         d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr));
@@ -1625,11 +1625,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
 
   // Same normal form for:
   //
-  // (= "" (str.replace "A" x y))
+  // (and (= y "") (= x "A"))
   //
   // (= "A" (str.replace "" y x))
-  Node empty_repl_axy = d_nodeManager->mkNode(
-      Kind::EQUAL, empty, d_nodeManager->mkNode(Kind::STRING_REPLACE, a, x, y));
+  Node empty_repl_axy =
+      d_nodeManager->mkNode(Kind::AND,
+                            d_nodeManager->mkNode(Kind::EQUAL, y, empty),
+                            d_nodeManager->mkNode(Kind::EQUAL, x, a));
   Node eq_a_repl = d_nodeManager->mkNode(
       Kind::EQUAL, a, d_nodeManager->mkNode(Kind::STRING_REPLACE, empty, y, x));
   sameNormalForm(empty_repl_axy, eq_a_repl);

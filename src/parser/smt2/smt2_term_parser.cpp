@@ -1257,6 +1257,9 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
         break;
+      case Token::QUOTED_SYMBOL:
+        symbols.push_back(tokenStrToSymbol(tok));
+        break;
       default:
         d_lex.unexpectedTokenError(
             tok, "Expected index while parsing indexed identifier");

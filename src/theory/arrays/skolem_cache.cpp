@@ -15,7 +15,6 @@
 
 #include "theory/arrays/skolem_cache.h"
 
-#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_node.h"
@@ -25,14 +24,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace arrays {
-
-/**
- * A bound variable corresponding to the index used in the eqrange expansion.
- */
-struct EqRangeVarAttributeId
-{
-};
-typedef expr::Attribute<EqRangeVarAttributeId, Node> EqRangeVarAttribute;
 
 SkolemCache::SkolemCache() {}
 
@@ -53,7 +44,7 @@ Node SkolemCache::getEqRangeVar(NodeManager* nm, TNode eqr)
 {
   Assert(eqr.getKind() == Kind::EQ_RANGE);
   BoundVarManager* bvm = nm->getBoundVarManager();
-  return bvm->mkBoundVar<EqRangeVarAttribute>(eqr, eqr[2].getType());
+  return bvm->mkBoundVar(BoundVarId::ARRAYS_EQ_RANGE, eqr, eqr[2].getType());
 }
 
 

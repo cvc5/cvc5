@@ -182,8 +182,6 @@ void SolverEngine::finishInit()
 
   if (d_env->getOptions().smt.produceProofs)
   {
-    // ensure bound variable uses canonical bound variables
-    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     // start the unsat core manager
@@ -1030,9 +1028,8 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     }
     uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
     std::vector<Node> asserts = getAssertionsInternal();
-    NodeManager* nm = d_env->getNodeManager();
     gtnu = preprocessing::passes::SynthRewRulesPass::getGrammarsFrom(
-        nm, asserts, nvars);
+        *d_env.get(), asserts, nvars);
     if (gtnu.empty())
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"

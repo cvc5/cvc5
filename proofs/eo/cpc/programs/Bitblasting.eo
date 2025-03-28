@@ -1,0 +1,287 @@
+(include "../programs/BitVectors.eo")
+
+;;; utils
+
+; program: $bv_bitblast_binary_app
+; args:
+; - f (-> T T Bool): The binary function to apply to b1 and b2.
+; - b1 Bool: The first Boolean.
+; - b2 Bool: The second Boolean.
+; return: the result of applying f to b1 and b2.
+(program $bv_bitblast_binary_app ((T Type) (f (-> T T Bool)) (a Bool) (b Bool))
+  ((-> T T Bool) Bool Bool) Bool
+  (
+  (($bv_bitblast_binary_app and a b)  (and a b))
+  (($bv_bitblast_binary_app or a b)   (or a b))
+  (($bv_bitblast_binary_app xor a b)  (xor a b))
+  (($bv_bitblast_binary_app = a b)    (= a b))
+  )
+)
+
+; program: $bv_bitblast_repeat
+; args:
+; - b Bool: The Boolean to repeat
+; - n Int: The number of times to repeat it.
+; return: the list of bits containing b, n times.
+(program $bv_bitblast_repeat ((b Bool) (n Int))
+  (Bool Int) (BitVec n)
+  (
+    (($bv_bitblast_repeat b 0)  @bv_empty)
+    (($bv_bitblast_repeat b n)  (eo::cons @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
+  )
+)
+
+; define: $bv_bitblast_zero
+; args:
+; - n Int: The bitwidth.
+; return: the list of bits corresponding to the zero of the given bitwidth.
+(define $bv_bitblast_zero ((n Int)) ($bv_bitblast_repeat false n))
+
+; define: $bv_bitblast_sign_bit
+; args:
+; - a (Bitvec n): The list of bits.
+; return: the sign bit of a, which is the last bit.
+(define $bv_bitblast_sign_bit ((n Int :implicit) (a (BitVec n)))
+  (eo::list_nth @from_bools a (eo::add (eo::list_len @from_bools a) -1)))
+
+; program: $bv_bitblast_apply_unary
+; args:
+; - f (-> Bool Bool): The unary function to apply to the bits of the second argument.
+; - a (Bitvec n): The list of bits.
+; return: the result of applying f to each bit in a.
+(program $bv_bitblast_apply_unary ((f (-> Bool Bool)) (b1 Bool) (n Int) (m Int) (a1 (BitVec m) :list))
+  ((-> Bool Bool) (BitVec n)) (BitVec n)
+  (
+  (($bv_bitblast_apply_unary f @bv_empty)           @bv_empty)
+  (($bv_bitblast_apply_unary f (@from_bools b1 a1)) (eo::cons @from_bools (f b1) ($bv_bitblast_apply_unary f a1)))
+  )
+)
+
+; program: $bv_bitblast_apply_binary
+; args:
+; - f (-> T T Bool): The binary function to apply pairwise to the bits of a1 and a2.
+; - a1 (Bitvec n): The first list of bits.
+; - a2 (Bitvec n): The second list of bits.
+; return: the result of applying f pairwise to the bits of a1 and a2.
+(program $bv_bitblast_apply_binary ((T Type) (f (-> T T Bool)) (b1 Bool) (b2 Bool) (n Int) (m Int) (a1 (BitVec m) :list) (a2 (BitVec m) :list))
+  ((-> T T Bool) (BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_bitblast_apply_binary f @bv_empty @bv_empty)                     @bv_empty)
+  (($bv_bitblast_apply_binary f (@from_bools b1 a1) (@from_bools b2 a2)) (eo::cons @from_bools ($bv_bitblast_binary_app f b1 b2) ($bv_bitblast_apply_binary f a1 a2)))
+  )
+)
+
+; program: $bv_bitblast_apply_ite
+; args:
+; - b Bool: The condition of the ITE.
+; - a1 (Bitvec n): The then branch, a list of bits.
+; - a2 (Bitvec n): The else branch, a list of bits.
+; return: the bitlist having bits that are ITEs whose condition is b and whose branches are a1 and a2.
+(program $bv_bitblast_apply_ite ((bc Bool) (n Int) (m Int) (b1 Bool) (a1 (BitVec m) :list) (b2 Bool) (a2 (BitVec m) :list))
+  (Bool (BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_bitblast_apply_ite bc @bv_empty @bv_empty)                      @bv_empty)
+  (($bv_bitblast_apply_ite bc (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons @from_bools (ite bc b1 b2) ($bv_bitblast_apply_ite bc a1 a2)))
+  )
+)
+
+; define: $bv_bitblast_rshift
+; args:
+; - a (Bitvec n): The list of bits.
+; - amount: The amount to shift, expected to in [0,n].
+; return: the result of shifting a right by amount.
+(define $bv_bitblast_rshift ((n Int :implicit) (a (BitVec n)) (amount Int))
+  (eo::define ((len (eo::list_len @from_bools a)))
+    (eo::list_concat @from_bools ($nary_subsequence @from_bools @bv_empty amount len a) ($bv_bitblast_repeat false amount))))
+
+; define: $bv_bitblast_lshift
+; args:
+; - a (Bitvec n): The list of bits.
+; - amount: The amount to shift, expected to in [0,n].
+; return: the result of shifting a left by amount.
+(define $bv_bitblast_lshift ((n Int :implicit) (a (BitVec n)) (amount Int))
+  (eo::define ((len (eo::list_len @from_bools a)))
+    (eo::list_concat @from_bools ($bv_bitblast_repeat false amount) ($nary_subsequence @from_bools @bv_empty 0 (eo::add len (eo::neg amount) -1) a))))
+
+;;; equality
+
+; program: $bv_mk_bitblast_step_eq_rec
+; args:
+; - x T: The left hand side of the equality we have left to process.
+; - y T: The right hand side of the equality we have left to process.
+; return: the bitblasted term for (= x y).
+(program $bv_mk_bitblast_step_eq_rec ((n Int) (nm1 Int) (b1 Bool) (b2 Bool) (a1 (BitVec nm1) :list) (a2 (BitVec nm1) :list))
+  ((BitVec n) (BitVec n)) Bool
+  (
+  (($bv_mk_bitblast_step_eq_rec @bv_empty @bv_empty)                      true)
+  (($bv_mk_bitblast_step_eq_rec (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons and (= b1 b2) ($bv_mk_bitblast_step_eq_rec a1 a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_eq
+; args:
+; - x (BitVec n): The left hand side of the equality.
+; - y (BitVec n): The right hand side of the equality.
+; return: the bitblasted term for (= x y).
+(define $bv_mk_bitblast_step_eq ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
+  ($singleton_elim ($bv_mk_bitblast_step_eq_rec a1 a2)))
+
+;;; inequality
+
+; program: $bv_bitblast_ult_rec
+; args:
+; - x T: The left hand side of the bvult predicate we have left to process.
+; - y T: The right hand side of the bvult predicate  we have left to process.
+; - res Bool: The accumulated result.
+; return: the bitblasted term for (bvult x y).
+(program $bv_bitblast_ult_rec ((n Int) (b1 Bool) (b2 Bool) (a1 (BitVec n) :list) (a2 (BitVec n) :list) (res Bool))
+  ((BitVec n) (BitVec n) Bool) Bool
+  (
+  (($bv_bitblast_ult_rec @bv_empty @bv_empty res)                      res)
+  (($bv_bitblast_ult_rec (@from_bools b1 a1) (@from_bools b2 a2) res)  ($bv_bitblast_ult_rec a1 a2 (or (and (= b1 b2) res) (and (not b1) b2))))
+  )
+)
+
+; program: $bv_bitblast_ult
+; args:
+; - x T: The left hand side of the unsigned inequality predicate.
+; - y T: The right hand side of the unsigned inequality predicate.
+; - orEqual Bool: If true, we are processing (bvule x y), otherwise we are processing (bvult x y).
+; return: the bitblasted term for the unsigned inequality between x and y.
+(program $bv_bitblast_ult ((n Int) (b1 Bool) (b2 Bool) (a1 (BitVec n) :list) (a2 (BitVec n) :list) (orEqual Bool))
+  ((BitVec n) (BitVec n) Bool) Bool
+  (
+  (($bv_bitblast_ult (@from_bools b1 a1) (@from_bools b2 a2) orEqual)  (eo::define ((res (and (not b1) b2)))
+                                                                       (eo::define ((res2 (eo::ite orEqual (or res (= b1 b2)) res)))
+                                                                          ($bv_bitblast_ult_rec a1 a2 res))))
+  )
+)
+
+; program: $bv_bitblast_slt_impl
+; args:
+; - x T: The left hand side of the signed inequality predicate, whose bits have been reversed.
+; - y T: The right hand side of the signed inequality predicate, whose bits have been reversed.
+; - orEqual Bool: If true, we are processing (bvsle x y), otherwise we are processing (bvslt x y).
+; return: the bitblasted term for the signed inequality between x and y.
+(program $bv_bitblast_slt_impl ((n Int) (b1 Bool) (b2 Bool) (a1 (BitVec n) :list) (a2 (BitVec n) :list) (orEqual Bool))
+  ((BitVec n) (BitVec n) Bool) Bool
+  (
+  ; bitwidth one case is handled separately
+  (($bv_bitblast_slt_impl (@from_bools b1) (@from_bools b2) orEqual)        (eo::ite orEqual (or (= b1 b2) (and b1 (not b2))) (and b1 (not b2))))
+  (($bv_bitblast_slt_impl (@from_bools b1 a1) (@from_bools b2 a2) orEqual)  (eo::define ((ures ($bv_bitblast_ult ($nary_reverse a1) ($nary_reverse a2) orEqual)))
+                                                                              (or (and (= b1 b2) ures) (and b1 (not b2)))))
+  )
+)
+
+; program: $bv_bitblast_slt
+; args:
+; - x T: The left hand side of the signed inequality predicate.
+; - y T: The right hand side of the signed inequality predicate.
+; - orEqual Bool: If true, we are processing (bvsle x y), otherwise we are processing (bvslt x y).
+; return: the bitblasted term for the signed inequality between x and y.
+(define $bv_bitblast_slt ((n Int :implicit) (x (BitVec n)) (y (BitVec n)) (orEqual Bool))
+  ; reverse to make sign bit extractable
+  ($bv_bitblast_slt_impl ($nary_reverse x) ($nary_reverse y) orEqual))
+
+;;; extract
+
+; define: $bv_mk_bitblast_step_extract
+; args:
+; - u Int: The upper index of the extract.
+; - l Int: The lower index of the extract.
+; - a (BitVec n): The argument of the extract, expected to be a list of bits.
+; return: the bitblasted term for (extract u l a).
+(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
+  ($nary_subsequence @from_bools @bv_empty l u a))
+
+;;; concat
+
+; program: $bv_mk_bitblast_step_concat_rec
+; args:
+; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
+; return: >
+;   The bitblasted term for concatenation term a, reversed. We require reversing
+;   the concatenation term to this method to match the bitblasted form that is
+;   generated.
+(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
+  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (eo::list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_concat
+; args:
+; - a (BitVec n): The bitvector concatenation term to process.
+; return: the bitblasted term for concatenation term a.
+(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
+  ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
+
+
+; program: $bv_const_to_bitlist_rec
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; - i Int: The index we are currently processing.
+; return: the bitlist for a starting with index i.
+(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_const_to_bitlist_rec c -1)  @bv_empty)
+    (($bv_const_to_bitlist_rec c i)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i -1))))
+  )
+)
+
+; define: $bv_const_to_bitlist
+; args:
+; - c (BitVec n): The bitvector constant to process.
+; return: >
+;   The bitlist for c, which is a term of the form
+;   (@from_bools a1 ...(@from_bools an @bv_empty)) where a1...an are
+;   the bits of c, considered in little endian form.
+(define $bv_const_to_bitlist ((n Int :implicit) (c (BitVec n)))
+  ($bv_const_to_bitlist_rec c (eo::add (eo::len c) -1)))
+
+; define: $bv_mk_bitblast_step_const
+; args:
+; - a (BitVec n): The bitvector constant to bitblast.
+; return: the bitblasted term for a, which is its reverse bitlist.
+(define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
+  ($nary_reverse ($bv_const_to_bitlist a)))
+
+; program: $bv_mk_bitblast_step_var_rec
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; - i Int: The index of the bit we are currently processing.
+; return: the bitblasted term for variable a.
+(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
+  ((BitVec n) Int) (BitVec n)
+  (
+    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
+    (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
+  )
+)
+
+; define: $bv_mk_bitblast_step_var
+; args:
+; - a (BitVec n): The bitvector variable to bitblast.
+; return: the bitblasted term for variable a.
+(define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
+  ($nary_reverse ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
+
+; define: $bv_mk_bitblast_step
+; args:
+; - a T: The bitvector term or predicate to bitblast.
+; return: the bitblasted term for a.
+(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
+  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
+  a
+  (
+  ((= a1 a2)        ($bv_mk_bitblast_step_eq a1 a2))
+  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
+  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
+  (a1               (eo::ite (eo::is_bin a)
+                      ($bv_mk_bitblast_step_const a)
+                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
+  ))
+)

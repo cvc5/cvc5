@@ -26,6 +26,7 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/macro_rewrite_elaborator.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
@@ -132,6 +133,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroBoolNnfNorm(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroBoolBvInvertSolve(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT or
    * ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN.
    *
@@ -228,6 +239,46 @@ class BasicRewriteRCons : protected EnvObj
                                const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_COMPONENT_CTN.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_COMPONENT_CTN.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrComponentCtn(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_CONST_NCTN_CONCAT.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrConstNCtnConcat(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroStrInReInclusion(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroReInterUnionConstElim(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
    *
    * @param cdp The proof to add to.
@@ -266,6 +317,16 @@ class BasicRewriteRCons : protected EnvObj
    * @return true if added a closed proof of eq to cdp.
    */
   bool ensureProofMacroQuantVarElimEq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroDtVarExpand(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MINISCOPE.
@@ -323,6 +384,13 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
   /**
+   * Prove that any string term is in a regular expression that characterizes
+   * it. Return the proven regular expression. For example, given (str.++ x "A"
+   * y), this method returns (str.in_re (str.++ x "A" y) (re.++ Sigma*
+   * (str.to_re "A") Sigma*)).
+   */
+  Node proveGeneralReMembership(CDProof* cdp, const Node& n);
+  /**
    * Prove symmetry of equality eq, in particular this proves eq[1] == eq[0]
    * where eq is an equality and adds it to cdp.
    */
@@ -357,6 +425,8 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /** The BV rewrite elaborator */
+  theory::bv::MacroRewriteElaborator d_bvRewElab;
 };
 
 }  // namespace rewriter

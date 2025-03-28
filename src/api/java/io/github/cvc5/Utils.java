@@ -27,10 +27,33 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class Utils
 {
+  public enum OS {
+    WINDOWS,
+    MAC,
+    LINUX,
+    UNKNOWN;
+
+    public static final OS CURRENT = detectOS();
+
+    private static OS detectOS()
+    {
+      String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+      if (osName.startsWith("windows"))
+        return WINDOWS;
+      if (osName.startsWith("mac"))
+        return MAC;
+      if (osName.startsWith("linux"))
+        return LINUX;
+      return UNKNOWN;
+    }
+  }
+
   public static final String LIBPATH_IN_JAR = "/cvc5-libs";
 
   private static boolean areLibrariesLoaded = false;
@@ -41,53 +64,15 @@ public class Utils
   }
 
   /**
-   * Reads a text file from the specified path within the JAR file and returns a list of library
-   * filenames.
-   * @param pathInJar The path to the text file inside the JAR
-   * @return a list of filenames read from the file
-   * @throws FileNotFoundException If the text file does not exist
-   * @throws IOException If an I/O error occurs
-   */
-  public static List<String> readLibraryFilenames(String pathInJar)
-      throws FileNotFoundException, IOException
-  {
-    List<String> filenames = new ArrayList<>();
-
-    // Load the input stream from the resource path within the JAR
-    try (InputStream inputStream = Utils.class.getResourceAsStream(pathInJar))
-    {
-      // Check if the input stream is null (resource not found)
-      if (inputStream == null)
-      {
-        throw new FileNotFoundException("Resource not found: " + pathInJar);
-      }
-
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
-      {
-        String line;
-        // Read each line from the file and add it to the list
-        while ((line = reader.readLine()) != null)
-        {
-          filenames.add(line);
-        }
-      }
-    }
-
-    return filenames;
-  }
-
-  /**
-   * Transfers all bytes from the provided {@link InputStream} to the specified {@link
-   * FileOutputStream}.
+   * Transfers all bytes from the provided {@link InputStream} to the specified
+   * {@link FileOutputStream}.
    *
-   * <p>Note: This method replicates the functionality of {@link
-   * InputStream#transferTo(OutputStream)}, which was introduced in Java 9 (currently, the minimum
-   * required Java version is 1.8)</p>
+   * <p>Note: This method replicates the functionality of InputStream#transferTo(OutputStream),
+   * which was introduced in Java 9 (currently, the minimum required Java version is 1.8)</p>
    *
    * @param inputStream The input stream from which data is read
    * @param outputStream The output stream to which data is written
    * @throws IOException If an I/O error occurs during reading or writing
-   * @see InputStream#transferTo(OutputStream)
    */
   public static void transferTo(InputStream inputStream, FileOutputStream outputStream)
       throws IOException
@@ -149,17 +134,22 @@ public class Utils
     {
       try
       {
-        // Try to extract the libraries from a JAR in the classpath
-        List<String> filenames = readLibraryFilenames(LIBPATH_IN_JAR + "/filenames.txt");
+        String filename;
+        switch (OS.CURRENT)
+        {
+          case WINDOWS: filename = "cvc5jni.dll"; break;
+          case MAC: filename = "libcvc5jni.dylib"; break;
+          default:
+            // We assume it is Linux or a Unix-based system.
+            // If not, there's nothing more we can do anyway.
+            filename = "libcvc5jni.so";
+        }
 
         // Create a temporary directory to store the libraries
         Path tempDir = Files.createTempDirectory("cvc5-libs");
         tempDir.toFile().deleteOnExit(); // Mark the directory for deletion on exit
 
-        for (String filename : filenames)
-        {
-          loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
-        }
+        loadLibraryFromJar(tempDir, LIBPATH_IN_JAR, filename);
       }
       catch (Exception ex)
       {

@@ -207,16 +207,44 @@ enum ENUM(ProofRule)
    * .. math::
    *   \inferrule{- \mid t = s}{t = s}
    *
-   * where :math:`\texttt{expr::isACNorm(t, s)} = \top`. For details, see
-   * :cvc5src:`expr/nary_term_util.h`.
+   * where :math:`t` and :math:`s` are equivalent modulo associativity
+   * and identity elements, and (optionally) commutativity and idempotency.
+   *
    * This method normalizes currently based on two kinds of operators:
    * (1) those that are associative, commutative, idempotent, and have an
    * identity element (examples are or, and, bvand),
-   * (2) those that are associative and have an identity element (examples
-   * are str.++, re.++).
+   * (2) those that are associative, commutative and have an identity
+   * element (bvxor),
+   * (3) those that are associative and have an identity element (examples
+   * are concat, str.++, re.++).
+   *
+   * This is implemented internally by checking that
+   * :math:`\texttt{expr::isACINorm(t, s)} = \top`. For details, see
+   * :cvc5src:`expr/aci_norm.h`.
    * \endverbatim
    */
   EVALUE(ACI_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Builtin theory -- absorb**
+   *
+   * .. math::
+   *   \inferrule{- \mid t = z}{t = z}
+   *
+   * where :math:`t` contains :math:`z` as a subterm, where :math:`z`
+   * is a zero element.
+   *
+   * In particular, :math:`t` is expected to be an application of a
+   * function with a zero element :math:`z`, and :math:`z` is contained
+   * as a subterm of :math:`t` beneath applications of that function.
+   * For example, this may show that :math:`(A \wedge ( B \wedge \bot)) = \bot`.
+   *
+   * This is implemented internally by checking that
+   * :math:`\texttt{expr::isAbsorb(t, z)} = \top`. For details, see
+   * :cvc5src:`expr/aci_norm.h`.
+   * \endverbatim
+   */
+  EVALUE(ABSORB),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Builtin theory -- Substitution + Rewriting equality introduction**
@@ -1310,18 +1338,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(DT_SPLIT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Datatypes -- Clash**
-   *
-   * .. math::
-   *
-   *   \inferruleSC{\mathit{is}_{C_i}(t), \mathit{is}_{C_j}(t)\mid -}{\bot}
-   *   {if $i\neq j$}
-   *
-   * \endverbatim
-   */
-  EVALUE(DT_CLASH),
 
   /**
    * \verbatim embed:rst:leading-asterisk
@@ -1484,42 +1500,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(CONCAT_UNIFY),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict**
-   *
-   * .. math::
-   *   \inferrule{(c_1 \cdot t) = (c_2 \cdot s)\mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t \cdot c_1) = (s \cdot c_2)\mid \top}{\bot}
-   *
-   * where :math:`c_1,\,c_2` are distinct (non-empty) string constants of the same length.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Strings -- Core rules -- Concatenation conflict for disequal characters**
-   *
-   * .. math::
-   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \neq s_1 \mid \bot}{\bot}
-   *
-   * Alternatively for the reverse:
-   *
-   * .. math::
-   *   \inferrule{(t\cdot t_1) = (s \cdot s_1), t_1 \neq s_1 \mid \top}{\bot}
-   *
-   * where :math:`t_1` and :math:`s_1` are applications of :math:`seq.unit`.
-   *
-   * This rule is used exclusively for sequences.
-   *
-   * \endverbatim
-   */
-  EVALUE(CONCAT_CONFLICT_DEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Strings -- Core rules -- Concatenation split**
@@ -2457,6 +2437,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BOOL_NNF_NORM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Booleans -- Bitvector invert solve**
+   *
+   * .. math::
+   *   ((t_1 = t_2) = (x = r)) = \top
+   *
+   * where :math:`x` occurs on an invertible path in :math:`t_1 = t_2`
+   * and has solved form :math:`r`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BOOL_BV_INVERT_SOLVE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Integer equality conflict**
    *
    * .. math::
@@ -2785,6 +2778,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_DT_SPLIT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro datatype variable expand **
+   *
+   * .. math::
+   *   (\forall Y x Z.\> F) = (\forall Y X_1 Z. F_1) \vee \cdots \vee (\forall Y X_n Z. F_n)
+   *
+   * where :math:`x` is of a datatype type with constructors
+   * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
+   * :math:`F_i` is :math:`F \{ x \mapsto C_i(X_i) \}`, and
+   * :math:`F` entails :math:`\mathit{is}_c(x)` for some :math:`c`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_DT_VAR_EXPAND),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro connected free variable partitioning**
    *
    * .. math::
@@ -3013,6 +3021,110 @@ enum ENUM(ProofRewriteRule)
   EVALUE(DT_MATCH_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro extract and concat **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule ExtractConcat.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_EXTRACT_CONCAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro or simplify **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule OrSimplify.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_OR_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro and simplify **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule AndSimplify.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_AND_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro xor simplify **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule XorSimplify.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_XOR_SIMPLIFY),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro and/or/xor concat pullup **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule AndOrXorConcatPullup.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_AND_OR_XOR_CONCAT_PULLUP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro multiply signed less than multiply **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule MultSltMult.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_MULT_SLT_MULT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro concat extract merge **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule ConcatExtractMerge.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_CONCAT_EXTRACT_MERGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro concat constant merge **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule ConcatConstantMerge.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_CONCAT_CONSTANT_MERGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Extract negations from multiplicands**
    *
    * .. math::
@@ -3232,6 +3344,76 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_OVERLAP_ENDPOINTS_REPLACE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string component contains**
+   *
+   * .. math::
+   *   \mathit{str.contains}(t, s) = \top
+   *
+   * where a substring of :math:`t` can be inferred to be a superstring of
+   * :math:`s` based on iterating on components of string concatenation terms
+   * as well as prefix and suffix reasoning.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_COMPONENT_CTN),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string constant no contains concatenation**
+   *
+   * .. math::
+   *   \mathit{str.contains}(c, \mathit{str.++}(t_1, \ldots, t_n)) = \bot
+   *
+   * where :math:`c` is not contained in :math:`R_t`, where
+   * the regular expression :math:`R_t` overapproximates the possible
+   * values of :math:`\mathit{str.++}(t_1, \ldots, t_n)`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_CONST_NCTN_CONCAT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro string in regular expression inclusion**
+   *
+   * .. math::
+   *   \mathit{str.in_re}(s, R) = \top
+   *
+   * where :math:`R` includes the regular expression :math:`R_s`
+   * which overapproximates the possible values of string :math:`s`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_IN_RE_INCLUSION),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- Macro regular expression intersection/union constant elimination**
+   *
+   * One of the following forms:
+   *
+   * .. math::
+   *   \mathit{re.union}(R) = \mathit{re.union}(R')
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string in :math:`R_i`
+   * and :math:`R'` is the result of removing :math:`\mathit{str.to_re(c)}` from :math:`R`.
+   *
+   * .. math::
+   *   \mathit{re.inter}(R) = \mathit{re.inter}(R')
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string in :math:`R_i`
+   * and :math:`R'` is the result of removing :math:`R_i` from :math:`R`.
+   *
+   * .. math::
+   *   \mathit{re.inter}(R) = \mathit{re.none}
+   *
+   * where :math:`R` is a list of regular expressions containing :math:`R_i`
+   * and :math:`\mathit{str.to_re(c)}` where :math:`c` is a string not in :math:`R_i`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_RE_INTER_UNION_CONST_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- Sequence evaluate operator**
    *
    * .. math::
@@ -3423,67 +3605,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets intersection evaluate**
+   * **Sets -- sets evaluate operator**
    *
    * .. math::
-   *   \mathit{set.inter}(t_1, t_2) = t
+   *   \mathit{f}(t_1, t_2) = t
    *
-   * where :math:`t_1` and :math:`t_2` are set values, that is,
-   * the Node::isConst method returns true for both, and
-   * where :math:`t` is an intersection of the component elements of
+   * where :math:`f` is one of :math:`\mathit{set.inter}, \mathit{set.minus}, \mathit{set.union}`,
+   * and :math:`t` is the result of evaluating :math:`f` on
    * :math:`t_1` and :math:`t_2`.
    *
-   * \endverbatim
-   */
-  EVALUE(MACRO_SETS_INTER_EVAL),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets minus evaluate**
-   *
-   * .. math::
-   *   \mathit{set.minus}(t_1, t_2) = t
-   *
-   * where :math:`t_1` and :math:`t_2` are set values, that is,
-   * the Node::isConst method returns true for both, and
-   * where :math:`t` is the difference of the component elements of
-   * :math:`t_1` and :math:`t_2`.
-   *
-   * \endverbatim
-   */
-  EVALUE(MACRO_SETS_MINUS_EVAL),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets union normalize**
-   *
-   * .. math::
-   *   \mathit{set.union}(t_1, t_2) = t
-   * 
-   * where :math:`t` is a union of the component elements of
-   * :math:`t_1` and :math:`t_2`.
-   * 
    * Note we use this rule only when :math:`t_1` and :math:`t_2` are set values,
    * that is, the Node::isConst method returns true for both.
    *
    * \endverbatim
    */
-  EVALUE(SETS_UNION_NORM),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- empty tester evaluation**
-   *
-   * .. math::
-   *   \mathit{sets.is\_empty}(\epsilon) = \top
-   *
-   * where :math:`\epsilon` is the empty set, or alternatively:
-   *
-   * .. math::
-   *   \mathit{sets.is\_empty}(c) = \bot
-   *
-   * where :math:`c` is a constant set that is not the empty set.
-   *
-   * \endverbatim
-   */
-  EVALUE(SETS_IS_EMPTY_EVAL),
+  EVALUE(SETS_EVAL_OP),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets insert elimination**
@@ -3576,6 +3712,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_EQ_CONFLICT),
   /** Auto-generated from RARE rule arith-int-geq-tighten */
   EVALUE(ARITH_INT_GEQ_TIGHTEN),
+  /** Auto-generated from RARE rule arith-divisible-elim */
+  EVALUE(ARITH_DIVISIBLE_ELIM),
   /** Auto-generated from RARE rule arith-abs-eq */
   EVALUE(ARITH_ABS_EQ),
   /** Auto-generated from RARE rule arith-abs-int-gt */
@@ -3798,6 +3936,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_COMMUTATIVE_XOR),
   /** Auto-generated from RARE rule bv-commutative-mul */
   EVALUE(BV_COMMUTATIVE_MUL),
+  /** Auto-generated from RARE rule bv-commutative-comp */
+  EVALUE(BV_COMMUTATIVE_COMP),
   /** Auto-generated from RARE rule bv-or-zero */
   EVALUE(BV_OR_ZERO),
   /** Auto-generated from RARE rule bv-mul-one */
@@ -3834,6 +3974,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_NEG_IDEMP),
   /** Auto-generated from RARE rule bv-sub-eliminate */
   EVALUE(BV_SUB_ELIMINATE),
+  /** Auto-generated from RARE rule bv-ite-width-one */
+  EVALUE(BV_ITE_WIDTH_ONE),
+  /** Auto-generated from RARE rule bv-ite-width-one-not */
+  EVALUE(BV_ITE_WIDTH_ONE_NOT),
+  /** Auto-generated from RARE rule bv-eq-xor-solve */
+  EVALUE(BV_EQ_XOR_SOLVE),
+  /** Auto-generated from RARE rule bv-eq-not-solve */
+  EVALUE(BV_EQ_NOT_SOLVE),
   /** Auto-generated from RARE rule bv-ugt-eliminate */
   EVALUE(BV_UGT_ELIMINATE),
   /** Auto-generated from RARE rule bv-uge-eliminate */
@@ -3894,6 +4042,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_USUBO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ssubo-eliminate */
   EVALUE(BV_SSUBO_ELIMINATE),
+  /** Auto-generated from RARE rule bv-nego-eliminate */
+  EVALUE(BV_NEGO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
   /** Auto-generated from RARE rule bv-ite-const-children-1 */
@@ -3938,6 +4088,18 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_OR_CONCAT_PULLUP),
   /** Auto-generated from RARE rule bv-xor-concat-pullup */
   EVALUE(BV_XOR_CONCAT_PULLUP),
+  /** Auto-generated from RARE rule bv-and-concat-pullup2 */
+  EVALUE(BV_AND_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-or-concat-pullup2 */
+  EVALUE(BV_OR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup2 */
+  EVALUE(BV_XOR_CONCAT_PULLUP2),
+  /** Auto-generated from RARE rule bv-and-concat-pullup3 */
+  EVALUE(BV_AND_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-or-concat-pullup3 */
+  EVALUE(BV_OR_CONCAT_PULLUP3),
+  /** Auto-generated from RARE rule bv-xor-concat-pullup3 */
+  EVALUE(BV_XOR_CONCAT_PULLUP3),
   /** Auto-generated from RARE rule bv-bitwise-idemp-1 */
   EVALUE(BV_BITWISE_IDEMP_1),
   /** Auto-generated from RARE rule bv-bitwise-idemp-2 */
@@ -4080,6 +4242,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MINUS_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
   EVALUE(SETS_IS_EMPTY_ELIM),
+  /** Auto-generated from RARE rule sets-is-singleton-elim */
+  EVALUE(SETS_IS_SINGLETON_ELIM),
   /** Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
   /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
