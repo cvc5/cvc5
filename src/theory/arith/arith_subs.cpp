@@ -35,7 +35,7 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
   {
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::vector<TNode> visit;
   visit.push_back(n);

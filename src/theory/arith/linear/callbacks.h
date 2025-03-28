@@ -163,7 +163,7 @@ private:
    *
    * postcondition: The returned constraint is in conflict.
    */
-  ConstraintCP commitConflict();
+  ConstraintCP commitConflict(NodeManager* nm);
 
   /** Returns true if a conflict has been pushed back since the last reset. */
   bool underConstruction() const;

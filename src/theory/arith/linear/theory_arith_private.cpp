@@ -481,7 +481,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
   if(cmpToUB > 0){ //  c_i < \lowerbound(x_i)
     ConstraintP ubc = d_partialModel.getUpperBoundConstraint(x_i);
     ConstraintP negation = constraint->getNegation();
-    negation->impliedByUnate(ubc, true);
+    negation->impliedByUnate(nodeManager(), ubc, true);
 
     raiseConflict(constraint, InferenceId::ARITH_CONF_LOWER);
 
@@ -623,7 +623,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     // or ... |= not (x_i <= c_i)
     ConstraintP lbc = d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP negConstraint = constraint->getNegation();
-    negConstraint->impliedByUnate(lbc, true);
+    negConstraint->impliedByUnate(nodeManager(), lbc, true);
     raiseConflict(constraint, InferenceId::ARITH_CONF_UPPER);
     ++(d_statistics.d_statAssertUpperConflicts);
     return true;
@@ -763,7 +763,7 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
       d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP diseq = constraint->getNegation();
     Assert(!diseq->isTrue());
-    diseq->impliedByUnate(cb, true);
+    diseq->impliedByUnate(nodeManager(), cb, true);
     raiseConflict(constraint, InferenceId::ARITH_CONF_EQ);
     return true;
   }
@@ -1350,7 +1350,8 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   const DeltaRational& beta = d_partialModel.getAssignment(v);
 
   Assert(beta.isIntegral());
-  Polynomial betaAsPolynomial = Polynomial::mkPolynomial( Constant::mkConstant(beta.floor()) );
+  Polynomial betaAsPolynomial = Polynomial::mkPolynomial(
+      Constant::mkConstant(nodeManager(), beta.floor()));
 
   TNode var = d_partialModel.asNode(v);
   Polynomial varAsPolynomial = Polynomial::parsePolynomial(var);
@@ -1387,7 +1388,8 @@ TrustNode TheoryArithPrivate::dioCutting()
     return TrustNode::null();
   }else{
     Polynomial p = plane.getPolynomial();
-    Polynomial c = Polynomial::mkPolynomial(plane.getConstant() * Constant::mkConstant(-1));
+    Polynomial c = Polynomial::mkPolynomial(
+        plane.getConstant() * Constant::mkConstant(nodeManager(), -1));
     Integer gcd = p.gcd();
     Assert(p.isIntegral());
     Assert(c.isIntegral());
@@ -4209,7 +4211,8 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
+        d_linEq.propagateBasicFromRow(
+            nodeManager(), bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(TraceIsOn("arith::prop")){
@@ -4609,7 +4612,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     else
     {
       Assert(!implied->negationHasProof());
-      implied->impliedByFarkas(explain, coeffs, false);
+      implied->impliedByFarkas(nodeManager(), explain, coeffs, false);
       implied->tryToPropagate();
     }
     return true;

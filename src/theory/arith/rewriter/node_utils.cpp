@@ -25,30 +25,29 @@ namespace rewriter {
 
 Node mkMultTerm(const Rational& multiplicity, TNode monomial)
 {
+  NodeManager* nm = monomial.getNodeManager();
   if (monomial.isConst())
   {
-    return mkConst(NodeManager::currentNM(),
-                   multiplicity * monomial.getConst<Rational>());
+    return mkConst(nm, multiplicity * monomial.getConst<Rational>());
   }
   if (multiplicity.isOne())
   {
     return monomial;
   }
-  return NodeManager::mkNode(
-      Kind::MULT, mkConst(NodeManager::currentNM(), multiplicity), monomial);
+  return NodeManager::mkNode(Kind::MULT, mkConst(nm, multiplicity), monomial);
 }
 
 Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
 {
-  Node mterm = mkConst(NodeManager::currentNM(), multiplicity);
+  NodeManager* nm = monomial.getNodeManager();
+  Node mterm = mkConst(nm, multiplicity);
   if (mterm.isConst())
   {
     return mkMultTerm(mterm.getConst<Rational>(), monomial);
   }
   if (monomial.isConst())
   {
-    return mkConst(NodeManager::currentNM(),
-                   multiplicity * monomial.getConst<Rational>());
+    return mkConst(nm, multiplicity * monomial.getConst<Rational>());
   }
   std::vector<Node> prod;
   prod.emplace_back(mterm);
@@ -61,7 +60,7 @@ Node mkMultTerm(const RealAlgebraicNumber& multiplicity, TNode monomial)
     prod.emplace_back(monomial);
   }
   Assert(prod.size() >= 2);
-  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, prod);
+  return nm->mkNode(Kind::NONLINEAR_MULT, prod);
 }
 
 Node mkMultTerm(NodeManager* nm,
@@ -76,7 +75,8 @@ Node mkMultTerm(NodeManager* nm,
   if (mterm.isConst())
   {
     std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
-    return mkMultTerm(mterm.getConst<Rational>(), mkNonlinearMult(monomial));
+    return mkMultTerm(mterm.getConst<Rational>(),
+                      mkNonlinearMult(nm, monomial));
   }
   monomial.emplace_back(mterm);
   std::sort(monomial.begin(), monomial.end(), rewriter::LeafNodeComparator());
@@ -103,7 +103,7 @@ Node ensureReal(TNode t)
     if (t.isConst())
     {
       // short-circuit
-      Node ret = NodeManager::currentNM()->mkConstReal(t.getConst<Rational>());
+      Node ret = t.getNodeManager()->mkConstReal(t.getConst<Rational>());
       Assert(ret.getType().isReal());
       return ret;
     }
