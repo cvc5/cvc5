@@ -106,15 +106,15 @@ void printUsageCategories(cvc5::Solver& solver,
     // skip if an expert option
     if (info.isExpert)
     {
-      ssExpert << name << std::endl;
+      ssExpert << "- `--" << name << "`" << std::endl;
     }
     else if (info.isRegular)
     {
-      ssRegular << name << std::endl;
+      ssRegular << "- `--" << name << "`" << std::endl;
     }
     else
     {
-      ssCommon << name << std::endl;
+      ssCommon << "- `--" << name << "`" << std::endl;
     }
   }
   os << "Common options:" << std::endl;
