@@ -849,7 +849,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
