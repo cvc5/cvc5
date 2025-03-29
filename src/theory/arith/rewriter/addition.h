@@ -69,6 +69,7 @@ bool isIntegral(const Sum& sum);
  * It does not consider sums within the product.
  */
 void addToSum(Sum& sum, TNode n, bool negate = false);
+void addMonomialToSum(Sum& sum, TNode product, RealAlgebraicNumber& multiplicity);
 
 /**
  * Evaluates the sum object (mapping monomials to their multiplicities) into a

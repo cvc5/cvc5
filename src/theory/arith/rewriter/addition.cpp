@@ -189,6 +189,14 @@ void addToSum(Sum& sum, TNode n, bool negate)
   addToSum(sum, mkNonlinearMult(monomial), multiplicity);
 }
 
+void addMonomialToSum(Sum& sum, TNode product, RealAlgebraicNumber& multiplicity)
+{
+  Assert (product.getKind()!=Kind::ADD);
+  std::vector<Node> monomial;
+  addToProduct(monomial, multiplicity, product);
+  addToSum(sum, mkNonlinearMult(monomial), multiplicity);
+}
+
 Node collectSum(NodeManager* nm, const Sum& sum)
 {
   if (sum.empty()) return mkConst(nm, Rational(0));
