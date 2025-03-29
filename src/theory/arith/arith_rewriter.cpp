@@ -662,6 +662,7 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
     nb << nm->mkConstRealOrInt(t.getType(), coeff);
   }
   Node ret = nb.getNumChildren()==1 ? nb.getChild(0) : nb;
+  ret = rewriter::maybeEnsureReal(t.getType(), ret);
   Trace("ajr-temp") << "Pre-rewrite " << t << " to " << ret << std::endl;
   return RewriteResponse(REWRITE_DONE, ret);
 }
