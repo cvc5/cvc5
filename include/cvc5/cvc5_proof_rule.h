@@ -3145,38 +3145,34 @@ enum ENUM(ProofRewriteRule)
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Unsigned multiplication overflow detection elimination**
    *
+   * .. math::
+   *    \texttt{bvumulo}(x,y) = t
+   *
+   * where :math:`t` is the result of eliminating the application
+   * of :math:`\texttt{bvumulo}`.
+   *
    * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
    * overflow detection circuits", 2001.
    * http://ieeexplore.ieee.org/document/987767
    * \endverbatim
    */
-  EVALUE(BV_UMULO_ELIMINATE),
+  EVALUE(BV_UMULO_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Unsigned multiplication overflow detection elimination**
    *
+   * .. math::
+   *    \texttt{bvsmulo}(x,y) = t
+   *
+   * where :math:`t` is the result of eliminating the application
+   * of :math:`\texttt{bvsmulo}`.
+   *
    * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
    * overflow detection circuits", 2001.
    * http://ieeexplore.ieee.org/document/987767
    * \endverbatim
    */
-  EVALUE(BV_SMULO_ELIMINATE),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Combine like terms during addition by counting terms**
-   * \endverbatim
-   */
-  EVALUE(BV_ADD_COMBINE_LIKE_TERMS),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Extract negations from multiplicands**
-   *
-   * .. math::
-   *    bvmul(bvneg(a),\ b,\ c) = bvneg(bvmul(a,\ b,\ c))
-   *
-   * \endverbatim
-   */
-  EVALUE(BV_MULT_SIMPLIFY),
+  EVALUE(BV_SMULO_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Extract continuous substrings of bitvectors**
