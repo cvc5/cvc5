@@ -108,10 +108,6 @@ void Assertions::addFormula(TNode n,
 {
   // add to assertion list
   d_assertionList.push_back(n);
-  if (isFunDef)
-  {
-    d_assertionListDefs.push_back(n);
-  }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do
@@ -193,6 +189,7 @@ void Assertions::addFormula(TNode n,
         }
       }
       Trace("smt-define-fun") << "...rewritten to " << defRew << std::endl;
+      d_assertionListDefs.push_back(n);
       d_env.getTopLevelSubstitutions().addSubstitution(
           n[0], defRew, d_defFunRewPf.get());
       return;
