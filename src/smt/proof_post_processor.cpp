@@ -319,10 +319,14 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
   {
     std::vector<Node> tchildren;
     std::vector<Node> sargs = args;
+    MethodId idr = MethodId::RW_REWRITE;
+    if (args.size() >= 4)
+    {
+      getMethodId(args[3], idr);
+    }
     // take into account witness form, if necessary
-    bool reqWitness = d_wfpm.requiresWitnessFormIntro(args[0]);
-    Trace("smt-proof-pp-debug")
-        << "...pred intro reqWitness=" << reqWitness << std::endl;
+    WitnessReq reqw = d_wfpm.requiresWitnessFormIntro(args[0], idr);
+    Trace("smt-proof-pp-debug") << "...pred intro reqw=" << reqw << std::endl;
     // (TRUE_ELIM
     // (TRANS
     //    (MACRO_SR_EQ_INTRO <children> :args (t args[1:]))
@@ -342,19 +346,22 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     Assert(conc.getKind() == Kind::EQUAL);
     Assert(conc[0] == args[0]);
     tchildren.push_back(conc);
-    if (reqWitness)
+    Node wc = conc[1];
+    if (reqw == WitnessReq::WITNESS || reqw == WitnessReq::WITNESS_AND_REWRITE)
     {
       Node weq = addProofForWitnessForm(conc[1], cdp);
       Trace("smt-proof-pp-debug") << "...weq is " << weq << std::endl;
-      if (addToTransChildren(weq, tchildren))
-      {
-        // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
-        // rewrite again, don't need substitution. Also we always use the
-        // default rewriter, due to the definition of MACRO_SR_PRED_INTRO.
-        Node weqr =
-            expandMacros(ProofRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
-        addToTransChildren(weqr, tchildren);
-      }
+      // note this may be reflexive
+      addToTransChildren(weq, tchildren);
+      wc = weq[1];
+    }
+    if (reqw == WitnessReq::REWRITE || reqw == WitnessReq::WITNESS_AND_REWRITE)
+    {
+      // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
+      // rewrite again, don't need substitution. Also we always use the
+      // default rewriter, due to the definition of MACRO_SR_PRED_INTRO.
+      Node weqr = expandMacros(ProofRule::MACRO_SR_EQ_INTRO, {}, {wc}, cdp);
+      addToTransChildren(weqr, tchildren);
     }
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
@@ -411,8 +418,14 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     std::vector<Node> schildren(children.begin() + 1, children.end());
     std::vector<Node> sargs = args;
     // first, compute if we need
-    bool reqWitness = d_wfpm.requiresWitnessFormTransform(children[0], args[0]);
-    Trace("smt-proof-pp-debug") << "...reqWitness=" << reqWitness << std::endl;
+    MethodId idr = MethodId::RW_REWRITE;
+    if (args.size() >= 4)
+    {
+      getMethodId(args[3], idr);
+    }
+    WitnessReq reqw =
+        d_wfpm.requiresWitnessFormTransform(children[0], args[0], idr);
+    Trace("smt-proof-pp-debug") << "...reqw=" << reqw << std::endl;
     // convert both sides, in three steps, take symmetry of second chain
     for (unsigned r = 0; r < 2; r++)
     {
@@ -427,22 +440,27 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
       Assert(!eq.isNull() && eq.getKind() == Kind::EQUAL && eq[0] == sargs[0]);
       addToTransChildren(eq, tchildrenr);
       // apply_SR(t) = toWitness(apply_SR(t))
-      if (reqWitness)
+      Node wc = eq[1];
+      if (reqw == WitnessReq::WITNESS
+          || reqw == WitnessReq::WITNESS_AND_REWRITE)
       {
         Node weq = addProofForWitnessForm(eq[1], cdp);
         Trace("smt-proof-pp-debug")
             << "transform toWitness (" << r << "): " << weq << std::endl;
-        if (addToTransChildren(weq, tchildrenr))
-        {
-          // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
-          // rewrite again, don't need substitution. Also, we always use the
-          // default rewriter, due to the definition of MACRO_SR_PRED_TRANSFORM.
-          Node weqr =
-              expandMacros(ProofRule::MACRO_SR_EQ_INTRO, {}, {weq[1]}, cdp);
-          Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r
-                                      << "): " << weqr << std::endl;
-          addToTransChildren(weqr, tchildrenr);
-        }
+        // note this may be reflexive
+        addToTransChildren(weq, tchildrenr);
+        wc = weq[1];
+      }
+      if (reqw == WitnessReq::REWRITE
+          || reqw == WitnessReq::WITNESS_AND_REWRITE)
+      {
+        // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
+        // rewrite again, don't need substitution. Also, we always use the
+        // default rewriter, due to the definition of MACRO_SR_PRED_TRANSFORM.
+        Node weqr = expandMacros(ProofRule::MACRO_SR_EQ_INTRO, {}, {wc}, cdp);
+        Trace("smt-proof-pp-debug")
+            << "transform rewrite_witness (" << r << "): " << weqr << std::endl;
+        addToTransChildren(weqr, tchildrenr);
       }
       Trace("smt-proof-pp-debug")
           << "transform connect (" << r << ")" << std::endl;
@@ -469,7 +487,7 @@ Node ProofPostprocessCallback::expandMacros(ProofRule id,
     }
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
-    if (eq.isNull())
+    if (eq.isNull() || eq[1] != args[0])
     {
       Assert(false) << "Failed proof for MACRO_SR_PRED_TRANSFORM";
       Trace("smt-proof-pp-debug")

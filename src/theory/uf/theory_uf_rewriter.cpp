@@ -87,7 +87,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
           vars.begin(), vars.end(), subs.begin(), subs.end());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-    if (!canUseAsApplyUfOperator(node.getOperator()))
+    // note that for sanity we ensure that partially applied APPLY_UF (those
+    // with function return type) are rewritten here, although these should
+    // in general be avoided e.g. during parsing.
+    if (!canUseAsApplyUfOperator(node.getOperator())
+        || node.getType().isFunction())
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
@@ -473,9 +477,9 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
   Assert(node.getKind() == Kind::INT_TO_BITVECTOR);
+  NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
-    NodeManager* nm = nodeManager();
     const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
     Node resultNode = nm->mkConst(
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
@@ -494,7 +498,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
     if (osize > isize)
     {
       // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
-      Node zero = bv::utils::mkZero(osize - isize);
+      Node zero = bv::utils::mkZero(nm, osize - isize);
       Node concat =
           nodeManager()->mkNode(Kind::BITVECTOR_CONCAT, zero, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, concat);

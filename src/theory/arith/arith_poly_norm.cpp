@@ -227,7 +227,7 @@ bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
 Node PolyNorm::toNode(const TypeNode& tn) const
 {
   std::vector<Node> sum;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   bool isArith = (tn.isInteger() || tn.isReal());
   bool isBv = tn.isBitVector();
   Kind multKind;
@@ -243,7 +243,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
   {
     multKind = Kind::BITVECTOR_MULT;
     addKind = Kind::BITVECTOR_ADD;
-    one = bv::utils::mkOne(tn.getBitVectorSize());
+    one = bv::utils::mkOne(nm, tn.getBitVectorSize());
   }
   else
   {
@@ -289,7 +289,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     else
     {
       Assert(isBv);
-      return bv::utils::mkZero(tn.getBitVectorSize());
+      return bv::utils::mkZero(nm, tn.getBitVectorSize());
     }
   }
   // must sort to ensure this method is idempotent
@@ -313,7 +313,7 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
-  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, vars);
+  return m2.getNodeManager()->mkNode(Kind::NONLINEAR_MULT, vars);
 }
 
 std::vector<TNode> PolyNorm::getMonoVars(TNode m)
@@ -595,7 +595,7 @@ Node PolyNorm::getArithPolyNormRelPremise(TNode a,
                                           const Rational& rx,
                                           const Rational& ry)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = a.getNodeManager();
   Node lhs, rhs;
   if (a[0].getType().isBitVector())
   {

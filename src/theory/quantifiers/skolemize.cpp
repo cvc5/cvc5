@@ -117,7 +117,7 @@ Node Skolemize::getSkolemConstant(const Node& q, size_t i)
 {
   Assert(q.getKind() == Kind::FORALL);
   Assert(i < q[0].getNumChildren());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = q.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals{q, nm->mkConstInt(Rational(i))};
   return sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE, cacheVals);
@@ -139,7 +139,7 @@ void Skolemize::getSelfSel(const DType& dt,
   }
   Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " "
                         << dt.getName() << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
     if (dt.isParametric())
@@ -190,7 +190,7 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
                                           std::vector<unsigned>& sub_vars)
 {
   Assert (f.getKind()==Kind::FORALL);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = f.getNodeManager();
   // compute the argument types from the free variables
   std::vector<TypeNode> argTypes;
   for (TNode v : fvs)
@@ -231,10 +231,21 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger
-        std::vector<Node> funcArgs;
-        funcArgs.push_back(op);
-        funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
-        s = nm->mkNode(Kind::APPLY_UF, funcArgs);
+        if (f[0][i].getType().isFunction())
+        {
+          s = op;
+          for (TNode v : fvs)
+          {
+            s = nm->mkNode(Kind::HO_APPLY, s, v);
+          }
+        }
+        else
+        {
+          std::vector<Node> funcArgs;
+          funcArgs.push_back(op);
+          funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
+          s = nm->mkNode(Kind::APPLY_UF, funcArgs);
+        }
       }
       sk.push_back(s);
     }

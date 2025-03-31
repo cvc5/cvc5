@@ -18,11 +18,13 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/arith/arith_proof_utilities.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -405,16 +407,39 @@ bool ArithCongruenceManager::propagate(TNode x){
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
         ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        // We substitute t -> c within the arithmetic context of neg.
+        // In particular using an arithmetic context ensures that this rewrite
+        // should be locally handled as an ARITH_POLY_NORM step.
+        // Otherwise, we may require the full rewriter. For example:
+        // (= x f(x)) => (not (>= (+ x (* -1 f(x))) 0)) would otherwise fail if
+        // we applied at general substitution
+        // (not (>= (+ f(x) (* -1 f(f(x)))) 0)),
+        // whereas since x in f(x) is not in an arithmetic context, we want
+        // (not (>= (+ f(x) (* -1 f(x))) 0)).
+        ArithSubsTermContext astc;
+        TConvProofGenerator tcnv(d_env,
+                                 nullptr,
+                                 TConvPolicy::FIXPOINT,
+                                 TConvCachePolicy::NEVER,
+                                 "ArithRConsTConv",
+                                 &astc);
+        tcnv.addRewriteStep(peq[0], peq[1], &cdp);
+        std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
+        Node negr = pfna->getResult()[1];
         Node res = pc->checkDebug(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen}, falsen);
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {negr}, {falsen}, falsen);
         Assert(!res.isNull());
         if (!res.isNull())
         {
-            cdp.addStep(falsen,
-                        ProofRule::MACRO_SR_PRED_TRANSFORM,
-                        {neg, peq},
-                        {falsen});
-            success = true;
+          cdp.addStep(
+              falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {negr}, {falsen});
+          success = true;
+          if (negr != neg)
+          {
+            cdp.addProof(pfna);
+            cdp.addStep(
+                negr, ProofRule::EQ_RESOLVE, {neg, pfna->getResult()}, {});
+          }
         }
       }
       if (success)

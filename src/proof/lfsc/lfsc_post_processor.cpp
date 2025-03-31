@@ -384,21 +384,6 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    case ProofRule::CONCAT_CONFLICT:
-    {
-      if (children.size() == 1)
-      {
-        // no need to change
-        return false;
-      }
-      Assert(children.size() == 2);
-      Assert(children[0].getKind() == Kind::EQUAL);
-      Assert(children[0][0].getType().isSequence());
-      // must use the sequences version of the rule
-      Node falsen = nm->mkConst(false);
-      addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
-    }
-    break;
     case ProofRule::INSTANTIATE:
     {
       Node q = children[0];

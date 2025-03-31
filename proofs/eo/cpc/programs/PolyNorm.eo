@@ -1,5 +1,5 @@
 (include "../theories/Ints.eo")
-(include "../theories/Arith.eo")
+(include "../theories/Reals.eo")
 (include "../theories/BitVectors.eo")
 (include "../programs/Utils.eo")
 

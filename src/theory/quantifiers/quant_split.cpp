@@ -52,6 +52,12 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
    *
    * where the variables in q' is reordered from q such that the variable to
    * split comes first.
+   *
+   * Note that this elaboration relies on the fact that the variables
+   * introduced for QuantDSplit::split(nm, q', 0) are the same as those for
+   * QuantDSplit::split(nm, q, n), since q and q' have the same body
+   * and these two splits refer to the same variables, which is the basis
+   * for the bound variables introduced (QDSplitVarAttribute).
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override
   {
@@ -108,19 +114,6 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   /** Mapping from lemmas to their notified index */
   context::CDHashMap<Node, size_t> d_index;
 };
-
-/**
- * Attributes used for constructing bound variables in a canonical way. These
- * are attributes that map to bound variable, introduced for the following
- * purpose:
- * - QDSplitVarAttribute: cached on (q, v, i) where QuantDSplit::split is called
- * to split the variable v of q. We introduce bound variables, where the i^th
- * variable created in that method is cached based on i.
- */
-struct QDSplitVarAttributeId
-{
-};
-using QDSplitVarAttribute = expr::Attribute<QDSplitVarAttributeId, Node>;
 
 QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersState& qs,
@@ -298,7 +291,7 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
       TypeNode tns = dtjtn[k];
       Node cacheVal = bvm->getCacheValue(q[1], q[0][index], varCount);
       varCount++;
-      Node v = bvm->mkBoundVar<QDSplitVarAttribute>(cacheVal, tns);
+      Node v = bvm->mkBoundVar(BoundVarId::QUANT_DT_SPLIT, cacheVal, tns);
       vars.push_back(v);
     }
     std::vector<Node> bvs_cmb;
@@ -323,6 +316,21 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
     cons.push_back(body);
   }
   return nm->mkAnd(cons);
+}
+
+std::shared_ptr<ProofNode> QuantDSplit::getQuantDtSplitProof(Env& env,
+                                                             const Node& q,
+                                                             size_t index)
+{
+  Node qs = split(env.getNodeManager(), q, index);
+  if (qs.isNull())
+  {
+    return nullptr;
+  }
+  Node eq = q.eqNode(qs);
+  QuantDSplitProofGenerator pg(env);
+  pg.notifyLemma(eq, index);
+  return pg.getProofFor(eq);
 }
 
 }  // namespace quantifiers
