@@ -84,6 +84,7 @@ class Op(Enum):
     BVUSUBO = ('bvusubo', 'BITVECTOR_USUBO')
     BVSSUBO = ('bvssubo', 'BITVECTOR_SSUBO')
     BVSDIVO = ('bvsdivo', 'BITVECTOR_SDIVO')
+    BVNEGO = ('bvnego', 'BITVECTOR_NEGO')
 
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
@@ -130,6 +131,7 @@ class Op(Enum):
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
     IS_INT = ('is_int', 'IS_INTEGER')
+    DIVISIBLE = ('divisible', 'DIVISIBLE')
     
     SINE = ('sin', 'SINE')
     COSINE = ('cos', 'COSINE')

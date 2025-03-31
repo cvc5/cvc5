@@ -99,5 +99,4 @@
 ; return: >
 ;   The nth argument of t.
 (define $dt_arg_nth ((T Type :implicit) (t T) (n Int))
-  (eo::list_nth @list ($dt_arg_list t) n)
-)
+  (eo::list_nth @list ($dt_arg_list t) n))

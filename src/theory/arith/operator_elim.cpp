@@ -17,7 +17,6 @@
 
 #include <sstream>
 
-#include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "options/arith_options.h"
 #include "proof/proof_node_manager.h"
@@ -36,23 +35,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-/**
- * A bound variable for the witness term used to eliminate real algebraic
- * numbers.
- */
-struct RealAlgebraicNumberVarAttributeId
-{
-};
-typedef expr::Attribute<RealAlgebraicNumberVarAttributeId, Node>
-    RealAlgebraicNumberVarAttribute;
-/**
- * A bound variable used for transcendental function purification.
- */
-struct TrPurifyAttributeId
-{
-};
-using TrPurifyAttribute = expr::Attribute<TrPurifyAttributeId, Node>;
-
 OperatorElim::OperatorElim(Env& env) : EnvObj(env), d_lemmaMap(userContext()) {}
 
 TrustNode OperatorElim::eliminate(Node n,
@@ -64,10 +46,14 @@ TrustNode OperatorElim::eliminate(Node n,
   std::vector<std::pair<Node, Node>> klems;
   bool wasNonLinear = false;
   Node nn = eliminateOperators(nm, n, klems, partialOnly, wasNonLinear);
+  if (nn == n)
+  {
+    return TrustNode::null();
+  }
   // logic exception if non-linear
   if (wasNonLinear)
   {
-    if (d_env.getLogicInfo().isLinear())
+    if (logicInfo().isLinear())
     {
       Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << n
                            << std::endl;
@@ -78,6 +64,14 @@ TrustNode OperatorElim::eliminate(Node n,
       throw LogicException(serr.str());
     }
   }
+  // if transcendental, we don't eliminate if not expert
+  if (isTranscendentalKind(n.getKind()))
+  {
+    if (!options().arith.arithExp)
+    {
+      return TrustNode::null();
+    }
+  }
   // should only be a single lemma, if there is one
   Assert(klems.size() <= 1);
   for (std::pair<Node, Node>& p : klems)
@@ -85,12 +79,8 @@ TrustNode OperatorElim::eliminate(Node n,
     // each skolem lemma can be justified by this class
     lems.emplace_back(mkSkolemLemma(p.first, p.second, n));
   }
-  if (nn != n)
-  {
-    // we can provide a proof for the rewrite as well
-    return TrustNode::mkTrustRewrite(n, nn, this);
-  }
-  return TrustNode::null();
+  // we can provide a proof for the rewrite as well
+  return TrustNode::mkTrustRewrite(n, nn, this);
 }
 
 Node OperatorElim::eliminateOperators(NodeManager* nm,
@@ -313,8 +303,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       // Make (lambda ((x Real)) (f x)) for this function, using the bound
       // variable manager to ensure this function is always the same.
       BoundVarManager* bvm = nm->getBoundVarManager();
-      Node x = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
-          node.getOperator(), "x", nm->realType());
+      Node x = bvm->mkBoundVar(
+          BoundVarId::ARITH_TR_PURIFY, node.getOperator(), "x", nm->realType());
       Node lam = nm->mkNode(
           Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x));
       Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
@@ -407,8 +397,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
     case Kind::REAL_ALGEBRAIC_NUMBER:
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
-      Node v = bvm->mkBoundVar<RealAlgebraicNumberVarAttribute>(
-          node, "i", nm->realType());
+      Node v = bvm->mkBoundVar(
+          BoundVarId::REAL_ALGEBRAIC_NUMBER_WITNESS, node, "i", nm->realType());
       Node w;
 #ifdef CVC5_POLY_IMP
       w = PolyConverter::ran_to_node(

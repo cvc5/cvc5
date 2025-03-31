@@ -15,26 +15,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Get minimum required CMake version
-      id: cmake
-      if: runner.os == 'Linux'
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "::group::Get minimum required CMake version"
-        echo "version=$( \
-          grep "cmake_minimum_required" CMakeLists.txt | \
-          awk -F'[()]' '{print $2}' | \
-          awk '{print $2}' \
-        )" >> "$GITHUB_OUTPUT"
-        echo "::endgroup::"
-
-    - name: Setup CMake
-      # Exclude Linux ARM64 runners, which are currently unsupported
-      if: runner.os == 'Linux' && ! contains(runner.arch, 'ARM')
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '${{ steps.cmake.outputs.version }}.x'
-
     - name: Install Linux software
       if: runner.os == 'Linux'
       shell: ${{ inputs.shell }}

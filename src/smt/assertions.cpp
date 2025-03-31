@@ -115,7 +115,7 @@ void Assertions::addFormula(TNode n,
   }
   Trace("smt") << "Assertions::addFormula(" << n
                << ", isFunDef = " << isFunDef << std::endl;
-  // In non-incremental portfolio, we treat higher-order equality as define-fun
+  // In non-incremental, we treat higher-order equality as define-fun
   if (!options().base.incrementalSolving || isFunDef)
   {
     // if a non-recursive define-fun, just add as a top-level substitution

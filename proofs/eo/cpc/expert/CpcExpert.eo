@@ -54,9 +54,9 @@
   (eo::match ((x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
     t
     (
-      ((sep x1 x2)       ($get_aci_norm t))
-      ((ff.add xf1 xf2)  ($get_aci_norm t))
-      ((ff.mul xf1 xf2)  ($get_aci_norm t))
+      ((sep x1 x2)       ($get_aci_norm t true))
+      ((ff.add xf1 xf2)  ($get_aci_norm t true))
+      ((ff.mul xf1 xf2)  ($get_aci_norm t true))
     )
   )
 )
