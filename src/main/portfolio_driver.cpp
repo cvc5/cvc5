@@ -44,10 +44,10 @@ enum SolveStatus : int
 };
 
 bool ExecutionContext::solveContinuous(parser::InputParser* parser,
+                                       std::vector<cvc5::parser::Command>& commands,
                                        bool stopAtSetLogic,
                                        bool stopAtCheckSat)
 {
-  Command cmd;
   bool interrupted = false;
   bool status = true;
   while (status)
@@ -58,7 +58,8 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       d_executor->reset();
       break;
     }
-    cmd = parser->nextCommand();
+    commands.push_back(parser->nextCommand());
+    Command& cmd = commands.back();
     if (cmd.isNull())
     {
       break;
@@ -95,38 +96,11 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
   return status;
 }
 
-bool ExecutionContext::runCheckSatCommand()
-{
-  std::shared_ptr<Cmd> cmd(new CheckSatCommand());
-  Command command(cmd);
-  return d_executor->doCommand(&command);
-}
-
 bool ExecutionContext::runResetCommand()
 {
   std::shared_ptr<Cmd> cmd(new ResetCommand());
   Command command(cmd);
   return d_executor->doCommand(&command);
-}
-
-std::vector<Command> ExecutionContext::parseCommands(
-    parser::InputParser* parser)
-{
-  std::vector<Command> res;
-  while (true)
-  {
-    Command cmd = parser->nextCommand();
-    if (cmd.isNull())
-    {
-      break;
-    }
-    res.emplace_back(cmd);
-    if (dynamic_cast<QuitCommand*>(cmd.d_cmd.get()) != nullptr)
-    {
-      break;
-    }
-  }
-  return res;
 }
 
 bool ExecutionContext::solveCommands(std::vector<Command>& cmds)
@@ -267,9 +241,10 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser, uint64_t timeout)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser, std::vector<Command>& commands, uint64_t timeout)
       : d_ctx(ctx),
         d_parser(parser),
+        d_commands(std::move(commands)),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
         d_timeout(timeout)
   {
@@ -340,22 +315,13 @@ class PortfolioProcessPool
       job.d_errPipe.dup(STDERR_FILENO);
       job.d_outPipe.dup(STDOUT_FILENO);
 
-      std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
-      std::string logic = d_ctx.solver().getLogic();
-
       d_ctx.runResetCommand();
 
       job.d_config.applyOptions(d_ctx.solver());
-      d_ctx.solver().setLogic(logic);
 
-      for (Term& t : assertions)
-      {
-        d_ctx.solver().assertFormula(t);
-      }
       // 0 = solved, 1 = not solved
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      if (d_ctx.runCheckSatCommand())
-      // if (d_ctx.solveCommands(d_commands))
+      if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
         if (res.isSat() || res.isUnsat())
@@ -456,6 +422,7 @@ class PortfolioProcessPool
 
   ExecutionContext& d_ctx;
   parser::InputParser* d_parser;
+  std::vector<Command> d_commands;
   /** All jobs. */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */
@@ -474,17 +441,18 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
 {
   ExecutionContext ctx{executor.get()};
   Solver& solver = ctx.solver();
+  std::vector<cvc5::parser::Command> commands;
   bool use_portfolio = solver.getOption("use-portfolio") == "true";
   if (!use_portfolio)
   {
-    return ctx.solveContinuous(d_parser, false);
+    return ctx.solveContinuous(d_parser, commands, false);
   }
 #if HAVE_SYS_WAIT_H
-  ctx.solveContinuous(d_parser, true);
+  ctx.solveContinuous(d_parser, commands, true);
 
   if (!ctx.d_logic)
   {
-    return ctx.solveContinuous(d_parser, false);
+    return ctx.solveContinuous(d_parser, commands, false);
   }
 
   bool incremental_solving = solver.getOption("incremental") == "true";
@@ -493,7 +461,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   if (strategy.d_strategies.size() == 1)
   {
     strategy.d_strategies.front().applyOptions(solver);
-    return ctx.solveContinuous(d_parser, false);
+    return ctx.solveContinuous(d_parser, commands, false);
   }
 
   uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
@@ -502,10 +470,10 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     total_timeout = 1'200'000; // miliseconds
   }
 
-  bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
+  bool uninterrupted = ctx.solveContinuous(d_parser, commands, false, true);
   if (uninterrupted && ctx.d_hasReadCheckSat)
   {
-    PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
+    PortfolioProcessPool pool(ctx, d_parser, commands, total_timeout);
     bool solved = pool.run(strategy);
     if (!solved)
     {

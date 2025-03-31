@@ -58,10 +58,9 @@ class ExecutionContext
    * Returns true if the commands have been executed without being interrupted.
    */
   bool solveContinuous(parser::InputParser* parser,
+                       std::vector<cvc5::parser::Command>& commands,
                        bool stopAtSetLogic,
                        bool stopAtCheckSat = false);
-
-  bool runCheckSatCommand();
 
   bool runResetCommand();
 
