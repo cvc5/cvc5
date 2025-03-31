@@ -657,13 +657,13 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
   Rational coeff(0);
   for (const std::pair<TNode, Rational>& c : children)
   {
-    if (c.second.isOne())
-    {
-      nb << c.first;
-    }
-    else if (c.first.isConst())
+    if (c.first.isConst())
     {
       coeff += c.first.getConst<Rational>()*c.second;
+    }
+    else if (c.second.isOne())
+    {
+      nb << c.first;
     }
     else
     {
