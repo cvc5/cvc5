@@ -215,10 +215,10 @@
   (str.substr (str.++ s1 s2 s3) n m)
   (str.substr (str.++ s2 s3) (- n (str.len s1)) m))
 
-(define-cond-rule str-substr-replace ((s ?Seq) (t ?Seq) (r ?Seq) (n Int) (m Int))
-  (= (str.len t) (str.len r))
-  (str.substr (str.replace s t r) n m)
-  (str.replace (str.substr s n m) t r))
+(define-cond-rule str-substr-replace ((s ?Seq) (t ?Seq) (r ?Seq) (n Int))
+  (and (= (str.len t) (str.len r)) (= (str.len t) 1))
+  (str.substr (str.replace s t r) 0 n)
+  (str.replace (str.substr s 0 n) t r))
 
 (define-cond-rule str-substr-full ((s ?Seq) (n Int))
   (>= n (str.len s))
