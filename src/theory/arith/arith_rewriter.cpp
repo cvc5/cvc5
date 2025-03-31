@@ -48,8 +48,20 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+
+/**
+ * Flatten a node into a vector of its (direct or indirect) children, collecting
+ * how many times each child occurs in the sum.
+ * A sequence of kinds is given that indicate which kinds to traverse over.
+ * This method is similar to expr::algorithm::flatten but does not use a tree
+ * traversal. Instead it merges subterms, based on counting the number of
+ * occurrences, as a Rational.
+ * @param t The node to be flattened
+ * @param children The resulting list of children
+ * @param kinds A sequence of kinds to consider for flattening
+ */
 template <typename... Kinds>
-bool flattenAndCollect(TNode t, std::vector<std::pair<TNode, Rational>>& children, Kinds... kinds)
+bool flattenAndCollectSum(TNode t, std::vector<std::pair<TNode, Rational>>& children, Kinds... kinds)
 {
   if (!expr::algorithm::canFlatten(t, kinds...))
   {
@@ -61,13 +73,15 @@ bool flattenAndCollect(TNode t, std::vector<std::pair<TNode, Rational>>& childre
   Kind tk = t.getKind();
   while (!countMap.empty())
   {
-    // go off of end first
+    // Go off of end first. This is important for efficiency since later terms
+    // in the map may contain subterms that are earlier terms in the map.
     std::map<TNode, Rational>::iterator cur = std::prev(countMap.end());
     bool recurse = false;
     TNode tc = cur->first;
     Kind k = tc.getKind();
     Rational coeff = cur->second;
     countMap.erase(cur);
+    // Additionally collect coefficient
     while (k==Kind::MULT && tc.getNumChildren()==2 && tc[0].isConst())
     {
       coeff *= tc[0].getConst<Rational>();
@@ -634,12 +648,11 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == Kind::ADD);
   std::vector<std::pair<TNode, Rational>> children;
-  if (!flattenAndCollect(t, children, Kind::ADD))
+  if (!flattenAndCollectSum(t, children, Kind::ADD))
   {
     return RewriteResponse(REWRITE_DONE, t);
   }
   NodeManager * nm = nodeManager();
-  Trace("ajr-temp") << "rewriting " << t << std::endl;
   NodeBuilder nb(nm, Kind::ADD);
   Rational coeff(0);
   for (const std::pair<TNode, Rational>& c : children)
@@ -663,7 +676,6 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
   }
   Node ret = nb.getNumChildren()==1 ? nb.getChild(0) : nb;
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
-  Trace("ajr-temp") << "Pre-rewrite " << t << " to " << ret << std::endl;
   return RewriteResponse(REWRITE_DONE, ret);
 }
 
@@ -674,17 +686,15 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
 
   rewriter::Sum sum;
   std::vector<std::pair<TNode, Rational>> children;
-  if (!flattenAndCollect(t, children, Kind::ADD, Kind::TO_REAL))
+  if (!flattenAndCollectSum(t, children, Kind::ADD, Kind::TO_REAL))
   {
     rewriter::addToSum(sum, t);
   }
   else
   {
-    Trace("ajr-temp") << "Flatten " << t << std::endl;
     Rational coeff(0);
     for (const std::pair<TNode, Rational>& c : children)
     {
-      Trace("ajr-temp") << "- flatten factor " << c.first << " " << c.second << std::endl;
       if (c.first.isConst())
       {
         coeff += c.first.getConst<Rational>()*c.second;
@@ -706,7 +716,6 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   }
   Node retSum = rewriter::collectSum(d_nm, sum);
   retSum = rewriter::maybeEnsureReal(t.getType(), retSum);
-  Trace("ajr-temp") << "Rewrite " << t << " to " << retSum << std::endl;
   return RewriteResponse(REWRITE_DONE, retSum);
 }
 
