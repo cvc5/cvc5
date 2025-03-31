@@ -72,6 +72,7 @@ bool isIntegral(const Sum& sum);
  * @param negate Whether to negate n.
  */
 void addToSum(Sum& sum, TNode n, bool negate = false);
+
 /**
  * Add the arithmetic term `product` to the given sum with coefficient
  * `multiplicity`. It should be the case that `product` is itself a monomial
