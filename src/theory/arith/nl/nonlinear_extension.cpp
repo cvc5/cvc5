@@ -439,7 +439,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
-void NonlinearExtension::checkFlattenMonomials()
+void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertions)
 {
   std::vector<Node>& mvec = d_extState.d_ms_vars;
   Trace("nl-ff") << "=== Compute flatten eq" << std::endl;
@@ -526,7 +526,8 @@ void NonlinearExtension::checkFlattenMonomials()
       {
         if (baseTerms.find(f.first)!=baseTerms.end())
         {
-          Trace("nl-ff") << "Cyclic: " << n << " == " << ns << ", in equivalence class of " << f.first << std::endl;
+          Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns << ", in equivalence class of " << f.first << std::endl;
+          explainFlattenMonomialsCyclic(f.first, n, repsProcessed);
           cyclic = true;
         }
       }
@@ -537,7 +538,8 @@ void NonlinearExtension::checkFlattenMonomials()
       itr = ffMap.find(ns);
       if (itr!=ffMap.end())
       {
-        Trace("nl-ff") << "*** Infer: " << n << " == " << itr->second << ", both equal to " << ns << std::endl;
+        Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second << ", both equal to " << ns << std::endl;
+        explainFlattenMonomials(itr->second, n, repsProcessed);
       }
       ffMap[ns] = n;
     }
@@ -600,6 +602,16 @@ void NonlinearExtension::checkFlattenMonomials()
     
   }
 }
+
+void NonlinearExtension::explainFlattenMonomials(const Node& a, const Node& b, const std::map<Node, Node>& repEq)
+{
+  
+}
+
+void NonlinearExtension::explainFlattenMonomialsCyclic(const Node& a, const Node& b, const std::map<Node, Node>& repEq)
+{
+  
+}
   
 void NonlinearExtension::runStrategy(Theory::Effort effort,
                                      const std::vector<Node>& assertions,
@@ -655,7 +667,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialSlv.init(xts);
         break;
       case InferStep::NL_FLATTEN_MON:
-        checkFlattenMonomials();
+        checkFlattenMonomials(assertions);
         break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
