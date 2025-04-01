@@ -952,8 +952,7 @@ Node DatatypesRewriter::collectRef(Node n,
         sk.pop_back();
         if (childChanged)
         {
-          ret = n.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR,
-                                                 children);
+          ret = n.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
           if (!rf_pending.back().isNull())
           {
             rf[rf_pending.back()] = ret;
