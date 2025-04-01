@@ -279,6 +279,72 @@
   )
 )
 
+;;; multiplication
+
+; define: $bv_shift_add_multiplier_rec_step
+; args:
+; - b1 Bool: The bit of the first term at the given index.
+; - a2 (BitVec n): The second term to multiply, a lists of bits.
+; - k Int: The index of the bit we are considering.
+; - res (BitVec n): The accumulated return value, a list of bits.
+; - carray Bool: The current carry bit.
+; return: the bitblasted term for processing the multiplication at the current index.
+(program $bv_shift_add_multiplier_rec_step ((n Int) (m Int) (k Int) (b1 Bool) (b2 Bool) (a2 (BitVec n) :list) (res (BitVec n))
+                                            (br Bool) (ar (BitVec m) :list) (carry Bool))
+  (Bool (BitVec n) Int (BitVec n) Bool) (BitVec n)
+  (
+  (($bv_shift_add_multiplier_rec_step b1 a2 0 @bv_empty carry)                              @bv_empty)
+  (($bv_shift_add_multiplier_rec_step b1 (@from_bools b2 a2) 0 (@from_bools br ar) carry)
+      (eo::define ((aj (and b1 b2)))
+      (eo::cons @from_bools (xor (xor br aj) carry)
+        ($bv_shift_add_multiplier_rec_step b1 a2 0 ar (or (and br aj) (and (xor br aj) carry))))))
+  (($bv_shift_add_multiplier_rec_step b1 a2 k (@from_bools br ar) carry)
+      (eo::cons @from_bools br ($bv_shift_add_multiplier_rec_step b1 a2 (eo::add k -1) ar carry)))
+  )
+)
+
+; define: $bv_shift_add_multiplier_rec
+; args:
+; - a1 (BitVec m): The remainder of the first term to multiply, a lists of bits.
+; - a2 (BitVec n): The second term to multiply, a lists of bits.
+; - k Int: The index of bits we are considering.
+; - res (BitVec n): The accumulated return value, a list of bits.
+; return: the bitblasted term for processing the multiplication of a1 and a2.
+(program $bv_shift_add_multiplier_rec ((n Int) (m Int) (mm1 Int) (k Int) (b1 Bool) (a1 (BitVec mm1) :list) (a2 (BitVec n)) (res (BitVec n)))
+  ((BitVec m) (BitVec n) Int (BitVec n)) (BitVec n)
+  (
+  (($bv_shift_add_multiplier_rec @bv_empty a2 k res)            res)
+  (($bv_shift_add_multiplier_rec (@from_bools b1 a1) a2 k res)
+     ($bv_shift_add_multiplier_rec a1 a2 (eo::add k 1) ($bv_shift_add_multiplier_rec_step b1 a2 k res false)))
+  )
+)
+; define: $bv_shift_add_multiplier
+; args:
+; - a (BitVec n): The first term to multiply, a lists of bits.
+; - b (BitVec n): The second term to multiply, a lists of bits.
+; return: the bitblasted term for (bvmul a b).
+(program $bv_shift_add_multiplier ((n Int) (b1 Bool) (a1 (BitVec n) :list) (a2 (BitVec n)))
+  ((BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_shift_add_multiplier a2 (@from_bools b1 a1))
+    (eo::define ((sz ($bv_bitwidth (eo::typeof a2))))
+      ($bv_shift_add_multiplier_rec a1 a2 1 ($bv_bitblast_apply_binary and ($bv_bitblast_repeat b1 sz) a2))))
+  )
+)
+
+; define: $bv_mk_bitblast_step_mul
+; args:
+; - a (BitVec n): A multiplication term over arguments that are lists of bits.
+; - ac (BitVec n): The accumulated return value, a list of bits.
+; return: the bitblasted term for a, given already processed arguments ac.
+(program $bv_mk_bitblast_step_mul ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (ac (BitVec n)))
+  ((BitVec n) (BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_mul (bvmul a1 a2) ac) ($bv_mk_bitblast_step_mul a2 ($bv_shift_add_multiplier ac a1)))
+  (($bv_mk_bitblast_step_mul a2 ac)            ac)
+  )
+)
+
 ; program: $bv_const_to_bitlist_rec
 ; args:
 ; - c (BitVec n): The bitvector constant to process.
