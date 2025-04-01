@@ -345,6 +345,71 @@
   )
 )
 
+;;; division and remainder
+
+; define: $bv_div_mod_impl
+; args:
+; - x (BitVec n): The first argument to div/rem, expected to be a list of bits.
+; - y (BitVec n): The second argument to div/rem, expected to be a list of bits.
+; - zero (BitVec n): A list of bits corresponding to the zero bitvector of the given width.
+; - sz Int: The number of bits left to process.
+; return:
+;   A pair corresponding to the bitblasted form of the quotient/remainder of x and y.
+(program $bv_div_mod_impl ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (sz Int) (zero (BitVec n)))
+  ((BitVec n) (BitVec n) (BitVec n) Int) (@Pair (BitVec n) (BitVec n))
+  (
+  (($bv_div_mod_impl a1 a2 zero 0)    (@pair zero zero))
+  (($bv_div_mod_impl zero a2 zero sz) (@pair zero zero))
+  (($bv_div_mod_impl a1 a2 zero sz)
+     (eo::match ((m1 Int) (q1 (BitVec m1)) (r1 (BitVec m1)))
+      ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero (eo::add sz -1))
+      (((@pair q1 r1)
+        (eo::define ((isodd (eo::list_nth @from_bools a1 0)))
+        (eo::define ((q1s ($bv_bitblast_lshift q1 1)))
+        (eo::define ((r1s ($bv_bitblast_lshift r1 1)))
+        (eo::define ((r1sa ($bv_ripple_carry_adder r1s zero (ite (= isodd true) true false))))
+        (eo::define ((a2n ($bv_bitblast_apply_unary not a2)))
+        (eo::match ((m2 Int) (rmb_carry Bool) (rmb (BitVec m2)))
+          ($bv_ripple_carry_adder_2 r1sa a2n true @bv_empty)
+          (((@pair rmb_carry rmb)
+            (eo::define ((q1ss (eo::match ((mm1 Int) (b1q Bool) (a1q (BitVec mm1) :list))
+                                 q1s
+                                 (((@from_bools b1q a1q) (@from_bools (ite (not rmb_carry) b1q true) a1q))))))
+            (eo::define ((r1sa2 ($bv_bitblast_apply_ite (not rmb_carry) r1sa rmb)))
+            (eo::match ((m3 Int) (amb_carry Bool) (amb (BitVec m3)))
+              ($bv_ripple_carry_adder_2 a1 a2n true @bv_empty)
+              (((@pair amb_carry amb)
+                (@pair ($bv_bitblast_apply_ite (not amb_carry) zero q1ss) ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))))
+  )
+)
+
+; define: $bv_mk_bitblast_step_udiv
+; args:
+; - x (BitVec n): The first argument, expected to be a list of bits.
+; - y (BitVec n): The second argument, expected to be a list of bits.
+; return: the bitblasted term for (bvudiv x y).
+(define $bv_mk_bitblast_step_udiv ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
+  (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
+  (eo::define ((zero ($bv_bitblast_zero sz)))
+  (eo::match ((m Int) (q (BitVec m)) (r (BitVec m)))
+    ($bv_div_mod_impl a1 a2 zero sz)
+    (((@pair q r) (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
+                    ($bv_bitblast_apply_ite isz ($bv_bitblast_repeat true sz) q))))))))
+
+; define: $bv_mk_bitblast_step_urem
+; args:
+; - x (BitVec n): The first argument, expected to be a list of bits.
+; - y (BitVec n): The second argument, expected to be a list of bits.
+; return: the bitblasted term for (bvurem x y).
+(define $bv_mk_bitblast_step_urem ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
+  (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
+  (eo::define ((zero ($bv_bitblast_zero sz)))
+  (eo::match ((m Int) (q (BitVec m)) (r (BitVec m)))
+    ($bv_div_mod_impl a1 a2 zero sz)
+    (((@pair q r) (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
+                    ($bv_bitblast_apply_ite isz a1 r))))))))
+
+
 ; program: $bv_const_to_bitlist_rec
 ; args:
 ; - c (BitVec n): The bitvector constant to process.
