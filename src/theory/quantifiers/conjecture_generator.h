@@ -614,6 +614,11 @@ public:
    * conjecture.
    */
   void debugPrintUnprovenConjectures(const std::vector<Node>& provenConj);
+  /* print theorem index
+   *
+   * This function just calls d_thm_index.debugPrint().
+   */
+  void debugPrintTheoremIndex();
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
