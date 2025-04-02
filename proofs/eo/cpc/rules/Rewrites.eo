@@ -62,7 +62,7 @@
 )
 (declare-rule arith-elim-gt ((@T0 Type) (@T1 Type) (t1 @T0) (s1 @T1))
   :args (t1 s1)
-  :conclusion (= (> t1 s1) (not (<= t1 s1)))
+  :conclusion (= (> t1 s1) (not (>= s1 t1)))
 )
 (declare-rule arith-elim-lt ((@T0 Type) (@T1 Type) (t1 @T0) (s1 @T1))
   :args (t1 s1)
