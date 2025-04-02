@@ -197,7 +197,7 @@
                     c
                     (eo::define ((nil (eo::nil f a1 a2)))
                       ($singleton_elim ($nary_diff f nil a (eo::cons f c nil))))  ; remove the constant and recollect
-                    ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
+                    ($nary_reverse ($bv_mk_bitblast_step_const c))                ; convert the constant to a bitlist
                     ($bv_bit_set c wm1) wm1 wm1)))))))
     )
   )
