@@ -144,7 +144,7 @@ TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
                                                   ProofRewriteRule id)
 {
   std::vector<Node> args;
-  args.push_back(rewriter::mkRewriteRuleNode(id));
+  args.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   args.push_back(a.eqNode(b));
   return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }
