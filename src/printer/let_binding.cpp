@@ -89,7 +89,7 @@ Node LetBinding::convert(Node n, bool letTop) const
   {
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
