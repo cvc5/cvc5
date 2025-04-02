@@ -458,6 +458,8 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
         case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
+        case Kind::BITVECTOR_SBV_TO_INT:
         case Kind::INT_TO_BITVECTOR:
         case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:
