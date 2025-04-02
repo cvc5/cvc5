@@ -57,7 +57,7 @@ PfManager::PfManager(Env& env)
       || options().proof.proofGranularityMode
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
-    d_rewriteDb.reset(new RewriteDb);
+    d_rewriteDb.reset(new RewriteDb(nodeManager()));
     // maybe output rare rules?
     bool isNormalOut = isOutputOn(OutputTag::RARE_DB);
     bool isExpertOut = isOutputOn(OutputTag::RARE_DB_EXPERT);

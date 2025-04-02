@@ -2589,7 +2589,7 @@ bool BasicRewriteRCons::tryTheoryRewrite(CDProof* cdp,
     if (tryRule(cdp,
                 eq,
                 ProofRule::THEORY_REWRITE,
-                {mkRewriteRuleNode(prid), eq},
+                {mkRewriteRuleNode(nodeManager(), prid), eq},
                 false))
     {
       // Theory rewrites may require macro expansion

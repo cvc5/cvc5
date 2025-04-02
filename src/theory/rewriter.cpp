@@ -57,7 +57,7 @@ struct RewriteStackElement {
         d_theoryId(theoryId),
         d_originalTheoryId(theoryId),
         d_nextChild(0),
-        d_builder(NodeManager::currentNM())
+        d_builder(node.getNodeManager())
   {
   }
 
