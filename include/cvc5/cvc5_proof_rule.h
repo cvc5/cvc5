@@ -4396,6 +4396,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_NO_CONTAINS),
   /** Auto-generated from RARE rule str-indexof-oob */
   EVALUE(STR_INDEXOF_OOB),
+  /** Auto-generated from RARE rule str-indexof-oob2 */
+  EVALUE(STR_INDEXOF_OOB2),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-find */
@@ -4668,6 +4670,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_TEST_UNFOLD_REV),
   /** Auto-generated from RARE rule str-in-re-concat-emp */
   EVALUE(STR_IN_RE_CONCAT_EMP),
+  /** Auto-generated from RARE rule str-in-re-from-int-nemp-dig-range */
+  EVALUE(STR_IN_RE_FROM_INT_NEMP_DIG_RANGE),
+  /** Auto-generated from RARE rule str-in-re-from-int-dig-range */
+  EVALUE(STR_IN_RE_FROM_INT_DIG_RANGE),
   /** Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */
