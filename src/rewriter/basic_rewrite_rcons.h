@@ -384,6 +384,24 @@ class BasicRewriteRCons : protected EnvObj
    */
   bool ensureProofArithPolyNormRel(CDProof* cdp, const Node& eq);
   /**
+   * Given a <= b and b <= c as free assumptions, proves a <= c. Adds the
+   * necessary proof steps to cdp.
+   * @param cdp The proof to add to.
+   * @param leq1 The first inequality.
+   * @param leq2 The second inequality.
+   * @return the proven inequality.
+   */
+  Node proveTransIneq(CDProof* cdp, const Node& leq1, const Node& leq2);
+  /**
+   * Given an (non-strict) inequality src as a free assumption, prove
+   * strict inequality or disequality tgt.
+   * @param cdp The proof to add to.
+   * @param src The non-strict inequality.
+   * @param tgt The target to prove.
+   * @return true if tgt was successfully proven from src.
+   */
+  bool proveIneqWeaken(CDProof* cdp, const Node& src, const Node& tgt);
+  /**
    * Prove that any string term is in a regular expression that characterizes
    * it. Return the proven regular expression. For example, given (str.++ x "A"
    * y), this method returns (str.in_re (str.++ x "A" y) (re.++ Sigma*
