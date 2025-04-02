@@ -98,8 +98,10 @@ PfManager::PfManager(Env& env)
                        options().proof.proofCheck,
                        static_cast<uint32_t>(options().proof.proofPedantic),
                        d_rewriteDb.get()));
-  d_pnm.reset(new ProofNodeManager(
-      env.getOptions(), env.getRewriter(), d_pchecker.get()));
+  d_pnm.reset(new ProofNodeManager(env.getNodeManager(),
+                                   env.getOptions(),
+                                   env.getRewriter(),
+                                   d_pchecker.get()));
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
