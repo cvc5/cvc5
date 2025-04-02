@@ -43,6 +43,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -3410,12 +3411,9 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           {
             assump.push_back(possibleConflict);
           }
-          Node falsen = nodeManager()->mkConst(false);
-          CDProof cdp(d_env);
-          cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
           Node npc = possibleConflict.notNode();
-          cdp.addStep(npc, ProofRule::SCOPE, {falsen}, assump);
-          pf = cdp.getProofFor(npc);
+          ArithProofRCons arc(d_env, TrustId::ARITH_DIO_LEMMA);
+          pf = arc.getProofFor(npc);
         }
         raiseBlackBoxConflict(possibleConflict, pf);
         outputConflicts();
