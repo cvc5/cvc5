@@ -32,7 +32,7 @@ namespace expr {
 
 Node getNullTerminator(Kind k, TypeNode tn)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   Node nullTerm;
   switch (k)
   {
@@ -213,10 +213,10 @@ Node getACINormalForm(Node a)
     // sort if commutative
     std::sort(children.begin(), children.end());
   }
-  an = children.empty() ? nt
-                        : (children.size() == 1
-                               ? children[0]
-                               : NodeManager::currentNM()->mkNode(k, children));
+  an = children.empty()
+           ? nt
+           : (children.size() == 1 ? children[0]
+                                   : a.getNodeManager()->mkNode(k, children));
   a.setAttribute(nfa, an);
   return an;
 }
