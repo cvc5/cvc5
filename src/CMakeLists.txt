@@ -1431,6 +1431,21 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
+  set(KINDS_TOML_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds.toml)
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES
