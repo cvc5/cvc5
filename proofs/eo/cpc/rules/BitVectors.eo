@@ -18,6 +18,120 @@
   :conclusion (= (repeat n a) b)
 )
 
+;;;;; ProofRewriteRule::BV_SMULO_ELIM
+
+; define: $bv_smulo_elim
+; args:
+; - xa (BitVec n): An xor term involving the first argument to bvsmulo
+; - xb (BitVec n): An xor term involving the second argument to bvsmulo
+; - ppc (BitVec 1): An intermediate bitvector term accumulated to help construct the result.
+; - res (BitVec 1): The current accumulated result.
+; - i Int: The current bit we are processing.
+; - nm2 Int: The bitwidth of a and b minus 2.
+; return: >
+;   A portion of the result of eliminating (bvsmulo a b).
+(program $bv_smulo_elim_rec ((n Int) (xa (BitVec n)) (xb (BitVec n))
+                             (ppc (BitVec 1)) (res (BitVec 1)) (i Int) (nm2 Int))
+  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  (
+  (($bv_smulo_elim_rec xa xb ppc res nm2 nm2)   res)
+  (($bv_smulo_elim_rec xa xb ppc res i nm2)
+      (eo::define ((ia (eo::add nm2 (eo::neg i))))
+      (eo::define ((ip1 (eo::add i 1)))
+      (eo::define ((ppcn (bvor ppc (extract ia ia xa))))
+        ($bv_smulo_elim_rec xa xb ppcn (bvor res (bvand (extract ip1 ip1 xb) ppcn)) ip1 nm2)))))
+  )
+)
+
+; define: $bv_smulo_elim
+; args:
+; - a (BitVec n): The first argument to bvsmulo
+; - b (BitVec n): The second argument to bvsmulo
+; return: >
+;   The result of eliminating (bvsmulo a b).
+(define $bv_smulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
+  (eo::define ((w ($bv_bitwidth (eo::typeof a))))
+  (eo::define ((wm1 (eo::add w -1)))
+  (eo::define ((one (eo::to_bin 1 1)))
+  (eo::ite (eo::is_eq w 1)
+    (= (bvand a b) one)
+    (eo::define ((mul (bvmul (sign_extend 1 a) (sign_extend 1 b))))
+    (eo::ite (eo::is_eq w 2)
+      (= (bvxor (extract w w mul) (extract wm1 wm1 mul)) one)
+      (eo::define ((xa (bvxor a (sign_extend wm1 (extract wm1 wm1 a)))))
+      (eo::define ((xb (bvxor b (sign_extend wm1 (extract wm1 wm1 b)))))
+      (eo::define ((wm2 (eo::add w -2)))
+      (eo::define ((ppc (extract wm2 wm2 xa)))
+      (eo::define ((res ($bv_smulo_elim_rec xa xb ppc (bvand (extract 1 1 xb) ppc) 1 wm2)))
+        (= (bvor res (bvxor (extract w w mul) (extract wm1 wm1 mul))) one))))))))))))
+)
+
+; rule: bv-smulo-elim
+; implements: ProofRewriteRule::BV_SMULO_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: c is the result of eliminating the left hand side.
+; conclusion: the given equality.
+(declare-rule bv-smulo-elim ((n Int) (a (BitVec n)) (b (BitVec n)) (c Bool))
+  :args ((= (bvsmulo a b) c))
+  :requires ((($bv_smulo_elim a b) c))
+  :conclusion (= (bvsmulo a b) c)
+)
+
+;;;;; ProofRewriteRule::BV_UMULO_ELIM
+
+; define: $bv_umulo_elim_rec
+; args:
+; - xa (BitVec n): An xor term involving the first argument to bvumulo
+; - xb (BitVec n): An xor term involving the second argument to bvumulo
+; - ppc (BitVec 1): An intermediate bitvector term accumulated to help construct the result.
+; - res (BitVec 1): The current accumulated result.
+; - i Int: The current bit we are processing.
+; - nm2 Int: The bitwidth of a and b minus 2.
+; return: >
+;   A portion of the result of eliminating (bvsmulo a b).
+(program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
+                             (uppc (BitVec 1)) (res (BitVec 1)) (i Int))
+  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  (
+  (($bv_umulo_elim_rec a b uppc res n n)   res)
+  (($bv_umulo_elim_rec a b uppc res i n)
+      (eo::define ((ia (eo::add n -1 (eo::neg i))))
+      (eo::define ((ip1 (eo::add i 1)))
+      (eo::define ((uppcn (bvor (extract ia ia a) uppc)))
+        (eo::cons bvor (bvand (extract i i b) uppc) ($bv_umulo_elim_rec a b uppcn res ip1 n))))))
+  )
+)
+
+; define: $bv_umulo_elim
+; args:
+; - a (BitVec n): The first argument to bvumulo
+; - b (BitVec n): The second argument to bvumulo
+; return: >
+;   The result of eliminating (bvumulo a b).
+(define $bv_umulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
+  (eo::define ((w ($bv_bitwidth (eo::typeof a))))
+  (eo::ite (eo::is_eq w 1)
+    false
+    (eo::define ((wm1 (eo::add w -1)))
+    (eo::define ((zero (eo::to_bin 1 0)))
+    (eo::define ((uppc (extract wm1 wm1 a)))
+    (eo::define ((mul (bvmul (concat zero a) (concat zero b))))
+    (eo::define ((res ($bv_umulo_elim_rec a b uppc (bvor (extract w w mul)) 1 w)))
+      (= res (eo::to_bin 1 1))))))))))
+
+; rule: bv-umulo-elim
+; implements: ProofRewriteRule::BV_UMULO_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: c is the result of eliminating the left hand side.
+; conclusion: the given equality.
+(declare-rule bv-umulo-elim ((n Int) (a (BitVec n)) (b (BitVec n)) (c Bool))
+  :args ((= (bvumulo a b) c))
+  :requires ((($bv_umulo_elim a b) c))
+  :conclusion (= (bvumulo a b) c)
+)
+
 ;;;;; ProofRewriteRule::BV_BITWISE_SLICING
 
 ; program: $bv_mk_bitwise_slicing_rec
