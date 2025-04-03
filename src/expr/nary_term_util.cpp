@@ -208,7 +208,7 @@ Node narySubstitute(Node src,
           Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
           if (children.empty())
           {
-            ret = getNullTerminator(cur.getKind(), cur.getType());
+            ret = getNullTerminator(nm, cur.getKind(), cur.getType());
             // if we don't know the null terminator, just return null now
             if (ret.isNull())
             {
