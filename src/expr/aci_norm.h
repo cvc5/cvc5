@@ -35,7 +35,7 @@ namespace expr {
  *   (as seq.empty (Seq Int)) for (STRING_CONCAT, (Seq Int)
  *   #x0 for (BITVECTOR_OR, (_ BitVec 4))
  */
-Node getNullTerminator(Kind k, TypeNode tn);
+Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn);
 
 /**
  * @param k A kind

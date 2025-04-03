@@ -30,9 +30,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace expr {
 
-Node getNullTerminator(Kind k, TypeNode tn)
+Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
 {
-  NodeManager* nm = tn.getNodeManager();
   Node nullTerm;
   switch (k)
   {
@@ -175,7 +174,7 @@ Node getACINormalForm(Node a)
     return a;
   }
   TypeNode atn = a.getType();
-  Node nt = getNullTerminator(k, atn);
+  Node nt = getNullTerminator(a.getNodeManager(), k, atn);
   if (nt.isNull())
   {
     // no null terminator, likely abstract type, return self
