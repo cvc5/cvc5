@@ -1113,6 +1113,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_AND_EMPTY);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (nik == Kind::REGEXP_STAR
              && ni[0].getKind() == Kind::REGEXP_ALLCHAR)
@@ -1122,6 +1123,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_OR_ALL);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
