@@ -34,6 +34,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/theory.h"
 #include "util/string.h"
 
 namespace cvc5::internal {
