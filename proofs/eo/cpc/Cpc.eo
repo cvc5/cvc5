@@ -118,6 +118,7 @@
       (($run_evaluate (not b))             (eo::not ($run_evaluate b)))
       (($run_evaluate (ite b x y))         (eo::ite ($run_evaluate b) ($run_evaluate x) ($run_evaluate y)))
       (($run_evaluate (or x ys))           (eo::or ($run_evaluate x) ($run_evaluate ys)))
+      (($run_evaluate (=> x y))            (eo::or (eo::not ($run_evaluate x)) ($run_evaluate y)))
       (($run_evaluate (and x ys))          (eo::and ($run_evaluate x) ($run_evaluate ys)))
       (($run_evaluate (xor x y))           (eo::xor ($run_evaluate x) ($run_evaluate y)))
   
@@ -425,6 +426,7 @@
     ((and x1 x2)       false)
     ((re.union x1 x2)  re.all)
     ((re.inter x1 x2)  re.none)
+    ((re.++ x1 x2)     re.none)
     ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
     ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
     )

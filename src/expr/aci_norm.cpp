@@ -261,6 +261,7 @@ Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn)
       zeroTerm = nm->mkNode(Kind::REGEXP_ALL);
       break;
     case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
       // empty language
       zeroTerm = nm->mkNode(Kind::REGEXP_NONE);
       break;
@@ -307,6 +308,7 @@ bool isAbsorb(Kind k)
     case Kind::AND:
     case Kind::REGEXP_UNION:
     case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
     case Kind::BITVECTOR_AND:
     case Kind::BITVECTOR_OR: return true;
     default: break;
