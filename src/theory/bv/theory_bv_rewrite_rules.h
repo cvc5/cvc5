@@ -169,6 +169,7 @@ enum RewriteRuleId
   UltOne,
   UltOnes,
   SltZero,
+  SltSelf,
   ZeroUlt,
   MergeSignExtend,
   SignExtendEqConst,

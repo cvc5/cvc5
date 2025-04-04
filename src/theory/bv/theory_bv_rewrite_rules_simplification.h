@@ -1275,6 +1275,25 @@ inline Node RewriteRule<NotUle>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * SltSelf
+ *
+ * a < a ==> false
+ */
+
+template<> inline
+bool RewriteRule<SltSelf>::applies(TNode node) {
+  return (node.getKind() == Kind::BITVECTOR_SLT && node[1] == node[0]);
+}
+
+template<> inline
+Node RewriteRule<SltSelf>::apply(TNode node) {
+  Trace("bv-rewrite") << "RewriteRule<SltSelf>(" << node << ")" << std::endl;
+  return utils::mkFalse(node.getNodeManager());
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
  * MultPow2
  *
  * (a * 2^k) ==> a[n-k-1:0] 0_k
