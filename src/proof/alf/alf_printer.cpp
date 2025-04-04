@@ -34,6 +34,7 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/theory.h"
 #include "util/string.h"
 #include "theory/builtin/generic_op.h"
 
@@ -347,10 +348,11 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   return false;
 }
 
+
 bool AlfPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
-  if (eq[0].isVar())
+  if (theory::Theory::isLeafOf(eq[0], theory::THEORY_BV))
   {
     return true;
   }
@@ -359,7 +361,30 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq)
     case Kind::CONST_BITVECTOR:
     case Kind::BITVECTOR_EXTRACT:
     case Kind::BITVECTOR_CONCAT:
-    case Kind::EQUAL: return true;
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::BITVECTOR_XOR:
+    case Kind::BITVECTOR_XNOR:
+    case Kind::BITVECTOR_NOT:
+    case Kind::BITVECTOR_ADD:
+    case Kind::BITVECTOR_SUB:
+    case Kind::BITVECTOR_NEG:
+    case Kind::BITVECTOR_MULT:
+    case Kind::BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SHL:
+    case Kind::BITVECTOR_ASHR:
+    case Kind::BITVECTOR_LSHR:
+    case Kind::BITVECTOR_UDIV:
+    case Kind::BITVECTOR_UREM:
+    case Kind::EQUAL:
+    case Kind::BITVECTOR_SLT:
+    case Kind::BITVECTOR_SLE:
+    case Kind::BITVECTOR_ULT:
+    case Kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_ITE:
+    case Kind::BITVECTOR_COMP:
+    case Kind::BITVECTOR_ULTBV:
+    case Kind::BITVECTOR_SLTBV: return true;
     default:
       Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
       break;
