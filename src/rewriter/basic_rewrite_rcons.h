@@ -425,6 +425,11 @@ class BasicRewriteRCons : protected EnvObj
   bool tryTheoryRewrite(CDProof* cdp,
                         const Node& eq,
                         theory::TheoryRewriteCtx ctx);
+  /**
+   * Counts number of proof nodes for each kind of THEORY_REWRITE that were
+   * expanded in macro elimination by this class.
+   */
+  HistogramStat<ProofRewriteRule> d_theoryRewriteMacroExpand;
   /** The BV rewrite elaborator */
   theory::bv::MacroRewriteElaborator d_bvRewElab;
 };
