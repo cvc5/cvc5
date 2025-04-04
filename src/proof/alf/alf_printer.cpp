@@ -35,6 +35,7 @@
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
@@ -379,7 +380,12 @@ bool AlfPrinter::canEvaluate(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      switch (cur.getKind())
+      Kind k = cur.getKind();
+      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        k = cur.getOperator().getConst<GenericOp>().getKind();
+      }
+      switch (k)
       {
         case Kind::ITE:
         case Kind::NOT:
