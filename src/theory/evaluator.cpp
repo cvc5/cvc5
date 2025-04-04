@@ -455,6 +455,13 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case Kind::IMPLIES:
+        {
+          bool res =
+              !results[currNode[0]].d_bool || results[currNode[1]].d_bool;
+          results[currNode] = EvalResult(res);
+          break;
+        }
         case Kind::XOR:
         {
           bool res = results[currNode[0]].d_bool;
@@ -1155,6 +1162,18 @@ EvalResult Evaluator::evalInternal(
           BitVector res = results[currNode[1]].d_bv;
           bool b = res.unsignedLessThanEq(results[currNode[0]].d_bv);
           results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_REPEAT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
+          for (size_t i = 1; i < amount; i++)
+          {
+            res = res.concat(res);
+          }
+          results[currNode] = EvalResult(res);
           break;
         }
         case Kind::BITVECTOR_SIGN_EXTEND:
