@@ -156,6 +156,17 @@ class BvInstantiator : public Instantiator
                       Node lit,
                       Node alit,
                       CegInstEffort effort);
+  /**
+   * This method takes as input a literal lit, expected to be of kind
+   * EQUAL, BITVECTOR_ULT, or BITVECTOR_SLT, and returns the rewritten form
+   * of lit that we are expected to process. In particular, this method takes
+   * into account the option cegqiBvIneqMode, which determines how inequalities
+   * are processed.
+   * @param ci Pointer to the parent CegInstantiator.
+   * @param lit The literal.
+   * @return the rewritten form of the literal.
+   */
+  Node processAssertionInternal(CegInstantiator* ci, Node lit);
 };
 
 /** Bitvector instantiator preprocess
