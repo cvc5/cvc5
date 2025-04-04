@@ -48,7 +48,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-
 /**
  * Flatten a node into a vector of its (direct or indirect) children, collecting
  * how many times each child occurs in the sum.
@@ -61,7 +60,9 @@ namespace arith {
  * @param kinds A sequence of kinds to consider for flattening
  */
 template <typename... Kinds>
-bool flattenAndCollectSum(TNode t, std::vector<std::pair<TNode, Rational>>& children, Kinds... kinds)
+bool flattenAndCollectSum(TNode t,
+                          std::vector<std::pair<TNode, Rational>>& children,
+                          Kinds... kinds)
 {
   if (!expr::algorithm::canFlatten(t, kinds...))
   {
@@ -87,7 +88,7 @@ bool flattenAndCollectSum(TNode t, std::vector<std::pair<TNode, Rational>>& chil
     Rational coeff = cur->second;
     countMap.erase(cur);
     // Additionally collect coefficient
-    while (k==Kind::MULT && tc.getNumChildren()==2 && tc[0].isConst())
+    while (k == Kind::MULT && tc.getNumChildren() == 2 && tc[0].isConst())
     {
       coeff *= tc[0].getConst<Rational>();
       tc = tc[1];
@@ -111,7 +112,7 @@ bool flattenAndCollectSum(TNode t, std::vector<std::pair<TNode, Rational>>& chil
     }
     else
     {
-      children.emplace_back(tc,coeff);
+      children.emplace_back(tc, coeff);
     }
   }
   return true;
@@ -657,14 +658,14 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
   {
     return RewriteResponse(REWRITE_DONE, t);
   }
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   NodeBuilder nb(nm, Kind::ADD);
   Rational coeff(0);
   for (const std::pair<TNode, Rational>& c : children)
   {
     if (c.first.isConst())
     {
-      coeff += c.first.getConst<Rational>()*c.second;
+      coeff += c.first.getConst<Rational>() * c.second;
     }
     else if (c.second.isOne())
     {
@@ -675,11 +676,11 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t)
       nb << nm->mkNode(Kind::MULT, nm->mkConstRealOrInt(c.second), c.first);
     }
   }
-  if (!coeff.isZero() || nb.getNumChildren()==0)
+  if (!coeff.isZero() || nb.getNumChildren() == 0)
   {
     nb << nm->mkConstRealOrInt(t.getType(), coeff);
   }
-  Node ret = nb.getNumChildren()==1 ? nb.getChild(0) : nb;
+  Node ret = nb.getNumChildren() == 1 ? nb.getChild(0) : nb;
   ret = rewriter::maybeEnsureReal(t.getType(), ret);
   return RewriteResponse(REWRITE_DONE, ret);
 }
@@ -702,7 +703,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
     {
       if (c.first.isConst())
       {
-        coeff += c.first.getConst<Rational>()*c.second;
+        coeff += c.first.getConst<Rational>() * c.second;
       }
       else if (c.second.isOne())
       {

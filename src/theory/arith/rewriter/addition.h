@@ -81,7 +81,9 @@ void addToSum(Sum& sum, TNode n, bool negate = false);
  * @param product The term to add to sum.
  * @param multiplicity The coefficient for product.
  */
-void addMonomialToSum(Sum& sum, TNode product, RealAlgebraicNumber& multiplicity);
+void addMonomialToSum(Sum& sum,
+                      TNode product,
+                      RealAlgebraicNumber& multiplicity);
 
 /**
  * Evaluates the sum object (mapping monomials to their multiplicities) into a
