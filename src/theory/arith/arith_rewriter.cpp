@@ -67,6 +67,11 @@ bool flattenAndCollectSum(TNode t, std::vector<std::pair<TNode, Rational>>& chil
   {
     return false;
   }
+  // Note we use an *ordered* map, where we assume that nodes are ordered by
+  // their id, where nodes constructed later have a larger id. This ensures
+  // we process nodes in the (reverse) order in which they constructed, newest
+  // nodes processed first, thus ensuring we process each node only once while
+  // flattening.
   std::map<TNode, Rational> countMap;
   countMap[t] = Rational(1);
   std::map<TNode, Rational>::iterator it;
