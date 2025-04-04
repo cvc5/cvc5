@@ -186,7 +186,7 @@ void addToSum(Sum& sum, TNode n, bool negate)
     multiplicity = Integer(-1);
   }
   addToProduct(monomial, multiplicity, n);
-  addToSum(sum, mkNonlinearMult(monomial), multiplicity);
+  addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
 }
 
 void addMonomialToSum(Sum& sum, TNode product, RealAlgebraicNumber& multiplicity)
@@ -275,7 +275,7 @@ Node distributeMultiplication(NodeManager* nm,
         addToProduct(newProduct, multiplicity, summand.first);
         addToProduct(newProduct, multiplicity, child);
         std::sort(newProduct.begin(), newProduct.end(), LeafNodeComparator());
-        addToSum(newsum, mkNonlinearMult(newProduct), multiplicity);
+        addToSum(newsum, mkNonlinearMult(nm, newProduct), multiplicity);
       }
     }
     if (TraceIsOn("arith-rewriter-distribute"))

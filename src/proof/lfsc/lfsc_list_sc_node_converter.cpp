@@ -56,7 +56,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
       children.push_back(f);
       // convert n, since this node will not be converted further
       children.push_back(d_conv.convert(n));
-      Node null = d_conv.getNullTerminator(k, tn);
+      Node null = d_conv.getNullTerminator(d_nm, k, tn);
       Assert(!null.isNull());
       // likewise, convert null
       children.push_back(d_conv.convert(null));
@@ -87,7 +87,7 @@ Node LfscListScNodeConverter::postConvert(Node n)
       std::vector<Node> nchildren(n.begin(), n.end());
       n = d_nm->mkNode(k, nchildren);
     }
-    Node null = d_conv.getNullTerminator(k, tn);
+    Node null = d_conv.getNullTerminator(d_nm, k, tn);
     AlwaysAssert(!null.isNull())
         << "No null terminator for " << k << ", " << tn;
     null = d_conv.convert(null);
