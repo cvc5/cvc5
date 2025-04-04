@@ -199,4 +199,4 @@
 (declare-const @re_first_match (-> (! String :opaque) (! RegLan :opaque) String))
 (declare-const @re_first_match_post (-> (! String :opaque) (! RegLan :opaque) String))
 
-
+(declare-const @witness_string_length (-> (! Type :var T) Int Int T))
