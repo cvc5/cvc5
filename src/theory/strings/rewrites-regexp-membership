@@ -188,3 +188,17 @@
   (and (not (str.in_re s (re.++ r1 r2))) (not (str.in_re s (re.++ r1 r2 (re.* r3) r3))))
   (str.in_re s (re.++ r1 r2 (re.* r3)))
   false)
+
+(define-rule* str-in-re-concat-emp ((s String) (s1 String) (s2 String :list))
+  (str.in_re (str.++ s s1 s2) (str.to_re ""))
+  (str.in_re (str.++ s1 s2) (str.to_re ""))
+  (and (= s "") _))
+
+(define-cond-rule str-in-re-from-int-nemp-dig-range ((n Int))
+  (>= n 0)
+  (str.in_re (str.from_int n) (re.++ (re.range "0" "9") (re.* (re.range "0" "9"))))
+  true)
+
+(define-rule str-in-re-from-int-dig-range ((n Int))
+  (str.in_re (str.from_int n) (re.* (re.range "0" "9")))
+  true)

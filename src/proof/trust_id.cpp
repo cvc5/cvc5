@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@ const char* toString(TrustId id)
   switch (id)
   {
     case TrustId::NONE: return "NONE";
+    case TrustId::PREPROCESSED_INPUT: return "PREPROCESSED_INPUT";
     // core
     case TrustId::THEORY_LEMMA: return "THEORY_LEMMA";
     case TrustId::THEORY_INFERENCE_ARITH: return "THEORY_INFERENCE_ARITH";
@@ -93,6 +94,8 @@ const char* toString(TrustId id)
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
     case TrustId::ARITH_STATIC_LEARN: return "ARITH_STATIC_LEARN";
     case TrustId::ARITH_NL_COMPARE_LEMMA: return "ARITH_NL_COMPARE_LEMMA";
+    case TrustId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
+    case TrustId::BV_PP_ASSERT: return "BV_PP_ASSERT";
     case TrustId::DIAMONDS: return "DIAMONDS";
     case TrustId::EXT_THEORY_REWRITE: return "EXT_THEORY_REWRITE";
     case TrustId::REWRITE_NO_ELABORATE: return "REWRITE_NO_ELABORATE";
@@ -104,6 +107,10 @@ const char* toString(TrustId id)
     case TrustId::RE_ELIM: return "RE_ELIM";
     case TrustId::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     case TrustId::QUANTIFIERS_INST_REWRITE: return "QUANTIFIERS_INST_REWRITE";
+    case TrustId::QUANTIFIERS_SUB_CBQI_LEMMA:
+      return "QUANTIFIERS_SUB_CBQI_LEMMA";
+    case TrustId::QUANTIFIERS_NESTED_QE_LEMMA:
+      return "QUANTIFIERS_NESTED_QE_LEMMA";
     case TrustId::STRINGS_PP_STATIC_REWRITE: return "STRINGS_PP_STATIC_REWRITE";
     case TrustId::VALID_WITNESS: return "VALID_WITNESS";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";

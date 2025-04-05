@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,15 +27,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-/**
- * Attribute for constructing a unique bound variable list for the lambda
- * corresponding to an array constant.
- */
-struct FunctionBoundVarListTag
-{
-};
-using FunctionBoundVarListAttribute =
-    expr::Attribute<FunctionBoundVarListTag, Node>;
 /**
  * An attribute to cache the conversion between array constants and lambdas.
  */
@@ -71,8 +62,8 @@ Node FunctionConst::toLambda(TNode n)
     {
       Node cacheVal =
           BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
-      Node v =
-          bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
+      Node v = bvm->mkBoundVar(
+          BoundVarId::FUN_BOUND_VAR_LIST, cacheVal, argTypes[i]);
       bvs.push_back(v);
     }
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);

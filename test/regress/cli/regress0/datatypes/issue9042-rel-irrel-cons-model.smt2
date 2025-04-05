@@ -4,7 +4,7 @@
 (set-logic ALL)
 (declare-datatypes ((C 0)) (((J) (H))))
 (declare-datatypes ((R 0) (Q 0)) (((D) (G (s0 Q))) ((E (s1 C) (s2 R) (s3 Int) (s4 R)))))
-(declare-datatypes ((B 0)) (((B (s5 Bool)))))
+(declare-datatypes ((B 0)) (((Bc (s5 Bool)))))
 (declare-fun v () Int)
 (declare-fun t () R)
 (declare-fun n (Int R) R)

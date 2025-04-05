@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -76,6 +76,12 @@ class QuantDSplit : public QuantifiersModule {
    * used for ProofRewriteRule::QUANT_DT_SPLIT.
    */
   static Node split(NodeManager* nm, const Node& q, size_t index);
+  /**
+   * Get proof for q = split(nm, q, index).
+   */
+  static std::shared_ptr<ProofNode> getQuantDtSplitProof(Env& env,
+                                                         const Node& q,
+                                                         size_t index);
 
  private:
   /** list of relevant quantifiers asserted in the current context */

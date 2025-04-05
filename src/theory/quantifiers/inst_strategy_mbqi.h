@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,9 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5::internal {
@@ -30,7 +32,7 @@ class SolverEngine;
 namespace theory {
 namespace quantifiers {
 
-class MbqiFastSygus;
+class MbqiEnum;
 
 /**
  * InstStrategyMbqi
@@ -45,7 +47,7 @@ class MbqiFastSygus;
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
-  friend class MbqiFastSygus;
+  friend class MbqiEnum;
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -63,6 +65,10 @@ class InstStrategyMbqi : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
+  /** For collecting global terms from all available assertions. */
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
+  /** Get the symbols appearing in assertions */
+  const context::CDHashSet<Node>& getGlobalSyms() const;
   /** identify */
   std::string identify() const override { return "mbqi"; }
 
@@ -131,9 +137,11 @@ class InstStrategyMbqi : public QuantifiersModule
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** Submodule for sygus enum */
-  std::unique_ptr<MbqiFastSygus> d_msenum;
+  std::unique_ptr<MbqiEnum> d_msenum;
   /** The options for subsolver calls */
   Options d_subOptions;
+  /* Set of global ground terms in assertions (outside of quantifiers). */
+  context::CDHashSet<Node> d_globalSyms;
 };
 
 }  // namespace quantifiers

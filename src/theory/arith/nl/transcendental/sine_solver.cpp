@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -147,7 +147,7 @@ void SineSolver::doReductions()
 
 Node SineSolver::getPhaseShiftLemma(const Node& x)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node sinex = nm->mkNode(Kind::SINE, x);
   Node y = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY_ARG, {sinex});

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/arrays_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
@@ -291,7 +292,7 @@ void SygusGrammarCons::addDefaultRulesTo(
       }
     }
     std::vector<Node> consts;
-    mkSygusConstantsForType(nm, tn, consts);
+    mkSygusConstantsForType(env, tn, consts);
     if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
@@ -886,10 +887,11 @@ void SygusGrammarCons::addDefaultPredicateRulesTo(
   }
 }
 
-void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
+void SygusGrammarCons::mkSygusConstantsForType(const Env& env,
                                                const TypeNode& type,
                                                std::vector<Node>& ops)
 {
+  NodeManager* nm = env.getNodeManager();
   if (type.isRealOrInt())
   {
     ops.push_back(nm->mkConstRealOrInt(type, Rational(0)));
@@ -898,8 +900,8 @@ void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
   else if (type.isBitVector())
   {
     unsigned size = type.getBitVectorSize();
-    ops.push_back(bv::utils::mkZero(size));
-    ops.push_back(bv::utils::mkOne(size));
+    ops.push_back(bv::utils::mkZero(nm, size));
+    ops.push_back(bv::utils::mkOne(nm, size));
   }
   else if (type.isBoolean())
   {
@@ -922,6 +924,12 @@ void SygusGrammarCons::mkSygusConstantsForType(NodeManager* nm,
     Node c = NodeManager::mkGroundTerm(type);
     // note that c should never contain an uninterpreted sort value
     Assert(!expr::hasSubtermKind(Kind::UNINTERPRETED_SORT_VALUE, c));
+    // don't use array constants if arraysExp is false
+    if (!env.getOptions().arrays.arraysExp
+        && expr::hasSubtermKind(Kind::STORE_ALL, c))
+    {
+      return;
+    }
     ops.push_back(c);
   }
   else if (type.isRoundingMode())

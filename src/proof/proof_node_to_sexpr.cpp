@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
+ *   Andrew Reynolds, Hans-Joerg Schurr, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -93,8 +93,6 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn, bool printConclusion)
       {
         children.push_back(d_argsMarker);
         // needed to ensure builtin operators are not treated as operators
-        // this can be the case for CONG where d_args may contain a builtin
-        // operator
         std::vector<Node> argsPrint;
         for (size_t i = 0, nargs = args.size(); i < nargs; i++)
         {
@@ -285,22 +283,6 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CONG:
-    case ProofRule::NARY_CONG:
-    {
-      if (i == 0)
-      {
-        return ArgFormat::KIND;
-      }
-      const std::vector<Node>& args = pn->getArguments();
-      Assert(i < args.size());
-      if (args[i].getNumChildren() == 0
-          && NodeManager::operatorToKind(args[i]) != Kind::UNDEFINED_KIND)
-      {
-        return ArgFormat::NODE_VAR;
-      }
-    }
-    break;
     case ProofRule::SUBS:
     case ProofRule::MACRO_REWRITE:
     case ProofRule::MACRO_SR_EQ_INTRO:

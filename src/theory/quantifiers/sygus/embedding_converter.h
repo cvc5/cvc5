@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,6 +54,10 @@ class EmbeddingConverter : protected EnvObj
    * to synthesis must be of the form
    *   templates[i]{ templates_arg[i] -> t }
    * for some t if !templates[i].isNull().
+   *
+   * This may return null if we are unable to construct a well founded
+   * grammar for a function-to-synthesize, which indicates that it is not
+   * possible to process this quantified formula with SyGuS.
    */
   Node process(Node q,
                const std::map<Node, Node>& templates,

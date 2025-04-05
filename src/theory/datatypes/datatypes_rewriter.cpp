@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -383,11 +383,15 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (kind == Kind::MATCH)
   {
-    Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
-    Node ret = expandMatch(in);
-    Trace("dt-rewrite-match")
-        << "Rewrite match: " << in << " ... " << ret << std::endl;
-    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    // only rewrite if expert
+    if (d_opts.datatypes.datatypesExp)
+    {
+      Trace("dt-rewrite-match") << "Rewrite match: " << in << std::endl;
+      Node ret = expandMatch(in);
+      Trace("dt-rewrite-match")
+          << "Rewrite match: " << in << " ... " << ret << std::endl;
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   else if (kind == Kind::MATCH_BIND_CASE)
   {
@@ -446,7 +450,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 Node DatatypesRewriter::expandMatch(Node in)
 {
   Assert(in.getKind() == Kind::MATCH);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = in.getNodeManager();
   // ensure we've type checked
   TypeNode tin = in.getType();
   Node h = in[0];
@@ -899,7 +903,7 @@ Node DatatypesRewriter::normalizeConstant(Node n)
       }
       if (childrenChanged)
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return n.getNodeManager()->mkNode(n.getKind(), children);
       }
     }
   }
@@ -948,8 +952,7 @@ Node DatatypesRewriter::collectRef(Node n,
         sk.pop_back();
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR,
-                                                 children);
+          ret = n.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
           if (!rf_pending.back().isNull())
           {
             rf[rf_pending.back()] = ret;
@@ -980,7 +983,7 @@ Node DatatypesRewriter::collectRef(Node n,
         Node r = rf_pending[rf_pending.size() - 1 - index];
         if (r.isNull())
         {
-          r = NodeManager::currentNM()->mkBoundVar(tns);
+          r = n.getNodeManager()->mkBoundVar(tns);
           rf_pending[rf_pending.size() - 1 - index] = r;
         }
         return r;
@@ -1010,7 +1013,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     if (it != eqc_stack.end())
     {
       int debruijn = depth - it->second - 1;
-      return NodeManager::currentNM()->mkConst(
+      return n.getNodeManager()->mkConst(
           CodatatypeBoundVariable(n.getType(), debruijn));
     }
     std::vector<Node> children;
@@ -1027,7 +1030,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
       children.insert(children.begin(), n.getOperator());
-      return NodeManager::currentNM()->mkNode(n.getKind(), children);
+      return n.getNodeManager()->mkNode(n.getKind(), children);
     }
   }
   return n;
@@ -1096,7 +1099,10 @@ Node DatatypesRewriter::expandDefinition(Node n)
   {
     case Kind::APPLY_SELECTOR:
     {
+      Trace("dt-expand") << "expand selector, share sel = "
+                         << d_opts.datatypes.dtSharedSelectors << std::endl;
       ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
+      Trace("dt-expand") << "...returns " << ret << std::endl;
     }
     break;
     case Kind::APPLY_UPDATER:
@@ -1155,13 +1161,11 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
-  if (dt.getNumConstructors() > 1)
-  {
-    // must be the right constructor to update
-    Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
-    ret = nm->mkNode(Kind::ITE, tester, ret, n[0]);
-  }
-  return ret;
+  // note it may be that this dt has one constructor, in which case this
+  // tester will rewrite to true.
+  // must be the right constructor to update
+  Node tester = nm->mkNode(Kind::APPLY_TESTER, dc.getTester(), n[0]);
+  return nm->mkNode(Kind::ITE, tester, ret, n[0]);
 }
 Node DatatypesRewriter::expandNullableLift(Node n)
 {

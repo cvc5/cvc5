@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -720,7 +720,7 @@ class NodeManager
    * Make constant real or int, which calls one of the above methods based
    * on the type tn.
    */
-  Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
+  static Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
 
   /**
    * Make a real algebraic number node from a RealAlgebraicNumber.

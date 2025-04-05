@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -264,8 +264,7 @@ void Def::simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m)
       for( unsigned j=0; j< cc.getNumChildren(); j++){
         nc.push_back(m->getStar(cc[j].getType()));
       }
-      cond[cond.size() - 1] =
-          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, nc);
+      cond[cond.size() - 1] = nm->mkNode(Kind::APPLY_UF, nc);
       //re-add the entries
       for (unsigned i=0; i<cond.size(); i++) {
         addEntry(m, cond[i], value[i]);

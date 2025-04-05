@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +47,7 @@ Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel)
 {
   Assert(index < dt.getNumConstructors());
   std::vector<Node> children;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   TypeNode tn = n.getType();
   for (size_t i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
@@ -68,7 +68,7 @@ Node mkApplyCons(TypeNode tn,
   Assert(tn.isDatatype());
   Assert(index < dt.getNumConstructors());
   Assert(dt[index].getNumArgs() == children.size());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   std::vector<Node> cchildren;
   cchildren.push_back(dt[index].getConstructor());
   cchildren.insert(cchildren.end(), children.begin(), children.end());
@@ -132,7 +132,7 @@ Node mkSplit(Node n, const DType& dt)
     Node test = mkTester(n, i, dt);
     splits.push_back(test);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   return splits.size() == 1 ? splits[0] : nm->mkNode(Kind::OR, splits);
 }
 

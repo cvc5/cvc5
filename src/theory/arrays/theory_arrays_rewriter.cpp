@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,8 +66,6 @@ void setMostFrequentValueCount(TNode store, uint64_t count)
 TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
     : TheoryRewriter(nm), d_rewriter(r)
 {
-  registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS,
-                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_SELECT_CONST,
@@ -75,23 +73,13 @@ TheoryArraysRewriter::TheoryArraysRewriter(NodeManager* nm, Rewriter* r)
   registerProofRewriteRule(ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP,
-                           TheoryRewriteCtx::POST_DSL);
+                           TheoryRewriteCtx::PRE_DSL);
 }
 
 Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::MACRO_ARRAYS_DISTINCT_ARRAYS:
-    {
-      if (n.getKind() == Kind::EQUAL && n[0].isConst() && n[1].isConst()
-          && n[0] != n[1])
-      {
-        Assert(n[0].getType().isArray());
-        return d_nm->mkConst(false);
-      }
-    }
-    break;
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
     {
       if (n.getKind() == Kind::STORE && n[0].isConst() && n[1].isConst()
@@ -129,84 +117,136 @@ Node TheoryArraysRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       {
         return Node::null();
       }
-      Node index = n[1];
-      bool iconst = index.isConst();
-      Node arr = n[0];
-      std::vector<Node> indices;
-      std::vector<Node> elems;
-      bool success = false;
-      while (arr.getKind() == Kind::STORE)
-      {
-        if (arr[1] == index)
-        {
-          // process being equal:
-          // if store, we are redundant, remove and break
-          // if select, we return the element directly
-          if (k == Kind::STORE)
-          {
-            arr = arr[0];
-          }
-          else
-          {
-            return arr[2];
-          }
-          break;
-        }
-        // store orders indices only
-        if (k == Kind::STORE && arr[1] < index)
-        {
-          break;
-        }
-        // success if we can move past
-        success = false;
-        if (iconst)
-        {
-          success = arr[1].isConst();
-        }
-        else
-        {
-          Node eq = mkEqNode(arr[1], index);
-          success = (eq.isConst() && !eq.getConst<bool>());
-        }
-        if (success)
-        {
-          indices.push_back(arr[1]);
-          elems.push_back(arr[2]);
-          arr = arr[0];
-        }
-        else
-        {
-          break;
-        }
-      }
-      if (indices.empty())
-      {
-        return Node::null();
-      }
-      NodeManager* nm = nodeManager();
-      Node ret;
-      if (k == Kind::STORE)
-      {
-        ret = nm->mkNode(Kind::STORE, arr, n[1], n[2]);
-        // add back those we traversed over
-        while (!indices.empty())
-        {
-          ret = nm->mkNode(Kind::STORE, ret, indices.back(), elems.back());
-          indices.pop_back();
-          elems.pop_back();
-        }
-      }
-      else
-      {
-        Assert(k == Kind::SELECT);
-        ret = nm->mkNode(Kind::SELECT, arr, n[1]);
-      }
-      return ret;
+      return computeNormalizeOp(n);
     }
     break;
     default: break;
   }
   return Node::null();
+}
+
+Node TheoryArraysRewriter::computeNormalizeOp(const Node& n,
+                                              TConvProofGenerator* pg) const
+{
+  NodeManager* nm = nodeManager();
+  Kind k = n.getKind();
+  Assert(k == Kind::SELECT || k == Kind::STORE);
+  Node index = n[1];
+  bool iconst = index.isConst();
+  Node arr = n[0];
+  std::vector<Node> indices;
+  std::vector<Node> elems;
+  bool success = false;
+  std::vector<Node> ctermc;
+  Node currTerm = n;
+  if (pg != nullptr)
+  {
+    ctermc.insert(ctermc.begin(), n.begin(), n.end());
+  }
+  while (arr.getKind() == Kind::STORE)
+  {
+    if (arr[1] == index)
+    {
+      // process being equal:
+      // if store, we are redundant, remove and break
+      // if select, we return the element directly
+      Node ret = k == Kind::STORE ? arr[0] : arr[2];
+      if (pg != nullptr)
+      {
+        Node rewTerm = ret;
+        if (k == Kind::STORE)
+        {
+          rewTerm = nm->mkNode(Kind::STORE, rewTerm, n[1], n[2]);
+        }
+        Trace("array-norm-op-rcons")
+            << "- rewrite " << currTerm << " -> " << rewTerm << std::endl;
+        // proven by RARE rule array-store-overwrite or array-read-over-write
+        pg->addRewriteStep(currTerm,
+                           rewTerm,
+                           nullptr,
+                           false,
+                           TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      }
+      if (k == Kind::STORE)
+      {
+        arr = ret;
+      }
+      else
+      {
+        return ret;
+      }
+      break;
+    }
+    // store orders indices only
+    if (k == Kind::STORE && arr[1] < index)
+    {
+      break;
+    }
+    // success if we can move past
+    success = false;
+    if (iconst)
+    {
+      success = arr[1].isConst();
+    }
+    else
+    {
+      Node eq = mkEqNode(arr[1], index);
+      success = (eq.isConst() && !eq.getConst<bool>());
+    }
+    if (success)
+    {
+      indices.push_back(arr[1]);
+      elems.push_back(arr[2]);
+      arr = arr[0];
+      if (pg != nullptr)
+      {
+        ctermc[0] = arr;
+        // proven by RARE rule array-read-over-write2 or array-store-swap
+        Node prevTerm = currTerm;
+        currTerm = nm->mkNode(k, ctermc);
+        // the rewrite for the store is a swap, temporarily construct the rhs
+        Node rewTerm = currTerm;
+        if (k == Kind::STORE)
+        {
+          rewTerm =
+              nm->mkNode(Kind::STORE, rewTerm, prevTerm[0][1], prevTerm[0][2]);
+        }
+        Trace("array-norm-op-rcons")
+            << "- rewrite " << prevTerm << " -> " << rewTerm << std::endl;
+        pg->addRewriteStep(prevTerm,
+                           rewTerm,
+                           nullptr,
+                           false,
+                           TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+  if (indices.empty())
+  {
+    return Node::null();
+  }
+  Node ret;
+  if (k == Kind::STORE)
+  {
+    ret = nm->mkNode(Kind::STORE, arr, n[1], n[2]);
+    // add back those we traversed over
+    while (!indices.empty())
+    {
+      ret = nm->mkNode(Kind::STORE, ret, indices.back(), elems.back());
+      indices.pop_back();
+      elems.pop_back();
+    }
+  }
+  else
+  {
+    Assert(k == Kind::SELECT);
+    ret = nm->mkNode(Kind::SELECT, arr, n[1]);
+  }
+  return ret;
 }
 
 Node TheoryArraysRewriter::normalizeConstant(NodeManager* nm, TNode node)

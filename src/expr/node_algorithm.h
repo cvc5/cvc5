@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,7 +57,18 @@ bool hasSubtermKind(Kind k, Node n);
  * @return true iff there is a term in n that has any kind ks
  */
 bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     Node n);
+                     TNode n);
+
+/**
+ * @param ks The kinds of node to check
+ * @param n The node to search in.
+ * @param visited A cache of nodes we have already visited (and did not contain
+ * a kind in ks)
+ * @return the illegal kind we found
+ */
+Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     TNode n,
+                     std::unordered_set<TNode>& visited);
 
 /**
  * Check if the node n has a subterm that occurs in t.
@@ -256,6 +267,35 @@ void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types);
  * @return whether or not `n2` is an instance of `n1`
  */
 bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
+
+/**
+ * For each subterm of n1 and n2 at the same position that have different
+ * operators, we add the corresponding equality to eqs.
+ *
+ * Additionally, we use an isHo flag to determine if we are traversing
+ * operators. As an example of the difference:
+ * Given n1 = (f (g a) b), n2 = (f (h b) c),
+ * If isHo is false, we return eqs = { b = c, (g a) = (h b) }.
+ * If isHo is true, we return eqs = { b = c, g = h, a = b }.
+ *
+ * This method will never traverse binders that have disequal variable lists.
+ *
+ * Intuitively, this method returns a set of equalities that suffices to
+ * show that n1 rewrites to n2 using the "term conversion proof generator"
+ * which is configured to rewrite operators iff isHo is true.
+ *
+ * @param n1 the term (containing free vars) to compare an instance term
+ * against
+ * @param n2 the instance term in question
+ * @param eqs The list of equalities we are populating.
+ * @param isHo If true, we consider matching on operators. This means that
+ * an APPLY_UF with distinct operators with the same type will be added as
+ * a match condition.
+ */
+void getConversionConditions(Node n1,
+                             Node n2,
+                             std::vector<Node>& eqs,
+                             bool isHo = false);
 
 /** Is the top symbol of cur a Boolean connective? */
 bool isBooleanConnective(TNode cur);

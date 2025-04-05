@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -795,10 +795,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
          << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0]
          << cs[1];
       break;
-    case ProofRule::CONCAT_CONFLICT:
-      pf << h << h << args[0].getConst<bool>()
-         << d_tproc.convertType(children[0]->getResult()[0].getType()) << cs[0];
-      break;
     case ProofRule::RE_UNFOLD_POS:
       if (children[0]->getResult()[1].getKind() != Kind::REGEXP_CONCAT)
       {
@@ -860,11 +856,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
         case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
-        case LfscRule::CONCAT_CONFLICT_DEQ:
-          pf << h << h << h << h << as[2].getConst<bool>()
-             << d_tproc.convertType(children[0]->getResult()[0].getType())
-             << cs[0] << cs[1];
-          break;
         case LfscRule::INSTANTIATE:
           pf << h << h << h << h << as[2] << cs[0];
           break;
@@ -900,7 +891,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
             // notice we use d_tproc.getNullTerminator and not
             // expr::getNullTerminator here, which has subtle differences
             // e.g. re.empty vs (str.to_re "").
-            Node null = d_tproc.getNullTerminator(k, v.getType());
+            Node null = d_tproc.getNullTerminator(nm, k, v.getType());
             Node t;
             if (as[i].getNumChildren() == 1)
             {

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,7 @@
 namespace cvc5::internal {
 
 class Env;
+class TConvProofGenerator;
 
 namespace theory {
 
@@ -79,6 +80,16 @@ class TheoryArraysRewriter : public TheoryRewriter
    * from constant terms only.
    */
   static Node normalizeConstant(NodeManager* nm, TNode node);
+
+  /**
+   * @param n The term to rewrite, expected to be a store or select whose
+   * index can be "pushed" beneath indices on the first argument.
+   * @param pg If provided, stores a set of small step rewrites that suffice
+   * to show that n rewrites to the returned term.
+   * @return the result of rewriting n.
+   */
+  Node computeNormalizeOp(const Node& n,
+                          TConvProofGenerator* pg = nullptr) const;
 
  private:
   /**

@@ -4,6 +4,18 @@ on:
   schedule:
     - cron: '0 1 * * *'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag of the release to build (leave empty for current branch)"
+      python_versions:
+        description: "Python versions to build (leave empty for all supported versions)"
+      deploy_target:
+        type: choice
+        description: "Choose the deployment target"
+        options:
+        - None
+        - PyPI
+        - Test PyPI
 
 name: PyPi packaging
 
@@ -27,10 +39,9 @@ jobs:
             arch: x86_64
             shell: bash
           - name: manylinux-aarch64
-            os: ubuntu-latest
+            os: ubuntu-24.04-arm
             arch: aarch64
             shell: bash
-            cibw_skip: "cp37-* pp37-*"
           - name: macos-x86_64
             os: macos-13
             macos-target: 10.13
@@ -53,6 +64,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ github.event.inputs.release_tag }}
 
     # Required by PEP-668
     - name: Set up Python virtual environment
@@ -60,15 +72,6 @@ jobs:
       run: |
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
-
-    # cibuildwheel only supports arm64 Linux wheels through emulation.
-    # It works fine, but it is slow. Cross-compilation is not supported yet,
-    # see: https://github.com/pypa/cibuildwheel/issues/598
-    - name: Set up QEMU for arm64 Linux builds
-      if: runner.os == 'Linux' && matrix.arch == 'aarch64'
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: "linux/arm64"
 
     - uses: msys2/setup-msys2@v2
       if: runner.os == 'Windows'
@@ -110,7 +113,9 @@ jobs:
       with:
         package-dir: ./build/src/api/python/
       env:
-        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_* ${{ matrix.cibw_skip }}"
+        CIBW_ALLOW_EMPTY: True
+        CIBW_BUILD: "${{ github.event.inputs.python_versions || '*' }}"
+        CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
         CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}
@@ -125,7 +130,6 @@ jobs:
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
-        CIBW_TEST_SKIP: "*-*linux_aarch64"
 
     # - uses: actions/upload-artifact@v4
     #   with:
@@ -134,10 +138,24 @@ jobs:
 
     - name: Install software for publishing the wheels
       run: |
+        python3 -m pip install -U packaging # See https://github.com/pypa/twine/issues/1216
         python3 -m pip install twine
 
+    - name: Check wheels with twine
+      run: |
+        echo "::group::Check wheels with twine"
+        for wheel in `ls ./wheelhouse/*.whl`
+        do
+          twine check $wheel
+        done
+        echo "::endgroup::"
+
     - name: Upload wheels to pypi.org
-      if: ${{ github.event_name == 'release' }}
+      if: >
+        github.event_name == 'release' ||
+        (github.event_name == 'workflow_dispatch' &&
+         github.event.inputs.deploy_target == 'PyPI' &&
+         startsWith(github.event.inputs.release_tag, 'cvc5-'))
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -145,12 +163,15 @@ jobs:
         echo "::group::Upload to pypi.org"
         for wheel in `ls ./wheelhouse/*.whl`
         do
-          twine upload $wheel
+          # --skip-existing is only valid when uploading to PyPI
+          twine upload --skip-existing $wheel
         done
         echo "::endgroup::"
 
     - name: Upload wheels to test.pypi.org
-      if: false
+      if: >
+        github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.deploy_target == 'Test PyPI'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

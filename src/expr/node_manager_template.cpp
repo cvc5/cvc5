@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,7 +107,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
     LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager(this)),
       d_bvManager(new BoundVarManager),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -926,6 +926,26 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
+  // we always ensure that the function is "flat", i.e. it does not
+  // return a function. We turn (-> T (-> U V)) into (-> T U V).
+  TypeNode rangeType = sorts[sorts.size() - 1];
+  std::vector<TypeNode> flattenArgTypes;
+  while (rangeType.isFunction())
+  {
+    std::vector<TypeNode> argTypes = rangeType.getArgTypes();
+    flattenArgTypes.insert(
+        flattenArgTypes.end(), argTypes.begin(), argTypes.end());
+    rangeType = rangeType.getRangeType();
+  }
+  if (!flattenArgTypes.empty())
+  {
+    std::vector<TypeNode> newSorts(sorts.begin(), sorts.end());
+    newSorts.pop_back();
+    newSorts.insert(
+        newSorts.end(), flattenArgTypes.begin(), flattenArgTypes.end());
+    newSorts.push_back(rangeType);
+    return mkTypeNode(Kind::FUNCTION_TYPE, newSorts);
+  }
   return mkTypeNode(Kind::FUNCTION_TYPE, sorts);
 }
 
@@ -1472,11 +1492,12 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
+  NodeManager* nm = tn.getNodeManager();
   if (tn.isInteger())
   {
-    return mkConstInt(r);
+    return nm->mkConstInt(r);
   }
-  return mkConstReal(r);
+  return nm->mkConstReal(r);
 }
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)

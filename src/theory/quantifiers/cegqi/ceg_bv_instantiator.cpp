@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,6 +136,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
+  NodeManager* nm = nodeManager();
+  ;
   if (effort == CEG_INST_EFFORT_FULL)
   {
     // always use model values at full effort
@@ -218,7 +220,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     }
     else
     {
-      Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
+      Node bv_one = bv::utils::mkOne(nm, bv::utils::getSize(s));
       ret = NodeManager::mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
     }
   }
@@ -464,7 +466,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       {
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+          ret = nodeManager()->mkNode(cur.getKind(), children);
         }
         else
         {
@@ -551,10 +553,12 @@ Node BvInstantiator::rewriteTermForSolvePv(
         || (rhs == pv && lhs.getKind() == Kind::BITVECTOR_MULT && lhs[0] == pv
             && lhs[1] == pv))
     {
+      NodeManager* nm = nodeManager();
       return NodeManager::mkNode(
           Kind::BITVECTOR_ULT,
           pv,
-          bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
+          bv::utils::mkConst(nm,
+                             BitVector(bv::utils::getSize(pv), Integer(2))));
     }
 
     if (options().quantifiers.cegqiBvLinearize && contains_pv[lhs]
@@ -644,7 +648,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (d_opts.quantifiers.cegqiBvRmExtract)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = lem.getNodeManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
