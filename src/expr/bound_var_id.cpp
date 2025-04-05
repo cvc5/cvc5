@@ -46,6 +46,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
     case BoundVarId::QUANT_REW_PRENEX: return "QUANT_REW_PRENEX";
     case BoundVarId::QUANT_SYGUS_BUILTIN_FV: return "QUANT_SYGUS_BUILTIN_FV";
+    case BoundVarId::VALID_WITNESS_VAR: return "VALID_WITNESS_VAR";
     default: return "?";
   }
 }
