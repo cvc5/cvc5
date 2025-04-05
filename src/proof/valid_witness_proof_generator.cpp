@@ -136,8 +136,8 @@ Node ValidWitnessProofGenerator::mkWitness(NodeManager* nm,
   }
   // construct the bound variable based on the type of the skolem
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node v =
-      bvm->mkBoundVar<ValidWitnessVarAttribute>(k, "@var.witness", k.getType());
+  Node v = bvm->mkBoundVar(
+      BoundVarId::VALID_WITNESS_VAR, k, "@var.witness", k.getType());
   // make the axiom
   Node ax = mkAxiom(nm, k, r, args);
   if (ax.isNull())
