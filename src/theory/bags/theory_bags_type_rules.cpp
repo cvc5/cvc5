@@ -934,7 +934,7 @@ bool BagsProperties::isWellFounded(TypeNode type)
 Node BagsProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.isBag());
-  return NodeManager::currentNM()->mkConst(EmptyBag(type));
+  return type.getNodeManager()->mkConst(EmptyBag(type));
 }
 }  // namespace bags
 }  // namespace theory

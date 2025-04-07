@@ -96,9 +96,8 @@ inline Node mkConst(NodeManager* nm, const RealAlgebraicNumber& value)
 }
 
 /** Make a nonlinear multiplication from the given factors */
-inline Node mkNonlinearMult(const std::vector<Node>& factors)
+inline Node mkNonlinearMult(NodeManager* nm, const std::vector<Node>& factors)
 {
-  auto* nm = NodeManager::currentNM();
   switch (factors.size())
   {
     case 0: return nm->mkConstInt(Rational(1));

@@ -95,6 +95,10 @@ Node ArithEntail::rewriteArith(Node a)
   {
     return d_rr->rewrite(a);
   }
+  else
+  {
+    a = rewriteLengthIntro(a);
+  }
   // Otherwise, use the poly norm utility. This is important since the rewrite
   // must be justified by ARITH_POLY_NORM when in proof mode (when d_rr is
   // null).
@@ -183,7 +187,7 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
         std::vector<Node> sum;
         for (const Node& c : cc)
         {
-          if (c.isConst() && c.getType().isString())
+          if (c.isConst())
           {
             sum.push_back(nm->mkConstInt(Rational(Word::getLength(c))));
           }
@@ -240,11 +244,16 @@ bool ArithEntail::check(Node a, bool strict, bool isSimple)
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
   Node ar = strict ? NodeManager::mkNode(Kind::SUB, a, d_one) : a;
-  ar = rewriteArith(ar);
-  // if simple, just call the checkSimple routine.
   if (isSimple)
   {
+    ar = arith::PolyNorm::getPolyNorm(ar);
+    // if simple, just call the checkSimple routine.
     return checkSimple(ar);
+  }
+  else
+  {
+    // otherwise rewrite arith and find approximation
+    ar = rewriteArith(ar);
   }
   Node ara = findApprox(ar, isSimple);
   return !ara.isNull();
@@ -279,8 +288,6 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
   {
     isSimple = true;
   }
-  Assert(rewriteArith(ar) == ar)
-      << "Not rewritten " << ar << ", got " << rewriteArith(ar);
   NodeManager* nm = ar.getNodeManager();
   std::map<Node, Node> msum;
   Trace("strings-ent-approx-debug")
@@ -328,7 +335,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       {
         Node curr = toProcess.back();
         Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
-        curr = rewriteArith(curr);
+        curr = arith::PolyNorm::getPolyNorm(curr);
         toProcess.pop_back();
         if (visited.find(curr) == visited.end())
         {
@@ -378,7 +385,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
           if (approxMsums.find(aa) == approxMsums.end())
           {
             // ensure rewritten, which makes a difference if isSimple is true
-            Node aar = rewriteArith(aa);
+            Node aar = arith::PolyNorm::getPolyNorm(aa);
             CVC5_UNUSED bool ret =
                 ArithMSum::getMonomialSum(aar, approxMsums[aa]);
             Assert(ret) << "Could not find sum " << aa;
@@ -399,7 +406,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       aarSum.empty()
           ? d_zero
           : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(Kind::ADD, aarSum));
-  aar = rewriteArith(aar);
+  aar = arith::PolyNorm::getPolyNorm(aar);
   Trace("strings-ent-approx-debug")
       << "...processed fixed sum " << aar << " with " << mApprox.size()
       << " approximated monomials." << std::endl;
@@ -471,7 +478,8 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
             if (!cr.isNull())
             {
               ci = ci.isNull() ? cr
-                               : rewriteArith(nm->mkNode(Kind::MULT, ci, cr));
+                               : nm->mkConstInt(cr.getConst<Rational>()
+                                                * ci.getConst<Rational>());
             }
             Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
             int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
@@ -529,7 +537,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       aar = nm->mkNode(Kind::ADD, aar, mn);
       approxMap.add(v, vapprox);
       // update the msumAar map
-      aar = rewriteArith(aar);
+      aar = arith::PolyNorm::getPolyNorm(aar);
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {

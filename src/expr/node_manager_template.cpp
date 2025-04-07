@@ -107,7 +107,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
     LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager(this)),
       d_bvManager(new BoundVarManager),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),

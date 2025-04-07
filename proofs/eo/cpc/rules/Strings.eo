@@ -212,6 +212,20 @@
                       (ks (@purify ($str_suffix_rem s n))))
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))))
 
+; rule: exists_string_length
+; implements: ProofRule::EXISTS_STRING_LENGTH
+; args:
+; - T Type: A sequence type.
+; - n Int: An integer denoting the concluded length of a string
+; - id Int: An identifier
+; requires: n is non-negative.
+; conclusion: The given witness skolem has length n.
+(declare-rule exists_string_length ((U Type) (n Int) (id Int))
+  :args ((Seq U) n id)
+  :requires (((eo::gt n -1) true))
+  :conclusion (= (str.len (@witness_string_length (Seq U) n id)) n)
+)
+
 ; rule: string_code_inj
 ; implements: ProofRule::STRING_CODE_INJ
 ; args:

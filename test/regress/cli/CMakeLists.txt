@@ -420,6 +420,7 @@ set(regress_0_tests
   regress0/bv/core/slice-19.smtv1.smt2
   regress0/bv/core/slice-20.smtv1.smt2
   regress0/bv/dd_fuzz21.smt2
+  regress0/bv/dd_fuzz26-hole.smt2
   regress0/bv/dd_run_0000.smt2
   regress0/bv/dd_run_0000-and-or-pullup.smt2
   regress0/bv/dd_run_0000-and-or-pullup-2.smt2
@@ -1250,6 +1251,7 @@ set(regress_0_tests
   regress0/parser/issue10093.smt2
   regress0/parser/issue10156-bad-tester.smt2
   regress0/parser/issue10489.smt2
+  regress0/parser/issue11763-quoted-dt-cons.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1384,6 +1386,7 @@ set(regress_0_tests
   regress0/proofs/dd_ic_macro-elim-shadow.smt2
   regress0/proofs/dd_ic_pf_764.smt2
   regress0/proofs/dd_int_check_bvnot_lam_value_norm.smt2
+  regress0/proofs/dd_int_check_rec_elim_shadow.smt2
   regress0/proofs/dd_issue3481_beta_red.smt2
   regress0/proofs/dd_M301_array_norm_op.smt2
   regress0/proofs/dd_N627_fun_const.smt2
@@ -1564,6 +1567,8 @@ set(regress_0_tests
   regress0/quantifiers/issue1805.smt2
   regress0/quantifiers/issue11066-fresh-binders.smt2
   regress0/quantifiers/issue11066-fresh-binders-err.smt2
+  regress0/quantifiers/issue11751-prenex-norm.smt2
+  regress0/quantifiers/issue11752-prenex-norm.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -1910,6 +1915,7 @@ set(regress_0_tests
   regress0/smtlib/reset.smt2
   regress0/smtlib/set-info-status.smt2
   regress0/solver/issue8854-get-model-after-unknown.smt2
+  regress0/strings/652-substr-len-norm.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -1933,6 +1939,7 @@ set(regress_0_tests
   regress0/strings/dd_issue6913-str-inf.smt2
   regress0/strings/dd_norn_235_extf_d.smt2
   regress0/strings/dd_norn_675.smt2
+  regress0/strings/dd_rw_91.smt2
   regress0/strings/dd_rw_984.smt2
   regress0/strings/dd_slog_2087_ctn_split.smt2
   regress0/strings/dd_slog_stranger_2020.smt2
