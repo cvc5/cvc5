@@ -449,6 +449,116 @@
 (define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
   ($bv_const_to_bitlist_rec a 0 (eo::len a)))
 
+;;; shifts
+
+; define: $bv_mk_bitblast_step_shl_rec_step
+; args:
+; - a1 (BitVec m): The remainder of the first argument to shift, a lists of bits, which we strip the first i bits from.
+; - a1c (BitVec n): The remainder of the first argument to shift, a lists of bits.
+; - i Int: The number of bits left to strip from a1.
+; - b2 Bool: Whether the bit of the shift amount we are currently processing was true.
+; return: the bitblasted term for processing the left shift of a1 for the current bit.
+(program $bv_mk_bitblast_step_shl_rec_step ((i Int) (n Int) (m Int) (mm1 Int)
+                                             (b1 Bool) (a1 (BitVec mm1) :list)
+                                             (b1c Bool) (a1c (BitVec n) :list) (b2 Bool))
+  ((BitVec m) (BitVec n) Int Bool) (BitVec m)
+  (
+  (($bv_mk_bitblast_step_shl_rec_step @bv_empty a1c i b2)                              @bv_empty)
+  (($bv_mk_bitblast_step_shl_rec_step (@from_bools b1 a1) (@from_bools b1c a1c) 0 b2)
+    (eo::cons @from_bools (ite b2 b1c b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c 0 b2)))
+  (($bv_mk_bitblast_step_shl_rec_step (@from_bools b1 a1) a1c i b2)
+    (eo::cons @from_bools (ite b2 false b1) ($bv_mk_bitblast_step_shl_rec_step a1 a1c (eo::add i -1) b2)))
+  )
+)
+
+; define: $bv_mk_bitblast_step_shl_rec
+; args:
+; - a1 (BitVec n): The current accumulated return value, starting with the first argument.
+; - a2 (BitVec m): The remainder of the second argument to shift, a lists of bits.
+; - s Int: The index of bits we are considering.
+; - lsz Int: The bitwidth of a1.
+; return: the bitblasted term for processing the left shift of a1 and a2.
+(program $bv_mk_bitblast_step_shl_rec ((s Int) (lsz Int) (n Int) (m Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec m) :list))
+  ((BitVec n) (BitVec m) Int Int) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_shl_rec a1 a2 lsz lsz)                a1)
+  (($bv_mk_bitblast_step_shl_rec a1 (@from_bools b2 a2) s lsz)
+    ($bv_mk_bitblast_step_shl_rec
+      ($bv_mk_bitblast_step_shl_rec_step a1 a1 ($arith_eval_int_pow_2 s) b2)
+      a2 (eo::add s 1) lsz))
+  )
+)
+
+; define: $bv_mk_bitblast_step_shl
+; args:
+; - a1 (BitVec n): The first argument, expected to be a list of bits.
+; - a2 (BitVec n): The second argument, expected to be a list of bits.
+; return: the bitblasted term for (bvshl x y).
+(define $bv_mk_bitblast_step_shl ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
+  (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
+  (eo::define ((lsz1 ($arith_eval_int_log_2 sz)))
+  (eo::define ((lsz (eo::ite ($arith_eval_int_is_pow_2 sz) lsz1 (eo::add lsz1 1))))
+  (eo::define ((res ($bv_mk_bitblast_step_shl_rec a1 a2 0 lsz)))
+  (eo::define ((szc ($bv_mk_bitblast_step_const (eo::to_bin sz sz))))
+    ($bv_bitblast_apply_ite ($bv_bitblast_ult a2 szc false) res ($bv_bitblast_repeat false sz))))))))
+
+
+; define: $bv_mk_bitblast_step_shr_rec_step
+; args:
+; - a1 (BitVec m): The remainder of the first argument to shift, a lists of bits.
+; - a1c (BitVec n): The remainder of the first argument to shift, a lists of bits, which we initially strip the first i bits from.
+; - i Int: The number of bits left to strip from a1c.
+; - b2 Bool: Whether the bit of the shift amount we are currently processing was true.
+; - sbit Bool: The sign bit we are processing (the sign of first argument for bvashr, false otherwise).
+; return: the bitblasted term for processing the right shift of a1 for the current bit.
+(program $bv_mk_bitblast_step_shr_rec_step ((i Int) (n Int) (m Int) (mm1 Int)
+                                             (b1 Bool) (a1 (BitVec mm1) :list)
+                                             (b1c Bool) (a1c (BitVec n) :list) (b2 Bool) (sbit Bool))
+  ((BitVec m) (BitVec n) Int Bool Bool) (BitVec m)
+  (
+  (($bv_mk_bitblast_step_shr_rec_step @bv_empty a1c i b2 sbit)                              @bv_empty)
+  (($bv_mk_bitblast_step_shr_rec_step (@from_bools b1 a1) (@from_bools b1c a1c) 0 b2 sbit)
+    (eo::cons @from_bools (ite (not b2) b1 b1c) ($bv_mk_bitblast_step_shr_rec_step a1 a1c 0 b2 sbit)))
+  (($bv_mk_bitblast_step_shr_rec_step (@from_bools b1 a1) @bv_empty 0 b2 sbit)
+    (eo::cons @from_bools (ite b2 sbit b1) ($bv_mk_bitblast_step_shr_rec_step a1 @bv_empty 0 b2 sbit)))
+  (($bv_mk_bitblast_step_shr_rec_step a1 (@from_bools b1c a1c) i b2 sbit)
+    ($bv_mk_bitblast_step_shr_rec_step a1 a1c (eo::add i -1) b2 sbit))
+  )
+)
+
+; define: $bv_mk_bitblast_step_shl_rec
+; args:
+; - a1 (BitVec n): The current accumulated return value, starting with the first argument.
+; - a2 (BitVec m): The remainder of the second argument to shift, a lists of bits.
+; - s Int: The index of bits we are considering.
+; - lsz Int: The bitwidth of a1.
+; - sbit Bool: The sign bit we are processing (the sign of first argument for bvashr, false otherwise).
+; return: the bitblasted term for processing the left shift of a1 and a2.
+(program $bv_mk_bitblast_step_shr_rec ((s Int) (lsz Int) (n Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec n) :list) (sbit Bool))
+  ((BitVec n) (BitVec n) Int Int Bool) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_shr_rec a1 a2 lsz lsz sbit)                a1)
+  (($bv_mk_bitblast_step_shr_rec a1 (@from_bools b2 a2) s lsz sbit)
+    ($bv_mk_bitblast_step_shr_rec
+      ($bv_mk_bitblast_step_shr_rec_step a1 a1 ($arith_eval_int_pow_2 s) b2 sbit)
+      a2 (eo::add s 1) lsz sbit))
+  )
+)
+
+; define: $bv_mk_bitblast_step_shr
+; args:
+; - a1 (BitVec n): The first argument, expected to be a list of bits.
+; - a2 (BitVec n): The second argument, expected to be a list of bits.
+; - sbit Bool: The sign bit we are processing, which is the sign bit of a1 if processing bvashr and false otherwise.
+; return: the bitblasted term for (bvashr a1 a2) or (bvlshr a1 a2).
+(define $bv_mk_bitblast_step_shr ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (sbit Bool))
+  (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
+  (eo::define ((lsz1 ($arith_eval_int_log_2 sz)))
+  (eo::define ((lsz (eo::ite ($arith_eval_int_is_pow_2 sz) lsz1 (eo::add lsz1 1))))
+  (eo::define ((res ($bv_mk_bitblast_step_shr_rec a1 a2 0 lsz sbit)))
+  (eo::define ((szc ($bv_mk_bitblast_step_const (eo::to_bin sz sz))))
+    ($bv_bitblast_apply_ite ($bv_bitblast_ult a2 szc false) res ($bv_bitblast_repeat sbit sz))))))))
+
 ;;; variables
 
 ; program: $bv_mk_bitblast_step_var_rec
@@ -471,19 +581,44 @@
 (define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
   ($nary_reverse ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
 
+;;; $bv_mk_bitblast_step
+
 ; define: $bv_mk_bitblast_step
 ; args:
 ; - a T: The bitvector term or predicate to bitblast.
 ; return: the bitblasted term for a.
 (define $bv_mk_bitblast_step ((T Type :implicit) (a T))
-  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
+  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list) (ac (BitVec 1)))
   a
   (
-  ((= a1 a2)        ($bv_mk_bitblast_step_eq a1 a2))
-  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
-  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
-  (a1               (eo::ite (eo::is_bin a)
-                      ($bv_mk_bitblast_step_const a)
-                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
+  ((bvnot a1)         ($bv_bitblast_apply_unary not a1))
+  ((= a1 a2)          ($bv_mk_bitblast_step_eq a1 a2))
+  ((bvult a1 a2)      ($bv_bitblast_ult a1 a2 false))
+  ((bvule a1 a2)      ($bv_bitblast_ult a1 a2 true))
+  ((bvslt a1 a2)      ($bv_bitblast_slt a1 a2 false))
+  ((bvsle a1 a2)      ($bv_bitblast_slt a1 a2 true))
+  ((extract u l a1)   ($bv_mk_bitblast_step_extract u l a1))
+  ((concat a1 a3)     ($bv_mk_bitblast_step_concat a))
+  ((bvor a1 a2)       ($bv_mk_bitblast_step_bitwise bvor or a2 a1))
+  ((bvand a1 a2)      ($bv_mk_bitblast_step_bitwise bvand and a2 a1))
+  ((bvxor a1 a2)      ($bv_mk_bitblast_step_bitwise bvxor xor a2 a1))
+  ((bvxnor a1 a2)     ($bv_bitblast_apply_binary = a1 a2))
+  ((bvadd a1 a2)      ($bv_mk_bitblast_step_add a2 a1))
+  ((bvmul a1 a2)      ($bv_mk_bitblast_step_mul a2 a1))
+  ((bvudiv a1 a2)     ($bv_mk_bitblast_step_udiv a1 a2))
+  ((bvurem a1 a2)     ($bv_mk_bitblast_step_urem a1 a2))
+  ((bvsub a1 a2)      ($bv_ripple_carry_adder a1 ($bv_bitblast_apply_unary not a2) true))
+  ((bvneg a1)         ($bv_ripple_carry_adder ($bv_bitblast_apply_unary not a1) ($bv_bitblast_zero ($bv_bitwidth (eo::typeof a1))) true))
+  ((bvite ac a1 a2)   ($bv_mk_bitblast_step_ite ac a1 a2))
+  ((bvashr a1 a2)     ($bv_mk_bitblast_step_shr a1 a2 ($bv_bitblast_sign_bit a1)))
+  ((bvlshr a1 a2)     ($bv_mk_bitblast_step_shr a1 a2 false))
+  ((bvshl a1 a2)      ($bv_mk_bitblast_step_shl a1 a2))
+  ((bvcomp a1 a2)     (@from_bools ($bv_mk_bitblast_step_eq a1 a2)))
+  ((bvultbv a1 a2)    (@from_bools ($bv_bitblast_ult a1 a2 false)))
+  ((bvsltbv a1 a2)    (@from_bools ($bv_bitblast_slt a1 a2 false)))
+  ((sign_extend n a1) (eo::list_concat @from_bools a1 ($bv_bitblast_repeat ($bv_bitblast_sign_bit a1) n)))
+  (a1                 (eo::ite (eo::is_bin a)
+                        ($bv_mk_bitblast_step_const a)
+                        ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
   ))
 )
