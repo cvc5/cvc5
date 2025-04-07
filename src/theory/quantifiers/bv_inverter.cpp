@@ -59,26 +59,8 @@ Node BvInverter::getSolveVariable(TypeNode tn)
 
 Node BvInverter::mkWitness(const Node& annot) const
 {
-  // use the valid witness proof generator utility to construct the proper
-  // witness term based on the annotation
-  Node w = ValidWitnessProofGenerator::mkWitness(
-      d_nm, ProofRule::MACRO_EXISTS_INV_CONDITION, {annot});
-  Trace("bv-invert-witness")
-      << "...returned " << w << " for " << annot << std::endl;
-  if (!w.isNull())
-  {
-    if (d_rewriter != nullptr)
-    {
-      Node neww = d_rewriter->rewrite(w);
-      if (neww != w)
-      {
-        Trace("bv-invert-witness")
-            << "Witness " << w << " was rewritten to " << neww << std::endl;
-      }
-      w = neww;
-    }
-  }
-  return w;
+  // TODO (PR #11461)
+  return Node::null();
 }
 
 /*---------------------------------------------------------------------------*/
