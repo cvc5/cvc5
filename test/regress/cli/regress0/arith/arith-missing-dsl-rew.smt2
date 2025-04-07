@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; due to unsupported /_total, mod_total operators
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-const x Int)
