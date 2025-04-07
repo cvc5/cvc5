@@ -216,7 +216,7 @@
 ; implements: ProofRule::EXISTS_STRING_LENGTH
 ; args:
 ; - T Type: A sequence type.
-; - n Int: A integer denoting the concluded length of a string
+; - n Int: An integer denoting the concluded length of a string
 ; - id Int: An identifier
 ; requires: n is non-negative.
 ; conclusion: The given witness skolem has length n.
