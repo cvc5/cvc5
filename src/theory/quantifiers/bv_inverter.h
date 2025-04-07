@@ -53,11 +53,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-<<<<<<< HEAD
-  BvInverter(const Options& opts, NodeManager* nm, Rewriter* r = nullptr);
-=======
-  BvInverter(Rewriter* r = nullptr);
->>>>>>> de09de59a0708737db2f43b2b1f4d2745f6be8bb
+  BvInverter(NodeManager* nm, Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -158,11 +154,9 @@ class BvInverter
    * (SEXPR <litk> <pol> t).
    */
   static Node mkAnnotationBase(NodeManager* nm, Kind litk, bool pol, Node t);
-  /** Reference to options */
-  const Options& d_opts;
   /** Pointer to node manager */
   NodeManager* d_nm;
-  /** (Optional) rewriter used as helper in mkWitness */
+  /** (Optional) rewriter used as helper in getInversionNode */
   Rewriter* d_rewriter;
   /** Dummy variables for each type */
   std::map<TypeNode, Node> d_solve_var;
