@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +24,10 @@
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
@@ -100,7 +102,7 @@ void InferProofCons::packArgs(Node conc,
                               const std::vector<Node>& exp,
                               std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conc.getNodeManager();
   args.push_back(conc);
   args.push_back(mkInferenceIdNode(nm, infer));
   args.push_back(nm->mkConst(isRev));
@@ -188,7 +190,7 @@ bool InferProofCons::convert(Env& env,
     Trace("strings-ipc-debug") << "Explicit add " << ec << std::endl;
     psb.addStep(ProofRule::ASSUME, {}, {ec}, ec);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = conc.getNodeManager();
   Node nodeIsRev = nm->mkConst(isRev);
   switch (infer)
   {
@@ -419,8 +421,11 @@ bool InferProofCons::convert(Env& env,
         // to issues like the one above.
         std::vector<Node> rexp(ps.d_children.begin(),
                                ps.d_children.begin() + mainEqIndex);
-        if (infer == InferenceId::STRINGS_F_UNIFY)
+        if (infer == InferenceId::STRINGS_F_UNIFY
+            || infer == InferenceId::STRINGS_F_ENDPOINT_EQ)
         {
+          Trace("strings-ipc-core")
+              << "...check reorient substitution" << std::endl;
           Assert(conc.getKind() == Kind::EQUAL);
           // maybe reorient?
           for (size_t i = 0; i < mainEqIndex; i++)
@@ -429,6 +434,8 @@ bool InferProofCons::convert(Env& env,
             if (rexp[i][0] == conc[0] || rexp[i][0] == conc[1])
             {
               rexp[i] = rexp[i][1].eqNode(rexp[i][0]);
+              Trace("strings-ipc-core")
+                  << "...reorient to " << rexp[i] << std::endl;
             }
           }
         }
@@ -447,6 +454,9 @@ bool InferProofCons::convert(Env& env,
       }
       Trace("strings-ipc-core")
           << "Main equality after subs+rewrite " << mainEqSRew << std::endl;
+      // may need to splice constants
+      mainEqSRew = spliceConstants(
+          env, ProofRule::CONCAT_EQ, psb, mainEqSRew, conc, isRev);
       // now, apply CONCAT_EQ to get the remainder
       std::vector<Node> childrenCeq;
       childrenCeq.push_back(mainEqSRew);
@@ -496,38 +506,6 @@ bool InferProofCons::convert(Env& env,
         // t1 ++ ... ++ tn == "". However, these are very rarely applied, let
         // alone for 2+ children. This case is intentionally unhandled here.
       }
-      else if (infer == InferenceId::STRINGS_N_CONST || infer == InferenceId::STRINGS_F_CONST
-               || infer == InferenceId::STRINGS_N_EQ_CONF)
-      {
-        // should be a constant conflict
-        std::vector<Node> childrenC;
-        childrenC.push_back(mainEqCeq);
-        // if it is between sequences, we require the explicit disequality
-        ProofRule r = ProofRule::CONCAT_CONFLICT;
-        if (mainEqCeq[0].getType().isSequence())
-        {
-          Assert(t0.isConst() && s0.isConst());
-          // We introduce an explicit disequality for the constants
-          Node deq = t0.eqNode(s0).notNode();
-          psb.addStep(ProofRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
-          Assert(!deq.isNull());
-          childrenC.push_back(deq);
-          r = ProofRule::CONCAT_CONFLICT_DEQ;
-        }
-        std::vector<Node> argsC;
-        argsC.push_back(nodeIsRev);
-        Node conflict = psb.tryStep(r, childrenC, argsC);
-        if (conflict == conc)
-        {
-          useBuffer = true;
-          Trace("strings-ipc-core") << "...success!" << std::endl;
-        }
-        else
-        {
-          Trace("strings-ipc-core") << "...failed " << conflict << " via " << r
-                                    << " " << childrenC << std::endl;
-        }
-      }
       else if (infer == InferenceId::STRINGS_F_NCTN
                || infer == InferenceId::STRINGS_N_NCTN)
       {
@@ -550,14 +528,13 @@ bool InferProofCons::convert(Env& env,
       }
       else
       {
-        bool applySym = false;
         // may need to apply symmetry
         if ((infer == InferenceId::STRINGS_SSPLIT_CST
              || infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
             && t0.isConst())
         {
           Assert(!s0.isConst());
-          applySym = true;
+          mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
           std::swap(t0, s0);
         }
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
@@ -569,7 +546,7 @@ bool InferProofCons::convert(Env& env,
           // one side should match, the other side could be a split constant
           if (conc[0] != t0 && conc[1] != s0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           Assert(conc[0].isConst() == t0.isConst());
@@ -581,6 +558,9 @@ bool InferProofCons::convert(Env& env,
         bool lenSuccess = false;
         if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
         {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
           // the required premise for unify is always len(x) = len(y),
           // however the explanation may not be literally this. Thus, we
           // need to reconstruct a proof from the given explanation.
@@ -598,7 +578,7 @@ bool InferProofCons::convert(Env& env,
                  && conc[0][0].getKind() == Kind::EQUAL);
           if (conc[0][0][0] != t0)
           {
-            applySym = true;
+            mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
           // it should be the case that lenConstraint => lenReq
@@ -610,6 +590,9 @@ bool InferProofCons::convert(Env& env,
         }
         else if (infer == InferenceId::STRINGS_SSPLIT_CST)
         {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_CSPLIT, psb, mainEqCeq, conc, isRev);
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
                        .eqNode(nm->mkConstInt(Rational(0)))
@@ -633,7 +616,7 @@ bool InferProofCons::convert(Env& env,
             if (r == 0)
             {
               // may be the other direction
-              applySym = true;
+              mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
               std::swap(t0, s0);
             }
           }
@@ -648,21 +631,36 @@ bool InferProofCons::convert(Env& env,
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = ProofRule::CONCAT_CPROP;
         }
+        else if (infer == InferenceId::STRINGS_N_CONST
+                 || infer == InferenceId::STRINGS_F_CONST
+                 || infer == InferenceId::STRINGS_N_EQ_CONF)
+        {
+          // first, splice if necessary
+          mainEqCeq = spliceConstants(
+              env, ProofRule::CONCAT_UNIFY, psb, mainEqCeq, conc, isRev);
+          // Should be a constant conflict. We use CONCAT_UNIFY to infer an
+          // equality between string or sequence values, which will rewrite to
+          // false below, justifed by EVALUATE or DISTINCT_VALUES after
+          // elaboration.
+          rule = ProofRule::CONCAT_UNIFY;
+          std::vector<Node> tvecs, svecs;
+          theory::strings::utils::getConcat(mainEqCeq[0], tvecs);
+          theory::strings::utils::getConcat(mainEqCeq[1], svecs);
+          t0 = tvecs[isRev ? tvecs.size() - 1 : 0];
+          s0 = svecs[isRev ? svecs.size() - 1 : 0];
+          // add length requirement, which due to the splicing above should hold
+          lenReq = nm->mkNode(Kind::STRING_LENGTH, t0)
+                       .eqNode(nm->mkNode(Kind::STRING_LENGTH, s0));
+          // should be shown by evaluation
+          lenSuccess = psb.applyPredIntro(lenReq, {});
+          // will conclude an equality between string/sequence values, which
+          // will rewrite to false.
+        }
         if (!lenSuccess)
         {
           Trace("strings-ipc-core")
               << "...failed due to length constraint" << std::endl;
           break;
-        }
-        // apply symmetry if necessary
-        if (applySym)
-        {
-          std::vector<Node> childrenSymm;
-          childrenSymm.push_back(mainEqCeq);
-          // note this explicit step may not be necessary
-          mainEqCeq = psb.tryStep(ProofRule::SYMM, childrenSymm, {});
-          Trace("strings-ipc-core")
-              << "Main equality after SYMM " << mainEqCeq << std::endl;
         }
         if (rule != ProofRule::UNKNOWN)
         {
@@ -900,16 +898,48 @@ bool InferProofCons::convert(Env& env,
       Trace("strings-ipc-red") << "Reduction : " << red << std::endl;
       if (!red.isNull())
       {
-        // either equal or rewrites to it
-        std::vector<Node> cexp;
-        if (psb.applyPredTransform(red, conc, cexp))
+        if (red == conc)
         {
           Trace("strings-ipc-red") << "...success!" << std::endl;
           useBuffer = true;
         }
         else
         {
-          Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          std::vector<Node> cexp;
+          // get the equalities where the reduction is different
+          std::vector<Node> matchConds;
+          expr::getConversionConditions(red, conc, matchConds);
+          Trace("strings-ipc-red")
+              << "...need to prove " << matchConds << std::endl;
+          // To simplify the proof transformation step below, we manually
+          // unpurify skolems from the concluded reduction. This
+          // make it more likely the applyPredTransform step does not have to
+          // resort to original forms. In particular, the strings rewriter
+          // currently does not respect the property that if
+          // t ---> c for constant c, then getOriginalForm(t) ---> c. This
+          // means we should attempt to replay the term which was used by the
+          // strings skolem cache to justify k = c, which is its unpurified
+          // form t, not its original form.
+          for (const Node& mc : matchConds)
+          {
+            Node mcu = SkolemManager::getUnpurifiedForm(mc[0]);
+            if (mcu != mc[0])
+            {
+              Node mceq = mc[0].eqNode(mcu);
+              psb.addStep(ProofRule::SKOLEM_INTRO, {}, {mc[0]}, mceq);
+              cexp.push_back(mceq);
+            }
+          }
+          // either equal or rewrites to it
+          if (psb.applyPredTransform(red, conc, cexp))
+          {
+            Trace("strings-ipc-red") << "...success!" << std::endl;
+            useBuffer = true;
+          }
+          else
+          {
+            Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
+          }
         }
       }
     }
@@ -1373,17 +1403,52 @@ bool InferProofCons::convertAndElim(NodeManager* nm,
   {
     return true;
   }
-  if (src.getKind() == Kind::AND)
+  Trace("strings-ipc-debug")
+      << "AND_ELIM " << src << " => " << tgt << "?" << std::endl;
+  Node stgt;
+  if (src.getKind() == Kind::NOT && src[0].getKind() == Kind::OR)
   {
-    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    // handles case of ~(L1 or ... or Ln) where tgt is ~Li.
+    for (size_t i = 0, nchild = src[0].getNumChildren(); i < nchild; i++)
     {
-      if (src[i] == tgt)
+      Node sn = src[0][i].negate();
+      if (CDProof::isSame(sn, tgt))
       {
+        Node snn = src[0][i].notNode();
         Node ni = nm->mkConstInt(Rational(i));
-        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, tgt);
-        return true;
+        psb.addStep(ProofRule::NOT_OR_ELIM, {src}, {ni}, snn);
+        // double negation elimination if necessary
+        if (snn != sn)
+        {
+          psb.addStep(ProofRule::NOT_NOT_ELIM, {snn}, {}, sn);
+        }
+        stgt = sn;
+        break;
       }
     }
+  }
+  else if (src.getKind() == Kind::AND)
+  {
+    // otherwise check case of (L1 and ... and Ln) => Li
+    for (size_t i = 0, nchild = src.getNumChildren(); i < nchild; i++)
+    {
+      if (CDProof::isSame(src[i], tgt))
+      {
+        Node ni = nm->mkConstInt(Rational(i));
+        psb.addStep(ProofRule::AND_ELIM, {src}, {ni}, src[i]);
+        stgt = src[i];
+        break;
+      }
+    }
+  }
+  if (!stgt.isNull())
+  {
+    Assert(CDProof::isSame(stgt, tgt));
+    if (stgt != tgt)
+    {
+      psb.addStep(ProofRule::SYMM, {stgt}, {}, tgt);
+    }
+    return true;
   }
   return false;
 }
@@ -1439,6 +1504,169 @@ Node InferProofCons::convertCoreSubs(Env& env,
     return res[1];
   }
   return src;
+}
+
+Node InferProofCons::spliceConstants(Env& env,
+                                     ProofRule rule,
+                                     TheoryProofStepBuffer& psb,
+                                     const Node& eq,
+                                     const Node& conc,
+                                     bool isRev)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  Trace("strings-ipc-splice")
+      << "Splice " << rule << " (" << isRev << ") for " << eq << std::endl;
+  std::vector<Node> tvec;
+  std::vector<Node> svec;
+  theory::strings::utils::getConcat(eq[0], tvec);
+  theory::strings::utils::getConcat(eq[1], svec);
+  size_t nts = tvec.size();
+  size_t nss = svec.size();
+  size_t n = nts > nss ? nss : nts;
+  for (size_t i = 0; i < n; i++)
+  {
+    size_t ti = isRev ? nts - i - 1 : i;
+    size_t si = isRev ? nss - i - 1 : i;
+    Node currT = tvec[ti];
+    Node currS = svec[si];
+    if (currT == currS)
+    {
+      continue;
+    }
+    if (rule == ProofRule::CONCAT_EQ)
+    {
+      if (!currT.isConst() || !currS.isConst())
+      {
+        // no need to splice
+        return eq;
+      }
+      // remove the common prefix
+      // get the equal prefix/suffix, strip and add the remainders
+      size_t sindex;
+      Node currR = Word::splitConstant(currT, currS, sindex, isRev);
+      if (currR.isNull())
+      {
+        // no need to splice
+        return eq;
+      }
+      size_t index = sindex == 1 ? si : ti;
+      std::vector<Node>& vec = sindex == 1 ? svec : tvec;
+      Node o = sindex == 1 ? currT : currS;
+      vec[index] = o;
+      vec.insert(vec.begin() + index + (isRev ? 0 : 1), currR);
+    }
+    else if (rule == ProofRule::CONCAT_UNIFY && !conc.isNull()
+             && conc.getKind() == Kind::EQUAL)
+    {
+      Trace("strings-ipc-splice")
+          << "Splice cprop at " << currT << " / " << currS
+          << ", for conclusion " << conc << std::endl;
+      for (size_t j = 0; j < 2; j++)
+      {
+        Node src = j == 0 ? currT : currS;
+        Node tgt = j == 0 ? conc[0] : conc[1];
+        if (src == tgt)
+        {
+          continue;
+        }
+        if (!src.isConst() || !tgt.isConst())
+        {
+          Assert(false) << "Non-constant for unify";
+          return eq;
+        }
+        size_t index = j == 0 ? ti : si;
+        std::vector<Node>& vec = j == 0 ? tvec : svec;
+        size_t lentgt = Word::getLength(tgt);
+        size_t len = Word::getLength(src);
+        if (len <= lentgt)
+        {
+          Assert(false) << "Smaller source for unify";
+          return eq;
+        }
+        if (isRev)
+        {
+          vec[index] = Word::suffix(src, lentgt);
+          vec.insert(vec.begin() + index, Word::prefix(src, len - lentgt));
+        }
+        else
+        {
+          vec[index] = Word::prefix(src, lentgt);
+          vec.insert(vec.begin() + index + 1, Word::suffix(src, len - lentgt));
+        }
+      }
+    }
+    else if (rule == ProofRule::CONCAT_CSPLIT)
+    {
+      if (!currS.isConst())
+      {
+        Assert(false) << "Non-constant for csplit";
+        return eq;
+      }
+      // split the first character
+      size_t len = Word::getLength(currS);
+      if (len == 1)
+      {
+        // not needed
+        return eq;
+      }
+      if (isRev)
+      {
+        svec[si] = Word::suffix(currS, 1);
+        svec.insert(svec.begin() + si, Word::prefix(currS, len - 1));
+      }
+      else
+      {
+        svec[si] = Word::prefix(currS, 1);
+        svec.insert(svec.begin() + si + 1, Word::suffix(currS, len - 1));
+      }
+    }
+    else if (rule == ProofRule::CONCAT_UNIFY && conc.isConst()
+             && !conc.getConst<bool>())
+    {
+      if (!currT.isConst() || !currS.isConst())
+      {
+        Assert(false) << "Non-constants for concat conflict";
+        return eq;
+      }
+      // isolate a disequal prefix by taking maximal prefix/suffix
+      size_t lens = Word::getLength(currS);
+      size_t lent = Word::getLength(currT);
+      if (lens == lent)
+      {
+        // no need
+        return eq;
+      }
+      std::vector<Node>& vec = lens > lent ? svec : tvec;
+      Node curr = lens > lent ? currS : currT;
+      size_t index = lens > lent ? si : ti;
+      size_t smallLen = lens > lent ? lent : lens;
+      size_t diffLen = lens > lent ? (lens - lent) : (lent - lens);
+      vec[index] =
+          isRev ? Word::suffix(curr, smallLen) : Word::prefix(curr, smallLen);
+      vec.insert(
+          vec.begin() + index + (isRev ? 0 : 1),
+          isRev ? Word::prefix(curr, diffLen) : Word::suffix(curr, diffLen));
+    }
+    else
+    {
+      Assert(false) << "Unknown rule to splice " << rule;
+      return eq;
+    }
+    TypeNode stype = eq[0].getType();
+    Node tr = utils::mkConcat(tvec, stype);
+    Node sr = utils::mkConcat(svec, stype);
+    Node eqr = tr.eqNode(sr);
+    Trace("strings-ipc-splice") << "...splice to " << eqr << std::endl;
+    std::vector<Node> cexp;
+    if (!psb.applyPredTransform(eq, eqr, cexp))
+    {
+      Assert(false) << "Failed to show " << eqr << " spliced from " << eq;
+      return eq;
+    }
+    return eqr;
+  }
+  // no change
+  return eq;
 }
 
 std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)

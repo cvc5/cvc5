@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *   Haniel Barbosa, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -453,7 +453,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       // add default constant constructors
       std::vector<Node> ops;
-      SygusGrammarCons::mkSygusConstantsForType(nodeManager(), sygus_type, ops);
+      SygusGrammarCons::mkSygusConstantsForType(d_env, sygus_type, ops);
       for (const Node& op : ops)
       {
         std::stringstream ss;

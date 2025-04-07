@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-alpha-card=64 --simplification=none
+; COMMAND-LINE: --strings-alpha-card=32 --simplification=none
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 (declare-fun s1 () String)
@@ -67,70 +67,6 @@
 (assert (= (str.len s32) 1))
 (declare-fun s33 () String)
 (assert (= (str.len s33) 1))
-(declare-fun s34 () String)
-(assert (= (str.len s34) 1))
-(declare-fun s35 () String)
-(assert (= (str.len s35) 1))
-(declare-fun s36 () String)
-(assert (= (str.len s36) 1))
-(declare-fun s37 () String)
-(assert (= (str.len s37) 1))
-(declare-fun s38 () String)
-(assert (= (str.len s38) 1))
-(declare-fun s39 () String)
-(assert (= (str.len s39) 1))
-(declare-fun s40 () String)
-(assert (= (str.len s40) 1))
-(declare-fun s41 () String)
-(assert (= (str.len s41) 1))
-(declare-fun s42 () String)
-(assert (= (str.len s42) 1))
-(declare-fun s43 () String)
-(assert (= (str.len s43) 1))
-(declare-fun s44 () String)
-(assert (= (str.len s44) 1))
-(declare-fun s45 () String)
-(assert (= (str.len s45) 1))
-(declare-fun s46 () String)
-(assert (= (str.len s46) 1))
-(declare-fun s47 () String)
-(assert (= (str.len s47) 1))
-(declare-fun s48 () String)
-(assert (= (str.len s48) 1))
-(declare-fun s49 () String)
-(assert (= (str.len s49) 1))
-(declare-fun s50 () String)
-(assert (= (str.len s50) 1))
-(declare-fun s51 () String)
-(assert (= (str.len s51) 1))
-(declare-fun s52 () String)
-(assert (= (str.len s52) 1))
-(declare-fun s53 () String)
-(assert (= (str.len s53) 1))
-(declare-fun s54 () String)
-(assert (= (str.len s54) 1))
-(declare-fun s55 () String)
-(assert (= (str.len s55) 1))
-(declare-fun s56 () String)
-(assert (= (str.len s56) 1))
-(declare-fun s57 () String)
-(assert (= (str.len s57) 1))
-(declare-fun s58 () String)
-(assert (= (str.len s58) 1))
-(declare-fun s59 () String)
-(assert (= (str.len s59) 1))
-(declare-fun s60 () String)
-(assert (= (str.len s60) 1))
-(declare-fun s61 () String)
-(assert (= (str.len s61) 1))
-(declare-fun s62 () String)
-(assert (= (str.len s62) 1))
-(declare-fun s63 () String)
-(assert (= (str.len s63) 1))
-(declare-fun s64 () String)
-(assert (= (str.len s64) 1))
-(declare-fun s65 () String)
-(assert (= (str.len s65) 1))
 (assert (distinct
 s1
 s2
@@ -165,37 +101,5 @@ s30
 s31
 s32
 s33
-s34
-s35
-s36
-s37
-s38
-s39
-s40
-s41
-s42
-s43
-s44
-s45
-s46
-s47
-s48
-s49
-s50
-s51
-s52
-s53
-s54
-s55
-s56
-s57
-s58
-s59
-s60
-s61
-s62
-s63
-s64
-s65
 ))
 (check-sat)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -136,8 +136,8 @@ Node ValidWitnessProofGenerator::mkWitness(NodeManager* nm,
   }
   // construct the bound variable based on the type of the skolem
   BoundVarManager* bvm = nm->getBoundVarManager();
-  Node v =
-      bvm->mkBoundVar<ValidWitnessVarAttribute>(k, "@var.witness", k.getType());
+  Node v = bvm->mkBoundVar(
+      BoundVarId::VALID_WITNESS_VAR, k, "@var.witness", k.getType());
   // make the axiom
   Node ax = mkAxiom(nm, k, r, args);
   if (ax.isNull())

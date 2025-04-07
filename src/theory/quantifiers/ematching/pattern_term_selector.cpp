@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,7 +183,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q) const
     pol = !pol;
     n = n[0];
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (n.getKind() == Kind::INST_CONSTANT)
   {
     return pol ? n : nm->mkNode(Kind::EQUAL, n, nm->mkConst(true)).notNode();
@@ -698,7 +698,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
   }
   else if (nk == Kind::ADD || nk == Kind::MULT)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = n.getNodeManager();
     int cindex = -1;
     bool cindexSet = false;
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)

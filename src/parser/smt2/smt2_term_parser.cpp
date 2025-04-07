@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1256,6 +1256,9 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
       case Token::HEX_LITERAL:
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
+        break;
+      case Token::QUOTED_SYMBOL:
+        symbols.push_back(tokenStrToSymbol(tok));
         break;
       default:
         d_lex.unexpectedTokenError(

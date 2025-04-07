@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,12 +33,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-IAndSolver::IAndSolver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+IAndSolver::IAndSolver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env),
       d_im(im),
       d_model(model),
+      d_iandUtils(env.getNodeManager()),
       d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();

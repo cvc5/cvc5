@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,13 +37,6 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
-
-/** An attribute for mapping sygus variables to builtin variables */
-struct SygusBuiltinFreeVarAttributeId
-{
-};
-using SygusBuiltinFreeVarAttribute =
-    expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
@@ -302,7 +295,7 @@ Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
   Assert(tn.isSygusDatatype());
   const TypeNode& vtn = tn.getDType().getSygusType();
   BoundVarManager* bvm = nodeManager()->getBoundVarManager();
-  return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
+  return bvm->mkBoundVar(BoundVarId::QUANT_SYGUS_BUILTIN_FV, v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)

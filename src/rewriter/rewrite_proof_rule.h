@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,16 @@
 
 namespace cvc5::internal {
 namespace rewriter {
+
+/**
+ * The level for a rewrite, which determines which proof signature they are a
+ * part of.
+ */
+enum class Level
+{
+  NORMAL,
+  EXPERT,
+};
 
 /**
  * The definition of a (conditional) rewrite rule. An instance of this
@@ -54,13 +64,16 @@ class RewriteProofRule
    * @param context The term context for the conclusion of the rule. This is
    * non-null for all rules that should be applied to fixed-point. The context
    * is a lambda term that specifies the next position of the term to rewrite.
+   * @param _level The level of the rewrite, which determines which proof
+   * signature they should be added to (normal or expert).
    */
   void init(ProofRewriteRule id,
             const std::vector<Node>& userFvs,
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
-            Node context);
+            Node context,
+            Level _level);
   /** get id */
   ProofRewriteRule getId() const;
   /** get name */
@@ -170,6 +183,8 @@ class RewriteProofRule
                                  const std::vector<Node>& ss,
                                  std::vector<Node>& dvs,
                                  std::vector<Node>& dss) const;
+  /** Get the signature level for the rewrite rule */
+  Level getSignatureLevel() const;
 
  private:
   /** The id of the rule */
@@ -180,6 +195,8 @@ class RewriteProofRule
   Node d_conc;
   /** Is the rule applied in some fixed point context? */
   Node d_context;
+  /** The level */
+  Level d_level;
   /** Whether the rule is in flat form */
   bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */

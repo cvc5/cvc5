@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
+ *   Liana Hadarean, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,28 +46,33 @@ std::string toString<Node> (const std::vector<Node>& bits) {
   }
   os <<"\n";
   return os.str();
-} 
+}
 
-template <class T> T mkTrue(); 
-template <class T> T mkFalse(); 
+template <class T>
+T mkTrue(NodeManager* nm);
+template <class T>
+T mkFalse(NodeManager* nm);
 template <class T> T mkNot(T a);
 template <class T> T mkOr(T a, T b);
-template <class T> T mkOr(const std::vector<T>& a);
+template <class T>
+T mkOr(NodeManager* nm, const std::vector<T>& a);
 template <class T> T mkAnd(T a, T b);
-template <class T> T mkAnd(const std::vector<T>& a);
+template <class T>
+T mkAnd(NodeManager* nm, const std::vector<T>& a);
 template <class T> T mkXor(T a, T b);
 template <class T> T mkIff(T a, T b);
 template <class T> T mkIte(T cond, T a, T b);
 
-
-template <> inline
-Node mkTrue<Node>() {
-  return NodeManager::currentNM()->mkConst<bool>(true);
+template <>
+inline Node mkTrue<Node>(NodeManager* nm)
+{
+  return nm->mkConst<bool>(true);
 }
 
-template <> inline
-Node mkFalse<Node>() {
-  return NodeManager::currentNM()->mkConst<bool>(false);
+template <>
+inline Node mkFalse<Node>(NodeManager* nm)
+{
+  return nm->mkConst<bool>(false);
 }
 
 template <> inline
@@ -80,26 +85,26 @@ Node mkOr<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::OR, a, b);
 }
 
-template <> inline
-Node mkOr<Node>(const std::vector<Node>& children) {
+template <>
+inline Node mkOr<Node>(NodeManager* nm, const std::vector<Node>& children)
+{
   Assert(children.size());
   if (children.size() == 1) return children[0];
-  return NodeManager::currentNM()->mkNode(Kind::OR, children);
+  return nm->mkNode(Kind::OR, children);
 }
-
 
 template <> inline
 Node mkAnd<Node>(Node a, Node b) {
   return NodeManager::mkNode(Kind::AND, a, b);
 }
 
-template <> inline
-Node mkAnd<Node>(const std::vector<Node>& children) {
+template <>
+inline Node mkAnd<Node>(NodeManager* nm, const std::vector<Node>& children)
+{
   Assert(children.size());
   if (children.size() == 1) return children[0];
-  return NodeManager::currentNM()->mkNode(Kind::AND, children);
+  return nm->mkNode(Kind::AND, children);
 }
-
 
 template <> inline
 Node mkXor<Node>(Node a, Node b) {
@@ -136,43 +141,47 @@ void inline negateBits(const std::vector<T>& bits, std::vector<T>& negated_bits)
 }
 
 template <class T>
-bool inline isZero(const std::vector<T>& bits) {
+bool inline isZero(NodeManager* nm, const std::vector<T>& bits)
+{
   for(unsigned i = 0; i < bits.size(); ++i) {
-    if(bits[i] != mkFalse<T>()) {
-      return false; 
+    if (bits[i] != mkFalse<T>(nm))
+    {
+      return false;
     }
   }
-  return true; 
+  return true;
 }
 
 template <class T>
-void inline rshift(std::vector<T>& bits, unsigned amount) {
+void inline rshift(NodeManager* nm, std::vector<T>& bits, unsigned amount)
+{
   for (unsigned i = 0; i < bits.size() - amount; ++i) {
     bits[i] = bits[i+amount]; 
   }
   for(unsigned i = bits.size() - amount; i < bits.size(); ++i) {
-    bits[i] = mkFalse<T>(); 
+    bits[i] = mkFalse<T>(nm);
   }
 }
 
 template <class T>
-void inline lshift(std::vector<T>& bits, unsigned amount) {
+void inline lshift(NodeManager* nm, std::vector<T>& bits, unsigned amount)
+{
   for (int i = (int)bits.size() - 1; i >= (int)amount ; --i) {
     bits[i] = bits[i-amount]; 
   }
   for(unsigned i = 0; i < amount; ++i) {
-    bits[i] = mkFalse<T>(); 
+    bits[i] = mkFalse<T>(nm);
   }
 }
 
 template <class T>
-void inline makeZero(std::vector<T>& bits, unsigned width) {
+void inline makeZero(NodeManager* nm, std::vector<T>& bits, unsigned width)
+{
   Assert(bits.size() == 0);
   for(unsigned i = 0; i < width; ++i) {
-    bits.push_back(mkFalse<T>()); 
+    bits.push_back(mkFalse<T>(nm));
   }
 }
-
 
 /** 
  * Constructs a simple ripple carry adder
@@ -200,15 +209,18 @@ T inline rippleCarryAdder(const std::vector<T>&a, const std::vector<T>& b, std::
 }
 
 template <class T>
-inline void shiftAddMultiplier(const std::vector<T>&a, const std::vector<T>&b, std::vector<T>& res) {
-  
+inline void shiftAddMultiplier(NodeManager* nm,
+                               const std::vector<T>& a,
+                               const std::vector<T>& b,
+                               std::vector<T>& res)
+{
   for (unsigned i = 0; i < a.size(); ++i) {
     res.push_back(mkAnd(b[0], a[i])); 
   }
   
   for(unsigned k = 1; k < res.size(); ++k) {
-  T carry_in = mkFalse<T>();
-  T carry_out;
+    T carry_in = mkFalse<T>(nm);
+    T carry_out;
     for(unsigned j = 0; j < res.size() -k; ++j) {
       T aj = mkAnd(b[k], a[j]);
       carry_out = mkOr(mkAnd(res[j+k], aj),

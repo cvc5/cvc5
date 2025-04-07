@@ -8,6 +8,9 @@ echo "[install-rare-rewrites] Generate cvc5 API include files..."
 make gen-rewrites
 cp include/cvc5/cvc5_proof_rule.h $DIR/include/cvc5/cvc5_proof_rule.h
 
+echo "[install-rare-rewrites] Install cvc5..."
+make -j$(nproc)
+
 echo "[install-rare-rewrites] Generate CPC Eunoia signature..."
 
 REWRITE_SIG=$DIR/proofs/eo/cpc/rules/Rewrites.eo
@@ -17,7 +20,6 @@ cat << EOF > $REWRITE_SIG
 (include "../theories/Arrays.eo")
 (include "../theories/Arith.eo")
 (include "../theories/Reals.eo")
-(include "../theories/Transcendentals.eo")
 (include "../theories/BitVectors.eo")
 (include "../theories/Strings.eo")
 (include "../theories/Sets.eo")
@@ -28,3 +30,21 @@ echo "(check-sat)" | $cvc5 -o rare-db --force-logic=ALL --produce-proofs --proof
 
 # use eo::define instead of let
 sed -i 's/(let/(eo::define/g' $REWRITE_SIG
+
+echo "[install-rare-rewrites] Generate expert CPC Eunoia signature..."
+
+EXPERT_REWRITE_SIG=$DIR/proofs/eo/cpc/expert/rules/RewritesExpert.eo
+
+cat << EOF > $EXPERT_REWRITE_SIG
+(include "../../theories/Reals.eo")
+
+(include "../theories/SetsExt.eo")
+(include "../theories/Transcendentals.eo")
+
+EOF
+
+
+echo "(check-sat)" | $cvc5 -o rare-db-expert --force-logic=ALL --produce-proofs --proof-granularity=dsl-rewrite | sed '$ d' >> $EXPERT_REWRITE_SIG
+
+# use eo::define instead of let
+sed -i 's/(let/(eo::define/g' $EXPERT_REWRITE_SIG

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -212,7 +212,7 @@ Node TermCanonize::getCanonicalTerm(
     }
     Trace("canon-term-debug")
         << "...constructing for " << n << "." << std::endl;
-    Node ret = NodeManager::currentNM()->mkNode(n.getKind(), cchildren);
+    Node ret = n.getNodeManager()->mkNode(n.getKind(), cchildren);
     Trace("canon-term-debug")
         << "...constructed " << ret << " for " << n << "." << std::endl;
     visited[n] = ret;

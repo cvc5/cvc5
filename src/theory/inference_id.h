@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -461,6 +461,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_COMPLETE_ENUM,
   // infeasible due to side condition (e.g. for abduction)
   QUANTIFIERS_SYGUS_SC_INFEASIBLE,
+  // infeasible due to non-well-founded grammar
+  QUANTIFIERS_SYGUS_NO_WF_GRAMMAR,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,

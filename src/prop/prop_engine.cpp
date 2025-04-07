@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -439,6 +439,12 @@ Result PropEngine::checkSat() {
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
 
+  // now presolve with prop proof manager so proof logging is on
+  if (d_ppm != nullptr)
+  {
+    d_ppm->presolve();
+  }
+
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
 
@@ -449,10 +455,10 @@ Result PropEngine::checkSat() {
     assumptions.push_back(d_cnfStream->getLiteral(node));
   }
 
-  // now presolve with prop proof manager
+  // now log preprocessing
   if (d_ppm != nullptr)
   {
-    d_ppm->presolve();
+    d_ppm->logPreprocessing();
   }
 
   // Reset the interrupted flag

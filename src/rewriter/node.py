@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Leni Aniva, Haniel Barbosa
+#   Leni Aniva, Haniel Barbosa, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -84,6 +84,7 @@ class Op(Enum):
     BVUSUBO = ('bvusubo', 'BITVECTOR_USUBO')
     BVSSUBO = ('bvssubo', 'BITVECTOR_SSUBO')
     BVSDIVO = ('bvsdivo', 'BITVECTOR_SDIVO')
+    BVNEGO = ('bvnego', 'BITVECTOR_NEGO')
 
     BVITE = ('bvite', 'BITVECTOR_ITE')
     BVCOMP = ('bvcomp', 'BITVECTOR_COMP')
@@ -130,6 +131,7 @@ class Op(Enum):
     TO_INT = ('to_int', 'TO_INTEGER')
     TO_REAL = ('to_real', 'TO_REAL')
     IS_INT = ('is_int', 'IS_INTEGER')
+    DIVISIBLE = ('divisible', 'DIVISIBLE')
     
     SINE = ('sin', 'SINE')
     COSINE = ('cos', 'COSINE')

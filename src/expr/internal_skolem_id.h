@@ -1,16 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Skolem manager utility.
+ * Internal skolem identifiers
  */
 
 #include "cvc5_private.h"
@@ -19,8 +19,6 @@
 #define CVC5__EXPR__INTERNAL_SKOLEM_ID_H
 
 #include <string>
-
-#include "expr/internal_skolem_id.h"
 
 namespace cvc5::internal {
 

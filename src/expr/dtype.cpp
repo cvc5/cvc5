@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -921,7 +921,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   }
   // make the shared selector
   Node s;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = dtt.getNodeManager();
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -245,7 +245,7 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
   if (tn.isString())  // string-only
   {
     d_sels[key].reset(
-        new StringEnumLen(NodeManager::currentNM(),
+        new StringEnumLen(tn.getNodeManager(),
                           len,
                           len,
                           d_tep ? d_tep->getStringsAlphabetCard()
@@ -253,15 +253,14 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
   }
   else
   {
-    d_sels[key].reset(
-        new SeqEnumLen(NodeManager::currentNM(), tn, d_tep, len, len));
+    d_sels[key].reset(new SeqEnumLen(tn.getNodeManager(), tn, d_tep, len, len));
   }
   return d_sels[key].get();
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<StringEnumerator>(type),
-      d_wenum(NodeManager::currentNM(),
+      d_wenum(type.getNodeManager(),
               0,
               tep ? tep->getStringsAlphabetCard()
                   : utils::getDefaultAlphabetCardinality())
@@ -289,7 +288,7 @@ bool StringEnumerator::isFinished() { return d_wenum.isFinished(); }
 SequenceEnumerator::SequenceEnumerator(TypeNode type,
                                        TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<SequenceEnumerator>(type),
-      d_wenum(NodeManager::currentNM(), type, tep, 0)
+      d_wenum(type.getNodeManager(), type, tep, 0)
 {
 }
 

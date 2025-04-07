@@ -1,0 +1,35 @@
+(include "../../theories/Arith.eo")
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const FiniteField (-> Int Type))
+
+; define: $bv_bitwidth
+; args:
+; - T Type: The finite field type.
+; return: The (integer value) size for a given finite field type.
+(define $ff_size ((T Type))
+  (eo::match ((n Int)) T (((FiniteField n) n))))
+
+; A finite field constant is a term having 2 integer children.
+; note: we do not support the native syntax for finite field values.
+(declare-const ff.value
+    (-> (! Int :var p) Int (FiniteField p)))
+
+(declare-parameterized-const ff.add ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p)) 
+    :right-assoc-nil (ff.value p 0)
+)
+(declare-const ff.neg
+    (-> (! Int :var p :implicit)
+        (FiniteField p) (FiniteField p))
+)
+(declare-parameterized-const ff.mul ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 1)
+)
+(declare-parameterized-const ff.bitsum ((p Int))
+    (-> (FiniteField p) (FiniteField p) (FiniteField p))
+    :right-assoc-nil (ff.value p 0)
+)

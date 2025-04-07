@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
-#include "theory/quantifiers/mbqi_fast_sygus.h"
+#include "printer/smt2/smt2_printer.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -41,7 +42,7 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr)
+    : QuantifiersModule(env, qs, qim, qr, tr), d_globalSyms(userContext())
 {
   // some kinds may appear in model values that cannot be asserted
   d_nonClosedKinds.insert(Kind::STORE_ALL);
@@ -50,12 +51,33 @@ InstStrategyMbqi::InstStrategyMbqi(Env& env,
   // may appear in certain models e.g. strings of excessive length
   d_nonClosedKinds.insert(Kind::WITNESS);
 
-  if (options().quantifiers.mbqiFastSygus)
+  if (options().quantifiers.mbqiEnum)
   {
-    d_msenum.reset(new MbqiFastSygus(env, *this));
+    d_msenum.reset(new MbqiEnum(env, *this));
   }
   d_subOptions.copyValues(options());
   smt::SetDefaults::disableChecking(d_subOptions);
+}
+
+void InstStrategyMbqi::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
+  // collecting global symbols from all available assertions
+  for (const Node& a : assertions)
+  {
+    std::unordered_set<Node> cur_syms;
+    expr::getSymbols(a, cur_syms);
+    // Iterate over the symbols in the current assertion
+    for (const auto& s : cur_syms)
+    {
+      // Add the symbol to syms if it's not already present
+      d_globalSyms.insert(s);
+    }
+  }
+}
+
+const context::CDHashSet<Node>& InstStrategyMbqi::getGlobalSyms() const
+{
+  return d_globalSyms;
 }
 
 void InstStrategyMbqi::reset_round(Theory::Effort e) { d_quantChecked.clear(); }
@@ -76,9 +98,17 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  FirstOrderModel* fm = d_treg.getModel();
+  if (TraceIsOn("mbqi-model-exp"))
+  {
+    eq::EqualityEngine* ee = fm->getEqualityEngine();
+    Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check" << std::endl;
+    Trace("mbqi-model-exp") << "Ground model:" << std::endl;
+    Trace("mbqi-model-exp") << ee->debugPrintEqc() << std::endl;
+    Trace("mbqi-model-exp") << std::endl;
+  }
   // see if the negation of each quantified formula is satisfiable in the model
   std::vector<Node> disj;
-  FirstOrderModel* fm = d_treg.getModel();
   std::vector<TNode> visit;
   for (size_t i = 0, nquant = fm->getNumAssertedQuantifiers(); i < nquant; i++)
   {
@@ -89,6 +119,8 @@ void InstStrategyMbqi::check(Theory::Effort e, QEffort quant_e)
     }
     process(q);
   }
+  Trace("mbqi-model-exp") << "=== InstStrategyMbqi::check finished"
+                          << std::endl;
 }
 
 bool InstStrategyMbqi::checkCompleteFor(Node q)
@@ -99,6 +131,7 @@ bool InstStrategyMbqi::checkCompleteFor(Node q)
 void InstStrategyMbqi::process(Node q)
 {
   Assert(q.getKind() == Kind::FORALL);
+  Trace("mbqi-model-exp") << "* Process quantified formula: " << q << std::endl;
   Trace("mbqi") << "Process quantified formula: " << q << std::endl;
   // Cache mapping terms in the skolemized body of q to the form passed to
   // the subsolver. This is local to this call.
@@ -133,6 +166,7 @@ void InstStrategyMbqi::process(Node q)
   // check if there are any bad kinds
   if (cbody.isNull())
   {
+    Trace("mbqi-model-exp") << "...INTERNAL FAIL" << std::endl;
     Trace("mbqi") << "...failed to convert to query" << std::endl;
     return;
   }
@@ -149,6 +183,7 @@ void InstStrategyMbqi::process(Node q)
   else if (!bquery.getConst<bool>())
   {
     d_quantChecked.insert(q);
+    Trace("mbqi-model-exp") << "...SUCCESS, by rewriting" << std::endl;
     Trace("mbqi") << "...success, by rewriting" << std::endl;
     return;
   }
@@ -228,15 +263,18 @@ void InstStrategyMbqi::process(Node q)
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;
-  Trace("mbqi") << "  query is : " << query << std::endl;
+  Trace("mbqi") << "  query is : " << SkolemManager::getOriginalForm(query)
+                << std::endl;
   Result r = mbqiChecker->checkSat();
   Trace("mbqi") << "  ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
+    Trace("mbqi-model-exp") << "...SUCCESS" << std::endl;
     d_quantChecked.insert(q);
     Trace("mbqi") << "...success, SAT" << std::endl;
     return;
   }
+  Trace("mbqi-model-exp") << "...FAIL, will instantiate" << std::endl;
 
   // get the model values for all fresh variables
   for (const Node& v : allVars)
@@ -457,7 +495,6 @@ Node InstStrategyMbqi::convertToQuery(
   return cmap[cur];
 }
 
-
 void InstStrategyMbqi::modelValueFromQuery(
     const Node& q,
     const Node& query,
@@ -467,7 +504,7 @@ void InstStrategyMbqi::modelValueFromQuery(
     const std::map<Node, Node>& mvToFreshVar)
 {
   getModelFromSubsolver(smt, vars, mvs);
-  if (options().quantifiers.mbqiFastSygus)
+  if (options().quantifiers.mbqiEnum)
   {
     std::vector<Node> smvs(mvs);
     if (d_msenum->constructInstantiation(q, query, vars, smvs, mvToFreshVar))

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -218,7 +218,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     return true;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   // constant
   if (n.getMetaKind() == kind::metakind::CONSTANT)
   {
@@ -563,7 +563,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
       || k == Kind::NULLABLE_TYPE)
   {
-    const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
+    const DType& dt = n.getNodeManager()->getDTypeFor(n);
     if (dt.isTuple())
     {
       unsigned int nargs = dt[0].getNumArgs();
@@ -812,6 +812,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     toStream(out, n[0], nullptr, toDepth);
     out << " ";
     bool needsPrintAnnot = false;
+    size_t dag = options::ioutils::getDagThresh(out);
+    size_t newDepth = (toDepth < 0 ? toDepth : toDepth - 1);
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
@@ -821,14 +823,22 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         if (nck == Kind::INST_PATTERN)
         {
           needsPrintAnnot = true;
-          annot << " :pattern ";
-          toStream(annot, nc, lbind, toDepth);
+          annot << " :pattern (";
+          for (size_t i = 0, nchild = nc.getNumChildren(); i < nchild; i++)
+          {
+            if (i > 0)
+            {
+              annot << " ";
+            }
+            toStream(annot, nc[i], newDepth, dag);
+          }
+          annot << ")";
         }
         else if (nck == Kind::INST_NO_PATTERN)
         {
           needsPrintAnnot = true;
           annot << " :no-pattern ";
-          toStream(annot, nc[0], lbind, toDepth);
+          toStream(annot, nc[0], newDepth, dag);
         }
         else if (nck == Kind::INST_POOL || nck == Kind::INST_ADD_TO_POOL
                  || nck == Kind::SKOLEM_ADD_TO_POOL)
@@ -850,7 +860,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             {
               annot << " ";
             }
-            toStream(annot, nc[i], lbind, toDepth);
+            toStream(annot, nc[i], newDepth, dag);
           }
           annot << ")";
         }
@@ -869,7 +879,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
-              toStream(annot, nc[j], lbind, toDepth);
+              toStream(annot, nc[j], newDepth, dag);
             }
           }
         }
@@ -882,8 +892,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(! ";
       annot << ")";
     }
-    size_t dag = options::ioutils::getDagThresh(out);
-    toStream(out, n[1], toDepth < 0 ? toDepth : toDepth - 1, dag);
+    toStream(out, n[1], newDepth, dag);
     out << annot.str() << ")";
     return true;
   }
@@ -1000,7 +1009,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       size_t cindex = DType::cindexOf(op);
       if (dt.isTuple())
       {
-        out << "(_ tuple.update " << DType::indexOf(op) << ")";
+        out << "(_ tuple.update " << index << ")";
       }
       else
       {
@@ -1208,6 +1217,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::TO_INTEGER: return "to_int";
     case Kind::TO_REAL: return "to_real";
     case Kind::POW: return "^";
+    case Kind::DIVISIBLE: return "divisible";
 
     // arrays theory
     case Kind::SELECT: return "select";
@@ -2236,7 +2246,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
     std::list<TypeNode> typesToPrint;
     grammarTypes.insert(t);
     typesToPrint.push_back(t);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = t.getNodeManager();
     // for each datatype in grammar
     //   name
     //   sygus type

@@ -1,6 +1,7 @@
 (include "../programs/Quantifiers.eo")
+(include "../programs/Datatypes.eo")
 (include "../theories/Quantifiers.eo")
-
+(include "../theories/BitVectors.eo")
 
 ; rule: instantiate
 ; implements: ProofRule::INSTANTIATE.
@@ -12,7 +13,7 @@
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
-  :conclusion ($substitute_list xs ts F))
+  :conclusion ($substitute_simul F xs ts))
 
 ; program: $mk_skolems
 ; args:
@@ -39,7 +40,7 @@
 ;   introduced via $mk_skolems.
 (declare-rule skolemize ((x @List) (G Bool))
   :premises ((not (forall x G)))
-  :conclusion ($substitute_list x ($mk_skolems x (forall x G) 0) (not G))
+  :conclusion ($substitute_simul (not G) x ($mk_skolems x (forall x G) 0))
 )
 
 ; rule: skolem_intro
@@ -66,8 +67,8 @@
 ;   B. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((B Bool) (vs @List) (ts @List))
   :args (B vs ts)
-  :requires ((($contains_subterm_list B ts) false))
-  :conclusion (= B ($substitute_list vs ts B))
+  :requires ((($contains_aterm_list B ts) false))
+  :conclusion (= B ($substitute_simul B vs ts))
 )
 
 ; rule: beta-reduce
@@ -235,9 +236,9 @@
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_subterm_list f x) false 
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_aterm_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
-  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_subterm_list f x) false 
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_aterm_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
   (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
                                                                       (eo::requires ($contains_subterm gs x) false
@@ -273,7 +274,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool) (G Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
-  :requires ((($contains_subterm_list A x) false))
+  :requires ((($contains_aterm_list A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
@@ -296,7 +297,7 @@
 ;    The result of eliminating x from F. This method does not evaluate if this
 ;    is not a variable elimination, i.e. if F does not begin with a disequality
 ;    between x and a term not containing x.
-(program $mk_quant_var_elim_eq ((T Type) (x T) (t Type) (F Bool :list))
+(program $mk_quant_var_elim_eq ((T Type) (x T) (t T) (F Bool :list))
   (T Bool) Bool
   (
   (($mk_quant_var_elim_eq x (not (= x t)))        ($mk_quant_var_elim_eq_subs x t false))
@@ -305,7 +306,7 @@
 )
 
 ; rule: quant-var-elim-eq
-; implements: QUANT_VAR_ELIM_EQ
+; implements: ProofRewriteRule::QUANT_VAR_ELIM_EQ
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
@@ -316,4 +317,65 @@
   :args ((= (forall (@list x) F) G))
   :requires ((($mk_quant_var_elim_eq x F) G))
   :conclusion (= (forall (@list x) F) G)
+)
+
+;;;;; ProofRewriteRule::QUANT_DT_SPLIT
+
+; program: $is_quant_dt_split_conj
+; args:
+; - x T: The variable we are eliminating.
+; - c C: The constructor term we are substituting x with.
+; - ys @List: The remaining list of variables of the left hand side we have yet to process.
+; - F Bool: The body of the left hand side of the equality.
+; - G Bool: The conjunct we are testing.
+; return: >
+;    The true iff G corresponds to a conjunct expected in the rule
+;    quant-dt-split for the current constructor.
+(program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (x T) (c C) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
+  (T C @List Bool Bool) Bool
+  (
+    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+                                                                            ($is_quant_dt_split_conj x c ys F (forall zs G))))
+    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
+                                                                            ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
+    (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
+    (($is_quant_dt_split_conj x c @list.nil F G)                          (eo::is_eq ($substitute x c F) G))
+  )
+)
+
+; program: $is_quant_dt_split
+; args:
+; - x T: The variable we are eliminating.
+; - cs eo::List: The list of constructors for x we have left to process.
+; - ys @List: The remaining list of variables of the left hand side.
+; - F Bool: The body of the left hand side of the equality.
+; - G Bool: The remaining conjuncts on the right hand side of the equality we have yet to process.
+; return: >
+;    The true iff splitting (forall (@list x ys) F) for the constructors
+;    remaining in cs is equal to the remaining conjuncts in G.
+(program $is_quant_dt_split ((T Type) (x T) (C Type) (c C) (cs eo::List :list) (ys @List) (F Bool) (g Bool) (G Bool :list))
+  (T eo::List @List Bool Bool) Bool
+  (
+    (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G)) (eo::requires
+                                                                    ($is_quant_dt_split_conj x c ys F g) true
+                                                                    ($is_quant_dt_split x cs ys F G)))
+    (($is_quant_dt_split x eo::List::nil ys F true)              true)
+    (($is_quant_dt_split x cs ys F g)                            ($is_quant_dt_split x cs ys F (and g)))  ; singleton case
+  )
+)
+
+; rule: quant-dt-split
+; implements: ProofRewriteRule::QUANT_DT_SPLIT
+; args:
+; - eq Bool: The equality whose left hand side is a quantified formula.
+; requires: >
+;   The right hand side of the equality is the result of a legal application
+;   of quantified datatypes splitting. In particular, G is a conjunction of
+;   quantified formulas obtained by taking the possible cases of constructors
+;   for x.
+; conclusion: The given equality.
+(declare-rule quant-dt-split ((T Type) (x T) (F Bool) (G Bool) (ys @List :list))
+  :args ((= (forall (@list x ys) F) G))
+  :requires ((($is_quant_dt_split x ($dt_get_constructors (eo::typeof x)) ys F G) true))
+  :conclusion (= (forall (@list x ys) F) G)
 )

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,8 @@ namespace cvc5::internal {
 enum class TrustId : uint32_t
 {
   NONE,
+  /** Assertions of the preprocessed input clauses */
+  PREPROCESSED_INPUT,
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
   /**
@@ -163,6 +165,10 @@ enum class TrustId : uint32_t
   ARITH_STATIC_LEARN,
   /** A nonlinear comparison lemma that failed proof reconstruction */
   ARITH_NL_COMPARE_LEMMA,
+  /** A conflict coming from the bitblast solver */
+  BV_BITBLAST_CONFLICT,
+  /** A step from BvPpAssert utility */
+  BV_PP_ASSERT,
   /** Diamonds preprocessing in TheoryUf::ppStaticLearn */
   DIAMONDS,
   /** An extended theory rewrite */
@@ -194,8 +200,13 @@ enum class TrustId : uint32_t
   RE_ELIM,
   /** A quantifiers preprocessing step that was given without a proof */
   QUANTIFIERS_PREPROCESS,
-  /** A quantifiers rewriting step for instantiations, e.g. virtual term substitution */
+  /** A quantifiers rewriting step for instantiations, e.g. virtual term
+     substitution */
   QUANTIFIERS_INST_REWRITE,
+  /** A quantifiers from the --sub-cbqi module */
+  QUANTIFIERS_SUB_CBQI_LEMMA,
+  /** A quantifiers from the nested quantifier elimination module */
+  QUANTIFIERS_NESTED_QE_LEMMA,
   /** A rewrite performed at TheoryStrings::ppStaticRewrite */
   STRINGS_PP_STATIC_REWRITE,
   /**

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -99,11 +99,6 @@ class CVC5_EXPORT TypeNode
                       Iterator2 replacementsEnd,
                       std::unordered_map<TypeNode, TypeNode>& cache) const;
 
-  /**
-   * Returns the associated node manager
-   */
-  NodeManager* getNodeManager() const { return d_nv->getNodeManager(); }
-
  public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }
@@ -134,6 +129,11 @@ class CVC5_EXPORT TypeNode
   static TypeNode null() {
     return s_null;
   }
+
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return d_nv->getNodeManager(); }
 
   /**
    * Substitution of TypeNodes.

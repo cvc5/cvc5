@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3671,7 +3671,7 @@ Term Term::getRealAlgebraicNumberLowerBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_lower(ran));
+  return Term(d_tm, internal::PolyConverter::ran_to_lower(d_tm->d_nm, ran));
 #else
   return Term();
 #endif
@@ -3696,7 +3696,7 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_upper(ran));
+  return Term(d_tm, internal::PolyConverter::ran_to_upper(d_tm->d_nm, ran));
 #else
   return Term();
 #endif

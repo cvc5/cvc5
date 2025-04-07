@@ -1,5 +1,8 @@
 (include "../theories/Strings.eo")
 (include "../theories/Quantifiers.eo")
+
+(include "../programs/Quantifiers.eo")
+(include "../programs/SeqToString.eo")
 (include "../programs/Strings.eo")
 
 ;;-------------------- Core
@@ -44,12 +47,12 @@
   :conclusion
     (eo::match ((ss U) (ts U))
       ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
+           ($str_to_nary_form s rev)
+           ($str_to_nary_form t rev))
       (((@pair ss ts)
         (= 
-          ($str_from_flat_form ss rev)
-          ($str_from_flat_form ts rev)))))
+          ($str_from_nary_form ss rev)
+          ($str_from_nary_form ts rev)))))
 )
 
 ; rule: concat_unify
@@ -59,12 +62,15 @@
 ; - leq: An equality between the lengths of child strings of s and t.
 ; args:
 ; - rev Bool: Whether we are reasoning about the end of strings s and t.
-; requires: leq refers to children that are prefixes (resp. suffixes) of s and t.
+; requires: >
+;   leq refers to children that are the first (resp. last) components
+;   of s and t.
 ; conclusion: an equality between the given children of s and t. 
 (declare-rule concat_unify ((U Type) (s U) (t U) (s1 U) (t1 U) (rev Bool))
   :premises ((= s t) (= (str.len s1) (str.len t1)))
   :args (rev)
-  :requires ((($str_is_prefix s s1 rev) true) (($str_is_prefix t t1 rev) true))
+  :requires ((($str_head ($str_to_nary_form s rev)) s1)
+             (($str_head ($str_to_nary_form t rev)) t1))
   :conclusion (= s1 t1)
 )
 
@@ -83,18 +89,13 @@
   :premises ((= t s) (not (= (str.len u) 0)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 u
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires ($str_check_length_one s1) true    ; checks if char
-                (= u
-                  (eo::ite rev
-                    (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
-                    (str.++ s1 (@purify ($str_suffix_rem u 1)))))))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+      (eo::requires ($str_check_length_one s1) true    ; checks if char
+        (= u
+          (eo::ite rev
+            (str.++ (@purify ($str_prefix u (- (str.len u) 1))) s1)
+            (str.++ s1 (@purify ($str_suffix_rem u 1))))))))
 )
 
 ; rule: concat_split
@@ -111,28 +112,24 @@
   :premises ((= t s) (not (= (str.len tc) (str.len sc))))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires s1 sc
-                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
-                (and 
-                  (or 
-                    (= t1
-                      (eo::ite rev
-                        (str.++ k s1)
-                        (str.++ s1 k)))
-                    (= s1
-                      (eo::ite rev
-                        (str.++ k t1)
-                        (str.++ t1 k))))
-                    (not (= k ($mk_emptystr (eo::typeof k))))
-                    (> (str.len k) 0)
-                ))))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+    (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+      (eo::requires t1 tc
+      (eo::requires s1 sc
+        (and 
+          (or 
+            (= t1
+              (eo::ite rev
+                (str.++ k s1)
+                (str.++ s1 k)))
+            (= s1
+              (eo::ite rev
+                (str.++ k t1)
+                (str.++ t1 k))))
+            (not (= k ($mk_emptystr (eo::typeof k))))
+            (> (str.len k) 0)
+        ))))))
 )
 
 ; rule: concat_lprop
@@ -149,23 +146,18 @@
   :premises ((= t s) (> (str.len tc) (str.len sc)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U) :list))
-      ($str_to_flat_form t rev)
-      (((str.++ t1 t2)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_to_flat_form s rev)
-            (((str.++ s1 s2)
-              (eo::requires s1 sc
-                (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
-                  (and
-                    (= t1
-                      (eo::ite rev
-                        (str.++ k s1)
-                        (str.++ s1 k)))
-                    (not (= k ($mk_emptystr (eo::typeof k))))
-                    (> (str.len k) 0))
-                )))))))))
+    (eo::define ((t1 ($str_head ($str_to_nary_form t rev))))
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+      (eo::requires t1 tc
+      (eo::requires s1 sc
+        (eo::define ((k (@purify ($str_unify_split t1 s1 rev))))
+          (and
+            (= t1
+              (eo::ite rev
+                (str.++ k s1)
+                (str.++ s1 k)))
+            (not (= k ($mk_emptystr (eo::typeof k))))
+            (> (str.len k) 0)))))))
 )
 
 ; rule: concat_cprop
@@ -183,86 +175,20 @@
   :premises ((= t s) (not (= (str.len tc) 0)))
   :args (rev)
   :conclusion
-    (eo::match ((t1 (Seq U)) (t2 (Seq U)) (t3 (Seq U) :list))
-      ($str_rev rev t)
-      (((str.++ t1 t2 t3)
-        (eo::requires t1 tc
-          (eo::match ((s1 (Seq U)) (s2 (Seq U) :list))
-            ($str_rev rev ($str_nary_intro s))  ; must do nary intro when s is just a constant
-            (((str.++ s1 s2)
-                (eo::define ((sc ($str_to_flat_form s1 rev)))
-                (eo::define ((v (eo::add 1 ($str_overlap ($tail sc) ($str_to_flat_form t2 rev)))))
-                  (= tc
-                    (eo::ite rev
-                      (eo::define ((oc ($str_suffix s1 v)))
-                      (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
-                      (eo::define ((oc ($str_prefix s1 v)))
-                      (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))
-                )))))))))
-)
-
-; rule: concat_conflict
-; implements: ProofRule::CONCAT_CONFLICT
-; premises:
-; - eq: An equality between strings t and s.
-; args:
-; - rev Bool: Whether we are reasoning about the end of strings t and s.
-; conclusion: >
-;   false if the prefix (resp. suffix) involves clashing characters at the same
-;   position.
-; note: This rule is used for strings only, not sequences.
-(declare-rule concat_conflict ((s String) (t String) (rev Bool))
-  :premises ((= s t))
-  :args (rev)
-  :conclusion
-    ; strip the prefix of the equality
-    (eo::match ((ss String) (ts String))
-      ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
-      (((@pair ss ts)
-          (eo::define ((cs ($str_head_or_empty ss)))
-          (eo::define ((ct ($str_head_or_empty ts)))
-            ; ensure they are disequal, return false
-            (eo::requires
-              (eo::ite ($str_is_empty cs)
-                ($str_check_length_one ct)
-                (eo::ite ($str_check_length_one cs)
-                  (eo::ite ($str_is_empty ct)
-                    true
-                    (eo::ite ($str_check_length_one ct)
-                      (eo::not (eo::is_eq cs ct))
-                      false))
-                  false))
-              true
-              false)))))
-    )
-)
-
-; rule: concat_conflict_deq
-; implements: ProofRule::CONCAT_CONFLICT_DEQ
-; premises:
-; - eq: An equality between strings s and t.
-; - cdeq: A disequality between two unit terms corresponding to children of s and t.
-; args:
-; - rev Bool: Whether we are reasoning about the end of strings s and t.
-; conclusion: >
-;   false if we can show that cdeq indeed refers to a prefix (resp. suffix) of s and t.
-; note: This rule is used for sequences only, not strings.
-(declare-rule concat_conflict_deq ((U Type) (s (Seq U)) (t (Seq U)) (x U) (y U) (rev Bool))
-  :premises ((= s t) (not (= (seq.unit x) (seq.unit y))))
-  :args (rev)
-  :conclusion
-    ; strip the prefix of the equality
-    (eo::match ((ss (Seq U)) (ts (Seq U)))
-      ($str_strip_prefix
-           ($str_to_flat_form s rev)
-           ($str_to_flat_form t rev))
-      (((@pair ss ts)
-          ; take the first character from each side, should give x and y
-          (eo::requires ($str_head_or_empty ss) (seq.unit x)
-          (eo::requires ($str_head_or_empty ts) (seq.unit y)
-              false)))))
+    (eo::define ((tn ($str_to_nary_form t rev)))
+    (eo::define ((t1 ($str_head tn)))
+    (eo::define ((t2 (eo::list_nth str.++ tn 1))) ; get the second component
+    (eo::define ((s1 ($str_head ($str_to_nary_form s rev))))
+    (eo::define ((s1len (eo::len s1)))
+    (eo::define ((s1s (eo::ite rev (eo::extract s1 0 (eo::add s1len -2)) (eo::extract s1 1 s1len))))  ; remove one character from s1
+    (eo::define ((v (eo::add 1 ($str_overlap s1s t2 rev)))) ; get the overlap, plus one
+      (eo::requires t1 tc
+        (= tc
+          (eo::ite rev
+            (eo::define ((oc ($str_suffix s1 v)))
+              (str.++ (@purify ($str_prefix tc ($arith_mk_binary_minus (str.len tc) (str.len oc)))) oc))
+            (eo::define ((oc ($str_prefix s1 v)))
+              (str.++ oc (@purify ($str_suffix_rem tc (str.len oc)))))))))))))))
 )
 
 ; rule: string_decompose
@@ -285,6 +211,20 @@
                 (eo::define ((kp (@purify ($str_prefix s n)))
                       (ks (@purify ($str_suffix_rem s n))))
                 (and (= s (str.++ kp ks)) (= (str.len kp) n)))))
+
+; rule: exists_string_length
+; implements: ProofRule::EXISTS_STRING_LENGTH
+; args:
+; - T Type: A sequence type.
+; - n Int: An integer denoting the concluded length of a string
+; - id Int: An identifier
+; requires: n is non-negative.
+; conclusion: The given witness skolem has length n.
+(declare-rule exists_string_length ((U Type) (n Int) (id Int))
+  :args ((Seq U) n id)
+  :requires (((eo::gt n -1) true))
+  :conclusion (= (str.len (@witness_string_length (Seq U) n id)) n)
+)
 
 ; rule: string_code_inj
 ; implements: ProofRule::STRING_CODE_INJ
@@ -311,6 +251,8 @@
 
 ;;-------------------- Regular expressions
 
+;;;;; ProofRule::RE_INTER
+
 ; rule: re_inter
 ; implements: ProofRule::RE_INTER
 ; premises:
@@ -323,6 +265,38 @@
   :premises ((str.in_re x s) (str.in_re x t))
   :conclusion (str.in_re x (re.inter s t))
 )
+
+;;;;; ProofRule::RE_CONCAT
+
+; program: $mk_re_concat
+; args:
+; - E: A conjunction of regular expression memberships.
+; return: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(program $mk_re_concat ((Es Bool :list) (s String) (r RegLan))
+  (Bool) Bool
+  (
+  (($mk_re_concat (and (str.in_re s r) Es)) (eo::match ((s1 String) (r1 RegLan))
+                                              ($mk_re_concat Es)
+                                              (((str.in_re s1 r1) (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))))
+  (($mk_re_concat true)                     (str.in_re "" @re.empty))
+  )
+)
+
+; rule: re_concat
+; implements: ProofRule::RE_CONCAT
+; premises:
+; - E [:list]: A conjunction of regular expression memberships.
+; conclusion: >
+;   The concatenation of the strings in E is in the concatenation of the regular
+;   expressions in E.
+(declare-rule re_concat ((E Bool))
+  :premise-list E and
+  :conclusion ($mk_re_concat E)
+)
+
+;;;;; ProofRule::RE_UNFOLD_POS
 
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
@@ -357,6 +331,8 @@
     ))
 )
 
+;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
 ; premises:
@@ -383,6 +359,8 @@
                            (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
 )
+
+;;;;; ProofRule::RE_UNFOLD_NEG
 
 ; rule: re_unfold_neg
 ; implements: ProofRule::RE_UNFOLD_NEG
@@ -526,19 +504,32 @@
   :conclusion (= (re.loop l u r1) r2)
 )
 
-; rule: re-inter-union-inclusion
-; implements: ProofRewriteRule::RE_INTER_UNION_INCLUSION
+; rule: re-inter-inclusion
+; implements: ProofRewriteRule::RE_INTER_INCLUSION
 ; args:
 ; - eq Bool: The equality between regular expressions to prove.
 ; requires: >
-;   showing that the right hand side of the equality is the result of
-;   decomposing the left hand side into a result of a regular expression
-;   inclusion and a remainder.
+;   the left hand side is the intersection of the complement of a regular
+;   expression and one that it includes.
 ; conclusion: The given equality.
-(declare-rule re-inter-union-inclusion ((r1 RegLan) (r2 RegLan))
-  :args ((= r1 r2))
-  :requires ((($str_decompose_and_check_re_inter_union_inclusion r1 r2) true))
-  :conclusion (= r1 r2)
+(declare-rule re-inter-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= (re.inter r1 (re.comp r2)) re.none))
+  :requires ((($str_re_includes r2 r1) true))
+  :conclusion (= (re.inter r1 (re.comp r2)) re.none)
+)
+
+; rule: re-union-inclusion
+; implements: ProofRewriteRule::RE_UNION_INCLUSION
+; args:
+; - eq Bool: The equality between regular expressions to prove.
+; requires: >
+;   the left hand side is the union of the complement of a regular
+;   expression and one that it is included by.
+; conclusion: The given equality.
+(declare-rule re-union-inclusion ((r1 RegLan) (r2 RegLan))
+  :args ((= (re.union r1 (re.comp r2)) (re.* re.allchar)))
+  :requires ((($str_re_includes r1 r2) true))
+  :conclusion (= (re.union r1 (re.comp r2)) (re.* re.allchar))
 )
 
 ; rule: str-in-re-concat-star-char
@@ -590,40 +581,49 @@
 ; args:
 ; - s (Seq T): the term.
 ; return: >
-;   The multiset over-approximation of s, which is a (flattened) concatenation
-;   term whose components represent an overapproximation of what s may contain.
+;   The multiset over-approximation of s, which is a (flattened) list of
+;   terms which represents an overapproximation of what s may contain.
+;   In particular, note that all string literals are broken up into string
+;   literals of size one.
 (program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
-    ((Seq T)) (Seq T)
+    ((Seq T)) @List
     (
-      (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
-      (($str_multiset_overapprox (str.substr s n m))   ($str_to_flat_form s false))
-      (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat str.++ ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
-      (($str_multiset_overapprox s)                    ($str_to_flat_form s false))
+      (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
+      (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
+      (($str_multiset_overapprox (str.replace s t r))  (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox r)))
+      (($str_multiset_overapprox s)                    (eo::ite ($str_is_empty s)
+                                                          @list.nil
+                                                          (eo::ite (eo::is_str s)
+                                                            (eo::ite (eo::gt (eo::len s) 1)
+                                                              ; if a string constant of size > 1, flatten to characters and add to list
+                                                              ($str_multiset_overapprox ($str_flatten_word s))
+                                                              (@list s))
+                                                            (@list s))))
     )
 )
 
 ; program: $str_is_multiset_subset_strict
 ; args:
-; - s (Seq T): the multiset approximation of a string term.
-; - t (Seq T): the multiset (over)approximation of a string term.
-; - b Bool: whether we have found that a character from s was not contained in t.
+; - s (Seq T): a string term, expected to be in flattened form.
+; - xs @List: the multiset (over)approximation of a string term.
+; - nr @List: the accumulated list of previously processed terms from s that were not removed from xs.
 ; return: >
 ;   True if the string approximated by s is definitely not contained in the string
 ;   approximated by t. We compute this by iteratively removing the components of
-;   s from t, remembering if we have removed a character.
-; note: This method only supports strings currently.
-(program $str_is_multiset_subset_strict ((T Type :implicit) (id (Seq T)) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (b Bool))
-    ((Seq T) (Seq T) Bool) Bool
+;   s from t, and then checking if a term in nr is provably distinct from the final xs.
+(program $str_is_multiset_subset_strict ((T Type :implicit) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
+    ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) t b) (eo::define ((tr ($nary_remove str.++ "" s t)))
-                                                            (eo::define ((nrem (eo::is_eq t tr)))
-                                                              ($str_is_multiset_subset_strict ss tr 
-                                                                ; we update b to true if we successfully remove a character from s
-                                                                (eo::ite b true (eo::ite nrem (eo::is_str s) false))))))
-      (($str_is_multiset_subset_strict s t b)             (eo::ite b 
-                                                            ; remaining characters in t must be constants only
-                                                            (eo::is_str ($str_from_flat_form t false))
-                                                            false))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
+                                                            (eo::define ((nrem (eo::is_eq xs xsr)))
+                                                              ($str_is_multiset_subset_strict ss xsr
+                                                                ; we add s to the accumulated list if it was not removed from xs
+                                                                (eo::ite nrem (@list s nr) nr)))))
+      (($str_is_multiset_subset_strict emp xs (@list s nr)) (eo::ite ($are_distinct_terms_list_rec s xs (eo::typeof s))
+                                                              ; if something was in s that is provably distinct from the remainder of t, we succeed
+                                                              true
+                                                              ($str_is_multiset_subset_strict emp xs nr)))
+      (($str_is_multiset_subset_strict emp xs nr)           false)
     )
 )
 
@@ -638,6 +638,246 @@
   :args ((= (str.contains t s) false))
   :requires ((($str_is_multiset_subset_strict
                 ($str_to_flat_form s false)
-                ($str_multiset_overapprox t) false) true))
+                ($str_multiset_overapprox t) @list.nil) true))
   :conclusion (= (str.contains t s) false)
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+
+; rule: str-overlap-split-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_SPLIT_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a disjunction.
+; requires: >
+;   The middle component of the first argument to contains has no forward
+;   overlap with the second argument, and the second argument has not forward
+;   overlap with the middle component of the first argument.
+; conclusion: The given equality.
+(declare-rule str-overlap-split-ctn ((T Type) (emp (Seq T) :list)
+                                     (t (Seq T)) (s (Seq T)) (c (Seq T)) (d (Seq T)))
+  :args ((= (str.contains (str.++ t c s emp) d)
+            (or (str.contains t d) (str.contains s d))))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c d false) false)
+             (($str_has_overlap d c false) false))
+  :conclusion (= (str.contains (str.++ t c s emp) d)
+                 (or (str.contains t d) (str.contains s d)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+
+; rule: str-overlap-endpoints-ctn
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN
+; args:
+; - eq Bool: The equality between a contains predicate and a miniscoped version.
+; requires: >
+;   the first components of the arguments to contains have no forward overlap,
+;   and the last components of the arguments to contains have no reverse
+;   overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-ctn ((T Type) (emp (Seq T) :list)
+                                         (c1 (Seq T)) (s (Seq T)) (c2 (Seq T))
+                                         (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)))
+  :args ((= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+            (str.contains s (str.++ d1 t d2 emp))))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false))
+  :conclusion (= (str.contains (str.++ c1 s c2 emp) (str.++ d1 t d2 emp))
+                 (str.contains s (str.++ d1 t d2 emp)))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+
+; rule: str-overlap-endpoints-indexof
+; implements: ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF
+; args:
+; - eq Bool: The equality between a indexof term and miniscoped one.
+; requires: >
+;  the last components of the first two arguments to indexof have no reverse
+;  overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-indexof ((T Type) (emp (Seq T) :list)
+                                             (s (Seq T)) (c (Seq T)) (t (Seq T)) (d (Seq T)))
+  :args ((= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+            (str.indexof s (str.++ t d emp) 0)))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c d true) false))
+  :conclusion (= (str.indexof (str.++ s c emp) (str.++ t d emp) 0)
+                 (str.indexof s (str.++ t d emp) 0))
+)
+
+;;;;; ProofRewriteRule::STR_OVERLAP_REPLACE
+
+; rule: str-overlap-endpoints-replace
+; implements: ProofRewriteRule::STR_OVERLAP_REPLACE
+; args:
+; - eq Bool: The equality between a replace term and a miniscoped one.
+; requires: >
+;   the first components of the first two arguments to replace have no forward
+;   overlap, and the last components of the first two arguments to replace have
+;   no reverse overlap.
+; conclusion: The given equality.
+(declare-rule str-overlap-endpoints-replace ((T Type) (emp (Seq T) :list)
+                                             (c1 (Seq T)) (s (Seq T)) (c2 (Seq T))
+                                             (d1 (Seq T)) (t (Seq T)) (d2 (Seq T)) (r (Seq T)))
+  :args ((= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+            (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp)))
+  :requires ((($str_is_empty emp) true)
+             (($str_has_overlap c1 d1 false) false)
+             (($str_has_overlap c2 d2 true) false))
+  :conclusion (= (str.replace (str.++ c1 s c2 emp) (str.++ d1 t d2 emp) r)
+                 (str.++ c1 (str.replace s (str.++ d1 t d2 emp) r) c2 emp))
+)
+
+;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
+
+; define: $str_eval_indexof_re
+; args:
+; - s String: A string.
+; - r RegLan: A regular expression to match.
+; - n Int: A start position.
+; return: >
+;   The result of evaluating (str.indexof_re s r n).
+(define $str_eval_indexof_re ((s String) (r RegLan) (n Int))
+  (eo::ite (eo::or (eo::gt n (eo::len s)) (eo::is_neg n))
+    -1
+    (eo::match ((sp Int) (ep Int))
+      ($str_first_match (eo::extract s n (eo::len s)) r)
+      (
+      ((@pair -1 -1) -1)
+      ((@pair sp ep) (eo::add n sp))
+      ))))
+
+
+; rule: str-indexof-re-eval
+; implements: ProofRewriteRule::STR_INDEXOF_RE_EVAL
+; args:
+; - eq Bool: The equality between a indexof_re term and an integer.
+; requires: >
+;   Evaluating the left hand side gives the right hand side.
+; conclusion: The given equality.
+(declare-rule str-indexof-re-eval ((s String) (r RegLan) (n Int) (m Int))
+  :args ((= (str.indexof_re s r n) m))
+  :requires ((($str_eval_indexof_re s r n) m))
+  :conclusion (= (str.indexof_re s r n) m)
+)
+
+;;;;; ProofRewriteRule::STR_REPLACE_RE_EVAL
+
+; define: $str_eval_indexof_re
+; args:
+; - s String: A string.
+; - r RegLan: A regular expression.
+; - t String: A string to replace with.
+; return: >
+;   The result of evaluating (str.replace_re s r t), which is either s or a
+;   concatenation of the prefix of s before the match, t and the suffix of s
+;   after the match.
+(define $str_eval_replace_re ((s String) (r RegLan) (t String))
+  (eo::match ((sp Int) (ep Int))
+    ($str_first_match s r)
+    (
+    ((@pair -1 -1) s)
+    ; note that t does not need to be a constant, so the returned term is a concat term
+    ((@pair sp ep) (str.++ (eo::extract s 0 (eo::add sp -1)) t (eo::extract s ep (eo::len s))))
+    )))
+
+; rule: str-replace-re-eval
+; implements: ProofRewriteRule::STR_REPLACE_RE_EVAL
+; args:
+; - eq Bool: The equality between a replace_re term and a string.
+; requires: >
+;   Evaluating the left hand side gives the right hand side.
+; conclusion: The given equality.
+(declare-rule str-replace-re-eval ((s String) (r RegLan) (t String) (u String))
+  :args ((= (str.replace_re s r t) u))
+  :requires ((($str_eval_replace_re s r t) u))
+  :conclusion (= (str.replace_re s r t) u)
+)
+
+;;;;; ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL
+
+; program: $str_eval_replace_re_all_rec
+; args:
+; - s String: A string.
+; - r RegLan: A regular expression not containing the empty string.
+; - t String: A string to replace with.
+; - p @Pair: The result of finding the first match of r in s.
+; return: >
+;   The result of evaluating (str.replace_re_all s r t), which is a concatenation.
+(program $str_eval_replace_re_all_rec ((s String) (r RegLan) (t String) (sp Int) (ep Int))
+  (String RegLan String (@Pair Int Int)) String
+  (
+  (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
+  (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
+  (($str_eval_replace_re_all_rec s r t (@pair sp ep))   (eo::define ((snext (eo::extract s ep (eo::len s))))
+                                                        (eo::cons str.++ (eo::extract s 0 (eo::add sp -1))
+                                                        (eo::cons str.++ t
+                                                          ($str_eval_replace_re_all_rec snext r t ($str_first_match snext r))))))
+  )
+)
+
+; define: $str_eval_replace_re_all
+; args:
+; - s String: A string.
+; - r RegLan: A regular expression.
+; - t String: A string to replace with.
+; return: >
+;   The result of evaluating (str.replace_re_all s r t).
+(define $str_eval_replace_re_all ((s String) (r RegLan) (t String))
+  (eo::define ((rnemp (re.inter r (re.comp (str.to_re ""))))) ; looking for non-empty matches
+  ($singleton_elim ($str_eval_replace_re_all_rec s rnemp t ($str_first_match s rnemp)))))
+
+; rule: str-replace-re-all-eval
+; implements: ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL
+; args:
+; - eq Bool: The equality between a replace_re_all term and a string.
+; requires: >
+;   Evaluating the left hand side gives the right hand side.
+; conclusion: The given equality.
+(declare-rule str-replace-re-all-eval ((s String) (r RegLan) (t String) (u String))
+  :args ((= (str.replace_re_all s r t) u))
+  :requires ((($str_eval_replace_re_all s r t) u))
+  :conclusion (= (str.replace_re_all s r t) u)
+)
+
+
+;;;;; ProofRewriteRule::SEQ_EVAL_OP
+
+; program: $seq_eval
+; args:
+; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
+; return: The result of evaluating t.
+(program $seq_eval ((T Type :implicit) (t T) (n Int))
+  (T) T
+  (
+    ; handle sequence-specific operators here
+    (($seq_eval (seq.nth t n))  (eo::match ((e T))
+                                  (eo::list_nth str.++ ($str_to_nary_form t false) n)
+                                  (((seq.unit e) e))))
+    ; otherwise, we rely on the strings evaluator
+    (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
+                                ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
+                                (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
+                                                        (eo::ite (eo::is_eq (eo::typeof ue) String)
+                                                          ($singleton_elim
+                                                          ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
+                                                            (eo::cons @list "" chars)
+                                                            (eo::cons @list (@seq.empty (eo::typeof t)) units)))
+                                                          ue)))))) ; otherwise just return self
+  )
+)
+
+; rule: seq-eval-op
+; implements: ProofRewriteRule::SEQ_EVAL_OP
+; args:
+; - eq Bool: The equality between term involving sequences and its evaluation.
+; requires: >
+;   Evaluating the left hand side gives the right hand side.
+; conclusion: The given equality.
+(declare-rule seq-eval-op ((T Type) (t T) (u T))
+  :args ((= t u))
+  :requires ((($seq_eval t) u))
+  :conclusion (= t u)
 )

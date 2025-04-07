@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 
 #include <math.h>
 
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -242,6 +243,12 @@ EvalResult Evaluator::evalInternal(
           doEval = false;
         }
       }
+      else if (currNode.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        // we require special handling below to deal with symbolic indexed
+        // operators.
+        doEval = false;
+      }
     }
     for (const auto& currNodeChild : currNode)
     {
@@ -304,6 +311,27 @@ EvalResult Evaluator::evalInternal(
             // Rewrite the result now, if we use the rewriter. We will see below
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
+          }
+          else if (currNodeVal.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+          {
+            // To evaluate a symbolic indexed application, we reconstruct
+            // the node here, and verify that all its arguments are constant
+            // using rewriteApplyIndexedSymbolic.
+            // If successful, we evaluate the result in a separate recursive
+            // call, which will only recurse once.
+            Node rr =
+                builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(
+                    currNodeVal);
+            if (rr != currNodeVal)
+            {
+              Node rre = eval(rr, args, vals);
+              // only take value if we successfully evaluated, otherwise
+              // it will remain APPLY_INDEXED_SYMBOLIC and fail below.
+              if (!rre.isNull())
+              {
+                currNodeVal = rre;
+              }
+            }
           }
         }
         needsReconstruct = false;
@@ -783,6 +811,48 @@ EvalResult Evaluator::evalInternal(
           const String& x = results[currNode[1]].d_str;
           const String& y = results[currNode[2]].d_str;
           results[currNode] = EvalResult(s.replace(x, y));
+          break;
+        }
+        case Kind::STRING_REPLACE_ALL:
+        {
+          const String& s = results[currNode[0]].d_str;
+          const String& x = results[currNode[1]].d_str;
+          const String& y = results[currNode[2]].d_str;
+          if (s.empty() || x.empty())
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            const std::vector<unsigned>& svec = s.getVec();
+            const std::vector<unsigned>& yvec = y.getVec();
+            std::size_t sizeS = s.size();
+            std::size_t sizeX = x.size();
+            std::size_t index = 0;
+            std::size_t curr = 0;
+            std::vector<unsigned> chars;
+            do
+            {
+              curr = s.find(x, index);
+              if (curr != std::string::npos)
+              {
+                if (curr > index)
+                {
+                  chars.insert(
+                      chars.end(), svec.begin() + index, svec.begin() + curr);
+                }
+                chars.insert(chars.end(), yvec.begin(), yvec.end());
+                index = curr + sizeX;
+              }
+              else
+              {
+                chars.insert(
+                    chars.end(), svec.begin() + index, svec.begin() + sizeS);
+              }
+            } while (curr != std::string::npos && curr < sizeS);
+            // constant evaluation
+            results[currNode] = EvalResult(String(chars));
+          }
           break;
         }
 
@@ -1275,6 +1345,7 @@ Node Evaluator::reconstruct(TNode n,
       // could not evaluate this child, look in the node cache
       itn = evalAsNode.find(currNodeChild);
       Assert(itn != evalAsNode.end());
+      Assert(!itn->second.isNull());
       echildren.push_back(itn->second);
     }
     else

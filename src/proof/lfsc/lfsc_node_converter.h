@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
+ *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +51,9 @@ class LfscNodeConverter : public NodeConverter
    *
    * For examples of null terminators, see aci_norm.h.
    */
-  Node getNullTerminator(Kind k, TypeNode tn = TypeNode::null());
+  Node getNullTerminator(NodeManager* nm,
+                         Kind k,
+                         TypeNode tn = TypeNode::null());
   /**
    * Return the properly named operator for n of the form (f t1 ... tn), where
    * f could be interpreted or uninterpreted.  This method is used for cases

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -315,7 +315,7 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
   Assert(oracleNode.getKind() == Kind::ORACLE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = oracleNode.getNodeManager();
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST,
                         nm->mkNode(Kind::INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;

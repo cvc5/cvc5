@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -586,7 +586,7 @@ bool isSingletonClause(TNode res,
     return true;
   }
   size_t i;
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
+  Node trueNode = res.getNodeManager()->mkConst(true);
   // Find out the last child to introduced res, if any. We only need to
   // look at the last one because any previous introduction would have
   // been eliminated.
