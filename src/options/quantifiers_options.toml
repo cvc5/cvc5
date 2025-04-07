@@ -202,7 +202,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqi"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi"
   type       = "bool"
   default    = "false"
@@ -210,7 +210,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiEnum"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi-enum"
   type       = "bool"
   default    = "false"
@@ -849,7 +849,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
