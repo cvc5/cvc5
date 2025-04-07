@@ -37,8 +37,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(NodeManager* nm, Rewriter* r)
-    : d_nm(nm), d_rewriter(r)
+BvInverter::BvInverter(NodeManager* nm, Rewriter* r) : d_nm(nm), d_rewriter(r)
 {
 }
 
@@ -255,6 +254,8 @@ Node BvInverter::solveBvLit(Node sv,
     Assert(index < nchildren);
     path.pop_back();
     k = sv_t.getKind();
+    Trace("bv-invert-debug") << "- solving " << sv_t << " = " << t
+                             << " at arg #" << index << std::endl;
 
     /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
      *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
@@ -287,8 +288,8 @@ Node BvInverter::solveBvLit(Node sv,
           << "Compute inverse : " << s_val << " " << mod_val << std::endl;
       Integer inv_val = s_val.modInverse(mod_val);
       Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
-      Node inv = bv::utils::mkConst(w, inv_val);
-      tnext = NodeManager::mkNode(Kind::BITVECTOR_MULT, inv, t);
+      Node inv = bv::utils::mkConst(nm, w, inv_val);
+      tnext = NodeManager::mkNode(Kind::BITVECTOR_MULT, t, inv);
     }
     else if (k == Kind::BITVECTOR_CONCAT)
     {
@@ -325,6 +326,17 @@ Node BvInverter::solveBvLit(Node sv,
     if (tnext.isNull())
     {
       /* t = fresh skolem constant */
+      if (k == Kind::BITVECTOR_MULT || k == Kind::BITVECTOR_AND
+          || k == Kind::BITVECTOR_OR)
+      {
+        // commutative, always use index 0
+        if (index != 0)
+        {
+          Assert(index == 1);
+          index = 0;
+          sv_t = d_nm->mkNode(k, sv_t[1], sv_t[0]);
+        }
+      }
       Node annot = mkAnnotation(d_nm, litk, pol, t, sv_t, index);
       tnext = mkWitness(annot);
       /* We generate a witness term (witness x0. ic => x0 <k> s <litk> t) for
@@ -341,6 +353,8 @@ Node BvInverter::solveBvLit(Node sv,
     t = tnext;
 
     sv_t = sv_t[index];
+    Trace("bv-invert-debug") << "...tnext is " << t << std::endl;
+    Trace("bv-invert-debug") << "...snext is " << sv_t << std::endl;
   }
 
   /* Base case  */
@@ -413,6 +427,7 @@ Node BvInverter::mkInvertibilityCondition(const Node& x, const Node& exists)
     Node s = dropChild(sv_t, index);
     if (k == Kind::BITVECTOR_MULT)
     {
+      Assert(index == 0);
       ic = utils::getICBvMult(pol, litk, k, index, x, s, t);
     }
     else if (k == Kind::BITVECTOR_SHL)
@@ -429,6 +444,7 @@ Node BvInverter::mkInvertibilityCondition(const Node& x, const Node& exists)
     }
     else if (k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR)
     {
+      Assert(index == 0);
       ic = utils::getICBvAndOr(pol, litk, k, index, x, s, t);
     }
     else if (k == Kind::BITVECTOR_LSHR)
@@ -508,14 +524,6 @@ Node BvInverter::mkAnnotation(
   return annot;
 }
 
-/**
- * Mapping to the variable used for binding the existential below.
- */
-struct BviAnnotToVarAttributeId
-{
-};
-using BviAnnotToVarAttribute = expr::Attribute<BviAnnotToVarAttributeId, Node>;
-
 Node BvInverter::mkExistsForAnnotation(NodeManager* nm, const Node& n)
 {
   // this method unpacks the information constructed by mkAnnotation or
@@ -541,8 +549,8 @@ Node BvInverter::mkExistsForAnnotation(NodeManager* nm, const Node& n)
   BoundVarManager* bvm = nm->getBoundVarManager();
   if (n.getNumChildren() == 3)
   {
-    v = bvm->mkBoundVar<BviAnnotToVarAttribute>(
-        n, "@var.inv_cond", t.getType());
+    v = bvm->mkBoundVar(
+        BoundVarId::QUANT_BV_INVERT_ANNOT, n, "@var.inv_cond", t.getType());
     s = v;
   }
   else if (n.getNumChildren() == 5)
@@ -563,8 +571,10 @@ Node BvInverter::mkExistsForAnnotation(NodeManager* nm, const Node& n)
     {
       return Node::null();
     }
-    v = bvm->mkBoundVar<BviAnnotToVarAttribute>(
-        n, "@var.inv_cond", sargs[index].getType());
+    v = bvm->mkBoundVar(BoundVarId::QUANT_BV_INVERT_ANNOT,
+                        n,
+                        "@var.inv_cond",
+                        sargs[index].getType());
     sargs[index] = v;
     s = nm->mkNode(op, sargs);
   }
