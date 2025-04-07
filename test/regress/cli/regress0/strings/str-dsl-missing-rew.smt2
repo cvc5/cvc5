@@ -6,9 +6,6 @@
 (declare-fun d () Int)
 (declare-fun e () Int)
 (assert (or
-;(not (= (str.len (str.substr (str.++ a b c) 0 (str.len b))) (str.len b)))
-;(str.contains (str.++ (str.substr a 0 4) "BAA" a) (str.++ (str.substr a 0 5) "BBAA" a))
-
 (not (= (str.len (str.replace_all a "A" "B")) (str.len a)))
 (not (= (str.replace_all a (str.++ a "A") "B") a))
 (not (= (str.contains "" a) (= "" a)))
