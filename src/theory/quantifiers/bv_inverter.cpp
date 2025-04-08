@@ -17,13 +17,19 @@
 
 #include <algorithm>
 
+#include "expr/bound_var_manager.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "proof/proof_rule_checker.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 
@@ -31,8 +37,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(Rewriter* r)
-    : d_rewriter(r)
+BvInverter::BvInverter(NodeManager* nm, Rewriter* r) : d_nm(nm), d_rewriter(r)
 {
 }
 
@@ -52,62 +57,28 @@ Node BvInverter::getSolveVariable(TypeNode tn)
 
 /*---------------------------------------------------------------------------*/
 
-Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
+Node BvInverter::mkWitness(const Node& annot) const
 {
-  TNode solve_var = getSolveVariable(tn);
-
-  // condition should be rewritten
-  Node new_cond = cond;
-  if (d_rewriter != nullptr)
+  // use the valid witness proof generator utility to construct the proper
+  // witness term based on the annotation
+  Node w = ValidWitnessProofGenerator::mkWitness(
+      d_nm, ProofRule::MACRO_EXISTS_INV_CONDITION, {annot});
+  Trace("bv-invert-witness")
+      << "...returned " << w << " for " << annot << std::endl;
+  if (!w.isNull())
   {
-    new_cond = d_rewriter->rewrite(cond);
-    if (new_cond != cond)
+    if (d_rewriter != nullptr)
     {
-      Trace("cegqi-bv-skvinv-debug")
-          << "Condition " << cond << " was rewritten to " << new_cond
-          << std::endl;
-    }
-  }
-  // optimization : if condition is ( x = solve_var ) should just return
-  // solve_var and not introduce a Skolem this can happen when we ask for
-  // the multiplicative inversion with bv1
-  Node c;
-  if (new_cond.getKind() == Kind::EQUAL)
-  {
-    for (unsigned i = 0; i < 2; i++)
-    {
-      if (new_cond[i] == solve_var)
+      Node neww = d_rewriter->rewrite(w);
+      if (neww != w)
       {
-        c = new_cond[1 - i];
-        Trace("cegqi-bv-skvinv")
-            << "SKVINV : " << c << " is trivially associated with conditon "
-            << new_cond << std::endl;
-        break;
+        Trace("bv-invert-witness")
+            << "Witness " << w << " was rewritten to " << neww << std::endl;
       }
+      w = neww;
     }
   }
-
-  if (c.isNull())
-  {
-    if (m)
-    {
-      Node x = m->getBoundVariable(tn);
-      Node ccond = new_cond.substitute(solve_var, x);
-      c = NodeManager::mkNode(
-          Kind::WITNESS, NodeManager::mkNode(Kind::BOUND_VAR_LIST, x), ccond);
-      Trace("cegqi-bv-skvinv")
-          << "SKVINV : Make " << c << " for " << new_cond << std::endl;
-    }
-    else
-    {
-      Trace("bv-invert") << "...fail for " << cond << " : no inverter query!"
-                         << std::endl;
-    }
-  }
-  // currently shouldn't cache since
-  // the return value depends on the
-  // state of m (which bound variable is returned).
-  return c;
+  return w;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -283,28 +254,29 @@ Node BvInverter::solveBvLit(Node sv,
     Assert(index < nchildren);
     path.pop_back();
     k = sv_t.getKind();
+    Trace("bv-invert-debug") << "- solving " << sv_t << " = " << t
+                             << " at arg #" << index << std::endl;
 
     /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
      *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
      *       based on index). */
     Node s = dropChild(sv_t, index);
-    Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
-    TypeNode solve_tn = sv_t[index].getType();
-    Node x = getSolveVariable(solve_tn);
-    Node ic;
-
+    // Try to directly solve for sv_t[index] in (sv_t = t). If so,
+    // set tnext such that this equality is equivalent to
+    // (sv_t[index] = tnext).
+    Node tnext;
     if (litk == Kind::EQUAL
         && (k == Kind::BITVECTOR_NOT || k == Kind::BITVECTOR_NEG))
     {
-      t = NodeManager::mkNode(k, t);
+      tnext = NodeManager::mkNode(k, t);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_ADD)
     {
-      t = NodeManager::mkNode(Kind::BITVECTOR_SUB, t, s);
+      tnext = NodeManager::mkNode(Kind::BITVECTOR_SUB, t, s);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_XOR)
     {
-      t = NodeManager::mkNode(Kind::BITVECTOR_XOR, t, s);
+      tnext = NodeManager::mkNode(Kind::BITVECTOR_XOR, t, s);
     }
     else if (litk == Kind::EQUAL && k == Kind::BITVECTOR_MULT && s.isConst()
              && bv::utils::getBit(s, 0))
@@ -317,35 +289,7 @@ Node BvInverter::solveBvLit(Node sv,
       Integer inv_val = s_val.modInverse(mod_val);
       Trace("bv-invert-debug") << "Inverse : " << inv_val << std::endl;
       Node inv = bv::utils::mkConst(nm, w, inv_val);
-      t = NodeManager::mkNode(Kind::BITVECTOR_MULT, inv, t);
-    }
-    else if (k == Kind::BITVECTOR_MULT)
-    {
-      ic = utils::getICBvMult(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_SHL)
-    {
-      ic = utils::getICBvShl(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_UREM)
-    {
-      ic = utils::getICBvUrem(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_UDIV)
-    {
-      ic = utils::getICBvUdiv(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR)
-    {
-      ic = utils::getICBvAndOr(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_LSHR)
-    {
-      ic = utils::getICBvLshr(pol, litk, k, index, x, s, t);
-    }
-    else if (k == Kind::BITVECTOR_ASHR)
-    {
-      ic = utils::getICBvAshr(pol, litk, k, index, x, s, t);
+      tnext = NodeManager::mkNode(Kind::BITVECTOR_MULT, t, inv);
     }
     else if (k == Kind::BITVECTOR_CONCAT)
     {
@@ -375,12 +319,145 @@ Node BvInverter::solveBvLit(Node sv,
             lower += bv::utils::getSize(sv_t[i]);
           }
         }
-        t = bv::utils::mkExtract(t, upper, lower);
+        tnext = bv::utils::mkExtract(t, upper, lower);
       }
-      else
+    }
+    // If we didn't solve for t directly, we use a witness term.
+    if (tnext.isNull())
+    {
+      /* t = fresh skolem constant */
+      if (k == Kind::BITVECTOR_MULT || k == Kind::BITVECTOR_AND
+          || k == Kind::BITVECTOR_OR)
       {
-        ic = utils::getICBvConcat(pol, litk, index, x, sv_t, t);
+        // commutative, always use index 0
+        if (index != 0)
+        {
+          Assert(index == 1);
+          index = 0;
+          sv_t = d_nm->mkNode(k, sv_t[1], sv_t[0]);
+        }
       }
+      Node annot = mkAnnotation(d_nm, litk, pol, t, sv_t, index);
+      tnext = mkWitness(annot);
+      /* We generate a witness term (witness x0. ic => x0 <k> s <litk> t) for
+       * x <k> s <litk> t. When traversing down, this witness term determines
+       * the value for x <k> s = (witness x0. ic => x0 <k> s <litk> t), i.e.,
+       * from here on, the propagated literal is a positive equality. */
+      litk = Kind::EQUAL;
+      pol = true;
+      if (tnext.isNull())
+      {
+        return tnext;
+      }
+    }
+    t = tnext;
+
+    sv_t = sv_t[index];
+    Trace("bv-invert-debug") << "...tnext is " << t << std::endl;
+    Trace("bv-invert-debug") << "...snext is " << sv_t << std::endl;
+  }
+
+  /* Base case  */
+  Assert(sv_t == sv);
+  if (litk == Kind::BITVECTOR_ULT || litk == Kind::BITVECTOR_UGT
+      || litk == Kind::BITVECTOR_SLT || litk == Kind::BITVECTOR_SGT
+      || pol == false)
+  {
+    Node annot = mkAnnotationBase(d_nm, litk, pol, t);
+    return mkWitness(annot);
+  }
+  return t;
+}
+
+Node BvInverter::mkInvertibilityCondition(const Node& x, const Node& exists)
+{
+  Trace("mk-inv-cond") << "Make invertibility condition for " << x << " "
+                       << exists << std::endl;
+  Assert(exists.getKind() == Kind::EXISTS);
+  Assert(exists[0].getNumChildren() == 1);
+  Node v = exists[0][0];
+  Assert(x.getType() == v.getType());
+  Node body = exists[1];
+  bool pol = body.getKind() != Kind::NOT;
+  body = pol ? body : body[0];
+  Assert(body.getNumChildren() == 2);
+  Kind litk = body.getKind();
+  Node t = body[1];
+  bool isBase = (body[0] == v);
+  Node ic;
+  if (isBase)
+  {
+    if (litk == Kind::BITVECTOR_ULT || litk == Kind::BITVECTOR_UGT)
+    {
+      ic = utils::getICBvUltUgt(pol, litk, x, t);
+    }
+    else if (litk == Kind::BITVECTOR_SLT || litk == Kind::BITVECTOR_SGT)
+    {
+      ic = utils::getICBvSltSgt(pol, litk, x, t);
+    }
+    else if (pol == false)
+    {
+      Assert(litk == Kind::EQUAL);
+      ic = NodeManager::mkNode(Kind::DISTINCT, x, t);
+    }
+  }
+  else
+  {
+    Kind k = body[0].getKind();
+    Node sv_t = body[0];
+    unsigned index = 0;
+    bool success = false;
+    for (size_t i = 0, nchild = body[0].getNumChildren(); i < nchild; i++)
+    {
+      if (body[0][i] == v)
+      {
+        index = i;
+        success = true;
+        break;
+      }
+    }
+    if (!success)
+    {
+      Trace("mk-inv-cond") << "...failed to find child" << std::endl;
+      return Node::null();
+    }
+    /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
+     *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
+     *       based on index). */
+    Node s = dropChild(sv_t, index);
+    if (k == Kind::BITVECTOR_MULT)
+    {
+      Assert(index == 0);
+      ic = utils::getICBvMult(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_SHL)
+    {
+      ic = utils::getICBvShl(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_UREM)
+    {
+      ic = utils::getICBvUrem(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_UDIV)
+    {
+      ic = utils::getICBvUdiv(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR)
+    {
+      Assert(index == 0);
+      ic = utils::getICBvAndOr(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_LSHR)
+    {
+      ic = utils::getICBvLshr(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_ASHR)
+    {
+      ic = utils::getICBvAshr(pol, litk, k, index, x, s, t);
+    }
+    else if (k == Kind::BITVECTOR_CONCAT)
+    {
+      ic = utils::getICBvConcat(pol, litk, index, x, sv_t, t);
     }
     else if (k == Kind::BITVECTOR_SIGN_EXTEND)
     {
@@ -398,60 +475,120 @@ Node BvInverter::solveBvLit(Node sv,
     {
       Assert(litk == Kind::EQUAL);
       ic = NodeManager::mkNode(Kind::DISTINCT, x, t);
-      Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
-                         << std::endl;
     }
-    else
-    {
-      Trace("bv-invert") << "bv-invert : Unknown kind " << k
-                         << " for bit-vector term " << sv_t << std::endl;
-      return Node::null();
-    }
-
-    if (!ic.isNull())
-    {
-      /* We generate a witness term (witness x0. ic => x0 <k> s <litk> t) for
-       * x <k> s <litk> t. When traversing down, this witness term determines
-       * the value for x <k> s = (witness x0. ic => x0 <k> s <litk> t), i.e.,
-       * from here on, the propagated literal is a positive equality. */
-      litk = Kind::EQUAL;
-      pol = true;
-      /* t = fresh skolem constant */
-      t = getInversionNode(ic, solve_tn, m);
-      if (t.isNull())
-      {
-        return t;
-      }
-    }
-
-    sv_t = sv_t[index];
   }
-
-  /* Base case  */
-  Assert(sv_t == sv);
-  TypeNode solve_tn = sv.getType();
-  Node x = getSolveVariable(solve_tn);
-  Node ic;
-  if (litk == Kind::BITVECTOR_ULT || litk == Kind::BITVECTOR_UGT)
-  {
-    ic = utils::getICBvUltUgt(pol, litk, x, t);
-  }
-  else if (litk == Kind::BITVECTOR_SLT || litk == Kind::BITVECTOR_SGT)
-  {
-    ic = utils::getICBvSltSgt(pol, litk, x, t);
-  }
-  else if (pol == false)
-  {
-    Assert(litk == Kind::EQUAL);
-    ic = NodeManager::mkNode(Kind::DISTINCT, x, t);
-    Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
-                       << std::endl;
-  }
-
-  return ic.isNull() ? t : getInversionNode(ic, solve_tn, m);
+  Trace("mk-inv-cond") << "...returns " << ic << std::endl;
+  return ic;
 }
 
-/*---------------------------------------------------------------------------*/
+Node BvInverter::mkAnnotationBase(NodeManager* nm, Kind litk, bool pol, Node t)
+{
+  Node svt;
+  return mkAnnotation(nm, litk, pol, t, svt, 0);
+}
+
+Node mkDummyOperator(const Node& op)
+{
+  return SkolemManager::mkPurifySkolem(op);
+}
+
+Node getDummyOperator(const Node& op)
+{
+  Assert(op.getSkolemId() == SkolemId::PURIFY);
+  std::vector<Node> indices = op.getSkolemIndices();
+  Assert(indices.size() == 1);
+  return indices[0];
+}
+
+Node BvInverter::mkAnnotation(
+    NodeManager* nm, Kind litk, bool pol, Node t, Node svt, unsigned index)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(ProofRuleChecker::mkKindNode(nm, litk));
+  sargs.push_back(nm->mkConst(pol));
+  sargs.push_back(t);
+  if (!svt.isNull())
+  {
+    std::vector<Node> ss;
+    // Must store a dummy operator for the operator, since otherwise the
+    // SEXPR would become an application of that operator.
+    ss.push_back(mkDummyOperator(svt.getOperator()));
+    ss.insert(ss.end(), svt.begin(), svt.end());
+    Node s = nm->mkNode(Kind::SEXPR, ss);
+    Assert(s.getKind() == Kind::SEXPR);
+    sargs.push_back(s);
+    sargs.push_back(nm->mkConstInt(Rational(index)));
+  }
+  Node annot = nm->mkNode(Kind::SEXPR, sargs);
+  Trace("bv-invert") << "Annotation: " << annot << std::endl;
+  return annot;
+}
+
+Node BvInverter::mkExistsForAnnotation(NodeManager* nm, const Node& n)
+{
+  // this method unpacks the information constructed by mkAnnotation or
+  // mkAnnotationBase and returns an existential of the form expected for
+  // mkInvertibilityCondition
+  if (n.getKind() != Kind::SEXPR || n.getNumChildren() < 3)
+  {
+    return Node::null();
+  }
+  Kind litk;
+  if (!ProofRuleChecker::getKind(n[0], litk))
+  {
+    return Node::null();
+  }
+  if (n[1].getKind() != Kind::CONST_BOOLEAN)
+  {
+    return Node::null();
+  }
+  bool pol = n[1].getConst<bool>();
+  Node t = n[2];
+  Node s;
+  Node v;
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  if (n.getNumChildren() == 3)
+  {
+    v = bvm->mkBoundVar(
+        BoundVarId::QUANT_BV_INVERT_ANNOT, n, "@var.inv_cond", t.getType());
+    s = v;
+  }
+  else if (n.getNumChildren() == 5)
+  {
+    uint32_t index;
+    if (!ProofRuleChecker::getUInt32(n[4], index))
+    {
+      return Node::null();
+    }
+    std::vector<Node> sargs;
+    Node op;
+    if (n[3].getKind() == Kind::SEXPR && n[3].getNumChildren() >= 1)
+    {
+      sargs.insert(sargs.end(), n[3].begin() + 1, n[3].end());
+      op = getDummyOperator(n[3][0]);
+    }
+    if (index >= sargs.size())
+    {
+      return Node::null();
+    }
+    v = bvm->mkBoundVar(BoundVarId::QUANT_BV_INVERT_ANNOT,
+                        n,
+                        "@var.inv_cond",
+                        sargs[index].getType());
+    sargs[index] = v;
+    s = nm->mkNode(op, sargs);
+  }
+  if (s.isNull())
+  {
+    return Node::null();
+  }
+  Node body = nm->mkNode(litk, s, t);
+  if (!pol)
+  {
+    body = body.notNode();
+  }
+  return nm->mkNode(Kind::EXISTS, nm->mkNode(Kind::BOUND_VAR_LIST, v), body);
+}
 
 }  // namespace quantifiers
 }  // namespace theory
