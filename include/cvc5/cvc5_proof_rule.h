@@ -1542,8 +1542,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (c \cdot t_2 \ldots \cdot s_m),\,
-   *   \mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (c \cdot t_2 \ldots \cdot s_m),\,\mathit{len}(t_1) \neq 0\mid \bot}{(t_1 = c\cdot r)}
    *
    * where :math:`r` is the purification skolem for :math:`\mathit{suf}(t_1,1)`.
    *
@@ -1551,8 +1550,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{(t_1\cdot \ldots \cdot t_n = (s_1 \cdot \ldots s_{m-1} \cdot c),\,
-   *   \mathit{len}(t_n) \neq 0\mid \top}{(t_n = r\cdot c)}
+   *   \inferrule{(t_1\cdot \ldots \cdot t_n) = (s_1 \cdot \ldots s_{m-1} \cdot c),\,\mathit{len}(t_n) \neq 0\mid \top}{(t_n = r\cdot c)}
    *
    * where :math:`r` is the purification skolem for
    * :math:`\mathit{pre}(t_n,\mathit{len}(t_n) - 1)`.
@@ -1876,7 +1874,7 @@ enum ENUM(ProofRule)
    *
    * If :math:`\diamond` is :math:`>`, then
    * each :math:`F_i` is either :math:`\left| t_i \right| > \left| s_i \right|` or
-   * :math:`\left| t_i \right| = \left| s_i \right| \land \left| t_i \right| \neq 0`,
+   * :math:`\left| t_i \right| = \left| s_i \right| \land t_i \neq 0`,
    * and :math:`F_1` is of the former form.
    *
    * \endverbatim
@@ -2553,8 +2551,7 @@ enum ENUM(ProofRewriteRule)
    * **Equality -- Beta reduction**
    *
    * .. math::
-   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1,
-   *   \ldots, x_n \mapsto t_n\}
+   *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = t\{x_1 \mapsto t_1, \ldots, x_n \mapsto t_n\}
    *
    * or alternatively
    *
@@ -3125,7 +3122,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BV_CONCAT_CONSTANT_MERGE),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Bitvectors -- Extract negations from multiplicands**
+   * **Bitvectors -- Macro equality solve**
    *
    * .. math::
    *    (a = b) = \bot
@@ -3181,7 +3178,8 @@ enum ENUM(ProofRewriteRule)
    *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
    *
    * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
-   * constant c \endverbatim
+   * constant c
+   * \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
   /**
@@ -3200,7 +3198,7 @@ enum ENUM(ProofRewriteRule)
    * **Strings -- String contains multiset subset**
    *
    * .. math::
-   *    contains(s,t) = \bot
+   *    \mathit{str}.contains(s,t) = \bot
    *
    * where the multiset overapproximation of :math:`s` can be shown to not
    * contain the multiset abstraction of :math:`t` based on the reasoning
@@ -3625,7 +3623,7 @@ enum ENUM(ProofRewriteRule)
    * **Sets -- sets insert elimination**
    *
    * .. math::
-   *   \mathit{sets.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
+   *   \mathit{set.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
    *
    * \endverbatim
    */
