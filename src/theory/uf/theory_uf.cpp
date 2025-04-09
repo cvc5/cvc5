@@ -266,7 +266,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   {
     // eliminate if option specifies to eliminate eagerly
     Node ret = k == Kind::BITVECTOR_UBV_TO_INT ? arith::eliminateBv2Nat(node)
-                                           : arith::eliminateInt2Bv(node);
+                                               : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
