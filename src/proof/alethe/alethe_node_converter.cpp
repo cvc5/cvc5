@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/builtin/generic_op.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -221,6 +222,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::SEXPR:
     case Kind::TYPE_CONSTANT:
     case Kind::RAW_SYMBOL:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
+    case Kind::APPLY_INDEXED_SYMBOLIC_OP:
     /* from booleans */
     case Kind::CONST_BOOLEAN:
     case Kind::NOT:
@@ -259,6 +262,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::POW2:
     /* from BV */
     case Kind::BITVECTOR_TYPE:
     case Kind::CONST_BITVECTOR:
