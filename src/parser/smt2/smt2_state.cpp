@@ -865,10 +865,10 @@ void Smt2State::setLogic(std::string name)
       // Conversions between bit-vectors and integers
       if (!strictModeEnabled())
       {
-        // Until Kind::BITVECTOR_TO_NAT is dropped, we support this kind
-        // and the old syntax. Note that Kind::BITVECTOR_TO_NAT is equivalent
+        // Until Kind::BITVECTOR_UBV_TO_INT is dropped, we support this kind
+        // and the old syntax. Note that Kind::BITVECTOR_UBV_TO_INT is equivalent
         // to Kind::BITVECTOR_UBV_TO_INT.
-        addOperator(Kind::BITVECTOR_TO_NAT, "bv2nat");
+        addOperator(Kind::BITVECTOR_UBV_TO_INT, "bv2nat");
         // For the sake of backwards compatability at the moment we support
         // the old syntax.
         addIndexedOperator(Kind::INT_TO_BITVECTOR, "int2bv");

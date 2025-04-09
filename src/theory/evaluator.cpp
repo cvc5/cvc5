@@ -1239,7 +1239,6 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case Kind::BITVECTOR_TO_NAT:
         case Kind::BITVECTOR_UBV_TO_INT:
         {
           BitVector res = results[currNode[0]].d_bv;

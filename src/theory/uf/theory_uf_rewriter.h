@@ -88,9 +88,9 @@ class TheoryUfRewriter : public TheoryRewriter
   static Node canEliminateLambda(const Node& n);
   /** Entry point for rewriting lambdas */
   Node rewriteLambda(Node node);
-  /** rewrite bv2nat */
-  RewriteResponse rewriteBVToNat(TNode node);
-  /** rewrite int2bv */
+  /** rewrite ubv_to_int */
+  RewriteResponse rewriteBVToInt(TNode node);
+  /** rewrite int_to_bv */
   RewriteResponse rewriteIntToBV(TNode node);
 }; /* class TheoryUfRewriter */
 

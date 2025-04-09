@@ -141,20 +141,13 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  else if (k == Kind::BITVECTOR_TO_NAT)
+  else if (k == Kind::BITVECTOR_UBV_TO_INT)
   {
-    return rewriteBVToNat(node);
+    return rewriteBVToInt(node);
   }
   else if (k == Kind::INT_TO_BITVECTOR)
   {
     return rewriteIntToBV(node);
-  }
-  else if (k == Kind::BITVECTOR_UBV_TO_INT)
-  {
-    // for now, just convert the kind
-    NodeManager* nm = nodeManager();
-    Node r = nm->mkNode(Kind::BITVECTOR_TO_NAT, node[0]);
-    return RewriteResponse(REWRITE_AGAIN_FULL, r);
   }
   else if (k == Kind::BITVECTOR_SBV_TO_INT)
   {
@@ -254,7 +247,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::BV_TO_NAT_ELIM:
     {
-      if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+      if (n.getKind() == Kind::BITVECTOR_UBV_TO_INT)
       {
         return arith::eliminateBv2Nat(n);
       }
@@ -471,9 +464,9 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   return node;
 }
 
-RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
+RewriteResponse TheoryUfRewriter::rewriteBVToInt(TNode node)
 {
-  Assert(node.getKind() == Kind::BITVECTOR_TO_NAT);
+  Assert(node.getKind() == Kind::BITVECTOR_UBV_TO_INT);
   NodeManager* nm = nodeManager();
   if (node[0].isConst())
   {
@@ -503,7 +496,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
         BitVector(size, node[0].getConst<Rational>().getNumerator()));
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  else if (node[0].getKind() == Kind::BITVECTOR_TO_NAT)
+  else if (node[0].getKind() == Kind::BITVECTOR_UBV_TO_INT)
   {
     TypeNode otype = node.getType();
     TypeNode itype = node[0][0].getType();

@@ -336,8 +336,7 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
     }
     return nodeManager->mkBitVectorType(bvSize);
   }
-  Assert(n.getKind() == Kind::BITVECTOR_TO_NAT
-         || n.getKind() == Kind::BITVECTOR_UBV_TO_INT
+  Assert(n.getKind() == Kind::BITVECTOR_UBV_TO_INT
          || n.getKind() == Kind::BITVECTOR_SBV_TO_INT);
   if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
   {
