@@ -2378,3 +2378,8 @@
   :args (t1 s1)
   :conclusion (= (bvule t1 s1) (<= (ubv_to_int t1) (ubv_to_int s1)))
 )
+(declare-rule uf-sbv-to-int-elim ((@n0 Int) (t1 (BitVec @n0)) (wm1 Int) (n1 Int))
+  :premises ((= wm1 (- (@bvsize t1) 1)) (= n1 (int.pow2 (@bvsize t1))))
+  :args (t1 wm1 n1)
+  :conclusion (= (sbv_to_int t1) (eo::define ((_let_1 (ubv_to_int t1))) (ite (= (extract wm1 wm1 t1) (@bv 0 1)) _let_1 (- _let_1 n1))))
+)

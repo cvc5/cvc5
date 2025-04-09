@@ -47,3 +47,8 @@
 (define-rule uf-int2bv-bvule-equiv ((t ?BitVec) (s ?BitVec))
   (bvule t s)
   (<= (ubv_to_int t) (ubv_to_int s)))
+
+(define-cond-rule uf-sbv-to-int-elim ((t ?BitVec) (wm1 Int) (n Int))
+  (and (= wm1 (- (@bvsize t) 1)) (= n (int.pow2 (@bvsize t))))
+  (sbv_to_int t)
+  (ite (= (extract wm1 wm1 t) (@bv 0 1)) (ubv_to_int t) (- (ubv_to_int t) n)))
