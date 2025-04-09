@@ -36,7 +36,8 @@ Node mkGroundTerm(TypeNode typeNode)
   switch (Kind k = typeNode.getKind())
   {
     case Kind::TYPE_CONSTANT:
-      return mkGroundTerm(typeNode.getNodeManager(), typeNode.getConst<TypeConstant>());
+      return mkGroundTerm(typeNode.getNodeManager(),
+                          typeNode.getConst<TypeConstant>());
       // clang-format off
 ${type_groundterms}
       // clang-format on
