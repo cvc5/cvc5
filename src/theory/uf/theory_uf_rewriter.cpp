@@ -35,7 +35,7 @@ TheoryUfRewriter::TheoryUfRewriter(NodeManager* nm) : TheoryRewriter(nm)
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::LAMBDA_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::BV_TO_NAT_ELIM,
+  registerProofRewriteRule(ProofRewriteRule::UBV_TO_INT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::INT_TO_BV_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
@@ -245,7 +245,7 @@ Node TheoryUfRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
     {
       if (n.getKind() == Kind::BITVECTOR_UBV_TO_INT)
       {
