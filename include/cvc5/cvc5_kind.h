@@ -2051,9 +2051,11 @@ enum ENUM(Kind)
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
-   * @warning This kind is deprecated and replaced by
-   *          `BITVECTOR_UBV_TO_INT`. It will be removed in a future
-   *          release.
+   * \rst
+   * .. note::  This kind is deprecated and replaced by
+   *            `BITVECTOR_UBV_TO_INT`. It will be removed in a future
+   *            release.
+   * \endrst
    */
   EVALUE(BITVECTOR_TO_NAT),
   /**
