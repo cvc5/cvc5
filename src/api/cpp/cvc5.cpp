@@ -244,7 +244,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
                   internal::Kind::BITVECTOR_UBV_TO_INT),
         KIND_ENUM(Kind::BITVECTOR_SBV_TO_INT,
                   internal::Kind::BITVECTOR_SBV_TO_INT),
-        // note we silently chane BITVECTOR_TO_NAT to BITVECTOR_UBV_TO_INT
+        // note we silently change BITVECTOR_TO_NAT to BITVECTOR_UBV_TO_INT
         KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_UBV_TO_INT),
         KIND_ENUM(Kind::BITVECTOR_FROM_BOOLS,
                   internal::Kind::BITVECTOR_FROM_BOOLS),
@@ -645,7 +645,7 @@ const static std::unordered_map<internal::Kind,
         // note that BITVECTOR_TO_NAT does not exist internally, only the
         // case for BITVECTOR_UBV_TO_INT is given
         {internal::Kind::BITVECTOR_UBV_TO_INT, Kind::BITVECTOR_UBV_TO_INT},
-        {internal::Kind::BITVECTOR_SBV_TO_INT, Kind::BITVECTOR_UBV_TO_INT},
+        {internal::Kind::BITVECTOR_SBV_TO_INT, Kind::BITVECTOR_SBV_TO_INT},
         {internal::Kind::BITVECTOR_FROM_BOOLS, Kind::BITVECTOR_FROM_BOOLS},
         {internal::Kind::BITVECTOR_BIT_OP, Kind::BITVECTOR_BIT},
         {internal::Kind::BITVECTOR_BIT, Kind::BITVECTOR_BIT},
