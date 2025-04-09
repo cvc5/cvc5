@@ -55,7 +55,7 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   /**
    * Main entry point for rewriting APPLY_INDEXED_SYMBOLIC terms.
    */
-  Node rewriteApplyIndexedSymbolic(TNode node);
+  static Node rewriteApplyIndexedSymbolic(TNode node);
   /**
    * Blast distinct, which eliminates the distinct operator.
    */

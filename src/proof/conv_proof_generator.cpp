@@ -117,7 +117,7 @@ void TConvProofGenerator::addTheoryRewriteStep(
     Node t, Node s, ProofRewriteRule id, bool isPre, uint32_t tctx)
 {
   std::vector<Node> sargs;
-  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   sargs.push_back(t.eqNode(s));
   addRewriteStep(t, s, ProofRule::THEORY_REWRITE, {}, sargs, isPre, tctx);
 }

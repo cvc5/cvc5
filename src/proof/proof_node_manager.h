@@ -60,7 +60,8 @@ class Rewriter;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(const Options& opts,
+  ProofNodeManager(NodeManager* nm,
+                   const Options& opts,
                    theory::Rewriter* rr,
                    ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}

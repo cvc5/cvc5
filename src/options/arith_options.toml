@@ -494,7 +494,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlCov"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-cov"
   type       = "bool"
   default    = "true"

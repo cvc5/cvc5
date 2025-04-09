@@ -404,11 +404,11 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
       std::vector<Node> provenConj = buildTheoremIndex();
       debugPrintUnprovenConjectures(provenConj);
-      Trace("thm-db") << "Theorem database is : " << std::endl;
-      d_thm_index.debugPrint( "thm-db" );
-      Trace("thm-db") << std::endl;
-      Trace("sg-proc") << "...done build theorem index" << std::endl;
 
+      if (TraceIsOn("thm-db"))
+      {
+        debugPrintTheoremIndex();
+      }
 
       //clear patterns
       d_patterns.clear();
@@ -973,6 +973,15 @@ void ConjectureGenerator::debugPrintUnprovenConjectures(
       }
     }
   }
+}
+
+void ConjectureGenerator::debugPrintTheoremIndex()
+{
+  Trace("thm-db") << "Theorem database is : " << std::endl;
+  d_thm_index.debugPrint("thm-db");
+  Trace("thm-db") << std::endl;
+
+  Trace("sg-proc") << "...done build theorem index" << std::endl;
 }
 
 std::string ConjectureGenerator::identify() const { return "induction-cg"; }

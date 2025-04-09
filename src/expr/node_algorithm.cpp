@@ -629,7 +629,7 @@ void getOperatorsMap(TNode n,
        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
          o = cur.getOperator();
        } else {
-         o = NodeManager::currentNM()->operatorOf(cur.getKind());
+         o = cur.getNodeManager()->operatorOf(cur.getKind());
        }
         ops[tn].insert(o);
       }

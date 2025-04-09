@@ -39,7 +39,7 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
 {
   std::vector<Node> args;
   args.push_back(src);
-  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
+  addMethodIds(src.getNodeManager(), args, ids, ida, idr);
   bool added;
   Node expected = src.eqNode(tgt);
   Node res = tryStep(added,
@@ -85,7 +85,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   // try to prove that tgt rewrites to src
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
-  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
+  addMethodIds(src.getNodeManager(), args, ids, ida, idr);
   Node res = tryStep(ProofRule::MACRO_SR_PRED_TRANSFORM,
                      children,
                      args,
@@ -109,7 +109,7 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
 {
   std::vector<Node> args;
   args.push_back(tgt);
-  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
+  addMethodIds(tgt.getNodeManager(), args, ids, ida, idr);
   Node res = tryStep(ProofRule::MACRO_SR_PRED_INTRO,
                      exp,
                      args,
@@ -132,7 +132,7 @@ Node TheoryProofStepBuffer::applyPredElim(Node src,
   children.push_back(src);
   children.insert(children.end(), exp.begin(), exp.end());
   std::vector<Node> args;
-  addMethodIds(NodeManager::currentNM(), args, ids, ida, idr);
+  addMethodIds(src.getNodeManager(), args, ids, ida, idr);
   bool added;
   Node srcRew = tryStep(added, ProofRule::MACRO_SR_PRED_ELIM, children, args);
   if (d_autoSym && added && CDProof::isSame(src, srcRew))
@@ -148,7 +148,7 @@ Node TheoryProofStepBuffer::factorReorderElimDoubleNeg(Node n)
   {
     return elimDoubleNegLit(n);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::vector<Node> children{n.begin(), n.end()};
   std::vector<Node> childrenEqs;
   // eliminate double neg for each lit. Do it first because it may expose
