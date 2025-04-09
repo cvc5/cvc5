@@ -92,6 +92,8 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case Kind::BAG_CARD: response = rewriteCard(n); break;
       case Kind::BAG_MAP: response = postRewriteMap(n); break;
       case Kind::BAG_FILTER: response = postRewriteFilter(n); break;
+      case Kind::BAG_ALL: response = postRewriteAll(n); break;
+      case Kind::BAG_SOME: response = postRewriteSome(n); break;
       case Kind::BAG_FOLD: response = postRewriteFold(n); break;
       case Kind::BAG_PARTITION: response = postRewritePartition(n); break;
       case Kind::TABLE_PRODUCT: response = postRewriteProduct(n); break;
