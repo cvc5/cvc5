@@ -2050,6 +2050,10 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *
+   * @warning This kind is deprecated and replaced by
+   *          `BITVECTOR_UBV_TO_INT`. It will be removed in a future
+   *          release.
    */
   EVALUE(BITVECTOR_TO_NAT),
   /**
