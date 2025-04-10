@@ -138,6 +138,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
 
   if (isOutputOn(OutputTag::NORMALIZE))
   {
+    std::cerr << "Starting normalizer\n";
     applyPass("normalize", ap);
     std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
     outPA << ";; normalize start" << std::endl;
