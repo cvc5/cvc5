@@ -271,7 +271,8 @@ Node rename(
     std::map<TypeNode, TypeNode> normalizedSorts,
     NodeManager* nodeManager,
     PreprocessingPassContext* d_preprocContext,
-    NormalizeSortNodeConverter* sortNormalizer)
+    NormalizeSortNodeConverter* sortNormalizer,
+    bool& hasQID)
 {
     // Map to cache normalized nodes
     std::unordered_map<Node, Node> normalized;
@@ -389,6 +390,21 @@ Node rename(
             else
             {
                 // Non-const, non-var node
+
+                if (!hasQID && current.getKind() == cvc5::internal::Kind::INST_ATTRIBUTE)
+                {
+                    // If any child is a variable, it's a qid
+                    for (size_t i = 0; i < current.getNumChildren(); ++i)
+                    {
+                        Node child = current[i];
+                        if (child.isVar())
+                        {
+                            hasQID = true;
+                            break;  // Found at least one qid, no need to check further
+                        }
+                    }
+                }
+
 
                 // For quantifiers, process bound variables immediately
                 if (current.getKind() == cvc5::internal::Kind::FORALL ||
@@ -963,11 +979,12 @@ PreprocessingPassResult Normalize::applyInternal(
     NodeManager* nodeManager = NodeManager::currentNM();
     std::unordered_map<std::string, std::string> normalizedName;
 
+    bool hasQID = false;
     for (const auto& eqClass : eqClasses)
     {
         for (const auto& ni : eqClass)
         {            
-            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager, d_preprocContext, sortNormalizer);  
+            Node renamed = rename(ni->node, freeVar2node, boundVar2node, normalizedName, normalizedSorts, nodeManager, d_preprocContext, sortNormalizer, hasQID);  
             ni->node = renamed;          
         }
     }
@@ -1021,16 +1038,17 @@ PreprocessingPassResult Normalize::applyInternal(
     //////////////////////////////////////////////////////////////////////
     // Step 7: Reassign qid top to bottom
     std::unordered_map<Node, Node> qidRenamed;
-    for (const auto& eqClass : eqClasses)
+    if (hasQID)
     {
-      for (const auto& ni : eqClass)
-      {            
-        Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager);  
-        ni->node = renamed;          
-      }
+        for (const auto& eqClass : eqClasses)
+        {
+            for (const auto& ni : eqClass)
+            {            
+                Node renamed = renameQid(ni->node, qidRenamed, normalizedName, nodeManager);  
+                ni->node = renamed;          
+            }
+        }
     }
-    
-
 
 
     uint32_t idx = 0;
@@ -1043,7 +1061,7 @@ PreprocessingPassResult Normalize::applyInternal(
     }
     assertionsToPreprocess->resize(idx);
     
-  return PreprocessingPassResult::NO_CONFLICT;
+    return PreprocessingPassResult::NO_CONFLICT;
   
 }
 
