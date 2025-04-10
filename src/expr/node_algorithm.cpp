@@ -199,9 +199,7 @@ Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
   return Kind::UNDEFINED_KIND;
 }
 
-void getSubtermsKind(Kind k,
-                    TNode n,
-                    std::unordered_set<Node>& ts)
+void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts)
 {
   std::unordered_set<Kind, kind::KindHashFunction> ks{k};
   std::map<Kind, std::unordered_set<Node>> tsm;
@@ -210,14 +208,15 @@ void getSubtermsKind(Kind k,
   ts.insert(tsc.begin(), tsc.end());
 }
 
-void getSubtermsKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     TNode n,
-                     std::map<Kind, std::unordered_set<Node>>& ts)
+void getSubtermsKinds(
+    const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+    TNode n,
+    std::map<Kind, std::unordered_set<Node>>& ts)
 {
   Assert(!ks.empty());
   for (Kind k : ks)
   {
-    if (ts.find(k)==ts.end())
+    if (ts.find(k) == ts.end())
     {
       ts[k].clear();
     }

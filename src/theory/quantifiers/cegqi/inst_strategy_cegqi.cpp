@@ -154,7 +154,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       }
 
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
-      std::unordered_set< Node > quants;
+      std::unordered_set<Node> quants;
       expr::getSubtermsKind(Kind::FORALL, lem, quants);
       for (const Node& ql : quants)
       {

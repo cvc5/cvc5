@@ -573,7 +573,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
           {
             // must occur in the free variables in the other
             const std::unordered_set<Node>& free_vars = r == 0 ? fv2 : fv1;
-            if (free_vars.find(curi)!= free_vars.end())
+            if (free_vars.find(curi) != free_vars.end())
             {
               status = r == 0 ? 1 : -1;
               subs_vars.insert(curi);
@@ -594,7 +594,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
 
 void PatternTermSelector::filterInstances(std::vector<Node>& nodes) const
 {
-  std::map<unsigned, std::unordered_set<Node> > fvs;
+  std::map<unsigned, std::unordered_set<Node>> fvs;
   for (size_t i = 0, size = nodes.size(); i < size; i++)
   {
     expr::getSubtermsKind(Kind::INST_CONSTANT, nodes[i], fvs[i]);
