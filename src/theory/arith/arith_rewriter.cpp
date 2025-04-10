@@ -48,6 +48,76 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+/**
+ * Flatten a node into a vector of its (direct or indirect) children, collecting
+ * how many times each child occurs in the sum.
+ * A sequence of kinds is given that indicate which kinds to traverse over.
+ * This method is similar to expr::algorithm::flatten but does not use a tree
+ * traversal. Instead it merges subterms, based on counting the number of
+ * occurrences, as a Rational.
+ * @param t The node to be flattened
+ * @param children The resulting list of children
+ * @param kinds A sequence of kinds to consider for flattening
+ */
+template <typename... Kinds>
+bool flattenAndCollectSum(TNode t,
+                          std::vector<std::pair<TNode, Rational>>& children,
+                          Kinds... kinds)
+{
+  if (!expr::algorithm::canFlatten(t, kinds...))
+  {
+    return false;
+  }
+  // Note we use an *ordered* map, where we assume that nodes are ordered by
+  // their id, where nodes constructed later have a larger id. This ensures
+  // we process nodes in the (reverse) order in which they constructed, newest
+  // nodes processed first, thus ensuring we process each node only once while
+  // flattening.
+  std::map<TNode, Rational> countMap;
+  countMap[t] = Rational(1);
+  std::map<TNode, Rational>::iterator it;
+  Kind tk = t.getKind();
+  while (!countMap.empty())
+  {
+    // Go off of end first. This is important for efficiency since later terms
+    // in the map may contain subterms that are earlier terms in the map.
+    std::map<TNode, Rational>::iterator cur = std::prev(countMap.end());
+    bool recurse = false;
+    TNode tc = cur->first;
+    Kind k = tc.getKind();
+    Rational coeff = cur->second;
+    countMap.erase(cur);
+    // Additionally collect coefficient
+    while (k == Kind::MULT && tc.getNumChildren() == 2 && tc[0].isConst())
+    {
+      coeff *= tc[0].getConst<Rational>();
+      tc = tc[1];
+      k = tc.getKind();
+    }
+    // figure out whether to recurse into cur
+    if constexpr (sizeof...(kinds) == 0)
+    {
+      recurse = tk == k;
+    }
+    else
+    {
+      recurse = ((kinds == k) || ...);
+    }
+    if (recurse)
+    {
+      for (TNode cc : tc)
+      {
+        countMap[cc] += coeff;
+      }
+    }
+    else
+    {
+      children.emplace_back(tc, coeff);
+    }
+  }
+  return true;
+}
+
 ArithRewriter::ArithRewriter(NodeManager* nm,
                              OperatorElim& oe,
                              bool expertEnabled)
@@ -583,7 +653,36 @@ RewriteResponse ArithRewriter::rewriteSub(TNode t)
 RewriteResponse ArithRewriter::preRewritePlus(TNode t)
 {
   Assert(t.getKind() == Kind::ADD);
-  return RewriteResponse(REWRITE_DONE, expr::algorithm::flatten(d_nm, t));
+  std::vector<std::pair<TNode, Rational>> children;
+  if (!flattenAndCollectSum(t, children, Kind::ADD))
+  {
+    return RewriteResponse(REWRITE_DONE, t);
+  }
+  NodeManager* nm = nodeManager();
+  NodeBuilder nb(nm, Kind::ADD);
+  Rational coeff(0);
+  for (const std::pair<TNode, Rational>& c : children)
+  {
+    if (c.first.isConst())
+    {
+      coeff += c.first.getConst<Rational>() * c.second;
+    }
+    else if (c.second.isOne())
+    {
+      nb << c.first;
+    }
+    else
+    {
+      nb << nm->mkNode(Kind::MULT, nm->mkConstRealOrInt(c.second), c.first);
+    }
+  }
+  if (!coeff.isZero() || nb.getNumChildren() == 0)
+  {
+    nb << nm->mkConstRealOrInt(t.getType(), coeff);
+  }
+  Node ret = nb.getNumChildren() == 1 ? nb.getChild(0) : nb;
+  ret = rewriter::maybeEnsureReal(t.getType(), ret);
+  return RewriteResponse(REWRITE_DONE, ret);
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t)
@@ -591,13 +690,35 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t)
   Assert(t.getKind() == Kind::ADD);
   Assert(t.getNumChildren() > 1);
 
-  std::vector<TNode> children;
-  expr::algorithm::flatten(t, children, Kind::ADD, Kind::TO_REAL);
-
   rewriter::Sum sum;
-  for (const auto& child : children)
+  std::vector<std::pair<TNode, Rational>> children;
+  if (!flattenAndCollectSum(t, children, Kind::ADD, Kind::TO_REAL))
   {
-    rewriter::addToSum(sum, child);
+    rewriter::addToSum(sum, t);
+  }
+  else
+  {
+    Rational coeff(0);
+    for (const std::pair<TNode, Rational>& c : children)
+    {
+      if (c.first.isConst())
+      {
+        coeff += c.first.getConst<Rational>() * c.second;
+      }
+      else if (c.second.isOne())
+      {
+        rewriter::addToSum(sum, c.first);
+      }
+      else
+      {
+        RealAlgebraicNumber mul = RealAlgebraicNumber(c.second);
+        rewriter::addMonomialToSum(sum, c.first, mul);
+      }
+    }
+    if (!coeff.isZero())
+    {
+      rewriter::addToSum(sum, nodeManager()->mkConstRealOrInt(coeff));
+    }
   }
   Node retSum = rewriter::collectSum(d_nm, sum);
   retSum = rewriter::maybeEnsureReal(t.getType(), retSum);
