@@ -10,7 +10,18 @@
 
 ; Constants for the theory of sets.
 ; note: type rule does not check the type is set.
-(declare-const set.empty (-> (! Type :var T) T))
+(declare-const set.empty
+  (-> (! Type :var T) T)
+)
+
+(declare-parameterized-const set.empty
+  ((T Type :implicit))
+  (Set T)
+)
+
+(as set.empty (Set Int))
+
+----> (~> (Set T) (Set T))  :opaque ...
 
 ; Operators for the theory of sets.
 (declare-const set.singleton (-> (! Type :var T :implicit) T (Set T)))

@@ -165,7 +165,7 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
     {
       visited.insert(cur);
       if (cur.getKind() != Kind::BOUND_VARIABLE
-          && TermUtil::hasBoundVarAttr(cur))
+          && expr::hasBoundVar(cur))
       {
         if (cur.getKind() == Kind::FORALL || cur.getKind() == Kind::WITNESS)
         {
