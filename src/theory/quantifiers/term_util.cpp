@@ -127,8 +127,8 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
                                                 Node n,
                                                 std::vector<Node>& vars)
 {
-  std::vector<Node> ics;
-  computeInstConstContains(n, ics);
+  std::unordered_set<Node> ics;
+  expr::getSubtermsKind(Kind::INST_CONSTANT, n, ics);
   for (const Node& v : ics)
   {
     if (v.getAttribute(InstConstantAttribute()) == q)

@@ -36,6 +36,7 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 #include "util/cardinality.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -954,7 +955,7 @@ size_t TheorySep::processAssertion(
     else if (n.getKind() == Kind::SEP_PTO)
     {
       ensureHeapTypesFor(n);
-      if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
+      if( expr::hasBoundVar( n[0] ) ){
         Assert(n[0].getType() == d_type_ref);
         if (d_bound_kind != bound_strict && d_bound_kind != bound_invalid)
         {

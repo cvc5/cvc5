@@ -203,16 +203,16 @@ void getSubtermsKind(Kind k,
                     TNode n,
                     std::unordered_set<Node>& ts)
 {
-  std::unordered_set<Kind, kind::KindHashFunction> kinds{k};
-  std::map<Kind, std::unordered_map<Node>> tsm;
-  getKindSubterms(ks, n, tsm);
-  std::unordered_map<Node>& tsc = tsm[k];
+  std::unordered_set<Kind, kind::KindHashFunction> ks{k};
+  std::map<Kind, std::unordered_set<Node>> tsm;
+  getSubtermsKinds(ks, n, tsm);
+  std::unordered_set<Node>& tsc = tsm[k];
   ts.insert(tsc.begin(), tsc.end());
 }
 
 void getSubtermsKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
                      TNode n,
-                     std::map<Kind, std::unordered_map<Node>>& ts)
+                     std::map<Kind, std::unordered_set<Node>>& ts)
 {
   Assert(!ks.empty());
   for (Kind k : ks)
@@ -222,11 +222,12 @@ void getSubtermsKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks
       ts[k].clear();
     }
   }
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
   Kind k;
-  std::map<Kind, std::unordered_map<Node>>::iterator itt;
+  std::map<Kind, std::unordered_set<Node>>::iterator itt;
   do
   {
     cur = visit.back();
@@ -237,7 +238,7 @@ void getSubtermsKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks
       itt = ts.find(k);
       if (itt != ts.end())
       {
-        itt->second.push_back(cur);
+        itt->second.insert(cur);
       }
       visited.insert(cur);
       if (cur.hasOperator())
