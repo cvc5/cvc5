@@ -416,6 +416,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
+        case Kind::IMPLIES:
         case Kind::XOR:
         case Kind::CONST_BOOLEAN:
         case Kind::CONST_INTEGER:
