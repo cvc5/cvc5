@@ -217,7 +217,7 @@ void getSubtermsKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks
   Assert(!ks.empty());
   for (Kind k : ks)
   {
-    if (ts.find(k)!=ts.end())
+    if (ts.find(k)==ts.end())
     {
       ts[k].clear();
     }
