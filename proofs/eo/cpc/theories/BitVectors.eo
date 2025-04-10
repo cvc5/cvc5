@@ -28,16 +28,6 @@
   (BitVec (eo::add n m))) :right-assoc-nil @bv_empty
 )
 
-(declare-parameterized-const extract
-  ((n Int :implicit)
-   (h Int)
-   (l Int))
- (->
-  (BitVec n)
-  (BitVec (eo::add h (eo::neg l) 1))
-  )
-)
-
 (declare-const extract (->
   (! Int :var n :implicit)
   (! Int :var h)
