@@ -107,7 +107,7 @@ TEST_F(TestCApiBlackSolver, pow2_large2)
   Cvc5Term t1 = cvc5_mk_bv_uint64(d_tm, 63, ~(((uint64_t)1) << 62));
   std::vector<Cvc5Term> args = {t1};
   Cvc5Term t2 =
-      cvc5_mk_term(d_tm, CVC5_KIND_BITVECTOR_TO_NAT, args.size(), args.data());
+      cvc5_mk_term(d_tm, CVC5_KIND_BITVECTOR_UBV_TO_INT, args.size(), args.data());
   args = {t2};
   Cvc5Term t3 = cvc5_mk_term(d_tm, CVC5_KIND_POW2, args.size(), args.data());
   args = {t3, t2};

@@ -2103,7 +2103,7 @@ inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
     else
     {
       Assert(nck == Kind::CONST_BITVECTOR);
-      children.push_back(nm->mkNode(Kind::BITVECTOR_TO_NAT, nc));
+      children.push_back(nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, nc));
     }
   }
   // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).

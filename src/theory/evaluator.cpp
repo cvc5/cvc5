@@ -455,6 +455,13 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case Kind::IMPLIES:
+        {
+          bool res =
+              !results[currNode[0]].d_bool || results[currNode[1]].d_bool;
+          results[currNode] = EvalResult(res);
+          break;
+        }
         case Kind::XOR:
         {
           bool res = results[currNode[0]].d_bool;
@@ -1157,6 +1164,18 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(b);
           break;
         }
+        case Kind::BITVECTOR_REPEAT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
+          for (size_t i = 1; i < amount; i++)
+          {
+            res = res.concat(res);
+          }
+          results[currNode] = EvalResult(res);
+          break;
+        }
         case Kind::BITVECTOR_SIGN_EXTEND:
         {
           BitVector res = results[currNode[0]].d_bv;
@@ -1239,10 +1258,25 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
         {
           BitVector res = results[currNode[0]].d_bv;
           results[currNode] = EvalResult(Rational(res.toInteger()));
+          break;
+        }
+        case Kind::BITVECTOR_SBV_TO_INT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          const uint32_t size = currNode[0].getType().getBitVectorSize();
+          if (res.isBitSet(size - 1))
+          {
+            Rational ttm = Rational(Integer(2).pow(size));
+            results[currNode] = EvalResult(Rational(res.toInteger()) - ttm);
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(res.toInteger()));
+          }
           break;
         }
         case Kind::INT_TO_BITVECTOR:
