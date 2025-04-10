@@ -992,7 +992,7 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
     Node arg1 = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, t[0]);
     Node arg2 = nm->mkNode(Kind::INT_TO_BITVECTOR, iToBvop, t[1]);
     Node bvand = nm->mkNode(Kind::BITVECTOR_AND, arg1, arg2);
-    Node ret = nm->mkNode(Kind::BITVECTOR_TO_NAT, bvand);
+    Node ret = nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, bvand);
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   else if (t[0] > t[1])
@@ -1365,7 +1365,7 @@ Node ArithRewriter::rewriteIneqToBv(Kind kind,
     {
       const Rational& r = m.second.toRational();
       Kind mk = m.first.getKind();
-      if (mk == Kind::BITVECTOR_TO_NAT)
+      if (mk == Kind::BITVECTOR_UBV_TO_INT)
       {
         // We currently only eliminate sums involving exactly one
         // (bv2nat x) monomial whose coefficient is +- 1, although more

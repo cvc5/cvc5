@@ -238,7 +238,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::LAMBDA:
     case Kind::HO_APPLY:
     case Kind::FUNCTION_ARRAY_CONST:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     case Kind::INT_TO_BITVECTOR_OP:
     case Kind::INT_TO_BITVECTOR:
     /* from arith */

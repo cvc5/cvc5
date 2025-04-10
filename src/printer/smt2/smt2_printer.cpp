@@ -446,7 +446,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           << n.getConst<BitVectorRotateRight>().d_rotateRightAmount << ")";
       break;
     case Kind::INT_TO_BITVECTOR_OP:
-      out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
+      out << "(_ int_to_bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP:
       out << "(_ to_fp "
@@ -1269,7 +1269,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_USUBO: return "bvusubo";
     case Kind::BITVECTOR_SSUBO: return "bvssubo";
     case Kind::BITVECTOR_SDIVO: return "bvsdivo";
-    case Kind::BITVECTOR_TO_NAT: return "bv2nat";
+    case Kind::BITVECTOR_UBV_TO_INT: return "ubv_to_int";
+    case Kind::BITVECTOR_SBV_TO_INT: return "sbv_to_int";
     case Kind::BITVECTOR_REDOR: return "bvredor";
     case Kind::BITVECTOR_REDAND: return "bvredand";
 
@@ -1279,7 +1280,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
     case Kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
     case Kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
-    case Kind::INT_TO_BITVECTOR: return "int2bv";
+    case Kind::INT_TO_BITVECTOR: return "int_to_bv";
     case Kind::BITVECTOR_ITE: return "bvite";
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";

@@ -295,7 +295,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
-    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
     case ProofRewriteRule::INT_TO_BV_ELIM:
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
@@ -491,7 +491,8 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_SIGN_EXTEND:
         case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
-        case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
+        case Kind::BITVECTOR_SBV_TO_INT:
         case Kind::INT_TO_BITVECTOR:
         case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:

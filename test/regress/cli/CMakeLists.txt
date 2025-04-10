@@ -2199,6 +2199,7 @@ set(regress_0_tests
   regress0/tptp/tptp_parser7.smt2
   regress0/tptp/tptp_parser8.smt2
   regress0/tptp/tptp_parser9.smt2
+  regress0/ubv-sbv-evals.smt2
   regress0/uf-conv-rewrites.smt2
   regress0/uf/bool-pred-nested.smt2
   regress0/uf/ccredesign-fuzz.smtv1.smt2
@@ -3782,6 +3783,8 @@ set(regress_1_tests
   regress1/timeout_core_soft.smt2
   regress1/timeout_core_soft_simple.smt2
   regress1/trim.cvc.smt2
+  regress1/ubv-sbv-sat.smt2
+  regress1/ubv-sbv-unsat.smt2
   regress1/uf2.smt2
   regress1/uflia/DRAGON_11_e1_2450.ec.minimized.smt2
   regress1/uflia/FIREFLY_3_e2_2236_e7_3681.ec.core.smt2
