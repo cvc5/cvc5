@@ -115,43 +115,6 @@
   (extract high low (sign_extend k x))
   (repeat rn (extract nm1 nm1 x)))
 
-(define-rule bv-neg-mult
-  ((xs ?BitVec) (ys ?BitVec) (n Int) (m Int))
-  (bvneg (bvmul xs (@bv n m) ys))
-  (bvmul xs (@bv (- n) m) ys))
-(define-rule* bv-neg-add
-  ((x ?BitVec) (y ?BitVec) (zs ?BitVec :list))
-  (bvneg (bvadd x y zs))
-  (bvneg (bvadd y zs))
-  (bvadd (bvneg x) _))
-
-(define-rule bv-mult-distrib-const-neg
-  ((x ?BitVec) (n Int) (m Int))
-  (bvmul (bvneg x) (@bv n m))
-  (bvmul x (@bv (- n) m)))
-(define-rule bv-mult-distrib-const-add
-  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
-  (bvmul (bvadd x y) (@bv n m))
-  (bvadd
-    (bvmul x (@bv n m))
-    (bvmul y (@bv n m))
-  ))
-(define-rule bv-mult-distrib-const-sub
-  ((x ?BitVec) (y ?BitVec) (n Int) (m Int))
-  (bvmul (bvsub x y) (@bv n m))
-  (bvsub
-    (bvmul x (@bv n m))
-    (bvmul y (@bv n m))
-  ))
-
-(define-rule bv-mult-distrib-1
-  ((x1 ?BitVec) (x2 ?BitVec) (y ?BitVec))
-  (bvmul (bvadd x1 x2) y)
-  (bvadd (bvmul x1 y) (bvmul x2 y)))
-(define-rule bv-mult-distrib-2
-  ((x1 ?BitVec) (x2 ?BitVec) (y ?BitVec))
-  (bvmul y (bvadd x1 x2))
-  (bvadd (bvmul y x1) (bvmul y x2)))
 (define-rule bv-not-xor
   ((x ?BitVec) (xs ?BitVec :list))
   (bvnot (bvxor x xs))
@@ -234,39 +197,10 @@
 
 
 ; -- Commutativity --
-(define-rule bv-commutative-and ((x ?BitVec) (y ?BitVec))
-  (bvand x y) (bvand y x))
-(define-rule bv-commutative-or ((x ?BitVec) (y ?BitVec))
-  (bvor x y) (bvor y x))
 (define-rule bv-commutative-xor ((x ?BitVec) (y ?BitVec))
   (bvxor x y) (bvxor y x))
-(define-rule bv-commutative-mul ((x ?BitVec) (y ?BitVec))
-  (bvmul x y) (bvmul y x))
 (define-rule bv-commutative-comp ((x ?BitVec) (y ?BitVec))
   (bvcomp x y) (bvcomp y x))
-
-
-; -- Hole filling rules --
-(define-rule bv-or-zero ((x ?BitVec) (n Int))
-  (bvor x (@bv 0 n))
-  x)
-(define-cond-rule bv-mul-one ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvmul x (@bv 1 w))
-  x)
-(define-cond-rule bv-mul-zero ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvmul x (@bv 0 w))
-  (@bv 0 w))
-(define-cond-rule bv-add-zero ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvadd x (@bv 0 w))
-  x)
-(define-cond-rule bv-add-two ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvadd x x)
-  (bvmul x (@bv 2 w)))
-
 
 (define-rule bv-zero-extend-eliminate-0
   ((x ?BitVec))
@@ -288,13 +222,6 @@
 
 ; Collapse rules
 
-(define-rule* bv-or-flatten
-  ((xs ?BitVec :list)
-   (s ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (bvor xs (bvor s ys) zs)
-  (bvor xs s ys zs))
 (define-rule* bv-xor-flatten
   ((xs ?BitVec :list)
    (s ?BitVec)
@@ -302,20 +229,6 @@
    (zs ?BitVec :list))
   (bvxor xs (bvxor s ys) zs)
   (bvxor xs s ys zs))
-(define-rule* bv-and-flatten
-  ((xs ?BitVec :list)
-   (s ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (bvand xs (bvand s ys) zs)
-  (bvand xs s ys zs))
-(define-rule* bv-mul-flatten
-  ((xs ?BitVec :list)
-   (s ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (bvmul xs (bvmul s ys) zs)
-  (bvmul xs s ys zs))
 
 (define-cond-rule bv-concat-merge-const
   ((xs ?BitVec :list)
@@ -328,11 +241,6 @@
 ; These rules should be subsumed by ARITH_POLY_NORM, but removing them increases the number of holes
 (define-rule bv-commutative-add ((x ?BitVec) (y ?BitVec))
   (bvadd x y) (bvadd y x))
-(define-rule bv-neg-sub
-  ((x ?BitVec) (y ?BitVec))
-  (bvneg (bvsub x y))
-  (bvsub y x))
-(define-rule bv-neg-idemp ((x ?BitVec)) (bvneg (bvneg x)) x)
 (define-rule bv-sub-eliminate
   ((x ?BitVec) (y ?BitVec))
   (bvsub x y)

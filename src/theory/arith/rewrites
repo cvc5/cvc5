@@ -4,8 +4,6 @@
 ; interchangable. This is because Int and Real are not comparable in our
 ; type system.
 
-(define-cond-rule arith-div-total-real ((t ?) (s Real)) (not (= s 0/1)) (/ t s) (/_total t s))
-(define-cond-rule arith-div-total-int ((t ?) (s Int)) (not (= s 0)) (/ t s) (/_total t s))
 (define-rule arith-div-total-zero-real ((t ?)) (/_total t 0/1) 0/1)
 (define-rule arith-div-total-zero-int ((t ?)) (/_total t 0) 0/1)
 
@@ -35,13 +33,6 @@
 (define-rule arith-geq-norm1-int ((t Int) (s Int)) (>= t s) (>= (- t s) 0))
 (define-rule arith-geq-norm1-real ((t Real) (s Real)) (>= t s) (>= (- t s) 0/1))
 
-(define-rule arith-geq-norm2 ((t ?) (s ?)) (>= t s) (<= (- t) (- s)))
-
-(define-rule arith-refl-leq ((t ?)) (<= t t) true)
-(define-rule arith-refl-lt ((t ?)) (< t t) false)
-(define-rule arith-refl-geq ((t ?)) (>= t t) true)
-(define-rule arith-refl-gt ((t ?)) (> t t) false)
-
 (define-rule arith-eq-elim-real ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
 (define-rule arith-eq-elim-int ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
 
@@ -49,14 +40,6 @@
   (+ xs (+ w ys) zs)
   (+ xs w ys zs))
 
-(define-rule* arith-mult-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
-  (* xs (* w ys) zs)
-  (* xs w ys zs))
-
-(define-rule arith-abs-elim-int ((x Int)) (abs x) (ite (< x 0) (- x) x))
-(define-rule arith-abs-elim-real ((x Real)) (abs x) (ite (< x 0/1) (- x) x))
-
-(define-rule arith-to-real-elim ((x Real)) (to_real x) x)
 (define-rule arith-to-int-elim ((x Int)) (to_int x) x)
 (define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))
 (define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
