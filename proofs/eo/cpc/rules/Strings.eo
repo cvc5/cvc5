@@ -611,7 +611,7 @@
 ;   True if the string approximated by s is definitely not contained in the string
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, and then checking if a term in nr is provably distinct from the final xs.
-(program $str_is_multiset_subset_strict ((T Type :implicit) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
+(program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
     ((Seq T) @List @List) Bool
     (
       (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
@@ -849,7 +849,7 @@
 ; args:
 ; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
 ; return: The result of evaluating t.
-(program $seq_eval ((T Type :implicit) (t T) (n Int))
+(program $seq_eval ((T Type) (t T) (n Int))
   (T) T
   (
     ; handle sequence-specific operators here
