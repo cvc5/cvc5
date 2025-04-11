@@ -190,8 +190,8 @@ class PatternTermSelector
    */
   int isInstanceOf(Node n1,
                    Node n2,
-                   const std::vector<Node>& fv1,
-                   const std::vector<Node>& fv2) const;
+                   const std::unordered_set<Node>& fv1,
+                   const std::unordered_set<Node>& fv2) const;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** The trigger selection strategy */

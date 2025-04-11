@@ -117,99 +117,18 @@ bool TermUtil::hasInstConstAttr(Node n)
   return !getInstConstAttr(n).isNull();
 }
 
-Node TermUtil::getBoundVarAttr( Node n ) {
-  if (!n.hasAttribute(BoundVarAttribute()) ){
-    Node bv;
-    if (n.getKind() == Kind::BOUND_VARIABLE)
-    {
-      bv = n;
-    }
-    else
-    {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        bv = getBoundVarAttr(n[i]);
-        if( !bv.isNull() ){
-          break;
-        }
-      }
-    }
-    BoundVarAttribute bva;
-    n.setAttribute(bva, bv);
-  }
-  return n.getAttribute(BoundVarAttribute());
-}
-
-bool TermUtil::hasBoundVarAttr( Node n ) {
-  return !getBoundVarAttr(n).isNull();
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
   return getRemoveQuantifiers2( n, visited );
 }
 
-void TermUtil::computeInstConstContains(Node n, std::vector<Node>& ics)
-{
-  computeVarContainsInternal(n, Kind::INST_CONSTANT, ics);
-}
-
-void TermUtil::computeVarContains(Node n, std::vector<Node>& vars)
-{
-  computeVarContainsInternal(n, Kind::BOUND_VARIABLE, vars);
-}
-
-void TermUtil::computeQuantContains(Node n, std::vector<Node>& quants)
-{
-  computeVarContainsInternal(n, Kind::FORALL, quants);
-}
-
-void TermUtil::computeVarContainsInternal(Node n,
-                                          Kind k,
-                                          std::vector<Node>& vars)
-{
-  std::unordered_set<TNode> visited;
-  std::unordered_set<TNode>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getKind() == k)
-      {
-        if (std::find(vars.begin(), vars.end(), cur) == vars.end())
-        {
-          vars.push_back(cur);
-        }
-      }
-      else
-      {
-        if (cur.hasOperator())
-        {
-          visit.push_back(cur.getOperator());
-        }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    }
-  } while (!visit.empty());
-}
-
 void TermUtil::computeInstConstContainsForQuant(Node q,
                                                 Node n,
                                                 std::vector<Node>& vars)
 {
-  std::vector<Node> ics;
-  computeInstConstContains(n, ics);
+  std::unordered_set<Node> ics;
+  expr::getSubtermsKind(Kind::INST_CONSTANT, n, ics);
   for (const Node& v : ics)
   {
     if (v.getAttribute(InstConstantAttribute()) == q)

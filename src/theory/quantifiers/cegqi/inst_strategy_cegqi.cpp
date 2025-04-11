@@ -118,8 +118,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       registerCounterexampleLemma( q, lem );
 
       //compute dependencies between quantified formulas
-      std::vector<Node> ics;
-      TermUtil::computeInstConstContains(q, ics);
+      std::unordered_set<Node> ics;
+      expr::getSubtermsKind(Kind::INST_CONSTANT, q, ics);
       d_parent_quant[q].clear();
       d_children_quant[q].clear();
       std::vector<Node> dep;
@@ -154,11 +154,14 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       }
 
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
-      std::vector< Node > quants;
-      TermUtil::computeQuantContains( lem, quants );
-      for( unsigned i=0; i<quants.size(); i++ ){
-        if( doCbqi( quants[i] ) ){
-          registerCbqiLemma( quants[i] );
+      std::unordered_set<Node> quants;
+      // do not get nested quantified formulas
+      expr::getSubtermsKind(Kind::FORALL, lem, quants, false);
+      for (const Node& ql : quants)
+      {
+        if (doCbqi(ql))
+        {
+          registerCbqiLemma(ql);
         }
       }
     }
