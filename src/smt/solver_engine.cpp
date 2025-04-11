@@ -101,8 +101,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(const Options* optr)
-    : d_env(new Env(NodeManager::currentNM(), optr)),
+SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
+    : d_env(new Env(nm, optr)),
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
       d_routListener(new ResourceOutListener(*this)),
@@ -601,7 +601,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_env->getNodeManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -1102,7 +1102,7 @@ void SolverEngine::declareOracleFun(
   beginCall();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
   qe->declareOracleFun(var);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_env->getNodeManager();
   std::vector<Node> inputs;
   std::vector<Node> outputs;
   TypeNode tn = var.getType();
@@ -1131,7 +1131,7 @@ void SolverEngine::declareOracleFun(
   Node constraint = nm->mkConst(true);
   // make the oracle constant which carries the method implementation
   Oracle oracle(fn);
-  Node o = NodeManager::currentNM()->mkOracle(oracle);
+  Node o = nm->mkOracle(oracle);
   // set the attribute, which ensures we remember the method implementation for
   // the oracle function
   var.setAttribute(theory::OracleInterfaceAttribute(), o);
@@ -1233,7 +1233,7 @@ Node SolverEngine::getValue(const Node& t) const
     if (rtn.isArray())
     {
       // construct the skolem function
-      SkolemManager* skm = NodeManager::currentNM()->getSkolemManager();
+      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
       Node a = skm->mkInternalSkolemFunction(
           InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
       // add to top-level substitutions if applicable
