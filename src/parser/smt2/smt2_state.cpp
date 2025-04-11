@@ -948,6 +948,8 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::BAG_CHOOSE, "bag.choose");
     addOperator(Kind::BAG_MAP, "bag.map");
     addOperator(Kind::BAG_FILTER, "bag.filter");
+    addOperator(Kind::BAG_ALL, "bag.all");
+    addOperator(Kind::BAG_SOME, "bag.some");
     addOperator(Kind::BAG_FOLD, "bag.fold");
     addOperator(Kind::BAG_PARTITION, "bag.partition");
     addOperator(Kind::TABLE_PRODUCT, "table.product");

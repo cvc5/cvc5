@@ -381,6 +381,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BAG_CHOOSE, internal::Kind::BAG_CHOOSE),
         KIND_ENUM(Kind::BAG_MAP, internal::Kind::BAG_MAP),
         KIND_ENUM(Kind::BAG_FILTER, internal::Kind::BAG_FILTER),
+        KIND_ENUM(Kind::BAG_ALL, internal::Kind::BAG_ALL),
+        KIND_ENUM(Kind::BAG_SOME, internal::Kind::BAG_SOME),
         KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
         KIND_ENUM(Kind::BAG_PARTITION, internal::Kind::BAG_PARTITION),
         KIND_ENUM(Kind::TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
@@ -788,6 +790,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BAG_CHOOSE, Kind::BAG_CHOOSE},
         {internal::Kind::BAG_MAP, Kind::BAG_MAP},
         {internal::Kind::BAG_FILTER, Kind::BAG_FILTER},
+        {internal::Kind::BAG_ALL, Kind::BAG_ALL},
+        {internal::Kind::BAG_SOME, Kind::BAG_SOME},
         {internal::Kind::BAG_FOLD, Kind::BAG_FOLD},
         {internal::Kind::BAG_PARTITION, Kind::BAG_PARTITION},
         {internal::Kind::TABLE_PRODUCT, Kind::TABLE_PRODUCT},
@@ -6698,6 +6702,8 @@ Term TermManager::mkNullableVal(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();
@@ -6715,6 +6721,8 @@ Term TermManager::mkNullableIsNull(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();
@@ -6732,6 +6740,8 @@ Term TermManager::mkNullableIsSome(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();

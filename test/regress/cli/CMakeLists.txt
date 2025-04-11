@@ -2458,6 +2458,9 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/all1.smt2
+  regress1/bags/all2.smt2
+  regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
@@ -2472,6 +2475,7 @@ set(regress_1_tests
   regress1/bags/disequality.smt2
   regress1/bags/setof1.smt2
   regress1/bags/setof2.smt2
+  regress1/bags/some1.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/filter1.smt2
   regress1/bags/filter2.smt2
