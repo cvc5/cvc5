@@ -740,7 +740,7 @@ set(regress_0_tests
   regress0/datatypes/dt-param-simple-unsat.smt2
   regress0/datatypes/dt-sel-2.6.smt2
   regress0/datatypes/empty_tuprec.cvc.smt2
-  regress0/datatypes/eq-clash-rec-find.smt2 
+  regress0/datatypes/eq-clash-rec-find.smt2
   regress0/datatypes/example-dailler-min.smt2
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
@@ -1937,7 +1937,7 @@ set(regress_0_tests
   regress0/strings/cprop-splice.smt2
   regress0/strings/ctn-decompose-3-sym.smt2
   regress0/strings/ctn-decompose-3-sym-nf.smt2
-  regress0/strings/ctn-repl-to-ctn.smt2 
+  regress0/strings/ctn-repl-to-ctn.smt2
   regress0/strings/ctn-split-no-overlap.smt2
   regress0/strings/dd_1302_str_rewrite.smt2
   regress0/strings/dd_67_str_at_eval.smt2
@@ -2077,7 +2077,7 @@ set(regress_0_tests
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/rw_508_suffixof.smt2
-  regress0/strings/rw_545.smt2 
+  regress0/strings/rw_545.smt2
   regress0/strings/rw_555.smt2
   regress0/strings/rw_65.smt2
   regress0/strings/sigma-star-mod-3.smt2
@@ -2862,6 +2862,8 @@ set(regress_1_tests
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2
+  regress1/proofs/alpha-eq-var-shadow-name-only.smt2
+  regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
   regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
