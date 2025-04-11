@@ -53,7 +53,7 @@
 ; disclaimer: >
 ;   This function is declared to be binary in SMT-LIB. We declare it
 ;   with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const bvand ((m Int))
+(declare-parameterized-const bvand ((m Int :implicit))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (eo::not (eo::to_bin m 0))
 )
@@ -61,7 +61,7 @@
 ; disclaimer: >
 ;   This function is declared to be binary in SMT-LIB. We declare it
 ;   with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const bvor ((m Int))
+(declare-parameterized-const bvor ((m Int :implicit))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (eo::to_bin m 0)
 )
@@ -79,7 +79,7 @@
 ; disclaimer: >
 ;   This function is declared to be binary in SMT-LIB. We declare it
 ;   with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const bvxor ((m Int))
+(declare-parameterized-const bvxor ((m Int :implicit))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (eo::to_bin m 0)
 )
@@ -102,7 +102,7 @@
 ; disclaimer: >
 ;   This function is declared to be binary in SMT-LIB. We declare it
 ;   with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const bvadd ((m Int))
+(declare-parameterized-const bvadd ((m Int :implicit))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (eo::to_bin m 0)
 )
@@ -110,7 +110,7 @@
 ; disclaimer: >
 ;   This function is declared to be binary in SMT-LIB. We declare it
 ;   with right-assoc-nil to model cvc5's treatment of variadic functions.
-(declare-parameterized-const bvmul ((m Int))
+(declare-parameterized-const bvmul ((m Int :implicit))
     (-> (BitVec m) (BitVec m) (BitVec m))
     :right-assoc-nil (eo::to_bin m 1)
 )
