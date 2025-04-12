@@ -20,7 +20,7 @@ type          = "sort"
 name          = "BOOLEAN_TYPE"
 cardinality   = 2
 well_founded  = true
-ground-term   = "NodeManager::currentNM()->mkConst(false)"
+ground-term   = "nm->mkConst(false)"
 header        = "expr/node_manager.h"
 comment       = "Boolean type"
 [kinds.enumerator]

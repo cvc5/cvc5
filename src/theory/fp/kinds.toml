@@ -45,7 +45,7 @@ type = "sort"
 name                     = "ROUNDINGMODE_TYPE"
 cardinality              = 5
 well_founded             = true
-ground-term              = "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())"
+ground-term              = "nm->mkConst<RoundingMode>(RoundingMode())"
 header                   = "expr/node_manager.h"
 comment                  = "floating-point rounding mode"
 [kinds.enumerator]

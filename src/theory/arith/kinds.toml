@@ -248,7 +248,7 @@ type          = "sort"
 name          = "REAL_TYPE"
 cardinality   = "Cardinality::REALS"
 well_founded  = true
-ground-term   = "NodeManager::currentNM()->mkConstReal(Rational(0))"
+ground-term   = "nm->mkConstReal(Rational(0))"
 header        = "expr/node_manager.h"
 comment       = "real type"
 [kinds.enumerator]
@@ -260,7 +260,7 @@ type          = "sort"
 name          = "INTEGER_TYPE"
 cardinality   = "Cardinality::INTEGERS"
 well_founded  = true
-ground-term   = "NodeManager::currentNM()->mkConstInt(Rational(0))"
+ground-term   = "nm->mkConstInt(Rational(0))"
 header        = "expr/node_manager.h"
 comment       = "integer type"
 [kinds.enumerator]

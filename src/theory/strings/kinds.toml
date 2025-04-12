@@ -202,7 +202,7 @@ type          = "sort"
 name          = "STRING_TYPE"
 cardinality   = "Cardinality::INTEGERS"
 well_founded  = true
-ground-term   = "NodeManager::currentNM()->mkConst(::cvc5::internal::String())"
+ground-term   = "nm->mkConst(::cvc5::internal::String())"
 header        = "util/string.h"
 comment       = "String type"
 [kinds.enumerator]
@@ -214,7 +214,7 @@ type          = "sort"
 name          = "REGEXP_TYPE"
 cardinality   = "Cardinality::INTEGERS"
 well_founded  = true
-ground-term   = "NodeManager::currentNM()->mkNode(Kind::REGEXP_NONE)"
+ground-term   = "nm->mkNode(Kind::REGEXP_NONE)"
 header        = "util/string.h"
 comment       = "RegExp type"
 [kinds.enumerator]
