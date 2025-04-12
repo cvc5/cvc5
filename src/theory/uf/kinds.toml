@@ -102,9 +102,16 @@ typerule  = "::cvc5::internal::theory::uf::FunctionArrayConstTypeRule"
 ## conversion kinds
 [[kinds]]
 type     = "operator"
-name     = "BITVECTOR_TO_NAT"
+name     = "BITVECTOR_UBV_TO_INT"
 children = 1
-comment  = "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
+comment  = "bit-vector conversion to integer; parameter is treated as an unsigned bit-vector"
+typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BITVECTOR_SBV_TO_INT"
+children = 1
+comment  = "bit-vector conversion to integer; parameter is treated as a signed bit-vector"
 typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
 
 [[kinds]]
