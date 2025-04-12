@@ -154,6 +154,24 @@ children = 2
 comment  = "bag filter operator"
 typerule = "::cvc5::internal::theory::bags::BagFilterTypeRule"
 
+# bag.all operator is a predicate that holds iff all elements in a given bag satisfy the the given predicate.
+# (bag.all p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+[[kinds]]
+type     = "operator"
+name     = "BAG_ALL"
+children = 2
+comment  = "bag all operator"
+typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
+
+# bag.some operator is a predicate that holds iff at least one element in a given bag satisfies the the given predicate.
+# (bag.some p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+[[kinds]]
+type     = "operator"
+name     = "BAG_SOME"
+children = 2
+comment  = "bag all operator"
+typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
+
 # bag.fold operator combines elements of a bag into a single value.
 # (bag.fold f t B) folds the elements of bag B starting with term t and using
 # the combining function f.
