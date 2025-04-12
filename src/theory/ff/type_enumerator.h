@@ -49,7 +49,7 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
     {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst<FiniteFieldValue>(
+    return getType().getNodeManager()->mkConst<FiniteFieldValue>(
         FiniteFieldValue(d_currentInt, d_modulus));
   }
 

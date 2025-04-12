@@ -2398,14 +2398,14 @@ enum ENUM(ProofRewriteRule)
    * **UF -- Bitvector to natural elimination**
    *
    * .. math::
-   *   \texttt{bv2nat}(t) = t_1 + \ldots + t_n
+   *   \texttt{ubv_to_int}(t) = t_1 + \ldots + t_n
    *
    * where for :math:`i=1, \ldots, n`, :math:`t_i` is
    * :math:`\texttt{ite}(x[i-1, i-1] = 1, 2^i, 0)`.
    *
    * \endverbatim
    */
-  EVALUE(BV_TO_NAT_ELIM),
+  EVALUE(UBV_TO_INT_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **UF -- Integer to bitvector elimination**
@@ -4696,6 +4696,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(UF_INT2BV_BVULT_EQUIV),
   /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
   EVALUE(UF_INT2BV_BVULE_EQUIV),
+  /** Auto-generated from RARE rule uf-sbv-to-int-elim */
+  EVALUE(UF_SBV_TO_INT_ELIM),
   /** Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
   /** Auto-generated from RARE rule arith-sine-pi2 */

@@ -158,6 +158,12 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
   // preprocess
   d_smt.preprocess(ap);
+
+  if (options().base.preprocessOnly)
+  {
+    return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
+  }
+
   // assert to internal
   d_smt.assertToInternal(ap);
   // get result

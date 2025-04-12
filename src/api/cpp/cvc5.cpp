@@ -240,7 +240,12 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BITVECTOR_ROTATE_RIGHT,
                   internal::Kind::BITVECTOR_ROTATE_RIGHT),
         KIND_ENUM(Kind::INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
-        KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
+        KIND_ENUM(Kind::BITVECTOR_UBV_TO_INT,
+                  internal::Kind::BITVECTOR_UBV_TO_INT),
+        KIND_ENUM(Kind::BITVECTOR_SBV_TO_INT,
+                  internal::Kind::BITVECTOR_SBV_TO_INT),
+        // note we silently change BITVECTOR_TO_NAT to BITVECTOR_UBV_TO_INT
+        KIND_ENUM(Kind::BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_UBV_TO_INT),
         KIND_ENUM(Kind::BITVECTOR_FROM_BOOLS,
                   internal::Kind::BITVECTOR_FROM_BOOLS),
         KIND_ENUM(Kind::BITVECTOR_BIT, internal::Kind::BITVECTOR_BIT),
@@ -376,6 +381,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::BAG_CHOOSE, internal::Kind::BAG_CHOOSE),
         KIND_ENUM(Kind::BAG_MAP, internal::Kind::BAG_MAP),
         KIND_ENUM(Kind::BAG_FILTER, internal::Kind::BAG_FILTER),
+        KIND_ENUM(Kind::BAG_ALL, internal::Kind::BAG_ALL),
+        KIND_ENUM(Kind::BAG_SOME, internal::Kind::BAG_SOME),
         KIND_ENUM(Kind::BAG_FOLD, internal::Kind::BAG_FOLD),
         KIND_ENUM(Kind::BAG_PARTITION, internal::Kind::BAG_PARTITION),
         KIND_ENUM(Kind::TABLE_PRODUCT, internal::Kind::TABLE_PRODUCT),
@@ -637,7 +644,10 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_ROTATE_RIGHT, Kind::BITVECTOR_ROTATE_RIGHT},
         {internal::Kind::INT_TO_BITVECTOR_OP, Kind::INT_TO_BITVECTOR},
         {internal::Kind::INT_TO_BITVECTOR, Kind::INT_TO_BITVECTOR},
-        {internal::Kind::BITVECTOR_TO_NAT, Kind::BITVECTOR_TO_NAT},
+        // note that BITVECTOR_TO_NAT does not exist internally, only the
+        // case for BITVECTOR_UBV_TO_INT is given
+        {internal::Kind::BITVECTOR_UBV_TO_INT, Kind::BITVECTOR_UBV_TO_INT},
+        {internal::Kind::BITVECTOR_SBV_TO_INT, Kind::BITVECTOR_SBV_TO_INT},
         {internal::Kind::BITVECTOR_FROM_BOOLS, Kind::BITVECTOR_FROM_BOOLS},
         {internal::Kind::BITVECTOR_BIT_OP, Kind::BITVECTOR_BIT},
         {internal::Kind::BITVECTOR_BIT, Kind::BITVECTOR_BIT},
@@ -780,6 +790,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BAG_CHOOSE, Kind::BAG_CHOOSE},
         {internal::Kind::BAG_MAP, Kind::BAG_MAP},
         {internal::Kind::BAG_FILTER, Kind::BAG_FILTER},
+        {internal::Kind::BAG_ALL, Kind::BAG_ALL},
+        {internal::Kind::BAG_SOME, Kind::BAG_SOME},
         {internal::Kind::BAG_FOLD, Kind::BAG_FOLD},
         {internal::Kind::BAG_PARTITION, Kind::BAG_PARTITION},
         {internal::Kind::TABLE_PRODUCT, Kind::TABLE_PRODUCT},
@@ -6690,6 +6702,8 @@ Term TermManager::mkNullableVal(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();
@@ -6707,6 +6721,8 @@ Term TermManager::mkNullableIsNull(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();
@@ -6724,6 +6740,8 @@ Term TermManager::mkNullableIsSome(const Term& term)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_TM_CHECK_TERM(term);
+  Sort sort = term.getSort();
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isNullable(), sort) << "nullable sort";
   //////// all checks before this line
   internal::Node arg = (*term.d_node);
   internal::TypeNode tn = arg.getType();
@@ -6781,7 +6799,7 @@ Solver::Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original)
     : d_tm(tm)
 {
   d_originalOptions = std::move(original);
-  d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
+  d_slv.reset(new internal::SolverEngine(tm.d_nm, d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
 }

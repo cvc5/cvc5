@@ -259,7 +259,7 @@ void InstStrategyMbqi::process(Node q)
 
   std::unique_ptr<SolverEngine> mbqiChecker;
   SubsolverSetupInfo ssi(d_env, d_subOptions);
-  initializeSubsolver(mbqiChecker, ssi);
+  initializeSubsolver(d_env.getNodeManager(), mbqiChecker, ssi);
   mbqiChecker->setOption("produce-models", "true");
   mbqiChecker->assertFormula(query);
   Trace("mbqi") << "*** Check sat..." << std::endl;

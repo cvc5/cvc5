@@ -704,7 +704,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   }
   // (>= approx 0) = true
   Node teq = approxRewGeq.eqNode(truen);
-  Node ev = evaluate(approxRewGeq, {}, {});
+  // do not use rewriter in evaluate
+  Node ev = evaluate(approxRewGeq, {}, {}, false);
   if (ev == truen)
   {
     Trace("brc-macro") << "- prove " << teq << " via evaluate" << std::endl;

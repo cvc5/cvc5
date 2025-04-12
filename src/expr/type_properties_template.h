@@ -98,7 +98,7 @@ ${type_wellfoundednesses}
   }
 }/* isWellFounded(TypeNode) */
 
-Node mkGroundTerm(TypeConstant tc);
+Node mkGroundTerm(NodeManager* nm, TypeConstant tc);
 Node mkGroundTerm(TypeNode typeNode);
 
 }  // namespace kind
