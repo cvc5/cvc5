@@ -37,7 +37,7 @@
 ;   This is not the same as seq.empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
 ;   defined as seq.empty below. It is never used for strings.
-(declare-parameterized-const @seq.empty ((T Type)) (-> T))
+(declare-parameterized-const @seq.empty ((T Type)) T)
 
 ; program: seq.empty
 ; args:
