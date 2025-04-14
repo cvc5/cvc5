@@ -127,12 +127,6 @@ public:
     Unimplemented() << "getUnsatAssumptions not implemented";
   }
 
-  virtual void getUnsatCore(std::vector<SatClause>& unsat_core,
-                            bool includeTheoryLemmas = true)
-  {
-    Unimplemented() << "getUnsatCore not implemented";
-  }
-
 };/* class SatSolver */
 
 class CDCLTSatSolver : public SatSolver
