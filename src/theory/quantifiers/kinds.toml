@@ -16,48 +16,45 @@ class  = "::cvc5::internal::theory::quantifiers::QuantifiersRewriter"
 header = "theory/quantifiers/quantifiers_rewriter.h"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "FORALL"
 children = "2:3"
 comment  = "universally quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "EXISTS"
 children = "2:3"
 comment  = "existentially quantified formula; first parameter is an BOUND_VAR_LIST, second is quantifier body, and an optional third parameter is an INST_PATTERN_LIST"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierTypeRule"
 
 [[kinds]]
-type = "variable"
+type    = "variable"
 name    = "INST_CONSTANT"
 comment = "instantiation constant"
 
 [[kinds]]
-type = "variable"
+type    = "variable"
 name    = "ORACLE"
 comment = "oracle"
 
 [[kinds]]
-type = "sort"
+type         = "sort"
 name         = "BOUND_VAR_LIST_TYPE"
 cardinality  = "Cardinality::INTEGERS"
 well_founded = false
 comment      = "the type of bound variable lists"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "BOUND_VAR_LIST"
 children = "1:"
 comment  = "a list of bound variables (used to bind variables under a quantifier)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierBoundVarListTypeRule"
 
 [[kinds]]
-type = "sort"
+type         = "sort"
 name         = "INST_PATTERN_TYPE"
 cardinality  = "Cardinality::INTEGERS"
 well_founded = false
@@ -67,64 +64,57 @@ comment      = "instantiation pattern type"
 # This node is used for specifying hints for quantifier instantiation.
 # An instantiation pattern may have more than 1 child, in which case it specifies a multi-trigger.
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_PATTERN"
 children = "1:"
 comment  = "instantiation pattern"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_NO_PATTERN"
 children = 1
 comment  = "instantiation no-pattern"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_ATTRIBUTE"
 children = "1:"
 comment  = "instantiation attribute"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_POOL"
 children = "1:"
 comment  = "instantiation pool"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_ADD_TO_POOL"
 children = 2
 comment  = "instantiation add to pool"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "SKOLEM_ADD_TO_POOL"
 children = 2
 comment  = "skolemization add to pool"
 # oracle formula generator is a pair (assumption generator, constraint generator)
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierAnnotationTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "ORACLE_FORMULA_GEN"
 children = 2
 comment  = "oracle interface"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierOracleFormulaGenTypeRule"
 
 [[kinds]]
-type = "sort"
+type         = "sort"
 name         = "INST_PATTERN_LIST_TYPE"
 cardinality  = "Cardinality::INTEGERS"
 well_founded = false
@@ -132,9 +122,8 @@ comment      = "the type of instantiation pattern lists"
 
 # a list of instantiation patterns
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "INST_PATTERN_LIST"
 children = "1:"
 comment  = "a list of instantiation patterns"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule"
+typerule = "::cvc5::internal::theory::quantifiers::QuantifierInstPatternListTypeRule"

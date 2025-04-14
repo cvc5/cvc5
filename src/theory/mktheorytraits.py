@@ -6,7 +6,7 @@ from datetime import date
 
 # Add the parent directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from expr.theoryvalidator import TheoryValidator
+from expr.theory_validator import TheoryValidator
 
 try:
     import tomllib

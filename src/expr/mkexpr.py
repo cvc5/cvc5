@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 from datetime import date
-from theoryvalidator import TheoryValidator
+from theory_validator import TheoryValidator
 
 try:
     import tomllib
@@ -80,7 +80,7 @@ class CodeGenerator:
 
             input_kind_type = input_kind["type"]
             input_typerule_name = input_kind["K1"] if input_kind_type == 'parameterized' else input_kind["name"]
-            input_typerule_type_checker_class = input_kind["typerule"]["type_checker_class"]
+            input_typerule_type_checker_class = input_kind["typerule"]
 
             self.typerules = f"""{self.typerules}
     case Kind::{input_typerule_name}:
@@ -104,7 +104,7 @@ class CodeGenerator:
 
             input_kind_type = input_kind["type"]
             input_const_rule_name = input_kind["K1"] if input_kind_type == 'parameterized' else input_kind["name"]
-            input_const_rule_checker_class = input_kind["construle"]["type_checker_class"]
+            input_const_rule_checker_class = input_kind["construle"]
 
             self.const_rules = f"""{self.const_rules}
     case Kind::{input_const_rule_name}:

@@ -1,7 +1,7 @@
 import argparse
 import sys
 import os
-from theoryvalidator import TheoryValidator
+from theory_validator import TheoryValidator
 
 try:
     import tomllib

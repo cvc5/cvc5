@@ -2,7 +2,6 @@ import os
 
 class TheoryValidator:
     def __init__(self):
-        self.seen_theory_builtin = False
         self.VALID_PROPERTIES = [
             "finite", 
             "stable-infinite", 
@@ -16,6 +15,7 @@ class TheoryValidator:
             "postsolve"
         ]
 
+        self.validated_theories = []
         self.src_directory = os.path.dirname(os.path.dirname(__file__))
     
     def validate_header(self, filename, header):
@@ -94,12 +94,6 @@ class TheoryValidator:
             self.validate_header(filename, cardinality["header"])
 
     def check_extra_fields(self, filename, kind, kind_type = "kind"):
-        if "typerule" in kind:
-            self.validate_typerule(filename, kind["typerule"])
-        
-        if "construle" in kind:
-            self.validate_construle(filename, kind["construle"])
-        
         if "cardinality" in kind and kind_type != "sort":
             self.validate_cardinality(filename, kind["cardinality"])
         
@@ -214,11 +208,9 @@ class TheoryValidator:
             print(f"{filename}: error: theory id not defined")
             exit(1)
         
-        if theory_id == 'THEORY_BUILTIN':
-            if self.seen_theory_builtin:
-                print(f"{filename}: error: \"builtin\" theory redefined")
-                exit(1)
-            self.seen_theory_builtin = True
+        if theory_id in self.validated_theories:
+            print(f"{filename}: error: \"{theory_id}\" theory redefined")
+            exit(1)
         
         if not theory_class or not theory_header or not typechecker_header:
             print(f"{filename}: error: \"theory\" directive missing class or header argument")
@@ -238,3 +230,5 @@ class TheoryValidator:
         kinds = input_theory["kinds"]
         for input_kind in kinds:
             self.validate_kind(filename, input_kind)
+        
+        self.validated_theories.append(theory_id)

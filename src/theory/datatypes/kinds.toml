@@ -17,7 +17,7 @@ header = "theory/datatypes/datatypes_rewriter.h"
 
 # constructor type has a list of selector types followed by a return type
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "CONSTRUCTOR_TYPE"
 children = "1:"
 comment  = "constructor"
@@ -27,7 +27,7 @@ header   = "theory/datatypes/theory_datatypes_type_rules.h"
 
 # selector type has domain type and a range type
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "SELECTOR_TYPE"
 children = 2
 comment  = "selector"
@@ -38,7 +38,7 @@ header   = "theory/uf/theory_uf_type_rules.h"
 
 # tester type has a constructor type
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "TESTER_TYPE"
 children = 1
 comment  = "tester"
@@ -49,7 +49,7 @@ header   = "theory/uf/theory_uf_type_rules.h"
 
 # tester type has a constructor type
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "UPDATER_TYPE"
 children = 2
 comment  = "datatype update"
@@ -59,42 +59,37 @@ computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality
 header   = "theory/uf/theory_uf_type_rules.h"
 
 [[kinds]]
-type = "parameterized"
-K1       = "APPLY_CONSTRUCTOR"
-K2       = "APPLY_TYPE_ASCRIPTION"
-children = "0:"
-comment  = "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
-[kinds.construle]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
+type      = "parameterized"
+K1        = "APPLY_CONSTRUCTOR"
+K2        = "APPLY_TYPE_ASCRIPTION"
+children  = "0:"
+comment   = "constructor application; first parameter is the constructor, remaining parameters (if any) are parameters to the constructor"
+typerule  = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
+construle = "::cvc5::internal::theory::datatypes::DatatypeConstructorTypeRule"
 
 [[kinds]]
-type = "parameterized"
+type     = "parameterized"
 K1       = "APPLY_SELECTOR"
 K2       = "SELECTOR_TYPE"
 children = 1
 comment  = "selector application; parameter is a datatype term (undefined if mis-applied)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeSelectorTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DatatypeSelectorTypeRule"
 
 [[kinds]]
-type = "parameterized"
+type     = "parameterized"
 K1       = "APPLY_TESTER"
 K2       = "TESTER_TYPE"
 children = 1
 comment  = "tester application; first parameter is a tester, second is a datatype term"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeTesterTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DatatypeTesterTypeRule"
 
 [[kinds]]
-type = "parameterized"
+type     = "parameterized"
 K1       = "APPLY_UPDATER"
 K2       = "UPDATER_TYPE"
 children = 2
 comment  = "datatype updater application; first parameter is an update, second is a datatype term to update, third is the value to update with"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeUpdateTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DatatypeUpdateTypeRule"
 
 [[kinds]]
 type = "variable"
@@ -111,7 +106,7 @@ class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "theory/datatypes/type_enumerator.h"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "PARAMETRIC_DATATYPE"
 children = "1:"
 comment  = "parametric datatype"
@@ -127,7 +122,7 @@ class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "theory/datatypes/type_enumerator.h"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "TUPLE_TYPE"
 children = "0:"
 comment  = "tuple type"
@@ -143,13 +138,12 @@ class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "expr/dtype.h"
 
 [[kinds]]
-type = "parameterized"
+type     = "parameterized"
 K1       = "APPLY_TYPE_ASCRIPTION"
 K2       = "ASCRIPTION_TYPE"
 children = 1
 comment  = "type ascription, for datatype constructor applications; first parameter is an ASCRIPTION_TYPE, second is the datatype constructor application being ascribed"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DatatypeAscriptionTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DatatypeAscriptionTypeRule"
 
 [[kinds]]
 type      = "constant"
@@ -159,49 +153,43 @@ cpp_type  = "AscriptionType"
 hasher    = "::cvc5::internal::AscriptionTypeHashFunction"
 header    = "expr/ascription_type.h"
 comment   = "a type parameter for type ascription; payload is an instance of the cvc5::internal::AscriptionType class"
-[kinds.typerule]
-type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
 
 # the remaining kinds are used only by the sygus extension
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "DT_SIZE"
 children = 1
 comment  = "datatypes size"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DtSizeTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DtSizeTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "DT_HEIGHT_BOUND"
 children = 2
 comment  = "datatypes height bound"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "DT_SIZE_BOUND"
 children = 2
 comment  = "datatypes height bound"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "DT_SYGUS_BOUND"
 children = 2
 comment  = "datatypes sygus bound"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DtBoundTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "DT_SYGUS_EVAL"
 children = "1:"
 comment  = "datatypes sygus evaluation function"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::DtSygusEvalTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::DtSygusEvalTypeRule"
 
 # Kinds for match terms. For example, the match term
 #   (match l (((cons h t) h) (nil 0))) 
@@ -214,28 +202,25 @@ type_checker_class = "::cvc5::internal::theory::datatypes::DtSygusEvalTypeRule"
 # patterns with no free variables use MATCH_CASE.
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "MATCH"
 children = "2:"
 comment  = "match construct"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::MatchTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::MatchTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "MATCH_CASE"
 children = 2
 comment  = "a match case"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::MatchCaseTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::MatchCaseTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "MATCH_BIND_CASE"
 children = 3
 comment  = "a match case with bound variables"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::MatchBindCaseTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::MatchBindCaseTypeRule"
 
 [[kinds]]
 type      = "constant"
@@ -245,17 +230,15 @@ cpp_type  = "ProjectOp+"
 hasher    = "::cvc5::internal::ProjectOpHashFunction"
 header    = "theory/datatypes/project_op.h"
 comment   = "operator for TUPLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
-[kinds.typerule]
-type_checker_class = "SimpleTypeRule<RBuiltinOperator>"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
 
 [[kinds]]
-type = "parameterized"
+type     = "parameterized"
 K1       = "TUPLE_PROJECT"
 K2       = "TUPLE_PROJECT_OP"
 children = 1
 comment  = "projects a tuple from an existing tuple using indices passed in TupleProjectOp"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::TupleProjectTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::TupleProjectTypeRule"
 
 # For representing codatatype values
 [[kinds]]
@@ -266,11 +249,10 @@ cpp_type  = "CodatatypeBoundVariable"
 hasher    = "::cvc5::internal::CodatatypeBoundVariableHashFunction"
 header    = "expr/codatatype_bound_variable.h"
 comment   = "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::internal::CodatatypeBoundVariable class (used in models)"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::CodatatypeBoundVariableTypeRule"
+typerule  = "::cvc5::internal::theory::datatypes::CodatatypeBoundVariableTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "NULLABLE_TYPE"
 children = "0:"
 comment  = "nullable type"
@@ -286,9 +268,8 @@ class  = "::cvc5::internal::theory::datatypes::DatatypesEnumerator"
 header = "expr/dtype.h"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "NULLABLE_LIFT"
 children = "1:"
 comment  = "application of lift operator; first parameter is the lift operator, remaining ones are its arguments"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::datatypes::NullableLiftTypeRule"
+typerule = "::cvc5::internal::theory::datatypes::NullableLiftTypeRule"

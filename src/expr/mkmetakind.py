@@ -2,7 +2,7 @@ import argparse
 import os
 import re
 import sys
-from theoryvalidator import TheoryValidator
+from theory_validator import TheoryValidator
 
 try:
     import tomllib

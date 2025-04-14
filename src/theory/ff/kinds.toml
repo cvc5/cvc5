@@ -16,7 +16,7 @@ class  = "::cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter"
 header = "theory/ff/theory_ff_rewriter.h"
 
 [[kinds]]
-type = "constant"
+type      = "constant"
 # Finite Fields
 name      = "FINITE_FIELD_TYPE"
 class_key = "struct"
@@ -43,38 +43,33 @@ cpp_type  = "FiniteFieldValue"
 hasher    = "::cvc5::internal::FiniteFieldValueHashFunction"
 header    = "util/finite_field_value.h"
 comment   = "a finite-field constant; payload is an instance of the cvc5::internal::FiniteFieldValue class"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::ff::FiniteFieldConstantTypeRule"
+typerule  = "::cvc5::internal::theory::ff::FiniteFieldConstantTypeRule"
 
 ## ffmetic kinds
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "FINITE_FIELD_MULT"
 children = "2:"
 comment  = "multiplication of two or more field elements"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
+typerule = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "FINITE_FIELD_NEG"
 children = 1
 comment  = "unary negation of a field element"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
+typerule = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "FINITE_FIELD_ADD"
 children = "2:"
 comment  = "addition of two or more field elements"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
+typerule = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
 
 [[kinds]]
-type = "operator"
+type     = "operator"
 name     = "FINITE_FIELD_BITSUM"
 children = "2:"
 comment  = "bitsum of field elements"
-[kinds.typerule]
-type_checker_class = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
+typerule = "::cvc5::internal::theory::ff::FiniteFieldFixedFieldTypeRule"
