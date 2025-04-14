@@ -126,12 +126,25 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
+TrustNode EagerProofGenerator::mkTrustNodeTrusted(Node conc,
+                                                  TrustId id,
+                                                  const std::vector<Node>& exp,
+                                                  const std::vector<Node>& args,
+                                                  bool isConflict)
+{
+  std::vector<Node> targs;
+  targs.push_back(mkTrustId(nodeManager(), id));
+  targs.push_back(isConflict ? conc.notNode() : conc);
+  targs.insert(targs.end(), args.begin(), args.end());
+  return mkTrustNode(conc, ProofRule::TRUST, exp, targs, isConflict);
+}
+
 TrustNode EagerProofGenerator::mkTrustNodeRewrite(const Node& a,
                                                   const Node& b,
                                                   ProofRewriteRule id)
 {
   std::vector<Node> args;
-  args.push_back(rewriter::mkRewriteRuleNode(id));
+  args.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   args.push_back(a.eqNode(b));
   return mkTrustedRewrite(a, b, ProofRule::THEORY_REWRITE, args);
 }

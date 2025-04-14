@@ -22,14 +22,9 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
+BoundVarManager::BoundVarManager() {}
 
 BoundVarManager::~BoundVarManager() {}
-
-void BoundVarManager::enableKeepCacheValues(bool isEnabled)
-{
-  d_keepCacheVals = isEnabled;
-}
 
 void BoundVarManager::setNameAttr(Node v, const std::string& name)
 {
@@ -47,17 +42,43 @@ Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, TNode cv3)
 
 Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, size_t i)
 {
-  return NodeManager::mkNode(Kind::SEXPR, cv1, cv2, getCacheValue(i));
+  NodeManager* nm = cv1.getNodeManager();
+  return NodeManager::mkNode(Kind::SEXPR, cv1, cv2, getCacheValue(nm, i));
 }
 
-Node BoundVarManager::getCacheValue(size_t i)
+Node BoundVarManager::getCacheValue(NodeManager* nm, size_t i)
 {
-  return NodeManager::currentNM()->mkConstInt(Rational(i));
+  return nm->mkConstInt(Rational(i));
 }
 
 Node BoundVarManager::getCacheValue(TNode cv, size_t i)
 {
-  return getCacheValue(cv, getCacheValue(i));
+  NodeManager* nm = cv.getNodeManager();
+  return getCacheValue(cv, getCacheValue(nm, i));
+}
+
+Node BoundVarManager::mkBoundVar(BoundVarId id, Node n, TypeNode tn)
+{
+  std::tuple<BoundVarId, TypeNode, Node> key(id, tn, n);
+  std::map<std::tuple<BoundVarId, TypeNode, Node>, Node>::iterator it =
+      d_cache.find(key);
+  if (it != d_cache.end())
+  {
+    return it->second;
+  }
+  Node v = NodeManager::mkBoundVar(tn);
+  d_cache[key] = v;
+  return v;
+}
+
+Node BoundVarManager::mkBoundVar(BoundVarId id,
+                                 Node n,
+                                 const std::string& name,
+                                 TypeNode tn)
+{
+  Node v = mkBoundVar(id, n, tn);
+  setNameAttr(v, name);
+  return v;
 }
 
 }  // namespace cvc5::internal

@@ -42,7 +42,7 @@ void HoTermDb::addTermInternal(Node n)
     // nothing special to do with functions
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node curr = n;
   std::vector<Node> args;
   while (curr.getKind() == Kind::HO_APPLY)
@@ -177,7 +177,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 
 Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
   return sm->mkInternalSkolemFunction(InternalSkolemId::HO_TYPE_MATCH_PRED,

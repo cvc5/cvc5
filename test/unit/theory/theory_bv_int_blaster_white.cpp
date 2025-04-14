@@ -173,7 +173,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(result.getType().isInteger());
 
   // bv2nat
-  original = d_nodeManager->mkNode(Kind::BITVECTOR_TO_NAT, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UBV_TO_INT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 

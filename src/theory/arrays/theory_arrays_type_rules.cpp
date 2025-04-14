@@ -272,7 +272,7 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
   Node elem = NodeManager::mkGroundTerm(elemType);
   if (elem.isConst())
   {
-    return NodeManager::currentNM()->mkConst(ArrayStoreAll(type, elem));
+    return type.getNodeManager()->mkConst(ArrayStoreAll(type, elem));
   }
   // Note the distinction between mkGroundTerm and mkGroundValue. While
   // an arbitrary value can be obtained by calling the type enumerator here,

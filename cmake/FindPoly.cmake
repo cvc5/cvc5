@@ -168,14 +168,7 @@ if(NOT Poly_FOUND_SYSTEM)
       sed -i.orig
       "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
       <SOURCE_DIR>/CMakeLists.txt
-    COMMAND
-      # LibPoly declares a variable `enabled_count` whose value is only written
-      # and never read. Newer versions of Clang throw a warning for this, which
-      # aborts the compilation when -Wall is enabled.
-      sed -i.orig
-      "/enabled_count/d"
-      <SOURCE_DIR>/src/upolynomial/factorization.c
-      ${POLY_PATCH_CMD}
+    ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -185,6 +178,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
+               -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}

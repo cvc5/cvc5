@@ -1,5 +1,9 @@
 (include "../programs/BitVectors.eo")
 
+(include "../programs/PolyNorm.eo")
+(include "../programs/Bitblasting.eo")
+
+
 ;;;;; ProofRewriteRule::BV_REPEAT_ELIM
 
 ; rule: bv-repeat-elim
@@ -12,6 +16,120 @@
   :args ((= (repeat n a) b))
   :requires ((($singleton_elim ($bv_unfold_repeat n a)) b))
   :conclusion (= (repeat n a) b)
+)
+
+;;;;; ProofRewriteRule::BV_SMULO_ELIM
+
+; define: $bv_smulo_elim
+; args:
+; - xa (BitVec n): An xor term involving the first argument to bvsmulo
+; - xb (BitVec n): An xor term involving the second argument to bvsmulo
+; - ppc (BitVec 1): An intermediate bitvector term accumulated to help construct the result.
+; - res (BitVec 1): The current accumulated result.
+; - i Int: The current bit we are processing.
+; - nm2 Int: The bitwidth of a and b minus 2.
+; return: >
+;   A portion of the result of eliminating (bvsmulo a b).
+(program $bv_smulo_elim_rec ((n Int) (xa (BitVec n)) (xb (BitVec n))
+                             (ppc (BitVec 1)) (res (BitVec 1)) (i Int) (nm2 Int))
+  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  (
+  (($bv_smulo_elim_rec xa xb ppc res nm2 nm2)   res)
+  (($bv_smulo_elim_rec xa xb ppc res i nm2)
+      (eo::define ((ia (eo::add nm2 (eo::neg i))))
+      (eo::define ((ip1 (eo::add i 1)))
+      (eo::define ((ppcn (bvor ppc (extract ia ia xa))))
+        ($bv_smulo_elim_rec xa xb ppcn (bvor res (bvand (extract ip1 ip1 xb) ppcn)) ip1 nm2)))))
+  )
+)
+
+; define: $bv_smulo_elim
+; args:
+; - a (BitVec n): The first argument to bvsmulo
+; - b (BitVec n): The second argument to bvsmulo
+; return: >
+;   The result of eliminating (bvsmulo a b).
+(define $bv_smulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
+  (eo::define ((w ($bv_bitwidth (eo::typeof a))))
+  (eo::define ((wm1 (eo::add w -1)))
+  (eo::define ((one (eo::to_bin 1 1)))
+  (eo::ite (eo::is_eq w 1)
+    (= (bvand a b) one)
+    (eo::define ((mul (bvmul (sign_extend 1 a) (sign_extend 1 b))))
+    (eo::ite (eo::is_eq w 2)
+      (= (bvxor (extract w w mul) (extract wm1 wm1 mul)) one)
+      (eo::define ((xa (bvxor a (sign_extend wm1 (extract wm1 wm1 a)))))
+      (eo::define ((xb (bvxor b (sign_extend wm1 (extract wm1 wm1 b)))))
+      (eo::define ((wm2 (eo::add w -2)))
+      (eo::define ((ppc (extract wm2 wm2 xa)))
+      (eo::define ((res ($bv_smulo_elim_rec xa xb ppc (bvand (extract 1 1 xb) ppc) 1 wm2)))
+        (= (bvor res (bvxor (extract w w mul) (extract wm1 wm1 mul))) one))))))))))))
+)
+
+; rule: bv-smulo-elim
+; implements: ProofRewriteRule::BV_SMULO_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: c is the result of eliminating the left hand side.
+; conclusion: the given equality.
+(declare-rule bv-smulo-elim ((n Int) (a (BitVec n)) (b (BitVec n)) (c Bool))
+  :args ((= (bvsmulo a b) c))
+  :requires ((($bv_smulo_elim a b) c))
+  :conclusion (= (bvsmulo a b) c)
+)
+
+;;;;; ProofRewriteRule::BV_UMULO_ELIM
+
+; define: $bv_umulo_elim_rec
+; args:
+; - xa (BitVec n): An xor term involving the first argument to bvumulo
+; - xb (BitVec n): An xor term involving the second argument to bvumulo
+; - ppc (BitVec 1): An intermediate bitvector term accumulated to help construct the result.
+; - res (BitVec 1): The current accumulated result.
+; - i Int: The current bit we are processing.
+; - nm2 Int: The bitwidth of a and b minus 2.
+; return: >
+;   A portion of the result of eliminating (bvsmulo a b).
+(program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
+                             (uppc (BitVec 1)) (res (BitVec 1)) (i Int))
+  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  (
+  (($bv_umulo_elim_rec a b uppc res n n)   res)
+  (($bv_umulo_elim_rec a b uppc res i n)
+      (eo::define ((ia (eo::add n -1 (eo::neg i))))
+      (eo::define ((ip1 (eo::add i 1)))
+      (eo::define ((uppcn (bvor (extract ia ia a) uppc)))
+        (eo::cons bvor (bvand (extract i i b) uppc) ($bv_umulo_elim_rec a b uppcn res ip1 n))))))
+  )
+)
+
+; define: $bv_umulo_elim
+; args:
+; - a (BitVec n): The first argument to bvumulo
+; - b (BitVec n): The second argument to bvumulo
+; return: >
+;   The result of eliminating (bvumulo a b).
+(define $bv_umulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
+  (eo::define ((w ($bv_bitwidth (eo::typeof a))))
+  (eo::ite (eo::is_eq w 1)
+    false
+    (eo::define ((wm1 (eo::add w -1)))
+    (eo::define ((zero (eo::to_bin 1 0)))
+    (eo::define ((uppc (extract wm1 wm1 a)))
+    (eo::define ((mul (bvmul (concat zero a) (concat zero b))))
+    (eo::define ((res ($bv_umulo_elim_rec a b uppc (bvor (extract w w mul)) 1 w)))
+      (= res (eo::to_bin 1 1))))))))))
+
+; rule: bv-umulo-elim
+; implements: ProofRewriteRule::BV_UMULO_ELIM
+; args:
+; - eq Bool: The equality to prove with this rule.
+; requires: c is the result of eliminating the left hand side.
+; conclusion: the given equality.
+(declare-rule bv-umulo-elim ((n Int) (a (BitVec n)) (b (BitVec n)) (c Bool))
+  :args ((= (bvumulo a b) c))
+  :requires ((($bv_umulo_elim a b) c))
+  :conclusion (= (bvumulo a b) c)
 )
 
 ;;;;; ProofRewriteRule::BV_BITWISE_SLICING
@@ -79,7 +197,7 @@
                     c
                     (eo::define ((nil (eo::nil f a1 a2)))
                       ($singleton_elim ($nary_diff f nil a (eo::cons f c nil))))  ; remove the constant and recollect
-                    ($bv_const_to_bitlist c)               ; convert the constant to a bitlist
+                    ($nary_reverse ($bv_mk_bitblast_step_const c))                ; convert the constant to a bitlist
                     ($bv_bit_set c wm1) wm1 wm1)))))))
     )
   )
@@ -100,94 +218,6 @@
 
 ;;;;; ProofRule::BV_BITBLAST_STEP
 
-; program: $bv_mk_bitblast_step_eq
-; args:
-; - x T: The left hand side of the equality.
-; - y T: The right hand side of the equality.
-; return: the bitblasted term for (= x y).
-(program $bv_mk_bitblast_step_eq ((T Type) (W Type) (b1 Bool) (b2 Bool) (a1 W :list) (a2 W :list))
-  (T T) Bool
-  (
-  (($bv_mk_bitblast_step_eq @bv_empty @bv_empty)                      true)
-  (($bv_mk_bitblast_step_eq (@from_bools b1 a1) (@from_bools b2 a2))  (eo::cons and (= b1 b2) ($bv_mk_bitblast_step_eq a1 a2)))
-  )
-)
-
-; define: $bv_mk_bitblast_step_extract
-; args:
-; - u Int: The upper index of the extract.
-; - l Int: The lower index of the extract.
-; - a (BitVec n): The argument of the extract.
-; return: the bitblasted term for (extract u l a).
-(define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
-  ($nary_subsequence @from_bools @bv_empty l u a))
-
-; program: $bv_mk_bitblast_step_concat_rec
-; args:
-; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
-; return: >
-;   The bitblasted term for concatenation term a, reversed. We require reversing
-;   the concatenation term to this method to match the bitblasted form that is
-;   generated.
-(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
-  ((BitVec n)) (BitVec n)
-  (
-  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
-  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (eo::list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
-  )
-)
-
-; define: $bv_mk_bitblast_step_concat
-; args:
-; - a (BitVec n): The bitvector concatenation term to process.
-; return: the bitblasted term for concatenation term a.
-(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
-  ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
-
-; define: $bv_mk_bitblast_step_const
-; args:
-; - a (BitVec n): The bitvector constant to bitblast.
-; return: the bitblasted term for a, which is its reverse bitlist.
-(define $bv_mk_bitblast_step_const ((n Int :implicit) (a (BitVec n)))
-  ($nary_reverse ($bv_const_to_bitlist a)))
-
-; program: $bv_mk_bitblast_step_var_rec
-; args:
-; - a (BitVec n): The bitvector variable to bitblast.
-; - i Int: The index of the bit we are currently processing.
-; return: the bitblasted term for variable a.
-(program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
-  ((BitVec n) Int) (BitVec n)
-  (
-    (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
-    (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
-  )
-)
-
-; define: $bv_mk_bitblast_step_var
-; args:
-; - a (BitVec n): The bitvector variable to bitblast.
-; return: the bitblasted term for variable a.
-(define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
-  ($nary_reverse ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
-
-; define: $bv_mk_bitblast_step
-; args:
-; - a T: The bitvector term or predicate to bitblast.
-; return: the bitblasted term for a.
-(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
-  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list))
-  a
-  (
-  ((= a1 a2)        ($singleton_elim ($bv_mk_bitblast_step_eq a1 a2)))
-  ((extract u l a1) ($bv_mk_bitblast_step_extract u l a1))
-  ((concat a1 a3)   ($bv_mk_bitblast_step_concat a))
-  (a1               (eo::ite (eo::is_bin a)
-                      ($bv_mk_bitblast_step_const a)
-                      ($bv_mk_bitblast_step_var a)))    ; otherwise assume a variable
-  ))
-)
-
 ; rule: bv_bitblast_step
 ; implements: ProofRule::BV_BITBLAST_STEP.
 ; args:
@@ -206,3 +236,41 @@
   :conclusion (= a b)
 )
 
+;;;;; ProofRule::BV_POLY_NORM
+
+; rule: bv_poly_norm
+; implements: ProofRule::BV_POLY_NORM
+; args:
+; - a (BitVec n): The left-hand side of the equality.
+; - b (BitVec n): The right-hand side of the equality.
+; requires: >
+;   That the bitvector terms a and b are equal up to polynomial normalization.
+; conclusion: The given equality.
+(declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
+  :args ((= a b))
+  :requires (((eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof a)))))
+                (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
+  :conclusion (= a b)
+)
+
+;;;;; ProofRule::BV_POLY_NORM_EQ
+
+; rule: bv_poly_norm_eq
+; implements: ProofRule::BV_POLY_NORM_EQ
+; premises:
+; - eq Bool: >
+;   An equality stating that terms t and s of the form (bvmul cx (bvsub x1 x2))
+;   and (bvmul cy (bvsub y1 y2)) are equal.
+; args:
+; - eqr Bool: The equivalence between equalities, proven by this rule.
+; requires: >
+;   The constants cx and cy are odd.
+; conclusion: >
+;   An equivalence between equalities specified by eqr and justified by eq.
+(declare-rule bv_poly_norm_eq ((n Int) (cx (BitVec n)) (xb1 (BitVec n)) (xb2 (BitVec n))
+                               (cy (BitVec n)) (yb1 (BitVec n)) (yb2 (BitVec n)) (one (BitVec n) :list))
+  :premises ((= (bvmul cx (bvsub xb1 xb2) one) (bvmul cy (bvsub yb1 yb2) one)))
+  :args ((= (= xb1 xb2) (= yb1 yb2)))
+  :requires (((eo::to_z one) 1) ((eo::zmod (eo::to_z cx) 2) 1) ((eo::zmod (eo::to_z cy) 2) 1))
+  :conclusion (= (= xb1 xb2) (= yb1 yb2))
+)

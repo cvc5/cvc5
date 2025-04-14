@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-RegExpEntail::RegExpEntail(NodeManager* nm, Rewriter* r) : d_aent(r)
+RegExpEntail::RegExpEntail(NodeManager* nm, Rewriter* r) : d_aent(nm, r)
 {
   d_zero = nm->mkConstInt(Rational(0));
   d_one = nm->mkConstInt(Rational(1));
@@ -405,11 +405,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
           return false;
         }
       }
-      else if (ck == Kind::ITE)
-      {
-        return false;
-      }
-      else if (cur.isVar())
+      else if (!utils::isRegExpKind(ck))
       {
         return false;
       }
@@ -603,7 +599,7 @@ bool RegExpEntail::testConstStringInRegExpInternal(String& s,
     }
     case Kind::REGEXP_LOOP:
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = r.getNodeManager();
       uint32_t l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
       if (s.size() == index_start)
       {
@@ -703,7 +699,7 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
 
 Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Kind k = n.getKind();
   if (k == Kind::STRING_TO_REGEXP)
   {
@@ -761,7 +757,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     return ret;
   }
   Kind k = n.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (k == Kind::STRING_TO_REGEXP)
   {
     ret = d_aent.getConstantBoundLength(n[0], isLower);
@@ -928,7 +924,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
   }
   // avoid infinite loop
   cache[key] = false;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = r1.getNodeManager();
   Node sigma = nm->mkNode(Kind::REGEXP_ALLCHAR, std::vector<Node>{});
   Node sigmaStar = nm->mkNode(Kind::REGEXP_STAR, sigma);
 
@@ -1010,6 +1006,54 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
   std::map<std::pair<Node, Node>, bool> cache;
   return regExpIncludes(r1, r2, cache);
+}
+
+Node RegExpEntail::getGeneralizedConstRegExp(const Node& n)
+{
+  Assert(n.getType().isString());
+  NodeManager* nm = n.getNodeManager();
+  std::vector<Node> ncs;
+  if (n.getKind() == Kind::STRING_CONCAT)
+  {
+    ncs.insert(ncs.end(), n.begin(), n.end());
+  }
+  else
+  {
+    ncs.push_back(n);
+  }
+  bool nonTrivial = false;
+  Node sigmaStar =
+      nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
+  std::vector<Node> rs;
+  for (const Node& nc : ncs)
+  {
+    Node re = sigmaStar;
+    if (nc.isConst())
+    {
+      nonTrivial = true;
+      re = nm->mkNode(Kind::STRING_TO_REGEXP, nc);
+    }
+    else if (nc.getKind() == Kind::STRING_ITOS)
+    {
+      nonTrivial = true;
+      Node digRange = nm->mkNode(Kind::REGEXP_RANGE,
+                                 nm->mkConst(String("0")),
+                                 nm->mkConst(String("9")));
+      re = nm->mkNode(Kind::REGEXP_STAR, digRange);
+      // maybe non-empty digit range?
+      // relies on RARE rule str-in-re-from-int-dig-range to prove
+      if (d_aent.check(nc[0]))
+      {
+        re = nm->mkNode(Kind::REGEXP_CONCAT, digRange, re);
+      }
+    }
+    rs.push_back(re);
+  }
+  if (nonTrivial)
+  {
+    return rs.size() == 1 ? rs[0] : nm->mkNode(Kind::REGEXP_CONCAT, rs);
+  }
+  return Node::null();
 }
 
 struct RegExpEntailConstantBoundLowerId

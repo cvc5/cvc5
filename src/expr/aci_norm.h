@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definition of ProofRule::ACI_NORM
+ * Definition of ProofRule::ACI_NORM and ProofRule::ABSORB.
  */
 
 #include "cvc5_private.h"
@@ -35,7 +35,7 @@ namespace expr {
  *   (as seq.empty (Seq Int)) for (STRING_CONCAT, (Seq Int)
  *   #x0 for (BITVECTOR_OR, (_ BitVec 4))
  */
-Node getNullTerminator(Kind k, TypeNode tn);
+Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn);
 
 /**
  * @param k A kind
@@ -65,6 +65,33 @@ Node getACINormalForm(Node a);
  * @return true if a and b were successfully shown to be equal.
  */
 bool isACINorm(Node a, Node b);
+
+/**
+ * Return true if a and zero can be shown equivalent by finding zero
+ * as a subterm of a, where a is expected to be an application
+ * of a function with a zero element. We return true if the zero
+ * element is found beneath (possibly nested) applications of the
+ * function symbol of a. For example, this method returns true for:
+ *   (and (and A false) B), false
+ *   (re.union R1 (re.union re.all R2)), re.all
+ *   (bvor #b1 x), #b1
+ *
+ * @param a The term
+ * @param b The zero element of the function symbol of a.
+ * @return true if a and b were successfully shown to be equal.
+ */
+bool isAbsorb(Node a, const Node& zero);
+
+/**
+ * Get the zero element for kind k and type node tn.
+ *
+ * Examples of zero elements:
+ *   true for (OR, bool)
+ *   false for (AND, bool)
+ *   #x1 for (BITVECTOR_OR, (_ BitVec 4))
+ *   re.all for (REGEXP_UNION, RegLan)
+ */
+Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn);
 
 }  // namespace expr
 }  // namespace cvc5::internal

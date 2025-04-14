@@ -141,6 +141,12 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     // always use model values at full effort
     return Node::null();
   }
+  return processAssertionInternal(ci, lit);
+}
+
+Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
+{
+  NodeManager* nm = lit.getNodeManager();
   Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool pol = lit.getKind() != Kind::NOT;
   Kind k = atom.getKind();
@@ -218,7 +224,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     }
     else
     {
-      Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
+      Node bv_one = bv::utils::mkOne(nm, bv::utils::getSize(s));
       ret = NodeManager::mkNode(Kind::BITVECTOR_ADD, s, bv_one).eqNode(t);
     }
   }
@@ -464,7 +470,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       {
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+          ret = nodeManager()->mkNode(cur.getKind(), children);
         }
         else
         {
@@ -528,6 +534,9 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
     } while (!trace_visit.empty());
   }
+  // process again, to ensure the policy for cegqiBvIneqMode is handled after
+  // rewriting above.
+  result = processAssertionInternal(ci, result);
 
   return result;
 }
@@ -551,10 +560,12 @@ Node BvInstantiator::rewriteTermForSolvePv(
         || (rhs == pv && lhs.getKind() == Kind::BITVECTOR_MULT && lhs[0] == pv
             && lhs[1] == pv))
     {
+      NodeManager* nm = nodeManager();
       return NodeManager::mkNode(
           Kind::BITVECTOR_ULT,
           pv,
-          bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
+          bv::utils::mkConst(nm,
+                             BitVector(bv::utils::getSize(pv), Integer(2))));
     }
 
     if (options().quantifiers.cegqiBvLinearize && contains_pv[lhs]
@@ -644,7 +655,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (d_opts.quantifiers.cegqiBvRmExtract)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = lem.getNodeManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;
