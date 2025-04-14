@@ -169,7 +169,7 @@ typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
 type     = "operator"
 name     = "BAG_SOME"
 children = 2
-comment  = "bag all operator"
+comment  = "bag some operator"
 typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
 
 # bag.fold operator combines elements of a bag into a single value.
