@@ -281,14 +281,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
         && opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
-      if (options().prop.satSolver == options::SatSolverMode::MINISAT)
-      {
-        // if full proofs are available in minisat, use them for unsat cores
-        SET_AND_NOTIFY(smt,
-                       unsatCoresMode,
-                       options::UnsatCoresMode::SAT_PROOF,
-                       "enabling proofs, minisat");
-      }
+      // if full proofs are available, use them for unsat cores
+      SET_AND_NOTIFY(smt,
+                     unsatCoresMode,
+                     options::UnsatCoresMode::SAT_PROOF,
+                     "enabling proofs");
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
