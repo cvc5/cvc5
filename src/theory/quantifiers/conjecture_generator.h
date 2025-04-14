@@ -619,6 +619,140 @@ public:
    * This function just calls d_thm_index.debugPrint().
    */
   void debugPrintTheoremIndex();
+  /* print pattern-type index
+   */
+  void debugPrintPatternTypIndex();
+  /* generate conjectures
+   *
+   * This function synthesizes candidate equality conjectures, removes "bad"
+   * candidates, and submits the remainder to the inference manager.  For each
+   * value d of generalization depth from 1 up to maxDepth (determined by a
+   * command line option with default value 3), we synthesize a canonical[1]
+   * left-hand term of (generalization) depth exactly d subject to a filter[2].
+   * We then use the synthesized term as a pattern and employ e-matching to
+   * compute a number of substitutions from the free variables in the pattern to
+   * irrelevant terms.  We repeat the process till all possible left-hand terms
+   * with depth d are exhausted.  Next, for each value d' of generalization
+   * depth between 1 and d (inclusive) we synthesize a canonical right-hand term
+   * of depth d' using the same free variables as the left-hand terms.  The
+   * right-hand term is also run through a filter[2].  If d' < d, we process
+   * conjectures l = r where l is any synthesized left-hand term of depth
+   * exactly d and r is the just-synthesized right-hand term.  On the other hand
+   * if d' = d, we store r for later.  We repeat till all possible right-hand
+   * terms of depth d' are exhausted.  We then process conjectures l = r where l
+   * is any synthesized term of depth up to and including d and r is any term of
+   * depth exactly d.  Each processed conjecture is put through more checks.  It
+   * is rejected if
+   * - it has already been sent to the inference manager[3], or
+   * - it is already waiting to be sent to the inference manager[3], or
+   * - it is falsified by one of the aforementioned substitutions that maps free
+   * variables to irrelevant terms[3], or
+   * - it is non-canonical[4], or
+   * - its "score" is below a threshold[4].
+   *
+   * [1]: See ConjectureGenerator::considerTermCanon()
+   * [2]: See TermGenEnv::considerCurrentTerm()
+   * [3]: See ConjectureGenerator::considerCandidateConjecture()
+   * [4]: See ConjectureGenerator::flushWaitingConjectures()
+   *
+   * ---------------------------------------------------------------------------
+   *
+   * This function uses a number of variables.  Here's a short description for
+   * each.
+   *
+   * rel_term_count.  For a particular value of *depth*, the "relevant term
+   * count" is the number of canonical left-hand terms generated at that depth.
+   *
+   * rt_var_max.  "Right variable maximum" is a map from types to natural
+   * numbers.  Given a type t, rt_var_max[t] is the largest index among all
+   * canonical variables of type t that appear free in any left-hand term
+   * synthesized so far.  For example, if rt_var_max[t] is 3 then the only free
+   * variables of type t in the left-hand terms synthesized so far must be {t0,
+   * t1, t2, t3}.  When we generate right-hand terms of less or same depth, we
+   * run the lines
+   *
+   *     d_tge.d_var_id[t] = rt_var_max[t];
+   *     d_tge.d_var_limit[t] = rt_var_max[t];
+   *
+   * for each type t to ensure that the right-hand terms draw from the same pool
+   * of free variables.
+   *
+   * rt_types.  "Right types" stores the types of all the left-hand terms
+   * synthesizesd so far by the term generator.  Since we want to build equality
+   * conjectures, we only synthesize right-hand of types from rt_types.
+   *
+   * nn.  The most recently synthesized left-hand term.
+   *
+   * tnn.  The type of nn.
+   *
+   * conj_lhs.  conj_lhs[t][n] is the list of left-hand terms synthesized so far
+   * with type t and generalization depth n.
+   *
+   * addedLemmas.  The number of lemmas sent to the instantiation manager.
+   *
+   * maxDepth.  Gets it value from options().quantifiers.conjectureGenMaxDepth.
+   * We do not synthesize left-hand terms with generalization depth maxDepth.
+   *
+   * gsubs_vars.  Our description of generateConjectures() mentions that for
+   * each synthesized left-hand term we compute substitutions from the free
+   * variables in the term to irrelevant terms.  gsubs_vars lists the free
+   * variables in the most recently synthesized left-hand term and is the domain
+   * of such a substitution. Suppose d_tge.d_var_id has the form [(t_0, n_0),
+   * (t_1, n_1), ..., (t_k, n_k)].  Then the first n_0 elements of gsubs_vars
+   * are the first n_0 canonical variables of type t_0, the next n_1 elements of
+   * gsubs_vars are the first n_1 canonical variables of type t_1, and more
+   * generally the n_i elements of gsubs_vars from indices n_0 + ... + n_(i-1)
+   * to n_0 + ... + n_i - 1 are the first n_i canonical variables of type t_i,
+   * assuming 0 <= i <= k.
+   *
+   * d_rel_pattern_var_sum.  For any synthesized left-hand term t,
+   * d_rel_pattern_var_sum[t] equals the length of t's gsubs_vars.
+   *
+   * typ_to_subs_index.  Let d_tge.d_var_id have the form [(t_1, n_1), ...,
+   * (t_k, n_k)] where all t_i's are distinct and all n_i's are non-negative.
+   * Let lhs denote the most recently generated canonical term.
+   * d_rel_pattern_var_sum[lhs] is set to n_1 + ... + n_k.
+   * typ_to_subs_index[t_i] is set to n_1 + ... + n_(i-1) for 1 <= i <= k.  For
+   * i < k, the elements of gsubs_vars from index typ_to_subs_index[t_i] up to
+   * but not including typ_to_subs_index[t_(i+1)] are the first n_i canonical
+   * variables of type t_i.  The elements of gsubs_vars from index
+   * typ_to_subs_index[t_k] up to but not including d_rel_pattern_var_sum[lhs]
+   * are the first n_k canonical variables of type t_k.
+   *
+   * gsubs_terms.  Where gsubs_vars is the domain of a substitution from free
+   * variables to irrelevant terms, gsubs_terms is the substitution's range.
+   * For each i from 0 up to but not including d_rel_pattern_var_sum[nn], the
+   * variable gsubs_vars[i] maps to the irrelevant term gsubs_terms[i].
+   *
+   * d_rel_pattern_typ_index.  This index stores synthesized left-hand terms
+   * based on the type and count of its free variables.  All terms with exactly
+   * 1 free variable of type t_1 and 2 free variables of type t_2 are stored in
+   * the same node in this index.  Since all the terms we add to this index are
+   * canonical, we are guaranteed that if a term uses n variables of type t_i
+   * then these variables are exactly the first n canonical variables of t_i.
+   * An example is:
+   *
+   *     null, 0 -> []
+   *       Nat, 0 -> []
+   *         Lst, 1 -> [(last L0), (append L0 nil)]
+   *         Lst, 2 -> [(append L0 L1),
+   *                    (cons (last L0) L1),
+   *                    (last (append L0 L1))]
+   *         Lst, 3 -> [(append L0 (append L1 L2)),
+   *                    (append (append L0 L1) L2)]
+   *       Nat, 1 -> []
+   *         Lst, 0 -> [(cons N0 nil)]
+   *         Lst, 1 -> [(cons N0 L0), (last (cons N0 L0))]
+   *         Lst, 2 -> [(cons N0 (append L0 L1)), (append (cons N0 L0) L1)]
+   *
+   * *Note.*  d_rel_pattern_typ_index is never actually used.
+   *
+   * conj_rhs.  Suppose we have just synthesized left-hand terms of
+   * generalization depth d and are synthesizing right-hand terms of depth d' <=
+   * d.  Synthesized right-hand terms of type t and depth exactly d (i.e. when
+   * d' = d) are stored in conj_rhs[t].
+   */
+  void generateConjectures();
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
