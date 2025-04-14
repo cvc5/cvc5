@@ -289,15 +289,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
                        options::UnsatCoresMode::SAT_PROOF,
                        "enabling proofs, minisat");
       }
-      else if (options().prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // unsat cores available by assumptions by default if proofs are enabled
-        // with CaDiCaL.
-        SET_AND_NOTIFY(smt,
-                       unsatCoresMode,
-                       options::UnsatCoresMode::ASSUMPTIONS,
-                       "enabling proofs, non-minisat");
-      }
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
