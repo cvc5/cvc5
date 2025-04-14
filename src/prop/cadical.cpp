@@ -1411,7 +1411,7 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
   if (res == SAT_VALUE_FALSE && d_proof_tracer != nullptr)
   {
     std::vector<SatClause> unsat_core;
-    getUnsatCore(unsat_core, true);
+    d_proof_tracer->compute_unsat_core(unsat_core, true);
 
     std::unique_ptr<CaDiCaL::Solver> solver(new CaDiCaL::Solver());
     for (const auto& clause : unsat_core)
@@ -1513,15 +1513,6 @@ void CadicalSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
     {
       assumptions.push_back(lit);
     }
-  }
-}
-
-void CadicalSolver::getUnsatCore(std::vector<SatClause>& unsat_core,
-                                 bool includeTheoryLemmas)
-{
-  if (d_proof_tracer != nullptr)
-  {
-    d_proof_tracer->compute_unsat_core(unsat_core, includeTheoryLemmas);
   }
 }
 
@@ -1639,6 +1630,35 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
+  if (d_proof_tracer)
+  {
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
+    NodeManager* nm = d_env.getNodeManager();
+
+    std::vector<SatClause> unsat_core;
+    d_proof_tracer->compute_unsat_core(unsat_core);
+
+    std::vector<std::shared_ptr<ProofNode>> ps;
+    for (const auto& sat_clause : unsat_core)
+    {
+      NodeBuilder nb(nm, Kind::OR);
+      std::vector<Node> lits;
+      for (const auto& lit : sat_clause)
+      {
+        lits.push_back(d_proxy->getNode(lit));
+      }
+      // Sat clause is sorted by literal id. Ensure that node-level clause is
+      // sorted by node ids.
+      std::sort(lits.begin(), lits.end());
+      for (const auto& lit : lits)
+      {
+        nb << lit;
+      }
+      Node n = nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
+      ps.push_back(pnm->mkAssume(n));
+    }
+    return pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+  }
   // NOTE: we could return a DRAT_REFUTATION or LRAT_REFUTATION proof node
   // consisting of a single step, referencing the files for the DIMACS + proof.
   // do not throw an exception, since we test whether the proof is available
