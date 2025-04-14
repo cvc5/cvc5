@@ -2427,6 +2427,7 @@ set(regress_1_tests
   regress1/arith/issue4985b-model-success.smt2
   regress1/arith/issue6774-sanity-int-model.smt2
   regress1/arith/issue7252-arith-sanity.smt2
+  regress1/arith/issue9126-nb-alloc.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
