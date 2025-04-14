@@ -1,3 +1,5 @@
+; COMMAND-LINE: --arrays-exp
+; EXPECT: sat
 (set-option :check-models true)
 (set-option :check-unsat-cores true)
 (set-logic QF_ALIA)

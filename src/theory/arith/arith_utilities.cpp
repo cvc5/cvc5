@@ -102,10 +102,7 @@ Kind transKinds(Kind k1, Kind k2)
   return Kind::UNDEFINED_KIND;
 }
 
-Node mkZero(const TypeNode& tn)
-{
-  return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
-}
+Node mkZero(const TypeNode& tn) { return NodeManager::mkConstRealOrInt(tn, 0); }
 
 bool isZero(const Node& n)
 {
@@ -115,7 +112,7 @@ bool isZero(const Node& n)
 
 Node mkOne(const TypeNode& tn, bool isNeg)
 {
-  return NodeManager::currentNM()->mkConstRealOrInt(tn, isNeg ? -1 : 1);
+  return NodeManager::mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
 bool isTranscendentalKind(Kind k)
@@ -180,7 +177,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 
   // now do binary search
   Rational two = Rational(2);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = c.getNodeManager();
   Node cret;
   do
   {
@@ -282,7 +279,7 @@ Node multConstants(const Node& c1, const Node& c2)
 {
   Assert(!c1.isNull() && c1.isConst());
   Assert(!c2.isNull() && c2.isConst());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = c1.getNodeManager();
   // real type if either has type real
   TypeNode tn = c1.getType();
   if (tn.isInteger())
@@ -335,9 +332,9 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
 Node eliminateBv2Nat(TNode node)
 {
   const unsigned size = bv::utils::getSize(node[0]);
-  NodeManager* const nm = NodeManager::currentNM();
+  NodeManager* const nm = node.getNodeManager();
   const Node z = nm->mkConstInt(Rational(0));
-  const Node bvone = bv::utils::mkOne(1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   Integer i = 1;
   std::vector<Node> children;
@@ -357,9 +354,9 @@ Node eliminateBv2Nat(TNode node)
 Node eliminateInt2Bv(TNode node)
 {
   const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
-  NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = bv::utils::mkZero(1);
-  const Node bvone = bv::utils::mkOne(1);
+  NodeManager* const nm = node.getNodeManager();
+  const Node bvzero = bv::utils::mkZero(nm, 1);
+  const Node bvone = bv::utils::mkOne(nm, 1);
 
   std::vector<Node> v;
   Integer i = 2;

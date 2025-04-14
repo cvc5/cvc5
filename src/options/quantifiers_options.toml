@@ -44,7 +44,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "prenexQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "prenex-quant=MODE"
   type       = "PrenexQuantMode"
   default    = "SIMPLE"
@@ -78,6 +78,14 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "true"
   help       = "enable simple variable elimination for quantified formulas"
+
+[[option]]
+  name       = "varEntEqElimQuant"
+  category   = "expert"
+  long       = "var-ent-eq-elim-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "enable variable elimination for quantified formulas that infers entailed equalities corresponding to eliminations"
 
 [[option]]
   name       = "varIneqElimQuant"
@@ -194,19 +202,43 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqi"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi"
   type       = "bool"
   default    = "false"
   help       = "use model-based quantifier instantiation"
 
 [[option]]
-  name       = "mbqiFastSygus"
-  category   = "expert"
-  long       = "mbqi-fast-sygus"
+  name       = "mbqiEnum"
+  category   = "regular"
+  long       = "mbqi-enum"
   type       = "bool"
   default    = "false"
   help       = "use fast enumeration to augment instantiations from MBQI"
+
+[[option]]
+  name       = "mbqiEnumExtVarsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-ext-vars-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include variables defined in terms of others in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumFreeSymsGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-free-syms-grammar"
+  type       = "bool"
+  default    = "true"
+  help       = "include free symbols from the body of the quantified formula in grammars for fast enumerative mbqi"
+
+[[option]]
+  name       = "mbqiEnumGlobalSymGrammar"
+  category   = "expert"
+  long       = "mbqi-enum-global-syms-grammar"
+  type       = "bool"
+  default    = "false"
+  help       = "include global symbols from all available assertions in grammars for fast enumerative mbqi"
 
 #### E-matching options
 
@@ -515,7 +547,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "fullSaturateQuant"
-  category   = "regular"
+  category   = "common"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
@@ -523,7 +555,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "enumInst"
-  category   = "regular"
+  category   = "common"
   long       = "enum-inst"
   type       = "bool"
   default    = "false"
@@ -817,7 +849,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1565,7 +1597,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfInt"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-int"
   type       = "bool"
   default    = "false"
@@ -1573,7 +1605,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfReal"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-real"
   type       = "bool"
   default    = "false"
@@ -1597,7 +1629,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
@@ -1631,7 +1663,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvIneqMode"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-ineq=MODE"
   type       = "CegqiBvIneqMode"
   default    = "EQ_BOUNDARY"
@@ -1670,14 +1702,6 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "try to solve non-linear bv literals using model value projections"
-
-[[option]]
-  name       = "cegqiBvConcInv"
-  category   = "expert"
-  long       = "cegqi-bv-concat-inv"
-  type       = "bool"
-  default    = "true"
-  help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
 ### Reduction options
 

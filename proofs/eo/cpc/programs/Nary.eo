@@ -1,4 +1,4 @@
-(include "../programs/Utils.eo")
+(include "../theories/Arith.eo")
 
 ; =============================================
 ;  Right-associative null-terminated operators
@@ -137,7 +137,7 @@
 ; return: the prefix of t consisting of at most l children.
 (program $nary_prefix
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
-    ((-> L L L) L Int L) Bool
+    ((-> L L L) L Int L) L
     (
         (($nary_prefix cons nil l nil)             nil)
         (($nary_prefix cons nil 0 t)               nil)
@@ -157,7 +157,7 @@
 ;   fall out of bounds of the number of children of t are ignored.
 (program $nary_subsequence
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
-    ((-> L L L) L Int Int L) Bool
+    ((-> L L L) L Int Int L) L
     (
         (($nary_subsequence cons nil l u nil)            nil)
         (($nary_subsequence cons nil 0 u t)              ($nary_prefix cons nil (eo::add u 1) t))
@@ -200,7 +200,7 @@
 ;   both ordered.
 (program $nary_diff
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    ((-> L L L) L L L) Bool
+    ((-> L L L) L L L) L
     (
         (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
                                                               ($nary_diff cons nil xs1 xs2)

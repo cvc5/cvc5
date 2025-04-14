@@ -158,16 +158,75 @@ bool hasSubtermKind(Kind k, Node n)
 }
 
 bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
-                     Node n)
+                     TNode n)
 {
   if (ks.empty())
   {
     return false;
   }
   std::unordered_set<TNode> visited;
+  return hasSubtermKinds(ks, n, visited) != Kind::UNDEFINED_KIND;
+}
+
+Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     TNode n,
+                     std::unordered_set<TNode>& visited)
+{
+  Assert(!ks.empty());
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
+  Kind k;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      k = cur.getKind();
+      if (ks.find(k) != ks.end())
+      {
+        return k;
+      }
+      visited.insert(cur);
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return Kind::UNDEFINED_KIND;
+}
+
+void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested)
+{
+  std::unordered_set<Kind, kind::KindHashFunction> ks{k};
+  std::map<Kind, std::unordered_set<Node>> tsm;
+  getSubtermsKinds(ks, n, tsm, nested);
+  std::unordered_set<Node>& tsc = tsm[k];
+  ts.insert(tsc.begin(), tsc.end());
+}
+
+void getSubtermsKinds(
+    const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+    TNode n,
+    std::map<Kind, std::unordered_set<Node>>& ts, bool nested)
+{
+  Assert(!ks.empty());
+  for (Kind k : ks)
+  {
+    if (ts.find(k) == ts.end())
+    {
+      ts[k].clear();
+    }
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  Kind k;
+  std::map<Kind, std::unordered_set<Node>>::iterator itt;
   do
   {
     cur = visit.back();
@@ -175,9 +234,15 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (ks.find(cur.getKind()) != ks.end())
+      k = cur.getKind();
+      itt = ts.find(k);
+      if (itt != ts.end())
       {
-        return true;
+        itt->second.insert(cur);
+        if (!nested)
+        {
+          continue;
+        }
       }
       if (cur.hasOperator())
       {
@@ -186,7 +251,6 @@ bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
-  return false;
 }
 
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
@@ -619,7 +683,7 @@ void getOperatorsMap(TNode n,
        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
          o = cur.getOperator();
        } else {
-         o = NodeManager::currentNM()->operatorOf(cur.getKind());
+         o = cur.getNodeManager()->operatorOf(cur.getKind());
        }
         ops[tn].insert(o);
       }

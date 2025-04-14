@@ -55,7 +55,7 @@ TEST_F(TestApiBlackSolver, pow2Large2)
 {
   // Based on https://github.com/cvc5/cvc5-projects/issues/333
   Term t1 = d_tm.mkBitVector(63, ~(((uint64_t)1) << 62));
-  Term t2 = d_tm.mkTerm(Kind::BITVECTOR_TO_NAT, {t1});
+  Term t2 = d_tm.mkTerm(Kind::BITVECTOR_UBV_TO_INT, {t1});
   Term t3 = d_tm.mkTerm(Kind::POW2, {t2});
   Term t4 = d_tm.mkTerm(Kind::DISTINCT, {t3, t2});
   ASSERT_THROW(d_solver->checkSatAssuming({t4}), CVC5ApiException);

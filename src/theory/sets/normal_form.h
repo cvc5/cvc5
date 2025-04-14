@@ -38,7 +38,7 @@ class NormalForm {
   {
     typedef typename std::set<NodeTemplate<ref_count> >::const_iterator
         ElementsIterator;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = setType.getNodeManager();
     if (elements.size() == 0)
     {
       return nm->mkConst(EmptySet(setType));
@@ -154,7 +154,7 @@ class NormalForm {
   
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn));
+      return tn.getNodeManager()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{

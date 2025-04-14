@@ -42,17 +42,9 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm,
 {
   // Needs to be a subcall in DSL reconstruction since set.is_empty is used
   // as a premise to test emptiness of a set.
-  registerProofRewriteRule(ProofRewriteRule::SETS_IS_EMPTY_EVAL,
-                           TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_DISTINCT_SETS,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_INTER_EVAL,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_SETS_MINUS_EVAL,
-                           TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(ProofRewriteRule::SETS_UNION_NORM,
+  registerProofRewriteRule(ProofRewriteRule::SETS_EVAL_OP,
                            TheoryRewriteCtx::POST_DSL);
 }
 
@@ -60,14 +52,6 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
-    {
-      if (n.getKind() == Kind::SET_IS_EMPTY && n[0].isConst())
-      {
-        return nodeManager()->mkConst(n[0].getKind() == Kind::SET_EMPTY);
-      }
-    }
-    break;
     case ProofRewriteRule::SETS_INSERT_ELIM:
     {
       if (n.getKind() == Kind::SET_INSERT)
@@ -85,19 +69,14 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
     }
     break;
-    case ProofRewriteRule::MACRO_SETS_DISTINCT_SETS:
+    case ProofRewriteRule::SETS_EVAL_OP:
     {
-      if (n.getKind() == Kind::EQUAL && n[0].isConst() && n[1].isConst()
-          && n[0] != n[1])
+      if (n.getNumChildren() != 2 || !n[0].isConst() || !n[1].isConst())
       {
-        Assert(n[0].getType().isSet());
-        return d_nm->mkConst(false);
+        return Node::null();
       }
-    }
-    break;
-    case ProofRewriteRule::MACRO_SETS_INTER_EVAL:
-    {
-      if (n.getKind() == Kind::SET_INTER && n[0].isConst() && n[1].isConst())
+      Kind k = n.getKind();
+      if (k == Kind::SET_INTER)
       {
         std::set<Node> left = NormalForm::getElementsFromNormalConstant(n[0]);
         std::set<Node> right = NormalForm::getElementsFromNormalConstant(n[1]);
@@ -109,11 +88,7 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
                               std::inserter(newSet, newSet.begin()));
         return NormalForm::elementsToSet(newSet, n.getType());
       }
-    }
-    break;
-    case ProofRewriteRule::MACRO_SETS_MINUS_EVAL:
-    {
-      if (n.getKind() == Kind::SET_MINUS && n[0].isConst() && n[1].isConst())
+      if (k == Kind::SET_MINUS)
       {
         std::set<Node> left = NormalForm::getElementsFromNormalConstant(n[0]);
         std::set<Node> right = NormalForm::getElementsFromNormalConstant(n[1]);
@@ -125,11 +100,7 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
                             std::inserter(newSet, newSet.begin()));
         return NormalForm::elementsToSet(newSet, n.getType());
       }
-    }
-    break;
-    case ProofRewriteRule::SETS_UNION_NORM:
-    {
-      if (n.getKind() == Kind::SET_UNION && n[0].isConst() && n[1].isConst())
+      if (k == Kind::SET_UNION)
       {
         std::set<Node> left = NormalForm::getElementsFromNormalConstant(n[0]);
         std::set<Node> right = NormalForm::getElementsFromNormalConstant(n[1]);
@@ -270,8 +241,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       }
       else if (node[0].isConst() && node[1].isConst())
       {
-        Node newNode =
-            rewriteViaRule(ProofRewriteRule::MACRO_SETS_MINUS_EVAL, node);
+        Node newNode = rewriteViaRule(ProofRewriteRule::SETS_EVAL_OP, node);
         Assert(newNode.isConst());
         Trace("sets-postrewrite")
             << "Sets::postRewrite returning " << newNode << std::endl;
@@ -298,8 +268,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       }
       else if (node[0].isConst() && node[1].isConst())
       {
-        Node newNode =
-            rewriteViaRule(ProofRewriteRule::MACRO_SETS_INTER_EVAL, node);
+        Node newNode = rewriteViaRule(ProofRewriteRule::SETS_EVAL_OP, node);
         Assert(newNode.isConst() && newNode.getType() == node.getType());
         Trace("sets-postrewrite")
             << "Sets::postRewrite returning " << newNode << std::endl;
@@ -333,7 +302,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       }
       else if (node[0].isConst() && node[1].isConst())
       {
-        Node newNode = rewriteViaRule(ProofRewriteRule::SETS_UNION_NORM, node);
+        Node newNode = rewriteViaRule(ProofRewriteRule::SETS_EVAL_OP, node);
         Assert(newNode.isConst());
         Trace("sets-rewrite")
             << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;

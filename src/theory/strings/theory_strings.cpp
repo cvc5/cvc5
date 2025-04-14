@@ -41,24 +41,16 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-/**
- * Attribute used for making unique (bound variables) which correspond to
- * unique element values used in sequence models. See use in collectModelValues
- * below.
- */
-struct SeqModelVarAttributeId
-{
-};
-using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
-
 TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_arithEntail(d_env.getRewriter(),
-                    options().strings.stringRecArithApprox),
+      d_arithEntail(
+          env.getNodeManager(),
+          options().strings.stringRecArithApprox ? env.getRewriter() : nullptr,
+          options().strings.stringRecArithApprox),
       d_strEntail(d_env.getRewriter(), d_arithEntail),
       d_rewriter(env.getNodeManager(),
                  d_arithEntail,
@@ -814,7 +806,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   for (const Node& snv : snvec)
   {
     Assert(snv.getType() == etn);
-    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+    Node v = bvm->mkBoundVar(BoundVarId::STRINGS_SEQ_MODEL, snv, etn);
     // use a skolem, not a bound variable
     Node kv = sm->mkPurifySkolem(v);
     skChildren.push_back(utils::mkUnit(tn, kv));
@@ -1105,6 +1097,9 @@ void TheoryStrings::computeCareGraph()
     }
     if( has_trigger_arg ){
       TypeNode ft = utils::getOwnerStringType(f1);
+      AlwaysAssert(ft.isStringLike())
+          << "Unexpected term in getOwnerStringType : " << f1 << ", type "
+          << ft;
       std::pair<TypeNode, Node> ikey = std::pair<TypeNode, Node>(ft, op);
       index[ikey].addTerm(f1, reps);
       arity[op] = reps.size();
@@ -1127,6 +1122,12 @@ void TheoryStrings::notifySharedTerm(TNode n)
   if (!options().strings.stringEagerReg)
   {
     d_termReg.registerSubterms(n);
+  }
+  if (n.getType().isRegExp())
+  {
+    std::stringstream ss;
+    ss << "Regular expression terms are not supported in theory combination";
+    throw LogicException(ss.str());
   }
 }
 

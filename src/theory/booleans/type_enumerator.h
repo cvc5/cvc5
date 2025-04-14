@@ -39,12 +39,9 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
 
   Node operator*() override {
     switch(d_value) {
-    case FALSE:
-      return NodeManager::currentNM()->mkConst(false);
-    case TRUE:
-      return NodeManager::currentNM()->mkConst(true);
-    default:
-      throw NoMoreValuesException(getType());
+      case FALSE: return getType().getNodeManager()->mkConst(false);
+      case TRUE: return getType().getNodeManager()->mkConst(true);
+      default: throw NoMoreValuesException(getType());
     }
   }
 

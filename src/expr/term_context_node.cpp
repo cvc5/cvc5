@@ -53,7 +53,7 @@ Node TCtxNode::getNodeHash() const { return computeNodeHash(d_node, d_val); }
 
 Node TCtxNode::computeNodeHash(Node n, uint32_t val)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   return nm->mkNode(Kind::SEXPR, n, nm->mkConstInt(Rational(val)));
 }
 

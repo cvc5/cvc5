@@ -26,6 +26,7 @@ namespace cvc5::internal {
 
 class Options;
 class TConvProofGenerator;
+class CDProof;
 
 namespace theory {
 
@@ -56,6 +57,8 @@ enum RewriteStep
   COMPUTE_PRENEX,
   /** Variable elimination */
   COMPUTE_VAR_ELIMINATION,
+  /** Datatype variable expansion */
+  COMPUTE_DT_VAR_EXPAND,
   /** Conditional splitting */
   COMPUTE_COND_SPLIT,
   /**
@@ -107,11 +110,15 @@ class QuantifiersRewriter : public TheoryRewriter
                      bool pol,
                      std::vector<Node>& args,
                      std::vector<Node>& vars,
-                     std::vector<Node>& subs) const;
+                     std::vector<Node>& subs,
+                     CDProof* cdp = nullptr) const;
   /**
    * Get variable eliminate for an equality based on theory-specific reasoning.
    */
-  Node getVarElimEq(Node lit, const std::vector<Node>& args, Node& var) const;
+  Node getVarElimEq(Node lit,
+                    const std::vector<Node>& args,
+                    Node& var,
+                    CDProof* cdp = nullptr) const;
   /** variable eliminate for real equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
@@ -119,13 +126,17 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node getVarElimEqReal(Node lit,
                         const std::vector<Node>& args,
-                        Node& var) const;
+                        Node& var,
+                        CDProof* cdp = nullptr) const;
   /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  Node getVarElimEqBv(Node lit, const std::vector<Node>& args, Node& var) const;
+  Node getVarElimEqBv(Node lit,
+                      const std::vector<Node>& args,
+                      Node& var,
+                      CDProof* cdp = nullptr) const;
   /** variable eliminate for string equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
@@ -133,7 +144,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   Node getVarElimEqString(Node lit,
                           const std::vector<Node>& args,
-                          Node& var) const;
+                          Node& var,
+                          CDProof* cdp = nullptr) const;
   /** get variable elimination
    *
    * If there exists an n with some polarity in body, and entails a literal that
@@ -141,17 +153,21 @@ class QuantifiersRewriter : public TheoryRewriter
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
    *
-   * The vector lits is populated with the literals that are equivalent to
-   * each vars[i]==subs[i].
+   * The vector lits is populated with the literals that imply each
+   * vars[i]==subs[i].
    *
    * For simplicity, this method will only add a single element to
    * vars/subs/lits.
+   *
+   * note: for the sake of proofs, we require that lits[0] is *equivalent*
+   * to (= vars[0] subs[0]).
    */
   bool getVarElim(Node body,
                   std::vector<Node>& args,
                   std::vector<Node>& vars,
                   std::vector<Node>& subs,
-                  std::vector<Node>& lits) const;
+                  std::vector<Node>& lits,
+                  CDProof* cdp = nullptr) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
@@ -163,18 +179,16 @@ class QuantifiersRewriter : public TheoryRewriter
    * This method eliminates variables from the body of quantified formula
    * "body" using (global) reasoning about inequalities. In particular, if there
    * exists a variable x that only occurs in body or annotation qa in literals
-   * of the form x>=t with a fixed polarity P, then we may replace all such
-   * literals with P. For example, note that:
+   * of the form x>=t with a fixed polarity P, then we may drop all such
+   * literals. For example, note that:
    *   forall xy. x>y OR P(y) is equivalent to forall y. P(y).
    *
    * In the case that a variable x from args can be eliminated in this way,
-   * we remove x from args, add x >= t1, ..., x >= tn to bounds, add false, ...,
-   * false to subs, and return true.
+   * we remove x from args and return the result of removing all literals
+   * involving x from body.
    */
-  bool getVarElimIneq(Node body,
+  Node getVarElimIneq(Node body,
                       std::vector<Node>& args,
-                      std::vector<Node>& bounds,
-                      std::vector<Node>& subs,
                       QAttributes& qa) const;
   //-------------------------------------end variable elimination utilities
   /**
@@ -232,9 +246,20 @@ class QuantifiersRewriter : public TheoryRewriter
    * @param q The quantified formula to rewrite.
    * @param pg If provided, stores a set of small step rewrites that suffice
    * to show that q rewrites to the returned quantified formula.
+   * @return the result of rewriting q.
    */
   Node computeRewriteBody(const Node& q,
                           TConvProofGenerator* pg = nullptr) const;
+  /**
+   * compute datatype tester expansion, which implements
+   * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
+   *
+   * @param nm Pointer to node manager.
+   * @param q The quantified formula to rewrite.
+   * @param index The index of the variable which we split on.
+   * @return The (possibly rewritten) form of q.
+   */
+  static Node computeDtVarExpand(NodeManager* nm, const Node& q, size_t& index);
 
  private:
   /**
@@ -259,7 +284,8 @@ class QuantifiersRewriter : public TheoryRewriter
                           std::vector<Node>& args,
                           std::vector<Node>& vars,
                           std::vector<Node>& subs,
-                          std::vector<Node>& lits) const;
+                          std::vector<Node>& lits,
+                          CDProof* cdp = nullptr) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
