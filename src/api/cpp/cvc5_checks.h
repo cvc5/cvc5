@@ -616,21 +616,35 @@ class CVC5ApiUnsupportedExceptionStream
 
 /**
  * Term checks for member functions of class TermManager.
+ * Check if given term 't' (which is stored at index 'idx' of 'terms') is not
+ * null and associated with this term manager.
+ */
+#define CVC5_API_TM_CHECK_TERM_AT_INDEX(t, terms, idx)           \
+  do                                                             \
+  {                                                              \
+    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, idx); \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                        \
+        d_nm == t.d_tm->d_nm, "term", terms, idx)                \
+        << "a term associated with this term manager";           \
+  } while (0)
+
+/**
+ * Term checks for member functions of class TermManager.
  * Check if each term in the given container of terms is not null and
  * associated with this term manager.
  */
-#define CVC5_API_TM_CHECK_TERMS(terms)                                 \
-  do                                                                   \
-  {                                                                    \
-    size_t i = 0;                                                      \
-    for (const auto& t : terms)                                        \
-    {                                                                  \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);       \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
-          d_nm == t.d_tm->d_nm, "term", terms, i)                      \
-          << "a term associated with the term manager of this solver"; \
-      i += 1;                                                          \
-    }                                                                  \
+#define CVC5_API_TM_CHECK_TERMS(terms)                           \
+  do                                                             \
+  {                                                              \
+    size_t i = 0;                                                \
+    for (const auto& t : terms)                                  \
+    {                                                            \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i); \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                      \
+          d_nm == t.d_tm->d_nm, "term", terms, i)                \
+          << "a term associated with this term manager";         \
+      i += 1;                                                    \
+    }                                                            \
   } while (0)
 
 /**
@@ -775,21 +789,32 @@ class CVC5ApiUnsupportedExceptionStream
 
 /**
  * Term checks for member functions of class Solver.
+ * Check if given term 't' (which is stored at index 'idx' of 'terms') is not
+ * null and associated with the term manager of this solver.
+ */
+#define CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(t, terms, idx)           \
+  do                                                                 \
+  {                                                                  \
+    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, idx);     \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
+        d_tm.d_nm == t.d_tm->d_nm, "term", terms, idx)               \
+        << "a term associated with the term manager of this solver"; \
+  } while (0)
+
+/**
+ * Term checks for member functions of class Solver.
  * Check if each term in the given container of terms is not null and
  * associated with the term manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_TERMS(terms)                             \
-  do                                                                   \
-  {                                                                    \
-    size_t i = 0;                                                      \
-    for (const auto& t : terms)                                        \
-    {                                                                  \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);       \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
-          d_tm.d_nm == t.d_tm->d_nm, "term", terms, i)                 \
-          << "a term associated with the term manager of this solver"; \
-      i += 1;                                                          \
-    }                                                                  \
+#define CVC5_API_SOLVER_CHECK_TERMS(terms)              \
+  do                                                    \
+  {                                                     \
+    size_t i = 0;                                       \
+    for (const auto& t : terms)                         \
+    {                                                   \
+      CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(t, terms, i); \
+      i += 1;                                           \
+    }                                                   \
   } while (0)
 
 /**
@@ -813,18 +838,30 @@ class CVC5ApiUnsupportedExceptionStream
 #define CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(terms, sort)                     \
   do                                                                           \
   {                                                                            \
-    size_t i = 0;                                                              \
-    for (const auto& t : terms)                                                \
+    for (size_t i = 0, size = terms.size(); i < size; ++i)                     \
     {                                                                          \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          d_tm.d_nm == t.d_tm->d_nm, "term", terms, i)                         \
-          << "a term associated with the term manager of this solver";         \
-      CVC5_API_CHECK(t.getSort() == sort)                                      \
+      CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(terms[i], terms, i);                 \
+      CVC5_API_CHECK(terms[i].getSort() == sort)                               \
           << "Expected term with sort " << sort << " at index " << i << " in " \
           << #terms;                                                           \
-      i += 1;                                                                  \
     }                                                                          \
+  } while (0)
+
+/**
+ * Bound variable checks for member functions of class Solver.
+ * Check if given term 'bv' (which is stored at index 'idx' of 'bound_vars') is
+ * not, associated with the term manager of this solver, and a bound variable.
+ */
+#define CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bv, bound_vars, idx) \
+  do                                                                  \
+  {                                                                   \
+    CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(bv, bound_vars, idx);         \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
+        bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE, \
+        "bound variable",                                             \
+        bound_vars,                                                   \
+        idx)                                                          \
+        << "a bound variable";                                        \
   } while (0)
 
 /**
@@ -835,21 +872,9 @@ class CVC5ApiUnsupportedExceptionStream
 #define CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars)                          \
   do                                                                          \
   {                                                                           \
-    size_t i = 0;                                                             \
-    for (const auto& bv : bound_vars)                                         \
+    for (size_t i = 0, size = bound_vars.size(); i < size; ++i)               \
     {                                                                         \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                   \
-          "bound variable", bv, bound_vars, i);                               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          d_tm.d_nm == bv.d_tm->d_nm, "bound variable", bound_vars, i)        \
-          << "a term associated with the term manager of this solver object"; \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,       \
-          "bound variable",                                                   \
-          bound_vars,                                                         \
-          i)                                                                  \
-          << "a bound variable";                                              \
-      i += 1;                                                                 \
+      CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i); \
     }                                                                         \
   } while (0)
 
@@ -867,20 +892,8 @@ class CVC5ApiUnsupportedExceptionStream
     size_t size = bound_vars.size();                                          \
     CVC5_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars) \
         << "'" << domain_sorts.size() << "'";                                 \
-    size_t i = 0;                                                             \
-    for (const auto& bv : bound_vars)                                         \
+    for (size_t i = 0; i < size; ++i)                                         \
     {                                                                         \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                   \
-          "bound variable", bv, bound_vars, i);                               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          d_tm.d_nm == bv.d_tm->d_nm, "bound variable", bound_vars, i)        \
-          << "a term associated with the term manager of this solver object"; \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
-          bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE,       \
-          "bound variable",                                                   \
-          bound_vars,                                                         \
-          i)                                                                  \
-          << "a bound variable";                                              \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                   \
           domain_sorts[i] == bound_vars[i].getSort(),                         \
           "sort of parameter",                                                \
@@ -893,34 +906,57 @@ class CVC5ApiUnsupportedExceptionStream
           domain_sorts,                                                       \
           i)                                                                  \
           << "first-class sort of parameter of defined function";             \
-      i += 1;                                                                 \
     }                                                                         \
+  } while (0)
+
+/**
+ * Grammar checks for member functions of class Solver.
+ * Check if given grammar is not null and associated with the term manager of
+ * this solver.
+ */
+#define CVC5_API_SOLVER_CHECK_GRAMMAR(grammar)      \
+  do                                                \
+  {                                                 \
+    CVC5_API_ARG_CHECK_NOT_NULL(grammar);           \
+    CVC5_API_CHECK(d_tm.d_nm == grammar.d_tm->d_nm) \
+        << "Given grammar is not associated with "  \
+           "the term manager of this solver";       \
   } while (0)
 
 /* Datatype checks. --------------------------------------------------------- */
 
 /**
  * DatatypeConstructorDecl checks for member functions of class Solver.
+ * Check if a given datatype constructor declaration at the index in the given
+ * container of declarations is not null and associated with the term manager of
+ * this solver.
+ */
+#define CVC5_API_SOLVER_CHECK_DTCTORDECL_AT_INDEX(decl, decls, idx)          \
+  do                                                                         \
+  {                                                                          \
+    CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                    \
+        "datatype constructor declaration", decl, decls, idx);               \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_tm.d_nm == decl.d_tm->d_nm,       \
+                                         "datatype constructor declaration", \
+                                         decls,                              \
+                                         idx)                                \
+        << "a datatype constructor declaration associated with the term "    \
+           "manager of this solver "                                         \
+           "object";                                                         \
+  } while (0)
+
+/**
+ * DatatypeConstructorDecl checks for member functions of class Solver.
  * Check if each datatype constructor declaration in the given container of
  * declarations is not null and associated with the term manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                               \
-  do                                                                           \
-  {                                                                            \
-    size_t i = 0;                                                              \
-    for (const auto& d : decls)                                                \
-    {                                                                          \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL(                                    \
-          "datatype constructor declaration", d, decls, i);                    \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_tm.d_nm == d.d_tm->d_nm,          \
-                                           "datatype constructor declaration", \
-                                           decls,                              \
-                                           i)                                  \
-          << "a datatype constructor declaration associated with the term "    \
-             "manager of this solver "                                         \
-             "object";                                                         \
-      i += 1;                                                                  \
-    }                                                                          \
+#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                     \
+  do                                                                 \
+  {                                                                  \
+    for (size_t i = 0, size = decls.size(); i < size; ++i)           \
+    {                                                                \
+      CVC5_API_SOLVER_CHECK_DTCTORDECL_AT_INDEX(decls[i], decls, i); \
+    }                                                                \
   } while (0)
 
 /**
