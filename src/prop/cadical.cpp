@@ -17,7 +17,7 @@
 
 #include "prop/cadical.h"
 
-#include <cadical.hpp>
+#include <cadical/cadical.hpp>
 #include <cadical/tracer.hpp>
 #include <deque>
 
