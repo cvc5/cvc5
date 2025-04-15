@@ -1199,7 +1199,7 @@ class ProofTracer : public CaDiCaL::Tracer
 
       if (TraceIsOn("cadical::prooftracer"))
       {
-        char ct;
+        char ct = ' ';
         switch (ctype)
         {
           case ProofTracer::ClauseType::ASSUMPTION: ct = 'a'; break;
