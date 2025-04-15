@@ -67,10 +67,10 @@
 (declare-parameterized-const to_fp_bv ((w Int :implicit) (e Int) (s Int)) (-> (BitVec w) (FloatingPoint e s)))
 
 ; Internally generated terms.
-(declare-parameterized-const @fp.EXPONENT ((T Type)) (-> T))
-(declare-parameterized-const @fp.SIGN ((T Type)) (-> T))
-(declare-parameterized-const @fp.SIGNIFICAND ((T Type)) (-> T))
-(declare-parameterized-const @fp.ZERO ((T Type)) (-> T))
-(declare-parameterized-const @fp.INF ((T Type)) (-> T))
-(declare-parameterized-const @fp.NAN ((T Type)) (-> T))
+(declare-parameterized-const @fp.EXPONENT ((T Type)) T)
+(declare-parameterized-const @fp.SIGN ((T Type)) T)
+(declare-parameterized-const @fp.SIGNIFICAND ((T Type)) T)
+(declare-parameterized-const @fp.ZERO ((T Type)) T)
+(declare-parameterized-const @fp.INF ((T Type)) T)
+(declare-parameterized-const @fp.NAN ((T Type)) T)
 (declare-const @fp.RMBITBLAST (-> RoundingMode (BitVec 5)))
