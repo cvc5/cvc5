@@ -6592,8 +6592,10 @@ Term TermManager::mkNullableLift(Kind kind, const std::vector<Term>& args)
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   std::vector<internal::Node> vars;
-  for (const Term& t : args)
+  for (size_t i = 0, size = args.size(); i < size; ++i)
   {
+    const Term& t = args[i];
+    CVC5_API_TM_CHECK_TERM_AT_INDEX(t, args, i);
     internal::TypeNode type = t.d_node->getType();
     internal::TypeNode elementType = type[0];
     internal::Node var = mkVarHelper(elementType);
@@ -7327,9 +7329,9 @@ Sort Solver::declareDatatype(
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
       << "a datatype declaration with at least one constructor";
-  CVC5_API_SOLVER_CHECK_DTCTORDECLS(ctors);
   for (size_t i = 0, size = ctors.size(); i < size; i++)
   {
+    CVC5_API_SOLVER_CHECK_DTCTORDECL_AT_INDEX(ctors[i], ctorsr, i);
     CVC5_API_CHECK(!ctors[i].isResolved())
         << "cannot use a constructor for multiple datatypes";
   }
@@ -7397,9 +7399,10 @@ Term Solver::defineFun(const std::string& symbol,
       << "', found '" << term.getSort() << "'";
 
   std::vector<Sort> domain_sorts;
-  for (const auto& bv : bound_vars)
+  for (size_t i = 0, n = bound_vars.size(); i < n; ++i)
   {
-    domain_sorts.push_back(bv.getSort());
+    CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i);
+    domain_sorts.push_back(bound_vars[i].getSort());
   }
   Sort fun_sort =
       domain_sorts.empty()
@@ -7408,8 +7411,7 @@ Term Solver::defineFun(const std::string& symbol,
                  d_tm.d_nm->mkFunctionType(
                      Sort::sortVectorToTypeNodes(domain_sorts), *sort.d_type));
   Term fun = d_tm.mkConst(fun_sort, symbol);
-
-  CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
+  CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(bound_vars, domain_sorts);
   //////// all checks before this line
 
   d_slv->defineFunction(
@@ -7441,9 +7443,10 @@ Term Solver::defineFunRec(const std::string& symbol,
       << "'";
 
   std::vector<Sort> domain_sorts;
-  for (const auto& bv : bound_vars)
+  for (size_t i = 0, n = bound_vars.size(); i < n; ++i)
   {
-    domain_sorts.push_back(bv.getSort());
+    CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i);
+    domain_sorts.push_back(bound_vars[i].getSort());
   }
   Sort fun_sort =
       domain_sorts.empty()
@@ -7452,8 +7455,7 @@ Term Solver::defineFunRec(const std::string& symbol,
                  d_tm.d_nm->mkFunctionType(
                      Sort::sortVectorToTypeNodes(domain_sorts), *sort.d_type));
   Term fun = d_tm.mkConst(fun_sort, symbol);
-
-  CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
+  CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(bound_vars, domain_sorts);
   //////// all checks before this line
 
   d_slv->defineFunctionRec(
@@ -7483,7 +7485,7 @@ Term Solver::defineFunRec(const Term& fun,
   if (fun.getSort().isFunction())
   {
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-    CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
+    CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(bound_vars, domain_sorts);
     Sort codomain = fun.getSort().getFunctionCodomainSort();
     CVC5_API_CHECK(*codomain.d_type == term.d_node->getType())
         << "invalid sort of function body '" << term << "', expected '"
@@ -7542,7 +7544,8 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     if (fun.getSort().isFunction())
     {
       std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-      CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bvars, domain_sorts);
+      CVC5_API_SOLVER_CHECK_BOUND_VARS(bvars);
+      CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(bvars, domain_sorts);
       Sort codomain = fun.getSort().getFunctionCodomainSort();
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(
           codomain == term.getSort(), "sort of function body", terms, j)
@@ -8352,6 +8355,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "cannot get interpolant unless interpolants are enabled (try "
          "--"
@@ -8407,6 +8411,7 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "cannot get abduct unless abducts are enabled (try --"
       << internal::options::smt::longName::produceAbducts << ")";
@@ -8668,6 +8673,7 @@ Term Solver::synthFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
   CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().quantifiers.sygus)
       << "cannot call synthFun unless sygus is enabled (use --"
       << internal::options::quantifiers::longName::sygus << ")";
@@ -8883,6 +8889,7 @@ Term Solver::findSynth(modes::FindSynthTarget fst) const
 Term Solver::findSynth(modes::FindSynthTarget fst, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   for (const auto& sym : grammar.d_grammar->getNtSyms())
   {
     CVC5_API_CHECK(!grammar.d_grammar->getRulesFor(sym).empty())
