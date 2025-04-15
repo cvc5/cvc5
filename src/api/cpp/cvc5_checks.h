@@ -633,18 +633,13 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each term in the given container of terms is not null and
  * associated with this term manager.
  */
-#define CVC5_API_TM_CHECK_TERMS(terms)                           \
-  do                                                             \
-  {                                                              \
-    size_t i = 0;                                                \
-    for (const auto& t : terms)                                  \
-    {                                                            \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i); \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                      \
-          d_nm == t.d_tm->d_nm, "term", terms, i)                \
-          << "a term associated with this term manager";         \
-      i += 1;                                                    \
-    }                                                            \
+#define CVC5_API_TM_CHECK_TERMS(terms)                     \
+  do                                                       \
+  {                                                        \
+    for (size_t i = 0, size = terms.size(); i < size; ++i) \
+    {                                                      \
+      CVC5_API_TM_CHECK_TERM_AT_INDEX(terms[i], terms, i); \
+    }                                                      \
   } while (0)
 
 /**
@@ -850,7 +845,8 @@ class CVC5ApiUnsupportedExceptionStream
 /**
  * Bound variable checks for member functions of class Solver.
  * Check if given term 'bv' (which is stored at index 'idx' of 'bound_vars') is
- * not, associated with the term manager of this solver, and a bound variable.
+ * not null, associated with the term manager of this solver, and a bound
+ * variable.
  */
 #define CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bv, bound_vars, idx) \
   do                                                                  \
