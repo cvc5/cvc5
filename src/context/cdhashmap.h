@@ -344,7 +344,7 @@ class CDHashMap : public ContextObj
     return res.second;
   }
 
-  // FIXME: no erase(), too much hassle to implement efficiently...
+  // Note: no erase(), too much hassle to implement efficiently...
 
   using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
 
