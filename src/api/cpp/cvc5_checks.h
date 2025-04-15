@@ -866,13 +866,12 @@ class CVC5ApiUnsupportedExceptionStream
   }
 
 /**
- * Bound variable checks for member functions of class Solver that define
- * functions.
- * Check if each term in the given container is not null, associated with the
- * term manager of this solver, a bound variable, matches theh corresponding
- * sort in 'domain_sorts', and is a first-class term.
+ * Additional bound variable checks for member functions of class Solver that
+ * define functions.
+ * Check if each term in the given container matches the corresponding sort in
+ * 'domain_sorts', and is a first-class term.
  */
-#define CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(                             \
+#define CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(                       \
     fun, bound_vars, domain_sorts)                                            \
   do                                                                          \
   {                                                                           \
