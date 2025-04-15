@@ -871,8 +871,8 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each term in the given container matches the corresponding sort in
  * 'domain_sorts', and is a first-class term.
  */
-#define CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(                       \
-    fun, bound_vars, domain_sorts)                                            \
+#define CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN_SORTS(bound_vars,            \
+                                                       domain_sorts)          \
   do                                                                          \
   {                                                                           \
     size_t size = bound_vars.size();                                          \
