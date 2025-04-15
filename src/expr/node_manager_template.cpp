@@ -350,7 +350,6 @@ const DType& NodeManager::getDTypeForIndex(size_t index) const
 
 void NodeManager::reclaimZombies()
 {
-  // FIXME multithreading
   Assert(!d_attrManager->inGarbageCollection());
 
   Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
@@ -1413,7 +1412,6 @@ Node NodeManager::mkDummySkolem(const std::string& prefix,
 
 bool NodeManager::safeToReclaimZombies() const
 {
-  // FIXME multithreading
   return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();
 }
 
