@@ -20,11 +20,14 @@
 #ifndef CVC5__PROP__CADICAL_H
 #define CVC5__PROP__CADICAL_H
 
-#include <cadical.hpp>
-
 #include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
+
+namespace CaDiCaL {
+class Solver;
+class Terminator;
+}  // namespace CaDiCaL
 
 namespace cvc5::internal {
 namespace prop {
