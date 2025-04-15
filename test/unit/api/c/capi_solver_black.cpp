@@ -3075,7 +3075,6 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-abducts", "true");
   Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
   Cvc5Term xx = cvc5_mk_const(tm, int_sort, "x");
   Cvc5Term yy = cvc5_mk_const(tm, int_sort, "y");
