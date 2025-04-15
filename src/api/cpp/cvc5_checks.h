@@ -633,14 +633,11 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each term in the given container of terms is not null and
  * associated with this term manager.
  */
-#define CVC5_API_TM_CHECK_TERMS(terms)                     \
-  do                                                       \
-  {                                                        \
-    for (size_t i = 0, size = terms.size(); i < size; ++i) \
-    {                                                      \
-      CVC5_API_TM_CHECK_TERM_AT_INDEX(terms[i], terms, i); \
-    }                                                      \
-  } while (0)
+#define CVC5_API_TM_CHECK_TERMS(terms)                   \
+  for (size_t i = 0, size = terms.size(); i < size; ++i) \
+  {                                                      \
+    CVC5_API_TM_CHECK_TERM_AT_INDEX(terms[i], terms, i); \
+  }
 
 /**
  * DatatypeDecl checks for member functions of class TermManager.
@@ -830,17 +827,14 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each term in the given container is not null, associated with the
  * term manager of this solver, and of the given sort.
  */
-#define CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(terms, sort)                     \
-  do                                                                           \
-  {                                                                            \
-    for (size_t i = 0, size = terms.size(); i < size; ++i)                     \
-    {                                                                          \
-      CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(terms[i], terms, i);                 \
-      CVC5_API_CHECK(terms[i].getSort() == sort)                               \
-          << "Expected term with sort " << sort << " at index " << i << " in " \
-          << #terms;                                                           \
-    }                                                                          \
-  } while (0)
+#define CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(terms, sort)                   \
+  for (size_t i = 0, size = terms.size(); i < size; ++i)                     \
+  {                                                                          \
+    CVC5_API_SOLVER_CHECK_TERM_AT_INDEX(terms[i], terms, i);                 \
+    CVC5_API_CHECK(terms[i].getSort() == sort)                               \
+        << "Expected term with sort " << sort << " at index " << i << " in " \
+        << #terms;                                                           \
+  }
 
 /**
  * Bound variable checks for member functions of class Solver.
@@ -865,14 +859,11 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each term in the given container is not null, associated with the
  * term manager of this solver, and a bound variable.
  */
-#define CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars)                          \
-  do                                                                          \
-  {                                                                           \
-    for (size_t i = 0, size = bound_vars.size(); i < size; ++i)               \
-    {                                                                         \
-      CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i); \
-    }                                                                         \
-  } while (0)
+#define CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars)                        \
+  for (size_t i = 0, size = bound_vars.size(); i < size; ++i)               \
+  {                                                                         \
+    CVC5_API_SOLVER_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i); \
+  }
 
 /**
  * Bound variable checks for member functions of class Solver that define
@@ -946,14 +937,11 @@ class CVC5ApiUnsupportedExceptionStream
  * Check if each datatype constructor declaration in the given container of
  * declarations is not null and associated with the term manager of this solver.
  */
-#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                     \
-  do                                                                 \
-  {                                                                  \
-    for (size_t i = 0, size = decls.size(); i < size; ++i)           \
-    {                                                                \
-      CVC5_API_SOLVER_CHECK_DTCTORDECL_AT_INDEX(decls[i], decls, i); \
-    }                                                                \
-  } while (0)
+#define CVC5_API_SOLVER_CHECK_DTCTORDECLS(decls)                   \
+  for (size_t i = 0, size = decls.size(); i < size; ++i)           \
+  {                                                                \
+    CVC5_API_SOLVER_CHECK_DTCTORDECL_AT_INDEX(decls[i], decls, i); \
+  }
 
 /**
  * Argument number checks for mkOp.
