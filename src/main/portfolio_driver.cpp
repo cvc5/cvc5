@@ -44,7 +44,8 @@ enum SolveStatus : int
 };
 
 bool ExecutionContext::solveContinuous(parser::InputParser* parser,
-                                       bool stopAtSetLogic)
+                                       bool stopAtSetLogic,
+                                       bool stopAtCheckSat)
 {
   Command cmd;
   bool interrupted = false;
@@ -62,8 +63,16 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
     {
       break;
     }
-    status = d_executor->doCommand(&cmd);
     Cmd* cc = cmd.d_cmd.get();
+    if (stopAtCheckSat)
+    {
+      if (dynamic_cast<CheckSatCommand*>(cc) != nullptr)
+      {
+        d_hasReadCheckSat = true;
+        break;
+      }
+    }
+    status = d_executor->doCommand(&cmd);
     if (cc->interrupted() && status == 0)
     {
       interrupted = true;
@@ -84,6 +93,20 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
     }
   }
   return status;
+}
+
+bool ExecutionContext::runCheckSatCommand()
+{
+  std::shared_ptr<Cmd> cmd(new CheckSatCommand());
+  Command command(cmd);
+  return d_executor->doCommand(&command);
+}
+
+bool ExecutionContext::runResetCommand()
+{
+  std::shared_ptr<Cmd> cmd(new ResetCommand());
+  Command command(cmd);
+  return d_executor->doCommand(&command);
 }
 
 std::vector<Command> ExecutionContext::parseCommands(
@@ -244,11 +267,11 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser, uint64_t timeout)
       : d_ctx(ctx),
         d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
-        d_timeout(ctx.solver().getOptionInfo("tlimit").uintValue())
+        d_timeout(timeout)
   {
   }
 
@@ -316,10 +339,22 @@ class PortfolioProcessPool
     {
       job.d_errPipe.dup(STDERR_FILENO);
       job.d_outPipe.dup(STDOUT_FILENO);
+
+      std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
+      std::string logic = d_ctx.solver().getLogic();
+
+      d_ctx.runResetCommand();
+
       job.d_config.applyOptions(d_ctx.solver());
+      d_ctx.solver().setLogic(logic);
+
+      for (Term& t : assertions)
+      {
+        d_ctx.solver().assertFormula(t);
+      }
       // 0 = solved, 1 = not solved
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      if (d_ctx.solveContinuous(d_parser, false))
+      if (d_ctx.runCheckSatCommand())
       // if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
@@ -387,6 +422,11 @@ class PortfolioProcessPool
       }
       // mark as analyzed
       Trace("portfolio") << "Finished " << job.d_config << std::endl;
+      // terminate the corresponding timeout process if it is still running
+      if (job.d_timeout > 0)
+      {
+        kill(job.d_timeout, SIGKILL);
+      }
       job.d_state = JobState::DONE;
       --d_running;
       // check if exited normally
@@ -447,7 +487,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     return ctx.solveContinuous(d_parser, false);
   }
 
-  PortfolioStrategy strategy = getStrategy(*ctx.d_logic);
+  bool incremental_solving = solver.getOption("incremental") == "true";
+  PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
   Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
@@ -458,12 +499,21 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   uint64_t total_timeout = ctx.solver().getOptionInfo("tlimit").uintValue();
   if (total_timeout == 0)
   {
-    total_timeout = 1200;
+    total_timeout = 1'200'000; // miliseconds
   }
 
-  PortfolioProcessPool pool(ctx, d_parser);  // ctx.parseCommands(d_parser));
-
-  return pool.run(strategy);
+  bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
+  if (uninterrupted && ctx.d_hasReadCheckSat)
+  {
+    PortfolioProcessPool pool(ctx, d_parser, total_timeout);  // ctx.parseCommands(d_parser));
+    bool solved = pool.run(strategy);
+    if (!solved)
+    {
+      std::cout << "unknown" << std::endl;
+    }
+    return solved;
+  }
+  return uninterrupted;
 #else
   Warning() << "Can't run portfolio without <sys/wait.h>.";
   return ctx.solveContinuous(d_parser, false);
@@ -522,12 +572,45 @@ bool isOneOf(const std::string& logic, T&&... list)
   return ((logic == list) || ...);
 }
 
-PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
+PortfolioStrategy PortfolioDriver::getStrategy(bool incremental_solving,
+                                               const std::string& logic)
+{
+  if (incremental_solving)
+  {
+    return getIncrementalStrategy(logic);
+  }
+  else
+  {
+    return getNonIncrementalStrategy(logic);
+  }
+}
+
+PortfolioStrategy PortfolioDriver::getIncrementalStrategy(
+    const std::string& logic)
+{
+  PortfolioStrategy s;
+  if (isOneOf(logic, "QF_AUFLIA"))
+  {
+    s.add().unset("arrays-eager-index").set("arrays-eager-lemmas");
+  }
+  else if (isOneOf(logic, "QF_BV"))
+  {
+    s.add().set("bitblast", "eager");
+  }
+  else
+  {
+    s.add();
+  }
+  return s;
+}
+
+PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
+    const std::string& logic)
 {
   PortfolioStrategy s;
   if (isOneOf(logic, "QF_LRA"))
   {
-    s.add(0.2)
+    s.add(0.166666667)
         .set("miplib-trick")
         .set("miplib-trick-subs", "4")
         .set("use-approx")
@@ -562,20 +645,35 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_NIA"))
   {
-    s.add(0.35).set("nl-ext-tplanes").set("decision", "justification");
-    s.add(0.05).set("nl-ext-tplanes").set("decision", "internal");
-    s.add(0.05).set("nl-ext-tplanes").set("decision", "justification-old");
-    s.add(0.05).unset("nl-ext-tplanes").set("decision", "internal");
+    s.add(0.35)
+        .set("nl-ext-tplanes")
+        .set("decision", "justification");
+    s.add(0.05)
+        .set("nl-ext-tplanes")
+        .set("decision", "internal");
+    s.add(0.05)
+        .unset("nl-ext-tplanes")
+        .set("decision", "internal");
     s.add(0.05)
         .unset("arith-brab")
         .set("nl-ext-tplanes")
         .set("decision", "internal");
     // totals to more than 100%, but smaller bit-widths usually fail quickly
-    s.add(0.25).set("solve-int-as-bv", "2").set("bitblast", "eager");
-    s.add(0.25).set("solve-int-as-bv", "4").set("bitblast", "eager");
-    s.add(0.25).set("solve-int-as-bv", "8").set("bitblast", "eager");
-    s.add(0.25).set("solve-int-as-bv", "16").set("bitblast", "eager");
-    s.add(0.5).set("solve-int-as-bv", "32").set("bitblast", "eager");
+    s.add(0.25)
+        .set("solve-int-as-bv", "2")
+        .set("bitblast", "eager");
+    s.add(0.25)
+        .set("solve-int-as-bv", "4")
+        .set("bitblast", "eager");
+    s.add(0.25)
+        .set("solve-int-as-bv", "8")
+        .set("bitblast", "eager");
+    s.add(0.25)
+        .set("solve-int-as-bv", "16")
+        .set("bitblast", "eager");
+    s.add(0.5)
+        .set("solve-int-as-bv", "32")
+        .set("bitblast", "eager");
     s.add().set("nl-ext-tplanes").set("decision", "internal");
   }
   else if (isOneOf(logic, "QF_NRA"))
@@ -595,13 +693,16 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
                    "AUFNIRA",
                    "UF",
                    "UFBVLIA",
+                   "UFBVFP",
                    "UFIDL",
                    "UFLIA",
                    "UFLRA",
                    "UFNIA",
                    "UFDT",
                    "UFDTLIA",
+                   "UFDTLIRA",
                    "AUFDTLIA",
+                   "AUFDTLIRA",
                    "AUFBV",
                    "AUFBVDTLIA",
                    "AUFBVFP",
@@ -612,11 +713,16 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     // initial runs
     s.add(0.025).set("simplification", "none").set("enum-inst");
     s.add(0.025).unset("e-matching").set("enum-inst");
-    s.add(0.025).unset("e-matching").set("enum-inst").set("enum-inst-sum");
+    s.add(0.025)
+        .unset("e-matching")
+        .set("enum-inst")
+        .set("enum-inst-sum");
     // trigger selections
     s.add(0.025).set("relevant-triggers").set("enum-inst");
     s.add(0.025).set("trigger-sel", "max").set("enum-inst");
-    s.add(0.025).set("multi-trigger-when-single").set("enum-inst");
+    s.add(0.025)
+        .set("multi-trigger-when-single")
+        .set("enum-inst");
     s.add(0.025)
         .set("multi-trigger-when-single")
         .set("multi-trigger-priority")
@@ -626,7 +732,10 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
     // other
     s.add(0.025).set("pre-skolem-quant", "on").set("enum-inst");
     s.add(0.025).set("inst-when", "full").set("enum-inst");
-    s.add(0.025).unset("e-matching").unset("cbqi").set("enum-inst");
+    s.add(0.025)
+        .unset("e-matching")
+        .unset("cbqi")
+        .set("enum-inst");
     s.add(0.025).set("enum-inst").set("quant-ind");
     s.add(0.025)
         .set("decision", "internal")
@@ -640,71 +749,103 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
         .set("enum-inst-sum");
     s.add(0.025).set("term-db-mode", "relevant").set("enum-inst");
     s.add(0.025).set("enum-inst-interleave").set("enum-inst");
+    s.add(0.025).set("preregister-mode", "lazy").set("enum-inst");
     // finite model find
     s.add(0.025).set("finite-model-find").set("fmf-mbqi", "none");
-    s.add(0.025).set("finite-model-find").set("decision", "internal");
+    s.add(0.025)
+        .set("finite-model-find")
+        .set("decision", "internal");
     s.add(0.025)
         .set("finite-model-find")
         .set("macros-quant")
         .set("macros-quant-mode", "all");
     s.add(0.05).set("finite-model-find").set("e-matching");
+    s.add(0.05).set("mbqi");
     // long runs
-    s.add(0.2).set("finite-model-find").set("decision", "internal");
+    s.add(0.15)
+        .set("finite-model-find")
+        .set("decision", "internal");
     s.add().set("enum-inst");
   }
   else if (isOneOf(logic, "UFBV"))
   {
     // most problems in UFBV are essentially BV
-    s.add(0.25).set("sygus-inst");
+    s.add(0.125).set("sygus-inst");
+    s.add(0.125).set("mbqi").unset("cegqi").unset("sygus-inst");
     s.add(0.25)
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal");
-    s.add(0.025).set("enum-inst").unset("cegqi-innermost").set("global-negate");
+    s.add(0.25)
+        .set("mbqi-enum")
+        .unset("cegqi")
+        .unset("sygus-inst");
+    s.add(0.025)
+        .set("enum-inst")
+        .unset("cegqi-innermost")
+        .set("global-negate");
     ;
     s.add().set("finite-model-find");
   }
   else if (isOneOf(logic, "ABV", "BV"))
   {
-    s.add(0.1).set("enum-inst");
-    s.add(0.1).set("sygus-inst");
+    s.add(0.066666667).set("enum-inst");
+    s.add(0.066666667).set("sygus-inst");
+    s.add(0.066666667).set("mbqi").unset("cegqi").unset("sygus-inst");
+    s.add(0.25)
+        .set("mbqi-enum")
+        .unset("cegqi")
+        .unset("sygus-inst");
     s.add(0.25)
         .set("enum-inst")
         .set("cegqi-nested-qe")
         .set("decision", "internal");
     s.add(0.025).set("enum-inst").unset("cegqi-bv");
-    s.add(0.025).set("enum-inst").set("cegqi-bv-ineq", "eq-slack");
+    s.add(0.025)
+        .set("enum-inst")
+        .set("cegqi-bv-ineq", "eq-slack");
     s.add().set("enum-inst").unset("cegqi-innermost").set("global-negate");
   }
-  else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA"))
+  else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA", "BVFPLRA"))
   {
-    s.add(0.25).set("enum-inst").set("nl-ext-tplanes").set("fp-exp");
-    s.add().set("sygus-inst").set("fp-exp");
+    s.add(0.25)
+        .set("mbqi-enum")
+        .unset("cegqi")
+        .unset("sygus-inst");
+    s.add(0.25).set("enum-inst").set("nl-ext-tplanes");
+    s.add(0.05).set("mbqi").unset("cegqi").unset("sygus-inst");
+    s.add().set("sygus-inst");
   }
   else if (isOneOf(logic, "LIA", "LRA"))
   {
     s.add(0.025).set("enum-inst");
     s.add(0.25).set("enum-inst").set("cegqi-nested-qe");
-    s.add().set("enum-inst").set("cegqi-nested-qe").set("decision", "internal");
+    s.add(0.025).set("mbqi").unset("cegqi").unset("sygus-inst");
+    s.add(0.025)
+        .set("mbqi-enum")
+        .unset("cegqi")
+        .unset("sygus-inst");
+    s.add()
+        .set("enum-inst")
+        .set("cegqi-nested-qe")
+        .set("decision", "internal");
   }
   else if (isOneOf(logic, "QF_AUFBV"))
   {
     s.add(0.5);
-    s.add().set("decision", "justification-stoponly");
+    s.add().set("decision", "stoponly");
   }
   else if (isOneOf(logic, "QF_ABV"))
   {
-    s.add(0.05)
+    s.add(0.041666667)
         .set("ite-simp")
         .set("simp-with-care")
-        .set("repeat-simp")
-        .set("arrays-weak-equiv");
-    s.add(0.5).set("arrays-weak-equiv");
+        .set("repeat-simp");
+    s.add(0.416666667);
     s.add()
         .set("ite-simp")
         .set("simp-with-care")
-        .set("repeat-simp")
-        .set("arrays-weak-equiv");
+        .set("repeat-simp");
   }
   else if (isOneOf(logic, "QF_BV", "QF_UFBV"))
   {
@@ -733,26 +874,19 @@ PortfolioStrategy PortfolioDriver::getStrategy(const std::string& logic)
   }
   else if (isOneOf(logic, "QF_ALIA"))
   {
-    s.add(0.15).set("decision", "justification").set("arrays-weak-equiv");
+    s.add(0.116666667).set("decision", "justification");
     s.add()
-        .set("decision", "justification-stoponly")
+        .set("decision", "stoponly")
         .unset("arrays-eager-index")
         .set("arrays-eager-lemmas");
   }
   else if (isOneOf(logic, "QF_S", "QF_SLIA"))
   {
-    s.add(0.25).set("strings-exp").set("strings-fmf").unset("jh-rlv-order");
+    s.add(0.25)
+        .set("strings-exp")
+        .set("strings-fmf")
+        .unset("jh-rlv-order");
     s.add().set("strings-exp").unset("jh-rlv-order");
-  }
-  else if (isOneOf(logic,
-                   "QF_ABVFP",
-                   "QF_ABVFPLRA",
-                   "QF_BVFP",
-                   "QF_BVFPLRA",
-                   "QF_FP",
-                   "QF_FPLRA"))
-  {
-    s.add().set("fp-exp");
   }
   else
   {
