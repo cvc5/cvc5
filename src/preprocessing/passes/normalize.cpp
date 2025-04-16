@@ -94,7 +94,9 @@ void generateEncoding(
                 // For variables and constants, update role map and mark as processed immediately
                 if (n.isVar())
                 {
-                    std::string symbol = n.toString();
+                    // std::string symbol = n.toString();
+                    std::string symbol = std::to_string(n.getId());
+
                     if (role.find(symbol) == role.end() && parent.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE) // Ignore variables in INST_ATTRIBUTE (qid)
                     {
                         role[symbol] = cnt;
@@ -129,7 +131,9 @@ void generateEncoding(
                     Node opNode = n.getOperator();
                     if (opNode.isVar())
                     {
-                        std::string symbol = opNode.toString();
+                        // std::string symbol = opNode.toString();
+                        std::string symbol = std::to_string(opNode.getId());
+
                         if (role.find(symbol) == role.end() && n.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE)
                         {
                             role[symbol] = cnt;
@@ -157,13 +161,17 @@ void generateEncoding(
                     if (child.isConst())
                     {
                         // Include '^' followed by the constant value and '^'
-                        std::string value = child.toString();
+                        // std::string value = child.toString();
+                        std::string value = std::to_string(child.getId());
                         nodeEncoding += "^" + value + "^,";
+                        // std::cerr << "Constant " << child.toString() << " with ID " << child.getId() << std::endl;
                     }
                     else if (child.isVar())
                     {
                         // Update role map
-                        std::string symbol = child.toString();
+                        // std::string symbol = child.toString();
+                        std::string symbol = std::to_string(child.getId());
+
                         if (role.find(symbol) == role.end() && n.getKind() != cvc5::internal::Kind::INST_ATTRIBUTE)
                         {
                             role[symbol] = cnt;
@@ -333,7 +341,8 @@ Node rename(
                             boundVar2node[current] = ret;
                             normalized[current] = ret;
 
-                            normalizedName[current.toString()] = new_var_name;
+                            // normalizedName[current.toString()] = new_var_name;
+                            normalizedName[std::to_string(current.getId())] = new_var_name;
                         }
                     }
                     else
@@ -373,7 +382,8 @@ Node rename(
                             normalized[current] = ret;
                             d_preprocContext->addSubstitution(current, ret);
 
-                            normalizedName[current.toString()] = new_var_name;
+                            // normalizedName[current.toString()] = new_var_name;
+                            normalizedName[std::to_string(current.getId())] = new_var_name;
                         }
                     }
                 }
@@ -647,7 +657,8 @@ Node renameQid(
             );
             qidRenamed[current] = ret;
             normalized[current] = ret;
-            normalizedName[current.toString()] = new_var_name;
+            // normalizedName[current.toString()] = new_var_name;
+            normalizedName[std::to_string(current.getId())] = new_var_name;
           }
         }
         else
@@ -728,9 +739,14 @@ PreprocessingPassResult Normalize::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
     TimerStat::CodeTimer codeTimer(d_statistics.d_passTime);
+    
+    // Overall timer
+    auto startOverall = std::chrono::high_resolution_clock::now();
 
     /////////////////////////////////////////////////////////////
     // Step 1: Get NodeInfo for all assertions
+    auto startStep1 = std::chrono::high_resolution_clock::now();
+    
     std::vector<std::shared_ptr<NodeInfo>> nodeInfos;
     for (const Node& assertion : assertionsToPreprocess->ref())
     {
@@ -741,19 +757,26 @@ PreprocessingPassResult Normalize::applyInternal(
         auto ni = getNodeInfo(assertion);
         nodeInfos.push_back(std::move(ni));
     }
-
+    
+    auto endStep1 = std::chrono::high_resolution_clock::now();
+    auto durationStep1 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep1 - startStep1).count();
 
     /////////////////////////////////////////////////////////////
 
 
     /////////////////////////////////////////////////////////////
     // Step 2: Store assertions in which every symbol occurs (will be used for super-pattern computation)
+    auto startStep2a = std::chrono::high_resolution_clock::now();
+    
     std::unordered_map<std::string, std::vector<std::shared_ptr<NodeInfo>>> symbolOccurrences;
     for (const auto& nodeInfo : nodeInfos) {
         for (const auto& [symbol, _] : nodeInfo->varNames) {
             symbolOccurrences[symbol].push_back(nodeInfo);
         }
     }
+    
+    auto endStep2a = std::chrono::high_resolution_clock::now();
+    auto durationStep2a = std::chrono::duration_cast<std::chrono::milliseconds>(endStep2a - startStep2a).count();
 
     /////////////////////////////////////////////////////////////
 
@@ -771,6 +794,8 @@ PreprocessingPassResult Normalize::applyInternal(
     
     /////////////////////////////////////////////////////////////
     // Step 2: Classify assertions into equivalence classes
+    auto startStep2b = std::chrono::high_resolution_clock::now();
+    
     std::vector<std::vector<NodeInfo*>> eqClasses;
     std::unordered_map<std::string, uint32_t> seenEncodings;
     for (auto& niPtr : nodeInfos) {
@@ -785,14 +810,24 @@ PreprocessingPassResult Normalize::applyInternal(
             eqClasses.push_back(std::move(newClass));
         }
     }
+    
+    auto endStep2b = std::chrono::high_resolution_clock::now();
+    auto durationStep2b = std::chrono::duration_cast<std::chrono::milliseconds>(endStep2b - startStep2b).count();
 
     // Step 3: Sort equivalence classes based on encodings
+    auto startStep3 = std::chrono::high_resolution_clock::now();
+    
     std::sort(eqClasses.begin(), eqClasses.end(),
         [](const std::vector<NodeInfo*>& a, const std::vector<NodeInfo*>& b) {
             return a[0]->encoding > b[0]->encoding;
         });
 
+    auto endStep3 = std::chrono::high_resolution_clock::now();
+    auto durationStep3 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep3 - startStep3).count();
+
     // Set IDs for all nodes. Used for super-pattern computation
+    auto startIdAssignment = std::chrono::high_resolution_clock::now();
+    
     uint32_t idCnt = 0;
     for (const auto& eqClass : eqClasses)
     {
@@ -802,6 +837,9 @@ PreprocessingPassResult Normalize::applyInternal(
         }
         idCnt++;
     }
+    
+    auto endIdAssignment = std::chrono::high_resolution_clock::now();
+    auto durationIdAssignment = std::chrono::duration_cast<std::chrono::milliseconds>(endIdAssignment - startIdAssignment).count();
 
     // print eqClasses
     // for (const auto& eqClass : eqClasses)
@@ -849,6 +887,8 @@ PreprocessingPassResult Normalize::applyInternal(
     
     /////////////////////////////////////////////////////////////
     // Step 4: Sort within equivalence classes
+    auto startStep4 = std::chrono::high_resolution_clock::now();
+    
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>> patternCache; // Cache of superpatterns
 
 
@@ -943,8 +983,13 @@ PreprocessingPassResult Normalize::applyInternal(
                 return false;
             });
     }
+    
+    auto endStep4 = std::chrono::high_resolution_clock::now();
+    auto durationStep4 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep4 - startStep4).count();
 
 
+    auto startTypeCollection = std::chrono::high_resolution_clock::now();
+    
     std::vector<TypeNode> types;
     std::unordered_set<TNode> visited;
     std::unordered_set<TypeNode> mark;
@@ -955,6 +1000,12 @@ PreprocessingPassResult Normalize::applyInternal(
             collectTypes(nodeInfo->node, types, visited, mark);
         }
     }
+    
+    auto endTypeCollection = std::chrono::high_resolution_clock::now();
+    auto durationTypeCollection = std::chrono::duration_cast<std::chrono::milliseconds>(endTypeCollection - startTypeCollection).count();
+    
+    auto startSortNormalization = std::chrono::high_resolution_clock::now();
+    
     std::map<TypeNode, TypeNode> normalizedSorts;
     int sortCounter = 0;
     for (const TypeNode& ctn : types)
@@ -969,11 +1020,19 @@ PreprocessingPassResult Normalize::applyInternal(
         }
     }
     
+    auto endSortNormalization = std::chrono::high_resolution_clock::now();
+    auto durationSortNormalization = std::chrono::duration_cast<std::chrono::milliseconds>(endSortNormalization - startSortNormalization).count();
+    
 
+    auto startSortNormalizerCreation = std::chrono::high_resolution_clock::now();
     NormalizeSortNodeConverter* sortNormalizer = new NormalizeSortNodeConverter(normalizedSorts, NodeManager::currentNM());
+    auto endSortNormalizerCreation = std::chrono::high_resolution_clock::now();
+    auto durationSortNormalizerCreation = std::chrono::duration_cast<std::chrono::milliseconds>(endSortNormalizerCreation - startSortNormalizerCreation).count();
     
     //////////////////////////////////////////////////////////////////////
     // Step 5: Normalize the nodes based on the sorted order
+    auto startStep5 = std::chrono::high_resolution_clock::now();
+    
     std::unordered_map<Node, Node> freeVar2node;
     std::unordered_map<Node, Node> boundVar2node;
     NodeManager* nodeManager = NodeManager::currentNM();
@@ -988,10 +1047,15 @@ PreprocessingPassResult Normalize::applyInternal(
             ni->node = renamed;          
         }
     }
+    
+    auto endStep5 = std::chrono::high_resolution_clock::now();
+    auto durationStep5 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep5 - startStep5).count();
 
 
     //////////////////////////////////////////////////////////////////////
-    // Step 6: Sort the ndoes within each equivalence class based on the normalized node names
+    // Step 6: Sort the nodes within each equivalence class based on the normalized node names
+    auto startStep6 = std::chrono::high_resolution_clock::now();
+    
     for (auto& eqClass : eqClasses)
     {
         std::sort(eqClass.begin(), eqClass.end(),
@@ -1032,11 +1096,16 @@ PreprocessingPassResult Normalize::applyInternal(
                 return false;
             });
     }
+    
+    auto endStep6 = std::chrono::high_resolution_clock::now();
+    auto durationStep6 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep6 - startStep6).count();
 
 
 
     //////////////////////////////////////////////////////////////////////
     // Step 7: Reassign qid top to bottom
+    auto startStep7 = std::chrono::high_resolution_clock::now();
+    
     std::unordered_map<Node, Node> qidRenamed;
     if (hasQID)
     {
@@ -1049,8 +1118,13 @@ PreprocessingPassResult Normalize::applyInternal(
             }
         }
     }
+    
+    auto endStep7 = std::chrono::high_resolution_clock::now();
+    auto durationStep7 = std::chrono::duration_cast<std::chrono::milliseconds>(endStep7 - startStep7).count();
 
 
+    auto startFinalReplacement = std::chrono::high_resolution_clock::now();
+    
     uint32_t idx = 0;
     for (const auto& eqClass: eqClasses)
     {
@@ -1060,6 +1134,29 @@ PreprocessingPassResult Normalize::applyInternal(
         }
     }
     assertionsToPreprocess->resize(idx);
+    
+    auto endFinalReplacement = std::chrono::high_resolution_clock::now();
+    auto durationFinalReplacement = std::chrono::duration_cast<std::chrono::milliseconds>(endFinalReplacement - startFinalReplacement).count();
+    
+    auto endOverall = std::chrono::high_resolution_clock::now();
+    auto durationOverall = std::chrono::duration_cast<std::chrono::milliseconds>(endOverall - startOverall).count();
+    
+    // Print summary of timing information
+    std::cerr << "\n=== TIMING SUMMARY ===" << std::endl;
+    std::cerr << "Step 1 (Collect NodeInfo): " << durationStep1 << " ms (" << (durationStep1 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 2a (Build symbol occurrences): " << durationStep2a << " ms (" << (durationStep2a * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 2b (Classify assertions): " << durationStep2b << " ms (" << (durationStep2b * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 3 (Sort equivalence classes): " << durationStep3 << " ms (" << (durationStep3 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "ID Assignment: " << durationIdAssignment << " ms (" << (durationIdAssignment * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 4 (Sort within equivalence classes): " << durationStep4 << " ms (" << (durationStep4 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Type Collection: " << durationTypeCollection << " ms (" << (durationTypeCollection * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Sort Normalization: " << durationSortNormalization << " ms (" << (durationSortNormalization * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Sort Normalizer Creation: " << durationSortNormalizerCreation << " ms (" << (durationSortNormalizerCreation * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 5 (Normalize nodes): " << durationStep5 << " ms (" << (durationStep5 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 6 (Sort nodes within equivalence classes): " << durationStep6 << " ms (" << (durationStep6 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Step 7 (Reassign QIDs): " << durationStep7 << " ms (" << (durationStep7 * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Final Replacement: " << durationFinalReplacement << " ms (" << (durationFinalReplacement * 100.0 / durationOverall) << "%)" << std::endl;
+    std::cerr << "Total: " << durationOverall << " ms (100%)" << std::endl;
     
     return PreprocessingPassResult::NO_CONFLICT;
   
