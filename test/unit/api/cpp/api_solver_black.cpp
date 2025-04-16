@@ -1095,30 +1095,18 @@ TEST_F(TestApiBlackSolver, declarePool)
 
   TermManager tm;
   Solver slv(tm);
-  ASSERT_THROW(
-      slv.declarePool(
-          "p",
-          d_int,
-          {tm.mkInteger(0), tm.mkConst(d_int, "x"), tm.mkConst(d_int, "y")}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      slv.declarePool(
-          "p",
-          tm.getIntegerSort(),
-          {d_tm.mkInteger(0), tm.mkConst(d_int, "x"), tm.mkConst(d_int, "y")}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      slv.declarePool(
-          "p",
-          tm.getIntegerSort(),
-          {tm.mkInteger(0), d_tm.mkConst(d_int, "x"), tm.mkConst(d_int, "y")}),
-      CVC5ApiException);
-  ASSERT_THROW(
-      slv.declarePool(
-          "p",
-          tm.getIntegerSort(),
-          {tm.mkInteger(0), tm.mkConst(d_int, "x"), d_tm.mkConst(d_int, "y")}),
-      CVC5ApiException);
+  Sort tm_int = tm.getIntegerSort();
+  Term tm_zero = tm.mkInteger(0);
+  Term tm_x = tm.mkConst(tm_int, "x");
+  Term tm_y = tm.mkConst(tm_int, "y");
+  ASSERT_THROW(slv.declarePool("p", d_int, {tm_zero, tm_x, tm_y}),
+               CVC5ApiException);
+  ASSERT_THROW(slv.declarePool("p", tm_int, {zero, tm_x, tm_y}),
+               CVC5ApiException);
+  ASSERT_THROW(slv.declarePool("p", tm_int, {tm_zero, x, tm_y}),
+               CVC5ApiException);
+  ASSERT_THROW(slv.declarePool("p", tm_int, {tm_zero, tm_x, y}),
+               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getDriverOptions)
