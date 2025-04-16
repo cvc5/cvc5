@@ -191,13 +191,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceUnsatCores)
   {
-    if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-    {
-      SET_AND_NOTIFY(prop,
-                     satSolver,
-                     options::SatSolverMode::MINISAT,
-                     "proofs and unsat cores not supported with CaDiCaL");
-    }
     if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
     {
       SET_AND_NOTIFY(smt,
@@ -241,13 +234,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-    {
-      SET_AND_NOTIFY(prop,
-                     satSolver,
-                     options::SatSolverMode::MINISAT,
-                     "proofs and unsat cores not supported with CaDiCaL");
-    }
     // if the user requested proofs, proof mode is (at least) full
     if (opts.smt.proofMode < options::ProofMode::FULL)
     {
@@ -271,23 +257,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
         && opts.smt.proofMode != options::ProofMode::PP_ONLY)
     {
       SET_AND_NOTIFY(smt, produceUnsatCores, true, "enabling proofs");
-      if (options().prop.satSolver == options::SatSolverMode::MINISAT)
-      {
-        // if full proofs are available in minisat, use them for unsat cores
-        SET_AND_NOTIFY(smt,
-                       unsatCoresMode,
-                       options::UnsatCoresMode::SAT_PROOF,
-                       "enabling proofs, minisat");
-      }
-      else if (options().prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // unsat cores available by assumptions by default if proofs are enabled
-        // with CaDiCaL.
-        SET_AND_NOTIFY(smt,
-                       unsatCoresMode,
-                       options::UnsatCoresMode::ASSUMPTIONS,
-                       "enabling proofs, non-minisat");
-      }
+      // if full proofs are available, use them for unsat cores
+      SET_AND_NOTIFY(smt,
+                     unsatCoresMode,
+                     options::UnsatCoresMode::SAT_PROOF,
+                     "enabling proofs");
     }
     // note that this test assumes that granularity modes are ordered and
     // THEORY_REWRITE is gonna be, in the enum, after the lower granularity
@@ -355,18 +329,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceProofs)
   {
-    // determine the prop proof mode, based on which SAT solver we are using
-    if (!opts.proof.propProofModeWasSetByUser)
-    {
-      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(proof,
-                       propProofMode,
-                       options::PropProofMode::SAT_EXTERNAL_PROVE,
-                       "cadical");
-      }
-    }
     // upgrade to full strict if safe options
     if (options().base.safeOptions
         && opts.smt.proofMode == options::ProofMode::FULL)
@@ -1086,13 +1048,6 @@ bool SetDefaults::usesInputConversion(const Options& opts,
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
-  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-  {
-    SET_AND_NOTIFY(prop,
-                   satSolver,
-                   options::SatSolverMode::MINISAT,
-                   "proofs and unsat cores not supported with CaDiCaL");
-  }
   if (opts.parser.freshBinders)
   {
     // When fresh-binders is true, we do not support proof output.
@@ -1143,20 +1098,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     return true;
   }
   // specific to SAT solver
-  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-  {
-    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
-    {
-      reason << "(resolution) proofs in CaDiCaL";
-      return true;
-    }
-    if (opts.smt.proofMode != options::ProofMode::PP_ONLY)
-    {
-      reason << "CaDiCaL";
-      return true;
-    }
-  }
-  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
     // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
     // not supported by Minisat.
@@ -1301,13 +1243,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
                                              std::ostream& reason) const
 {
-  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-  {
-    SET_AND_NOTIFY(prop,
-                   satSolver,
-                   options::SatSolverMode::MINISAT,
-                   "proofs and unsat cores not supported with CaDiCaL");
-  }
   // All techniques that are incompatible with unsat cores are listed here.
   // A preprocessing pass is incompatible with unsat cores if
   // (A) its reasoning is not local, i.e. it may replace an assertion A by A'
