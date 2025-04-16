@@ -246,8 +246,8 @@ TEST_F(TestCApiBlackSolver, simplify)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_simplify(slv, x, false);
+  ASSERT_DEATH(cvc5_simplify(slv, x, false),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -276,8 +276,8 @@ TEST_F(TestCApiBlackSolver, assert_formula)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_assert_formula(slv, cvc5_mk_true(d_tm));
+  ASSERT_DEATH(cvc5_assert_formula(slv, cvc5_mk_true(d_tm)),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -312,8 +312,10 @@ TEST_F(TestCApiBlackSolver, check_sat_assuming)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_check_sat_assuming(slv, assumptions.size(), assumptions.data());
+  ASSERT_DEATH(
+      cvc5_check_sat_assuming(slv, assumptions.size(), assumptions.data()),
+      "expected a term associated with the term manager of this solver");
+  ;
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -439,10 +441,11 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
   ctors = {nil};
-  (void)cvc5_declare_dt(d_solver, "a", ctors.size(), ctors.data());
+  ASSERT_DEATH(cvc5_declare_dt(slv, "a", ctors.size(), ctors.data()),
+               "expected a datatype constructor declaration associated with "
+               "the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -484,8 +487,8 @@ TEST_F(TestCApiBlackSolver, declare_fun)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true);
+  ASSERT_DEATH(cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true),
+               "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -506,8 +509,9 @@ TEST_F(TestCApiBlackSolver, declare_fun_fresh)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_declare_fun(slv, "b", 0, nullptr, d_int, false);
+  ASSERT_DEATH(cvc5_declare_fun(slv, "b", 0, nullptr, d_int, false),
+               "sort is not associated with the term manager of this solver");
+  ;
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -588,27 +592,32 @@ TEST_F(TestCApiBlackSolver, define_fun)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Sort bv_sort2 = cvc5_mk_bv_sort(tm, 32);
   Cvc5Term v12 = cvc5_mk_const(tm, bv_sort2, "v1");
-  Cvc5Term b12 = cvc5_mk_var(d_tm, bv_sort2, "b1");
-  Cvc5Term b22 = cvc5_mk_var(d_tm, cvc5_get_integer_sort(tm), "b2");
+  Cvc5Term b12 = cvc5_mk_var(tm, bv_sort2, "b1");
+  Cvc5Term b22 = cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "b2");
   vars = {};
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort, v12, false);
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v1, false);
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
+      "sort is not associated with the term manager of this solver");
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
+      "term is not associated with the term manager of this solver");
   vars = {b1, b22};
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
+      "expected a term associated with the term manager of this solver");
   vars = {b12, b2};
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
+      "expected a term associated with the term manager of this solver");
   vars = {b12, b22};
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort, v12, false);
-  (void)cvc5_define_fun(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v1, false);
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
+      "sort is not associated with the term manager of this solver");
+  ASSERT_DEATH(
+      cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
+      "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -739,33 +748,34 @@ TEST_F(TestCApiBlackSolver, define_fun_rec)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Sort bv_sort2 = cvc5_mk_bv_sort(tm, 32);
-  Cvc5Term b12 = cvc5_mk_var(tm, bv_sort, "b1");
-  Cvc5Term b22 = cvc5_mk_var(tm, d_int, "b2");
-  Cvc5Term v12 = cvc5_mk_const(tm, bv_sort, "v1");
+  Cvc5Term b12 = cvc5_mk_var(tm, bv_sort2, "b1");
+  Cvc5Term b22 = cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "b2");
+  Cvc5Term v12 = cvc5_mk_const(tm, bv_sort2, "v1");
   vars = {};
-  (void)cvc5_define_fun_rec(
-      d_solver, "f", vars.size(), vars.data(), bv_sort2, v12, false);
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort, v12, false);
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v1, false);
-  vars = {b12, b22};
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
+  ASSERT_DEATH(
+      cvc5_define_fun_rec(
+          d_solver, "f", vars.size(), vars.data(), bv_sort2, v12, false),
+      "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_define_fun_rec(
+                   slv, "f", vars.size(), vars.data(), bv_sort, v12, false),
+               "sort is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_define_fun_rec(
+                   slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
+               "term is not associated with the term manager of this solver");
   vars = {b12, b22};
   (void)cvc5_define_fun_rec(
       slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
   vars = {b1, b22};
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
+  ASSERT_DEATH(
+      cvc5_define_fun_rec(
+          slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
+      "expected a term associated with the term manager of this solver");
   vars = {b12, b2};
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v12, false);
-  vars = {b12, b22};
-  (void)cvc5_define_fun_rec(
-      slv, "f", vars.size(), vars.data(), bv_sort2, v1, false);
+  ASSERT_DEATH(
+      cvc5_define_fun_rec(
+          slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -828,29 +838,36 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_global)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Term bb = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "b");
   domain = {d_bool};
   vars = {bb};
-  (void)cvc5_define_fun_rec_from_const(
-      slv,
-      cvc5_mk_const(
-          d_tm,
-          cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool),
-          "g"),
-      vars.size(),
-      vars.data(),
-      bb,
-      true);
+  ASSERT_DEATH(
+      cvc5_define_fun_rec_from_const(
+          slv,
+          cvc5_mk_const(
+              d_tm,
+              cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_bool),
+              "g"),
+          vars.size(),
+          vars.data(),
+          bb,
+          true),
+      "term is not associated with the term manager of this solver");
   vars = {b};
-  (void)cvc5_define_fun_rec_from_const(
-      slv,
-      cvc5_mk_const(
-          tm, cvc5_mk_fun_sort(tm, domain.size(), domain.data(), d_bool), "g"),
-      vars.size(),
-      vars.data(),
-      bb,
-      true);
+  domain = {cvc5_get_boolean_sort(tm)};
+  ASSERT_DEATH(
+      cvc5_define_fun_rec_from_const(
+          slv,
+          cvc5_mk_const(
+              tm,
+              cvc5_mk_fun_sort(
+                  tm, domain.size(), domain.data(), cvc5_get_boolean_sort(tm)),
+              "g"),
+          vars.size(),
+          vars.data(),
+          bb,
+          true),
+      "invalid sort of parameter");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -947,7 +964,6 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Sort uninterpreted2 = cvc5_mk_uninterpreted_sort(tm, "u");
   Cvc5Sort bv_sort2 = cvc5_mk_bv_sort(tm, 32);
 
@@ -980,50 +996,60 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                        terms.data(),
                        false);
   funs = {f1, f22};
-  cvc5_define_funs_rec(slv,
-                       funs.size(),
-                       funs.data(),
-                       nvars.data(),
-                       vars.data(),
-                       terms.data(),
-                       false);
+  ASSERT_DEATH(
+      cvc5_define_funs_rec(slv,
+                           funs.size(),
+                           funs.data(),
+                           nvars.data(),
+                           vars.data(),
+                           terms.data(),
+                           false),
+      "expected a term associated with the term manager of this solver");
   funs = {f12, f22};
   vars1 = {b1, b112};
   vars = {vars1.data(), vars2.data()};
-  cvc5_define_funs_rec(slv,
-                       funs.size(),
-                       funs.data(),
-                       nvars.data(),
-                       vars.data(),
-                       terms.data(),
-                       false);
+  ASSERT_DEATH(
+      cvc5_define_funs_rec(slv,
+                           funs.size(),
+                           funs.data(),
+                           nvars.data(),
+                           vars.data(),
+                           terms.data(),
+                           false),
+      "expected a term associated with the term manager of this solver");
   vars1 = {b12, b11};
   vars = {vars1.data(), vars2.data()};
-  cvc5_define_funs_rec(slv,
-                       funs.size(),
-                       funs.data(),
-                       nvars.data(),
-                       vars.data(),
-                       terms.data(),
-                       false);
+  ASSERT_DEATH(
+      cvc5_define_funs_rec(slv,
+                           funs.size(),
+                           funs.data(),
+                           nvars.data(),
+                           vars.data(),
+                           terms.data(),
+                           false),
+      "expected a term associated with the term manager of this solver");
   vars2 = {b42};
   vars = {vars1.data(), vars2.data()};
   terms = {v1, v22};
-  cvc5_define_funs_rec(slv,
-                       funs.size(),
-                       funs.data(),
-                       nvars.data(),
-                       vars.data(),
-                       terms.data(),
-                       false);
+  ASSERT_DEATH(
+      cvc5_define_funs_rec(slv,
+                           funs.size(),
+                           funs.data(),
+                           nvars.data(),
+                           vars.data(),
+                           terms.data(),
+                           false),
+      "expected a term associated with the term manager of this solver");
   terms = {v12, v2};
-  cvc5_define_funs_rec(slv,
-                       funs.size(),
-                       funs.data(),
-                       nvars.data(),
-                       vars.data(),
-                       terms.data(),
-                       false);
+  ASSERT_DEATH(
+      cvc5_define_funs_rec(slv,
+                           funs.size(),
+                           funs.data(),
+                           nvars.data(),
+                           vars.data(),
+                           terms.data(),
+                           false),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -1881,8 +1907,8 @@ TEST_F(TestCApiBlackSolver, get_value3)
   slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_value(slv, x);
+  ASSERT_DEATH(cvc5_get_value(slv, x),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -1914,8 +1940,8 @@ TEST_F(TestCApiBlackSolver, get_modelDomain_elements)
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_model_domain_elements(slv, d_uninterpreted, &size);
+  ASSERT_DEATH(cvc5_get_model_domain_elements(slv, d_uninterpreted, &size),
+               "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -1967,8 +1993,8 @@ TEST_F(TestCApiBlackSolver, is_model_core_symbol)
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_is_model_core_symbol(slv, x);
+  ASSERT_DEATH(cvc5_is_model_core_symbol(slv, x),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2057,8 +2083,8 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_check_sat(slv);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_quantifier_elimination(slv, forall);
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(slv, forall),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2087,8 +2113,8 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_check_sat(slv);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_quantifier_elimination(slv, forall);
+  ASSERT_DEATH(cvc5_get_quantifier_elimination(slv, forall),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2109,14 +2135,16 @@ TEST_F(TestCApiBlackSolver, declare_sep_heap)
                "cannot declare heap types");
   cvc5_delete(slv);
 
-  // this will throw when NodeManager is not a singleton anymore
   slv = cvc5_new(tm);
   cvc5_set_logic(slv, "ALL");
-  cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int);
+  ASSERT_DEATH(cvc5_declare_sep_heap(slv, cvc5_get_integer_sort(tm), d_int),
+               "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+
   slv = cvc5_new(tm);
   cvc5_set_logic(slv, "ALL");
-  cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm));
+  ASSERT_DEATH(cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm)),
+               "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2402,8 +2430,8 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_declare_sygus_var(slv, "", d_bool);
+  ASSERT_DEATH(cvc5_declare_sygus_var(slv, "", d_bool),
+               "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2457,15 +2485,18 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   bvars = {};
   symbols = {iv};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          slv, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a term associated with the term manager of this solver");
   bvars = {bv};
   symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  ASSERT_DEATH(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2514,9 +2545,10 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
-  cvc5_synth_fun_with_grammar(
-      d_solver, "f8", bvars.size(), bvars.data(), d_bool, g1);
+  ASSERT_DEATH(
+      cvc5_synth_fun_with_grammar(
+          slv, "f8", bvars.size(), bvars.data(), d_bool, g1),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2561,18 +2593,22 @@ TEST_F(TestCApiBlackSolver, declare_pool)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  // this will throw when NodeManager is not a singleton anymore
   args = {zero, x, y};
   Cvc5Term zero2 = cvc5_mk_integer_int64(tm, 0);
   Cvc5Term x2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "x");
   Cvc5Term y2 = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "y");
   std::vector<Cvc5Term> args2 = {zero2, x2, y2};
-  (void)cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data());
-  (void)cvc5_declare_pool(
-      slv, "p", cvc5_get_integer_sort(tm), args.size(), args.data());
+  ASSERT_DEATH(cvc5_declare_pool(slv, "p", d_int, args2.size(), args2.data()),
+               "sort is not associated with the term manager of this solver");
+  ASSERT_DEATH(
+      cvc5_declare_pool(
+          slv, "p", cvc5_get_integer_sort(tm), args.size(), args.data()),
+      "expected a term associated with the term manager of this solver");
   args2 = {zero2, x, y2};
-  (void)cvc5_declare_pool(
-      slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data());
+  ASSERT_DEATH(
+      cvc5_declare_pool(
+          slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data()),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2613,41 +2649,45 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "oracles", "true");
   Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
-  // this will throw when NodeManager is not a singleton anymore
   std::vector<Cvc5Sort> sorts2 = {int_sort};
-  (void)cvc5_declare_oracle_fun(
-      slv,
-      "f",
-      sorts.size(),
-      sorts.data(),
-      int_sort,
-      tm,
-      [](size_t size, const Cvc5Term* input, void* state) {
-        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
-        if (cvc5_term_is_uint32_value(input[0]))
-        {
-          return cvc5_mk_integer_int64(
-              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
-        }
-        return cvc5_mk_integer_int64(ctm, 0);
-      });
-  (void)cvc5_declare_oracle_fun(
-      slv,
-      "f",
-      sorts2.size(),
-      sorts2.data(),
-      d_int,
-      tm,
-      [](size_t size, const Cvc5Term* input, void* state) {
-        Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
-        if (cvc5_term_is_uint32_value(input[0]))
-        {
-          return cvc5_mk_integer_int64(
-              ctm, cvc5_term_get_uint32_value(input[0]) + 1);
-        }
-        return cvc5_mk_integer_int64(ctm, 0);
-      });
-  (void)cvc5_declare_oracle_fun(
+  ASSERT_DEATH(
+      cvc5_declare_oracle_fun(
+          slv,
+          "f",
+          sorts.size(),
+          sorts.data(),
+          int_sort,
+          tm,
+          [](size_t size, const Cvc5Term* input, void* state) {
+            Cvc5TermManager* ctm = static_cast<Cvc5TermManager*>(state);
+            if (cvc5_term_is_uint32_value(input[0]))
+            {
+              return cvc5_mk_integer_int64(
+                  ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+            }
+            return cvc5_mk_integer_int64(ctm, 0);
+          }),
+      "expected a sort associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_declare_oracle_fun(
+                   slv,
+                   "f",
+                   sorts2.size(),
+                   sorts2.data(),
+                   d_int,
+                   tm,
+                   [](size_t size, const Cvc5Term* input, void* state) {
+                     Cvc5TermManager* ctm =
+                         static_cast<Cvc5TermManager*>(state);
+                     if (cvc5_term_is_uint32_value(input[0]))
+                     {
+                       return cvc5_mk_integer_int64(
+                           ctm, cvc5_term_get_uint32_value(input[0]) + 1);
+                     }
+                     return cvc5_mk_integer_int64(ctm, 0);
+                   }),
+               "sort is not associated with the term manager of this solver");
+  // this cannot be caught during declaration, is caught during check-sat
+  Cvc5Term f2 = cvc5_declare_oracle_fun(
       slv,
       "f",
       sorts2.size(),
@@ -2663,6 +2703,17 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
         }
         return cvc5_mk_integer_int64(ctm, 0);
       });
+  Cvc5Term three2 = cvc5_mk_integer_int64(tm, 3);
+  Cvc5Term five2 = cvc5_mk_integer_int64(tm, 5);
+  std::vector<Cvc5Term> args2 = {f2, three2};
+  args2 = {cvc5_mk_term(tm, CVC5_KIND_APPLY_UF, args2.size(), args2.data()),
+           five2};
+  cvc5_assert_formula(
+      slv, cvc5_mk_term(tm, CVC5_KIND_EQUAL, args2.size(), args2.data()));
+  // (f 3) = 5
+  ASSERT_DEATH(cvc5_check_sat(slv),
+               "Evaluated an oracle call that is not associated with the term "
+               "manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -2908,7 +2959,6 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-interpolants", "true");
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
   Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
   std::vector<Cvc5Term> ssymbols = {sstart};
@@ -2919,10 +2969,13 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term cconj2 =
       cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
   (void)cvc5_get_interpolant_with_grammar(slv, cconj2, gg);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_interpolant(slv, conj2);
-  (void)cvc5_get_interpolant_with_grammar(slv, conj2, gg);
-  (void)cvc5_get_interpolant_with_grammar(slv, cconj2, g);
+  ASSERT_DEATH(cvc5_get_interpolant(slv, conj2),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_get_interpolant_with_grammar(slv, conj2, gg),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(
+      cvc5_get_interpolant_with_grammar(slv, cconj2, g),
+      "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3022,7 +3075,6 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "produce-abducts", "true");
   Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
-  // this will throw when NodeManager is not a singleton anymore
   Cvc5Term zzero = cvc5_mk_integer_int64(tm, 0);
   Cvc5Term xx = cvc5_mk_const(tm, int_sort, "x");
   Cvc5Term yy = cvc5_mk_const(tm, int_sort, "y");
@@ -3040,10 +3092,13 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5Term cconj2 =
       cvc5_mk_term(tm, CVC5_KIND_EQUAL, aargs.size(), aargs.data());
   (void)cvc5_get_abduct_with_grammar(slv, cconj2, gg);
-  // this will throw when NodeManager is not a singleton anymore
-  (void)cvc5_get_abduct(slv, conj2);
-  (void)cvc5_get_abduct_with_grammar(slv, conj2, gg);
-  (void)cvc5_get_abduct_with_grammar(slv, cconj2, g);
+  ASSERT_DEATH(cvc5_get_abduct(slv, conj2),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_get_abduct_with_grammar(slv, conj2, gg),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(
+      cvc5_get_abduct_with_grammar(slv, cconj2, g),
+      "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3156,8 +3211,9 @@ TEST_F(TestCApiBlackSolver, block_model_values1)
   cvc5_set_option(slv, "produce-models", "true");
   cvc5_check_sat(slv);
   args = {cvc5_mk_true(d_tm)};
-  // this will throw when NodeManager is not a singleton anymore
-  cvc5_block_model_values(slv, args.size(), args.data());
+  ASSERT_DEATH(
+      cvc5_block_model_values(slv, args.size(), args.data()),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3250,8 +3306,8 @@ TEST_F(TestCApiBlackSolver, add_sygus_constraint)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  // this will throw when NodeManager is not a singleton anymore
-  cvc5_add_sygus_constraint(d_solver, cvc5_mk_true(tm));
+  ASSERT_DEATH(cvc5_add_sygus_constraint(slv, tbool),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3288,8 +3344,8 @@ TEST_F(TestCApiBlackSolver, add_sygus_assume)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
   cvc5_set_option(slv, "sygus", "true");
-  // this will throw when NodeManager is not a singleton anymore
-  cvc5_add_sygus_assume(slv, tbool);
+  ASSERT_DEATH(cvc5_add_sygus_assume(slv, tbool),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3394,11 +3450,14 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
   Cvc5Term post22 = cvc5_declare_fun(
       slv, "post", domain2.size(), domain2.data(), bool_sort, true);
   cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post22);
-  // this will throw when NodeManager is not a singleton anymore
-  cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22);
-  cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22);
-  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22);
-  cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post);
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv, pre22, trans22, post22),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre, trans22, post22),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans, post22),
+               "term is not associated with the term manager of this solver");
+  ASSERT_DEATH(cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3436,7 +3495,8 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_get_synth_solution(slv, f), "not in a state");
+  ASSERT_DEATH(cvc5_get_synth_solution(slv, f),
+               "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
@@ -3472,8 +3532,9 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
-  ASSERT_DEATH(cvc5_get_synth_solutions(slv, args.size(), args.data()),
-               "not in a state");
+  ASSERT_DEATH(
+      cvc5_get_synth_solutions(slv, args.size(), args.data()),
+      "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
