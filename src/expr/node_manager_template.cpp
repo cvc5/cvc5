@@ -127,12 +127,6 @@ NodeManager::NodeManager()
   }
 }
 
-NodeManager* NodeManager::currentNM()
-{
-  thread_local static NodeManager nm;
-  return &nm;
-}
-
 bool NodeManager::isNAryKind(Kind k)
 {
   return kind::metakind::getMaxArityForKind(k) == expr::NodeValue::MAX_CHILDREN;

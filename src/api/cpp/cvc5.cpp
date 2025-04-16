@@ -3683,7 +3683,8 @@ Term Term::getRealAlgebraicNumberLowerBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_lower(d_tm->d_nm, ran));
+  return Term(d_tm,
+              internal::PolyConverter::ran_to_lower(d_tm->d_nm.get(), ran));
 #else
   return Term();
 #endif
@@ -3708,7 +3709,8 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #ifdef CVC5_POLY_IMP
   const internal::RealAlgebraicNumber& ran =
       d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
-  return Term(d_tm, internal::PolyConverter::ran_to_upper(d_tm->d_nm, ran));
+  return Term(d_tm,
+              internal::PolyConverter::ran_to_upper(d_tm->d_nm.get(), ran));
 #else
   return Term();
 #endif
@@ -5273,7 +5275,7 @@ bool Proof::operator!=(const Proof& p) const
 /* -------------------------------------------------------------------------- */
 
 Plugin::Plugin(TermManager& tm)
-    : d_pExtToInt(new PluginInternal(tm.d_nm, tm, *this))
+    : d_pExtToInt(new PluginInternal(tm.d_nm.get(), tm, *this))
 {
 }
 
@@ -5285,10 +5287,8 @@ void Plugin::notifyTheoryLemma(const Term& lemma) {}
 /* TermManager                                                                */
 /* -------------------------------------------------------------------------- */
 
-TermManager::TermManager()
+TermManager::TermManager() : d_nm(std::make_unique<internal::NodeManager>())
 {
-  d_nm = internal::NodeManager::currentNM();
-
   if constexpr (internal::configuration::isStatisticsBuild())
   {
     d_statsReg.reset(new internal::StatisticsRegistry());
@@ -5652,7 +5652,7 @@ Term TermManager::mkTermHelper(const Op& op, const std::vector<Term>& children)
   const internal::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<internal::Node> echildren = Term::termVectorToNodes(children);
 
-  internal::NodeBuilder nb(d_nm, int_kind);
+  internal::NodeBuilder nb(d_nm.get(), int_kind);
   nb << *op.d_node;
   nb.append(echildren);
   internal::Node res = nb.constructNode();
@@ -6654,7 +6654,7 @@ Term TermManager::mkTuple(const std::vector<Term>& terms)
   }
   internal::TypeNode tn = d_nm->mkTupleType(typeNodes);
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm.get(), extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   nb.append(args);
   internal::Node res = nb.constructNode();
@@ -6673,7 +6673,7 @@ Term TermManager::mkNullableSome(const Term& term)
   internal::TypeNode typeNode = arg.getType();
   internal::TypeNode tn = d_nm->mkNullableType(typeNode);
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm.get(), extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[1].getConstructor();
   nb.append(arg);
   internal::Node res = nb.constructNode();
@@ -6691,7 +6691,7 @@ Term TermManager::mkNullableNull(const Sort& sort)
   //////// all checks before this line
   internal::TypeNode tn = sort.getTypeNode();
   const internal::DType& dt = tn.getDType();
-  internal::NodeBuilder nb(d_nm, extToIntKind(Kind::APPLY_CONSTRUCTOR));
+  internal::NodeBuilder nb(d_nm.get(), extToIntKind(Kind::APPLY_CONSTRUCTOR));
   nb << dt[0].getConstructor();
   internal::Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */
@@ -6801,7 +6801,8 @@ Solver::Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original)
     : d_tm(tm)
 {
   d_originalOptions = std::move(original);
-  d_slv.reset(new internal::SolverEngine(tm.d_nm, d_originalOptions.get()));
+  d_slv.reset(
+      new internal::SolverEngine(tm.d_nm.get(), d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
 }

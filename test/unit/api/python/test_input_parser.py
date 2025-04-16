@@ -167,7 +167,7 @@ def test_multiple_parsers(tm, solver):
     p2 = InputParser(solver, p.getSymbolManager())
 
     # possible to construct another parser with a fresh solver
-    s2 = cvc5.Solver()
+    s2 = cvc5.Solver(tm)
     p3 = InputParser(s2, sm)
     p3.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
 
@@ -180,13 +180,13 @@ def test_multiple_parsers(tm, solver):
     assert p3.done() is True
 
     # using a solver with the same logic is allowed
-    s3 = cvc5.Solver()
+    s3 = cvc5.Solver(tm)
     s3.setLogic("QF_LIA")
     p4 = InputParser(s3, sm)
     p4.setIncrementalStringInput(cvc5.InputLanguage.SMT_LIB_2_6, "test_input_parser")
 
     # using a solver with a different logic is not allowed
-    s4 = cvc5.Solver()
+    s4 = cvc5.Solver(tm)
     s4.setLogic("QF_LRA")
     p5 = InputParser(s4, sm)
     with pytest.raises(RuntimeError):
