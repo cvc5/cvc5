@@ -1593,6 +1593,37 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         }
       }
     }
+    if (strictModeEnabled())
+    {
+      Sort sreq;
+      if (kind == Kind::ADD || kind == Kind::MULT
+          || kind == Kind::SUB || kind == Kind::GEQ || kind == Kind::GT || kind == Kind::LEQ || kind == Kind::LT)
+      {
+        sreq = args[0].getSort();
+      }
+      else if (kind == Kind::DIVISION || kind == Kind::DIVISION_TOTAL
+              || kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
+      {
+        sreq = d_tm.getRealSort();
+      }
+      else if (kind == Kind::TO_REAL)
+      {
+        sreq = d_tm.getIntegerSort();
+      }
+      if (!sreq.isNull())
+      {
+        for (Term& i : args)
+        {
+          Sort s = i.getSort();
+          if (s!=sreq)
+          {
+            std::stringstream ss;
+            ss << "Due to strict parsing, we require the arguments of " << kind << " to have type " << sreq;
+            parseError(ss.str());
+          }
+        }
+      }
+    }
     if (!strictModeEnabled() && (kind == Kind::AND || kind == Kind::OR)
         && args.size() == 1)
     {
