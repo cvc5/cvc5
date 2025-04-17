@@ -86,7 +86,7 @@
 ; note: >
 ;   @const corresponds to generic abstract constants, which correspond to internally
 ;   introduced terms that do not have a formal definition in the signature.
-(declare-const @const (-> (! Int :opaque) (! Type :opaque :var T) T))
+(declare-parameterized-const @const ((id Int :opaque) (T Type :opaque)) T)
 
 ; note: >
 ;   @var is an alias of eo::var to ensure the cpc proof does not use eo::var.

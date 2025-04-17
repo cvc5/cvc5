@@ -14,7 +14,7 @@
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
 (declare-type @Pair (Type Type))
-(declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
+(declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
 
 ; untyped list.
 ; note: >

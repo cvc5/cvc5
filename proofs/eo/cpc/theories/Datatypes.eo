@@ -4,18 +4,13 @@
 ;  This is the generic tester predicate whose first argument is expected to be
 ;  a constructor symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-const is (-> (! Type :var C :implicit)
-                      (! Type :var D :implicit)
-                      C D Bool))
+(declare-parameterized-const is ((C Type :implicit) (D Type :implicit)) (-> C D Bool))
 
 ; note: >
 ;  This is the generic updater whose first argument is expected to be
 ;  a selector symbol for datatype D. We do not currently check this is the
 ;  case.
-(declare-const update (-> (! Type :var D :implicit)
-                          (! Type :var T :implicit)
-                          (! Type :var S :implicit)
-                          S D T D))
+(declare-parameterized-const update ((D Type :implicit) (T Type :implicit) (S Type :implicit)) (-> S D T D))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
@@ -27,15 +22,10 @@
 (declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
 
 (declare-const tuple.unit UnitTuple)
-(declare-const tuple (-> (! Type :var T :implicit) (! Type :var U :implicit)
-                         T U (eo::cons Tuple T U)) :right-assoc-nil tuple.unit)
-(declare-const tuple.select
-    (-> (! Type :var T :implicit)
-        (! Int :var i) T (eo::list_nth Tuple T i)))
+(declare-parameterized-const tuple ((T Type :implicit) (U Type :implicit)) (-> T U (eo::cons Tuple T U)) :right-assoc-nil tuple.unit)
+(declare-parameterized-const tuple.select ((T Type :implicit) (i Int)) (-> T (eo::list_nth Tuple T i)))
 ; disclaimer: This function is not in the SMT-LIB standard.
-(declare-const tuple.update
-    (-> (! Type :var T :implicit)
-        (! Int :var i) T (eo::list_nth Tuple T i) T))
+(declare-parameterized-const tuple.update ((T Type :implicit) (i Int)) (-> T (eo::list_nth Tuple T i) T))
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
@@ -58,4 +48,4 @@
 )
 
 ; disclaimer: This function is not in the SMT-LIB standard.
-(declare-const nullable.lift (-> (! Type :var F :implicit) F ($get_type_nullable_lift F)))
+(declare-parameterized-const nullable.lift ((F Type :implicit)) (-> F ($get_type_nullable_lift F)))

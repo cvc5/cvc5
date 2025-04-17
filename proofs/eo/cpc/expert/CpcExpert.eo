@@ -31,15 +31,14 @@
 
 ; Used in the --ho-elim preprocessing pass
 (declare-type @ho-elim-sort (Type))
-(declare-const @fmf-fun-sort (-> (! Type :var T :implicit) T Type))
+(declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
 ; The arrays equal-range predicate.
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const eqrange (-> (! Type :var U :implicit) (! Type :var T :implicit) (! Type :var I :implicit)
-                           (Array U T) (Array U T) I I Bool))
+(declare-parameterized-const eqrange ((U Type :implicit) (T Type :implicit) (I Type :implicit)) (-> (Array U T) (Array U T) I I Bool))
 
 ; Dataypes shared selector
-(declare-const @shared_selector (-> (! Type :opaque :var D) (! Type :opaque :var T) (! Int :opaque) D T))
+(declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
 
 
 ; define: $get_aci_normal_form_expert
