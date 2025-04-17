@@ -54,7 +54,7 @@ Node StringsPreprocess::reduce(Node t,
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   Node zero = nm->mkConstInt(Rational(0));
   Node one = nm->mkConstInt(Rational(1));
   Node negOne = nm->mkConstInt(Rational(-1));
@@ -286,46 +286,39 @@ Node StringsPreprocess::reduce(Node t,
     Node i = SkolemCache::mkIndexVar(nm, t);
     Node l = SkolemCache::mkLengthVar(nm, t);
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, i, l);
-    Node bound = nm->mkNode(
-        Kind::AND,
-        {
-            nm->mkNode(Kind::GEQ, i, n),
-            nm->mkNode(
-                Kind::LT, i, nm->mkNode(Kind::ITE, retNegOne, sLen, skk)),
-            nm->mkNode(Kind::GT, l, zero),
-            nm->mkNode(Kind::LEQ, l, nm->mkNode(Kind::SUB, sLen, i)),
-        });
-    Node body = nm->mkNode(Kind::OR,
-                           bound.negate(),
-                           nm->mkNode(Kind::STRING_IN_REGEXP,
-                                      nm->mkNode(Kind::STRING_SUBSTR, s, i, l),
-                                      r)
-                               .negate());
+    Node body = nm->mkNode(
+        Kind::OR,
+        {nm->mkNode(Kind::GEQ, i, n).notNode(),
+         nm->mkNode(Kind::LT, i, nm->mkNode(Kind::ITE, retNegOne, sLen, skk))
+             .notNode(),
+         nm->mkNode(Kind::GT, l, zero).notNode(),
+         nm->mkNode(Kind::LEQ, l, nm->mkNode(Kind::SUB, sLen, i)).notNode(),
+         nm->mkNode(Kind::STRING_IN_REGEXP,
+                    nm->mkNode(Kind::STRING_SUBSTR, s, i, l),
+                    r)
+             .notNode()});
     // forall il.
     //   n <= i < ite(skk = -1, len(s), skk) ^ 0 < l <= len(s) - i =>
     //     ~in_re(substr(s, i, l), r)
     Node firstMatch = utils::mkForallInternal(nm, bvl, body);
     Node bvll = nm->mkNode(Kind::BOUND_VAR_LIST, l);
-    Node validLen =
-        nm->mkNode(Kind::AND,
-                   nm->mkNode(Kind::GEQ, l, zero),
-                   nm->mkNode(Kind::LEQ, l, nm->mkNode(Kind::SUB, sLen, skk)));
-    Node matchBody =
-        nm->mkNode(Kind::AND,
-                   validLen,
-                   nm->mkNode(Kind::STRING_IN_REGEXP,
-                              nm->mkNode(Kind::STRING_SUBSTR, s, skk, l),
-                              r));
+    Node matchBody = nm->mkNode(
+        Kind::OR,
+        {nm->mkNode(Kind::GEQ, l, zero).notNode(),
+         nm->mkNode(Kind::LEQ, l, nm->mkNode(Kind::SUB, sLen, skk)).notNode(),
+         nm->mkNode(Kind::STRING_IN_REGEXP,
+                    nm->mkNode(Kind::STRING_SUBSTR, s, skk, l),
+                    r)
+             .notNode()});
     // skk != -1 =>
     //   skk >= n ^ exists l. (0 <= l < len(s) - skk) ^ in_re(substr(s, skk, l),
     //   r))
     Node match = nm->mkNode(
         Kind::OR,
         retNegOne,
-        nm->mkNode(
-            Kind::AND,
-            nm->mkNode(Kind::GEQ, skk, n),
-            utils::mkForallInternal(nm, bvll, matchBody.negate()).negate()));
+        nm->mkNode(Kind::AND,
+                   nm->mkNode(Kind::GEQ, skk, n),
+                   utils::mkForallInternal(nm, bvll, matchBody).negate()));
 
     // assert:
     // IF:   n > len(s) OR 0 > n
@@ -917,10 +910,10 @@ Node StringsPreprocess::reduce(Node t,
                           nm->mkNode(Kind::ADD, ci, offset),
                           ci);
 
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, i),
-                            nm->mkNode(Kind::LT, i, lenr));
-    Node body = nm->mkNode(Kind::OR, bound.negate(), ri.eqNode(res));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, lenr).notNode(),
+                           ri.eqNode(res));
     Node rangeA = utils::mkForallInternal(nm, bvi, body);
 
     // upper 65 ... 90
@@ -954,10 +947,10 @@ Node StringsPreprocess::reduce(Node t,
     Node ssr = nm->mkNode(Kind::STRING_SUBSTR, r, i, one);
     Node ssx = nm->mkNode(Kind::STRING_SUBSTR, x, revi, one);
 
-    Node bound = nm->mkNode(Kind::AND,
-                            nm->mkNode(Kind::LEQ, zero, i),
-                            nm->mkNode(Kind::LT, i, lenr));
-    Node body = nm->mkNode(Kind::OR, bound.negate(), ssr.eqNode(ssx));
+    Node body = nm->mkNode(Kind::OR,
+                           nm->mkNode(Kind::GEQ, i, zero).notNode(),
+                           nm->mkNode(Kind::LT, i, lenr).notNode(),
+                           ssr.eqNode(ssx));
     Node rangeA = utils::mkForallInternal(nm, bvi, body);
     // assert:
     //   len(r) = len(x) ^
@@ -979,15 +972,21 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = SkolemCache::mkIndexVar(nm, t);
     Node b1v = NodeManager::mkNode(Kind::BOUND_VAR_LIST, b1);
     Node body = NodeManager::mkNode(
-        Kind::AND,
-        NodeManager::mkNode(Kind::LEQ, zero, b1),
+        Kind::OR,
+        NodeManager::mkNode(Kind::GEQ, b1, zero).notNode(),
         NodeManager::mkNode(
-            Kind::LEQ, b1, NodeManager::mkNode(Kind::SUB, lenx, lens)),
+            Kind::LEQ, b1, NodeManager::mkNode(Kind::SUB, lenx, lens))
+            .notNode(),
         NodeManager::mkNode(
             Kind::EQUAL,
             NodeManager::mkNode(Kind::STRING_SUBSTR, x, b1, lens),
-            s));
-    retNode = utils::mkForallInternal(nm, b1v, body.negate()).negate();
+            s)
+            .notNode());
+    Node k = sc->mkTypedSkolemCached(
+        nm->booleanType(), t, SkolemCache::SK_PURIFY, "ctn");
+    Node actn = utils::mkForallInternal(nm, b1v, body).negate();
+    asserts.push_back(k.eqNode(actn));
+    retNode = k;
   }
   else if (t.getKind() == Kind::STRING_LEQ)
   {
@@ -995,33 +994,33 @@ Node StringsPreprocess::reduce(Node t,
         nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
     Node k = SkolemCache::mkIndexVar(nm, t);
 
-    std::vector<Node> conj;
-    conj.push_back(nm->mkNode(Kind::GEQ, k, zero));
+    std::vector<Node> disj;
+    disj.push_back(nm->mkNode(Kind::GEQ, k, zero).notNode());
     Node substr[2];
     Node code[2];
     for (unsigned r = 0; r < 2; r++)
     {
       Node ta = t[r];
-      Node tb = t[1 - r];
       substr[r] = nm->mkNode(Kind::STRING_SUBSTR, ta, zero, k);
       code[r] = nm->mkNode(Kind::STRING_TO_CODE,
                            nm->mkNode(Kind::STRING_SUBSTR, ta, k, one));
-      conj.push_back(
-          nm->mkNode(Kind::LEQ, k, nm->mkNode(Kind::STRING_LENGTH, ta)));
+      disj.push_back(
+          nm->mkNode(Kind::LEQ, k, nm->mkNode(Kind::STRING_LENGTH, ta))
+              .notNode());
     }
-    conj.push_back(substr[0].eqNode(substr[1]));
+    disj.push_back(substr[0].eqNode(substr[1]).notNode());
     std::vector<Node> ite_ch;
     ite_ch.push_back(ltp);
     for (unsigned r = 0; r < 2; r++)
     {
-      ite_ch.push_back(nm->mkNode(Kind::LT, code[r], code[1 - r]));
+      ite_ch.push_back(nm->mkNode(Kind::GEQ, code[r], code[1 - r]));
     }
-    conj.push_back(nm->mkNode(Kind::ITE, ite_ch));
+    disj.push_back(nm->mkNode(Kind::ITE, ite_ch));
 
-    Node conjn = utils::mkForallInternal(nm,
-                                         nm->mkNode(Kind::BOUND_VAR_LIST, k),
-                                         nm->mkNode(Kind::AND, conj).negate())
-                     .negate();
+    Node conjn =
+        utils::mkForallInternal(
+            nm, nm->mkNode(Kind::BOUND_VAR_LIST, k), nm->mkNode(Kind::OR, disj))
+            .negate();
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -1126,7 +1125,7 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   // It is possible to have an extension where (STRING_NTH x i) is generated
   // here for a new STRING_NTH kind, if there was a native way of handling nth
   // for strings, but this is not explored here.
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
   if (x.getType().isString())
   {
     Node one = nm->mkConstInt(Rational(1));

@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/builtin/generic_op.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -107,6 +108,7 @@ Node AletheNodeConverter::postConvert(Node n)
         // ignore purification skolems
         if (sfi != SkolemId::PURIFY)
         {
+          d_skolemsList.push_back(n);
           d_skolems[n] = conv;
         }
         return conv;
@@ -169,29 +171,16 @@ Node AletheNodeConverter::postConvert(Node n)
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
         Trace("alethe-conv") << ".. witness: " << witness << "\n";
         witness = convert(witness);
+        d_skolems[n] = witness;
         if (d_defineSkolems)
         {
-          d_skolemsAux[n] = witness;
-          if (index == quant[0].getNumChildren() - 1)
+          if (std::find(d_skolemsList.begin(), d_skolemsList.end(), n)
+              == d_skolemsList.end())
           {
-            Trace("alethe-conv")
-                << "....populate map from aux : " << d_skolemsAux << "\n";
-            for (size_t i = index + 1; i > 0; --i)
-            {
-              std::vector<Node> cacheVals{quant,
-                                          d_nm->mkConstInt(Rational(i - 1))};
-              Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                             cacheVals);
-              Assert(!sk.isNull());
-              Assert(d_skolemsAux.find(sk) != d_skolemsAux.end())
-                  << "Could not find sk " << sk;
-              d_skolems[sk] = d_skolemsAux[sk];
-            }
-            d_skolemsAux.clear();
+            d_skolemsList.push_back(n);
           }
           return n;
         }
-        d_skolems[n] = witness;
         return witness;
       }
       std::stringstream ss;
@@ -233,6 +222,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::SEXPR:
     case Kind::TYPE_CONSTANT:
     case Kind::RAW_SYMBOL:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
+    case Kind::APPLY_INDEXED_SYMBOLIC_OP:
     /* from booleans */
     case Kind::CONST_BOOLEAN:
     case Kind::NOT:
@@ -247,7 +238,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::LAMBDA:
     case Kind::HO_APPLY:
     case Kind::FUNCTION_ARRAY_CONST:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     case Kind::INT_TO_BITVECTOR_OP:
     case Kind::INT_TO_BITVECTOR:
     /* from arith */
@@ -271,6 +262,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::POW2:
     /* from BV */
     case Kind::BITVECTOR_TYPE:
     case Kind::CONST_BITVECTOR:
@@ -519,6 +511,11 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
 {
   return d_skolems;
+}
+
+const std::vector<Node>& AletheNodeConverter::getSkolemList()
+{
+  return d_skolemsList;
 }
 
 }  // namespace proof

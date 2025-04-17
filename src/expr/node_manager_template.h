@@ -63,9 +63,6 @@ class TypeChecker;
 
 /**
  * The node manager.
- *
- * This class should not be used simultaneously in multiple threads. It is a
- * singleton that is accessible via NodeManager::currentNM().
  */
 class NodeManager
 {
@@ -78,6 +75,12 @@ class NodeManager
   friend class NodeBuilder;
 
  public:
+  /**
+   * Construct a node manager.
+   */
+  explicit NodeManager();
+  /** Destruct the node manager */
+  ~NodeManager();
 
   /**
    * Return true if given kind is n-ary. The test is based on n-ary kinds
@@ -85,9 +88,6 @@ class NodeManager
    * of a node.
    */
   static bool isNAryKind(Kind k);
-
-  /** The node manager in the current public-facing cvc5 library context */
-  static NodeManager* currentNM();
 
   /** Get a Kind from an operator expression */
   static Kind operatorToKind(TNode n);
@@ -720,7 +720,7 @@ class NodeManager
    * Make constant real or int, which calls one of the above methods based
    * on the type tn.
    */
-  Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
+  static Node mkConstRealOrInt(const TypeNode& tn, const Rational& r);
 
   /**
    * Make a real algebraic number node from a RealAlgebraicNumber.
@@ -877,13 +877,6 @@ class NodeManager
   static std::vector<expr::NodeValue*> TopologicalSort(
       const std::vector<expr::NodeValue*>& roots);
 
-  /**
-   * Instead of creating an instance using the constructor,
-   * `NodeManager::currentNM()` should be used to retrieve an instance of
-   * `NodeManager`.
-   */
-  explicit NodeManager();
-  ~NodeManager();
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) = delete;
   NodeManager& operator=(const NodeManager&) = delete;

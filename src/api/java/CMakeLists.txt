@@ -191,7 +191,12 @@ add_custom_command(
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
 
-if(NOT DEFINED JAVA_HOME AND NOT WIN32)
+# JNI_HOME, if defined, specifies the path to the JNI libraries
+if(NOT DEFINED JNI_HOME AND DEFINED ENV{JNI_HOME})
+  set(JNI_HOME $ENV{JNI_HOME})
+endif()
+
+if(NOT DEFINED JAVA_HOME AND NOT DEFINED JNI_HOME AND NOT WIN32)
   # If there are multiple versions of Java on the system,
   # CMake might find a version of JNI that differs from
   # the version of the Java executable. To address this,
@@ -212,8 +217,54 @@ if(NOT DEFINED JAVA_HOME AND NOT WIN32)
   message(STATUS "JAVA_HOME: ${JAVA_HOME}")
 endif()
 
-# find jni package
-find_package(JNI REQUIRED)
+if(DEFINED JNI_HOME)
+  message(STATUS "JNI_HOME: ${JNI_HOME}")
+  set(JAVA_HOME "${JNI_HOME}") # FindJNI uses JAVA_HOME
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    # If cross-compiling, we need to set the JNI variables manually
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/jawt.lib")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/jvm.lib")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/win32")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/libjawt.dylib")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/libjvm.dylib")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/darwin")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    else()
+      set(JAVA_AWT_LIBRARY "${JAVA_HOME}/lib/libjawt.so")
+      set(JAVA_JVM_LIBRARY "${JAVA_HOME}/lib/server/libjvm.so")
+      set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/")
+      set(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/linux")
+      set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include")
+    endif()
+  endif()
+endif()
+
+if(BUILD_SHARED_LIBS)
+  # Find JNI package
+  find_package(JNI REQUIRED)
+else()
+  # When a static build is enabled, we still build a JNI shared library,
+  # but all cvc5 dependencies are statically linked to it. To do that,
+  # we need to find the shared JNI libraries for Java.
+  # Save the original suffixes
+  set(_original_suffixes "${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  # Temporarily add appropriate suffixes to find JNI libraries
+  if (WIN32)
+    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES .dll)
+  else()
+    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib)
+  endif()
+  # Find JNI package
+  find_package(JNI REQUIRED)
+  # Restore the original suffixes
+  set(CMAKE_FIND_LIBRARY_SUFFIXES "${_original_suffixes}")
+endif()
+
 message(STATUS "JNI_FOUND            : ${JNI_FOUND}")
 message(STATUS "JNI_INCLUDE_DIRS     : ${JNI_INCLUDE_DIRS}")
 message(STATUS "JNI_LIBRARIES        : ${JNI_LIBRARIES} ")
@@ -248,14 +299,28 @@ set(jni_files
   jni/term.cpp
   jni/term_manager.cpp)
 
-add_library(cvc5jni ${jni_files})
+# Enforce the build of a shared library
+add_library(cvc5jni SHARED ${jni_files})
 add_dependencies(cvc5jni generate-jni-headers)
+
+if(WIN32 AND NOT BUILD_SHARED_LIBS)
+  # Ensure that cvc5jni does not expect DLL imports,
+  # but static linking
+  target_compile_definitions(cvc5jni PRIVATE CVC5_STATIC_DEFINE)
+endif()
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
+
+if (WIN32 AND NOT BUILD_SHARED_LIBS)
+  # Statically link all libraries, including MinGW-w64 libraries
+  set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_START_STATIC ON)
+  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_END_STATIC ON)
+endif()
 
 # Java on Windows expects the JNI libraries without the prefix
 if (WIN32)

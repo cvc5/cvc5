@@ -73,7 +73,7 @@
 ;   This function is declared in SMT-LIB to be :left-assoc. We
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
-(declare-parameterized-const str.++ ((T Type))
+(declare-parameterized-const str.++ ((T Type :implicit))
   (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (seq.empty (Seq T)))
 
 ; Extended functions for strings.
@@ -199,4 +199,4 @@
 (declare-const @re_first_match (-> (! String :opaque) (! RegLan :opaque) String))
 (declare-const @re_first_match_post (-> (! String :opaque) (! RegLan :opaque) String))
 
-
+(declare-const @witness_string_length (-> (! Type :var T) Int Int T))

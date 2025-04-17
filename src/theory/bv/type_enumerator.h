@@ -46,7 +46,7 @@ public:
     if(d_bits != d_bits.modByPow2(d_size)) {
       throw NoMoreValuesException(getType());
     }
-    return utils::mkConst(d_size, d_bits);
+    return utils::mkConst(getType().getNodeManager(), d_size, d_bits);
   }
 
   BitVectorEnumerator& operator++() override

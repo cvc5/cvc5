@@ -148,7 +148,7 @@ void ArithStaticLearner::iteMinMax(TNode n, std::vector<TrustNode>& learned)
   Assert(n[0].getKind() != Kind::EQUAL);
   Assert(isRelationOperator(n[0].getKind()));
 
-  NodeManager* nm = n.getNodeManager();
+  NodeManager* nm = nodeManager();
 
   TNode c = n[0];
   Kind k = oldSimplifiedKind(c);
@@ -216,7 +216,7 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
     CDNodeToMinMaxMap::const_iterator minFind = d_minMap.find(n);
     if (minFind == d_minMap.end() || (*minFind).second < min) {
       d_minMap.insert(n, min);
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node nGeqMin = nm->mkNode(
           min.getInfinitesimalPart() == 0 ? Kind::GEQ : Kind::GT,
           n,
@@ -263,7 +263,7 @@ void ArithStaticLearner::iteConstant(TNode n, std::vector<TrustNode>& learned)
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
       d_maxMap.insert(n, max);
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = nodeManager();
       Node nLeqMax = nm->mkNode(
           max.getInfinitesimalPart() == 0 ? Kind::LEQ : Kind::LT,
           n,
@@ -511,7 +511,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
                 << "- add " << ita->second << " with " << diffRel << std::endl;
             std::vector<Node> premises{ita->second, diffRel};
             std::vector<Node> cpre{one, one};
-            std::vector<Node> coeff = getMacroSumUbCoeff(premises, cpre);
+            std::vector<Node> coeff = getMacroSumUbCoeff(nm, premises, cpre);
             ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
             Trace("arith-static-pf")
                 << "- check " << premises << " " << coeff << std::endl;

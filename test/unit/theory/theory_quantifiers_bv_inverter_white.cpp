@@ -61,7 +61,8 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
                 || (k == Kind::BITVECTOR_UGT && pol == false)
                 || (k == Kind::BITVECTOR_SGT && pol == false)
                 || ksc == Kind::IMPLIES);
-    Node scl = ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue();
+    Node scl =
+        ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue(d_nodeManager.get());
     if (!pol)
     {
       if (k == Kind::BITVECTOR_ULT)
@@ -110,7 +111,8 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     ASSERT_TRUE((k == Kind::BITVECTOR_UDIV && idx == 1 && pol == false)
                 || (k == Kind::BITVECTOR_ASHR && idx == 0 && pol == false)
                 || ksc == Kind::IMPLIES);
-    Node scl = ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue();
+    Node scl =
+        ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue(d_nodeManager.get());
     Node body = idx == 0 ? d_nodeManager->mkNode(
                     litk, d_nodeManager->mkNode(k, d_x, d_s), d_t)
                          : d_nodeManager->mkNode(
@@ -168,7 +170,8 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     ASSERT_FALSE(sc.isNull());
     Kind ksc = sc.getKind();
     ASSERT_TRUE((litk == Kind::EQUAL && pol == false) || ksc == Kind::IMPLIES);
-    Node scl = ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue();
+    Node scl =
+        ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue(d_nodeManager.get());
     Node body = d_nodeManager->mkNode(litk, sv_t, t);
     Node bvarlist = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, {x});
     Node scr = d_nodeManager->mkNode(
@@ -208,7 +211,8 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
                 || (litk == Kind::BITVECTOR_ULT && pol == false)
                 || (litk == Kind::BITVECTOR_UGT && pol == false)
                 || ksc == Kind::IMPLIES);
-    Node scl = ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue();
+    Node scl =
+        ksc == Kind::IMPLIES ? sc[0] : bv::utils::mkTrue(d_nodeManager.get());
     Node body = d_nodeManager->mkNode(litk, sv_t, t);
     Node bvarlist = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, {x});
     Node scr = d_nodeManager->mkNode(

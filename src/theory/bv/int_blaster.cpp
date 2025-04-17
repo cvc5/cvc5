@@ -25,9 +25,9 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
-#include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "smt/logic_exception.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -56,6 +56,7 @@ IntBlaster::IntBlaster(Env& env,
       d_intblastCache(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
+      d_iandUtils(nodeManager()),
       d_mode(mode),
       d_context(userContext())
 {
@@ -323,7 +324,7 @@ Node IntBlaster::translateWithChildren(
     */
    if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
    {
-     throw OptionException("bv-to-int does not support higher order logic ");
+     throw LogicException("bv-to-int does not support higher order logic ");
    }
   // Translate according to the kind of the original node.
   switch (oldKind)
@@ -383,7 +384,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       // In this case, we already translated the child to integer.
       // The result is simply the translated child.
@@ -665,7 +666,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(oldKind, translated_children);
       if (d_mode == options::SolveBVAsIntMode::BITWISE)
       {
-        throw OptionException(
+        throw LogicException(
             "--solve-bv-as-int=bitwise does not support quantifiers");
       }
       break;
@@ -937,7 +938,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
   // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
-  return d_nm->mkNode(Kind::BITVECTOR_TO_NAT, n);
+  return d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, n);
 }
 
 Node IntBlaster::reconstructNode(Node originalNode,
@@ -1105,7 +1106,7 @@ Node IntBlaster::createBVAndNode(Node x,
 {
   // We support three configurations:
   // 1. translating to IAND
-  // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+  // 2. translating back to BV (using BITVECTOR_UBV_TO_INT and INT_TO_BV
   // operators)
   // 3. translating into a sum
   Node returnNode;
@@ -1123,7 +1124,7 @@ Node IntBlaster::createBVAndNode(Node x,
     // perform bvand on the bit-vectors
     Node bvand = d_nm->mkNode(Kind::BITVECTOR_AND, bvx, bvy);
     // translate the result to integers
-    returnNode = d_nm->mkNode(Kind::BITVECTOR_TO_NAT, bvand);
+    returnNode = d_nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, bvand);
   }
   else if (d_mode == options::SolveBVAsIntMode::SUM)
   {

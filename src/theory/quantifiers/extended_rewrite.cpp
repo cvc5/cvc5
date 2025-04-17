@@ -239,7 +239,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
       TypeNode tret = ret[0].getType();
       if (tret.isInteger())
       {
-        strings::ArithEntail ae(&d_rew);
+        strings::ArithEntail ae(nm, &d_rew);
         new_ret = ae.rewritePredViaEntailment(ret);
         if (!new_ret.isNull())
         {
@@ -256,7 +256,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     if (ret[0].getType().isInteger())
     {
-      strings::ArithEntail ae(&d_rew);
+      strings::ArithEntail ae(nm, &d_rew);
       new_ret = ae.rewritePredViaEntailment(ret);
       if (!new_ret.isNull())
       {
@@ -1737,7 +1737,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       << "Extended rewrite strings : " << node << std::endl;
 
   // allow recursive approximations
-  strings::ArithEntail ae(&d_rew, true);
+  strings::ArithEntail ae(d_nm, &d_rew, true);
   strings::StringsEntail se(&d_rew, ae);
   strings::SequencesRewriter sr(d_nm, ae, se, nullptr);
 
@@ -2042,8 +2042,20 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
         }
       }
     }
+    std::vector<Node> nc1;
+    strings::utils::getConcat(node[0], nc1);
     std::vector<Node> nc2;
     strings::utils::getConcat(node[1], nc2);
+
+    // extended component-wise containment
+    std::vector<Node> nc1rb;
+    std::vector<Node> nc1re;
+    if (se.componentContainsExt(nc1, nc2, nc1rb, nc1re) != -1)
+    {
+      debugExtendedRewrite(node, d_true, "CTN_COMPONENT_EXT");
+      return d_true;
+    }
+
     for (const Node& n : nc2)
     {
       // (str.contains x (str.++ w (str.replace x y x) z)) --->

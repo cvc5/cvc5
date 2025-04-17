@@ -34,9 +34,9 @@ class TestCApiBlackSymbolManager : public ::testing::Test
   }
   void TearDown() override
   {
+    cvc5_symbol_manager_delete(d_sm);
     cvc5_delete(d_solver);
     cvc5_term_manager_delete(d_tm);
-    cvc5_symbol_manager_delete(d_sm);
   }
 
   void parse_and_set_logic(const char* logic)

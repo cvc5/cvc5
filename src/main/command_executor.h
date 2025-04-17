@@ -120,8 +120,7 @@ class CommandExecutor
 
   bool solverInvoke(cvc5::Solver* solver,
                     parser::SymManager* sm,
-                    parser::Cmd* cmd,
-                    std::ostream& out);
+                    parser::Cmd* cmd);
 }; /* class CommandExecutor */
 
 

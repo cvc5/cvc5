@@ -74,9 +74,9 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, getPvCoeff)
   Env& env = d_slvEngine->getEnv();
   BvInstantiatorUtil util(env);
 
-  Node x = mkVar(32);
-  Node a = mkVar(32);
-  Node one = mkOne(32);
+  Node x = mkVar(d_nodeManager.get(), 32);
+  Node a = mkVar(d_nodeManager.get(), 32);
+  Node one = mkOne(d_nodeManager.get(), 32);
   BvLinearAttribute is_linear;
 
   /* x -> 1 */
@@ -110,14 +110,14 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvMult)
   BvInstantiatorUtil util(env);
   Rewriter* rr = env.getRewriter();
 
-  Node x = mkVar(32);
+  Node x = mkVar(d_nodeManager.get(), 32);
   Node neg_x = mkNeg(x);
-  Node a = mkVar(32);
-  Node b = mkVar(32);
-  Node c = mkVar(32);
-  Node d = mkVar(32);
-  Node zero = mkZero(32);
-  Node one = mkOne(32);
+  Node a = mkVar(d_nodeManager.get(), 32);
+  Node b = mkVar(d_nodeManager.get(), 32);
+  Node c = mkVar(d_nodeManager.get(), 32);
+  Node d = mkVar(d_nodeManager.get(), 32);
+  Node zero = mkZero(d_nodeManager.get(), 32);
+  Node one = mkOne(d_nodeManager.get(), 32);
   BvLinearAttribute is_linear;
   std::unordered_map<Node, bool> contains_x;
 
@@ -213,13 +213,13 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvPlus)
   BvInstantiatorUtil util(env);
   Rewriter* rr = env.getRewriter();
 
-  Node one = mkOne(32);
-  Node x = mkVar(32);
+  Node one = mkOne(d_nodeManager.get(), 32);
+  Node x = mkVar(d_nodeManager.get(), 32);
   Node neg_x = mkNeg(x);
-  Node a = mkVar(32);
-  Node b = mkVar(32);
-  Node c = mkVar(32);
-  Node d = mkVar(32);
+  Node a = mkVar(d_nodeManager.get(), 32);
+  Node b = mkVar(d_nodeManager.get(), 32);
+  Node c = mkVar(d_nodeManager.get(), 32);
+  Node d = mkVar(d_nodeManager.get(), 32);
   BvLinearAttribute is_linear;
   std::unordered_map<Node, bool> contains_x;
 
@@ -341,15 +341,15 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   BvInstantiatorUtil util(env);
   Rewriter* rr = env.getRewriter();
 
-  Node x = mkVar(32);
+  Node x = mkVar(d_nodeManager.get(), 32);
   Node neg_x = mkNeg(x);
-  Node a = mkVar(32);
-  Node b = mkVar(32);
-  Node c = mkVar(32);
-  Node d = mkVar(32);
-  Node zero = mkZero(32);
-  Node one = mkOne(32);
-  Node ntrue = mkTrue();
+  Node a = mkVar(d_nodeManager.get(), 32);
+  Node b = mkVar(d_nodeManager.get(), 32);
+  Node c = mkVar(d_nodeManager.get(), 32);
+  Node d = mkVar(d_nodeManager.get(), 32);
+  Node zero = mkZero(d_nodeManager.get(), 32);
+  Node one = mkOne(d_nodeManager.get(), 32);
+  Node ntrue = mkTrue(d_nodeManager.get());
   BvLinearAttribute is_linear;
   std::unordered_map<Node, bool> contains_x;
 
@@ -372,7 +372,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_TRUE(norm_neg_xx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_xx[0]]);
   ASSERT_EQ(norm_neg_xx[0][0], x);
-  ASSERT_EQ(norm_neg_xx[0][1], rr->rewrite(mkConst(32, 2)));
+  ASSERT_EQ(norm_neg_xx[0][1],
+            rr->rewrite(mkConst(d_nodeManager.get(), 32, 2)));
   ASSERT_EQ(norm_neg_xx[1], zero);
 
   /* a + x = x -> 0 = -a */
@@ -391,7 +392,8 @@ TEST_F(TestTheoryWhiteyQuantifiersBvInstantiator, normalizePvEqual)
   ASSERT_TRUE(norm_neg_axx[0].getAttribute(is_linear));
   ASSERT_TRUE(contains_x[norm_neg_axx[0]]);
   ASSERT_EQ(norm_neg_axx[0][0], x);
-  ASSERT_EQ(norm_neg_axx[0][1], rr->rewrite(mkNeg(mkConst(32, 2))));
+  ASSERT_EQ(norm_neg_axx[0][1],
+            rr->rewrite(mkNeg(mkConst(d_nodeManager.get(), 32, 2))));
   ASSERT_EQ(norm_neg_axx[1], mkNeg(a));
 
   /* a * x = x -> x * (a - 1) = 0 */
