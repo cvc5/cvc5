@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A generic utility for infer proofs for arithmetic lemmas.
+ * A generic utility for inferring proofs for arithmetic lemmas.
  */
 
 #include "cvc5_private.h"
