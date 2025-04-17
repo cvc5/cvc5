@@ -17,9 +17,9 @@
 ; used in proof elaboration
 (define-rule bool-dual-impl-eq ((t Bool) (s Bool)) (and (=> t s) (=> s t)) (= t s))
 
-(define-rule* bool-or-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b ys) zs) (or xs b ys zs))
+(define-rule* bool-or-flatten ((xs Bool :list) (b1 Bool) (b2 Bool) (ys Bool :list) (zs Bool :list)) (or xs (or b1 b2 ys) zs) (or xs b1 b2 ys zs))
 
-(define-rule* bool-and-flatten ((xs Bool :list) (b Bool) (ys Bool :list) (zs Bool :list)) (and xs (and b ys) zs) (and xs b ys zs))
+(define-rule* bool-and-flatten ((xs Bool :list) (b1 Bool) (b2 Bool) (ys Bool :list) (zs Bool :list)) (and xs (and b1 b2 ys) zs) (and xs b1 b2 ys zs))
 
 (define-rule bool-and-conf ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs w ys (not w) zs) false)
 (define-rule bool-and-conf2 ((xs Bool :list) (w Bool) (ys Bool :list) (zs Bool :list)) (and xs (not w) ys w zs) false)
@@ -40,10 +40,10 @@
 
 ; We only permit distributing from the first child, or otherwise this rule
 ; could apply to fix point on all AND children of an OR at once.
-(define-rule* bool-or-and-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (zs Bool :list))
-  (or (and y1 y2 ys) zs)
-  (or (and y2 ys) zs)
-  (and (or y1 zs) _))
+(define-rule* bool-or-and-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (z1 Bool) (zs Bool :list))
+  (or (and y1 y2 ys) z1 zs)
+  (or (and y2 ys) z1 zs)
+  (and (or y1 z1 zs) _))
 
 ; Used for diamonds preprocessing
 (define-rule* bool-implies-or-distrib ((y1 Bool) (y2 Bool) (ys Bool :list) (z Bool))
