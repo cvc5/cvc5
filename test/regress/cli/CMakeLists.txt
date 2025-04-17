@@ -1278,6 +1278,10 @@ set(regress_0_tests
   regress0/parser/sort-term-overload-simple-unsat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
+  regress0/parser/strict-parsing-mixed-arith-1.smt2
+  regress0/parser/strict-parsing-mixed-arith-2.smt2
+  regress0/parser/strict-parsing-mixed-arith-3.smt2
+  regress0/parser/strict-parsing-mixed-arith-3b.smt2
   regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
