@@ -400,9 +400,10 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
   Node sign_bit = utils::mkExtract(a, size-1, size-1);
   
   if (amount >= Integer(size)) {
-    // if we are shifting more than the length of the bitvector return n repetitions
-    // of the first bit
-    return utils::mkConcat(sign_bit, size); 
+    // if we are shifting more than the length of the bitvector return n
+    // repetitions of the first bit use repeat, which enables RARE
+    // reconstruction to succeed
+    return utils::mkRepeat(sign_bit, size);
   }
   
   // make sure we do not lose information casting
@@ -412,8 +413,8 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
   if (uint32_amount == 0) {
     return a; 
   }
-  
-  Node left = utils::mkConcat(sign_bit, uint32_amount); 
+
+  Node left = utils::mkRepeat(sign_bit, uint32_amount);
   Node right = utils::mkExtract(a, size - 1, uint32_amount);
   return utils::mkConcat(left, right); 
 }
@@ -1274,6 +1275,25 @@ inline Node RewriteRule<NotUle>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * SltSelf
+ *
+ * a < a ==> false
+ */
+
+template<> inline
+bool RewriteRule<SltSelf>::applies(TNode node) {
+  return (node.getKind() == Kind::BITVECTOR_SLT && node[1] == node[0]);
+}
+
+template<> inline
+Node RewriteRule<SltSelf>::apply(TNode node) {
+  Trace("bv-rewrite") << "RewriteRule<SltSelf>(" << node << ")" << std::endl;
+  return utils::mkFalse(node.getNodeManager());
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
  * MultPow2
  *
  * (a * 2^k) ==> a[n-k-1:0] 0_k
@@ -2083,7 +2103,7 @@ inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
     else
     {
       Assert(nck == Kind::CONST_BITVECTOR);
-      children.push_back(nm->mkNode(Kind::BITVECTOR_TO_NAT, nc));
+      children.push_back(nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, nc));
     }
   }
   // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).
@@ -2327,7 +2347,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   std::tie(ml[0], ml[1], is_sext) = extract_ext_tuple(node[0]);
   std::tie(mr[0], mr[1], std::ignore) = extract_ext_tuple(node[1]);
 
-  TNode addxt, x, t, a;
+  TNode addxt, x, a;
   if (ml[0].getKind() == Kind::BITVECTOR_ADD)
   {
     addxt = ml[0];
@@ -2341,9 +2361,11 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   }
 
   x = (mr[0] == a) ? mr[1] : mr[0];
-  t = (addxt[0] == x) ? addxt[1] : addxt[0];
-
+  // Make the subtraction term (bvsub (bvadd x t) x) or (bvsub (bvadd t x) x),
+  // which will simplify to t. We use this instead of t to simplify the number
+  // of cases needed for proof reconstruction.
   NodeManager* nm = node.getNodeManager();
+  Node t = nm->mkNode(Kind::BITVECTOR_SUB, addxt, x);
   Node zero_t = utils::mkZero(nm, utils::getSize(t));
   Node zero_a = utils::mkZero(nm, utils::getSize(a));
 

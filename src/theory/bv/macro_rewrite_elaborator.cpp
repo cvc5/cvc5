@@ -47,9 +47,12 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForConcatMerge(cdp, id, eq);
     case ProofRewriteRule::MACRO_BV_EXTRACT_CONCAT:
       return ensureProofForExtractConcat(cdp, eq);
+    case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
+      return ensureProofForMultSltMult(cdp, eq);
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
+      return ensureProofForAndOrXorConcatPullup(cdp, eq);
     default: break;
   }
-  // TODO PR #11676
   return false;
 }
 
@@ -277,6 +280,143 @@ bool MacroRewriteElaborator::ensureProofForExtractConcat(CDProof* cdp,
     }
   }
   cdp->addStep(eq, ProofRule::TRANS, transEq, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForMultSltMult(CDProof* cdp,
+                                                       const Node& eq)
+{
+  // the rewrites below ensure we match the form of RARE rewrites
+  // bv-mult-slt-mult-1 and bv-mult-slt-mult-2 by turning concatenation
+  // with zero into a zero extend, and flipping multiplication if applicable.
+  NodeManager* nm = nodeManager();
+  Assert(eq[0].getKind() == Kind::BITVECTOR_SLT);
+  TConvProofGenerator tcpg(d_env);
+  Node rhs1;
+  for (size_t i = 0; i < 2; i++)
+  {
+    Assert(eq[0][i].getKind() == Kind::BITVECTOR_MULT);
+    Assert(eq[0][i].getNumChildren() == 2);
+    std::vector<Node> ch;
+    for (size_t j = 0; j < 2; j++)
+    {
+      Node n = eq[0][i][j];
+      if (n.getKind() == Kind::BITVECTOR_CONCAT)
+      {
+        size_t sz = utils::getSize(n[0]);
+        if (n[0] == utils::mkZero(nm, sz))
+        {
+          // turn concatenation with zero into zero extend
+          Node zext = nm->mkConst(BitVectorZeroExtend(sz));
+          Node nze = nm->mkNode(zext, n[1]);
+          tcpg.addRewriteStep(n,
+                              nze,
+                              nullptr,
+                              false,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          ch.push_back(nze);
+          continue;
+        }
+      }
+      ch.push_back(n);
+    }
+    // flip the multiplication on the right hand side if a zero_extend
+    // or a sign_extend applied to plus. Flip the left hand side if the
+    // lhs of the left hand side matches the rhs of the right hand side.
+    bool swap = i == 0 ? (ch[1].getKind() == Kind::BITVECTOR_ZERO_EXTEND
+                          || (ch[1].getKind() == Kind::BITVECTOR_SIGN_EXTEND
+                              && ch[1][0].getKind() == Kind::BITVECTOR_ADD))
+                       : ch[0] == rhs1;
+    Trace("bv-rew-elab") << "- check " << i << ", swap is " << swap
+                         << std::endl;
+    if (swap)
+    {
+      Assert(ch[0].getKind() != Kind::BITVECTOR_ZERO_EXTEND);
+      // swap to match rule
+      Node mul = nm->mkNode(eq[0][i].getKind(), ch[0], ch[1]);
+      Node muls = nm->mkNode(eq[0][i].getKind(), ch[1], ch[0]);
+      tcpg.addRewriteStep(mul,
+                          muls,
+                          nullptr,
+                          false,
+                          TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+      Trace("bv-rew-elab") << "- swap " << mul << " to " << muls << std::endl;
+    }
+    if (i == 0)
+    {
+      rhs1 = ch[swap ? 0 : 1];
+      Trace("bv-rew-elab") << "- rhs is " << rhs1 << std::endl;
+    }
+  }
+
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  cdp->addProof(pfn);
+  Node equiv1 = pfn->getResult();
+  Trace("bv-rew-elab") << "- cast to zero extend: " << equiv1 << std::endl;
+  Node equiv2 = equiv1[1].eqNode(eq[1]);
+  cdp->addTrustedStep(
+      equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
+                                                                const Node& eq)
+{
+  // The elaboration below handles the case where a constant appears in the
+  // middle of a concatenation term that is being pulled up.
+  // (bvor xs (concat t1 ... tn c s1 ... sm) ws) ---> (concat ...)
+  // This method groups the concatenation term so that it matches the expected
+  // form of RARE rewrites bv-*-concat-pullup3. In particular we rewrite:
+  // (bvor xs (concat t1 ... tn c s1 ... sm) ws) --->
+  // (bvor xs (concat (concat t1 ... tn) c (concat s1 ... sm)) ws).
+  NodeManager* nm = nodeManager();
+  TConvProofGenerator tcpg(d_env);
+  bool addedRewrite = false;
+  for (const TNode& c : eq[0])
+  {
+    if (c.getKind() == Kind::BITVECTOR_CONCAT)
+    {
+      for (size_t i = 0, nchild = c.getNumChildren(); i < nchild; i++)
+      {
+        if (c[i].isConst() && i > 0 && i + 1 < nchild)
+        {
+          std::vector<Node> cpre(c.begin(), c.begin() + i);
+          Node npre = cpre.size() == 1
+                          ? cpre[0]
+                          : nm->mkNode(Kind::BITVECTOR_CONCAT, cpre);
+          std::vector<Node> cpost(c.begin() + i + 1, c.end());
+          Node npost = cpost.size() == 1
+                           ? cpost[0]
+                           : nm->mkNode(Kind::BITVECTOR_CONCAT, cpost);
+          Node cg = nm->mkNode(Kind::BITVECTOR_CONCAT, {npre, c[i], npost});
+          Trace("ajr-temp") << "Groupd " << c << " to " << cg << std::endl;
+          Assert(cg.getType() == c.getType());
+          // should be shown by ACI_NORM
+          tcpg.addRewriteStep(c,
+                              cg,
+                              nullptr,
+                              false,
+                              TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
+          addedRewrite = true;
+          break;
+        }
+      }
+    }
+  }
+  if (!addedRewrite)
+  {
+    Assert(false) << "Failed to elaborate and-or-xor-concat-pullup";
+    return false;
+  }
+  std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);
+  cdp->addProof(pfn);
+  Node equiv1 = pfn->getResult();
+  Node equiv2 = equiv1[1].eqNode(eq[1]);
+  // should be shown by bv-*-concat-pullup3
+  cdp->addTrustedStep(
+      equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
   return true;
 }
 

@@ -45,7 +45,7 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
       d_nodeManager->mkNode(Kind::STRING_INDEXOF, a, b, zero));
   Node sc = d_nodeManager->mkNode(Kind::STRING_SUBSTR, c, zero, n);
 
-  SkolemCache sk(d_nodeManager, nullptr);
+  SkolemCache sk(d_nodeManager.get(), nullptr);
 
   // Check that skolems are shared between:
   //

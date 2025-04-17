@@ -22,7 +22,7 @@
 (define-cond-rule arith-int-mod-total-neg ((t Int) (s Int)) (< s 0) (mod_total t s) (mod_total t (- s)))
 
 ; Eliminations
-(define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (<= t s)))
+(define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (>= s t)))
 (define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
 (define-rule arith-elim-int-gt ((t Int) (s Int)) (> t s) (>= t (+ s 1)))
 (define-rule arith-elim-int-lt ((t Int) (s Int)) (< t s) (>= s (+ t 1)))

@@ -38,13 +38,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-/** An attribute for mapping sygus variables to builtin variables */
-struct SygusBuiltinFreeVarAttributeId
-{
-};
-using SygusBuiltinFreeVarAttribute =
-    expr::Attribute<SygusBuiltinFreeVarAttributeId, Node>;
-
 std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 {
   switch (r)
@@ -302,7 +295,7 @@ Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
   Assert(tn.isSygusDatatype());
   const TypeNode& vtn = tn.getDType().getSygusType();
   BoundVarManager* bvm = nodeManager()->getBoundVarManager();
-  return bvm->mkBoundVar<SygusBuiltinFreeVarAttribute>(v, vtn);
+  return bvm->mkBoundVar(BoundVarId::QUANT_SYGUS_BUILTIN_FV, v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)

@@ -231,10 +231,21 @@ Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
             "skop", typ, "op created during pre-skolemization");
         // DOTHIS: set attribute on op, marking that it should not be selected
         // as trigger
-        std::vector<Node> funcArgs;
-        funcArgs.push_back(op);
-        funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
-        s = nm->mkNode(Kind::APPLY_UF, funcArgs);
+        if (f[0][i].getType().isFunction())
+        {
+          s = op;
+          for (TNode v : fvs)
+          {
+            s = nm->mkNode(Kind::HO_APPLY, s, v);
+          }
+        }
+        else
+        {
+          std::vector<Node> funcArgs;
+          funcArgs.push_back(op);
+          funcArgs.insert(funcArgs.end(), fvs.begin(), fvs.end());
+          s = nm->mkNode(Kind::APPLY_UF, funcArgs);
+        }
       }
       sk.push_back(s);
     }

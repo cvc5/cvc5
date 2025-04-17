@@ -204,12 +204,12 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
   {
-    res = rewrite(RewriteRule<BitwiseEq>::run<false>(t));
+    res = RewriteRule<BitwiseEq>::run<false>(t);
   }
   // useful on QF_BV/space/ndist
   else if (RewriteRule<UltAddOne>::applies(t))
   {
-    res = rewrite(RewriteRule<UltAddOne>::run<false>(t));
+    res = RewriteRule<UltAddOne>::run<false>(t);
   }
   // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
   else if (options().bv.rwExtendEq)

@@ -481,6 +481,8 @@ Sort ParserState::flattenFunctionType(std::vector<Sort>& sorts, Sort range)
 }
 Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
 {
+  // Note we require this flattening since the API explicitly checks that
+  // the range of functions is not a function.
   Sort newRange = flattenFunctionType(sorts, range);
   if (!sorts.empty())
   {

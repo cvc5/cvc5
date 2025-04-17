@@ -26,6 +26,8 @@
 (declare-const bag.is_singleton (-> (! Type :var T :implicit) (Bag T) Bool))
 
 (declare-const bag.filter (-> (! Type :var T :implicit) (-> T Bool) (Bag T) (Bag T)))
+(declare-const bag.all (-> (! Type :var T :implicit) (-> T Bool) (Bag T) Bool))
+(declare-const bag.some (-> (! Type :var T :implicit) (-> T Bool) (Bag T) Bool))
 (declare-const bag.map (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U) (Bag T) (Bag U)))
 (declare-const bag.fold (-> (! Type :var T :implicit) (! Type :var U :implicit) (-> T U U) U (Bag T) U))
 (declare-const table.product (-> (! Type :var T :implicit) (! Type :var U :implicit) (Bag T) (Bag U) (Bag (eo::list_concat Tuple U T))))
