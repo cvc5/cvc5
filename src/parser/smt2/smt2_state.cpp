@@ -1600,12 +1600,14 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // the SMT standard but not in our internal type checker are handled
       // here.
       Sort sreq; // if applicable, the sort which all arguments must be.
+      bool sameType = false;
       if (kind == Kind::ADD || kind == Kind::MULT || kind == Kind::SUB
           || kind == Kind::GEQ || kind == Kind::GT || kind == Kind::LEQ
           || kind == Kind::LT)
       {
         // no mixed arithmetic
         sreq = args[0].getSort();
+        sameType = true;
       }
       else if (kind == Kind::DIVISION
                || kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
@@ -1626,8 +1628,15 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
           if (s != sreq)
           {
             std::stringstream ss;
-            ss << "Due to strict parsing, we require the arguments of " << kind
-               << " to have type " << sreq;
+            ss << "Due to strict parsing, we require the arguments of " << kind;
+            if (sameType)
+            {
+              ss << " to have the same type";
+            }
+            else
+            {
+              ss << " to have type " << sreq;
+            }
             parseError(ss.str());
           }
         }
