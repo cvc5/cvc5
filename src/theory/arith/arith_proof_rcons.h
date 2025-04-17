@@ -45,7 +45,23 @@ class ArithProofRCons : protected EnvObj, public ProofGenerator
   ArithProofRCons(Env& env, TrustId id);
   virtual ~ArithProofRCons();
   /**
-   * Get proof for an arithmetic lemma.
+   * Get proof for an arithmetic lemma. Based on the trust id of this class,
+   * we infer the proof for fact.
+   *
+   * For example, if d_id is ARITH_DIO_LEMMA, then we use a procedure which
+   * infers entailed equalities from the disjuncts of the lemma and applies
+   * substitution+rewriting to prove the remainder of the lemma. For example,
+   * given:
+   * (not (and (>= x 2)) (<= x 2) (< x 0))
+   * We skeleton of the proof looks like:
+   *              -------- --------
+   *              (>= x 2) (<= x 2)
+   * -------      ----------------- via trichotomy
+   * (< x 0)      (= x 2)
+   * --------------------- MACRO_SR_PRED_TRANSFORM
+   * false
+   * ------------------------------------- SCOPE
+   * (not (and (>= x 2)) (<= x 2) (< x 0))
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
