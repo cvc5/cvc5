@@ -61,7 +61,12 @@ std::ostream& operator<<(std::ostream& os, TheoryRewriteMode tm)
   return os;
 }
 
-BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env), d_bvRewElab(env)
+BasicRewriteRCons::BasicRewriteRCons(Env& env)
+    : EnvObj(env),
+      d_theoryRewriteMacroExpand(
+          statisticsRegistry().registerHistogram<ProofRewriteRule>(
+              "BasicRewriteRCons::macroExpandCount")),
+      d_bvRewElab(env)
 {
 
 }
@@ -339,6 +344,7 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
     case ProofRewriteRule::MACRO_BV_OR_SIMPLIFY:
     case ProofRewriteRule::MACRO_BV_AND_SIMPLIFY:
     case ProofRewriteRule::MACRO_BV_XOR_SIMPLIFY:
+    case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
     case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
@@ -698,7 +704,8 @@ bool BasicRewriteRCons::ensureProofMacroArithStringPredEntail(CDProof* cdp,
   }
   // (>= approx 0) = true
   Node teq = approxRewGeq.eqNode(truen);
-  Node ev = evaluate(approxRewGeq, {}, {});
+  // do not use rewriter in evaluate
+  Node ev = evaluate(approxRewGeq, {}, {}, false);
   if (ev == truen)
   {
     Trace("brc-macro") << "- prove " << teq << " via evaluate" << std::endl;

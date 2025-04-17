@@ -45,10 +45,12 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     Options opts;
     d_rewriter = d_slvEngine->getEnv().getRewriter();
     // allow recursive approximations
-    d_arithEntail.reset(new ArithEntail(d_nodeManager, d_rewriter, true));
+    d_arithEntail.reset(new ArithEntail(d_nodeManager.get(), d_rewriter, true));
     d_strEntail.reset(new StringsEntail(d_rewriter, *d_arithEntail.get()));
-    d_seqRewriter.reset(new SequencesRewriter(
-        d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr));
+    d_seqRewriter.reset(new SequencesRewriter(d_nodeManager.get(),
+                                              *d_arithEntail.get(),
+                                              *d_strEntail.get(),
+                                              nullptr));
   }
 
   Rewriter* d_rewriter;
@@ -291,7 +293,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_nth)
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
   StringsRewriter sr(
-      d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr);
+      d_nodeManager.get(), *d_arithEntail.get(), *d_strEntail.get(), nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -602,7 +604,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
 TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
 {
   StringsRewriter sr(
-      d_nodeManager, *d_arithEntail.get(), *d_strEntail.get(), nullptr);
+      d_nodeManager.get(), *d_arithEntail.get(), *d_strEntail.get(), nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 

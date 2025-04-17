@@ -1275,6 +1275,25 @@ inline Node RewriteRule<NotUle>::apply(TNode node)
 /* -------------------------------------------------------------------------- */
 
 /**
+ * SltSelf
+ *
+ * a < a ==> false
+ */
+
+template<> inline
+bool RewriteRule<SltSelf>::applies(TNode node) {
+  return (node.getKind() == Kind::BITVECTOR_SLT && node[1] == node[0]);
+}
+
+template<> inline
+Node RewriteRule<SltSelf>::apply(TNode node) {
+  Trace("bv-rewrite") << "RewriteRule<SltSelf>(" << node << ")" << std::endl;
+  return utils::mkFalse(node.getNodeManager());
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
  * MultPow2
  *
  * (a * 2^k) ==> a[n-k-1:0] 0_k
@@ -2084,7 +2103,7 @@ inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
     else
     {
       Assert(nck == Kind::CONST_BITVECTOR);
-      children.push_back(nm->mkNode(Kind::BITVECTOR_TO_NAT, nc));
+      children.push_back(nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, nc));
     }
   }
   // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).

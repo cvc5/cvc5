@@ -30,7 +30,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_tep(tep),
       d_index(type.getArrayIndexType(), tep),
       d_constituentType(type.getArrayConstituentType()),
-      d_nm(NodeManager::currentNM()),
+      d_nm(type.getNodeManager()),
       d_indexVec(),
       d_constituentVec(),
       d_finished(false),

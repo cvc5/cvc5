@@ -88,6 +88,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
                                                     TNode& subs,
                                                     MethodId ids)
 {
+  NodeManager* nm = exp.getNodeManager();
   if (ids == MethodId::SB_DEFAULT)
   {
     if (exp.getKind() != Kind::EQUAL)
@@ -101,12 +102,12 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   {
     bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
-    subs = NodeManager::currentNM()->mkConst(polarity);
+    subs = nm->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
     var = exp;
-    subs = NodeManager::currentNM()->mkConst(true);
+    subs = nm->mkConst(true);
   }
   else
   {

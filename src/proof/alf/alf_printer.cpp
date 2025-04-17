@@ -295,7 +295,7 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
-    case ProofRewriteRule::BV_TO_NAT_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
     case ProofRewriteRule::INT_TO_BV_ELIM:
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
@@ -416,6 +416,7 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
+        case Kind::IMPLIES:
         case Kind::XOR:
         case Kind::CONST_BOOLEAN:
         case Kind::CONST_INTEGER:
@@ -490,7 +491,8 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_SIGN_EXTEND:
         case Kind::BITVECTOR_ZERO_EXTEND:
         case Kind::CONST_BITVECTOR_SYMBOLIC:
-        case Kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
+        case Kind::BITVECTOR_SBV_TO_INT:
         case Kind::INT_TO_BITVECTOR:
         case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:
@@ -792,9 +794,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = ltproc.convert(sconc);
+  Node rhs = ltproc.convert(sconc[1]);
+  // do not apply singleton elimination to head
+  AlfListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
+  Node lhs = ltprocNse.convert(sconc[0]);
   Assert(sconc.getKind() == Kind::EQUAL);
-  out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
+  out << "  :conclusion (= " << lhs << " " << rhs << ")" << std::endl;
   out << ")" << std::endl;
 }
 

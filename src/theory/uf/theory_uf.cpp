@@ -127,7 +127,7 @@ void TheoryUF::finishInit() {
   }
   // conversion kinds
   d_equalityEngine->addFunctionKind(Kind::INT_TO_BITVECTOR, true);
-  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_TO_NAT, true);
+  d_equalityEngine->addFunctionKind(Kind::BITVECTOR_UBV_TO_INT, true);
 }
 
 //--------------------------------- standard check
@@ -261,12 +261,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR)
+  else if ((k == Kind::BITVECTOR_UBV_TO_INT || k == Kind::INT_TO_BITVECTOR)
            && options().uf.eagerArithBvConv)
   {
     // eliminate if option specifies to eliminate eagerly
-    Node ret = k == Kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
-                                           : arith::eliminateInt2Bv(node);
+    Node ret = k == Kind::BITVECTOR_UBV_TO_INT ? arith::eliminateBv2Nat(node)
+                                               : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
@@ -312,7 +312,7 @@ void TheoryUF::preRegisterTerm(TNode node)
     }
     break;
     case Kind::INT_TO_BITVECTOR:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     {
       Assert(!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
@@ -618,7 +618,7 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_TO_NAT)
+      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_UBV_TO_INT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute
