@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A generic utility for infer proofs for arithmetic lemmas.
+ * A generic utility for inferring proofs for arithmetic lemmas.
  */
 
 #include "theory/arith/arith_proof_rcons.h"
@@ -120,6 +120,7 @@ Node ArithProofRCons::applySR(CDProof& cdp,
   }
   return asr;
 }
+
 std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
 {
   Trace("arith-proof-rcons") << "ArithProofRCons: prove " << fact << std::endl;
