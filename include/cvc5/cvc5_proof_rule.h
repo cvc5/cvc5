@@ -3630,10 +3630,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-div-total-real */
-  EVALUE(ARITH_DIV_TOTAL_REAL),
-  /** Auto-generated from RARE rule arith-div-total-int */
-  EVALUE(ARITH_DIV_TOTAL_INT),
   /** Auto-generated from RARE rule arith-div-total-zero-real */
   EVALUE(ARITH_DIV_TOTAL_ZERO_REAL),
   /** Auto-generated from RARE rule arith-div-total-zero-int */
@@ -3672,30 +3668,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_GEQ_NORM1_INT),
   /** Auto-generated from RARE rule arith-geq-norm1-real */
   EVALUE(ARITH_GEQ_NORM1_REAL),
-  /** Auto-generated from RARE rule arith-geq-norm2 */
-  EVALUE(ARITH_GEQ_NORM2),
-  /** Auto-generated from RARE rule arith-refl-leq */
-  EVALUE(ARITH_REFL_LEQ),
-  /** Auto-generated from RARE rule arith-refl-lt */
-  EVALUE(ARITH_REFL_LT),
-  /** Auto-generated from RARE rule arith-refl-geq */
-  EVALUE(ARITH_REFL_GEQ),
-  /** Auto-generated from RARE rule arith-refl-gt */
-  EVALUE(ARITH_REFL_GT),
   /** Auto-generated from RARE rule arith-eq-elim-real */
   EVALUE(ARITH_EQ_ELIM_REAL),
   /** Auto-generated from RARE rule arith-eq-elim-int */
   EVALUE(ARITH_EQ_ELIM_INT),
   /** Auto-generated from RARE rule arith-plus-flatten */
   EVALUE(ARITH_PLUS_FLATTEN),
-  /** Auto-generated from RARE rule arith-mult-flatten */
-  EVALUE(ARITH_MULT_FLATTEN),
-  /** Auto-generated from RARE rule arith-abs-elim-int */
-  EVALUE(ARITH_ABS_ELIM_INT),
-  /** Auto-generated from RARE rule arith-abs-elim-real */
-  EVALUE(ARITH_ABS_ELIM_REAL),
-  /** Auto-generated from RARE rule arith-to-real-elim */
-  EVALUE(ARITH_TO_REAL_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim */
   EVALUE(ARITH_TO_INT_ELIM),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
@@ -3770,12 +3748,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BOOL_IMPL_ELIM),
   /** Auto-generated from RARE rule bool-dual-impl-eq */
   EVALUE(BOOL_DUAL_IMPL_EQ),
-  /** Auto-generated from RARE rule bool-or-true */
-  EVALUE(BOOL_OR_TRUE),
   /** Auto-generated from RARE rule bool-or-flatten */
   EVALUE(BOOL_OR_FLATTEN),
-  /** Auto-generated from RARE rule bool-and-false */
-  EVALUE(BOOL_AND_FALSE),
   /** Auto-generated from RARE rule bool-and-flatten */
   EVALUE(BOOL_AND_FLATTEN),
   /** Auto-generated from RARE rule bool-and-conf */
@@ -3888,20 +3862,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_EXTRACT_SIGN_EXTEND_2),
   /** Auto-generated from RARE rule bv-extract-sign-extend-3 */
   EVALUE(BV_EXTRACT_SIGN_EXTEND_3),
-  /** Auto-generated from RARE rule bv-neg-mult */
-  EVALUE(BV_NEG_MULT),
-  /** Auto-generated from RARE rule bv-neg-add */
-  EVALUE(BV_NEG_ADD),
-  /** Auto-generated from RARE rule bv-mult-distrib-const-neg */
-  EVALUE(BV_MULT_DISTRIB_CONST_NEG),
-  /** Auto-generated from RARE rule bv-mult-distrib-const-add */
-  EVALUE(BV_MULT_DISTRIB_CONST_ADD),
-  /** Auto-generated from RARE rule bv-mult-distrib-const-sub */
-  EVALUE(BV_MULT_DISTRIB_CONST_SUB),
-  /** Auto-generated from RARE rule bv-mult-distrib-1 */
-  EVALUE(BV_MULT_DISTRIB_1),
-  /** Auto-generated from RARE rule bv-mult-distrib-2 */
-  EVALUE(BV_MULT_DISTRIB_2),
   /** Auto-generated from RARE rule bv-not-xor */
   EVALUE(BV_NOT_XOR),
   /** Auto-generated from RARE rule bv-and-simplify-1 */
@@ -3926,26 +3886,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_MULT_SLT_MULT_1),
   /** Auto-generated from RARE rule bv-mult-slt-mult-2 */
   EVALUE(BV_MULT_SLT_MULT_2),
-  /** Auto-generated from RARE rule bv-commutative-and */
-  EVALUE(BV_COMMUTATIVE_AND),
-  /** Auto-generated from RARE rule bv-commutative-or */
-  EVALUE(BV_COMMUTATIVE_OR),
   /** Auto-generated from RARE rule bv-commutative-xor */
   EVALUE(BV_COMMUTATIVE_XOR),
-  /** Auto-generated from RARE rule bv-commutative-mul */
-  EVALUE(BV_COMMUTATIVE_MUL),
   /** Auto-generated from RARE rule bv-commutative-comp */
   EVALUE(BV_COMMUTATIVE_COMP),
-  /** Auto-generated from RARE rule bv-or-zero */
-  EVALUE(BV_OR_ZERO),
-  /** Auto-generated from RARE rule bv-mul-one */
-  EVALUE(BV_MUL_ONE),
-  /** Auto-generated from RARE rule bv-mul-zero */
-  EVALUE(BV_MUL_ZERO),
-  /** Auto-generated from RARE rule bv-add-zero */
-  EVALUE(BV_ADD_ZERO),
-  /** Auto-generated from RARE rule bv-add-two */
-  EVALUE(BV_ADD_TWO),
   /** Auto-generated from RARE rule bv-zero-extend-eliminate-0 */
   EVALUE(BV_ZERO_EXTEND_ELIMINATE_0),
   /** Auto-generated from RARE rule bv-sign-extend-eliminate-0 */
@@ -3954,22 +3898,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_NOT_NEQ),
   /** Auto-generated from RARE rule bv-ult-ones */
   EVALUE(BV_ULT_ONES),
-  /** Auto-generated from RARE rule bv-or-flatten */
-  EVALUE(BV_OR_FLATTEN),
   /** Auto-generated from RARE rule bv-xor-flatten */
   EVALUE(BV_XOR_FLATTEN),
-  /** Auto-generated from RARE rule bv-and-flatten */
-  EVALUE(BV_AND_FLATTEN),
-  /** Auto-generated from RARE rule bv-mul-flatten */
-  EVALUE(BV_MUL_FLATTEN),
   /** Auto-generated from RARE rule bv-concat-merge-const */
   EVALUE(BV_CONCAT_MERGE_CONST),
   /** Auto-generated from RARE rule bv-commutative-add */
   EVALUE(BV_COMMUTATIVE_ADD),
-  /** Auto-generated from RARE rule bv-neg-sub */
-  EVALUE(BV_NEG_SUB),
-  /** Auto-generated from RARE rule bv-neg-idemp */
-  EVALUE(BV_NEG_IDEMP),
   /** Auto-generated from RARE rule bv-sub-eliminate */
   EVALUE(BV_SUB_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-width-one */
@@ -4098,26 +4032,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_OR_CONCAT_PULLUP3),
   /** Auto-generated from RARE rule bv-xor-concat-pullup3 */
   EVALUE(BV_XOR_CONCAT_PULLUP3),
-  /** Auto-generated from RARE rule bv-bitwise-idemp-1 */
-  EVALUE(BV_BITWISE_IDEMP_1),
-  /** Auto-generated from RARE rule bv-bitwise-idemp-2 */
-  EVALUE(BV_BITWISE_IDEMP_2),
-  /** Auto-generated from RARE rule bv-and-zero */
-  EVALUE(BV_AND_ZERO),
-  /** Auto-generated from RARE rule bv-and-one */
-  EVALUE(BV_AND_ONE),
-  /** Auto-generated from RARE rule bv-or-one */
-  EVALUE(BV_OR_ONE),
   /** Auto-generated from RARE rule bv-xor-duplicate */
   EVALUE(BV_XOR_DUPLICATE),
   /** Auto-generated from RARE rule bv-xor-ones */
   EVALUE(BV_XOR_ONES),
-  /** Auto-generated from RARE rule bv-xor-zero */
-  EVALUE(BV_XOR_ZERO),
-  /** Auto-generated from RARE rule bv-bitwise-not-and */
-  EVALUE(BV_BITWISE_NOT_AND),
-  /** Auto-generated from RARE rule bv-bitwise-not-or */
-  EVALUE(BV_BITWISE_NOT_OR),
   /** Auto-generated from RARE rule bv-xor-not */
   EVALUE(BV_XOR_NOT),
   /** Auto-generated from RARE rule bv-not-idemp */
@@ -4142,10 +4060,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_ULE_MAX),
   /** Auto-generated from RARE rule bv-not-ult */
   EVALUE(BV_NOT_ULT),
-  /** Auto-generated from RARE rule bv-not-ule */
-  EVALUE(BV_NOT_ULE),
-  /** Auto-generated from RARE rule bv-not-sle */
-  EVALUE(BV_NOT_SLE),
   /** Auto-generated from RARE rule bv-mult-pow2-1 */
   EVALUE(BV_MULT_POW2_1),
   /** Auto-generated from RARE rule bv-mult-pow2-2 */
@@ -4182,8 +4096,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_MERGE_SIGN_EXTEND_1),
   /** Auto-generated from RARE rule bv-merge-sign-extend-2 */
   EVALUE(BV_MERGE_SIGN_EXTEND_2),
-  /** Auto-generated from RARE rule bv-merge-sign-extend-3 */
-  EVALUE(BV_MERGE_SIGN_EXTEND_3),
   /** Auto-generated from RARE rule bv-sign-extend-eq-const-1 */
   EVALUE(BV_SIGN_EXTEND_EQ_CONST_1),
   /** Auto-generated from RARE rule bv-sign-extend-eq-const-2 */
@@ -4250,12 +4162,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_EQ_CTN_FULL_FALSE2),
   /** Auto-generated from RARE rule str-eq-len-false */
   EVALUE(STR_EQ_LEN_FALSE),
-  /** Auto-generated from RARE rule str-concat-flatten */
-  EVALUE(STR_CONCAT_FLATTEN),
-  /** Auto-generated from RARE rule str-concat-flatten-eq */
-  EVALUE(STR_CONCAT_FLATTEN_EQ),
-  /** Auto-generated from RARE rule str-concat-flatten-eq-rev */
-  EVALUE(STR_CONCAT_FLATTEN_EQ_REV),
   /** Auto-generated from RARE rule str-substr-empty-str */
   EVALUE(STR_SUBSTR_EMPTY_STR),
   /** Auto-generated from RARE rule str-substr-empty-range */
@@ -4282,10 +4188,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
   EVALUE(STR_LEN_SUBSTR_IN_RANGE),
-  /** Auto-generated from RARE rule str-len-substr-ub1 */
-  EVALUE(STR_LEN_SUBSTR_UB1),
-  /** Auto-generated from RARE rule str-len-substr-ub2 */
-  EVALUE(STR_LEN_SUBSTR_UB2),
   /** Auto-generated from RARE rule str-concat-clash */
   EVALUE(STR_CONCAT_CLASH),
   /** Auto-generated from RARE rule str-concat-clash-rev */
@@ -4302,10 +4204,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONCAT_UNIFY_BASE),
   /** Auto-generated from RARE rule str-concat-unify-base-rev */
   EVALUE(STR_CONCAT_UNIFY_BASE_REV),
-  /** Auto-generated from RARE rule str-concat-clash-char */
-  EVALUE(STR_CONCAT_CLASH_CHAR),
-  /** Auto-generated from RARE rule str-concat-clash-char-rev */
-  EVALUE(STR_CONCAT_CLASH_CHAR_REV),
   /** Auto-generated from RARE rule str-prefixof-elim */
   EVALUE(STR_PREFIXOF_ELIM),
   /** Auto-generated from RARE rule str-suffixof-elim */
@@ -4344,14 +4242,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_CONCAT_FIND_CONTRA),
   /** Auto-generated from RARE rule str-contains-split-char */
   EVALUE(STR_CONTAINS_SPLIT_CHAR),
-  /** Auto-generated from RARE rule str-contains-lt-len */
-  EVALUE(STR_CONTAINS_LT_LEN),
   /** Auto-generated from RARE rule str-contains-leq-len-eq */
   EVALUE(STR_CONTAINS_LEQ_LEN_EQ),
   /** Auto-generated from RARE rule str-contains-emp */
   EVALUE(STR_CONTAINS_EMP),
-  /** Auto-generated from RARE rule str-contains-is-emp */
-  EVALUE(STR_CONTAINS_IS_EMP),
   /** Auto-generated from RARE rule str-contains-char */
   EVALUE(STR_CONTAINS_CHAR),
   /** Auto-generated from RARE rule str-at-elim */
@@ -4370,8 +4264,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-replace-empty */
   EVALUE(STR_REPLACE_EMPTY),
-  /** Auto-generated from RARE rule str-replace-contains-pre */
-  EVALUE(STR_REPLACE_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-replace-one-pre */
   EVALUE(STR_REPLACE_ONE_PRE),
   /** Auto-generated from RARE rule str-replace-find-pre */
@@ -4398,8 +4290,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_OOB2),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
-  /** Auto-generated from RARE rule str-indexof-find */
-  EVALUE(STR_INDEXOF_FIND),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */
@@ -4496,12 +4386,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_DIFF_ELIM),
   /** Auto-generated from RARE rule re-plus-elim */
   EVALUE(RE_PLUS_ELIM),
-  /** Auto-generated from RARE rule re-concat-emp */
-  EVALUE(RE_CONCAT_EMP),
-  /** Auto-generated from RARE rule re-concat-none */
-  EVALUE(RE_CONCAT_NONE),
-  /** Auto-generated from RARE rule re-concat-flatten */
-  EVALUE(RE_CONCAT_FLATTEN),
   /** Auto-generated from RARE rule re-concat-star-swap */
   EVALUE(RE_CONCAT_STAR_SWAP),
   /** Auto-generated from RARE rule re-concat-star-repeat */
@@ -4514,22 +4398,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */
   EVALUE(RE_UNION_ALL),
-  /** Auto-generated from RARE rule re-union-none */
-  EVALUE(RE_UNION_NONE),
-  /** Auto-generated from RARE rule re-union-flatten */
-  EVALUE(RE_UNION_FLATTEN),
-  /** Auto-generated from RARE rule re-union-dup */
-  EVALUE(RE_UNION_DUP),
   /** Auto-generated from RARE rule re-union-const-elim */
   EVALUE(RE_UNION_CONST_ELIM),
   /** Auto-generated from RARE rule re-inter-all */
   EVALUE(RE_INTER_ALL),
-  /** Auto-generated from RARE rule re-inter-none */
-  EVALUE(RE_INTER_NONE),
-  /** Auto-generated from RARE rule re-inter-flatten */
-  EVALUE(RE_INTER_FLATTEN),
-  /** Auto-generated from RARE rule re-inter-dup */
-  EVALUE(RE_INTER_DUP),
   /** Auto-generated from RARE rule re-star-none */
   EVALUE(RE_STAR_NONE),
   /** Auto-generated from RARE rule re-star-emp */
@@ -4548,8 +4420,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */
   EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
-  /** Auto-generated from RARE rule str-substr-len-skip */
-  EVALUE(STR_SUBSTR_LEN_SKIP),
   /** Auto-generated from RARE rule str-substr-len-norm */
   EVALUE(STR_SUBSTR_LEN_NORM),
   /** Auto-generated from RARE rule seq-len-rev */
@@ -4598,76 +4468,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_RANGE_ELIM),
   /** Auto-generated from RARE rule str-in-re-contains */
   EVALUE(STR_IN_RE_CONTAINS),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix */
-  EVALUE(STR_IN_RE_STRIP_PREFIX),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG),
-  /** Auto-generated from RARE rule str-in-re-strip-char */
-  EVALUE(STR_IN_RE_STRIP_CHAR),
-  /** Auto-generated from RARE rule str-in-re-strip-char-s-single */
-  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-sr-single-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SR_SINGLE_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-srs-single-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_SRS_SINGLE_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-s-single-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_S_SINGLE_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-prefix-base-s-single-neg-rev */
-  EVALUE(STR_IN_RE_STRIP_PREFIX_BASE_S_SINGLE_NEG_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-char-rev */
-  EVALUE(STR_IN_RE_STRIP_CHAR_REV),
-  /** Auto-generated from RARE rule str-in-re-strip-char-s-single-rev */
-  EVALUE(STR_IN_RE_STRIP_CHAR_S_SINGLE_REV),
-  /** Auto-generated from RARE rule str-in-re-req-unfold */
-  EVALUE(STR_IN_RE_REQ_UNFOLD),
-  /** Auto-generated from RARE rule str-in-re-req-unfold-rev */
-  EVALUE(STR_IN_RE_REQ_UNFOLD_REV),
-  /** Auto-generated from RARE rule str-in-re-skip-unfold */
-  EVALUE(STR_IN_RE_SKIP_UNFOLD),
-  /** Auto-generated from RARE rule str-in-re-skip-unfold-rev */
-  EVALUE(STR_IN_RE_SKIP_UNFOLD_REV),
-  /** Auto-generated from RARE rule str-in-re-test-unfold */
-  EVALUE(STR_IN_RE_TEST_UNFOLD),
-  /** Auto-generated from RARE rule str-in-re-test-unfold-rev */
-  EVALUE(STR_IN_RE_TEST_UNFOLD_REV),
-  /** Auto-generated from RARE rule str-in-re-concat-emp */
-  EVALUE(STR_IN_RE_CONCAT_EMP),
   /** Auto-generated from RARE rule str-in-re-from-int-nemp-dig-range */
   EVALUE(STR_IN_RE_FROM_INT_NEMP_DIG_RANGE),
   /** Auto-generated from RARE rule str-in-re-from-int-dig-range */
