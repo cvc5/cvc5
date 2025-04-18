@@ -253,21 +253,6 @@
     (bvxor (extract num1 0 (bvxor xs ws)) u)
   ))
 
-(define-rule bv-bitwise-idemp-1 ((x ?BitVec)) (bvand x x) x)
-(define-rule bv-bitwise-idemp-2 ((x ?BitVec)) (bvor x x) x)
-
-(define-rule bv-and-zero ((x ?BitVec) (n Int))
-  (bvand x (@bv 0 n))
-  (@bv 0 n))
-(define-cond-rule bv-and-one ((x ?BitVec) (n Int) (w Int))
-  (and (= w (@bvsize x)) (= n (- (int.pow2 (@bvsize x)) 1)))
-  (bvand x (@bv n w))
-  x)
-(define-cond-rule bv-or-one ((x ?BitVec) (n Int) (w Int))
-  (and (= w (@bvsize x)) (= n (- (int.pow2 (@bvsize x)) 1)))
-  (bvor x (@bv n w))
-  (bvnot (@bv 0 w)))
-
 (define-cond-rule bv-xor-duplicate ((x ?BitVec) (w Int))
   (= w (@bvsize x))
   (bvxor x x) 
@@ -278,18 +263,6 @@
   (bvxor xs (@bv n w) zs)
   (bvnot (bvxor xs zs)))
 
-(define-rule bv-xor-zero ((xs ?BitVec :list) (zs ?BitVec :list) (n Int))
-  (bvxor xs (@bv 0 n) zs)
-  (bvxor xs zs))
-
-(define-cond-rule bv-bitwise-not-and ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvand x (bvnot x))
-  (@bv 0 w))
-(define-cond-rule bv-bitwise-not-or ((x ?BitVec) (w Int))
-  (= w (@bvsize x))
-  (bvor x (bvnot x))
-  (bvnot (@bv 0 w)))
 (define-rule bv-xor-not ((x ?BitVec) (y ?BitVec))
   (bvxor (bvnot x) (bvnot y)) (bvxor x y))
 (define-rule bv-not-idemp ((x ?BitVec))
@@ -322,12 +295,6 @@
 (define-rule bv-not-ult ((x ?BitVec) (y ?BitVec))
   (not (bvult x y))
   (bvule y x))
-(define-rule bv-not-ule ((x ?BitVec) (y ?BitVec))
-  (not (bvule x y))
-  (bvult y x))
-(define-rule bv-not-sle ((x ?BitVec) (y ?BitVec))
-  (not (bvsle x y))
-  (bvslt y x))
 
 (define-cond-rule bv-mult-pow2-1
   ((xs ?BitVec :list) (ys ?BitVec :list) (z ?BitVec) (size Int) (n Int) (exponent Int) (u Int))
@@ -461,11 +428,6 @@
   (and (> j 0) (= k (+ i j)))
   (sign_extend i (zero_extend j x))
   (zero_extend k x)
-  )
-(define-rule bv-merge-sign-extend-3
-  ((x ?BitVec) (i Int))
-  (sign_extend i (zero_extend 0 x))
-  (sign_extend i x)
   )
 (define-cond-rule bv-sign-extend-eq-const-1
   ((x ?BitVec) (m Int) (c Int) (nm Int) (mp1 Int) (nm1 Int) (nmm1 Int))
