@@ -90,6 +90,8 @@ class ProofNodeUpdaterCallback
    * another proof, nor will its contents be replaced.
    */
   virtual bool canMerge(std::shared_ptr<ProofNode> pn);
+  /** Called when we are done processing pn */
+  virtual void finalize(std::shared_ptr<ProofNode> pn);
 };
 
 /**

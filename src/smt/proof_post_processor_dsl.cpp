@@ -18,6 +18,8 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_ensure_closed.h"
+#include "proof/proof_node_algorithm.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::theory;
 
@@ -43,16 +45,25 @@ void ProofPostprocessDsl::reconstruct(
   }
   Trace("pp-dsl") << "Reconstruct proofs for " << pfs.size()
                   << " trusted steps..." << std::endl;
-  // run an updater for this callback
-  ProofNodeUpdater pnu(d_env, *this, false);
-  for (std::shared_ptr<ProofNode> p : pfs)
+  // Run an updater for this callback. We do subproof merging, as we may
+  // encounter "subgoals" of theory rewrites that are the same. Moreover,
+  // since subproof merging is only in scope for a single run of an updater,
+  // we tie the proofs in pfs together with an AND_INTRO step, if necessary.
+  d_traversing.clear();
+  ProofNodeUpdater pnu(d_env, *this, true);
+  std::shared_ptr<ProofNode> pfn;
+  if (pfs.size() > 1)
   {
-    d_traversing.clear();
-    Trace("pp-dsl-process") << "BEGIN update" << std::endl;
-    pnu.process(p);
-    Trace("pp-dsl-process") << "END update" << std::endl;
-    Assert(d_traversing.empty());
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
+    pfn = pnm->mkNode(ProofRule::AND_INTRO, pfs, {});
   }
+  else
+  {
+    pfn = pfs[0];
+  }
+  Trace("pp-dsl-process") << "BEGIN update" << std::endl;
+  pnu.process(pfn);
+  Trace("pp-dsl-process") << "END update" << std::endl;
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -70,14 +81,15 @@ bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
       && pn->getChildren().empty() && d_traversing.size() < 3)
   {
     Trace("pp-dsl-process") << "...push " << pn.get() << std::endl;
+    // note that we may be pushing pn more than once, if it is updated from a
+    // trust step to another trust step.
     d_traversing.push_back(pn);
     return true;
   }
   return false;
 }
 
-bool ProofPostprocessDsl::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                                           const std::vector<Node>& fa)
+void ProofPostprocessDsl::finalize(std::shared_ptr<ProofNode> pn)
 {
   // clean up d_traversing at post-traversal
   // note we may have pushed multiple copies of pn consecutively if a proof
@@ -87,7 +99,6 @@ bool ProofPostprocessDsl::shouldUpdatePost(std::shared_ptr<ProofNode> pn,
     Trace("pp-dsl-process") << "...pop " << pn.get() << std::endl;
     d_traversing.pop_back();
   }
-  return false;
 }
 
 bool ProofPostprocessDsl::update(Node res,

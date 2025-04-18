@@ -50,9 +50,6 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
-  /** Should proof pn be updated (post-traversal)? */
-  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
-                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
               ProofRule id,
@@ -60,6 +57,8 @@ class ProofPostprocessDsl : protected EnvObj, public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+  /** Finalize this proof node */
+  void finalize(std::shared_ptr<ProofNode> pn) override;
 
  private:
   /** Common constants */
