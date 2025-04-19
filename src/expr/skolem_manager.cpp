@@ -475,6 +475,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     // skolems that return the set element type
     case SkolemId::BAGS_DEQ_DIFF:
     case SkolemId::SETS_DEQ_DIFF:
+    case SkolemId::SETS_MIN:
+    case SkolemId::SETS_MAX:
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();

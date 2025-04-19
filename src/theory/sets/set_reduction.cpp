@@ -33,6 +33,54 @@ SetReduction::SetReduction() {}
 
 SetReduction::~SetReduction() {}
 
+Node SetReduction::reduceMinOperator(Node node, std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == Kind::SET_MIN);
+  NodeManager* nm = node.getNodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node r = node[0];
+  Node A = node[1];
+  Node i = node[2];
+
+  Node min = sm->mkSkolemFunction(SkolemId::SETS_MIN, A);
+  Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
+  Node emptyCase = isEmpty.andNode(min.eqNode(i));
+  Node minMember = nm->mkNode(Kind::SET_MEMBER, min, A);
+  Node x = nm->mkBoundVar("t", A.getType().getSetElementType());
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, x);
+  Node lambda =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), leq);
+  Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
+  Node nonemptyCase = isEmpty.notNode().andNode(minMember).andNode(all);
+  Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
+  asserts.push_back(orNode);
+  return min;
+}
+
+Node SetReduction::reduceMaxOperator(Node node, std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == Kind::SET_MAX);
+  NodeManager* nm = node.getNodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node r = node[0];
+  Node A = node[1];
+  Node i = node[2];
+
+  Node max = sm->mkSkolemFunction(SkolemId::SETS_MAX, A);
+  Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
+  Node emptyCase = isEmpty.andNode(max.eqNode(i));
+  Node maxMember = nm->mkNode(Kind::SET_MEMBER, max, A);
+  Node x = nm->mkBoundVar("t", A.getType().getSetElementType());
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, x, max);
+  Node lambda =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), leq);
+  Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
+  Node nonemptyCase = isEmpty.notNode().andNode(maxMember).andNode(all);
+  Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
+  asserts.push_back(orNode);
+  return max;
+}
+
 Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::SET_FOLD);
