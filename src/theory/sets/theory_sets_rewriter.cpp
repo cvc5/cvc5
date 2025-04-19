@@ -414,6 +414,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case Kind::SET_FILTER: return postRewriteFilter(node);
   case Kind::SET_ALL: return postRewriteAll(node);
   case Kind::SET_SOME: return postRewriteSome(node);
+  case Kind::SET_MIN: return postRewriteMin(node);
+  case Kind::SET_MAX: return postRewriteMax(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
   case Kind::RELATION_TABLE_JOIN:
   case Kind::RELATION_TRANSPOSE:
@@ -1012,6 +1014,70 @@ RewriteResponse TheorySetsRewriter::postRewriteSome(TNode n)
       Node some = filter.eqNode(empty).notNode();
       return RewriteResponse(REWRITE_AGAIN_FULL, some);
     }
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteMin(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_MIN);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.min r (as set.empty (Set T) i) = i)
+      return RewriteResponse(REWRITE_DONE, n[2]);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.min r (set.singleton x) i) = x
+      return RewriteResponse(REWRITE_DONE, n[1][0]);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.min r (set.union A B) i) =
+      //  (let ((a (set.min r A i)) (b (set.min r B i)))
+      //  (ite (r a b) a b))
+      Node a = nm->mkNode(Kind::SET_MIN, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(Kind::SET_MIN, n[0], n[1][1], n[2]);
+      Node rab = nm->mkNode(Kind::APPLY_UF, a, b);
+      Node ret = nm->mkNode(Kind::ITE, rab, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteMax(TNode n)
+{
+  Assert(n.getKind() == Kind::SET_MAX);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // (set.max r (as set.empty (Set T) i) = i)
+      return RewriteResponse(REWRITE_DONE, n[2]);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // (set.max r (set.singleton x) i) = x
+      return RewriteResponse(REWRITE_DONE, n[1][0]);
+    }
+    case Kind::SET_UNION:
+    {
+      // (set.max r (set.union A B) i) =
+      //  (let ((a (set.max r A i)) (b (set.max r B i)))
+      //  (ite (r a b) b a))
+      Node a = nm->mkNode(Kind::SET_MAX, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(Kind::SET_MAX, n[0], n[1][1], n[2]);
+      Node rab = nm->mkNode(Kind::APPLY_UF, a, b);
+      Node ret = nm->mkNode(Kind::ITE, rab, b, a);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default: return RewriteResponse(REWRITE_DONE, n);
   }
 }
 

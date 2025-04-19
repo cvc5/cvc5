@@ -3664,6 +3664,70 @@ enum ENUM(Kind)
    */
    EVALUE(SET_SOME),
    /**
+   * Set min.
+   *
+   * \rst
+   * This operator returns the minimum value in a set based on a total order function.
+   * (set.min :math:`r \; A \; i`) takes a relation :math:`r` of Sort
+   * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and an initial value :math:`i` 
+   * of Sort :math:`T` as a third argument. 
+   * It returns the minimum value in :math:`A` based on the relation
+   * :math:`r`. If :math:`A` is empty, it returns the initial value :math:`i`.
+   * The relation :math:`r` must be a total order on the elements of :math:`A`.
+   * Otherwise, the result is not guaranteed to be minimal.
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \times T \; Bool)`
+   *   - ``2:`` Term of set Sort (Set :math:`T`)
+   *   - ``3:`` Term of element sort :math:`T`
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(SET_MIN),
+   /**
+   * Set max.
+   *
+   * \rst
+   * This operator returns the maximum value in a set based on a total order function.
+   * (set.max :math:`r \; A \; i`) takes a relation :math:`r` of Sort
+   * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
+   * of Sort (Set :math:`T`) as a second argument, and an initial value :math:`i` 
+   * of Sort :math:`T` as a third argument. 
+   * It returns the maximum value in :math:`A` based on the relation
+   * :math:`r`. If :math:`A` is empty, it returns the initial value :math:`i`.
+   * The relation :math:`r` must be a total order on the elements of :math:`A`.
+   * Otherwise, the result is not guaranteed to be maximal.
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \times T \; Bool)`
+   *   - ``2:`` Term of set Sort (Set :math:`T`)
+   *   - ``3:`` Term of element sort :math:`T`
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(SET_MAX),
+   /**
    * Set fold.
    *
    * \rst

@@ -1653,7 +1653,8 @@ void TheorySetsPrivate::processCarePairArgs(TNode a, TNode b)
 bool TheorySetsPrivate::isHigherOrderKind(Kind k)
 {
   return k == Kind::SET_MAP || k == Kind::SET_FILTER || k == Kind::SET_ALL
-         || k == Kind::SET_SOME || k == Kind::SET_FOLD;
+         || k == Kind::SET_SOME || k == Kind::SET_MIN || k == Kind::SET_MAX
+         || k == Kind::SET_FOLD;
 }
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)

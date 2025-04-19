@@ -91,6 +91,16 @@ operator SET_ALL           2  "set all operator"
 # (set.some p A) receives a predicate p of type (-> T Bool) and a set of type (Set T) and returns Bool
 operator SET_SOME           2  "set some operator"
 
+# set.min operator returns the minimum element in a set.
+# (set.min r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+operator SET_MIN           3  "set min operator"
+
+# set.max operator returns the maximum element in a set.
+# (set.max r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+operator SET_MAX           3  "set max operator"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
@@ -155,6 +165,8 @@ typerule SET_MAP            ::cvc5::internal::theory::sets::SetMapTypeRule
 typerule SET_FILTER         ::cvc5::internal::theory::sets::SetFilterTypeRule
 typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllSomeTypeRule
+typerule SET_MIN            ::cvc5::internal::theory::sets::SetMinMaxTypeRule
+typerule SET_MAX            ::cvc5::internal::theory::sets::SetMinMaxTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

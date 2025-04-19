@@ -608,6 +608,79 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SetMinMaxTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check,
+                                        std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::SET_MIN || n.getKind() == Kind::SET_MAX);
+  std::string op = n.getKind() == Kind::SET_MIN ? "set.min" : "set.max";
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode setType = n[2].getTypeOrNull();
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      if (errOut)
+      {
+        (*errOut) << op
+                  << " operator expects a set in the second argument, "
+                     "a non-set is found";
+      }
+      return TypeNode::null();
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!functionType.isFunction())
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << elementType << " " << elementType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == elementType))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << elementType << " " << elementType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+    TypeNode initialValueType = n[1].getTypeOrNull();
+    if (elementType != initialValueType)
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects an initial value of type " << elementType
+                  << ". Found a term of type '" << initialValueType << "'.";
+      }
+      return TypeNode::null();
+    }
+  }
+  if (functionType.isAbstract())
+  {
+    // if an abstract function, the element type is fully abstract
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
+  }
+  return setType.getSetElementType();
+}
+
 TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();

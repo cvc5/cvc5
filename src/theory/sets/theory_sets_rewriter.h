@@ -149,6 +149,24 @@ class TheorySetsRewriter : public TheoryRewriter
   RewriteResponse postRewriteSome(TNode n);
   /**
    *  rewrites for n include:
+   *  - (set.min r (as set.empty (Set T) i) is rewritten as i
+   *  - (set.min r (set.singleton x) i) is rewritten as x
+   *  - (set.min r (set.union A B)) is rewritten as
+   *       (let ((a (set.min r A i)) (b (set.min r B i)))
+   *         (ite (r a b) a b))
+   */
+  RewriteResponse postRewriteMin(TNode n);
+  /**
+   *  rewrites for n include:
+   *  - (set.max r (as set.empty (Set T) i) is rewritten as i
+   *  - (set.max r (set.singleton x) i) is rewritten as x
+   *  - (set.max r (set.union A B)) is rewritten as
+   *       (let ((a (set.max r A i)) (b (set.max r B i)))
+   *         (ite (r a b) b a))
+   */
+  RewriteResponse postRewriteMax(TNode n);
+  /**
+   *  rewrites for n include:
    *  - (set.fold f t (as set.empty (Set T))) = t
    *  - (set.fold f t (set.singleton x)) = (f t x)
    *  - (set.fold f t (set.union A B)) = (set.fold f (set.fold f t A) B))

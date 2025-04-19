@@ -198,6 +198,26 @@ children = 2
 comment  = "set some operator"
 typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
 
+# set.min operator returns the minimum element in a set.
+# (set.min r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+[[kinds]]
+type     = "operator"
+name     = "SET_MIN"
+children = 3
+comment  = "set min operator"
+typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
+
+# set.max operator returns the maximum element in a set.
+# (set.max r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+[[kinds]]
+type     = "operator"
+name     = "SET_MAX"
+children = 3
+comment  = "set max operator"
+typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
