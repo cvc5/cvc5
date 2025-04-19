@@ -1041,7 +1041,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMin(TNode n)
       //  (ite (r a b) a b))
       Node a = nm->mkNode(Kind::SET_MIN, n[0], n[1][0], n[2]);
       Node b = nm->mkNode(Kind::SET_MIN, n[0], n[1][1], n[2]);
-      Node rab = nm->mkNode(Kind::APPLY_UF, a, b);
+      Node rab = nm->mkNode(Kind::APPLY_UF, n[0], a, b);
       Node ret = nm->mkNode(Kind::ITE, rab, a, b);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
@@ -1073,7 +1073,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMax(TNode n)
       //  (ite (r a b) b a))
       Node a = nm->mkNode(Kind::SET_MAX, n[0], n[1][0], n[2]);
       Node b = nm->mkNode(Kind::SET_MAX, n[0], n[1][1], n[2]);
-      Node rab = nm->mkNode(Kind::APPLY_UF, a, b);
+      Node rab = nm->mkNode(Kind::APPLY_UF, n[0], a, b);
       Node ret = nm->mkNode(Kind::ITE, rab, b, a);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }

@@ -621,7 +621,7 @@ TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == Kind::SET_MIN || n.getKind() == Kind::SET_MAX);
   std::string op = n.getKind() == Kind::SET_MIN ? "set.min" : "set.max";
   TypeNode functionType = n[0].getTypeOrNull();
-  TypeNode setType = n[2].getTypeOrNull();
+  TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
     if (!setType.isSet())
@@ -650,7 +650,8 @@ TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     if (!(argTypes.size() == 2 && argTypes[0] == elementType
-          && argTypes[1] == elementType))
+          && argTypes[1] == elementType
+          && functionType.getRangeType() == nodeManager->booleanType()))
     {
       if (errOut)
       {
@@ -661,7 +662,7 @@ TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode initialValueType = n[1].getTypeOrNull();
+    TypeNode initialValueType = n[2].getTypeOrNull();
     if (elementType != initialValueType)
     {
       if (errOut)

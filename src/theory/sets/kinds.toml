@@ -206,7 +206,7 @@ type     = "operator"
 name     = "SET_MIN"
 children = 3
 comment  = "set min operator"
-typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
+typerule = "::cvc5::internal::theory::sets::SetMinMaxTypeRule"
 
 # set.max operator returns the maximum element in a set.
 # (set.max r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
@@ -216,7 +216,7 @@ type     = "operator"
 name     = "SET_MAX"
 children = 3
 comment  = "set max operator"
-typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
+typerule = "::cvc5::internal::theory::sets::SetMinMaxTypeRule"
 
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
