@@ -682,7 +682,9 @@ enum ENUM(SkolemId)
    *           (set.all (lambda ((x T)) (r min x)) A)))``
    *
    * - Number of skolem indices: ``1``
-   *   - ``1:`` The first set of type ``(Set E)``.
+   *   - ``1:`` the relation r of type ``(-> E E Bool)``.
+   *   - ``2:`` the set argument A of type ``(Set E)``.
+   *   - ``3:`` the initial value i of type ``E``.
    * - Sort: ``E``
    */
   EVALUE(SETS_MIN),
@@ -694,8 +696,10 @@ enum ENUM(SkolemId)
    *           (set.member max A)
    *           (set.all (lambda ((x T)) (r x max)) A)))``
    *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` The first set of type ``(Set E)``.
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` the relation r of type ``(-> E E Bool)``.
+   *   - ``2:`` the set argument A of type ``(Set E)``.
+   *   - ``3:`` the initial value i of type ``E``.
    * - Sort: ``E``
    */
   EVALUE(SETS_MAX),
@@ -704,7 +708,7 @@ enum ENUM(SkolemId)
    * To compute ``(set.fold f t A)``, we need to guess the cardinality n of
    * set A using a skolem function with SETS_FOLD_CARD id.
    *
-   * - Number of skolem indices: ``1``
+   * - Number of skolem indices: ``3``
    *   - ``1:`` the set argument A.
    * - Sort: ``Int``
    */
