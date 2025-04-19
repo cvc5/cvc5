@@ -1027,12 +1027,12 @@ RewriteResponse TheorySetsRewriter::postRewriteMin(TNode n)
     case Kind::SET_EMPTY:
     {
       // (set.min r (as set.empty (Set T) i) = i)
-      return RewriteResponse(REWRITE_DONE, n[2]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[2]);
     }
     case Kind::SET_SINGLETON:
     {
       // (set.min r (set.singleton x) i) = x
-      return RewriteResponse(REWRITE_DONE, n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[1][0]);
     }
     case Kind::SET_UNION:
     {
@@ -1059,12 +1059,12 @@ RewriteResponse TheorySetsRewriter::postRewriteMax(TNode n)
     case Kind::SET_EMPTY:
     {
       // (set.max r (as set.empty (Set T) i) = i)
-      return RewriteResponse(REWRITE_DONE, n[2]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[2]);
     }
     case Kind::SET_SINGLETON:
     {
       // (set.max r (set.singleton x) i) = x
-      return RewriteResponse(REWRITE_DONE, n[1][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[1][0]);
     }
     case Kind::SET_UNION:
     {

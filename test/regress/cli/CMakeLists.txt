@@ -3246,6 +3246,7 @@ set(regress_1_tests
   regress1/sets/issue8987-ho-exception.smt2
   regress1/sets/ListElem.hs.fqout.cvc4.38.smt2
   regress1/sets/ListElts.hs.fqout.cvc4.317.smt2
+  regress1/sets/min-max.smt2
   regress1/sets/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
   regress1/sets/UniqueZipper.hs.1030minimized.cvc4.smt2
   regress1/sets/UniqueZipper.hs.1030minimized2.cvc4.smt2

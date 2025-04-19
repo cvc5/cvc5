@@ -46,10 +46,10 @@ Node SetReduction::reduceMinOperator(Node node, std::vector<Node>& asserts)
   Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
   Node emptyCase = isEmpty.andNode(min.eqNode(i));
   Node minMember = nm->mkNode(Kind::SET_MEMBER, min, A);
-  Node x = nm->mkBoundVar("t", A.getType().getSetElementType());
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, x);
+  Node e = nm->mkBoundVar("e", A.getType().getSetElementType());
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, e);
   Node lambda =
-      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), leq);
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, e), leq);
   Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
   Node nonemptyCase = isEmpty.notNode().andNode(minMember).andNode(all);
   Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
@@ -66,14 +66,14 @@ Node SetReduction::reduceMaxOperator(Node node, std::vector<Node>& asserts)
   Node A = node[1];
   Node i = node[2];
 
-  Node max = sm->mkSkolemFunction(SkolemId::SETS_MAX, A);
+  Node max = sm->mkSkolemFunction(SkolemId::SETS_MAX, {r, A, i});
   Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
   Node emptyCase = isEmpty.andNode(max.eqNode(i));
   Node maxMember = nm->mkNode(Kind::SET_MEMBER, max, A);
-  Node x = nm->mkBoundVar("t", A.getType().getSetElementType());
-  Node leq = nm->mkNode(Kind::APPLY_UF, r, x, max);
+  Node e = nm->mkBoundVar("e", A.getType().getSetElementType());
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, e, max);
   Node lambda =
-      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, x), leq);
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, e), leq);
   Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
   Node nonemptyCase = isEmpty.notNode().andNode(maxMember).andNode(all);
   Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);

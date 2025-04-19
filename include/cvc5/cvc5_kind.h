@@ -3667,7 +3667,8 @@ enum ENUM(Kind)
    * Set min.
    *
    * \rst
-   * This operator returns the minimum value in a set based on a total order function.
+   * This operator returns the minimum value in a set based on a non strict 
+   * total order function.
    * (set.min :math:`r \; A \; i`) takes a relation :math:`r` of Sort
    * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
    * of Sort (Set :math:`T`) as a second argument, and an initial value :math:`i` 
@@ -3699,7 +3700,8 @@ enum ENUM(Kind)
    * Set max.
    *
    * \rst
-   * This operator returns the maximum value in a set based on a total order function.
+   * This operator returns the maximum value in a set based on a non strict 
+   * total order function.
    * (set.max :math:`r \; A \; i`) takes a relation :math:`r` of Sort
    * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
    * of Sort (Set :math:`T`) as a second argument, and an initial value :math:`i` 
