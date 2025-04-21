@@ -2491,6 +2491,116 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
   return true;
 }
 
+Node BasicRewriteRCons::proveTransIneq(CDProof* cdp,
+                                       const Node& leq1,
+                                       const Node& leq2)
+{
+  Assert(leq1.getKind() == Kind::LEQ || leq1.getKind() == Kind::GEQ);
+  Assert(leq1.getKind() == leq2.getKind());
+  Assert(leq1[1] == leq2[0]);
+  bool isLeq = leq1.getKind() == Kind::LEQ;
+  NodeManager* nm = nodeManager();
+  // always want this conclusion
+  Node conc = nm->mkNode(leq1.getKind(), leq1[0], leq2[1]);
+  // must flip
+  Node leq1n = leq1;
+  if (!isLeq)
+  {
+    leq1n = nm->mkNode(Kind::LEQ, leq1[1], leq1[0]);
+    Node eq1 = leq1.eqNode(leq1n);
+    cdp->addTrustedStep(
+        eq1, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addStep(leq1n, ProofRule::EQ_RESOLVE, {leq1, eq1}, {});
+  }
+  Node negOne = nm->mkConstRealOrInt(leq2[1].getType(), Rational(-1));
+  Node leq2n = nm->mkNode(Kind::LEQ,
+                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 1 : 0]),
+                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 0 : 1]));
+  Node eq2 = leq2.eqNode(leq2n);
+  cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(leq2n, ProofRule::EQ_RESOLVE, {leq2, eq2}, {});
+
+  // sum the inequalities
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+  Node sumLeq = pc->checkDebug(ProofRule::ARITH_SUM_UB, {leq1n, leq2n}, {});
+  Assert(!sumLeq.isNull());
+  Assert(sumLeq != conc);
+  cdp->addStep(sumLeq, ProofRule::ARITH_SUM_UB, {leq1n, leq2n}, {});
+
+  Node eqc = sumLeq.eqNode(conc);
+  cdp->addTrustedStep(eqc, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  cdp->addStep(conc, ProofRule::EQ_RESOLVE, {sumLeq, eqc}, {});
+  return conc;
+}
+
+bool BasicRewriteRCons::proveIneqWeaken(CDProof* cdp,
+                                        const Node& src,
+                                        const Node& tgt)
+{
+  Assert(src.getKind() == Kind::LEQ || src.getKind() == Kind::GEQ);
+  NodeManager* nm = nodeManager();
+  Node impl = nm->mkNode(Kind::IMPLIES, src, tgt);
+  Trace("brc-macro") << "Prove: " << impl << std::endl;
+  if (tgt.getKind() == Kind::LT || tgt.getKind() == Kind::GT)
+  {
+    // normalize the inequality
+    Node srcn = src;
+    if (src.getKind() == Kind::GEQ)
+    {
+      srcn = nm->mkNode(Kind::LEQ, src[1], src[0]);
+      Node eq = src.eqNode(srcn);
+      cdp->addTrustedStep(
+          eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      cdp->addStep(srcn, ProofRule::EQ_RESOLVE, {src, eq}, {});
+    }
+    TypeNode tn = srcn[0].getType();
+    Node wineq = nm->mkNode(Kind::LT,
+                            nm->mkConstRealOrInt(tn, Rational(0)),
+                            nm->mkConstRealOrInt(tn, Rational(1)));
+    cdp->addTrustedStep(
+        wineq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+    Node sumLeq = pc->checkDebug(ProofRule::ARITH_SUM_UB, {srcn, wineq}, {});
+    Assert(!sumLeq.isNull());
+    cdp->addStep(sumLeq, ProofRule::ARITH_SUM_UB, {srcn, wineq}, {});
+    impl = nm->mkNode(Kind::IMPLIES, sumLeq, tgt);
+    Trace("brc-macro") << "Normalized prove: " << impl << std::endl;
+    // should be equivalent
+    Node eq = sumLeq.eqNode(tgt);
+    cdp->addTrustedStep(eq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addStep(tgt, ProofRule::EQ_RESOLVE, {sumLeq, eq}, {});
+  }
+  else if (tgt.getKind() == Kind::NOT && tgt[0].getKind() == Kind::EQUAL
+           && tgt[0][0] == src[0])
+  {
+    CDProof cds(d_env);
+    cds.addProof(cdp->getProofFor(src));
+    Node srcc = nm->mkNode(src.getKind(), tgt[0][1], src[1]);
+    Node equiv = src.eqNode(srcc);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(src, cargs);
+    Node ser1 = src[1].eqNode(src[1]);
+    cds.addStep(ser1, ProofRule::REFL, {}, {src[1]});
+    cds.addStep(equiv, cr, {tgt[0], ser1}, cargs);
+    cds.addStep(srcc, ProofRule::EQ_RESOLVE, {src, equiv}, {});
+    Trace("brc-macro") << "Substituted prove: " << srcc << std::endl;
+    Node falsen = nm->mkConst(false);
+    Node eqq = srcc.eqNode(falsen);
+    cds.addTrustedStep(eqq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cds.addStep(falsen, ProofRule::EQ_RESOLVE, {srcc, eqq}, {});
+    cds.addStep(tgt, ProofRule::SCOPE, {falsen}, {tgt[0]});
+
+    Trace("brc-macro") << "Subproof " << *cds.getProofFor(tgt).get()
+                       << std::endl;
+    cdp->addProof(cds.getProofFor(tgt));
+  }
+  else
+  {
+    return false;
+  }
+  return true;
+}
+
 Node BasicRewriteRCons::proveGeneralReMembership(CDProof* cdp, const Node& n)
 {
   NodeManager* nm = nodeManager();
