@@ -1169,11 +1169,12 @@ EvalResult Evaluator::evalInternal(
           BitVector res = results[currNode[0]].d_bv;
           unsigned amount =
               currNode.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
+          BitVector ret = res;
           for (size_t i = 1; i < amount; i++)
           {
-            res = res.concat(res);
+            ret = ret.concat(res);
           }
-          results[currNode] = EvalResult(res);
+          results[currNode] = EvalResult(ret);
           break;
         }
         case Kind::BITVECTOR_SIGN_EXTEND:
