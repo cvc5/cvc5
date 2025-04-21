@@ -101,6 +101,32 @@ operator SET_MIN           3  "set min operator"
 # an initial value of type T and returns T
 operator SET_MAX           3  "set max operator"
 
+# rel.min operator returns the minimum column element in a relation.
+# ((rel.min index) r A initial) receives a relation r of type (-> T T Bool), 
+# a relation of type (RELATION ... T ...), 
+# an initial value of type T and returns T
+constant RELATION_MIN_OP \
+  class \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_MIN; payload is an instance of the cvc5::internal::ProjectOp class"
+
+parameterized RELATION_MIN RELATION_MIN_OP 3 "relation min"
+
+# rel.max operator returns the maximum column element in a relation.
+# ((rel.max index) r A initial) receives a relation r of type (-> T T Bool), 
+# a relation of type (RELATION ... T ...), 
+# an initial value of type T and returns T
+constant RELATION_MAX_OP \
+  class \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_MAX; payload is an instance of the cvc5::internal::ProjectOp class"
+
+parameterized RELATION_MAX RELATION_MAX_OP 3 "relation max"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.
@@ -167,6 +193,8 @@ typerule SET_ALL            ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_SOME           ::cvc5::internal::theory::sets::SetAllSomeTypeRule
 typerule SET_MIN            ::cvc5::internal::theory::sets::SetMinMaxTypeRule
 typerule SET_MAX            ::cvc5::internal::theory::sets::SetMinMaxTypeRule
+typerule RELATION_MIN       ::cvc5::internal::theory::sets::RelationMinMaxTypeRule
+typerule RELATION_MAX       ::cvc5::internal::theory::sets::RelationMinMaxTypeRule
 typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule

@@ -21,6 +21,7 @@
 #include "expr/elim_shadow_converter.h"
 #include "options/sets_options.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
@@ -416,6 +417,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case Kind::SET_SOME: return postRewriteSome(node);
   case Kind::SET_MIN: return postRewriteMin(node);
   case Kind::SET_MAX: return postRewriteMax(node);
+  case Kind::RELATION_MIN: return postRewriteRelationMin(node);
+  case Kind::RELATION_MAX: return postRewriteRelationMax(node);
   case Kind::SET_FOLD: return postRewriteFold(node);
   case Kind::RELATION_TABLE_JOIN:
   case Kind::RELATION_TRANSPOSE:
@@ -1073,6 +1076,76 @@ RewriteResponse TheorySetsRewriter::postRewriteMax(TNode n)
       //  (ite (r a b) b a))
       Node a = nm->mkNode(Kind::SET_MAX, n[0], n[1][0], n[2]);
       Node b = nm->mkNode(Kind::SET_MAX, n[0], n[1][1], n[2]);
+      Node rab = nm->mkNode(Kind::APPLY_UF, n[0], a, b);
+      Node ret = nm->mkNode(Kind::ITE, rab, b, a);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRelationMin(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_MIN);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  uint32_t index = n.getOperator().getConst<ProjectOp>().getIndices()[0];
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // ((_ rel.min index) r (as set.empty (Set T) i) = i)
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[2]);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // ((_ rel.min index) r (set.singleton x) i) = ((_ tuple.select index) x)
+      Node tupleSelect = TupleUtils::nthElementOfTuple(n[1][0], index);
+      return RewriteResponse(REWRITE_AGAIN_FULL, tupleSelect);
+    }
+    case Kind::SET_UNION:
+    {
+      // ((_ rel.min index) r (set.union A B) i) =
+      //  (let ((a ((_ rel.min index) r A i)) (b ((_ rel.min index) r B i)))
+      //  (ite (r a b) b a))
+      Node op = n.getOperator();
+      Node a = nm->mkNode(op, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(op, n[0], n[1][1], n[2]);
+      Node rab = nm->mkNode(Kind::APPLY_UF, n[0], a, b);
+      Node ret = nm->mkNode(Kind::ITE, rab, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteRelationMax(TNode n)
+{
+  Assert(n.getKind() == Kind::RELATION_MAX);
+  NodeManager* nm = nodeManager();
+  Kind k = n[1].getKind();
+  uint32_t index = n.getOperator().getConst<ProjectOp>().getIndices()[0];
+  switch (k)
+  {
+    case Kind::SET_EMPTY:
+    {
+      // ((_ rel.max index) r (as set.empty (Set T) i) = i)
+      return RewriteResponse(REWRITE_AGAIN_FULL, n[2]);
+    }
+    case Kind::SET_SINGLETON:
+    {
+      // ((_ rel.max index) r (set.singleton x) i) = ((_ tuple.select index) x)
+      Node tupleSelect = TupleUtils::nthElementOfTuple(n[1][0], index);
+      return RewriteResponse(REWRITE_AGAIN_FULL, tupleSelect);
+    }
+    case Kind::SET_UNION:
+    {
+      // ((_ rel.max index) r (set.union A B) i) =
+      //  (let ((a ((_ rel.max index) r A i)) (b ((_ rel.max index) r B i)))
+      //  (ite (r a b) b a))
+      Node op = n.getOperator();
+      Node a = nm->mkNode(op, n[0], n[1][0], n[2]);
+      Node b = nm->mkNode(op, n[0], n[1][1], n[2]);
       Node rab = nm->mkNode(Kind::APPLY_UF, n[0], a, b);
       Node ret = nm->mkNode(Kind::ITE, rab, b, a);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);

@@ -910,6 +910,10 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::SET_SOME, "set.some");
     addOperator(Kind::SET_MIN, "set.min");
     addOperator(Kind::SET_MAX, "set.max");
+    addOperator(Kind::RELATION_MIN, "rel.min");
+    addOperator(Kind::RELATION_MAX, "rel.max");
+    addIndexedOperator(Kind::RELATION_MIN, "rel.min");
+    addIndexedOperator(Kind::RELATION_MAX, "rel.max");
     addOperator(Kind::SET_FOLD, "set.fold");
     addOperator(Kind::RELATION_JOIN, "rel.join");
     addOperator(Kind::RELATION_TABLE_JOIN, "rel.table_join");

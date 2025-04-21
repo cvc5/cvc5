@@ -97,6 +97,8 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::SETS_DEQ_DIFF: return "sets_deq_diff";
     case cvc5::SkolemId::SETS_MIN: return "sets_min";
     case cvc5::SkolemId::SETS_MAX: return "sets_max";
+    case cvc5::SkolemId::RELATIONS_MIN: return "relations_min";
+    case cvc5::SkolemId::RELATIONS_MAX: return "relations_max";
     case cvc5::SkolemId::SETS_FOLD_CARD: return "sets_fold_card";
     case cvc5::SkolemId::SETS_FOLD_COMBINE: return "sets_fold_combine";
     case cvc5::SkolemId::SETS_FOLD_ELEMENTS: return "sets_fold_elements";

@@ -3729,6 +3729,74 @@ enum ENUM(Kind)
    * \endrst
    */
   EVALUE(SET_MAX),
+  /**
+   * Relation min.
+   *
+   * \rst
+   * This operator returns the minimum value in a relation based on a non strict 
+   * total order function.
+   * ((_ rel.min index) :math:`r \; A \; initial`) takes a relation :math:`r` of Sort
+   * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
+   * of Sort (Set (:math:`Relation\; \dots, T, \dots`)) as a second argument
+   * where :math:`T` is the sort of the column at index in :math:`A`, 
+   * and an initial value :math:`i` of Sort :math:`T` as a third argument. 
+   * It returns the minimum column value in :math:`A` based on the relation
+   * :math:`r`. If :math:`A` is empty, it returns the initial value :math:`i`.
+   * The relation :math:`r` must be a total order on the elements of :math:`A`.
+   * Otherwise, the result is not guaranteed to be minimal.
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \times T \; Bool)`
+   *   - ``2:`` Term of set Sort (Set :math:`T`)
+   *   - ``3:`` Term of element sort :math:`T`
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(RELATION_MIN),
+   /**
+   * Set max.
+   *
+   * \rst
+   * This operator returns the maximum value in a relation based on a non strict 
+   * total order function.
+   * ((_ rel.max index) :math:`r \; A \; initial`) takes a relation :math:`r` of Sort
+   * :math:`(\rightarrow T \times T \; Bool)` as a first argument, a set :math:`A`
+   * of Sort (Set (:math:`Relation\; \dots, T, \dots`)) as a second argument
+   * where :math:`T` is the sort of the column at index in :math:`A`, 
+   * and an initial value :math:`i` of Sort :math:`T` as a third argument. 
+   * It returns the maximum column value in :math:`A` based on the relation
+   * :math:`r`. If :math:`A` is empty, it returns the initial value :math:`i`.
+   * The relation :math:`r` must be a total order on the elements of :math:`A`.
+   * Otherwise, the result is not guaranteed to be maximal.
+   *
+   * - Arity: ``3``
+   *
+   *   - ``1:`` Term of function Sort :math:`(\rightarrow T \times T \; Bool)`
+   *   - ``2:`` Term of set Sort (Set :math:`T`)
+   *   - ``3:`` Term of element sort :math:`T`
+   * \endrst
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  EVALUE(RELATION_MAX),
    /**
    * Set fold.
    *

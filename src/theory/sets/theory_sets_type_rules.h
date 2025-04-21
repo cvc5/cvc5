@@ -251,6 +251,21 @@ struct SetMinMaxTypeRule
 }; /* struct SetMinMaxTypeRule */
 
 /**
+ * Type rule for ((_ rel.min index) r A i) and ((_ rel.max index) r A i) to make
+ * sure r is a binary predicate of type (-> T T Bool), A is a relation of type
+ * (Relation ... T ...), and i is of type T.
+ */
+struct RelationMinMaxTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct RelationMinMaxTypeRule */
+
+/**
  * Type rule for (set.fold f t A) to make sure f is a binary operation of type
  * (-> T1 T2 T2), t of type T2, and A is a set of type (Set T1)
  */

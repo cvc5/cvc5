@@ -18,12 +18,14 @@
 #include "expr/bound_var_manager.h"
 #include "expr/emptyset.h"
 #include "expr/skolem_manager.h"
-#include "theory/datatypes//project_op.h"
+#include "theory/datatypes/project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
 namespace cvc5::internal {
 namespace theory {
@@ -42,7 +44,7 @@ Node SetReduction::reduceMinOperator(Node node, std::vector<Node>& asserts)
   Node A = node[1];
   Node i = node[2];
 
-  Node min = sm->mkSkolemFunction(SkolemId::SETS_MIN, A);
+  Node min = sm->mkSkolemFunction(SkolemId::SETS_MIN, {A, r, i});
   Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
   Node emptyCase = isEmpty.andNode(min.eqNode(i));
   Node minMember = nm->mkNode(Kind::SET_MEMBER, min, A);
@@ -66,7 +68,7 @@ Node SetReduction::reduceMaxOperator(Node node, std::vector<Node>& asserts)
   Node A = node[1];
   Node i = node[2];
 
-  Node max = sm->mkSkolemFunction(SkolemId::SETS_MAX, {r, A, i});
+  Node max = sm->mkSkolemFunction(SkolemId::SETS_MAX, {A, r, i});
   Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
   Node emptyCase = isEmpty.andNode(max.eqNode(i));
   Node maxMember = nm->mkNode(Kind::SET_MEMBER, max, A);
@@ -76,6 +78,70 @@ Node SetReduction::reduceMaxOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, e), leq);
   Node all = nm->mkNode(Kind::SET_ALL, lambda, A);
   Node nonemptyCase = isEmpty.notNode().andNode(maxMember).andNode(all);
+  Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
+  asserts.push_back(orNode);
+  return max;
+}
+
+Node SetReduction::reduceRelationMinOperator(Node node,
+                                             std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == Kind::RELATION_MIN);
+  NodeManager* nm = node.getNodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node r = node[0];
+  Node A = node[1];
+  Node i = node[2];
+
+  uint32_t index = node.getOperator().getConst<ProjectOp>().getIndices()[0];
+
+  Node min = sm->mkSkolemFunction(SkolemId::RELATIONS_MIN, {A, r, i});
+  Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
+  Node emptyCase = isEmpty.andNode(min.eqNode(i));
+  Node t = nm->mkBoundVar("t", A.getType().getSetElementType());
+  Node tSelect = TupleUtils::nthElementOfTuple(t, index);
+  Node eq = tSelect.eqNode(min);
+  Node lambdaSome =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), eq);
+  Node some = nm->mkNode(Kind::SET_SOME, lambdaSome, A);
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, min, tSelect);
+  Node lambdaAll =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), leq);
+
+  Node all = nm->mkNode(Kind::SET_ALL, lambdaAll, A);
+  Node nonemptyCase = isEmpty.notNode().andNode(some).andNode(all);
+  Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
+  asserts.push_back(orNode);
+  return min;
+}
+
+Node SetReduction::reduceRelationMaxOperator(Node node,
+                                             std::vector<Node>& asserts)
+{
+  Assert(node.getKind() == Kind::RELATION_MAX);
+  NodeManager* nm = node.getNodeManager();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node r = node[0];
+  Node A = node[1];
+  Node i = node[2];
+
+  uint32_t index = node.getOperator().getConst<ProjectOp>().getIndices()[0];
+
+  Node max = sm->mkSkolemFunction(SkolemId::RELATIONS_MAX, {A, r, i});
+  Node isEmpty = nm->mkNode(Kind::SET_IS_EMPTY, A);
+  Node emptyCase = isEmpty.andNode(max.eqNode(i));
+  Node t = nm->mkBoundVar("t", A.getType().getSetElementType());
+  Node tSelect = TupleUtils::nthElementOfTuple(t, index);
+  Node eq = tSelect.eqNode(max);
+  Node lambdaSome =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), eq);
+  Node some = nm->mkNode(Kind::SET_SOME, lambdaSome, A);
+  Node leq = nm->mkNode(Kind::APPLY_UF, r, tSelect, max);
+  Node lambdaAll =
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), leq);
+
+  Node all = nm->mkNode(Kind::SET_ALL, lambdaAll, A);
+  Node nonemptyCase = isEmpty.notNode().andNode(some).andNode(all);
   Node orNode = nm->mkNode(Kind::OR, emptyCase, nonemptyCase);
   asserts.push_back(orNode);
   return max;

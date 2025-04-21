@@ -704,6 +704,36 @@ enum ENUM(SkolemId)
    */
   EVALUE(SETS_MAX),
   /**
+   * The max skolem, which is the witness max for the inference
+   * ``(or
+   *      (and (set.is_empty A) (= max i))
+   *      (and (not (set.is_empty A))
+   *           (set.member max A)
+   *           (set.all (lambda ((x T)) (r x max)) A)))``
+   *
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` the relation r of type ``(-> E E Bool)``.
+   *   - ``2:`` the set argument A of type ``(Set E)``.
+   *   - ``3:`` the initial value i of type ``E``.
+   * - Sort: ``E``
+   */
+  EVALUE(RELATIONS_MIN),
+  /**
+   * The max skolem, which is the witness max for the inference
+   * ``(or
+   *      (and (set.is_empty A) (= max i))
+   *      (and (not (set.is_empty A))
+   *           (set.member max A)
+   *           (set.all (lambda ((x T)) (r x max)) A)))``
+   *
+   * - Number of skolem indices: ``3``
+   *   - ``1:`` the relation r of type ``(-> E E Bool)``.
+   *   - ``2:`` the set argument A of type ``(Set E)``.
+   *   - ``3:`` the initial value i of type ``E``.
+   * - Sort: ``E``
+   */
+  EVALUE(RELATIONS_MAX),
+  /**
    * An uninterpreted function for set.fold operator:
    * To compute ``(set.fold f t A)``, we need to guess the cardinality n of
    * set A using a skolem function with SETS_FOLD_CARD id.
