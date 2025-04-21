@@ -412,7 +412,7 @@ def generate_set_impl(modules):
 
 def cpp_category(category):
     assert category
-    return f'OptionInfo::Category::{category.upper()}'
+    return f'OptionInfo::Category::{category.replace("-", "_").upper()}'
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
