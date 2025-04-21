@@ -4868,6 +4868,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   info->is_set_by_user = cpp_info.setByUser;
   info->is_expert = cpp_info.isExpert;
   info->is_regular = cpp_info.isRegular;
+  info->is_regular_no_proof = cpp_info.isRegularNoProof;
 
   std::visit(
       overloaded{

@@ -3499,6 +3499,8 @@ struct Cvc5OptionInfo
   bool is_expert;
   /** True if the option is a regular option */
   bool is_regular;
+  /** True if the option is a regular no proof option */
+  bool is_regular_no_proof;
 
   /** Information for boolean option values. */
   struct BoolInfo

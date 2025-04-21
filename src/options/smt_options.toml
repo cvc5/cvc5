@@ -357,7 +357,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "regular"
+  category   = "regular-no-proof"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"

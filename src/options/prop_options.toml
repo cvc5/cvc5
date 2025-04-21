@@ -3,7 +3,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satSolver"
-  category   = "expert"
+  category   = "regular-no-proof"
   long       = "sat-solver=MODE"
   type       = "SatSolverMode"
   default    = "MINISAT"

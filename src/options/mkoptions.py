@@ -67,7 +67,7 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'help_mode'
 ]
 
-CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
+CATEGORY_VALUES = ['common', 'expert', 'regular', 'regular-no-proof', 'undocumented']
 
 ################################################################################
 ################################################################################
