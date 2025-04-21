@@ -3346,6 +3346,8 @@ struct CVC5_EXPORT OptionInfo
   bool isExpert;
   /** Whether this is a regular option */
   bool isRegular;
+  /** Whether this is a regular-no-proof option */
+  bool isRegularNoProof;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,

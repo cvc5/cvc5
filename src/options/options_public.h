@@ -67,6 +67,7 @@ struct CVC5_EXPORT OptionInfo
     COMMON,
     EXPERT,
     REGULAR,
+    REGULAR_NO_PROOF,
     UNDOCUMENTED
   };
 

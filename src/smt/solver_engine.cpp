@@ -2155,7 +2155,7 @@ void SolverEngine::setOption(const std::string& key,
                              const std::string& value,
                              bool fromUser)
 {
-  if (fromUser && options().base.safeOptions)
+  if (fromUser && options().base.safeMode!=options::SafeMode::OFF)
   {
     if (key == "trace")
     {
@@ -2168,7 +2168,7 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safe-options is true.";
+         << " cannot be set when safe-mode is enabled.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2180,8 +2180,15 @@ void SolverEngine::setOption(const std::string& key,
       }
       throw FatalOptionException(ss.str());
     }
-    else if (oinfo.category == options::OptionInfo::Category::REGULAR)
+    else if (oinfo.category == options::OptionInfo::Category::REGULAR || oinfo.category == options::OptionInfo::Category::REGULAR_NO_PROOF)
     {
+      bool isProof = (oinfo.category == options::OptionInfo::Category::REGULAR);
+      if (!isProof && options().base.safeMode==options::SafeMode::SAFE)
+      {
+        std::stringstream ss;
+        ss << "cannot set option " << key << " when safe-mode=safe is enabled, as this option does not have full proof support";
+        throw FatalOptionException(ss.str());
+      }
       if (!d_safeOptsSetRegularOption)
       {
         d_safeOptsSetRegularOption = true;
@@ -2194,7 +2201,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safe-options is true.";
+           << " and " << key << ") when safe-options is enabled.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
