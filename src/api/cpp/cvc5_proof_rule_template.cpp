@@ -226,7 +226,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
       return "distinct-card-conflict";
-    case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
+    case ProofRewriteRule::UBV_TO_INT_ELIM: return "ubv-to-int-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
@@ -302,11 +302,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
       return "macro-bv-concat-constant-merge";
     case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
-    case ProofRewriteRule::BV_UMULO_ELIMINATE: return "bv-umulo-eliminate";
-    case ProofRewriteRule::BV_SMULO_ELIMINATE: return "bv-smulo-eliminate";
-    case ProofRewriteRule::BV_ADD_COMBINE_LIKE_TERMS:
-      return "bv-add-combine-like-terms";
-    case ProofRewriteRule::BV_MULT_SIMPLIFY: return "bv-mult-simplify";
+    case ProofRewriteRule::BV_UMULO_ELIM: return "bv-umulo-elim";
+    case ProofRewriteRule::BV_SMULO_ELIM: return "bv-smulo-elim";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
     case ProofRewriteRule::BV_REPEAT_ELIM: return "bv-repeat-elim";
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:

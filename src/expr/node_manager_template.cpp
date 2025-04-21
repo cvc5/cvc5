@@ -107,7 +107,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
     LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager(this)),
       d_bvManager(new BoundVarManager),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -125,12 +125,6 @@ NodeManager::NodeManager()
       d_operators[i] = mkConst(Kind(k));
     }
   }
-}
-
-NodeManager* NodeManager::currentNM()
-{
-  thread_local static NodeManager nm;
-  return &nm;
 }
 
 bool NodeManager::isNAryKind(Kind k)
@@ -350,7 +344,6 @@ const DType& NodeManager::getDTypeForIndex(size_t index) const
 
 void NodeManager::reclaimZombies()
 {
-  // FIXME multithreading
   Assert(!d_attrManager->inGarbageCollection());
 
   Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
@@ -1413,7 +1406,6 @@ Node NodeManager::mkDummySkolem(const std::string& prefix,
 
 bool NodeManager::safeToReclaimZombies() const
 {
-  // FIXME multithreading
   return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();
 }
 

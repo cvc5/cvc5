@@ -1,6 +1,6 @@
 (set-logic QF_UFBVLIA)
 (set-info :status unsat)
 (declare-fun a () Int)
-(assert (= (bv2nat (bvor ((_ int2bv 3) a) ((_ int2bv 3) a))) 0))
-(assert (distinct ((_ extract 0 0) (bvsdiv ((_ int2bv 3) (bv2nat (bvmul ((_ int2bv 3) a) ((_ int2bv 3) a)))) ((_ int2bv 3) 1))) (_ bv0 1)))
+(assert (= (ubv_to_int (bvor ((_ int_to_bv 3) a) ((_ int_to_bv 3) a))) 0))
+(assert (distinct ((_ extract 0 0) (bvsdiv ((_ int_to_bv 3) (ubv_to_int (bvmul ((_ int_to_bv 3) a) ((_ int_to_bv 3) a)))) ((_ int_to_bv 3) 1))) (_ bv0 1)))
 (check-sat)

@@ -212,7 +212,7 @@ Node TermCanonize::getCanonicalTerm(
     }
     Trace("canon-term-debug")
         << "...constructing for " << n << "." << std::endl;
-    Node ret = NodeManager::currentNM()->mkNode(n.getKind(), cchildren);
+    Node ret = n.getNodeManager()->mkNode(n.getKind(), cchildren);
     Trace("canon-term-debug")
         << "...constructed " << ret << " for " << n << "." << std::endl;
     visited[n] = ret;

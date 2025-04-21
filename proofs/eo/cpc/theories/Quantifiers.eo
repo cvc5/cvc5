@@ -1,5 +1,7 @@
 (include "../programs/Utils.eo")
 
+(include "../theories/Arith.eo")
+
 ; disclaimer: >
 ;   This function is a builtin function symbol of SMT-LIB denoting
 ;   universal quantification. We represent it as an ordinary function taking a
@@ -12,18 +14,20 @@
 ;   list as the first child to model cvc5's treatment of quantified formulas.
 (declare-const exists (-> @List Bool Bool) :binder @list)
 
-; program: $get_qskolem_type
+; program: $get_var_at_index
 ; args:
 ; - F Bool: The quantified formula.
 ; - i Int: The integer indicating the index of the variable.
 ; return: >
-;   The type of the @quantifiers_skolemize term for F and i.
-(program $get_qskolem_type ((xs @List) (G Bool) (i Int))
+;   The i^th variable in the binder of F.
+(program $get_var_at_index ((Q (-> @List Bool)) (xs @List) (G Bool) (i Int))
   (Bool Int) Type
   (
-    (($get_qskolem_type (forall xs G) i) (eo::typeof (eo::list_nth @list xs i)))
+    (($get_var_at_index (Q xs G) i) (eo::list_nth @list xs i))
   )
 )
 
 ; skolems
-(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque :var F) (! Int :opaque :var i) ($get_qskolem_type F i)))
+(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque :var F) (! Int :opaque :var i) (eo::typeof ($get_var_at_index F i))))
+
+(declare-const @witness_inv_condition (-> (! Bool :opaque :var F) (eo::typeof ($get_var_at_index F 0))))
