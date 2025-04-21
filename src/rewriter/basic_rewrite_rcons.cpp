@@ -2512,10 +2512,10 @@ Node BasicRewriteRCons::proveTransIneq(CDProof* cdp,
         eq1, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
     cdp->addStep(leq1n, ProofRule::EQ_RESOLVE, {leq1, eq1}, {});
   }
-  Node negone = nm->mkConstRealOrInt(leq2[1].getType(), Rational(-1));
+  Node negOne = nm->mkConstRealOrInt(leq2[1].getType(), Rational(-1));
   Node leq2n = nm->mkNode(Kind::LEQ,
-                          nm->mkNode(Kind::MULT, negone, leq2[isLeq ? 1 : 0]),
-                          nm->mkNode(Kind::MULT, negone, leq2[isLeq ? 0 : 1]));
+                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 1 : 0]),
+                          nm->mkNode(Kind::MULT, negOne, leq2[isLeq ? 0 : 1]));
   Node eq2 = leq2.eqNode(leq2n);
   cdp->addTrustedStep(eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(leq2n, ProofRule::EQ_RESOLVE, {leq2, eq2}, {});
