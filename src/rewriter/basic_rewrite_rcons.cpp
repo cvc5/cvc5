@@ -2491,7 +2491,6 @@ bool BasicRewriteRCons::ensureProofArithPolyNormRel(CDProof* cdp,
   return true;
 }
 
-
 Node BasicRewriteRCons::proveTransIneq(CDProof* cdp,
                                        const Node& leq1,
                                        const Node& leq2)
