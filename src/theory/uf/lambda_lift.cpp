@@ -65,7 +65,9 @@ TrustNode LambdaLift::lift(Node node)
   // forall x. (k x) = t
   // We do this in two steps, where k -> lambda x. t is used as a subsitution
   // to avoid rare proof checking errors where the conclusion is not
-  // provable in one step.
+  // provable in one step. In particular, in some rare cases we have that
+  // rewrite(toOriginal(rewrite(F))) is not true. For instance, we may end
+  // up with (@ (@ f a) b) = (f a b) which does not rewrite to true.
   CDProof cdp(d_env);
   cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
   cdp.addStep(assertion, ProofRule::MACRO_SR_PRED_INTRO, {eq}, {assertion});
