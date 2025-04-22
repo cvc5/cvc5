@@ -75,19 +75,27 @@
   (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (seq.empty (Seq T)))
 
 ; Extended functions for strings.
-(declare-parameterized-const str.substr ((T Type :implicit)) (-> (Seq T) Int Int (Seq T)))
-(declare-parameterized-const str.contains ((T Type :implicit)) (-> (Seq T) (Seq T) Bool))
-(declare-parameterized-const str.replace ((T Type :implicit)) (-> (Seq T) (Seq T) (Seq T) (Seq T)))
-(declare-parameterized-const str.indexof ((T Type :implicit)) (-> (Seq T) (Seq T) Int Int))
-(declare-parameterized-const str.at ((T Type :implicit)) (-> (Seq T) Int (Seq T)))
-(declare-parameterized-const str.prefixof ((T Type :implicit)) (-> (Seq T) (Seq T) Bool))
-(declare-parameterized-const str.suffixof ((T Type :implicit)) (-> (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.substr ((T Type :implicit))
+  (-> (Seq T) Int Int (Seq T)))
+(declare-parameterized-const str.contains ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.replace ((T Type :implicit))
+  (-> (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-parameterized-const str.indexof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Int Int))
+(declare-parameterized-const str.at ((T Type :implicit))
+  (-> (Seq T) Int (Seq T)))
+(declare-parameterized-const str.prefixof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
+(declare-parameterized-const str.suffixof ((T Type :implicit))
+  (-> (Seq T) (Seq T) Bool))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const str.rev ((T Type :implicit)) (-> (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const str.unit (-> Int String))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const str.update ((T Type :implicit)) (-> (Seq T) Int (Seq T) (Seq T)))
+(declare-parameterized-const str.update ((T Type :implicit))
+  (-> (Seq T) Int (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const str.to_lower (-> String String))
 ; disclaimer: This function is not in SMT-LIB.
@@ -99,7 +107,8 @@
 (declare-const str.from_int (-> Int String))
 (declare-const str.< (-> String String Bool))
 (declare-const str.<= (-> String String Bool))
-(declare-parameterized-const str.replace_all ((T Type :implicit)) (-> (Seq T) (Seq T) (Seq T) (Seq T)))
+(declare-parameterized-const str.replace_all ((T Type :implicit))
+  (-> (Seq T) (Seq T) (Seq T) (Seq T)))
 (declare-const str.replace_re (-> String RegLan String String))
 (declare-const str.replace_re_all (-> String RegLan String String))
 ; disclaimer: This function is not in SMT-LIB.
@@ -139,7 +148,8 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const seq.unit ((T Type :implicit)) (-> T (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const seq.nth ((T Type :implicit)) (-> (Seq T) Int (eo::ite (eo::is_eq T Char) Int T)))
+(declare-parameterized-const seq.nth ((T Type :implicit))
+  (-> (Seq T) Int (eo::ite (eo::is_eq T Char) Int T)))
 
 ; Sequence operators are automatically translated to the string operators.
 ; disclaimer: This function is not in SMT-LIB.
@@ -169,22 +179,37 @@
 
 ; Skolem functions for strings and sequences.
 
-(declare-const @re_unfold_pos_component (-> (! String :opaque) (! RegLan :opaque) (! Int :opaque) String))
-(declare-parameterized-const @strings_deq_diff ((T Type :implicit)) (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_stoi_result (-> (! String :opaque) Int Int))
-(declare-const @strings_stoi_non_digit (-> (! String :opaque) Int))
-(declare-const @strings_itos_result (-> (! Int :opaque) Int Int))
+(declare-const @re_unfold_pos_component
+  (-> (! String :opaque) (! RegLan :opaque) (! Int :opaque) String))
+(declare-parameterized-const @strings_deq_diff ((T Type :implicit))
+  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
+(declare-const @strings_stoi_result
+  (-> (! String :opaque) Int Int))
+(declare-const @strings_stoi_non_digit
+  (-> (! String :opaque) Int))
+(declare-const @strings_itos_result
+  (-> (! Int :opaque) Int Int))
 
-(declare-parameterized-const @strings_num_occur ((T Type :implicit)) (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_num_occur_re (-> (! String :opaque) (! RegLan :opaque) Int))
-(declare-parameterized-const @strings_occur_index ((T Type :implicit)) (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int Int))
-(declare-const @strings_occur_index_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
-(declare-const @strings_occur_len_re (-> (! String :opaque) (! RegLan :opaque) Int Int))
+(declare-parameterized-const @strings_num_occur ((T Type :implicit))
+  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
+(declare-const @strings_num_occur_re
+  (-> (! String :opaque) (! RegLan :opaque) Int))
+(declare-parameterized-const @strings_occur_index ((T Type :implicit))
+  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int Int))
+(declare-const @strings_occur_index_re
+  (-> (! String :opaque) (! RegLan :opaque) Int Int))
+(declare-const @strings_occur_len_re
+  (-> (! String :opaque) (! RegLan :opaque) Int Int))
 
-(declare-parameterized-const @strings_replace_all_result ((T Type :implicit)) (-> (! (Seq T) :opaque) Int (Seq T)))
+(declare-parameterized-const @strings_replace_all_result ((T Type :implicit))
+  (-> (! (Seq T) :opaque) Int (Seq T)))
 
-(declare-const @re_first_match_pre (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match_post (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-const @re_first_match_pre
+  (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-const @re_first_match
+  (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-const @re_first_match_post
+  (-> (! String :opaque) (! RegLan :opaque) String))
 
-(declare-parameterized-const @witness_string_length ((T Type)) (-> Int Int T))
+(declare-parameterized-const @witness_string_length ((T Type))
+  (-> Int Int T))
