@@ -663,7 +663,6 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
     const DTypeConstructor& dtc = dt[cindex];
     // more likely to terminate in recursive calls
     double rchance_new = rchance + (1.0 - rchance) * rinc;
-    std::map<int, Node> pre;
     bool success = true;
     // generate random values for all arguments
     std::vector<Node> children;
@@ -683,7 +682,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
     }
     if (success)
     {
-      Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
+      Trace("sygus-sample-grammar") << "utils::mkSygusTerm" << std::endl;
       Node ret = datatypes::utils::mkSygusTerm(dt, cindex, children);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = d_env.getRewriter()->rewrite(ret);
