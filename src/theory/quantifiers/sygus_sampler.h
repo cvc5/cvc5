@@ -169,8 +169,6 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
   //--------------------------end queries about terms
 
  protected:
-  /** sygus term database of d_qe */
-  TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */
   TermEnumeration d_tenum;
   /** samples */
