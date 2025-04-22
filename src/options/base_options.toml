@@ -349,8 +349,8 @@ name   = "Base"
   default    = "OFF"
   help       = "modes for restricting expert options and theories"
   help_mode  = "Modes for restricting expert options and theories."
-[[option.mode.OFF]]
-  name = "off"
+[[option.mode.UNRESTRICTED]]
+  name = "unrestricted"
   help = "Do not restrict options or theories."
 [[option.mode.SAFE]]
   name = "safe"
