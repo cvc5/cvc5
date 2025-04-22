@@ -57,6 +57,11 @@ bool ProofNodeUpdaterCallback::canMerge(std::shared_ptr<ProofNode> pn)
   return true;
 }
 
+void ProofNodeUpdaterCallback::finalize(std::shared_ptr<ProofNode> pn)
+{
+  // do nothing
+}
+
 ProofNodeUpdater::ProofNodeUpdater(Env& env,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
@@ -142,6 +147,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // nodes having this as a child that are not subproofs of pf.
       if (checkMergeProof(cur, resCache, cfaMap))
       {
+        Trace("pf-process-merge") << "...merged on previsit" << std::endl;
         visited[cur] = true;
         continue;
       }
@@ -193,7 +199,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       traversing.pop_back();
       visited[cur] = true;
       // finalize the node
-      if (cur->getRule() == ProofRule::SCOPE)
+      ProofRule id = cur->getRule();
+      if (id == ProofRule::SCOPE)
       {
         const std::vector<Node>& args = cur->getArguments();
         Assert(fa.size() >= args.size());
@@ -203,12 +210,21 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
       // proof with the same result. Same as above, updating the contents here
       // is typically not necessary since references to this proof will be
       // replaced.
-      if (checkMergeProof(cur, resCache, cfaMap))
+      // maybe found a proof in the meantime, i.e. a subproof of the current
+      // proof with the same result. Same as above, updating the contents here
+      // is typically not necessary since references to this proof will be
+      // replaced.
+      if (!checkMergeProof(cur, resCache, cfaMap))
       {
-        visited[cur] = true;
-        continue;
+        runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
       }
-      runFinalize(cur, fa, resCache, resCacheNcWaiting, cfaMap, cfaAllowed);
+      else
+      {
+        Trace("pf-process-merge") << "...merged on postvisit " << id << " / "
+                                  << cur->getRule() << std::endl;
+      }
+      // call the finalize callback, independent of whether it was merged
+      d_cb.finalize(cur);
     }
   } while (!visit.empty());
   Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
