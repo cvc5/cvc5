@@ -89,7 +89,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "varIneqElimQuant"
-  category   = "regular"
+  category   = "expert"
   long       = "var-ineq-elim-quant"
   type       = "bool"
   default    = "true"
@@ -1647,7 +1647,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBv"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv"
   type       = "bool"
   default    = "true"

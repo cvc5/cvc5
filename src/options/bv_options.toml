@@ -94,7 +94,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
   default    = "BITBLAST"
