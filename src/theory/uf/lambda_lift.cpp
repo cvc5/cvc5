@@ -17,11 +17,11 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_type_size.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
-#include "expr/sort_type_size.h"
-#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 
@@ -57,7 +57,7 @@ TrustNode LambdaLift::lift(Node node)
     return TrustNode::mkTrustLemma(assertion);
   }
   Node skolem = getSkolemFor(node);
-  Assert (!skolem.isNull());
+  Assert(!skolem.isNull());
   Node eq = skolem.eqNode(node);
   // --------------- MACRO_SR_PRED_INTRO
   // k = lambda x. t
@@ -184,7 +184,7 @@ Node LambdaLift::getAssertionFor(TNode node)
   if (!lambda.isNull())
   {
     TNode skolem = getSkolemFor(node);
-    Assert (!skolem.isNull());
+    Assert(!skolem.isNull());
     NodeManager* nm = node.getNodeManager();
     // The new assertion
     std::vector<Node> children;
