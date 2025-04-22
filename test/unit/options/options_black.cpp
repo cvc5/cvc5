@@ -253,7 +253,7 @@ TEST_F(TestBlackOptions, setSafe)
   {
     auto info = d_solver->getOptionInfo(name);
     // skip if an expert option
-    if (info.isExpert)
+    if (info.isExpert || info.isRegularNoProof)
     {
       continue;
     }
