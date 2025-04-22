@@ -17,7 +17,9 @@
 (declare-const wand (-> Bool Bool Bool))
 
 ; The points-to predicate.
-(declare-parameterized-const pto ((U Type :implicit) (T Type :implicit)) (-> U T Bool))
+(declare-parameterized-const pto ((U Type :implicit) (T Type :implicit))
+  (-> U T Bool))
 
 ; Internal functions.
-(declare-parameterized-const @sep_label ((U Type :implicit) (T Type :implicit)) (-> U (Set T) Bool))
+(declare-parameterized-const @sep_label ((U Type :implicit) (T Type :implicit))
+  (-> U (Set T) Bool))
