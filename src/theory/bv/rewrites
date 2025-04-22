@@ -2,11 +2,12 @@
 
 (define-rule* bv-concat-flatten
   ((xs ?BitVec :list)
-   (s ?BitVec)
+   (s1 ?BitVec)
+   (s2 ?BitVec)
    (ys ?BitVec :list)
    (zs ?BitVec :list))
-  (concat xs (concat s ys) zs)
-  (concat xs s ys zs))
+  (concat xs (concat s1 s2 ys) zs)
+  (concat xs s1 s2 ys zs))
 (define-cond-rule bv-concat-extract-merge
   ((xs ?BitVec :list)
    (s ?BitVec)
@@ -116,9 +117,9 @@
   (repeat rn (extract nm1 nm1 x)))
 
 (define-rule bv-not-xor
-  ((x ?BitVec) (xs ?BitVec :list))
-  (bvnot (bvxor x xs))
-  (bvxor (bvnot x) xs))
+  ((x1 ?BitVec) (x2 ?BitVec) (xs ?BitVec :list))
+  (bvnot (bvxor x1 x2 xs))
+  (bvxor (bvnot x1) x2 xs))
 
 (define-cond-rule bv-and-simplify-1
   ((xs ?BitVec :list) (ys ?BitVec :list) (zs ?BitVec :list) (x ?BitVec) (w Int))
@@ -224,11 +225,12 @@
 
 (define-rule* bv-xor-flatten
   ((xs ?BitVec :list)
-   (s ?BitVec)
+   (s1 ?BitVec)
+   (s2 ?BitVec)
    (ys ?BitVec :list)
    (zs ?BitVec :list))
-  (bvxor xs (bvxor s ys) zs)
-  (bvxor xs s ys zs))
+  (bvxor xs (bvxor s1 s2 ys) zs)
+  (bvxor xs s1 s2 ys zs))
 
 (define-cond-rule bv-concat-merge-const
   ((xs ?BitVec :list)
