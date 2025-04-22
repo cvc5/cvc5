@@ -19,6 +19,7 @@
 #include <cvc5/cvc5_parser.h>
 #include <jni.h>
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -182,6 +183,10 @@ class ApiManager
    * the deletePointer method is called
    */
   std::map<jlong, std::vector<jlong> > d_pluginPointers;
+  /**
+   * Global lock for the singleton
+   */
+  std::mutex globalLock;
 };
 
 /**

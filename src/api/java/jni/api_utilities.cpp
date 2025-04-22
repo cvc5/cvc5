@@ -90,6 +90,7 @@ jobject ApiManager::addGlobalReference(JNIEnv* env,
                                        jlong pointer,
                                        jobject object)
 {
+  std::lock_guard<std::mutex> guard(globalLock);
   jobject reference = env->NewGlobalRef(object);
   d_globalReferences[pointer].push_back(reference);
   return reference;
@@ -97,11 +98,13 @@ jobject ApiManager::addGlobalReference(JNIEnv* env,
 
 void ApiManager::addPluginPointer(jlong pointer, jlong pluginPointer)
 {
+  std::lock_guard<std::mutex> guard(globalLock);
   d_pluginPointers[pointer].push_back(pluginPointer);
 }
 
 void ApiManager::deletePointer(JNIEnv* env, jlong pointer)
 {
+  std::lock_guard<std::mutex> guard(globalLock);
   const std::vector<jobject>& refs = d_globalReferences[pointer];
   for (jobject ref : refs)
   {
