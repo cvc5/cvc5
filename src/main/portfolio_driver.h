@@ -61,8 +61,16 @@ class ExecutionContext
                        bool stopAtSetLogic,
                        bool stopAtCheckSat = false);
 
+  /**
+   * Execute a check-sat command.
+   * @return true if the command was executed successfully.
+   */
   bool runCheckSatCommand();
 
+  /**
+   * Execute a reset command.
+   * @return true if the command was executed successfully.
+   */
   bool runResetCommand();
 
   /**
