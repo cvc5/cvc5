@@ -171,6 +171,21 @@ struct BagFilterTypeRule
 }; /* struct BagFilterTypeRule */
 
 /**
+ * Type rule for (bag.all p A) and (bag.some p A) to make sure p is
+ * a unary predicate of type
+ * (-> T Bool) where A is a bag of type (Bag T)
+ */
+struct BagAllSomeTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct BagAllSomeTypeRule */
+
+/**
  * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
  * (-> T1 T2 T2), t of type T2, and A is a bag of type (Bag T1)
  */
