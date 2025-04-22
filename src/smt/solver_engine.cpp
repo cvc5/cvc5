@@ -2155,7 +2155,7 @@ void SolverEngine::setOption(const std::string& key,
                              const std::string& value,
                              bool fromUser)
 {
-  if (fromUser && options().base.safeMode!=options::SafeMode::OFF)
+  if (fromUser && options().base.safeMode != options::SafeMode::OFF)
   {
     if (key == "trace")
     {
@@ -2180,13 +2180,17 @@ void SolverEngine::setOption(const std::string& key,
       }
       throw FatalOptionException(ss.str());
     }
-    else if (oinfo.category == options::OptionInfo::Category::REGULAR || oinfo.category == options::OptionInfo::Category::REGULAR_NO_PROOF)
+    else if (oinfo.category == options::OptionInfo::Category::REGULAR
+             || oinfo.category
+                    == options::OptionInfo::Category::REGULAR_NO_PROOF)
     {
       bool isProof = (oinfo.category == options::OptionInfo::Category::REGULAR);
-      if (!isProof && options().base.safeMode==options::SafeMode::SAFE)
+      if (!isProof && options().base.safeMode == options::SafeMode::SAFE)
       {
         std::stringstream ss;
-        ss << "cannot set option " << key << " when safe-mode=safe is enabled, as this option does not have full proof support";
+        ss << "cannot set option " << key
+           << " when safe-mode=safe is enabled, as this option does not have "
+              "full proof support";
         throw FatalOptionException(ss.str());
       }
       if (!d_safeOptsSetRegularOption)

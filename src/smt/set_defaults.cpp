@@ -135,7 +135,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 void SetDefaults::setDefaultsPre(Options& opts)
 {
   // safe options
-  if (options().base.safeMode!=options::SafeMode::OFF)
+  if (options().base.safeMode != options::SafeMode::OFF)
   {
     // all "experimental" theories that are enabled by default should be
     // disabled here
@@ -155,7 +155,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(fp, fpExp, false, "safe options");
     SET_AND_NOTIFY(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY(sets, setsExp, false, "safe options");
-    if (options().base.safeMode==options::SafeMode::SAFE)
+    if (options().base.safeMode == options::SafeMode::SAFE)
     {
       // specific options that are disabled
       OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
@@ -371,7 +371,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // upgrade to full strict if safe options
-    if (options().base.safeMode==options::SafeMode::SAFE
+    if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
     {
       SET_AND_NOTIFY_IF_NOT_USER(
