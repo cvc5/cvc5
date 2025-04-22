@@ -1647,7 +1647,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBv"
-  category   = "regular-no-proof"
+  category   = "regular"
   long       = "cegqi-bv"
   type       = "bool"
   default    = "true"
