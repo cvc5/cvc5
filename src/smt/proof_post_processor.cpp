@@ -1002,7 +1002,10 @@ Node ProofPostprocessCallback::addExpandStep(ProofRule id,
 {
   // For now, this is a (locally) recursive call to expand macros; alternatively
   // we could add the step to cdp and allow the proof node updater to call us
-  // again.
+  // again. This has the advantage that it may be possible to do more aggressive
+  // merging, e.g. if a subproof in expanded call was duplicated in multiple
+  // expansions, at the cost of generating more intermediate proof nodes. At
+  // the moment, this is not worthwhile.
   return expandMacros(id, children, args, cdp);
 }
 
