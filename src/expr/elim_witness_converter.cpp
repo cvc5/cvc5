@@ -58,9 +58,9 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
       SkolemManager* skm = nm->getSkolemManager();
       std::vector<Node> nchildren(n.begin(), n.end());
       nchildren[1] = nchildren[1].notNode();
-      // must mark that the quantified formula cannot be eliminated by rewriting,
-      // so that the form of the quantified formula is preserved for the
-      // introduction below.
+      // must mark that the quantified formula cannot be eliminated by
+      // rewriting, so that the form of the quantified formula is preserved for
+      // the introduction below.
       Node psan =
           theory::quantifiers::QuantAttributes::mkAttrPreserveStructure(nm);
       Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST, psan);
@@ -71,7 +71,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
       // should still be a FORALL due to above
       Assert(qn.getKind() == Kind::FORALL);
       k = skm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                    {qn, nm->mkConstInt(Rational(0))});
+                                {qn, nm->mkConstInt(Rational(0))});
       // save the non-normalized version, which makes it easier to e.g.
       // track proofs
       d_axioms.push_back(q.notNode());
@@ -86,9 +86,6 @@ const std::vector<Node>& ElimWitnessNodeConverter::getAxioms() const
   return d_axioms;
 }
 
-Node ElimWitnessNodeConverter::getNormalFormFor(const Node& q)
-{
-  return q;
-}
+Node ElimWitnessNodeConverter::getNormalFormFor(const Node& q) { return q; }
 
 }  // namespace cvc5::internal
