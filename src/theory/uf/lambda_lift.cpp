@@ -21,6 +21,7 @@
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
 #include "expr/sort_type_size.h"
+#include "proof/proof.h"
 
 using namespace cvc5::internal::kind;
 
@@ -55,8 +56,21 @@ TrustNode LambdaLift::lift(Node node)
   {
     return TrustNode::mkTrustLemma(assertion);
   }
-  return d_epg->mkTrustNode(
-      assertion, ProofRule::MACRO_SR_PRED_INTRO, {}, {assertion});
+  Node skolem = getSkolemFor(node);
+  Assert (!skolem.isNull());
+  Node eq = skolem.eqNode(node);
+  // --------------- MACRO_SR_PRED_INTRO
+  // k = lambda x. t
+  // ------------------- MACRO_SR_PRED_INTRO
+  // forall x. (k x) = t
+  // We do this in two steps, where k -> lambda x. t is used as a subsitution
+  // to avoid rare proof checking errors where the conclusion is not
+  // provable in one step.
+  CDProof cdp(d_env);
+  cdp.addStep(eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+  cdp.addStep(assertion, ProofRule::MACRO_SR_PRED_INTRO, {eq}, {assertion});
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(assertion);
+  return d_epg->mkTrustNode(assertion, pf);
 }
 
 bool LambdaLift::needsLift(const Node& lam)
@@ -165,15 +179,12 @@ bool LambdaLift::isLambdaFunction(TNode n) const
 
 Node LambdaLift::getAssertionFor(TNode node)
 {
-  TNode skolem = getSkolemFor(node);
-  if (skolem.isNull())
-  {
-    return Node::null();
-  }
   Node assertion;
   Node lambda = FunctionConst::toLambda(node);
   if (!lambda.isNull())
   {
+    TNode skolem = getSkolemFor(node);
+    Assert (!skolem.isNull());
     NodeManager* nm = node.getNodeManager();
     // The new assertion
     std::vector<Node> children;
@@ -211,8 +222,8 @@ Node LambdaLift::getAssertionFor(TNode node)
 Node LambdaLift::getSkolemFor(TNode node)
 {
   Node skolem;
-  Kind k = node.getKind();
-  if (k == Kind::LAMBDA)
+  Node lambda = FunctionConst::toLambda(node);
+  if (!lambda.isNull())
   {
     // if a lambda, return the purification variable for the node. We ignore
     // lambdas with free variables, which can occur beneath quantifiers
