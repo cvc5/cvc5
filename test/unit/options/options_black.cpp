@@ -252,8 +252,8 @@ TEST_F(TestBlackOptions, setSafe)
   for (const auto& name : options::getNames())
   {
     auto info = d_solver->getOptionInfo(name);
-    // skip if an expert option
-    if (info.isExpert || info.isRegularNoProof)
+    // skip if an expert option or has an supported feature
+    if (info.isExpert || !info.noSupports.empty())
     {
       continue;
     }
