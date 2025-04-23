@@ -4873,7 +4873,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
     c_no_supports.push_back(a.c_str());
   }
   info->no_supports = c_no_supports.data();
-  
+
   info->is_set_by_user = cpp_info.setByUser;
   info->is_expert = cpp_info.isExpert;
   info->is_regular = cpp_info.isRegular;
