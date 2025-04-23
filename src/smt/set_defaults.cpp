@@ -164,6 +164,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
       // always use cegqi midpoint, which avoids virtual term substitution
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
+      // proofs not yet supported on main
+      SET_AND_NOTIFY(quantifiers, varIneqElimQuant, false, "safe options");
+      SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
     }
   }
   // implied options
