@@ -93,6 +93,7 @@ name   = "Quantifiers"
   long       = "var-ineq-elim-quant"
   type       = "bool"
   default    = "true"
+  no_support = ["proof"]
   help       = "enable variable elimination based on infinite projection of unbound arithmetic variables"
 
 [[option]]
@@ -1651,6 +1652,7 @@ name   = "Quantifiers"
   long       = "cegqi-bv"
   type       = "bool"
   default    = "true"
+  no_support = ["proof"]
   help       = "use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors"
 
 [[option]]
