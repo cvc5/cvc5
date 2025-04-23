@@ -155,6 +155,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(fp, fpExp, false, "safe options");
     SET_AND_NOTIFY(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY(sets, setsExp, false, "safe options");
+    // disable features that have no proof support but are considered regular.
     if (options().base.safeMode == options::SafeMode::SAFE)
     {
       // specific options that are disabled

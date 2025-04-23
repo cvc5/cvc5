@@ -1630,10 +1630,11 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "expert"
+  category   = "regular"
   long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
+  no_support = ["proof"]
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]
