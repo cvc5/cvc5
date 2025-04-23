@@ -69,8 +69,6 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
-NO_SUPPORT_VALUES = ['proof', 'model']
-
 ################################################################################
 ################################################################################
 # utility functions
