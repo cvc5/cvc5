@@ -482,7 +482,7 @@ Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
 
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node tn = nm->mkConst(SortToTerm(n.getType()));
   Node idn = nm->mkConstInt(Rational(id));
   Node w = ValidWitnessProofGenerator::mkWitness(

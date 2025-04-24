@@ -39,6 +39,8 @@ class ExecutionContext
   CommandExecutor* d_executor;
   /** The logic, if it has been set by a command */
   std::optional<std::string> d_logic;
+  /* Whether a check-sat command has been read */
+  bool d_hasReadCheckSat = false;
 
   /** Retrieve the solver object from the command executor */
   Solver& solver() { return *d_executor->getSolver(); }
@@ -47,12 +49,29 @@ class ExecutionContext
    * Read commands from the parser and continuously execute them. If
    * stopAtSetLogic is true, stop when the logic has been set to some value.
    * If this happens, d_logic is set to the respective value.
-   * Otherwise (if stopAtSetLogic is false or the logic is never set) all
+   * If stopAtCheckSat is true, stop when the a check-sat command has been read.
+   * If this happens, d_hasReadCheckSat is set to true.
+   * Otherwise (if stopAtSetLogic is false or the logic is never set, or
+   * stopAtCheckSat is false or a check-sat command is never read) all
    * commands are executed until a quit command is found or the whole input
    * has been parsed.
    * Returns true if the commands have been executed without being interrupted.
    */
-  bool solveContinuous(parser::InputParser* parser, bool stopAtSetLogic);
+  bool solveContinuous(parser::InputParser* parser,
+                       bool stopAtSetLogic,
+                       bool stopAtCheckSat = false);
+
+  /**
+   * Execute a check-sat command.
+   * @return true if the command was executed successfully.
+   */
+  bool runCheckSatCommand();
+
+  /**
+   * Execute a reset command.
+   * @return true if the command was executed successfully.
+   */
+  bool runResetCommand();
 
   /**
    * Execute the given commands.
@@ -62,6 +81,7 @@ class ExecutionContext
 
   /** Parse the remaining input from d_parser into a vector of commands */
   std::vector<cvc5::parser::Command> parseCommands(parser::InputParser* parser);
+
 };
 
 /**
@@ -145,7 +165,10 @@ class PortfolioDriver
   bool solve(std::unique_ptr<CommandExecutor>& executor);
 
  private:
-  PortfolioStrategy getStrategy(const std::string& logic);
+  PortfolioStrategy getStrategy(bool incremental_solving,
+                                const std::string& logic);
+  PortfolioStrategy getIncrementalStrategy(const std::string& logic);
+  PortfolioStrategy getNonIncrementalStrategy(const std::string& logic);
 
   /** The parser we use to get the commands */
   parser::InputParser* d_parser;

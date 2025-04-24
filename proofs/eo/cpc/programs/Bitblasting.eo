@@ -355,7 +355,7 @@
 ; - sz Int: The number of bits left to process.
 ; return:
 ;   A pair corresponding to the bitblasted form of the quotient/remainder of x and y.
-(program $bv_div_mod_impl ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (sz Int) (zero (BitVec n)))
+(program $bv_div_mod_impl ((n Int) (a1 (BitVec n)) (a2 (BitVec n)) (sz Int) (zero (BitVec n)))
   ((BitVec n) (BitVec n) (BitVec n) Int) (@Pair (BitVec n) (BitVec n))
   (
   (($bv_div_mod_impl a1 a2 zero 0)    (@pair zero zero))

@@ -41,6 +41,14 @@ const char* toString(Rewrite r)
     case Rewrite::FILTER_CONST: return "FILTER_CONST";
     case Rewrite::FILTER_BAG_MAKE: return "FILTER_BAG_MAKE";
     case Rewrite::FILTER_UNION_DISJOINT: return "FILTER_UNION_DISJOINT";
+    case Rewrite::ALL_EMPTY: return "ALL_EMPTY";
+    case Rewrite::ALL_BAG_MAKE: return "ALL_BAG_MAKE";
+    case Rewrite::ALL_UNION_DISJOINT: return "ALL_UNION_DISJOINT";
+    case Rewrite::ALL_FILTER: return "ALL_FILTER";
+    case Rewrite::SOME_EMPTY: return "SOME_EMPTY";
+    case Rewrite::SOME_BAG_MAKE: return "SOME_BAG_MAKE";
+    case Rewrite::SOME_UNION_DISJOINT: return "SOME_UNION_DISJOINT";
+    case Rewrite::SOME_FILTER: return "SOME_FILTER";
     case Rewrite::FROM_SINGLETON: return "FROM_SINGLETON";
     case Rewrite::FOLD_BAG: return "FOLD_BAG";
     case Rewrite::FOLD_CONST: return "FOLD_CONST";

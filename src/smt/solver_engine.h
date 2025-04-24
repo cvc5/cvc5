@@ -47,6 +47,7 @@ class TypeNode;
 class ProofNode;
 
 class Env;
+class NodeManager;
 class UnsatCore;
 class StatisticsRegistry;
 class Plugin;
@@ -99,7 +100,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(const Options* optr = nullptr);
+  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 

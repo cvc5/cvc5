@@ -52,7 +52,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
         }
       }
     }
-    Assert(!k.isNull());
+    Assert(!k.isNull()) << "Unhandled witness term " << n;
     return k;
   }
   return n;

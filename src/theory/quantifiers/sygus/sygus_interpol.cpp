@@ -367,7 +367,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   subOptions.write_quantifiers().sygus = true;
   smt::SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
-  initializeSubsolver(d_subSolver, ssi);
+  initializeSubsolver(nodeManager(), d_subSolver, ssi);
 
   for (const Node& var : d_vars)
   {

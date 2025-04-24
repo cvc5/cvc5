@@ -1,5 +1,5 @@
 (set-logic QF_UFBVLIA)
 (set-info :status sat)
 (declare-fun a () (_ BitVec 1))
-(assert (< (bv2nat a) 1))
+(assert (< (ubv_to_int a) 1))
 (check-sat)

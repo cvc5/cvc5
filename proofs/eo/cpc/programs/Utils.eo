@@ -16,10 +16,13 @@
 (declare-type @Pair (Type Type))
 (declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
 
-; untyped list
-(declare-type @List ())
-(declare-const @list.nil @List)
-(declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
+; untyped list.
+; note: >
+;   We use this as a synonym for eo::List. We use this syntax as it avoids
+;   the usage of eo:: in proofs.
+(define @List () eo::List)
+(define @list.nil () eo::List::nil)
+(define @list () eo::List::cons)
 
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () (@List) @List)

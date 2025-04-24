@@ -29,7 +29,7 @@ namespace cvc5::internal {
  * Node converter to eliminate all terms of kind WITNESS. Each term replaced
  * in this way is captured by a skolem that witnesses the axiom for that
  * witness.
- * 
+ *
  * Witness terms are required to track their justification as part of their
  * AST. In particular, it is required that all terms of kind WITNESS are given
  * an instantiation attribute of the form:
@@ -47,7 +47,7 @@ namespace cvc5::internal {
  * For each witness of this form, we replace the witness by its corresponding
  * skolem and collect its corresponding axiom, defining what lemma we can
  * assume about it, which can be retrieved via ::getAxioms in this class.
- * 
+ *
  * Note that we use WITNESS terms for two reasons:
  * (1) (witness x (= x t)) can naturally rewrite to t, which we wish to
  * infer when applicable by substitution + rewriting.

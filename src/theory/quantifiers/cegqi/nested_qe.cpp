@@ -144,7 +144,7 @@ Node NestedQe::doQe(Env& env, Node q)
   subOptions.copyValues(env.getOptions());
   smt::SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(env, subOptions);
-  initializeSubsolver(smt_qe, ssi);
+  initializeSubsolver(env.getNodeManager(), smt_qe, ssi);
   Node qqe = smt_qe->getQuantifierElimination(q, true);
   if (expr::hasBoundVar(qqe))
   {
