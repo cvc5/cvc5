@@ -733,7 +733,8 @@ bool AlfNodeConverter::isHandledSkolemId(SkolemId id)
     case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemId::BAGS_MAP_SUM:
     case SkolemId::TABLES_GROUP_PART:
-    case SkolemId::TABLES_GROUP_PART_ELEMENT: return true;
+    case SkolemId::TABLES_GROUP_PART_ELEMENT:
+    case SkolemId::WITNESS_STRING_LENGTH: return true;
     default: break;
   }
   return false;
