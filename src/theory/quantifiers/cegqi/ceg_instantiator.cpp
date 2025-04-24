@@ -1027,7 +1027,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
-      const std::vector<Node>& wexists = ewc.getExistentials();
+      const std::vector<Node>& wexists = ewc.getAxioms();
       exists.insert(exists.end(), wexists.begin(), wexists.end());
       svec.push_back(sc);
     }

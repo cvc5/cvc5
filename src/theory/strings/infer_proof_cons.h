@@ -211,6 +211,23 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                               const Node& eq,
                               const Node& conc,
                               bool isRev);
+  /**
+   * Prove b assuming a, return true if successful.
+   * This method relies on applying MACRO_SR_PRED_TRANSFORM to prove a rewrites
+   * to b. To make things more robust, we additionally look for subterms where
+   * a and b differ, and prove these separately. This often corresponds to
+   * showing the equivalence between two skolems, e.g. where b contains a
+   * skolem for an unrewritten term and a contains a skolem for a rewritten
+   * term.
+   * @param a The first predicate.
+   * @param b The second predicate.
+   * @param psb Reference to proof step buffer.
+   * @return true if we successfully add a step proving b via
+   * MACRO_SR_PRED_TRANSFORM from a.
+   */
+  static bool applyPredTransformConversion(const Node& a,
+                                           const Node& b,
+                                           TheoryProofStepBuffer& psb);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */
