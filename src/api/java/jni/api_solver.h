@@ -29,6 +29,9 @@ class ApiSolver : public cvc5::Solver
   /**
    * Create a new global reference to the object referred to by the obj
    * argument, and store the object to be disposed of later.
+   *
+   * Intended for objects requiring global lifetime management across JNI calls.
+   * Currently used for oracles and plugins.
    */
   jobject addGlobalReference(JNIEnv* env, jobject object);
   /**
