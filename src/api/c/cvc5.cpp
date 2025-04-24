@@ -5863,7 +5863,7 @@ const char* cvc5_objective_kind_to_string(Cvc5ObjectiveKind ok)
 /* Cvc5OMTStrategyKind                                                          */
 /* -------------------------------------------------------------------------- */
 
-const char* cvc5_objective_kind_to_string(Cvc5OMTStrategyKind osk)
+const char* cvc5_omt_strategy_kind_to_string(Cvc5OMTStrategyKind osk)
 {
   static thread_local std::string str;
   CVC5_CAPI_TRY_CATCH_BEGIN;
