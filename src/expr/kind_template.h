@@ -31,7 +31,7 @@ enum class Kind_t
   UNDEFINED_KIND = -1, /**< undefined */
   NULL_EXPR,           /**< Null kind */
   // clang-format off
-  ${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
+${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
   // clang-format on
 
 }; /* enum Kind_t */

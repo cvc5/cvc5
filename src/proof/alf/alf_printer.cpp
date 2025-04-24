@@ -192,6 +192,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_POLY_NORM_REL:
     case ProofRule::BV_POLY_NORM:
     case ProofRule::BV_POLY_NORM_EQ:
+    case ProofRule::EXISTS_STRING_LENGTH:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -794,9 +795,12 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = ltproc.convert(sconc);
+  Node rhs = ltproc.convert(sconc[1]);
+  // do not apply singleton elimination to head
+  AlfListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
+  Node lhs = ltprocNse.convert(sconc[0]);
   Assert(sconc.getKind() == Kind::EQUAL);
-  out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
+  out << "  :conclusion (= " << lhs << " " << rhs << ")" << std::endl;
   out << ")" << std::endl;
 }
 
