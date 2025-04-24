@@ -178,9 +178,11 @@ bool RewriteDbProofCons::proveEqStratified(
       }
       else if (!d_currFailResource)
       {
-        Trace("rpc-debug") << "...fail independent of depth (" << i << ")" << std::endl;
+        Trace("rpc-debug") << "...fail independent of depth (" << i << ")"
+                           << std::endl;
         // if it was not due to a resource limit, we know that we will always
-        // fail at higher recursion limit, so we abort here for the sake of performance.
+        // fail at higher recursion limit, so we abort here for the sake of
+        // performance.
         break;
       }
     }
@@ -441,7 +443,7 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
     {
       return it->second.d_id;
     }
-    else if (it->second.d_failMaxDepth==-1)
+    else if (it->second.d_failMaxDepth == -1)
     {
       return it->second.d_id;
     }
@@ -978,7 +980,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
       Trace("rpc-debug2") << "...success, already exists" << std::endl;
       return true;
     }
-    if (it->second.d_failMaxDepth==-1)
+    if (it->second.d_failMaxDepth == -1)
     {
       idb = it->second.d_id;
       Trace("rpc-debug2") << "...fail (depth independent)" << std::endl;
@@ -1007,7 +1009,8 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   }
   // non-well-typed equalities cannot be proven
   // also, variables cannot be rewritten
-  if (eqi.getTypeOrNull().isNull() || (eqi[0].isVar() && !eqi[0].getTypeOrNull().isBoolean()))
+  if (eqi.getTypeOrNull().isNull()
+      || (eqi[0].isVar() && !eqi[0].getTypeOrNull().isBoolean()))
   {
     Trace("rpc-debug2") << "...fail ("
                         << (eqi[0].isVar() ? "variable" : "ill-typed") << ")"
