@@ -145,7 +145,6 @@ jobject getDoubleObject(JNIEnv* env, double value);
  */
 jobject getBooleanObject(JNIEnv* env, bool value);
 
-
 /**
  * @param env jni environment
  * @param solverRef a global reference to java Solver object

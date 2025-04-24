@@ -12,10 +12,11 @@
  *
  * The cvc5 Java API.
  */
- 
-#include <cvc5/cvc5.h>
 
 #include "api_solver.h"
+
+#include <cvc5/cvc5.h>
+
 #include "api_plugin.h"
 
 using namespace cvc5;

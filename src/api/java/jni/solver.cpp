@@ -17,9 +17,9 @@
 
 #include "api/java/jni/api_utilities.h"
 #include "api_plugin.h"
+#include "api_solver.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
-#include "api_solver.h"
 
 using namespace cvc5;
 
