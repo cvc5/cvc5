@@ -23,6 +23,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
@@ -39,7 +40,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusSampler::SygusSampler(Env& env)
-    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+    : EnvObj(env), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -48,7 +49,6 @@ void SygusSampler::initialize(TypeNode tn,
                               unsigned nsamples,
                               bool unique_type_ids)
 {
-  d_tds = nullptr;
   d_use_sygus_type = false;
   d_is_valid = true;
   d_ftn = TypeNode::null();
@@ -663,12 +663,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
     const DTypeConstructor& dtc = dt[cindex];
     // more likely to terminate in recursive calls
     double rchance_new = rchance + (1.0 - rchance) * rinc;
-    std::map<int, Node> pre;
     bool success = true;
     // generate random values for all arguments
-    for (unsigned i = 0, nargs = dtc.getNumArgs(); i < nargs; i++)
+    std::vector<Node> children;
+    for (size_t i = 0, nargs = dtc.getNumArgs(); i < nargs; i++)
     {
-      TypeNode tnc = d_tds->getArgType(dtc, i);
+      TypeNode tnc = dtc.getArgType(i);
       Node c = getSygusRandomValue(tnc, rchance_new, rinc, depth + 1);
       if (c.isNull())
       {
@@ -678,12 +678,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       }
       Trace("sygus-sample-grammar")
           << "  child #" << i << " : " << c << std::endl;
-      pre[i] = c;
+      children.emplace_back(c);
     }
     if (success)
     {
-      Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
-      Node ret = d_tds->mkGeneric(dt, cindex, pre);
+      Trace("sygus-sample-grammar") << "utils::mkSygusTerm" << std::endl;
+      Node ret = datatypes::utils::mkSygusTerm(dt, cindex, children);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
@@ -741,7 +741,7 @@ void SygusSampler::registerSygusType(TypeNode tn)
       // recurse on all subfields
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
-        TypeNode tnc = d_tds->getArgType(dtc, j);
+        TypeNode tnc = dtc.getArgType(j);
         registerSygusType(tnc);
       }
     }

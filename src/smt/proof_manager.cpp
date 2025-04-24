@@ -436,7 +436,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     dpnu.process(c);
   }
   // get the accumulated difficulty map from the callback
-  dpc.getDifficultyMap(dmap);
+  dpc.getDifficultyMap(nodeManager(), dmap);
   Trace("difficulty-proc") << "Translate difficulty end" << std::endl;
 }
 

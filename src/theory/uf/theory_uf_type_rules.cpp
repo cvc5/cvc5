@@ -310,42 +310,43 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode BitVectorConversionTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
-  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::INT_TO_BITVECTOR)
   {
-    return nm->integerType();
+    size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+    return nm->mkBitVectorType(bvSize);
   }
-  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  return nm->mkBitVectorType(bvSize);
+  return nm->integerType();
 }
 TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
                                                   std::ostream* errOut)
 {
-  if (n.getKind() == Kind::BITVECTOR_TO_NAT)
+  if (n.getKind() == Kind::INT_TO_BITVECTOR)
   {
-    if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
+    size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+    TypeNode tn = n[0].getTypeOrNull();
+    if (check && !tn.isInteger() && !tn.isFullyAbstract())
     {
       if (errOut)
       {
-        (*errOut) << "expecting bit-vector term";
+        (*errOut) << "expecting integer term";
       }
       return TypeNode::null();
     }
-    return nodeManager->integerType();
+    return nodeManager->mkBitVectorType(bvSize);
   }
-  Assert(n.getKind() == Kind::INT_TO_BITVECTOR);
-  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  TypeNode tn = n[0].getTypeOrNull();
-  if (check && !tn.isInteger() && !tn.isFullyAbstract())
+  Assert(n.getKind() == Kind::BITVECTOR_UBV_TO_INT
+         || n.getKind() == Kind::BITVECTOR_SBV_TO_INT);
+  if (check && !n[0].getTypeOrNull().isMaybeKind(Kind::BITVECTOR_TYPE))
   {
     if (errOut)
     {
-      (*errOut) << "expecting integer term";
+      (*errOut) << "expecting bit-vector term";
     }
     return TypeNode::null();
   }
-  return nodeManager->mkBitVectorType(bvSize);
+  return nodeManager->integerType();
 }
 
 }  // namespace uf

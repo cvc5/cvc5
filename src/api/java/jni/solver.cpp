@@ -1056,7 +1056,7 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  TermManager* tm = reinterpret_cast<TermManager*>(termManagerPointer);
   ApiManager* am = ApiManager::currentAM();
   jobject pluginReference = am->addGlobalReference(env, pointer, plugin);
   ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);

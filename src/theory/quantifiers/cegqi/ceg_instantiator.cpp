@@ -164,8 +164,7 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() != Kind::BOUND_VARIABLE
-          && TermUtil::hasBoundVarAttr(cur))
+      if (cur.getKind() != Kind::BOUND_VARIABLE && expr::hasBoundVar(cur))
       {
         if (cur.getKind() == Kind::FORALL || cur.getKind() == Kind::WITNESS)
         {
@@ -1028,7 +1027,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
-      const std::vector<Node>& wexists = ewc.getExistentials();
+      const std::vector<Node>& wexists = ewc.getAxioms();
       exists.insert(exists.end(), wexists.begin(), wexists.end());
       svec.push_back(sc);
     }

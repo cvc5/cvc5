@@ -30,9 +30,6 @@ namespace theory {
 struct InstConstantAttributeId {};
 typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 
-struct BoundVarAttributeId {};
-typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
-
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
@@ -85,8 +82,6 @@ class TermUtil
    * @return true if n has instantiation constants.
    */
   static bool hasInstConstAttr(Node n);
-  static Node getBoundVarAttr( Node n );
-  static bool hasBoundVarAttr( Node n );
   
 private:
   /** get bound vars */
@@ -94,20 +89,6 @@ private:
 public:
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
-
- private:
-  /** adds the set of nodes of kind k in n to vars */
-  static void computeVarContainsInternal(Node n,
-                                         Kind k,
-                                         std::vector<Node>& vars);
-
- public:
-  /** adds the set of nodes of kind INST_CONSTANT in n to ics */
-  static void computeInstConstContains(Node n, std::vector<Node>& ics);
-  /** adds the set of nodes of kind BOUND_VARIABLE in n to vars */
-  static void computeVarContains(Node n, std::vector<Node>& vars);
-  /** adds the set of (top-level) nodes of kind FORALL in n to quants */
-  static void computeQuantContains(Node n, std::vector<Node>& quants);
   /**
    * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
    * formula q to vars.

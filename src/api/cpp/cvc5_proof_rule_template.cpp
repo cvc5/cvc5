@@ -131,6 +131,7 @@ const char* toString(ProofRule rule)
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
     case ProofRule::QUANT_VAR_REORDERING: return "QUANT_VAR_REORDERING";
+    case ProofRule::EXISTS_STRING_LENGTH: return "EXISTS_STRING_LENGTH";
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
@@ -226,7 +227,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::DISTINCT_ELIM: return "distinct-elim";
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
       return "distinct-card-conflict";
-    case ProofRewriteRule::BV_TO_NAT_ELIM: return "bv-to-nat-elim";
+    case ProofRewriteRule::UBV_TO_INT_ELIM: return "ubv-to-int-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
     case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";

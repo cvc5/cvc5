@@ -116,22 +116,22 @@ class InstStrategyMbqi : public QuantifiersModule
    */
   Node mkMbqiSkolem(const Node& t);
   /**
-   * Return the model value for term t from the solver, possibly post-processing
-   * it with modules maintained by this class (e.g. d_msenum).
-   * @param q The quantified formula we are instantiating.
-   * @param query The query used to find the model-based instantiation.
-   * @param smt The subsolver the query was made on.
-   * @param vars The variables we are instantiating.
-   * @param mvs The model values found for vars by the subsolver. This vector
-   * may be modified based on modules maintained by this class.
-   * @param mvToFreshVar Used for representing values for uninterpreted sorts.
+   * Try instantiation. This attempts to add the instantiation mvs for q,
+   * where mvs may require post-processing, e.g. to map from uninterpreted
+   * sort values to canonical skolems.
+   *
+   * @param q The quantified formula.
+   * @param mvs The vector of terms to instantiate with.
+   * @param id The identifier (for stats, debugging).
+   * @param mvToFreshVar Maps from uninterpreted sort values to the skolems
+   * we should replace them with.
+   * @return true if we successfully converted mvs to a legal instantiation
+   * and successfully added it to the inference manager of this class.
    */
-  void modelValueFromQuery(const Node& q,
-                           const Node& query,
-                           SolverEngine& smt,
-                           const std::vector<Node>& vars,
-                           std::vector<Node>& mvs,
-                           const std::map<Node, Node>& mvToFreshVar);
+  bool tryInstantiation(const Node& q,
+                        const std::vector<Node>& mvs,
+                        InferenceId id,
+                        const std::map<Node, Node>& mvToFreshVar);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */

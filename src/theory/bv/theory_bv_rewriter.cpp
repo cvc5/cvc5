@@ -199,6 +199,7 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalUlt>,  // if both arguments are
                                                    // constants evaluates
+                            RewriteRule<UltSelf>,
                             RewriteRule<UltOne>,
                             RewriteRule<UltOnes>,
                             RewriteRule<UltZero>,  // a < 0 rewrites to false,
@@ -222,6 +223,7 @@ RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalSlt>,
+                            RewriteRule<SltSelf>,
                             RewriteRule<MultSltMult>>::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
