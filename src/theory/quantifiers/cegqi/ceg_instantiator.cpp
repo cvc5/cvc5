@@ -1434,14 +1434,6 @@ void CegInstantiator::processAssertions() {
 Node CegInstantiator::getModelValue(Node n)
 {
   Node mv = d_treg.getModel()->getValue(n);
-  // if the model value is not constant, it may require some processing
-  if (!mv.isConst())
-  {
-    // Witness terms with identifiers may appear in the model. We require
-    // dropping their annotations here.
-    AnnotationElimNodeConverter aenc(nodeManager());
-    mv = aenc.convert(mv);
-  }
   return mv;
 }
 
