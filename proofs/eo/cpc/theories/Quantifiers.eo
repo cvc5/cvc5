@@ -28,6 +28,7 @@
 )
 
 ; skolems
-(declare-const @quantifiers_skolemize (-> (! Type :var T :implicit) (! Bool :opaque :var F) (! Int :opaque :var i) (eo::typeof ($get_var_at_index F i))))
+(declare-parameterized-const @quantifiers_skolemize ((F Bool :opaque) (i Int :opaque))
+  (eo::typeof ($get_var_at_index F i)))
 
-(declare-const @witness_inv_condition (-> (! Bool :opaque :var F) (eo::typeof ($get_var_at_index F 0))))
+(declare-parameterized-const @witness_inv_condition ((F Bool :opaque)) (eo::typeof ($get_var_at_index F 0)))
