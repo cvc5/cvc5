@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -147,7 +147,6 @@ class CDOhash_map : public ContextObj
         // If we call deleteSelf() here, it re-enters restore().  So,
         // put it on a "trash heap" instead, for later deletion.
         //
-        // FIXME multithreading
         if (d_map->d_first == this)
         {
           if (d_next == this)
@@ -345,7 +344,7 @@ class CDHashMap : public ContextObj
     return res.second;
   }
 
-  // FIXME: no erase(), too much hassle to implement efficiently...
+  // Note: no erase(), too much hassle to implement efficiently...
 
   using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
 

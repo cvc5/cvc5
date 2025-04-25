@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -548,6 +548,19 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
   return t.getSequenceElementType();
 }
 
+TypeNode SeqEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
+{
+  return nm->mkAbstractType(Kind::SEQUENCE_TYPE);
+}
+
 Cardinality SequenceProperties::computeCardinality(TypeNode type)
 {
   Assert(type.getKind() == Kind::SEQUENCE_TYPE);
@@ -564,7 +577,7 @@ Node SequenceProperties::mkGroundTerm(TypeNode type)
   Assert(type.isSequence());
   // empty sequence
   std::vector<Node> seq;
-  return NodeManager::currentNM()->mkConst(
+  return type.getNodeManager()->mkConst(
       Sequence(type.getSequenceElementType(), seq));
 }
 }  // namespace strings

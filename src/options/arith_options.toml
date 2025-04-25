@@ -494,10 +494,10 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "nlCov"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-cov"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]

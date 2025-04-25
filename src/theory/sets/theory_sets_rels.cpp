@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Paul Meng, Aina Niemetz
+ *   Andrew Reynolds, Paul Meng, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -432,7 +432,6 @@ void TheorySetsRels::check(Theory::Effort level)
       }
     }
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
     Node reason = exp;
     Node conclusion = d_trueNode;
     std::vector< Node > distinct_skolems;
@@ -443,7 +442,7 @@ void TheorySetsRels::check(Theory::Effort level)
           Kind::AND, reason, nm->mkNode(Kind::EQUAL, exp[1], join_image_term));
     }
     for( unsigned int i = 0; i < min_card; i++ ) {
-      Node skolem = sm->mkDummySkolem(
+      Node skolem = NodeManager::mkDummySkolem(
           "jig", join_image_rel.getType()[0].getTupleTypes()[0]);
       distinct_skolems.push_back( skolem );
       conclusion = nm->mkNode(
@@ -979,7 +978,7 @@ void TheorySetsRels::check(Theory::Effort level)
       computeMembersForBinOpRel(n);
       d_rel_nodes.insert(n);
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node A = n[0];
     Node B = n[1];
     Node e = exp[0];
@@ -1324,7 +1323,7 @@ void TheorySetsRels::check(Theory::Effort level)
       return;
     }
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
 
     std::vector<Node> aMemberships = d_rReps_memberReps_exp_cache[aRep];
     std::vector<Node> bMemberships = d_rReps_memberReps_exp_cache[bRep];

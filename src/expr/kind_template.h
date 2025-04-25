@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@ enum class Kind_t
   UNDEFINED_KIND = -1, /**< undefined */
   NULL_EXPR,           /**< Null kind */
   // clang-format off
-  ${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
+${kind_decls} LAST_KIND /**< marks the upper-bound of this enumeration */
   // clang-format on
 
 }; /* enum Kind_t */

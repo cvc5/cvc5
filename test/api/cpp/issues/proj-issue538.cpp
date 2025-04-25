@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@ int main(void)
   solver.setOption("incremental", "false");
   Sort s0 = tm.mkBitVectorSort(128);
   Term t1 = tm.mkConst(s0, "_x2");
-  Op o2 = tm.mkOp(Kind::BITVECTOR_TO_NAT);
+  Op o2 = tm.mkOp(Kind::BITVECTOR_UBV_TO_INT);
   Term t3 = tm.mkTerm(o2, {t1});
   Sort s4 = t3.getSort();
   Op o5 = tm.mkOp(Kind::INT_TO_BITVECTOR, {27});

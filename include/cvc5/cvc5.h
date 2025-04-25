@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -4565,7 +4565,7 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  internal::NodeManager* d_nm;
+  std::unique_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */

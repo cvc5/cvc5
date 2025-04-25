@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,11 +42,14 @@ class SygusUtils
    * require the "sygus attribute" marker, which is automatically generated
    * by this method.
    */
-  static Node mkSygusConjecture(const std::vector<Node>& fs,
+  static Node mkSygusConjecture(NodeManager* nm,
+                                const std::vector<Node>& fs,
                                 Node conj,
                                 const std::vector<Node>& iattrs);
   /** Same as above, without auxiliary instantiation attributes */
-  static Node mkSygusConjecture(const std::vector<Node>& fs, Node conj);
+  static Node mkSygusConjecture(NodeManager* nm,
+                                const std::vector<Node>& fs,
+                                Node conj);
 
   /**
    * Make conjecture, with a set of solved functions. In particular,
@@ -56,7 +59,8 @@ class SygusUtils
    * In the implementation, solutions for solved functions are stored
    * in the instantiation attribute list of the returned conjecture.
    */
-  static Node mkSygusConjecture(const std::vector<Node>& fs,
+  static Node mkSygusConjecture(NodeManager* nm,
+                                const std::vector<Node>& fs,
                                 Node conj,
                                 const Subs& solvedf);
   /**

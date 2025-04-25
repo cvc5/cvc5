@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,7 @@ class FloatingPointEnumerator
     if (d_enumerationComplete) {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst(createFP());
+    return getType().getNodeManager()->mkConst(createFP());
   }
 
   FloatingPointEnumerator& operator++() override {
@@ -94,7 +94,7 @@ class RoundingModeEnumerator
     if (d_enumerationComplete) {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst(d_rm);
+    return getType().getNodeManager()->mkConst(d_rm);
   }
 
   RoundingModeEnumerator& operator++() override {

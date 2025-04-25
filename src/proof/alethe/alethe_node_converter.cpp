@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Aina Niemetz
+ *   Haniel Barbosa, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/builtin/generic_op.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -107,6 +108,7 @@ Node AletheNodeConverter::postConvert(Node n)
         // ignore purification skolems
         if (sfi != SkolemId::PURIFY)
         {
+          d_skolemsList.push_back(n);
           d_skolems[n] = conv;
         }
         return conv;
@@ -169,29 +171,16 @@ Node AletheNodeConverter::postConvert(Node n)
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
         Trace("alethe-conv") << ".. witness: " << witness << "\n";
         witness = convert(witness);
+        d_skolems[n] = witness;
         if (d_defineSkolems)
         {
-          d_skolemsAux[n] = witness;
-          if (index == quant[0].getNumChildren() - 1)
+          if (std::find(d_skolemsList.begin(), d_skolemsList.end(), n)
+              == d_skolemsList.end())
           {
-            Trace("alethe-conv")
-                << "....populate map from aux : " << d_skolemsAux << "\n";
-            for (size_t i = index + 1; i > 0; --i)
-            {
-              std::vector<Node> cacheVals{quant,
-                                          d_nm->mkConstInt(Rational(i - 1))};
-              Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                             cacheVals);
-              Assert(!sk.isNull());
-              Assert(d_skolemsAux.find(sk) != d_skolemsAux.end())
-                  << "Could not find sk " << sk;
-              d_skolems[sk] = d_skolemsAux[sk];
-            }
-            d_skolemsAux.clear();
+            d_skolemsList.push_back(n);
           }
           return n;
         }
-        d_skolems[n] = witness;
         return witness;
       }
       std::stringstream ss;
@@ -233,6 +222,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::SEXPR:
     case Kind::TYPE_CONSTANT:
     case Kind::RAW_SYMBOL:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
+    case Kind::APPLY_INDEXED_SYMBOLIC_OP:
     /* from booleans */
     case Kind::CONST_BOOLEAN:
     case Kind::NOT:
@@ -247,7 +238,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::LAMBDA:
     case Kind::HO_APPLY:
     case Kind::FUNCTION_ARRAY_CONST:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     case Kind::INT_TO_BITVECTOR_OP:
     case Kind::INT_TO_BITVECTOR:
     /* from arith */
@@ -271,6 +262,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::POW2:
     /* from BV */
     case Kind::BITVECTOR_TYPE:
     case Kind::CONST_BITVECTOR:
@@ -389,8 +381,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::REGEXP_RV:
     /* from quantifiers */
     case Kind::EXISTS:
-    case Kind::INST_CONSTANT:
-    case Kind::ORACLE:
     case Kind::BOUND_VAR_LIST:
     case Kind::INST_PATTERN:
     case Kind::INST_NO_PATTERN:
@@ -398,7 +388,6 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::INST_POOL:
     case Kind::INST_ADD_TO_POOL:
     case Kind::SKOLEM_ADD_TO_POOL:
-    case Kind::ORACLE_FORMULA_GEN:
     case Kind::INST_PATTERN_LIST:
     {
       return n;
@@ -496,15 +485,15 @@ Node AletheNodeConverter::mkInternalSymbol(const std::string& name,
   {
     return it->second;
   }
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbolsMap[key] = sym;
   return sym;
 }
 
 Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
 {
-  return mkInternalSymbol(name, NodeManager::currentNM()->sExprType());
+  return mkInternalSymbol(name, d_nm->sExprType());
 }
 
 const std::string& AletheNodeConverter::getError() { return d_error; }
@@ -522,6 +511,11 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
 {
   return d_skolems;
+}
+
+const std::vector<Node>& AletheNodeConverter::getSkolemList()
+{
+  return d_skolemsList;
 }
 
 }  // namespace proof

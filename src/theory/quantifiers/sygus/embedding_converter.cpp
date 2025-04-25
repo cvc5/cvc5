@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -112,8 +113,6 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
-  NodeManager* nm = nodeManager();
-
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
   {
@@ -166,6 +165,17 @@ Node EmbeddingConverter::process(Node q,
       }
       tn = SygusGrammarCons::mkDefaultSygusType(
           d_env, preGrammarType, sfvl, trules);
+      // this can happen only in very rare cases, e.g. where we are asking
+      // to generate a grammar for arrays and no ground values exist and
+      // array constants cannot be used
+      if (!tn.isWellFounded())
+      {
+        Warning() << "Warning: Failed to construct grammar for "
+                  << preGrammarType
+                  << " since no ground values can be generated for that type."
+                  << std::endl;
+        return Node::null();
+      }
     }
     // Ensure the expanded definition forms are set. This is done after
     // normalization above.
@@ -193,7 +203,7 @@ Node EmbeddingConverter::process(Node q,
     }
 
     // ev is the first-order variable corresponding to this synth fun
-    Node ev = nm->mkBoundVar("f" + sf.getName(), tn);
+    Node ev = NodeManager::mkBoundVar("f" + sf.getName(), tn);
     ebvl.push_back(ev);
     Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev
                    << std::endl;
@@ -241,7 +251,7 @@ Node EmbeddingConverter::process(Node q,
       for (unsigned j = 0; j < sfvl.getNumChildren(); j++)
       {
         schildren.push_back(sfvl[j]);
-        largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
+        largs.push_back(NodeManager::mkBoundVar(sfvl[j].getType()));
       }
       std::vector<Node> subsfn_children;
       subsfn_children.push_back(sf);
@@ -375,7 +385,7 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
           std::vector<Node> vs;
           for (const Node& v : vars)
           {
-            vs.push_back(nm->mkBoundVar(v.getType()));
+            vs.push_back(NodeManager::mkBoundVar(v.getType()));
           }
           Node lvl = nm->mkNode(Kind::BOUND_VAR_LIST, vs);
           std::vector<Node> eargs;

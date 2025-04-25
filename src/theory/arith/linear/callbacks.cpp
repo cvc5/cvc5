@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,9 +47,8 @@ TempVarMalloc::TempVarMalloc(TheoryArithPrivate& ta)
 : d_ta(ta)
 {}
 ArithVar TempVarMalloc::request(){
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node skolem = sm->mkDummySkolem("tmpVar", nm->realType());
+  NodeManager* nm = d_ta.getNodeManager();
+  Node skolem = NodeManager::mkDummySkolem("tmpVar", nm->realType());
   return d_ta.requestArithVar(skolem, false, true);
 }
 void TempVarMalloc::release(ArithVar v){
@@ -160,7 +159,8 @@ void FarkasConflictBuilder::makeLastConsequent(){
 }
 
 /* Turns the vector under construction into a conflict */
-ConstraintCP FarkasConflictBuilder::commitConflict(){
+ConstraintCP FarkasConflictBuilder::commitConflict(NodeManager* nm)
+{
   Assert(underConstruction());
   Assert(!d_constraints.empty());
   Assert(
@@ -172,7 +172,7 @@ ConstraintCP FarkasConflictBuilder::commitConflict(){
 
   ConstraintP not_c = d_consequent->getNegation();
   RationalVectorCP coeffs = d_produceProofs ? &d_farkas : nullptr;
-  not_c->impliedByFarkas(d_constraints, coeffs, true );
+  not_c->impliedByFarkas(nm, d_constraints, coeffs, true);
 
   reset();
   Assert(!underConstruction());

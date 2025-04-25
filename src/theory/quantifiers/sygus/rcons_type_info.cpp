@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds
+ *   Abdalrhman Mohamed, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,16 +33,14 @@ void RConsTypeInfo::initialize(Env& env,
                                TypeNode stn,
                                const std::vector<Node>& builtinVars)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   // create a terms enumerator
   d_enumerators.push_back(
       std::make_unique<SygusEnumerator>(env, tds, nullptr, &s, false));
-  d_enumerators[0]->initialize(sm->mkDummySkolem("sygus_rcons", stn));
+  d_enumerators[0]->initialize(NodeManager::mkDummySkolem("sygus_rcons", stn));
   // create a patterns enumerator
   d_enumerators.push_back(
       std::make_unique<SygusEnumerator>(env, tds, nullptr, &s, true));
-  d_enumerators[1]->initialize(sm->mkDummySkolem("sygus_rcons", stn));
+  d_enumerators[1]->initialize(NodeManager::mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(env, true, false, false));
 
   // since initial samples are not always useful for equivalence checks, set

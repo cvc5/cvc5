@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, ofecisrael
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ namespace strings {
 class RegExpEntail
 {
  public:
-  RegExpEntail(Rewriter* r);
+  RegExpEntail(NodeManager* nm, Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -47,24 +47,24 @@ class RegExpEntail
    * the vectors such that the resulting vectors are such that the membership
    * mchildren[n'...n''] in children[m'...m''] is equivalent to the input
    * membership. The argument dir indicates the direction to consider, where
-   * 0 means strip off the front, 1 off the back, and < 0 off of both.
+   * 1 means strip off the front, 0 off the back, and < 0 off of both.
    *
    * If this method returns the false node, then we have inferred that no
-   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=1) or
-   * suffix (when dir!=0) of s1 ++ ... ++ sn. Otherwise, it returns the null
+   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=0) or
+   * suffix (when dir!=1) of s1 ++ ... ++ sn. Otherwise, it returns the null
    * node.
    *
    * For example, given input
-   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
+   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 1,
    * this method updates:
-   *   mchildren = { "b", x }, children = { ("cd")* }
+   *   mchildren = { "b", x }, children = { }
    * and returns null.
    *
    * For example, given input
    *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
    * this method updates:
    *   { "b" }, { [[y]] }
-   * where [[.]] denotes str.to.re, and returns null.
+   * where [[.]] denotes str.to_re, and returns null.
    *
    * Notice that the above requirement for returning false is stronger than
    * determining that s1 ++ ... ++ sn in r1 ++ ... ++ rm is equivalent to false.
@@ -78,12 +78,12 @@ class RegExpEntail
    * For example, given input
    *   { "bb", x }, { "b", ("a")* } and dir=-1,
    * this method updates:
-   *   { "b" }, { ("a")* }
+   *   { "b", x }, { }
    * and returns null.
    *
    * For example, given input
    *   { "cb", x }, { "b", ("a")* } and dir=-1,
-   * this method leaves children and mchildren unchanged and returns false.
+   * this method returns false.
    *
    * Notice that based on this, we can determine that:
    *   "cb" ++ x  in ( "b" ++ ("a")* )*
@@ -91,7 +91,8 @@ class RegExpEntail
    *   "bb" ++ x  in ( "b" ++ ("a")* )*
    * is equivalent to false.
    */
-  static Node simpleRegexpConsume(std::vector<Node>& mchildren,
+  static Node simpleRegexpConsume(NodeManager* nm,
+                                  std::vector<Node>& mchildren,
                                   std::vector<Node>& children,
                                   int dir = -1);
   /**
@@ -138,6 +139,16 @@ class RegExpEntail
                              std::map<std::pair<Node, Node>, bool>& cache);
   /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
+  /**
+   * Get generalized constant regular expression.
+   * Given a (possibly non-constant) string, return the most specific regular
+   * expression that is constant and contains the string. For example, given
+   * (str.++ x "A" y), this method returns (re.++ Sigma* (str.to_re "A")
+   * Sigma*). If the regular expression is equivalent to Sigma*, the null node
+   * is returned.
+   */
+  Node getGeneralizedConstRegExp(const Node& n);
+
  private:
   /**
    * Does the substring of s starting at index_start occur in constant regular

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -158,6 +158,12 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
   // preprocess
   d_smt.preprocess(ap);
+
+  if (options().base.preprocessOnly)
+  {
+    return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
+  }
+
   // assert to internal
   d_smt.assertToInternal(ap);
   // get result

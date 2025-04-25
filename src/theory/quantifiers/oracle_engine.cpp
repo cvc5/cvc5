@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,8 +83,7 @@ void OracleEngine::presolve() {
       visited.insert(cur);
       if (OracleCaller::isOracleFunctionApp(cur))
       {
-        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-        Node k = sm->mkPurifySkolem(cur);
+        Node k = SkolemManager::mkPurifySkolem(cur);
         Node eq = k.eqNode(cur);
         d_qim.lemma(eq, InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS);
       }
@@ -129,7 +128,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
 
   FirstOrderModel* fm = d_treg.getModel();
   TermDb* termDatabase = d_treg.getTermDatabase();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::vector<Node> currInterfaces;
   for (unsigned i = 0; i < nquant; i++)
@@ -316,7 +315,7 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
   Assert(oracleNode.getKind() == Kind::ORACLE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = oracleNode.getNodeManager();
   Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST,
                         nm->mkNode(Kind::INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;

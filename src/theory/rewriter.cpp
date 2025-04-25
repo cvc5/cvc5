@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +56,8 @@ struct RewriteStackElement {
         d_original(node),
         d_theoryId(theoryId),
         d_originalTheoryId(theoryId),
-        d_nextChild(0)
+        d_nextChild(0),
+        d_builder(node.getNodeManager())
   {
   }
 
@@ -141,7 +142,17 @@ Node Rewriter::rewriteEqualityExt(TNode node)
 void Rewriter::registerTheoryRewriter(theory::TheoryId tid,
                                       TheoryRewriter* trew)
 {
-  d_theoryRewriters[tid] = trew;
+  if (trew == nullptr)
+  {
+    // if nullptr, use the default (null) theory rewriter.
+    d_nullTr.emplace_back(
+        std::unique_ptr<NoOpTheoryRewriter>(new NoOpTheoryRewriter(d_nm, tid)));
+    d_theoryRewriters[tid] = d_nullTr.back().get();
+  }
+  else
+  {
+    d_theoryRewriters[tid] = trew;
+  }
 }
 
 TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
@@ -401,7 +412,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
             Node eq = rewriteStackTop.d_node.eqNode(cached);
             // we make this a post-rewrite, since we are processing a node that
             // has finished post-rewriting above
-            Node trrid = mkTrustId(TrustId::REWRITE_NO_ELABORATE);
+            Node trrid = mkTrustId(d_nm, TrustId::REWRITE_NO_ELABORATE);
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  cached,
                                  ProofRule::TRUST,
@@ -487,9 +498,11 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
     ProofGenerator* pg = trn.getGenerator();
     if (pg == nullptr)
     {
-      Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId);
+      Node tidn =
+          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_nm, theoryId);
       // add small step trusted rewrite
-      Node rid = mkMethodId(isPre ? MethodId::RW_REWRITE_THEORY_PRE
+      Node rid = mkMethodId(d_nm,
+                            isPre ? MethodId::RW_REWRITE_THEORY_PRE
                                   : MethodId::RW_REWRITE_THEORY_POST);
       tcpg->addRewriteStep(proven[0],
                            proven[1],

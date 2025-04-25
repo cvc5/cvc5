@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,7 +36,7 @@ bool RewriteRule<ConcatFlatten>::applies(TNode node) {
 template<> inline
 Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
-  NodeBuilder result(Kind::BITVECTOR_CONCAT);
+  NodeBuilder result(node.getNodeManager(), Kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {
@@ -161,7 +162,8 @@ Node RewriteRule<ConcatConstantMerge>::apply(TNode node) {
         current = current.concat(node[k].getConst<BitVector>());
       }
       // Add the new merged constant
-      mergedConstants.push_back(utils::mkConst(current));
+      NodeManager* nm = node.getNodeManager();
+      mergedConstants.push_back(utils::mkConst(nm, current));
       i = j;
     }
   }
@@ -204,7 +206,10 @@ Node RewriteRule<ExtractConstant>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<ExtractConstant>(" << node << ")" << std::endl;
   Node child = node[0];
   BitVector childValue = child.getConst<BitVector>();
-  return utils::mkConst(childValue.extract(utils::getExtractHigh(node), utils::getExtractLow(node)));
+  NodeManager* nm = node.getNodeManager();
+  return utils::mkConst(nm,
+                        childValue.extract(utils::getExtractHigh(node),
+                                           utils::getExtractLow(node)));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -284,7 +289,7 @@ bool RewriteRule<FailEq>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<FailEq>::apply(TNode node) {
-  return utils::mkFalse();
+  return utils::mkFalse(node.getNodeManager());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -298,7 +303,7 @@ bool RewriteRule<SimplifyEq>::applies(TNode node) {
 template<> inline
 Node RewriteRule<SimplifyEq>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<SimplifyEq>(" << node << ")" << std::endl;
-  return utils::mkTrue();
+  return utils::mkTrue(node.getNodeManager());
 }
 
 /* -------------------------------------------------------------------------- */

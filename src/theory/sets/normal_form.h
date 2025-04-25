@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +38,7 @@ class NormalForm {
   {
     typedef typename std::set<NodeTemplate<ref_count> >::const_iterator
         ElementsIterator;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = setType.getNodeManager();
     if (elements.size() == 0)
     {
       return nm->mkConst(EmptySet(setType));
@@ -154,11 +154,11 @@ class NormalForm {
   
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn));
+      return tn.getNodeManager()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{
-      return NodeManager::currentNM()->mkNode( k, els[index], mkBop( k, els, tn, index+1 ) );
+      return NodeManager::mkNode(k, els[index], mkBop(k, els, tn, index + 1));
     }
   }
 

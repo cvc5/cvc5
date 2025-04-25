@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state),
-      d_ig(&d_state, &d_im),
+      d_ig(env.getNodeManager(), &d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
@@ -52,7 +52,14 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
 
 TheoryBags::~TheoryBags() {}
 
-TheoryRewriter* TheoryBags::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryBags::getTheoryRewriter()
+{
+  if (!options().bags.bags)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryBags::getProofChecker() { return nullptr; }
 
@@ -150,7 +157,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node A = node[0];
   TypeNode bagType = A.getType();
   // use canonical constant to ensure it can be typed
-  Node mkElem = nm->mkGroundValue(bagType);
+  Node mkElem = NodeManager::mkGroundValue(bagType);
   // a Null node is used here to get a unique skolem function per bag type
   Node uf = sm->mkSkolemFunction(SkolemId::BAGS_CHOOSE, mkElem);
   Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,7 +68,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_proc(new SynthConjectureProcess(env)),
       d_embConv(new EmbeddingConverter(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, qim, d_tds)),
-      d_exampleInfer(new ExampleInfer(d_tds)),
+      d_exampleInfer(new ExampleInfer(nodeManager(), d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -169,6 +169,14 @@ void SynthConjecture::assign(Node q)
   d_embed_quant = d_embConv->process(d_simp_quant, templates, templates_arg);
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
+  // In very rare cases, the above call will return null if we construct a
+  // well-founded grammar. In this case, we fail immediately with "unknown".
+  if (d_embed_quant.isNull())
+  {
+    d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
+    d_qim.setRefutationUnsound(IncompleteId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR);
+    return;
+  }
 
   if (!sc.isNull())
   {
@@ -190,7 +198,7 @@ void SynthConjecture::assign(Node q)
         std::vector<Node> lvars;
         for (const TypeNode& tn : atypes)
         {
-          lvars.push_back(nm->mkBoundVar(tn));
+          lvars.push_back(NodeManager::mkBoundVar(tn));
         }
         s = nm->mkNode(
             Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, lvars), s);
@@ -244,7 +252,7 @@ void SynthConjecture::assign(Node q)
   {
     for (const Node& v : d_checkBody[0][0])
     {
-      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      Node sk = NodeManager::mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
       d_innerVars.push_back(v);
       d_innerSks.push_back(sk);
