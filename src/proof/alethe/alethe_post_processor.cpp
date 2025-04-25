@@ -105,16 +105,20 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
   switch (di)
   {
     // ======== DISTINCT_ELIM
-    // This rule is translated according to the clauses pattern. The only
-    // exception to this is if there are more than two terms that are distinct
-    // and they are boolean. The Alethe distinct_elim rule has a special
-    // handling in these cases and rewrites the distinct term to False directly
-    // (as the DISTINCT_CARD_CONFLICT rule does in cvc5).
+    // ======== DISTINCT_CARD_CONFLICT
+    // Both rules are translated according to the clauses pattern.
+    // The exception to this is that for DISTINCT_ELIM if there are more than
+    // two terms that are distinct and they are boolean we output a hole. The
+    // Alethe distinct_elim rule has a special handling in this case and
+    // rewrites the distinct term to False directly (as the
+    // DISTINCT_CARD_CONFLICT rule does in cvc5).
     case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     {
       Assert(res.getNumChildren() == 2);
       Assert(res[0].getNumChildren() >= 2);
-      if (res[0][0].getType().isBoolean() && res[0].getNumChildren() == 2)
+      if (rule == ProofRewriteRule::DISTINCT_ELIM
+          && res[0][0].getType().isBoolean() && res[0].getNumChildren() == 2)
       {
         break;
       }
@@ -125,17 +129,6 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
       break;
-    }
-    // ======== DISTINCT_CARD_CONFLICT
-    // This rule is translated according to the clauses pattern.
-    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
-    {
-      return addAletheStep(AletheRule::DISTINCT_ELIM,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           new_args,
-                           *cdp);
     }
     default: break;
   }
