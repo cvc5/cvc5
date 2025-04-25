@@ -108,19 +108,27 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     // ======== DISTINCT_CARD_CONFLICT
     // Both rules are translated according to the clauses pattern.
     // The exception to this is that for DISTINCT_ELIM if there are more than
-    // two terms that are distinct and they are boolean we output a hole. The
+    // two terms that are distinct and they are boolean we output a RARE_REWRITE step using the distinct_two_bool_elim rule. The
     // Alethe distinct_elim rule has a special handling in this case and
     // rewrites the distinct term to False directly (as the
     // DISTINCT_CARD_CONFLICT rule does in cvc5).
+    //
+    // (define-rule distinct_two_bool_elim ((t1 Bool) (t2 Bool))
+    // (distinct t1 t2)
+    // (not (= t1 t2)))
     case ProofRewriteRule::DISTINCT_ELIM:
     case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     {
-      Assert(res.getNumChildren() == 2);
-      Assert(res[0].getNumChildren() >= 2);
-      if (rule == ProofRewriteRule::DISTINCT_ELIM
+      if (di == ProofRewriteRule::DISTINCT_ELIM
           && res[0][0].getType().isBoolean() && res[0].getNumChildren() == 2)
       {
-        break;
+	  return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+          	           {nm->mkRawSymbol("\"distinct_two_bool_elim\"", nm->sExprType()),res[0][0],res[0][1]},
+                           *cdp);
+    
       }
       return addAletheStep(AletheRule::DISTINCT_ELIM,
                            res,
