@@ -192,13 +192,6 @@ Node AlfNodeConverter::postConvert(Node n)
     Node val = convert(storeAll.getValue());
     return mkInternalApp("store_all", {t, val}, tn);
   }
-  else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
-           || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
-  {
-    TypeNode tn = n.getType();
-    Node t = typeAsNode(tn);
-    return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
-  }
   else if (k == Kind::SET_INSERT)
   {
     TypeNode tn = n.getType();
