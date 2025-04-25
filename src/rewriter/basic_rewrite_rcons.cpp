@@ -2365,7 +2365,6 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
     {
       return false;
     }
-    std::vector<Node> corPremises;
     Node qvi =
         rr->rewriteViaRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ, mq[0]);
     if (qvi.isNull() || !qvi.isConst())
