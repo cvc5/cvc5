@@ -142,6 +142,67 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+      // See proof_rule.h for documentation on the EXISTS_ELIM rule. This
+      // comment uses variable names as introduced there.
+      //
+      // T1:
+      //
+      // ---------- equiv_neg2   ---------- not_not
+      //    VP1A                    VP1B
+      // ---------------------------------- resolution
+      //               VP1
+      //
+      // VP1A: (cl (= (not (not F)) F) (not (not F)) F)
+      // VP1B: (cl (not (not (not F))) F)
+      // VP1: (cl (= (not (not F)) F) F)
+      //
+      //
+      // T2:
+      //
+      //    VP2A                    VP2B
+      // ---------------------------------- resolution
+      //               VP2
+      //
+      // VP2A: (cl (= (not (not F)) F) (not (not (not F))) (not F))
+      // VP2B: (cl (not (not (not (not F)))) (not F)))
+      // VP2: (cl (= (not (not F)) F) (not F))
+      //
+      // Total:
+      //
+      //                                   T1   T2
+      //                                ------------- resolution
+      //                                     VP3
+      //                                ------------- bind
+      //                                     VP4
+      // --------- connective_def       ------------- cong
+      //    VP5                              VP6
+      // ----------------------------------------------- trans
+      //                        VP7
+      // ----------------------------------------------- cong
+      //                        VP8                                   VP9
+      // -------------------------------------------------------------------------
+      // trans
+      //                                VP10
+      // -------------------------------------------------------------------------
+      // symm
+      //                                res
+      //
+      // VP3: (cl (= (not (not F)) F))
+      // VP4: (cl (= (exists (x1 .. xn) (not (not F))) (exists (x1 ... xn) F)))
+      // VP5: (cl (= (forall (x1 ... xn) (not F)) (not (exists (x1 ... xn) (not (not
+      // F))))))
+      // VP6: (cl (= (not (exists (x1 .. xn) (not (not F)))) (not (exists (x1 ... xn)
+      // F))))
+      // VP7: (cl (= (forall (x1 ... xn) (not F)) (not (exists (x1 ... xn) F))))
+      // VP8: (cl (= (not (forall (x1 ... xn) (not F))) (not (not (exists (x1 ...
+      // xn) F)))))
+      // VP9: (cl (= (not (not (exists (x1 ... xn) F))) (exists (x1 .. xn)
+      // F)))
+      // VP10: (cl (= (not (forall (x1 ... xn) (not F))) (exists (x1 ... xn) F)))
+      //
+    case ProofRewriteRule::EXISTS_ELIM:
+    {
+    }
     default: break;
   }
   return addAletheStep(AletheRule::HOLE,
