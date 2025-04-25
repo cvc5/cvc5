@@ -33,32 +33,6 @@ namespace theory {
 namespace bv {
 
 /**
- * ExtractBitwise
- *   (x bvop y) [i:j] ==> x[i:j] bvop y[i:j]
- *  where bvop is bvand,bvor, bvxor
- */
-template<> inline
-bool RewriteRule<ExtractBitwise>::applies(TNode node) {
-  return (node.getKind() == Kind::BITVECTOR_EXTRACT
-          && (node[0].getKind() == Kind::BITVECTOR_AND
-              || node[0].getKind() == Kind::BITVECTOR_OR
-              || node[0].getKind() == Kind::BITVECTOR_XOR));
-}
-
-template<> inline
-Node RewriteRule<ExtractBitwise>::apply(TNode node) {
-  Trace("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
-  unsigned high = utils::getExtractHigh(node);
-  unsigned low = utils::getExtractLow(node);
-  std::vector<Node> children; 
-  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
-    children.push_back(utils::mkExtract(node[0][i], high, low)); 
-  }
-  Kind kind = node[0].getKind(); 
-  return utils::mkSortedNode(kind, children);
-}
-
-/**
  * ExtractNot
  *
  *  (~ a) [i:j] ==> ~ (a[i:j])

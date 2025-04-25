@@ -161,7 +161,6 @@ enum RewriteRuleId
   IneqElimConversion,
 
   /// normalization rules
-  ExtractBitwise,
   ExtractNot,
   ExtractSignExtend,
   DoubleNeg,
@@ -260,7 +259,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ShlByConst :         out << "ShlByConst";          return out;
   case LshrByConst :        out << "LshrByConst";         return out;
   case AshrByConst :        out << "AshrByConst";         return out;
-  case ExtractBitwise :     out << "ExtractBitwise";      return out;
   case ExtractNot :         out << "ExtractNot";          return out;
   case DoubleNeg :          out << "DoubleNeg";           return out;
   case NotConcat :          out << "NotConcat";           return out;
@@ -430,7 +428,6 @@ struct AllRewriteRules {
   RewriteRule<ShlByConst>                     rule50;
   RewriteRule<LshrByConst>                    rule51;
   RewriteRule<AshrByConst>                    rule52;
-  RewriteRule<ExtractBitwise>                 rule53;
   RewriteRule<ExtractNot>                     rule54;
   RewriteRule<DoubleNeg>                      rule56;
   RewriteRule<NotConcat>                      rule57;

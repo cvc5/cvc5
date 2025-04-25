@@ -3864,12 +3864,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_EQ_EXTRACT_ELIM2),
   /** Auto-generated from RARE rule bv-eq-extract-elim3 */
   EVALUE(BV_EQ_EXTRACT_ELIM3),
-  /** Auto-generated from RARE rule bv-extract-bitwise-and */
-  EVALUE(BV_EXTRACT_BITWISE_AND),
-  /** Auto-generated from RARE rule bv-extract-bitwise-or */
-  EVALUE(BV_EXTRACT_BITWISE_OR),
-  /** Auto-generated from RARE rule bv-extract-bitwise-xor */
-  EVALUE(BV_EXTRACT_BITWISE_XOR),
   /** Auto-generated from RARE rule bv-extract-not */
   EVALUE(BV_EXTRACT_NOT),
   /** Auto-generated from RARE rule bv-extract-sign-extend-1 */

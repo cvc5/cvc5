@@ -80,18 +80,6 @@
   (= x (concat y (extract im1 0 x))))
 
 ; -- Normalization Rules --
-(define-rule bv-extract-bitwise-and
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvand x y))
-  (bvand (extract j i x) (extract j i y)))
-(define-rule bv-extract-bitwise-or
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvor x y))
-  (bvor (extract j i x) (extract j i y)))
-(define-rule bv-extract-bitwise-xor
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvxor x y))
-  (bvxor (extract j i x) (extract j i y)))
 (define-rule bv-extract-not
   ((x ?BitVec) (i Int) (j Int))
   (extract j i (bvnot x))
