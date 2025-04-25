@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,6 +46,14 @@ enum class Rewrite : uint32_t
   FILTER_CONST,
   FILTER_BAG_MAKE,
   FILTER_UNION_DISJOINT,
+  ALL_EMPTY,
+  ALL_BAG_MAKE,
+  ALL_UNION_DISJOINT,
+  ALL_FILTER,
+  SOME_EMPTY,
+  SOME_BAG_MAKE,
+  SOME_UNION_DISJOINT,
+  SOME_FILTER,
   FROM_SINGLETON,
   FOLD_BAG,
   FOLD_CONST,

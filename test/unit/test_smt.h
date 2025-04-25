@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,13 +42,13 @@ class TestSmt : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager = std::make_unique<NodeManager>();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine);
+    d_slvEngine.reset(new SolverEngine(d_nodeManager.get()));
     d_slvEngine->finishInit();
   }
 
-  NodeManager* d_nodeManager;
+  std::unique_ptr<NodeManager> d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SolverEngine> d_slvEngine;
 };
@@ -58,12 +58,12 @@ class TestSmtNoFinishInit : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager = std::make_unique<NodeManager>();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine);
+    d_slvEngine.reset(new SolverEngine(d_nodeManager.get()));
   }
 
-  NodeManager* d_nodeManager;
+  std::unique_ptr<NodeManager> d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SolverEngine> d_slvEngine;
 };

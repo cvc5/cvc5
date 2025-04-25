@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -178,9 +178,10 @@ void addSpecialValues(const TypeNode& tn, std::vector<Node>& extra_cons)
   if (tn.isBitVector())
   {
     uint32_t size = tn.getBitVectorSize();
-    extra_cons.push_back(bv::utils::mkOnes(size));
-    extra_cons.push_back(bv::utils::mkMinSigned(size));
-    extra_cons.push_back(bv::utils::mkMaxSigned(size));
+    NodeManager* nm = tn.getNodeManager();
+    extra_cons.push_back(bv::utils::mkOnes(nm, size));
+    extra_cons.push_back(bv::utils::mkMinSigned(nm, size));
+    extra_cons.push_back(bv::utils::mkMaxSigned(nm, size));
   }
 }
 
@@ -503,8 +504,7 @@ Node SygusInst::getCeLiteral(Node q)
   }
 
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node sk = sm->mkDummySkolem("CeLiteral", nm->booleanType());
+  Node sk = NodeManager::mkDummySkolem("CeLiteral", nm->booleanType());
   Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;

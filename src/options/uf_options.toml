@@ -6,7 +6,7 @@ name   = "Uninterpreted Functions Theory"
   category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -77,7 +77,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "eagerArithBvConv"
-  category   = "expert"
+  category   = "regular"
   long       = "eager-arith-bv-conv"
   type       = "bool"
   default    = "false"

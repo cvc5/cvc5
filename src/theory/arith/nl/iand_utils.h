@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +32,7 @@ namespace nl {
 class IAndUtils
 {
  public:
-  IAndUtils();
+  IAndUtils(NodeManager* nm);
 
   /**
    * A generic function that creates a node that represents a bvand
@@ -160,6 +160,8 @@ class IAndUtils
       d_bvandTable;
 
  private:
+  /** the associated node manager */
+  NodeManager* d_nm;
   /** commonly used terms */
   Node d_zero;
   Node d_one;

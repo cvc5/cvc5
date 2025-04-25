@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -129,6 +129,11 @@ class CVC5_EXPORT TypeNode
   static TypeNode null() {
     return s_null;
   }
+
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return d_nv->getNodeManager(); }
 
   /**
    * Substitution of TypeNodes.
@@ -842,7 +847,7 @@ TypeNode TypeNode::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(getNodeManager(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
@@ -904,24 +909,24 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
+  return getNodeManager()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
+  return getNodeManager()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
+  return getNodeManager()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
+  getNodeManager()->setAttribute(d_nv, AttrKind(), value);
 }
 
 inline void TypeNode::printAst(std::ostream& out, int indent) const {

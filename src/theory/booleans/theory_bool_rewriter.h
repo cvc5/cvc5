@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz, Morgan Deters
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 namespace cvc5::internal {
 
 class TConvProofGenerator;
+class CDProof;
 
 namespace theory {
 namespace booleans {
@@ -52,12 +53,34 @@ class TheoryBoolRewriter : public TheoryRewriter
    * @param nm Pointer to node manager.
    * @param n The node to rewrite.
    * @param pg If non-null, this stores rewrite rules that are capable of
-   * proving that n is equal to its normalized form.
+   * proving that n is equal to its normalized form. This conversion generator
+   * is expected to use a BoolSkeletonTermContext (see expr/term_context.h) as
+   * this method only traverses the propositional skeleton of n.
    * @return The normalized form of n.
    */
   static Node computeNnfNorm(NodeManager* nm,
                              const Node& n,
                              TConvProofGenerator* pg = nullptr);
+
+  /**
+   * Get BV invert solve, given input t1 = t2 and variable x, returns the solved
+   * form r for x, where x = r is equivalent to t1 = t2.
+   *
+   * @param nm Pointer to node manager.
+   * @param lit The node to rewrite.
+   * @param var The variable to solve for.
+   * @param disallowedKinds The set of kinds we are not allowed to traverse on
+   * the path to var.
+   * @param cdp If provided, we add a proof of (= lit ret) to cdp, where ret is
+   * the equality returned by this method.
+   * @return The right hand side r corresponding to the solved form for var in
+   * lit, or null if we fail.
+   */
+  static Node getBvInvertSolve(NodeManager* nm,
+                               const Node& lit,
+                               const Node& var,
+                               std::unordered_set<Kind>& disallowedKinds,
+                               CDProof* cdp = nullptr);
 
  protected:
   /**

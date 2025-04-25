@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,8 @@
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
 
+#include <cvc5/cvc5_skolem_id.h>
+
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -30,6 +32,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
+#include "expr/internal_skolem_id.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -562,6 +565,27 @@ public:
    */
   template <class T>
   inline const T& getConst() const;
+
+  /**
+   * @return true if this is a skolem function.
+   */
+  bool isSkolem() const;
+
+  /**
+   * @return the skolem identifier of this node.
+   */
+  SkolemId getSkolemId() const;
+
+  /**
+   * @return the skolem indices of this node.
+   */
+  std::vector<Node> getSkolemIndices() const;
+
+  /**
+   * @return the internal skolem function id, for skolems whose id is
+   * SkolemId::INTERNAL.
+   */
+  InternalSkolemId getInternalSkolemId() const;
 
   /**
    * Returns the reference count of this node.
@@ -1291,7 +1315,7 @@ Node NodeTemplate<ref_count>::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
+  NodeBuilder nb(getNodeManager(), getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
     if(getOperator() == node) {
@@ -1361,7 +1385,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(getNodeManager(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(nodesBegin, nodesEnd,
@@ -1425,7 +1449,7 @@ Node NodeTemplate<ref_count>::substitute(
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder nb(getKind());
+    NodeBuilder nb(getNodeManager(), getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);

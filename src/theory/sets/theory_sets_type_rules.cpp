@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1246,6 +1246,19 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(retTupleType);
 }
 
+TypeNode SetEmptyOfTypeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
+{
+  return nm->mkAbstractType(Kind::SET_TYPE);
+}
+
 Cardinality SetsProperties::computeCardinality(TypeNode type)
 {
   Assert(type.getKind() == Kind::SET_TYPE);
@@ -1262,7 +1275,7 @@ bool SetsProperties::isWellFounded(TypeNode type)
 Node SetsProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.isSet());
-  return NodeManager::currentNM()->mkConst(EmptySet(type));
+  return type.getNodeManager()->mkConst(EmptySet(type));
 }
 
 }  // namespace sets

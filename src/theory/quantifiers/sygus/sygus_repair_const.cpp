@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -216,7 +216,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   SubsolverSetupInfo ssi(
       d_env.getOptions(), lall, d_env.getSepLocType(), d_env.getSepDataType());
   // initialize the subsolver using the standard method
-  initializeSubsolver(repcChecker,
+  initializeSubsolver(nodeManager(),
+                      repcChecker,
                       ssi,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
@@ -319,7 +320,7 @@ Node SygusRepairConst::getSkeleton(Node n,
                                    std::map<TypeNode, size_t>& free_var_count,
                                    std::vector<Node>& sk_vars)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* skm = nm->getSkolemManager();
   // get the most general candidate skeleton of n
   std::unordered_map<TNode, Node> visited;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,33 +18,6 @@
 #include <memory>
 
 namespace cvc5::internal {
-
-NodeBuilder::NodeBuilder()
-    : d_nv(&d_inlineNv),
-      d_nm(NodeManager::currentNM()),
-      d_nvMaxChildren(default_nchild_thresh)
-{
-  d_inlineNv.d_id = 0;
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(Kind::UNDEFINED_KIND);
-  d_inlineNv.d_nm = d_nm;
-  d_inlineNv.d_nchildren = 0;
-}
-
-NodeBuilder::NodeBuilder(Kind k)
-    : d_nv(&d_inlineNv),
-      d_nm(NodeManager::currentNM()),
-      d_nvMaxChildren(default_nchild_thresh)
-{
-  Assert(k != Kind::NULL_EXPR && k != Kind::UNDEFINED_KIND)
-      << "illegal Node-building kind";
-
-  d_inlineNv.d_id = 1;  // have a kind already
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
-  d_inlineNv.d_nm = d_nm;
-  d_inlineNv.d_nchildren = 0;
-}
 
 NodeBuilder::NodeBuilder(NodeManager* nm)
     : d_nv(&d_inlineNv), d_nm(nm), d_nvMaxChildren(default_nchild_thresh)
@@ -254,6 +227,7 @@ NodeBuilder& NodeBuilder::append(TNode n)
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
   Assert(!n.isNull()) << "Cannot use NULL Node as a child of a Node";
+  Assert(n.getNodeManager() == d_nm);
   if (n.getKind() == Kind::BUILTIN)
   {
     return *this << NodeManager::operatorToKind(n);
@@ -271,6 +245,7 @@ NodeBuilder& NodeBuilder::append(const TypeNode& typeNode)
   Assert(!isUsed()) << "NodeBuilder is one-shot only; "
                        "attempt to access it after conversion";
   Assert(!typeNode.isNull()) << "Cannot use NULL Node as a child of a Node";
+  Assert(typeNode.getNodeManager() == d_nm);
   allocateNvIfNecessaryForAppend();
   expr::NodeValue* nv = typeNode.d_nv;
   nv->inc();

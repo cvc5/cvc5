@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,7 @@ class TestBlackOptions : public TestApi
 {
  public:
   /**
-   * Sets setting options for option "name".
+   * Tests setting options for option "name", including error values.
    */
   void testSetOption(const std::string& name)
   {
@@ -154,6 +154,60 @@ class TestBlackOptions : public TestApi
     {
     }
   }
+  /**
+   * Sets a single valid option for option "name".
+   */
+  void testSetOptionOnce(const std::string& name)
+  {
+    auto info = d_solver->getOptionInfo(name);
+
+    try
+    {
+      std::visit(
+          overloaded{
+              [this, &name](const OptionInfo::VoidInfo& v) {
+                d_solver->setOption(name, "");
+              },
+              [this, &name](const OptionInfo::ValueInfo<bool>& v) {
+                d_solver->setOption(name, "false");
+              },
+              [this, &name](const OptionInfo::ValueInfo<std::string>& v) {
+                d_solver->setOption(name, "foo");
+              },
+              [this, &name](const OptionInfo::NumberInfo<int64_t>& v) {
+                std::pair<int64_t, int64_t> range{
+                    std::numeric_limits<int64_t>::min(),
+                    std::numeric_limits<int64_t>::max()};
+                d_solver->setOption(
+                    name, std::to_string((range.first + range.second) / 2));
+              },
+              [this, &name](const OptionInfo::NumberInfo<uint64_t>& v) {
+                std::pair<uint64_t, uint64_t> range{
+                    std::numeric_limits<uint64_t>::min(),
+                    std::numeric_limits<uint64_t>::max()};
+                d_solver->setOption(
+                    name, std::to_string((range.first + range.second) / 2));
+              },
+              [this, &name](const OptionInfo::NumberInfo<double>& v) {
+                std::pair<double, double> range{
+                    std::numeric_limits<double>::min(),
+                    std::numeric_limits<double>::max()};
+                d_solver->setOption(
+                    name, std::to_string((range.first + range.second) / 2));
+              },
+              [this, &name](const OptionInfo::ModeInfo& v) {
+                if (!v.modes.empty())
+                {
+                  d_solver->setOption(name, v.modes[0]);
+                }
+              },
+          },
+          info.valueInfo);
+    }
+    catch (const CVC5ApiOptionException&)
+    {
+    }
+  }
 };
 
 TEST_F(TestBlackOptions, set)
@@ -216,7 +270,8 @@ TEST_F(TestBlackOptions, setSafe)
     {
       testing::internal::CaptureStdout();
     }
-    testSetOption(name);
+    // set the option once
+    testSetOptionOnce(name);
     if (muted.count(name))
     {
       testing::internal::GetCapturedStdout();

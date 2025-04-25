@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,13 +36,12 @@ namespace quantifiers {
 
 SygusAbduct::SygusAbduct() {}
 
-Node SygusAbduct::mkAbductionConjecture(const std::string& name,
+Node SygusAbduct::mkAbductionConjecture(NodeManager* nm,
+                                        const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_set<Node> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
@@ -71,10 +70,10 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     // with UF.
     std::stringstream ss;
     ss << s;
-    Node var = nm->mkBoundVar(tn);
+    Node var = NodeManager::mkBoundVar(tn);
     syms.push_back(s);
     vars.push_back(var);
-    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    Node vlv = NodeManager::mkBoundVar(ss.str(), tn);
     varlist.push_back(vlv);
     varlistTypes.push_back(tn);
     // set that this variable encodes the term s
@@ -87,7 +86,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // make the abduction predicate to synthesize
   TypeNode abdType = varlistTypes.empty() ? nm->booleanType()
                                           : nm->mkPredicateType(varlistTypes);
-  Node abd = nm->mkBoundVar(name.c_str(), abdType);
+  Node abd = NodeManager::mkBoundVar(name.c_str(), abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // the sygus variable list
@@ -170,7 +169,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     Node vbvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
     sc = nm->mkNode(Kind::EXISTS, vbvl, sc);
   }
-  Node sygusScVar = sm->mkDummySkolem("sygus_sc", nm->booleanType());
+  Node sygusScVar = NodeManager::mkDummySkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
   Node instAttr = nm->mkNode(Kind::INST_ATTRIBUTE, sygusScVar);
   // build in the side condition
@@ -179,7 +178,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // the abducts A we procedure must be consistent with our axioms.
 
   // forall A. exists x. ~( A( x ) => ~input( x ) )
-  res = SygusUtils::mkSygusConjecture({abd}, res, {instAttr});
+  res = SygusUtils::mkSygusConjecture(nm, {abd}, res, {instAttr});
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   Trace("sygus-abduct") << "Generate: " << res << std::endl;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,8 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "expr/nary_term_util.h"
+#include "expr/aci_norm.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
@@ -48,7 +49,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::SCOPE, this);
   pc->registerChecker(ProofRule::SUBS, this);
   pc->registerChecker(ProofRule::EVALUATE, this);
+  pc->registerChecker(ProofRule::DISTINCT_VALUES, this);
   pc->registerChecker(ProofRule::ACI_NORM, this);
+  pc->registerChecker(ProofRule::ABSORB, this);
   pc->registerChecker(ProofRule::ITE_EQ, this);
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
@@ -85,6 +88,7 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
                                                     TNode& subs,
                                                     MethodId ids)
 {
+  NodeManager* nm = exp.getNodeManager();
   if (ids == MethodId::SB_DEFAULT)
   {
     if (exp.getKind() != Kind::EQUAL)
@@ -98,12 +102,12 @@ bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
   {
     bool polarity = exp.getKind() != Kind::NOT;
     var = polarity ? exp : exp[0];
-    subs = NodeManager::currentNM()->mkConst(polarity);
+    subs = nm->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
     var = exp;
-    subs = NodeManager::currentNM()->mkConst(true);
+    subs = nm->mkConst(true);
   }
   else
   {
@@ -282,6 +286,18 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     return args[0].eqNode(res);
   }
+  else if (id == ProofRule::DISTINCT_VALUES)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    Assert(args[0].getType() == args[1].getType());
+    if (!args[0].isConst() || !args[1].isConst() || args[0] == args[1])
+    {
+      return Node::null();
+    }
+    // note we don't check for illegal (non-first-class) types here
+    return args[0].eqNode(args[1]).notNode();
+  }
   else if (id == ProofRule::ACI_NORM)
   {
     Assert(children.empty());
@@ -291,6 +307,25 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     if (!expr::isACINorm(args[0][0], args[0][1]))
+    {
+      return Node::null();
+    }
+    return args[0];
+  }
+  else if (id == ProofRule::ABSORB)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::EQUAL)
+    {
+      return Node::null();
+    }
+    if (expr::getZeroElement(nm, args[0][0].getKind(), args[0][0].getType())
+        != args[0][1])
+    {
+      return Node::null();
+    }
+    if (!expr::isAbsorb(args[0][0], args[0][1]))
     {
       return Node::null();
     }
@@ -420,9 +455,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    rewriter::RewriteDbNodeConverter rconv(nodeManager());
-    // run a single (small) step conversion
-    Node ac = rconv.postConvert(args[0]);
+    Node ac = getEncodeEqIntro(nodeManager(), args[0]);
     return args[0].eqNode(ac);
   }
   else if (id == ProofRule::DSL_REWRITE)
@@ -481,6 +514,13 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
   return Node::null();
 }
 
+Node BuiltinProofRuleChecker::getEncodeEqIntro(NodeManager* nm, const Node& n)
+{
+  rewriter::RewriteDbNodeConverter rconv(nm);
+  // run a single (small) step conversion
+  return rconv.postConvert(n);
+}
+
 bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 {
   uint32_t i;
@@ -492,10 +532,9 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
   return true;
 }
 
-Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
+Node BuiltinProofRuleChecker::mkTheoryIdNode(NodeManager* nm, TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(tid)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(tid)));
 }
 
 }  // namespace builtin

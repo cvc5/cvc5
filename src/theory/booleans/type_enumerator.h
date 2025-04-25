@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,12 +39,9 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
 
   Node operator*() override {
     switch(d_value) {
-    case FALSE:
-      return NodeManager::currentNM()->mkConst(false);
-    case TRUE:
-      return NodeManager::currentNM()->mkConst(true);
-    default:
-      throw NoMoreValuesException(getType());
+      case FALSE: return getType().getNodeManager()->mkConst(false);
+      case TRUE: return getType().getNodeManager()->mkConst(true);
+      default: throw NoMoreValuesException(getType());
     }
   }
 

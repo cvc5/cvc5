@@ -21,7 +21,7 @@
 ; conclusion: The index of the store is equal to the selected index.
 (declare-rule arrays_read_over_write_contra ((T Type) (U Type) (i T) (j T) (e U) (a (Array T U)))
   :premises ((not (= (select (store a i e) j) (select a j))))
-  :conclusion (= i j)
+  :conclusion (= j i)
 )
 
 ; rule: arrays_read_over_write_1

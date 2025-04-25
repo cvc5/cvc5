@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -224,6 +224,7 @@ class LfscTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
+                "--no-dt-share-sel",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
                 "--proof-check=lazy",
@@ -355,6 +356,8 @@ class CpcTester(Tester):
             )
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
+            # note this line is not necessary if in a safe build
+            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
@@ -938,10 +941,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    tester_choices = ["all"] + list(g_testers.keys())
+    
+    g_testers_keys = list(g_testers.keys())
+    tester_choices = ["all"] + g_testers_keys
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
     parser.add_argument("--tester", choices=tester_choices, action="append")
+    parser.add_argument("--tester-exc", choices=g_testers_keys, action="append")
     parser.add_argument("--lfsc-binary", default="")
     parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("--carcara-binary", default="")
@@ -973,7 +979,10 @@ def main():
     if not testers:
         testers = g_default_testers
     elif "all" in testers:
-        testers = list(g_testers.keys())
+        testers = g_testers_keys
+
+    if g_args.tester_exc:
+        testers = [t for t in testers if t not in g_args.tester_exc]
 
     lfsc_sigs = []
     if not g_args.lfsc_sig_dir == "":

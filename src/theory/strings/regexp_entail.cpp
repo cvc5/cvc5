@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,19 +29,19 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-RegExpEntail::RegExpEntail(Rewriter* r) : d_aent(r)
+RegExpEntail::RegExpEntail(NodeManager* nm, Rewriter* r) : d_aent(nm, r)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
 }
 
-Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
+Node RegExpEntail::simpleRegexpConsume(NodeManager* nm,
+                                       std::vector<Node>& mchildren,
                                        std::vector<Node>& children,
                                        int dir)
 {
   Trace("regexp-ext-rewrite-debug")
       << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir < 0 ? 0 : dir;
   unsigned tmax = dir < 0 ? 1 : dir;
   // try to remove off front and back
@@ -203,7 +203,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               mchildren_s.push_back(xc);
               utils::getConcat(rc[i], children_s);
               Trace("regexp-ext-rewrite-debug") << push;
-              Node ret = simpleRegexpConsume(mchildren_s, children_s, t);
+              Node ret = simpleRegexpConsume(nm, mchildren_s, children_s, t);
               Trace("regexp-ext-rewrite-debug") << pop;
               if (!ret.isNull())
               {
@@ -281,7 +281,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             Trace("regexp-ext-rewrite-debug")
                 << "- recursive call on body of star" << std::endl;
             Trace("regexp-ext-rewrite-debug") << push;
-            Node ret = simpleRegexpConsume(mchildren_s, children_s, t);
+            Node ret = simpleRegexpConsume(nm, mchildren_s, children_s, t);
             Trace("regexp-ext-rewrite-debug") << pop;
             if (!ret.isNull())
             {
@@ -320,7 +320,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                   Trace("regexp-ext-rewrite-debug")
                       << "- recursive call required repeat star" << std::endl;
                   Trace("regexp-ext-rewrite-debug") << push;
-                  Node rets = simpleRegexpConsume(mchildren_ss, children_ss, t);
+                  Node rets =
+                      simpleRegexpConsume(nm, mchildren_ss, children_ss, t);
                   Trace("regexp-ext-rewrite-debug") << pop;
                   if (!rets.isNull())
                   {
@@ -404,11 +405,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
           return false;
         }
       }
-      else if (ck == Kind::ITE)
-      {
-        return false;
-      }
-      else if (cur.isVar())
+      else if (!utils::isRegExpKind(ck))
       {
         return false;
       }
@@ -602,7 +599,7 @@ bool RegExpEntail::testConstStringInRegExpInternal(String& s,
     }
     case Kind::REGEXP_LOOP:
     {
-      NodeManager* nm = NodeManager::currentNM();
+      NodeManager* nm = r.getNodeManager();
       uint32_t l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
       if (s.size() == index_start)
       {
@@ -702,7 +699,7 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
 
 Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Kind k = n.getKind();
   if (k == Kind::STRING_TO_REGEXP)
   {
@@ -760,7 +757,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     return ret;
   }
   Kind k = n.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (k == Kind::STRING_TO_REGEXP)
   {
     ret = d_aent.getConstantBoundLength(n[0], isLower);
@@ -927,7 +924,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
   }
   // avoid infinite loop
   cache[key] = false;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = r1.getNodeManager();
   Node sigma = nm->mkNode(Kind::REGEXP_ALLCHAR, std::vector<Node>{});
   Node sigmaStar = nm->mkNode(Kind::REGEXP_STAR, sigma);
 
@@ -1009,6 +1006,54 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
   std::map<std::pair<Node, Node>, bool> cache;
   return regExpIncludes(r1, r2, cache);
+}
+
+Node RegExpEntail::getGeneralizedConstRegExp(const Node& n)
+{
+  Assert(n.getType().isString());
+  NodeManager* nm = n.getNodeManager();
+  std::vector<Node> ncs;
+  if (n.getKind() == Kind::STRING_CONCAT)
+  {
+    ncs.insert(ncs.end(), n.begin(), n.end());
+  }
+  else
+  {
+    ncs.push_back(n);
+  }
+  bool nonTrivial = false;
+  Node sigmaStar =
+      nm->mkNode(Kind::REGEXP_STAR, nm->mkNode(Kind::REGEXP_ALLCHAR));
+  std::vector<Node> rs;
+  for (const Node& nc : ncs)
+  {
+    Node re = sigmaStar;
+    if (nc.isConst())
+    {
+      nonTrivial = true;
+      re = nm->mkNode(Kind::STRING_TO_REGEXP, nc);
+    }
+    else if (nc.getKind() == Kind::STRING_ITOS)
+    {
+      nonTrivial = true;
+      Node digRange = nm->mkNode(Kind::REGEXP_RANGE,
+                                 nm->mkConst(String("0")),
+                                 nm->mkConst(String("9")));
+      re = nm->mkNode(Kind::REGEXP_STAR, digRange);
+      // maybe non-empty digit range?
+      // relies on RARE rule str-in-re-from-int-dig-range to prove
+      if (d_aent.check(nc[0]))
+      {
+        re = nm->mkNode(Kind::REGEXP_CONCAT, digRange, re);
+      }
+    }
+    rs.push_back(re);
+  }
+  if (nonTrivial)
+  {
+    return rs.size() == 1 ? rs[0] : nm->mkNode(Kind::REGEXP_CONCAT, rs);
+  }
+  return Node::null();
 }
 
 struct RegExpEntailConstantBoundLowerId

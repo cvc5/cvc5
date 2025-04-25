@@ -1,0 +1,26 @@
+(include "../../theories/Arith.eo")
+
+; Transcendental-specific operators of arithmetic.
+
+; disclaimer: All of the functions in this file are not in SMT-LIB.
+
+(declare-const real.pi Real)
+(declare-const exp (-> Real Real))
+(declare-const sin (-> Real Real))
+(declare-const cos (-> Real Real))
+(declare-const tan (-> Real Real))
+(declare-const csc (-> Real Real))
+(declare-const sec (-> Real Real))
+(declare-const cot (-> Real Real))
+(declare-const arcsin (-> Real Real))
+(declare-const arccos (-> Real Real))
+(declare-const arctan (-> Real Real))
+(declare-const arccsc (-> Real Real))
+(declare-const arcsec (-> Real Real))
+(declare-const arccot (-> Real Real))
+(declare-const sqrt (-> Real Real))
+
+; skolems
+(declare-const @transcendental_purify (-> (! (-> Real Real) :opaque) Real Real))
+(declare-const @transcendental_purify_arg (-> (! Real :opaque) Real))
+(declare-const @transcendental_sine_phase_shift (-> (! Real :opaque) Real))

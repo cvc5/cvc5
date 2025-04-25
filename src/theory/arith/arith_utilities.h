@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Andrew Reynolds
+ *   Tim King, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,9 +38,7 @@ typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
 
-inline Node mkBoolNode(bool b){
-  return NodeManager::currentNM()->mkConst<bool>(b);
-}
+inline Node mkBoolNode(NodeManager* nm, bool b) { return nm->mkConst<bool>(b); }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
 inline bool isRelationOperator(Kind k)
@@ -165,11 +163,12 @@ inline Kind negateKind(Kind k){
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == Kind::AND);
-  NodeBuilder orBuilder(Kind::OR);
+  NodeBuilder orBuilder(conjunction.getNodeManager(), Kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
     TNode child = *i;
-    Node negatedChild = NodeBuilder(Kind::NOT) << (child);
+    Node negatedChild = NodeBuilder(conjunction.getNodeManager(), Kind::NOT)
+                        << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;
@@ -205,7 +204,7 @@ inline void flattenAnd(Node n, std::vector<TNode>& out){
 inline Node flattenAnd(Node n){
   std::vector<TNode> out;
   flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(Kind::AND, out);
+  return n.getNodeManager()->mkNode(Kind::AND, out);
 }
 
 /** Make zero of the given type */
@@ -224,17 +223,16 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
   {
     case Kind::ADD: return mkZero(tn);
     case Kind::MULT:
-    case Kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    case Kind::NONLINEAR_MULT: return NodeManager::mkConstRealOrInt(tn, 1);
     default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
-inline Node mkAndFromBuilder(NodeBuilder& nb)
+inline Node mkAndFromBuilder(NodeManager* nm, NodeBuilder& nb)
 {
   Assert(nb.getKind() == Kind::AND);
   switch (nb.getNumChildren()) {
-    case 0: return mkBoolNode(true);
+    case 0: return mkBoolNode(nm, true);
     case 1:
       return nb[0];
     default:
@@ -250,22 +248,21 @@ inline Node safeConstructNaryType(const TypeNode& tn,
   {
     case 0: return getIdentityType(tn, k);
     case 1: return children[0];
-    default: return NodeManager::currentNM()->mkNode(k, children);
+    default: return tn.getNodeManager()->mkNode(k, children);
   }
 }
 
 // Returns the multiplication of a and b.
 inline Node mkMult(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(Kind::MULT, a, b);
+  return NodeManager::mkNode(Kind::MULT, a, b);
 }
 
 // Return a constraint that is equivalent to term being is in the range
 // [start, end). This includes start and excludes end.
 inline Node mkInRange(Node term, Node start, Node end) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node above_start = nm->mkNode(Kind::LEQ, start, term);
-  Node below_end = nm->mkNode(Kind::LT, term, end);
-  return nm->mkNode(Kind::AND, above_start, below_end);
+  Node above_start = NodeManager::mkNode(Kind::LEQ, start, term);
+  Node below_end = NodeManager::mkNode(Kind::LT, term, end);
+  return NodeManager::mkNode(Kind::AND, above_start, below_end);
 }
 
 // Creates an expression that constrains q to be equal to one of two expressions
@@ -276,9 +273,8 @@ inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
-inline Node mkPi()
+inline Node mkPi(NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNullaryOperator(nm->realType(), Kind::PI);
 }
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
@@ -329,6 +325,12 @@ Node multConstants(const Node& c1, const Node& c2);
  * Use this utility to ensure an equality is properly typed.
  */
 Node mkEquality(const Node& a, const Node& b);
+
+/**
+ * Return the real cast of n. If n is a constant integer, we return a
+ * constant real. Otherwise we apply TO_REAL to n.
+ */
+Node castToReal(NodeManager* nm, const Node& n);
 
 /**
  * Ensures that the returned pair has equal type, where a and b have

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/theory_inference.h"
 
@@ -175,7 +176,17 @@ class MonomialCheck : protected EnvObj
                       NodeMultiset& d_order,
                       bool isConcrete,
                       bool isAbsolute);
-  /** Make literal */
+  /**
+   * Make and notify absolute value literal. If proofs are enabled, this
+   * notifies the nl compare proof generator (d_ancPfGen) that the returned
+   * literal corresponds to the given associate comparison literal between a
+   * and b.
+   */
+  Node mkAndNotifyAbsLit(Kind k, Node a, Node b) const;
+  /**
+   * Make literal that compares (the absolute value of) a and b based on
+   * status.
+   */
   Node mkLit(Node a, Node b, int status, bool isAbsolute = false) const;
   /** register monomial */
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
@@ -191,6 +202,8 @@ class MonomialCheck : protected EnvObj
   // list of monomials with factors whose model value is non-constant in model
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
+  /** A proof generator for MACRO_ARITH_NL_COMPARISON steps */
+  std::shared_ptr<ArithNlCompareProofGenerator> d_ancPfGen;
 };
 
 }  // namespace nl

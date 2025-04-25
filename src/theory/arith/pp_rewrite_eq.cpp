@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,21 +37,22 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
     return TrustNode::null();
   }
   Assert(atom[0].getType().isRealOrInt());
-  Node leq = NodeBuilder(Kind::LEQ) << atom[0] << atom[1];
-  Node geq = NodeBuilder(Kind::GEQ) << atom[0] << atom[1];
-  Node rewritten = rewrite(leq.andNode(geq));
+  Node leq = NodeBuilder(nodeManager(), Kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder(nodeManager(), Kind::GEQ) << atom[0] << atom[1];
+  Node rewritten = leq.andNode(geq);
   Trace("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op
   if (d_env.isTheoryProofProducing())
   {
-    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nodeManager(),
+                                                              THEORY_ARITH);
     Node eq = atom.eqNode(rewritten);
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
         d_env.getProofNodeManager()->mkTrustedNode(
-            TrustId::THEORY_INFERENCE, {}, {}, eq));
+            TrustId::THEORY_INFERENCE_ARITH, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }

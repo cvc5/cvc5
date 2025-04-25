@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -105,7 +105,7 @@ bool canFlatten(TNode t, Kinds... kinds)
  * @return A flattened version of t
  */
 template <typename... Kinds>
-Node flatten(TNode t, Kinds... kinds)
+Node flatten(NodeManager* nm, TNode t, Kinds... kinds)
 {
   if (!canFlatten(t, kinds...))
   {
@@ -113,7 +113,7 @@ Node flatten(TNode t, Kinds... kinds)
   }
   std::vector<TNode> children;
   flatten(t, children, kinds...);
-  return NodeManager::currentNM()->mkNode(t.getKind(), children);
+  return nm->mkNode(t.getKind(), children);
 }
 
 }  // namespace cvc5::internal::expr

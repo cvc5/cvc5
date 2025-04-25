@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -218,7 +218,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     return true;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   // constant
   if (n.getMetaKind() == kind::metakind::CONSTANT)
   {
@@ -446,7 +446,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
           << n.getConst<BitVectorRotateRight>().d_rotateRightAmount << ")";
       break;
     case Kind::INT_TO_BITVECTOR_OP:
-      out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
+      out << "(_ int_to_bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP:
       out << "(_ to_fp "
@@ -563,7 +563,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
   if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
       || k == Kind::NULLABLE_TYPE)
   {
-    const DType& dt = NodeManager::currentNM()->getDTypeFor(n);
+    const DType& dt = n.getNodeManager()->getDTypeFor(n);
     if (dt.isTuple())
     {
       unsigned int nargs = dt[0].getNumArgs();
@@ -812,6 +812,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     toStream(out, n[0], nullptr, toDepth);
     out << " ";
     bool needsPrintAnnot = false;
+    size_t dag = options::ioutils::getDagThresh(out);
+    size_t newDepth = (toDepth < 0 ? toDepth : toDepth - 1);
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
@@ -821,14 +823,22 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
         if (nck == Kind::INST_PATTERN)
         {
           needsPrintAnnot = true;
-          annot << " :pattern ";
-          toStream(annot, nc, lbind, toDepth);
+          annot << " :pattern (";
+          for (size_t i = 0, nchild = nc.getNumChildren(); i < nchild; i++)
+          {
+            if (i > 0)
+            {
+              annot << " ";
+            }
+            toStream(annot, nc[i], newDepth, dag);
+          }
+          annot << ")";
         }
         else if (nck == Kind::INST_NO_PATTERN)
         {
           needsPrintAnnot = true;
           annot << " :no-pattern ";
-          toStream(annot, nc[0], lbind, toDepth);
+          toStream(annot, nc[0], newDepth, dag);
         }
         else if (nck == Kind::INST_POOL || nck == Kind::INST_ADD_TO_POOL
                  || nck == Kind::SKOLEM_ADD_TO_POOL)
@@ -850,7 +860,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             {
               annot << " ";
             }
-            toStream(annot, nc[i], lbind, toDepth);
+            toStream(annot, nc[i], newDepth, dag);
           }
           annot << ")";
         }
@@ -869,7 +879,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
-              toStream(annot, nc[j], lbind, toDepth);
+              toStream(annot, nc[j], newDepth, dag);
             }
           }
         }
@@ -882,8 +892,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       out << "(! ";
       annot << ")";
     }
-    size_t dag = options::ioutils::getDagThresh(out);
-    toStream(out, n[1], toDepth < 0 ? toDepth : toDepth - 1, dag);
+    toStream(out, n[1], newDepth, dag);
     out << annot.str() << ")";
     return true;
   }
@@ -1000,7 +1009,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       size_t cindex = DType::cindexOf(op);
       if (dt.isTuple())
       {
-        out << "(_ tuple.update " << DType::indexOf(op) << ")";
+        out << "(_ tuple.update " << index << ")";
       }
       else
       {
@@ -1116,6 +1125,10 @@ void Smt2Printer::toStream(std::ostream& out,
       {
         visit.pop_back();
         out << "(...)";
+        if (cur.getNumChildren() > 0)
+        {
+          out << ')';
+        }
         continue;
       }
     }
@@ -1146,6 +1159,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::EQUAL: return "=";
     case Kind::DISTINCT: return "distinct";
     case Kind::SEXPR: break;
+
+    case Kind::TYPE_OF: return "@type_of";
 
     // bool theory
     case Kind::NOT: return "not";
@@ -1202,6 +1217,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::TO_INTEGER: return "to_int";
     case Kind::TO_REAL: return "to_real";
     case Kind::POW: return "^";
+    case Kind::DIVISIBLE: return "divisible";
 
     // arrays theory
     case Kind::SELECT: return "select";
@@ -1253,7 +1269,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_USUBO: return "bvusubo";
     case Kind::BITVECTOR_SSUBO: return "bvssubo";
     case Kind::BITVECTOR_SDIVO: return "bvsdivo";
-    case Kind::BITVECTOR_TO_NAT: return "bv2nat";
+    case Kind::BITVECTOR_UBV_TO_INT: return "ubv_to_int";
+    case Kind::BITVECTOR_SBV_TO_INT: return "sbv_to_int";
     case Kind::BITVECTOR_REDOR: return "bvredor";
     case Kind::BITVECTOR_REDAND: return "bvredand";
 
@@ -1263,7 +1280,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
     case Kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
     case Kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
-    case Kind::INT_TO_BITVECTOR: return "int2bv";
+    case Kind::INT_TO_BITVECTOR: return "int_to_bv";
     case Kind::BITVECTOR_ITE: return "bvite";
     case Kind::BITVECTOR_ULTBV: return "bvultbv";
     case Kind::BITVECTOR_SLTBV: return "bvsltbv";
@@ -1313,6 +1330,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::RELATION_GROUP: return "rel.group";
     case Kind::RELATION_AGGREGATE: return "rel.aggr";
     case Kind::RELATION_PROJECT: return "rel.project";
+    case Kind::SET_EMPTY_OF_TYPE: return "@set.empty_of_type";
 
     // bag theory
     case Kind::BAG_TYPE: return "Bag";
@@ -1331,6 +1349,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::BAG_CHOOSE: return "bag.choose";
     case Kind::BAG_MAP: return "bag.map";
     case Kind::BAG_FILTER: return "bag.filter";
+    case Kind::BAG_ALL: return "bag.all";
+    case Kind::BAG_SOME: return "bag.some";
     case Kind::BAG_FOLD: return "bag.fold";
     case Kind::BAG_PARTITION: return "bag.partition";
     case Kind::TABLE_PRODUCT: return "table.product";
@@ -1436,6 +1456,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SEQUENCE_TYPE: return "Seq";
     case Kind::SEQ_UNIT: return "seq.unit";
     case Kind::SEQ_NTH: return "seq.nth";
+    case Kind::SEQ_EMPTY_OF_TYPE: return "@seq.empty_of_type";
 
     // sep theory
     case Kind::SEP_STAR: return "sep";
@@ -2228,7 +2249,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
     std::list<TypeNode> typesToPrint;
     grammarTypes.insert(t);
     typesToPrint.push_back(t);
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = t.getNodeManager();
     // for each datatype in grammar
     //   name
     //   sygus type
@@ -2266,7 +2287,7 @@ std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
             TypeNode argType = cons[j].getRangeType();
             std::stringstream ss;
             ss << argType;
-            Node bv = nm->mkBoundVar(ss.str(), argType);
+            Node bv = NodeManager::mkBoundVar(ss.str(), argType);
             cchildren.push_back(bv);
             // if fresh type, store it for later processing
             if (grammarTypes.insert(argType).second)

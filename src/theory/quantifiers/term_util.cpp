@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,7 +65,7 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
         if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
           children.insert( children.begin(), n.getOperator() );
         }
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
+        ret = n.getNodeManager()->mkNode(n.getKind(), children);
       }
     }
     visited[n] = ret;
@@ -117,99 +117,18 @@ bool TermUtil::hasInstConstAttr(Node n)
   return !getInstConstAttr(n).isNull();
 }
 
-Node TermUtil::getBoundVarAttr( Node n ) {
-  if (!n.hasAttribute(BoundVarAttribute()) ){
-    Node bv;
-    if (n.getKind() == Kind::BOUND_VARIABLE)
-    {
-      bv = n;
-    }
-    else
-    {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        bv = getBoundVarAttr(n[i]);
-        if( !bv.isNull() ){
-          break;
-        }
-      }
-    }
-    BoundVarAttribute bva;
-    n.setAttribute(bva, bv);
-  }
-  return n.getAttribute(BoundVarAttribute());
-}
-
-bool TermUtil::hasBoundVarAttr( Node n ) {
-  return !getBoundVarAttr(n).isNull();
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
   return getRemoveQuantifiers2( n, visited );
 }
 
-void TermUtil::computeInstConstContains(Node n, std::vector<Node>& ics)
-{
-  computeVarContainsInternal(n, Kind::INST_CONSTANT, ics);
-}
-
-void TermUtil::computeVarContains(Node n, std::vector<Node>& vars)
-{
-  computeVarContainsInternal(n, Kind::BOUND_VARIABLE, vars);
-}
-
-void TermUtil::computeQuantContains(Node n, std::vector<Node>& quants)
-{
-  computeVarContainsInternal(n, Kind::FORALL, quants);
-}
-
-void TermUtil::computeVarContainsInternal(Node n,
-                                          Kind k,
-                                          std::vector<Node>& vars)
-{
-  std::unordered_set<TNode> visited;
-  std::unordered_set<TNode>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getKind() == k)
-      {
-        if (std::find(vars.begin(), vars.end(), cur) == vars.end())
-        {
-          vars.push_back(cur);
-        }
-      }
-      else
-      {
-        if (cur.hasOperator())
-        {
-          visit.push_back(cur.getOperator());
-        }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    }
-  } while (!visit.empty());
-}
-
 void TermUtil::computeInstConstContainsForQuant(Node q,
                                                 Node n,
                                                 std::vector<Node>& vars)
 {
-  std::vector<Node> ics;
-  computeInstConstContains(n, ics);
+  std::unordered_set<Node> ics;
+  expr::getSubtermsKind(Kind::INST_CONSTANT, n, ics);
   for (const Node& v : ics)
   {
     if (v.getAttribute(InstConstantAttribute()) == q)
@@ -289,7 +208,7 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
 Node TermUtil::simpleNegate(Node n)
 {
   Assert(n.getType().isBoolean());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (n.getKind() == Kind::OR || n.getKind() == Kind::AND)
   {
     std::vector< Node > children;
@@ -312,7 +231,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
   {
     return n[0];
   }
-  return NodeManager::currentNM()->mkNode(notk, n);
+  return NodeManager::mkNode(notk, n);
 }
 
 bool TermUtil::isNegate(Kind k)
@@ -381,20 +300,20 @@ Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
   if (tn.isRealOrInt())
   {
     Rational c(val);
-    n = NodeManager::currentNM()->mkConstRealOrInt(tn, c);
+    n = tn.getNodeManager()->mkConstRealOrInt(tn, c);
   }
   else if (tn.isBitVector())
   {
     // cast to unsigned
     uint32_t uv = static_cast<uint32_t>(val);
     BitVector bval(tn.getConst<BitVectorSize>(), uv);
-    n = NodeManager::currentNM()->mkConst<BitVector>(bval);
+    n = tn.getNodeManager()->mkConst<BitVector>(bval);
   }
   else if (tn.isBoolean())
   {
     if (val == 0)
     {
-      n = NodeManager::currentNM()->mkConst(false);
+      n = tn.getNodeManager()->mkConst(false);
     }
   }
   else if (tn.isStringLike())
@@ -410,13 +329,14 @@ Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 Node TermUtil::mkTypeMaxValue(TypeNode tn)
 {
   Node n;
+  NodeManager* nm = tn.getNodeManager();
   if (tn.isBitVector())
   {
-    n = bv::utils::mkOnes(tn.getConst<BitVectorSize>());
+    n = bv::utils::mkOnes(nm, tn.getConst<BitVectorSize>());
   }
   else if (tn.isBoolean())
   {
-    n = NodeManager::currentNM()->mkConst(true);
+    n = nm->mkConst(true);
   }
   return n;
 }
@@ -434,14 +354,14 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
     Rational vval = val.getConst<Rational>();
     Rational oval(offset);
     status = 0;
-    return NodeManager::currentNM()->mkConstRealOrInt(tn, vval + oval);
+    return NodeManager::mkConstRealOrInt(tn, vval + oval);
   }
   else if (tn.isBitVector())
   {
     BitVector vval = val.getConst<BitVector>();
     uint32_t uv = static_cast<uint32_t>(offset);
     BitVector oval(tn.getConst<BitVectorSize>(), uv);
-    return NodeManager::currentNM()->mkConst(vval + oval);
+    return tn.getNodeManager()->mkConst(vval + oval);
   }
   return val_o;
 }
@@ -578,14 +498,14 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       }
       else if (arg == 2)
       {
-        return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
+        return mkTypeValue(n.getNodeManager()->stringType(), 0);
       }
     }
     else if (ik == Kind::STRING_INDEXOF)
     {
       if (arg == 0 || arg == 1)
       {
-        return mkTypeValue(NodeManager::currentNM()->integerType(), -1);
+        return mkTypeValue(n.getNodeManager()->integerType(), -1);
       }
     }
   }
@@ -610,12 +530,12 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       // negative arguments
       if (ik == Kind::STRING_SUBSTR || ik == Kind::STRING_CHARAT)
       {
-        return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
+        return mkTypeValue(n.getNodeManager()->stringType(), 0);
       }
       else if (ik == Kind::STRING_INDEXOF)
       {
         Assert(arg == 2);
-        return mkTypeValue(NodeManager::currentNM()->integerType(), -1);
+        return mkTypeValue(n.getNodeManager()->integerType(), -1);
       }
     }
   }
@@ -657,11 +577,11 @@ Node TermUtil::ensureType(Node n, TypeNode tn)
   }
   if (tn.isInteger())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_INTEGER, n);
+    return NodeManager::mkNode(Kind::TO_INTEGER, n);
   }
   else if (tn.isReal())
   {
-    return NodeManager::currentNM()->mkNode(Kind::TO_REAL, n);
+    return NodeManager::mkNode(Kind::TO_REAL, n);
   }
   return Node::null();
 }

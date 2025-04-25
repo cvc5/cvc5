@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -100,13 +100,14 @@ class TestCApiBlackProof : public ::testing::Test
     cvc5_set_option(d_solver, "produce-proofs", "true");
     cvc5_set_option(d_solver, "proof-granularity", "dsl-rewrite");
     Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
-    std::vector<Cvc5Term> args = {cvc5_mk_integer_int64(d_tm, 2), x};
-    Cvc5Term twox =
-        cvc5_mk_term(d_tm, CVC5_KIND_MULT, args.size(), args.data());
-    args = {x, x};
-    Cvc5Term xplusx =
-        cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
-    args = {twox, xplusx};
+    Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 2);
+    std::vector<Cvc5Term> args = {x, zero};
+    Cvc5Term geq =
+        cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+    args = {zero, x};
+    Cvc5Term leq =
+        cvc5_mk_term(d_tm, CVC5_KIND_LEQ, args.size(), args.data());
+    args = {geq, leq};
     cvc5_assert_formula(
         d_solver,
         cvc5_mk_term(d_tm, CVC5_KIND_DISTINCT, args.size(), args.data()));

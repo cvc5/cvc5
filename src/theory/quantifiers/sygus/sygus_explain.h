@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,7 @@ class TermDbSygus;
 class TermRecBuild
 {
  public:
-  TermRecBuild() {}
+  TermRecBuild(NodeManager* nm) : d_nm(nm) {}
   /** set the initial term to n
    *
    * The context initially empty, that is,
@@ -74,6 +74,8 @@ class TermRecBuild
   Node build(unsigned p = 0);
 
  private:
+  /** Pointer to the node manager */
+  NodeManager* d_nm;
   /** stack of active terms */
   std::vector<Node> d_term;
   /** stack of children of active terms

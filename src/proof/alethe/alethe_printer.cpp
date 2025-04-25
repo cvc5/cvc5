@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa, Aina Niemetz
+ *   Haniel Barbosa, Hanna Lachnitt, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -173,10 +173,12 @@ void AletheProofPrinter::print(
   if (options().proof.proofAletheDefineSkolems)
   {
     const std::map<Node, Node>& skolemDefs = d_anc.getSkolemDefinitions();
-    for (const auto& [skolem, choice] : skolemDefs)
+    const std::vector<Node>& skolemList = d_anc.getSkolemList();
+    for (const auto& skolem : skolemList)
     {
+      Assert(skolemDefs.find(skolem) != skolemDefs.end());
       out << "(define-fun " << skolem << " () " << skolem.getType() << " ";
-      printTerm(out, choice);
+      printTerm(out, skolemDefs.at(skolem));
       out << ")" << std::endl;
     }
   }

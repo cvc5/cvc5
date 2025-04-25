@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -219,6 +219,28 @@ class BagsRewriter : public TheoryRewriter
    *  where p: T -> Bool
    */
   BagsRewriteResponse postRewriteFilter(const TNode& n) const;
+
+  /**
+   *  rewrites for n include:
+   *  - (bag.all p (as bag.empty (Bag T)) is rewritten as true
+   *  - (bag.all p (bag x n)) is rewritten as ((p x) or (<= n 0))
+   *  - (bag.all p (bag.union_disjoint A B)) is rewritten as
+   *       (and (bag.all p A) (bag.all p B))
+   *  - otherwise (bag.all p A) is rewritten as (= (bag.filter p A) A)
+   *  where p: T -> Bool
+   */
+  BagsRewriteResponse postRewriteAll(TNode n);
+  /**
+   *  rewrites for n include:
+   *  - (bag.some p (as bag.empty (Bag T)) is rewritten as false
+   *  - (bag.some p (bag x n)) is rewritten as  (and (> 0) (p x))
+   *  - (bag.some p (bag.union A B)) is rewritten as
+   *       (or (bag.some p A) (bag.some p B))
+   *  - otherwise (bag.some p A) is rewritten as
+   *       (distinct (bag.filter p A) (as bag.empty (Bag T)))
+   *  where p: T -> Bool
+   */
+  BagsRewriteResponse postRewriteSome(TNode n);
 
   /**
    *  rewrites for n include:
