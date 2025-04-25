@@ -348,6 +348,7 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
     case ProofRewriteRule::MACRO_BV_MULT_SLT_MULT:
     case ProofRewriteRule::MACRO_BV_CONCAT_EXTRACT_MERGE:
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
+    case ProofRewriteRule::MACRO_BV_BITWISE_EQ:
       handledMacro = d_bvRewElab.ensureProofFor(cdp, id, eq);
       break;
     default: break;

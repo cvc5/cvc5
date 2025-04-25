@@ -51,6 +51,8 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForMultSltMult(cdp, eq);
     case ProofRewriteRule::MACRO_BV_AND_OR_XOR_CONCAT_PULLUP:
       return ensureProofForAndOrXorConcatPullup(cdp, eq);
+    case ProofRewriteRule::MACRO_BV_BITWISE_EQ:
+      return ensureProofForBitwiseEq(cdp, eq);
     default: break;
   }
   return false;
@@ -418,6 +420,11 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
       equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
   cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
   return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForBitwiseEq(CDProof* cdp, const Node& eq)
+{
+  return false;
 }
 
 Node MacroRewriteElaborator::proveCong(CDProof* cdp,
