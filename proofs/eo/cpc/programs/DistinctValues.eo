@@ -50,8 +50,8 @@
 (program $set_is_not_subset ((T Type) (t (Set T)) (ts (Set T) :list) (s (Set T)) (ss (Set T) :list) (e1 T) (e2 T))
   ((Set T) (Set T)) Bool
   (
-  (($set_is_not_subset (set.empty (Set T)) s)                                 false)
-  (($set_is_not_subset (set.singleton e1) (set.empty (Set T)))                true)
+  (($set_is_not_subset (as set.empty (Set T)) s)                              false)
+  (($set_is_not_subset (set.singleton e1) (as set.empty (Set T)))             true)
   (($set_is_not_subset (set.singleton e1) (set.singleton e2))                 ($are_distinct_terms e1 e2))
   (($set_is_not_subset (set.singleton e1) (set.union (set.singleton e2) ss))  (eo::ite ($are_distinct_terms e1 e2)
                                                                                 ($set_is_not_subset (set.singleton e1) ss)
