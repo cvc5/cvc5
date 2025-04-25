@@ -3156,6 +3156,19 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_BV_EQ_SOLVE),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bitvectors -- Macro bitwise equal **
+   *
+   * .. math::
+   *    a = b
+   *
+   * where :math:`a` is rewritten to :math:`b` by the internal rewrite
+   * rule BitwiseEq.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_BV_BITWISE_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Bitvectors -- Unsigned multiplication overflow detection elimination**
    *
    * .. math::

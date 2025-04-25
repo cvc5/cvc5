@@ -303,6 +303,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
       return "macro-bv-concat-constant-merge";
     case ProofRewriteRule::MACRO_BV_EQ_SOLVE: return "macro-bv-eq-solve";
+    case ProofRewriteRule::MACRO_BV_BITWISE_EQ: return "macro-bv-bitwise-eq";
     case ProofRewriteRule::BV_UMULO_ELIM: return "bv-umulo-elim";
     case ProofRewriteRule::BV_SMULO_ELIM: return "bv-smulo-elim";
     case ProofRewriteRule::BV_BITWISE_SLICING: return "bv-bitwise-slicing";
