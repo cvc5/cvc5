@@ -141,7 +141,6 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            children,
                            new_args,
                            *cdp);
-      break;
     }
     default: break;
   }
