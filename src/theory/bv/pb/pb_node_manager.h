@@ -10,7 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * TODO (alanctprado)
+ * The PbNodeManager is responsible for managing the mapping between PbLiteral
+ * objects and their corresponding Node representations.
+ *
+ * Each PbLiteral  is associated with a Boolean Node. This ensures that literals
+ * used in pseudo-Boolean constraints have consistent and reusable Node
+ * representations.
  */
 
 #include "cvc5_private.h"
@@ -28,14 +33,6 @@ namespace pb {
 
 typedef std::unordered_map<PbLiteral, Node, PbLiteralHash> PbLiteralToNodeMap;
 
-/**
- * The PbNodeManager is responsible for managing the mapping between PbLiteral
- * objects and their corresponding Node representations.
- *
- * Each PbLiteral  is associated with a Boolean Node. This ensures that literals
- * used in pseudo-Boolean constraints have consistent and reusable Node
- * representations.
- */
 class PbNodeManager
 {
  public:
