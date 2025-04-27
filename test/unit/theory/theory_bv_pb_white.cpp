@@ -73,5 +73,40 @@ TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeRecovery)
   EXPECT_EQ(literal.toNode(pb_nm), literal_node);
 }
 
+TEST_F(TestTheoryBvPbWhite, PbConstraintToNodeEquality)
+{
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager.get());
+
+  std::vector<theory::bv::pb::PbLiteral> vars{
+      theory::bv::pb::PbLiteral(42),
+      theory::bv::pb::PbLiteral(43)};
+  std::vector<Integer> coeffs{Integer(3), Integer(5)};
+
+  theory::bv::pb::PbConstraint cons1(
+      vars, coeffs, Kind::GEQ, Integer(7), pb_nm, d_nodeManager.get());
+  theory::bv::pb::PbConstraint cons2(
+      vars, coeffs, Kind::GEQ, Integer(7), pb_nm, d_nodeManager.get());
+
+  EXPECT_EQ(cons1.toNode(), cons2.toNode());
+}
+
+TEST_F(TestTheoryBvPbWhite, PbConstraintSetUniqueness)
+{
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager.get());
+
+  std::vector<theory::bv::pb::PbLiteral> vars{
+      theory::bv::pb::PbLiteral(42),
+      theory::bv::pb::PbLiteral(43)};
+  std::vector<Integer> coeffs{Integer(3), Integer(5)};
+
+  theory::bv::pb::PbConstraint cons1(
+      vars, coeffs, Kind::GEQ, Integer(7), pb_nm, d_nodeManager.get());
+  theory::bv::pb::PbConstraint cons2(
+      vars, coeffs, Kind::GEQ, Integer(7), pb_nm, d_nodeManager.get());
+
+  std::set<theory::bv::pb::PbConstraint> constraints{cons1, cons2};
+  EXPECT_EQ(constraints.size(), 1);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

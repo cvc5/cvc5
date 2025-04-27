@@ -21,9 +21,9 @@
 
 #include <sstream>
 
+#include "theory/bv/pb/pb_node_manager.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "theory/bv/pb/pb_node_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -132,6 +132,22 @@ std::vector<Node> PbConstraint::generateProducts(
                  terms.begin(),
                  createTerm);
   return terms;
+}
+
+std::ostream& operator<<(std::ostream& os, const PbConstraint& lit)
+{
+  os << lit.toNode();
+  return os;
+}
+
+bool PbConstraint::operator==(const PbConstraint& other) const
+{
+  return this->d_constraint == other.d_constraint;
+}
+
+bool PbConstraint::operator<(const PbConstraint& other) const
+{
+  return this->d_constraint < other.d_constraint;
 }
 
 Node PbConstraint::toNode() const { return d_constraint; }

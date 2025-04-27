@@ -123,6 +123,11 @@ class PbConstraint
                         const Integer& constant,
                         PbNodeManager& pbNodeManager,
                         NodeManager* nodeManager);
+
+  friend std::ostream& operator<<(std::ostream& os, const PbLiteral& var);
+  bool operator==(const PbConstraint& other) const;
+  bool operator<(const PbConstraint& other) const;
+
   Node toNode() const;
 
  private:
