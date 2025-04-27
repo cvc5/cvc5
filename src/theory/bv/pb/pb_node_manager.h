@@ -29,7 +29,12 @@ namespace pb {
 typedef std::unordered_map<PbLiteral, Node, PbLiteralHash> PbLiteralToNodeMap;
 
 /**
- * TODO(alanctprado)
+ * The PbNodeManager is responsible for managing the mapping between PbLiteral
+ * objects and their corresponding Node representations.
+ *
+ * Each PbLiteral  is associated with a Boolean Node. This ensures that literals
+ * used in pseudo-Boolean constraints have consistent and reusable Node
+ * representations.
  */
 class PbNodeManager
 {
