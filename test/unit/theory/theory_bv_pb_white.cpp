@@ -13,11 +13,11 @@
  * Unit tests for PB-Blasting
  */
 
-#include<sstream>
+#include <sstream>
 
 #include "test_smt.h"
-#include "theory/bv/pb/pb_types.h"
 #include "theory/bv/pb/pb_node_manager.h"
+#include "theory/bv/pb/pb_types.h"
 
 namespace cvc5::internal {
 
@@ -51,7 +51,7 @@ TEST_F(TestTheoryBvPbWhite, PbLiteralNegativeEqualsString)
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeEqualsString)
 {
   theory::bv::pb::PbLiteral literal(42);
-  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager.get());
   Node literal_node = literal.toNode(pb_nm);
   EXPECT_EQ(literal_node.toString(), "x42");
 }
@@ -59,7 +59,7 @@ TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeEqualsString)
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeInsertion)
 {
   theory::bv::pb::PbLiteral literal(42);
-  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager.get());
   EXPECT_EQ(pb_nm.countLiterals(), 0);
   literal.toNode(pb_nm);
   EXPECT_EQ(pb_nm.countLiterals(), 1);
@@ -68,7 +68,7 @@ TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeInsertion)
 TEST_F(TestTheoryBvPbWhite, PbLiteralToNodeRecovery)
 {
   theory::bv::pb::PbLiteral literal(42);
-  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager);
+  theory::bv::pb::PbNodeManager pb_nm(d_nodeManager.get());
   Node literal_node = pb_nm.literalToNode(literal);
   EXPECT_EQ(literal.toNode(pb_nm), literal_node);
 }

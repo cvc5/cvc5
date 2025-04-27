@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * TODO(alanctprado)
+ * PbNodemanager impls
  */
 
 #include "theory/bv/pb/pb_node_manager.h"
