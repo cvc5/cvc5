@@ -142,6 +142,17 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+    // ======== QUANT_MERGE_PRENEX
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    {
+      return addAletheStep(AletheRule::QNT_JOIN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== QUANT_UNUSED_VARS
     // This rule is translated according to the clause pattern.
     case ProofRewriteRule::QUANT_UNUSED_VARS:
