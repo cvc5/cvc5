@@ -43,6 +43,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currStepLimit(0),
+      d_currFailResource(false),
       d_currFixedPointId(ProofRewriteRule::NONE),
       d_statTotalInputs(
           statisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
@@ -173,6 +174,15 @@ bool RewriteDbProofCons::proveEqStratified(
       {
         Trace("rpc") << "...success" << std::endl;
         success = true;
+        break;
+      }
+      else if (!d_currFailResource)
+      {
+        Trace("rpc-debug") << "...fail independent of depth (" << i << ")"
+                           << std::endl;
+        // if it was not due to a resource limit, we know that we will always
+        // fail at higher recursion limit, so we abort here for the sake of
+        // performance.
         break;
       }
     }
@@ -337,6 +347,7 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
   // initiate the getMatches routine.
   d_currRecLimit = recLimit + 1;
   d_currStepLimit = stepLimit;
+  d_currFailResource = false;
   RewriteProofStatus id;
   if (!proveInternalBase(eqi, id))
   {
@@ -428,9 +439,17 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
-    if (it->second.d_id != RewriteProofStatus::FAIL
-        || d_currRecLimit <= it->second.d_failMaxDepth)
+    if (it->second.d_id != RewriteProofStatus::FAIL)
     {
+      return it->second.d_id;
+    }
+    else if (it->second.d_failMaxDepth == -1)
+    {
+      return it->second.d_id;
+    }
+    else if (d_currRecLimit <= it->second.d_failMaxDepth)
+    {
+      d_currFailResource = true;
       return it->second.d_id;
     }
   }
@@ -841,6 +860,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     if (!doRecurse || (decRecLimit && d_currRecLimit == 0))
     {
+      d_currFailResource = true;
       // we can't apply recursion, return false
       Trace("rpc-debug2") << "...fail (recursion limit)" << std::endl;
       return false;
@@ -859,6 +879,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       d_currRecLimit--;
       if (d_currStepLimit == 0)
       {
+        d_currFailResource = true;
         return false;
       }
       d_currStepLimit--;
@@ -959,6 +980,12 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
       Trace("rpc-debug2") << "...success, already exists" << std::endl;
       return true;
     }
+    if (it->second.d_failMaxDepth == -1)
+    {
+      idb = it->second.d_id;
+      Trace("rpc-debug2") << "...fail (depth independent)" << std::endl;
+      return true;
+    }
     if (d_currRecLimit <= it->second.d_failMaxDepth)
     {
       idb = it->second.d_id;
@@ -982,14 +1009,15 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   }
   // non-well-typed equalities cannot be proven
   // also, variables cannot be rewritten
-  if (eqi.getTypeOrNull().isNull() || eqi[0].isVar())
+  if (eqi.getTypeOrNull().isNull()
+      || (eqi[0].isVar() && !eqi[0].getTypeOrNull().isBoolean()))
   {
     Trace("rpc-debug2") << "...fail ("
                         << (eqi[0].isVar() ? "variable" : "ill-typed") << ")"
                         << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
     idb = RewriteProofStatus::FAIL;
-    pi.d_failMaxDepth = 0;
+    pi.d_failMaxDepth = -1;
     pi.d_id = idb;
     return true;
   }
@@ -1009,11 +1037,12 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
       // resort.
       Node lhs = i == 1 ? ev[0] : eqi[0];
       Node eq = lhs.eqNode(eqi[1]);
+
       if (eq.getTypeOrNull().isNull())
       {
         ProvenInfo& pi = d_pcache[eqi];
         idb = RewriteProofStatus::FAIL;
-        pi.d_failMaxDepth = 0;
+        pi.d_failMaxDepth = -1;
         pi.d_id = idb;
         Trace("rpc-debug2") << "...fail, ill-typed equality" << std::endl;
         return true;
@@ -1028,7 +1057,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
           Trace("rpc-debug2") << "fail, infeasible due to rewriting: " << eqi[0]
                               << " == " << eqi[1] << std::endl;
           idb = RewriteProofStatus::FAIL;
-          pi.d_failMaxDepth = 0;
+          pi.d_failMaxDepth = -1;
           pi.d_id = idb;
           return true;
         }
@@ -1054,7 +1083,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
                           << ")" << std::endl;
       idb = RewriteProofStatus::FAIL;
       // failure relies on nothing, depth is 0
-      pi.d_failMaxDepth = 0;
+      pi.d_failMaxDepth = -1;
     }
     // cache it
     pi.d_id = idb;
@@ -1065,7 +1094,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
     Trace("rpc-debug2") << "...fail (constant head)" << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
     idb = RewriteProofStatus::FAIL;
-    pi.d_failMaxDepth = 0;
+    pi.d_failMaxDepth = -1;
     pi.d_id = idb;
     return true;
   }

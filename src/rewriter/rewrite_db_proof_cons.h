@@ -143,7 +143,7 @@ class RewriteDbProofCons : protected EnvObj
     ProvenInfo()
         : d_id(RewriteProofStatus::FAIL),
           d_dslId(ProofRewriteRule::NONE),
-          d_failMaxDepth(0)
+          d_failMaxDepth(-1)
     {
     }
     /** The identifier of the proof rule, or fail if we failed */
@@ -154,10 +154,10 @@ class RewriteDbProofCons : protected EnvObj
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
     /**
-     * The maximum depth tried for rules that have failed, where 0 indicates
+     * The maximum depth tried for rules that have failed, where -1 indicates
      * that the formula is unprovable at any depth.
      */
-    uint64_t d_failMaxDepth;
+    int64_t d_failMaxDepth;
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
@@ -340,9 +340,11 @@ class RewriteDbProofCons : protected EnvObj
   /** current target equality to prove */
   Node d_target;
   /** current recursion limit */
-  uint64_t d_currRecLimit;
+  int64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** Did we fail due to a resource limit in the current run? */
+  bool d_currFailResource;
   /** The mode for if/when to try theory rewrites */
   rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
