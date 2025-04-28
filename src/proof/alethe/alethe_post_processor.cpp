@@ -159,6 +159,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       //
       // T2:
       //
+      // ----------- equiv_neg1   --------- not_not
       //    VP2A                    VP2B
       // ---------------------------------- resolution
       //               VP2
@@ -178,7 +179,7 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       //    VP5                              VP6
       // ----------------------------------------------- trans
       //                        VP7
-      // ----------------------------------------------- cong
+      // ------------------------------------------------ cong   ---------------- not_simplify
       //                        VP8                                   VP9
       // -------------------------------------------------------------------------
       // trans
@@ -202,6 +203,132 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       //
     case ProofRewriteRule::EXISTS_ELIM:
     {
+      Node exists_F = res[0];
+      Node not_exists_F = exists_F.notNode();
+      Node not_not_exists_F = not_exists_F.notNode();
+      Node not_forall_not_F = res[1];
+      Node variable_list = exists_F[0];
+      Node F = exists_F[1];
+      Node not_F = F.notNode();
+      Node not_not_F = not_F.notNode();
+      Node not_not_not_F = not_not_F.notNode();
+      Node not_not_not_not_F = not_not_not_F.notNode();
+      Node exists_not_not_F = nm->mkNode(Kind::EXISTS,variable_list,not_not_F);
+      Node not_exists_not_not_F = exists_not_not_F.notNode();
+      Node forall_not_F = not_forall_not_F[0];
+      Node not_not_F_eq_F = nm->mkNode(Kind::EQUAL,not_not_F,F);
+
+
+      Node vp1a = nm->mkNode(Kind::OR, not_not_F_eq_F, not_not_F,F);
+      Node vp1b = nm->mkNode(Kind::OR, not_not_not_F, F);
+      Node vp1 = nm->mkNode(Kind::OR, not_not_F_eq_F, F);
+
+      Node vp2a = nm->mkNode(Kind::OR, not_not_F_eq_F, not_not_not_F,not_F);
+      Node vp2b = nm->mkNode(Kind::OR, not_not_not_not_F, not_F);
+      Node vp2 = nm->mkNode(Kind::OR, not_not_F_eq_F, not_F);
+
+      Node vp3 = not_not_F_eq_F;
+
+      Node vp4 = nm->mkNode(Kind::EQUAL,exists_not_not_F,exists_F);
+      std::vector<Node> vp4_args = {};
+      vp4_args.insert(vp4_args.end(), variable_list.begin(), variable_list.end());
+      for (size_t i = 0, size = variable_list.getNumChildren(); i < size; ++i)
+      {
+        vp4_args.push_back(variable_list[i].eqNode(variable_list[i]));
+      }
+      Node vp5 = nm->mkNode(Kind::EQUAL, forall_not_F, not_exists_not_not_F);
+      Node vp6 = nm->mkNode(Kind::EQUAL, not_exists_not_not_F, not_exists_F);
+
+      Node vp7 = nm->mkNode(Kind::EQUAL, forall_not_F, not_exists_F);
+      Node vp8 = nm->mkNode(Kind::EQUAL, not_forall_not_F, not_not_exists_F);
+      Node vp9 = nm->mkNode(Kind::EQUAL, not_not_exists_F, exists_F);
+      Node vp10 = nm->mkNode(Kind::EQUAL, not_forall_not_F, exists_F);
+
+      return
+	addAletheStepFromOr(AletheRule::EQUIV_NEG2,
+                           vp1a,
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStepFromOr(AletheRule::NOT_NOT,
+                           vp1b,
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStepFromOr(AletheRule::RESOLUTION,
+                           vp1,
+                           {vp1a,vp1b},
+                           {},
+                           *cdp)
+         && addAletheStepFromOr(AletheRule::EQUIV_NEG1,
+                           vp2a,
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStepFromOr(AletheRule::NOT_NOT,
+                           vp2b,
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStepFromOr(AletheRule::RESOLUTION,
+                           vp2,
+                           {vp2a,vp2b},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::RESOLUTION,
+                           vp3,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp3),
+                           {vp1,vp2},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::ANCHOR_BIND,
+                           vp4,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp4),
+                           {vp3},
+                           vp4_args,
+                           *cdp)
+        && addAletheStep(AletheRule::CONNECTIVE_DEF,
+                           vp5,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp5),
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::CONG,
+                           vp6,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp6),
+                           {vp4},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::TRANS,
+                           vp7,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp7),
+                           {vp5,vp6},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::CONG,
+                           vp8,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp8),
+                           {vp7},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::NOT_SIMPLIFY,
+                           vp9,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp9),
+                           {},
+                           {},
+                           *cdp)
+        && addAletheStep(AletheRule::TRANS,
+                           vp10,
+                           nm->mkNode(Kind::SEXPR, d_cl, vp10),
+                           {vp8,vp9},
+                           {},
+                           *cdp)
+	&& addAletheStep(AletheRule::SYMM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {vp10},
+                           {},
+                           *cdp);
     }
     default: break;
   }
