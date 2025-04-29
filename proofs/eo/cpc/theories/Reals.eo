@@ -2,7 +2,6 @@
 
 ; Real-specific operators of arithmetic.
 
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-const / (-> Real Real Real) :left-assoc)
 
 ; Internally generated terms.
