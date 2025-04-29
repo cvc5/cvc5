@@ -170,7 +170,8 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     }
     case LEMMA:
     {
-      std::vector<Node> lemmaNodes(d_lemmaLiterals.begin(), d_lemmaLiterals.end());
+      std::vector<Node> lemmaNodes(d_lemmaLiterals.begin(),
+                                   d_lemmaLiterals.end());
       unfilteredLiterals = lemmaNodes;
       break;
     }
