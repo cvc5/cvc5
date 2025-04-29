@@ -795,8 +795,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
   Assert(t.getKind() == Kind::DIVISION_TOTAL || t.getKind() == Kind::DIVISION);
   Assert(t.getNumChildren() == 2);
 
-  Node left = rewriter::removeToReal(t[0]);
-  Node right = rewriter::removeToReal(t[1]);
+  Node left = t[0];
+  Node right = t[1];
   NodeManager* nm = nodeManager();
   if (right.isConst())
   {

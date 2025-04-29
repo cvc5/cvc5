@@ -40,8 +40,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   {
     convertToRealChildren = isRealTypeStrict(n.getType());
   }
-  else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL
-           || k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
+  else if (k == Kind::TO_INTEGER || k == Kind::IS_INTEGER)
   {
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
@@ -53,7 +52,7 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
   }
   // note that EQUAL is strictly typed so we don't need to handle it here
   // also TO_REAL applied to reals is always rewritten, so it doesn't need to
-  // be handled.
+  // be handled. All division operators are strictly typed as well.
   if (convertToRealChildren)
   {
     std::vector<Node> children;
