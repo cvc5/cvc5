@@ -55,6 +55,6 @@
 ; - eq : Bool. The equality between a select of an array constant and the constant it stores.
 ; conclusion: The given equality.
 (declare-rule arrays-select-const ((T Type) (U Type) (i T) (c U))
-  :args ((= (select (store_all (Array T U) c) i) c))
-  :conclusion (= (select (store_all (Array T U) c) i) c)
+  :args ((= (select ((as const (Array T U)) c) i) c))
+  :conclusion (= (select ((as const (Array T U)) c) i) c)
 )

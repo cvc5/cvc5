@@ -11,7 +11,7 @@
 ; The store all array constant.
 ; note: doesn't check that T is (Array x U) for some x
 ; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const store_all ((T Type) (U Type :implicit)) (-> U T))
+(declare-parameterized-const const ((T Type :implicit) (U Type :implicit)) (-> U (Array T U)))
 
 ; The array diff skolem.
 ; (@array_deq_diff A B) denotes an index where A and B differ if A and B are not equal.

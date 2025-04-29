@@ -184,14 +184,6 @@ Node AlfNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
-  else if (k == Kind::STORE_ALL)
-  {
-    TypeNode tn = n.getType();
-    Node t = typeAsNode(tn);
-    ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
-    Node val = convert(storeAll.getValue());
-    return mkInternalApp("store_all", {t, val}, tn);
-  }
   else if (k == Kind::SET_INSERT)
   {
     TypeNode tn = n.getType();
