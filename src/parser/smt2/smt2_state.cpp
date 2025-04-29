@@ -1557,9 +1557,9 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   }
   else if (isBuiltinOperator)
   {
+    bool allArgsReal = false;
     if (kind == Kind::EQUAL || kind == Kind::DISTINCT)
     {
-      bool isReal = false;
       // need hol if these operators are applied over function args
       for (const Term& i : args)
       {
@@ -1575,21 +1575,25 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         }
         if (s.isReal())
         {
-          isReal = true;
+          allArgsReal = true;
         }
       }
-      // If strict mode is not enabled, we are permissive for Int and Real
-      // subtyping. Note that other arithmetic operators and relations are
-      // already permissive, e.g. <=, +.
-      if (isReal && !strictModeEnabled())
+    }
+    else if (kind == Kind::DIVISION || kind == Kind::DIVISION_TOTAL)
+    {
+      allArgsReal = true;
+    }
+    // If strict mode is not enabled, we are permissive for Int and Real
+    // subtyping. Note that other arithmetic operators and relations are
+    // already permissive, e.g. <=, +.
+    if (allArgsReal && !strictModeEnabled())
+    {
+      for (Term& i : args)
       {
-        for (Term& i : args)
+        Sort s = i.getSort();
+        if (s.isInteger())
         {
-          Sort s = i.getSort();
-          if (s.isInteger())
-          {
-            i = d_tm.mkTerm(Kind::TO_REAL, {i});
-          }
+          i = d_tm.mkTerm(Kind::TO_REAL, {i});
         }
       }
     }
@@ -1609,10 +1613,9 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         sreq = args[0].getSort();
         sameType = true;
       }
-      else if (kind == Kind::DIVISION
-               || kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
+      else if (kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
       {
-        // must apply division, to_int, is_int to real only
+        // must apply to_int, is_int to real only
         sreq = d_tm.getRealSort();
       }
       else if (kind == Kind::TO_REAL || kind == Kind::ABS)
