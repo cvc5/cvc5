@@ -319,6 +319,16 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroQuantVarElimEq(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantVarElimIneq(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND.
    *
    * @param cdp The proof to add to.
