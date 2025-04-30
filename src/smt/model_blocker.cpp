@@ -280,7 +280,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       for (size_t i = 0; i < nenum; i++)
       {
         itn = nonClosedValue.find(enums[i]);
-        if (itn==nonClosedValue.end())
+        if (itn == nonClosedValue.end())
         {
           // closed value, already blocked its value above
           continue;
@@ -293,15 +293,15 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         Node vi = itn->second;
         for (size_t j = 0; j < nenum; j++)
         {
-          if (i==j)
+          if (i == j)
           {
             continue;
           }
           Node vj = enums[j];
           itn = nonClosedValue.find(enums[j]);
-          if (itn!=nonClosedValue.end())
+          if (itn != nonClosedValue.end())
           {
-            if (j<i)
+            if (j < i)
             {
               // already processed reverse
               continue;
