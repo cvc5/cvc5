@@ -1,3 +1,4 @@
+; EXPECT: sat
 (set-logic QF_UF)
 (set-option :global-declarations true)
 (set-option :produce-models true)
