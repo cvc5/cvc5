@@ -21,7 +21,6 @@
 #include "expr/node.h"
 #include "expr/node_converter.h"
 #include "expr/type_node.h"
-
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -33,13 +32,13 @@ namespace cvc5::internal {
  * Note this converter is necessary since models for certain types e.g.
  * uninterpreted sorts, codatatypes, arrays, involve terms that cannot be
  * re-asserted to the solver as input.
- * 
+ *
  * Other types may conditionally use model values that are also illegal in
  * inputs e.g.:
  * - Real algebraic numbers (RAN) for the reals,
  * - Witness terms for strings (for strings of excessive length).
  */
-class NonClosedNodeConverter :  protected EnvObj, public NodeConverter
+class NonClosedNodeConverter : protected EnvObj, public NodeConverter
 {
  public:
   NonClosedNodeConverter(Env& env);
@@ -48,6 +47,7 @@ class NonClosedNodeConverter :  protected EnvObj, public NodeConverter
   Node postConvert(Node n) override;
   /** Get the purification skolems introduced */
   const std::vector<Node>& getSkolems() const;
+
  private:
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
