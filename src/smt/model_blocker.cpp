@@ -24,6 +24,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "expr/subs.h"
+#include "expr/non_closed_node_converter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -252,9 +253,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     std::unordered_set<Node> terms;
     for (const Node& n : nodesToBlock)
     {
-      TypeNode tn = n.getType();
       Node v = m->getValue(n);
-      if (tn.isClosedEnumerable())
+      if (NonClosedNodeConverter::isClosed(d_env, v))
       {
         // if its type is closed enumerable, then we can block its value
         Node a = n.eqNode(v);
@@ -265,6 +265,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         nonClosedValue[n] = v;
         // otherwise we will block (dis)equality with other variables of its
         // type below
+        TypeNode tn = n.getType();
         nonClosedEnum[tn].push_back(n);
       }
     }

@@ -47,8 +47,11 @@ class NonClosedNodeConverter : protected EnvObj, public NodeConverter
   Node postConvert(Node n) override;
   /** Get the purification skolems introduced */
   const std::vector<Node>& getSkolems() const;
-
+  /** Is this node "closed", i.e. able to be re-asserted in a normal input? */
+  static bool isClosed(const Env& env, const Node& n);
  private:
+  /** Get the non-closed kinds, based on the options */
+  static void getNonClosedKinds(const Env& env, std::unordered_set<Kind, kind::KindHashFunction>& ncks);
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
   /** The skolems we introduced */

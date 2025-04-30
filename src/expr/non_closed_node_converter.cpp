@@ -16,21 +16,20 @@
 #include "expr/non_closed_node_converter.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/node_algorithm.h"
+#include "smt/env.h"
+#include "options/arrays_options.h"
 
 namespace cvc5::internal {
 
 NonClosedNodeConverter::NonClosedNodeConverter(Env& env)
     : EnvObj(env), NodeConverter(nodeManager())
 {
-  // some kinds may appear in model values that cannot be asserted
-  d_nonClosedKinds.insert(Kind::STORE_ALL);
-  d_nonClosedKinds.insert(Kind::CODATATYPE_BOUND_VARIABLE);
-  d_nonClosedKinds.insert(Kind::UNINTERPRETED_SORT_VALUE);
-  // may appear in certain models e.g. strings of excessive length
-  d_nonClosedKinds.insert(Kind::WITNESS);
-  d_nonClosedKinds.insert(Kind::REAL_ALGEBRAIC_NUMBER);
+  getNonClosedKinds(env, d_nonClosedKinds);
 }
+
 NonClosedNodeConverter::~NonClosedNodeConverter() {}
+
 Node NonClosedNodeConverter::postConvert(Node n)
 {
   Kind k = n.getKind();
@@ -42,6 +41,28 @@ Node NonClosedNodeConverter::postConvert(Node n)
   }
   return n;
 }
+
+bool NonClosedNodeConverter::isClosed(const Env& env, const Node& n)
+{
+  std::unordered_set<Kind, kind::KindHashFunction> ncks;
+  getNonClosedKinds(env, ncks);
+  return !expr::hasSubtermKinds(ncks, n);
+}
+
+void NonClosedNodeConverter::getNonClosedKinds(const Env& env, std::unordered_set<Kind, kind::KindHashFunction>& ncks)
+{
+  // some kinds may appear in model values that cannot be asserted
+  if (!env.getOptions().arrays.arraysExp)
+  {
+    ncks.insert(Kind::STORE_ALL);
+  }
+  ncks.insert(Kind::CODATATYPE_BOUND_VARIABLE);
+  ncks.insert(Kind::UNINTERPRETED_SORT_VALUE);
+  // may appear in certain models e.g. strings of excessive length
+  ncks.insert(Kind::WITNESS);
+  ncks.insert(Kind::REAL_ALGEBRAIC_NUMBER);
+}
+
 const std::vector<Node>& NonClosedNodeConverter::getSkolems() const
 {
   return d_purifySkolems;
