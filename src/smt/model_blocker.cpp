@@ -18,13 +18,13 @@
 #include "base/modal_exception.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
+#include "expr/subs.h"
 #include "options/base_options.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "expr/subs.h"
-#include "expr/non_closed_node_converter.h"
 
 using namespace cvc5::internal::kind;
 

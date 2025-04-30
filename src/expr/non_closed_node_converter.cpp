@@ -15,10 +15,10 @@
 
 #include "expr/non_closed_node_converter.h"
 
-#include "expr/skolem_manager.h"
 #include "expr/node_algorithm.h"
-#include "smt/env.h"
+#include "expr/skolem_manager.h"
 #include "options/arrays_options.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -49,7 +49,8 @@ bool NonClosedNodeConverter::isClosed(const Env& env, const Node& n)
   return !expr::hasSubtermKinds(ncks, n);
 }
 
-void NonClosedNodeConverter::getNonClosedKinds(const Env& env, std::unordered_set<Kind, kind::KindHashFunction>& ncks)
+void NonClosedNodeConverter::getNonClosedKinds(
+    const Env& env, std::unordered_set<Kind, kind::KindHashFunction>& ncks)
 {
   // some kinds may appear in model values that cannot be asserted
   if (!env.getOptions().arrays.arraysExp)
