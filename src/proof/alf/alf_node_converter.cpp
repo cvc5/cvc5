@@ -193,15 +193,12 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::CONST_SEQUENCE)
   {
-    if (n.getConst<Sequence>().empty())
+    if (!n.getConst<Sequence>().empty())
     {
-      TypeNode tn = n.getType();
-      Node t = typeAsNode(tn);
-      return mkInternalApp("seq.empty", {t}, tn);
+      // if non-empty, must convert to term representation and convert
+      Node cc = theory::strings::utils::mkConcatForConstSequence(n);
+      return convert(cc);
     }
-    // otherwise must convert to term representation and convert
-    Node cc = theory::strings::utils::mkConcatForConstSequence(n);
-    return convert(cc);
   }
   else if (k == Kind::CONST_FINITE_FIELD)
   {
