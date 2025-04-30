@@ -83,7 +83,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     std::vector<TNode> visit;
     visit.insert(visit.end(), asserts.begin(), asserts.end());
     TNode cur;
-    do
+    while (!visit.empty())
     {
       cur = visit.back();
       visit.pop_back();
@@ -214,7 +214,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           }
         }
       }
-    } while (!visit.empty());
+    }
   }
   else
   {
