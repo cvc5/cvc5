@@ -256,7 +256,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       Node v = m->getValue(n);
       if (NonClosedNodeConverter::isClosed(d_env, v))
       {
-        // if its type is closed enumerable, then we can block its value
+        // if its value is closed, then we can block its value
         Node a = n.eqNode(v);
         blockers.insert(a);
       }
