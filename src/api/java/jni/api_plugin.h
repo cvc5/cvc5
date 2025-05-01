@@ -59,8 +59,6 @@ class ApiPlugin : public cvc5::Plugin
 
   /** Reference to java environment */
   JNIEnv* d_env;
-  /** Reference to the term manager */
-  cvc5::TermManager& d_tm;
   /** Reference to java plugin object */
   jobject d_plugin;
 };

@@ -1278,6 +1278,10 @@ set(regress_0_tests
   regress0/parser/sort-term-overload-simple-unsat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
+  regress0/parser/strict-parsing-mixed-arith-1.smt2
+  regress0/parser/strict-parsing-mixed-arith-2.smt2
+  regress0/parser/strict-parsing-mixed-arith-3.smt2
+  regress0/parser/strict-parsing-mixed-arith-3b.smt2
   regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
@@ -3241,6 +3245,7 @@ set(regress_1_tests
   regress1/sets/choose2.smt2
   regress1/sets/choose3.smt2
   regress1/sets/choose4.smt2
+  regress1/sets/circular_map.smt2
   regress1/sets/issue10941-open-pf.smt2
   regress1/sets/issue5705-cg-subtyping.smt2
   regress1/sets/issue8987-ho.smt2
