@@ -1197,6 +1197,20 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 Assert(d < pcur.d_subs.size());
                 rsubs.push_back(pcur.d_subs[d]);
               }
+              // Do a "dry run" of the proof rule, which determines which
+              // occurrences of singleton elimination happened.
+              std::unordered_map<TNode, Node> dvisited;
+              std::unordered_set<Node> dselim;
+              // substitute into each condition
+              const std::vector<Node>& conds = rpr.getConditions();
+              for (const Node& c : conds)
+              {
+                expr::narySubstitute(c, vs, rsubs, dvisited, dselim);
+              }
+              // substitute conclusion 
+              Node conc = rpr.getConclusion(true);
+              Node proven = expr::narySubstitute(conc, vs, rsubs, dvisited, dselim);
+              
               // get the conditions, store into premises of cur.
               rpr.getObligations(vs, rsubs, ps);
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
