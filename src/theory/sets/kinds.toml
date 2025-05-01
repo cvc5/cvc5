@@ -198,6 +198,64 @@ children = 2
 comment  = "set some operator"
 typerule = "::cvc5::internal::theory::sets::SetAllSomeTypeRule"
 
+# set.min operator returns the minimum element in a set.
+# (set.min r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+[[kinds]]
+type     = "operator"
+name     = "SET_MIN"
+children = 3
+comment  = "set min operator"
+typerule = "::cvc5::internal::theory::sets::SetMinMaxTypeRule"
+
+# set.max operator returns the maximum element in a set.
+# (set.max r A i) receives a relation r of type (-> T T Bool), a set of type (Set T), 
+# an initial value of type T and returns T
+[[kinds]]
+type     = "operator"
+name     = "SET_MAX"
+children = 3
+comment  = "set max operator"
+typerule = "::cvc5::internal::theory::sets::SetMinMaxTypeRule"
+
+# rel.min operator
+[[kinds]]
+type      = "constant"
+name      = "RELATION_MIN_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for RELATION_MIN; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "RELATION_MIN"
+K2       = "RELATION_MIN_OP"
+children = 3
+comment  = "relation min"
+typerule = "::cvc5::internal::theory::sets::RelationMinMaxTypeRule"
+
+# rel.max operator
+[[kinds]]
+type      = "constant"
+name      = "RELATION_MAX_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for RELATION_MAX; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "RELATION_MAX"
+K2       = "RELATION_MAX_OP"
+children = 3
+comment  = "relation max"
+typerule = "::cvc5::internal::theory::sets::RelationMinMaxTypeRule"
+
 # set.fold operator combines elements of a set into a single value.
 # (set.fold f t A) folds the elements of set A starting with term t and using
 # the combining function f.

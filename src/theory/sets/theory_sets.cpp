@@ -170,6 +170,34 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  if (nk == Kind::SET_MIN)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceMinOperator(n, asserts);
+    d_im.lemma(asserts[0], InferenceId::SETS_MIN);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  if (nk == Kind::SET_MAX)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceMaxOperator(n, asserts);
+    d_im.lemma(asserts[0], InferenceId::SETS_MAX);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  if (nk == Kind::RELATION_MIN)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceRelationMinOperator(n, asserts);
+    d_im.lemma(asserts[0], InferenceId::SETS_MIN);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  if (nk == Kind::RELATION_MAX)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceRelationMaxOperator(n, asserts);
+    d_im.lemma(asserts[0], InferenceId::SETS_MAX);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
   if (nk == Kind::SET_FOLD)
   {
     std::vector<Node> asserts;

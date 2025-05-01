@@ -608,6 +608,179 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SetMinMaxTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode SetMinMaxTypeRule::computeType(NodeManager* nodeManager,
+                                        TNode n,
+                                        bool check,
+                                        std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::SET_MIN || n.getKind() == Kind::SET_MAX);
+  std::string op = n.getKind() == Kind::SET_MIN ? "set.min" : "set.max";
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode setType = n[1].getTypeOrNull();
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      if (errOut)
+      {
+        (*errOut) << op
+                  << " operator expects a set in the second argument, "
+                     "a non-set is found";
+      }
+      return TypeNode::null();
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!functionType.isFunction())
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << elementType << " " << elementType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == elementType
+          && functionType.getRangeType() == nodeManager->booleanType()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << elementType << " " << elementType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+    TypeNode initialValueType = n[2].getTypeOrNull();
+    if (elementType != initialValueType)
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects an initial value of type " << elementType
+                  << ". Found a term of type '" << initialValueType << "'.";
+      }
+      return TypeNode::null();
+    }
+  }
+  if (functionType.isAbstract())
+  {
+    // if an abstract function, the element type is fully abstract
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
+  }
+  return setType.getSetElementType();
+}
+
+TypeNode RelationMinMaxTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
+
+TypeNode RelationMinMaxTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check,
+                                             std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::RELATION_MIN
+         || n.getKind() == Kind::RELATION_MAX);
+  std::string op = n.getKind() == Kind::RELATION_MIN ? "rel.min" : "rel.max";
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode setType = n[1].getTypeOrNull();
+  ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
+  TypeNode initialValueType = n[2].getTypeOrNull();
+  if (check)
+  {
+    if (projectOp.getIndices().size() != 1)
+    {
+      if (errOut)
+      {
+        (*errOut) << op << " operator expects a single index, found "
+                  << projectOp.getIndices().size();
+      }
+      return TypeNode::null();
+    }
+    if (!setType.isRelation())
+    {
+      if (errOut)
+      {
+        (*errOut) << op
+                  << " operator expects a set in the second argument, "
+                     "a non-set is found";
+      }
+      return TypeNode::null();
+    }
+    uint32_t index = projectOp.getIndices()[0];
+    TypeNode elementType = setType.getSetElementType();
+    const std::vector<TypeNode>& tupleTypes = elementType.getTupleTypes();
+
+    if (index >= tupleTypes.size())
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " has an index " << index
+                  << " greater than the arity of relation  " << n[1]
+                  << " which is " << tupleTypes.size() << ".";
+      }
+      return TypeNode::null();
+    }
+
+    if (tupleTypes[index] != initialValueType)
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects column " << index
+                  << " in relation " << n[1] << " to be of type "
+                  << initialValueType << ". Found a term of type '"
+                  << tupleTypes[index] << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    if (!functionType.isFunction())
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << initialValueType << " " << initialValueType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 2 && argTypes[0] == initialValueType
+          && argTypes[1] == initialValueType
+          && functionType.getRangeType() == nodeManager->booleanType()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << op << " expects a function of type  (-> "
+                  << initialValueType << " " << initialValueType
+                  << " Bool) as a first argument. " << "Found a term of type '"
+                  << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+  }
+  if (functionType.isAbstract())
+  {
+    // if an abstract function, the element type is fully abstract
+    return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
+  }
+  return initialValueType;
+}
+
 TypeNode SetFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();

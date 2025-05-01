@@ -475,11 +475,20 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     // skolems that return the set element type
     case SkolemId::BAGS_DEQ_DIFF:
     case SkolemId::SETS_DEQ_DIFF:
+    case SkolemId::SETS_MIN:
+    case SkolemId::SETS_MAX:
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
       Assert(stype.getNumChildren() == 1);
       return stype[0];
+    }
+    case SkolemId::RELATIONS_MIN:
+    case SkolemId::RELATIONS_MAX:
+    {
+      Assert(cacheVals.size() == 3);
+      TypeNode stype = cacheVals[2].getType();
+      return stype;
     }
     // skolems that return the set to set element type
     case SkolemId::BAGS_CHOOSE:

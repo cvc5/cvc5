@@ -349,6 +349,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::SET_FILTER, internal::Kind::SET_FILTER),
         KIND_ENUM(Kind::SET_ALL, internal::Kind::SET_ALL),
         KIND_ENUM(Kind::SET_SOME, internal::Kind::SET_SOME),
+        KIND_ENUM(Kind::SET_MIN, internal::Kind::SET_MIN),
+        KIND_ENUM(Kind::SET_MAX, internal::Kind::SET_MAX),
         KIND_ENUM(Kind::SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(Kind::RELATION_JOIN, internal::Kind::RELATION_JOIN),
@@ -363,6 +365,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP),
         KIND_ENUM(Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE),
         KIND_ENUM(Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT),
+        KIND_ENUM(Kind::RELATION_MIN, internal::Kind::RELATION_MIN),
+        KIND_ENUM(Kind::RELATION_MAX, internal::Kind::RELATION_MAX),
         /* Bags ------------------------------------------------------------- */
         KIND_ENUM(Kind::BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
         KIND_ENUM(Kind::BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
@@ -773,6 +777,10 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::RELATION_AGGREGATE, Kind::RELATION_AGGREGATE},
         {internal::Kind::RELATION_PROJECT_OP, Kind::RELATION_PROJECT},
         {internal::Kind::RELATION_PROJECT, Kind::RELATION_PROJECT},
+        {internal::Kind::RELATION_MIN_OP, Kind::RELATION_MIN},
+        {internal::Kind::RELATION_MIN, Kind::RELATION_MIN},
+        {internal::Kind::RELATION_MAX_OP, Kind::RELATION_MAX},
+        {internal::Kind::RELATION_MAX, Kind::RELATION_MAX},
         /* Bags ------------------------------------------------------------ */
         {internal::Kind::BAG_UNION_MAX, Kind::BAG_UNION_MAX},
         {internal::Kind::BAG_UNION_DISJOINT, Kind::BAG_UNION_DISJOINT},
@@ -938,6 +946,8 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {Kind::RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
     {Kind::RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
     {Kind::RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
+    {Kind::RELATION_MIN, internal::Kind::RELATION_MIN_OP},
+    {Kind::RELATION_MAX, internal::Kind::RELATION_MAX_OP},
     {Kind::RELATION_TABLE_JOIN, internal::Kind::RELATION_TABLE_JOIN_OP},
     {Kind::TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
     {Kind::TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
@@ -2241,6 +2251,8 @@ size_t Op::getNumIndicesHelper() const
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_MIN:
+    case Kind::RELATION_MAX:
     case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
@@ -2419,6 +2431,8 @@ Term Op::getIndexHelper(size_t index)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_MIN:
+    case Kind::RELATION_MAX:
     case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:
@@ -6116,6 +6130,8 @@ Op TermManager::mkOp(Kind kind, const std::vector<uint32_t>& args)
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_MIN:
+    case Kind::RELATION_MAX:
     case Kind::RELATION_TABLE_JOIN:
     case Kind::TABLE_AGGREGATE:
     case Kind::TABLE_GROUP:

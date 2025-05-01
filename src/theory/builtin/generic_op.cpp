@@ -71,6 +71,7 @@ bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
          || k == Kind::FLOATINGPOINT_TO_SBV_TOTAL
          || k == Kind::FLOATINGPOINT_TO_UBV_TOTAL
          || k == Kind::RELATION_AGGREGATE || k == Kind::RELATION_PROJECT
+         || k == Kind::RELATION_MIN || k == Kind::RELATION_MAX
          || k == Kind::RELATION_GROUP || k == Kind::TABLE_PROJECT
          || k == Kind::RELATION_TABLE_JOIN || k == Kind::TABLE_AGGREGATE
          || k == Kind::TABLE_JOIN || k == Kind::TABLE_GROUP;
@@ -206,6 +207,8 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
     break;
     case Kind::RELATION_AGGREGATE:
     case Kind::RELATION_PROJECT:
+    case Kind::RELATION_MIN:
+    case Kind::RELATION_MAX:
     case Kind::RELATION_TABLE_JOIN:
     case Kind::RELATION_GROUP:
     case Kind::TABLE_PROJECT:
@@ -359,6 +362,10 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
         return nm->mkConst(Kind::RELATION_AGGREGATE_OP, ProjectOp(numerals));
       case Kind::RELATION_PROJECT:
         return nm->mkConst(Kind::RELATION_PROJECT_OP, ProjectOp(numerals));
+      case Kind::RELATION_MIN:
+        return nm->mkConst(Kind::RELATION_MIN_OP, ProjectOp(numerals));
+      case Kind::RELATION_MAX:
+        return nm->mkConst(Kind::RELATION_MAX_OP, ProjectOp(numerals));
       case Kind::RELATION_TABLE_JOIN:
         return nm->mkConst(Kind::RELATION_TABLE_JOIN_OP, ProjectOp(numerals));
       case Kind::RELATION_GROUP:

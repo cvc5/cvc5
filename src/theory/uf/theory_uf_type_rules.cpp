@@ -48,7 +48,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "operator does not have function type";
+        (*errOut) << "operator does not have function type in " << n
+                  << std::endl;
       }
       return TypeNode::null();
     }

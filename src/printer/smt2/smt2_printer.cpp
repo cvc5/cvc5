@@ -530,6 +530,8 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::RELATION_GROUP_OP:
     case Kind::RELATION_AGGREGATE_OP:
     case Kind::RELATION_PROJECT_OP:
+    case Kind::RELATION_MIN_OP:
+    case Kind::RELATION_MAX_OP:
     case Kind::RELATION_TABLE_JOIN_OP:
     {
       ProjectOp op = n.getConst<ProjectOp>();
@@ -1319,6 +1321,10 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::SET_FILTER: return "set.filter";
     case Kind::SET_ALL: return "set.all";
     case Kind::SET_SOME: return "set.some";
+    case Kind::SET_MIN: return "set.min";
+    case Kind::SET_MAX: return "set.max";
+    case Kind::RELATION_MIN: return "rel.min";
+    case Kind::RELATION_MAX: return "rel.max";
     case Kind::SET_FOLD: return "set.fold";
     case Kind::RELATION_JOIN: return "rel.join";
     case Kind::RELATION_TABLE_JOIN: return "rel.table_join";
