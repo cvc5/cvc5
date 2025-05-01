@@ -494,6 +494,12 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Node conc = rpr.getConclusion(true);
     Node proven = expr::narySubstitute(conc, varList, subs, visited, selim);
     // TODO: check selim.empty
+    /*
+    if (!selim.empty())
+    {
+      return Node::null();
+    }
+    */
     return proven;
   }
   else if (id == ProofRule::THEORY_REWRITE)

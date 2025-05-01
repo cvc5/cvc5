@@ -815,18 +815,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       std::vector<Node> subsall = subs;
       vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
       subsall.insert(subsall.end(), impliedSs.begin(), impliedSs.end());
-      if (!rpr.getObligations(vsall, subsall, vcs))
-      {
-        // cannot get conditions, likely due to failed side condition
-        Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
-        return false;
-      }
+      rpr.getObligations(vsall, subsall, vcs);
     }
-    else if (!rpr.getObligations(vars, subs, vcs))
+    else
     {
-      // cannot get conditions, likely due to failed side condition
-      Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
-      return false;
+      rpr.getObligations(vars, subs, vcs);
     }
     // Prove transitive equality last. We choose this order since the
     // transitive equality is expected to be the hardest to prove. Also, the
@@ -1205,11 +1198,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 rsubs.push_back(pcur.d_subs[d]);
               }
               // get the conditions, store into premises of cur.
-              if (!rpr.getObligations(vs, rsubs, ps))
-              {
-                Assert(false) << "failed a side condition?";
-                return false;
-              }
+              rpr.getObligations(vs, rsubs, ps);
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
             else
