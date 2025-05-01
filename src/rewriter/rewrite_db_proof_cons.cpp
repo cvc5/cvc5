@@ -1198,68 +1198,78 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 Assert(d < pcur.d_subs.size());
                 dsubs.add(v, pcur.d_subs[d]);
               }
-              std::vector<Node>& rsubs = dsubs.d_subs;
-              // Do a "dry run" of the proof rule, which determines which
-              // occurrences of singleton elimination happened.
-              std::unordered_map<TNode, Node> dvisited;
-              std::unordered_set<Node> dselim;
-              // substitute into each condition
-              const std::vector<Node>& conds = rpr.getConditions();
-              for (const Node& c : conds)
+              std::vector<Node> rsubs = dsubs.d_subs;
+              for (size_t a=0; a<2; a++)
               {
-                expr::narySubstitute(c, vs, rsubs, dvisited, dselim);
-              }
-              // substitute conclusion 
-              Node conc = rpr.getConclusion(true);
-              Node proven = expr::narySubstitute(conc, vs, rsubs, dvisited, dselim);
-              // For each subterm that led to a result where implicit singleton
-              // elimination occurred, we compute a sufficient set of variables
-              // that would have avoided the singleton elimination, had they
-              // been mapped to a non-empty list.
-              if (!dselim.empty())
-              {
-                Trace("rare-selim-avoid") << "For " << conc << " from " << dsubs.toString() << ", need to avoid singleton terms" << std::endl;
-                std::unordered_set<Node> explictVar;
-                for (const Node& tse : dselim)
+                // Do a "dry run" of the proof rule, which determines which
+                // occurrences of singleton elimination happened.
+                std::unordered_map<TNode, Node> dvisited;
+                std::unordered_set<Node> dselim;
+                // substitute into each condition
+                const std::vector<Node>& conds = rpr.getConditions();
+                Node conc = rpr.getConclusion(true);
+                std::vector<Node> cpremises;
+                for (const Node& c : conds)
                 {
-                  Trace("rare-selim-avoid") << "Process term: " << tse << std::endl;
-                  // list variables
-                  size_t nlistChildren = 0;
-                  std::vector<Node> empListVars;
-                  for (const Node& tsec :tse)
-                  {
-                    if (!expr::isListVar(tsec))
-                    {
-                      nlistChildren++;
-                      continue;
-                    }
-                    Node r = dsubs.getSubs(tsec);
-                    Assert(!r.isNull() && r.getKind()==Kind::SEXPR) << "Expected list substitution for " << tsec << ", got " << r;
-                    if (r.getNumChildren()==0)
-                    {
-                      empListVars.push_back(tsec);
-                    }
-                    else
-                    {
-                      // already non-empty, counts as non-list
-                      Assert (r.getNumChildren()==1);
-                      nlistChildren++;
-                    }
-                  }
-                  Assert(nlistChildren<2);
-                  size_t nexplicit = 2-nlistChildren;
-                  Assert (nexplicit<=empListVars.size()) << "Need to add " << nexplicit << " explicits, only have " << empListVars.size();
-                  for (size_t i=0; i<nexplicit; i++)
-                  {
-                    Trace("rare-selim-avoid") << "- make " << empListVars[i] << " equal to null terminator to avoid singleton elimination semantics" << std::endl;
-                    explictVar.insert(empListVars[i]);
-                  }
+                  Node p = expr::narySubstitute(c, vs, rsubs, dvisited, dselim);
+                  cpremises.push_back(p);
                 }
-                AlwaysAssert(false) << "Need to make " << explictVar.size() << " variables explicit" << std::endl;
+                // substitute conclusion 
+                Node proven = expr::narySubstitute(conc, vs, rsubs, dvisited, dselim);
+                // For each subterm that led to a result where implicit singleton
+                // elimination occurred, we compute a sufficient set of variables
+                // that would have avoided the singleton elimination, had they
+                // been mapped to a non-empty list.
+                if (!dselim.empty())
+                {
+                  AlwaysAssert(a==0);
+                  Trace("rare-selim-avoid") << "For " << conc << " from " << dsubs.toString() << ", need to avoid singleton terms" << std::endl;
+                  std::unordered_set<Node> explictVar;
+                  for (const Node& tse : dselim)
+                  {
+                    Trace("rare-selim-avoid") << "Process term: " << tse << std::endl;
+                    // list variables
+                    size_t nlistChildren = 0;
+                    std::vector<Node> empListVars;
+                    for (const Node& tsec :tse)
+                    {
+                      if (!expr::isListVar(tsec))
+                      {
+                        nlistChildren++;
+                        continue;
+                      }
+                      Node r = dsubs.getSubs(tsec);
+                      Assert(!r.isNull() && r.getKind()==Kind::SEXPR) << "Expected list substitution for " << tsec << ", got " << r;
+                      if (r.getNumChildren()==0)
+                      {
+                        empListVars.push_back(tsec);
+                      }
+                      else
+                      {
+                        // already non-empty, counts as non-list
+                        Assert (r.getNumChildren()==1);
+                        nlistChildren++;
+                      }
+                    }
+                    Assert(nlistChildren<2);
+                    size_t nexplicit = 2-nlistChildren;
+                    Assert (nexplicit<=empListVars.size()) << "Need to add " << nexplicit << " explicits, only have " << empListVars.size();
+                    for (size_t i=0; i<nexplicit; i++)
+                    {
+                      Trace("rare-selim-avoid") << "- make " << empListVars[i] << " equal to null terminator to avoid singleton elimination semantics" << std::endl;
+                      explictVar.insert(empListVars[i]);
+                    }
+                  }
+                  AlwaysAssert(false) << "Need to make " << explictVar.size() << " variables explicit" << std::endl;
+                }
+                else
+                {
+                  // get the conditions, store into premises of cur.
+                  ps.insert(ps.end(), cpremises.begin(), cpremises.end());
+                  pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+                  break;
+                }
               }
-              // get the conditions, store into premises of cur.
-              rpr.getObligations(vs, rsubs, ps);
-              pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
             else
             {
@@ -1373,18 +1383,16 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
         Assert(pcur.d_dslId != ProofRewriteRule::NONE);
-        const std::vector<Node>& args = pfArgs[cur];
-        ProofRule pfr;
         if (pcur.d_id == RewriteProofStatus::DSL)
         {
+          const std::vector<Node>& args = pfArgs[cur];
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
           conc = rpr.getConclusionFor(subs);
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
-          pfr = ProofRule::DSL_REWRITE;
-          cdp->addStep(conc, pfr, ps, args);
+          cdp->addStep(conc, ProofRule::DSL_REWRITE, ps, args);
         }
         else
         {
