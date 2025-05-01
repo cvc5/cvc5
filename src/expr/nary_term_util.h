@@ -60,12 +60,28 @@ Node narySubstitute(Node src,
  * @param src The term to substitute
  * @param vars The domain of the substitution
  * @param subs The range of the substitution
+ * @param visited A cached of visited nodes
  * @return the substituted term.
  */
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
                     std::unordered_map<TNode, Node>& visited);
+/**
+ * Same as above, tracking which terms in src used implicit singleton elimiantion.
+ *
+ * @param src The term to substitute
+ * @param vars The domain of the substitution
+ * @param subs The range of the substitution
+ * @param visited A cached of visited nodes
+ * @param selim The subterms of src that invoked implicit singleton elimination.
+ * @return the substituted term.
+ */
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited,
+                    std::unordered_set<Node>& selim);
 
 }  // namespace expr
 }  // namespace cvc5::internal

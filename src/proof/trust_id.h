@@ -228,6 +228,8 @@ enum class TrustId : uint32_t
    * require the use of theory rewrites to prove.
    */
   MACRO_THEORY_REWRITE_RCONS_SIMPLE,
+  /** A singleton elimination step introduced in RARE proof reconstruction */
+  RARE_SINGLETON_ELIM,
   /** An unproven step from the int-blaster */
   INT_BLASTER,
   /** Untracked sources of trust, which are discouraged */

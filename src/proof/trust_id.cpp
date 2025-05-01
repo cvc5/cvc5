@@ -119,6 +119,7 @@ const char* toString(TrustId id)
       return "MACRO_THEORY_REWRITE_RCONS";
     case TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE:
       return "MACRO_THEORY_REWRITE_RCONS_SIMPLE";
+    case TrustId::RARE_SINGLETON_ELIM: return "RARE_SINGLETON_ELIM";
     case TrustId::INT_BLASTER: return "INT_BLASTER";
     // unknown sources
     case TrustId::UNKNOWN_PREPROCESS: return "UNKNOWN_PREPROCESS";

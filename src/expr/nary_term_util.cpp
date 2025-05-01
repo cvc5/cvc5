@@ -124,13 +124,24 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& subs)
 {
   std::unordered_map<TNode, Node> visited;
-  return narySubstitute(src, vars, subs, visited);
+  std::unordered_set<Node> selim;
+  return narySubstitute(src, vars, subs, visited, selim);
 }
 
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs,
                     std::unordered_map<TNode, Node>& visited)
+{
+  std::unordered_set<Node> selim;
+  return narySubstitute(src, vars, subs, visited, selim);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited,
+                    std::unordered_set<Node>& selim)
 {
   // assumes all variables are list variables
   NodeManager* nm = src.getNodeManager();
@@ -215,10 +226,15 @@ Node narySubstitute(Node src,
               return ret;
             }
           }
+          else if (children.size()==1)
+          {
+            // implicit singleton elimination happens here
+            selim.insert(cur);
+            ret = children[0];
+          }
           else
           {
-            ret = (children.size() == 1 ? children[0]
-                                        : nm->mkNode(cur.getKind(), children));
+            ret =  nm->mkNode(cur.getKind(), children);
           }
         }
         else
