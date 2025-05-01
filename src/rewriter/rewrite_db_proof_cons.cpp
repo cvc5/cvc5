@@ -1199,6 +1199,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 dsubs.add(v, pcur.d_subs[d]);
               }
               std::vector<Node> rsubs = dsubs.d_subs;
+              std::vector<Node> cpremises[2];
+              Node proven[2];
+              // will run at most twice: first to check for singleton elimination, and then to run the corrected (avoiding) version
               for (size_t a=0; a<2; a++)
               {
                 // Do a "dry run" of the proof rule, which determines which
@@ -1208,14 +1211,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 // substitute into each condition
                 const std::vector<Node>& conds = rpr.getConditions();
                 Node conc = rpr.getConclusion(true);
-                std::vector<Node> cpremises;
+                std::vector<Node>& cps = cpremises[a];
                 for (const Node& c : conds)
                 {
                   Node p = expr::narySubstitute(c, vs, rsubs, dvisited, dselim);
-                  cpremises.push_back(p);
+                  cps.push_back(p);
                 }
                 // substitute conclusion 
-                Node proven = expr::narySubstitute(conc, vs, rsubs, dvisited, dselim);
+                proven[a] = expr::narySubstitute(conc, vs, rsubs, dvisited, dselim);
                 // For each subterm that led to a result where implicit singleton
                 // elimination occurred, we compute a sufficient set of variables
                 // that would have avoided the singleton elimination, had they
@@ -1261,14 +1264,17 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                     }
                   }
                   AlwaysAssert(false) << "Need to make " << explictVar.size() << " variables explicit" << std::endl;
+                  continue;
                 }
-                else
+                if (a==1)
                 {
-                  // get the conditions, store into premises of cur.
-                  ps.insert(ps.end(), cpremises.begin(), cpremises.end());
-                  pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
-                  break;
+                  // if we modified to avoid singleton elimination, we
+                  // "repair" the proof here
                 }
+                // get the conditions, store into premises of cur.
+                ps.insert(ps.end(), cpremises[a].begin(), cpremises[a].end());
+                pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+                break;
               }
             }
             else
