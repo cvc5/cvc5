@@ -293,6 +293,14 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
   Assert(!d_env.isTheoryProofProducing() || tte.getGenerator());
+  if (isOutputOn(OutputTag::LEMMAS))
+  {
+    output(OutputTag::LEMMAS) << "(lemma ";
+    // use original form of the lemma here
+    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(theoryExplanation);
+    output(OutputTag::LEMMAS) << " :source " << theory::InferenceId::EXPLAINED_PROPAGATION;
+    output(OutputTag::LEMMAS) << ")" << std::endl;
+  }
   // notify the prop engine of the explanation, which is only relevant if
   // we are proof producing for the purposes of storing the CNF of the
   // explanation.
