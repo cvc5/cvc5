@@ -29,8 +29,6 @@ libcvc5_add_sources(
   rewrite_proof_rule.h
   rewrite_proof_status.cpp
   rewrite_proof_status.cpp
-  singleton_elim_converter.cpp
-  singleton_elim_converter.h
   rewrites.h
 )
 
