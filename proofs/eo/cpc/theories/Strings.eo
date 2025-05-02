@@ -37,6 +37,7 @@
 ;   This is not the same as @seq.empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
 ;   defined as @seq.empty below. Note seq.empty is never used for strings.
+; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const seq.empty ((T Type :implicit)) (Seq T))
 
 ; program: @seq.empty
@@ -49,7 +50,6 @@
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
-; disclaimer: This function is not in SMT-LIB.
 (program @seq.empty ((U Type))
   (Type) (Seq U)
   (
