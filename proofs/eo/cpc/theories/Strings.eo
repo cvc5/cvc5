@@ -34,9 +34,9 @@
 ; Empty sequence
 ; note: >
 ;   This symbol is used as the term denoting the empty sequence.
-;   This is not the same as seq.empty, which is defined as the
+;   This is not the same as @seq.empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
-;   defined as seq.empty below. It is never used for strings.
+;   defined as @seq.empty below. Note seq.empty is never used for strings.
 (declare-parameterized-const seq.empty ((T Type :implicit)) (Seq T))
 
 ; program: @seq.empty
@@ -44,7 +44,7 @@
 ; - T Type: The string-like type.
 ; return: The empty string of the given string-like type T.
 ; note: >
-;   We define seq.empty in this way since the same symbols in our theory
+;   We define @seq.empty in this way since the same symbols in our theory
 ;   are used for strings and sequences, yet for the purposes of
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
