@@ -37,9 +37,9 @@
 ;   This is not the same as seq.empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
 ;   defined as seq.empty below. It is never used for strings.
-(declare-parameterized-const @seq.empty ((T Type)) T)
+(declare-parameterized-const seq.empty ((T Type :implicit)) (Seq T))
 
-; program: seq.empty
+; program: @seq.empty
 ; args:
 ; - T Type: The string-like type.
 ; return: The empty string of the given string-like type T.
@@ -50,19 +50,13 @@
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
 ; disclaimer: This function is not in SMT-LIB.
-(program seq.empty ((U Type))
+(program @seq.empty ((U Type))
   (Type) (Seq U)
   (
-    ((seq.empty String)  "")
-    ((seq.empty (Seq U)) (@seq.empty (Seq U)))
+    ((@seq.empty String)  "")
+    ((@seq.empty (Seq U)) (as seq.empty (Seq U)))
   )
 )
-
-; define: $mk_emptystr
-; note: >
-;   This is used as a macro for constructing the empty string or sequence.
-;   It is equivalent to seq.empty above.
-(define $mk_emptystr () seq.empty)
 
 ; Core functions of strings.
 (declare-parameterized-const str.len ((T Type :implicit)) (-> (Seq T) Int))
@@ -72,7 +66,7 @@
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
 (declare-parameterized-const str.++ ((T Type :implicit))
-  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (seq.empty (Seq T)))
+  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (@seq.empty (Seq T)))
 
 ; Extended functions for strings.
 (declare-parameterized-const str.substr ((T Type :implicit))

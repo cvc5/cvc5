@@ -53,7 +53,10 @@ Node AlfListNodeConverter::preConvert(Node n)
         if (k == Kind::SET_EMPTY_OF_TYPE)
         {
           tn = d_nm->mkSetType(tn);
-          return d_tproc.convert(d_nm->mkConst(EmptySet(tn)));
+          Node ntn = d_tproc.typeAsNode(tn);
+          // must use @seq.empty side condition, since string and sequence
+          // have different representations in the Eunoia signature
+          return d_tproc.mkInternalApp("@seq.empty", {ntn}, n.getType());
         }
         else
         {
