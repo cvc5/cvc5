@@ -18,18 +18,34 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "expr/node_algorithm.h"
 
 namespace cvc5::internal {
 namespace rewriter {
 
 SingletonElimConverter::SingletonElimConverter(Env& env)
-    : EnvObj(env), d_tpg(env, nullptr)
+    : EnvObj(env), d_tpg(env, nullptr, TConvPolicy::ONCE)
 {
 }
 
 std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
                                                            const Node& nse)
 {
+  std::vector<Node> eqs;
+  expr::getConversionConditions(n, nse, eqs);
+  for (const Node& eq : eqs)
+  {
+    Trace("rare-selim-avoid") << "...requires " << eq << std::endl;
+    d_tpg.addRewriteStep(eq[0],
+                         eq[1],
+                          nullptr,
+                          false,
+                          TrustId::RARE_SINGLETON_ELIM);
+  }
+  Node eq = n.eqNode(nse);
+  return d_tpg.getProofFor(eq);
+#if 0
+  
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
@@ -96,6 +112,7 @@ std::shared_ptr<ProofNode> SingletonElimConverter::convert(const Node& n,
   }
   Node eq = n.eqNode(nse);
   return d_tpg.getProofFor(eq);
+#endif
 }
 
 }  // namespace rewriter

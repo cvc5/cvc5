@@ -1269,12 +1269,13 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                     {
                       Assert (i<empListVars.size());
                       size_t vindex = empListVars[i];
-                      Trace("rare-selim-avoid") << "- make variable #" << vindex << " equal to null terminator to avoid singleton elimination semantics" << std::endl;
+                      Trace("rare-selim-avoid") << "- make variable #" << vindex << " equal to singleton list with null terminator to avoid singleton elimination semantics" << std::endl;
                       Assert (vindex<rsubs.size());
                       rsubs[vindex] = nt;
                     }
                   }
-                  AlwaysAssert(false);
+                  // try again with the modified arguments, which should
+                  // now avoid all implicit singleton elimination
                   continue;
                 }
                 if (a==1)
@@ -1286,13 +1287,15 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                   {
                     if (cpremises[0][i] != cpremises[1][i])
                     {
+                      Trace("rare-selim-avoid") << "Prove premise " << cpremises[1][i] << " from " << cpremises[0][i] << std::endl;
                       ensureProofSingletonElim(cdp, cpremises[1][i], cpremises[0][i], true);
                     }
                   }
                   // also convert the conclusion
                   if (proven[0]!=proven[1])
                   {
-                    ensureProofSingletonElim(cdp, proven[0], proven[1], false);
+                    Trace("rare-selim-avoid") << "Prove conclusion " << proven[0] << " to " << proven[1] << std::endl;
+                    ensureProofSingletonElim(cdp, proven[1], proven[0], false);
                   }
                 }
                 // get the conditions, store into premises of cur.
