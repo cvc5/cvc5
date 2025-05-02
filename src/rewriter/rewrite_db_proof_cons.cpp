@@ -98,31 +98,15 @@ bool RewriteDbProofCons::prove(
   }
   ++d_statTotalInputs;
   bool success = false;
-  // first try unconverted
-  Node eqi;
-  if (proveEqStratified(cdp, eq, eq, recLimit, stepLimit, tmode))
+  // Convert here, which will be used in an initial step and at postProve
+  // below.
+  Node eqi = d_rdnc.convert(eq);
+  if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, tmode))
   {
     success = true;
+    Trace("rpc") << "...success" << std::endl;
   }
   else
-  {
-    eqi = d_rdnc.convert(eq);
-    // if converter didn't make a difference, don't try to prove again
-    if (eqi != eq)
-    {
-      Trace("rpc-debug") << "...now try converted" << std::endl;
-      if (proveEqStratified(cdp, eq, eqi, recLimit, stepLimit, tmode))
-      {
-        success = true;
-      }
-    }
-    else
-    {
-      Trace("rpc-debug") << "...do not try converted, did not change"
-                         << std::endl;
-    }
-  }
-  if (!success)
   {
     // Now try the "post-prove" method as a last resort. We try the unconverted
     // then the converted form of eq, if applicable.
@@ -142,10 +126,6 @@ bool RewriteDbProofCons::prove(
       Trace("rpc") << "...fail" << std::endl;
     }
   }
-  else
-  {
-    Trace("rpc") << "...success" << std::endl;
-  }
   return success;
 }
 
@@ -158,19 +138,26 @@ bool RewriteDbProofCons::proveEqStratified(
     TheoryRewriteMode tmode)
 {
   bool success = false;
-  // first, try the basic utility
-  if (d_trrc.prove(cdp, eqi[0], eqi[1], tmode))
+  // first, try the basic utility without/with conversion
+  if (d_trrc.prove(cdp, eq[0], eq[1], tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
   }
+  else if (eqi != eq && d_trrc.prove(cdp, eqi[0], eqi[1], tmode))
+  {
+    Trace("rpc") << "...success (converted, basic)" << std::endl;
+    d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
+    success = true;
+  }
   else
   {
-    // prove the equality
+    // prove the (uncoverted) equality, where the RARE strategy may chose to
+    // convert it via RewriteProofStatus::ENCODE if necessary.
     for (int64_t i = 0; i <= recLimit; i++)
     {
       Trace("rpc-debug") << "* Try recursion depth " << i << std::endl;
-      if (proveEq(cdp, eqi, i, stepLimit))
+      if (proveEq(cdp, eq, i, stepLimit))
       {
         Trace("rpc") << "...success" << std::endl;
         success = true;
@@ -187,16 +174,7 @@ bool RewriteDbProofCons::proveEqStratified(
       }
     }
   }
-  if (success)
-  {
-    // if eqi was converted, update the proof to account for this
-    if (eq != eqi)
-    {
-      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
-    }
-    return true;
-  }
-  return false;
+  return success;
 }
 
 Node RewriteDbProofCons::preprocessClosureEq(CDProof* cdp,
@@ -462,6 +440,12 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   {
     Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
     return eqTrueId;
+  }
+  // otherwise maybe transform via encode?
+  if (proveWithRule(
+          RewriteProofStatus::ENCODE, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::ENCODE;
   }
   Trace("rpc-fail") << "FAIL: cannot prove " << eqi[0] << " == " << eqi[1]
                     << std::endl;
@@ -731,6 +715,17 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       pic.d_id = id;
     }
+  }
+  else if (id == RewriteProofStatus::ENCODE)
+  {
+    Node targeti = d_rdnc.convert(target);
+    if (target==targeti)
+    {
+      return false;
+    }
+    pic.d_id = id;
+    vcs.push_back(targeti);
+    pic.d_vars.push_back(targeti);
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
@@ -1318,6 +1313,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           cdp->addStep(pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
           cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
         }
+      }
+      else if (pcur.d_id == RewriteProofStatus::ENCODE)
+      {
+        Assert (ps.size()==1);
+        d_trrc.ensureProofForEncodeTransform(cdp, cur, ps[0]);
       }
       else if (pcur.d_id == RewriteProofStatus::DSL
                || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
