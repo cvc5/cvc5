@@ -154,13 +154,18 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * This method updates applications of the `THEORY_REWRITE` rule that
    * are explained by a specific `ProofRewriteRule` and translates them
    * into a proof node in terms of the Alethe rules.
+   *
+   * @param res The original conclusion
+   * @param id The id of the ProofRewriteRule,
+   * @param children The children of the application
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
    */
   bool updateTheoryRewriteProofRewriteRule(Node res,
                                            ProofRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args,
                                            CDProof* cdp,
-                                           bool& continueUpdate,
                                            ProofRewriteRule di);
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
