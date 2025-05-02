@@ -20,7 +20,6 @@
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
-#include "rewriter/singleton_elim_converter.h"
 #include "smt/env.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
@@ -1651,10 +1650,21 @@ void RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
                                                   const Node& eqSe,
                                                   bool fromSe)
 {
-  //++d_statPfSingletonElims;
-  SingletonElimConverter sec(d_env);
-  std::shared_ptr<ProofNode> pfn = sec.convert(eq, eqSe);
+  TConvProofGenerator tpg(d_env, nullptr, TConvPolicy::ONCE);
+  std::vector<Node> convEq;
+  expr::getConversionConditions(eq, eqSe, convEq);
+  for (const Node& ceq : convEq)
+  {
+    Trace("rare-selim-avoid") << "...requires " << ceq << std::endl;
+    // this step likely can be filled by ACI_NORM
+    tpg.addRewriteStep(ceq[0],
+                         ceq[1],
+                          nullptr,
+                          false,
+                          TrustId::RARE_SINGLETON_ELIM);
+  }
   Node equiv = eq.eqNode(eqSe);
+  std::shared_ptr<ProofNode> pfn = tpg.getProofFor(equiv);
   cdp->addProof(pfn);
   if (fromSe)
   {
@@ -1662,6 +1672,11 @@ void RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
     cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
     equiv = equivs;
   }
+  // For example:
+  //      ------------ via ACI_NORM on subterms where (src, target) differ
+  // src  src = target 
+  // ----------------- EQ_RESOLVE
+  // target
   cdp->addStep(equiv[1], ProofRule::EQ_RESOLVE, {equiv[0], equiv}, {});
 }
 
