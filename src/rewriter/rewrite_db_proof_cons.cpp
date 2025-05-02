@@ -1214,7 +1214,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 // substitute into each condition
                 const std::vector<Node>& conds = rpr.getConditions();
                 std::vector<Node>& cps = cpremises[a];
-                AlwaysAssert(vs.size()==rsubs[a].size());
+                Assert(vs.size()==rsubs[a].size());
                 for (const Node& c : conds)
                 {
                   Node p = expr::narySubstitute(c, vs, rsubs[a], dvisited, dselim);
@@ -1234,7 +1234,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                   for (const Node& tse : dselim)
                   {
                     Trace("rare-selim-avoid") << "Process term: " << tse << std::endl;
-                    AlwaysAssert(a==0) << "After trying again with " << rsubs[a] << ", still have " << tse;
+                    Assert(a==0) << "After trying again with " << rsubs[a] << ", still have " << tse;
                     // list variables
                     size_t nlistChildren = 0;
                     std::vector<size_t> empListVars;
@@ -1245,10 +1245,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                         nlistChildren++;
                         continue;
                       }
-                      AlwaysAssert (varToIndex.find(tsec)!=varToIndex.end());
+                      Assert (varToIndex.find(tsec)!=varToIndex.end());
                       size_t index = varToIndex[tsec];
                       Node r = rsubs[0][index];
-                      AlwaysAssert(!r.isNull() && r.getKind()==Kind::SEXPR) << "Expected list substitution for " << tsec << ", got " << r;
+                      Assert(!r.isNull() && r.getKind()==Kind::SEXPR) << "Expected list substitution for " << tsec << ", got " << r;
                       if (r.getNumChildren()==0)
                       {
                         empListVars.push_back(index);
@@ -1260,20 +1260,20 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                         nlistChildren++;
                       }
                     }
-                    AlwaysAssert(nlistChildren<2);
+                    Assert(nlistChildren<2);
                     size_t nexplicit = 2-nlistChildren;
-                    AlwaysAssert (nexplicit<=empListVars.size()) << "Need to add " << nexplicit << " explicits, only have " << empListVars.size();
-                    AlwaysAssert (dvisited.find(tse)!=dvisited.end());
+                    Assert (nexplicit<=empListVars.size()) << "Need to add " << nexplicit << " explicits, only have " << empListVars.size();
+                    Assert (dvisited.find(tse)!=dvisited.end());
                     Node subsCtx = dvisited[tse];
                     Node nt = expr::getNullTerminator(nm, tse.getKind(), subsCtx.getType());
                     nt = nm->mkNode(Kind::SEXPR, nt);
                     Trace("rare-selim-avoid") << "...use null terminator " << nt << std::endl;
                     for (size_t i=0; i<nexplicit; i++)
                     {
-                      AlwaysAssert (i<empListVars.size());
+                      Assert (i<empListVars.size());
                       size_t vindex = empListVars[i];
                       Trace("rare-selim-avoid") << "- make variable #" << vindex << " equal to singleton list with null terminator to avoid singleton elimination semantics" << std::endl;
-                      AlwaysAssert (vindex<rsubs[1].size());
+                      Assert (vindex<rsubs[1].size());
                       rsubs[1][vindex] = nt;
                     }
                   }
