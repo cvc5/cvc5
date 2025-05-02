@@ -494,13 +494,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     }
     Node conc = rpr.getConclusion(true);
     Node proven = expr::narySubstitute(conc, varList, subs, visited, selim);
-    // TODO: check selim.empty
-    /*
-    if (!selim.empty())
-    {
-      return Node::null();
-    }
-    */
+    // Note that selim should be empty, or else the CPC+Eunoia proof will
+    // fail to check. We do not insist on this in the internal proof checker.
     return proven;
   }
   else if (id == ProofRule::THEORY_REWRITE)
