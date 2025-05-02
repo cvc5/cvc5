@@ -44,7 +44,7 @@ well-founded BITVECTOR_TYPE \
 operator BITVECTOR_FROM_BOOLS 1: "create bit-vector from vector of Booleans"
 
 ## size
-operator BITVECTOR_SIZE 1: "Size of bitvector"
+operator BITVECTOR_SIZE 1 "Size of bitvector"
 
 ## size
 operator CONST_BITVECTOR_SYMBOLIC 2 "A symbolic bitvector constant. The first argument is its value (an integer), and the second value is its size (also an integer)."
