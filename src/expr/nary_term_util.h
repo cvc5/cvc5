@@ -68,7 +68,8 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& subs,
                     std::unordered_map<TNode, Node>& visited);
 /**
- * Same as above, tracking which terms in src used implicit singleton elimiantion.
+ * Same as above, tracking which terms in src used implicit singleton
+ * elimiantion.
  *
  * @param src The term to substitute
  * @param vars The domain of the substitution

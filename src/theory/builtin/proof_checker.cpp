@@ -485,7 +485,8 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     std::unordered_set<Node> selim;
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
-      Node scond = expr::narySubstitute(conds[i], varList, subs, visited, selim);
+      Node scond =
+          expr::narySubstitute(conds[i], varList, subs, visited, selim);
       if (scond != children[i])
       {
         return Node::null();

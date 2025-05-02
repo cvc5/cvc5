@@ -226,7 +226,7 @@ Node narySubstitute(Node src,
               return ret;
             }
           }
-          else if (children.size()==1)
+          else if (children.size() == 1)
           {
             // implicit singleton elimination happens here
             selim.insert(cur);
@@ -234,7 +234,7 @@ Node narySubstitute(Node src,
           }
           else
           {
-            ret =  nm->mkNode(cur.getKind(), children);
+            ret = nm->mkNode(cur.getKind(), children);
           }
         }
         else
