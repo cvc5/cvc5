@@ -106,7 +106,9 @@
 ;   is the right hand side of the equality, where index is the index of the
 ;   selector in the constructor of t.
 ; conclusion: The given equality.
-(declare-rule dt-collapse-selector ((D Type) (T Type) (s (-> D T)) (t D) (ti T))
+; note: The type of the selector s in this rule is typically (-> D T), although
+;       this is not the case for tuple selectors.
+(declare-rule dt-collapse-selector ((D Type) (T Type) (S Type) (s S) (t D) (ti T))
   :args ((= (s t) ti))
   :requires (((eo::define ((c ($get_fun t)))
               (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
@@ -421,7 +423,9 @@
 ;   We require that the right hand side is an ITE where the then branch is
 ;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
 ; conclusion: The given equality.
-(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (s S) (t D) (a T) (u (-> S D T D)) (tu D) (c C))
+; note: The parameter u is expected to be an updater (either update or tuple.update). Its
+;       given type is U here (which is unconstrained).
+(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (U Type) (s S) (t D) (a T) (u U) (tu D) (c C))
   :args ((= (u s t a) (ite (is c t) tu t)))
   :requires ((($mk_dt_updater_elim_rhs (u s t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
   :conclusion (= (u s t a) (ite (is c t) tu t))
