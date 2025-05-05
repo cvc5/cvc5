@@ -849,7 +849,7 @@
 ; args:
 ; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
 ; return: The result of evaluating t.
-(program $seq_eval ((T Type) (t T) (n Int))
+(program $seq_eval ((T Type) (t (Seq T)) (n Int))
   (T) T
   (
     ; handle sequence-specific operators here
