@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bitwise-eq
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () (Array (_ BitVec 6) (_ BitVec 32)))
