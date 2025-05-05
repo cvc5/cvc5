@@ -7,7 +7,7 @@ name   = "Uninterpreted Functions Theory"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
-  no_support = ["proof"]
+  no_support = ["proofs"]
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
