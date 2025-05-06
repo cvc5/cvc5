@@ -868,6 +868,35 @@ void TheoryStrings::preRegisterTerm(TNode n)
   // this term here since preRegisterTerm is already called recursively on all
   // subterms in preregistered literals.
   d_extTheory.registerTerm(n);
+  if (n.getKind()==Kind::CONST_SEQUENCE)
+  {
+    Node nc = utils::mkConcatForConstSequence(n);
+    Trace("ajr-temp") << "Const sequence: " << nc << std::endl;
+    Kind nck = nc.getKind();
+    if (nck!=Kind::CONST_SEQUENCE)
+    {
+      std::vector<Node> eqs;
+      std::vector<Node> children;
+      for (const Node& ncc : nc)
+      {
+        if (ncc.getKind()==Kind::CONST_SEQUENCE)
+        {
+          Node k = SkolemManager::mkPurifySkolem(ncc);
+          children.push_back(k);
+          eqs.push_back(k.eqNode(ncc));
+        }
+        else
+        {
+          children.push_back(ncc);
+        }
+      }
+      Node ret = nodeManager()->mkNode(nck, children);
+      eqs.push_back(n.eqNode(ret));
+      Node lem = nodeManager()->mkAnd(eqs);
+      Trace("ajr-temp") << "Const sequence lemma: " << lem << std::endl;
+      d_im.lemma(lem, InferenceId::STRINGS_CONST_SEQ_PURIFY);
+    }
+  }
 }
 
 bool TheoryStrings::preNotifyFact(
