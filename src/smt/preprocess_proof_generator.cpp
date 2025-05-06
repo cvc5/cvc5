@@ -170,7 +170,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       std::shared_ptr<ProofNode> pfr = (*it).second.toProofNode();
       if (pfr != nullptr)
       {
-        Trace("smt-pppg-debug") << "...add provided " << *pfr << " from " << (*it).second.getGenerator()->identify() << std::endl;
+        Trace("smt-pppg-debug")
+            << "...add provided " << *pfr << " from "
+            << (*it).second.getGenerator()->identify() << std::endl;
         Assert(pfr->getResult() == proven);
         cdp.addProof(pfr);
         proofStepProcessed = true;

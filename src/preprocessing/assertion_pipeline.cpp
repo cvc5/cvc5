@@ -95,7 +95,12 @@ void AssertionPipeline::push_back(
             // Never overwrite here. This is because the assumption we would
             // overwrite might be at a lower user context. Overwriting the
             // assumption can lead to open proofs in incremental mode.
-            d_andElimEpg->addStep(nc[jj], ProofRule::AND_ELIM, {nc}, {in}, false, CDPOverwrite::NEVER);
+            d_andElimEpg->addStep(nc[jj],
+                                  ProofRule::AND_ELIM,
+                                  {nc},
+                                  {in},
+                                  false,
+                                  CDPOverwrite::NEVER);
             toProcess.emplace_back(nc[jj]);
           }
         }
