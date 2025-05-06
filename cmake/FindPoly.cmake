@@ -50,16 +50,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.1.13")
-
-  check_if_cross_compiling(CCWIN "Windows" "")
-  if(CCWIN)
-    set(POLY_PATCH_CMD COMMAND
-      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
-    )
-  else()
-    unset(POLY_PATCH_CMD)
-  endif()
+  set(Poly_VERSION "0.2.0")
 
   # On Windows, CMake's default install action places DLLs into the runtime
   # path (/bin) after doing the build with 'ExternalProject_Add'
@@ -138,8 +129,8 @@ if(NOT Poly_FOUND_SYSTEM)
     # We only want to install the headers and the position-independent version
     # of the static libraries, so remove the installation targets for the other
     # versions of LibPoly
-    set(POLY_PATCH_CMD ${POLY_PATCH_CMD}
-      COMMAND
+    set(POLY_PATCH_CMD
+      PATCH_COMMAND
         sed -ri.orig
           "/TARGETS (poly|polyxx|static_poly|static_polyxx) /d"
           <SOURCE_DIR>/src/CMakeLists.txt
@@ -163,11 +154,7 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=ca7092eeeced3dd8bd86cdd3410207802ef1752d7052d92eee3e9e6bb496763c
-    PATCH_COMMAND
-      sed -i.orig
-      "s,add_subdirectory(test/polyxx),add_subdirectory(test/polyxx EXCLUDE_FROM_ALL),g"
-      <SOURCE_DIR>/CMakeLists.txt
+    URL_HASH SHA256=146adc0d3f6fe8038adb6b8b69dd16114a4be12f520d5c1fb333f3746d233abe
     ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
@@ -178,7 +165,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
-               -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+               -DBUILD_TESTING=OFF
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
