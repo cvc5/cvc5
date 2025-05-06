@@ -208,6 +208,34 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_hasSeqUpdate = true;
   }
+  else if (k == Kind::CONST_SEQUENCE)
+  {
+    Node nc = utils::mkConcatForConstSequence(n);
+    Kind nck = nc.getKind();
+    if (nck!=Kind::CONST_SEQUENCE)
+    {
+      std::vector<Node> eqs;
+      std::vector<Node> children;
+      for (const Node& ncc : nc)
+      {
+        if (ncc.getKind()==Kind::CONST_SEQUENCE)
+        {
+          Node skolem = SkolemManager::mkPurifySkolem(ncc);
+          children.push_back(skolem);
+          eqs.push_back(skolem.eqNode(ncc));
+        }
+        else
+        {
+          children.push_back(ncc);
+        }
+      }
+      Node ret = nodeManager()->mkNode(nck, children);
+      eqs.push_back(n.eqNode(ret));
+      Node lem = nodeManager()->mkAnd(eqs);
+      Trace("strings-preregister") << "Const sequence lemma: " << lem << std::endl;
+      d_im->lemma(lem, InferenceId::STRINGS_CONST_SEQ_PURIFY);
+    }
+  }
   if (options().strings.stringEagerReg)
   {
     registerTerm(n);
@@ -377,7 +405,8 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   //  for variables, split on empty vs positive length
   //  for concat/const/replace, introduce proxy var and state length relation
   Node lsum;
-  if (n.getKind() != Kind::STRING_CONCAT && !n.isConst())
+  Kind nk = n.getKind();
+  if (nk != Kind::STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(Kind::STRING_LENGTH, n);
     lsum = rewrite(lsumb);
@@ -394,13 +423,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
   // implied.
-  if (n.isConst() || n.getKind() == Kind::STRING_CONCAT)
+  if (n.isConst() || nk == Kind::STRING_CONCAT)
   {
     // do not send length lemma for sk.
     registerTermAtomic(sk, LENGTH_IGNORE);
   }
   Node skl = nm->mkNode(Kind::STRING_LENGTH, sk);
-  if (n.getKind() == Kind::STRING_CONCAT)
+  if (nk == Kind::STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
     NodeNodeMap::const_iterator itl;
