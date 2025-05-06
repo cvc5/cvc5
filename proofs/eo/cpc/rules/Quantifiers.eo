@@ -405,8 +405,8 @@
 ; return: >
 ;    The invertibility condition for x in R. This is a quantifier-free formula that is
 ;    equivalent to (exists x. R).
-(program $mk_invertibility_condition ((n Int) (m Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
-                                       (nil (BitVec n) :list))
+(program $mk_invertibility_condition ((n Int) (m Int) (k Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
+                                      (tk (BitVec k)) (nil (BitVec n) :list))
   ((BitVec n) Bool) Bool
   (
   (($mk_invertibility_condition x (= (bvmul x s nil) t))    (eo::requires (eo::to_z nil) 1
@@ -430,9 +430,9 @@
   (($mk_invertibility_condition x (= (bvlshr x s) t))       (= (bvlshr (bvshl t s) s) t))
   (($mk_invertibility_condition x (= (bvlshr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
                                                               (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvlshr s) t w 1))))
-  (($mk_invertibility_condition x (= (sign_extend m x) t))  (eo::define ((hi (eo::add ($bv_bitwidth (eo::typeof t)) -1)))
+  (($mk_invertibility_condition x (= (sign_extend m x) tk)) (eo::define ((hi (eo::add ($bv_bitwidth (eo::typeof tk)) -1)))
                                                             (eo::define ((lo (eo::add hi (eo::neg m))))
-                                                            (eo::define ((ex (extract hi lo t)))
+                                                            (eo::define ((ex (extract hi lo tk)))
                                                             (eo::define ((zero (eo::to_bin (eo::add m 1) 0)))
                                                               (or (= ex zero) (= ex (eo::not zero))))))))
   )
