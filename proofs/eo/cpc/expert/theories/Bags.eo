@@ -9,7 +9,7 @@
 (declare-type Bag (Type))
 
 ; NOTE: permits non-set types
-(declare-parameterized-const bag.empty ((T Type)) T)
+(declare-parameterized-const bag.empty ((T Type :implicit)) (Bag T))
 
 (declare-parameterized-const bag.union_max ((T Type :implicit))
   (-> (Bag T) (Bag T) (Bag T)))

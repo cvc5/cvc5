@@ -9,8 +9,7 @@
 (declare-type Set (Type))
 
 ; Constants for the theory of sets.
-; note: type rule does not check the type is set.
-(declare-parameterized-const set.empty ((T Type)) T)
+(declare-parameterized-const set.empty ((T Type :implicit)) (Set T))
 
 ; Operators for the theory of sets.
 (declare-parameterized-const set.singleton ((T Type :implicit))

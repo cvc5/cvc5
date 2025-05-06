@@ -6,7 +6,7 @@
 
 ; Constants for the theory of sets.
 ; note: type rule does not check the type is set.
-(declare-parameterized-const set.universe ((T Type)) T)
+(declare-parameterized-const set.universe ((T Type :implicit)) (Set T))
 
 ; Operators for the theory of sets.
 (declare-parameterized-const set.complement ((T Type :implicit))

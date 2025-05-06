@@ -17,12 +17,12 @@
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
 (include "./theories/SepLogic.eo")
+(include "./rules/ArraysExt.eo")
 (include "./rules/Transcendentals.eo")
 (include "./rules/SetsExt.eo")
 (include "./rules/RewritesExpert.eo")
 
 (include "../programs/AciNorm.eo")
-(include "../theories/Arrays.eo")
 
 ; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
@@ -32,10 +32,6 @@
 ; Used in the --ho-elim preprocessing pass
 (declare-type @ho-elim-sort (Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
-
-; The arrays equal-range predicate.
-; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const eqrange ((U Type :implicit) (T Type :implicit) (I Type :implicit)) (-> (Array U T) (Array U T) I I Bool))
 
 ; Dataypes shared selector
 (declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
