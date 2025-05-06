@@ -212,13 +212,13 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     Node nc = utils::mkConcatForConstSequence(n);
     Kind nck = nc.getKind();
-    if (nck!=Kind::CONST_SEQUENCE)
+    if (nck != Kind::CONST_SEQUENCE)
     {
       std::vector<Node> eqs;
       std::vector<Node> children;
       for (const Node& ncc : nc)
       {
-        if (ncc.getKind()==Kind::CONST_SEQUENCE)
+        if (ncc.getKind() == Kind::CONST_SEQUENCE)
         {
           Node skolem = SkolemManager::mkPurifySkolem(ncc);
           children.push_back(skolem);
@@ -232,7 +232,8 @@ void TermRegistry::preRegisterTerm(TNode n)
       Node ret = nodeManager()->mkNode(nck, children);
       eqs.push_back(n.eqNode(ret));
       Node lem = nodeManager()->mkAnd(eqs);
-      Trace("strings-preregister") << "Const sequence lemma: " << lem << std::endl;
+      Trace("strings-preregister")
+          << "Const sequence lemma: " << lem << std::endl;
       d_im->lemma(lem, InferenceId::STRINGS_CONST_SEQ_PURIFY);
     }
   }
