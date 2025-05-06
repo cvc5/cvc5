@@ -295,7 +295,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
     {
       if (opts.proof.proofGranularityMode
-          < options::ProofGranularityMode::THEORY_REWRITE)
+          < options::ProofGranularityMode::THEORY_REWRITE || !opts.proof.proofGranularityModeWasSetByUser)
       {
         SET_AND_NOTIFY_VAL_SYM(
             proof,
