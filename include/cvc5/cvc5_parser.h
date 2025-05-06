@@ -412,7 +412,7 @@ class CVC5_EXPORT ParserException : public CVC5ApiException
  * An end of file exception.
  * If thrown, API objects can still be used
  */
-class ParserEndOfFileException : public ParserException
+class CVC5_EXPORT ParserEndOfFileException : public ParserException
 {
  public:
   /** default constructor */

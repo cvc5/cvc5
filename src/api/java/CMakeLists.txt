@@ -277,6 +277,8 @@ message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 set(jni_files
   jni/api_plugin.cpp
   jni/api_plugin.h
+  jni/api_solver.cpp
+  jni/api_solver.h
   jni/api_utilities.cpp
   jni/datatype.cpp
   jni/command.cpp

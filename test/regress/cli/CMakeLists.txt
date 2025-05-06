@@ -1278,6 +1278,10 @@ set(regress_0_tests
   regress0/parser/sort-term-overload-simple-unsat.smt2
   regress0/parser/stdout-diag.smt2
   regress0/parser/strict-numeral.smt2
+  regress0/parser/strict-parsing-mixed-arith-1.smt2
+  regress0/parser/strict-parsing-mixed-arith-2.smt2
+  regress0/parser/strict-parsing-mixed-arith-3.smt2
+  regress0/parser/strict-parsing-mixed-arith-3b.smt2
   regress0/parser/lenient-numeral.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
@@ -2861,6 +2865,8 @@ set(regress_1_tests
   regress1/proj-issue623-bv2nat-static.smt2
   regress1/proj-issue634-diff-mc.smt2
   regress1/proj-issue719-zll-repeat.smt2
+  regress1/proj-issue764-block-model.smt2
+  regress1/proj-issue766-block-model.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2

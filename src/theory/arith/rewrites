@@ -36,9 +36,9 @@
 (define-rule arith-eq-elim-real ((t Real) (s Real)) (= t s) (and (>= t s) (<= t s)))
 (define-rule arith-eq-elim-int ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
 
-(define-rule* arith-plus-flatten ((xs ? :list) (w ?) (ys ? :list) (zs ? :list))
-  (+ xs (+ w ys) zs)
-  (+ xs w ys zs))
+(define-rule* arith-plus-flatten ((xs ? :list) (w1 ?) (w2 ?) (ys ? :list) (zs ? :list))
+  (+ xs (+ w1 w2 ys) zs)
+  (+ xs w1 w2 ys zs))
 
 (define-rule arith-to-int-elim ((x Int)) (to_int x) x)
 (define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))

@@ -247,9 +247,9 @@
   (str.replace t s s)
   t)
 
-(define-rule str-replace-prefix ((t ?Seq) (r ?Seq :list) (s ?Seq))
-  (str.replace (str.++ t r) t s)
-  (str.++ s r))
+(define-rule str-replace-prefix ((t1 ?Seq) (t2 ?Seq) (r ?Seq :list) (s ?Seq))
+  (str.replace (str.++ t1 t2 r) t1 s)
+  (str.++ s t2 r))
 
 (define-cond-rule str-replace-no-contains ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (not (str.contains t s))

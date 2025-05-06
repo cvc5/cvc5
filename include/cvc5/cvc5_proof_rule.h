@@ -1418,6 +1418,22 @@ enum ENUM(ProofRule)
   EVALUE(QUANT_VAR_REORDERING),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Exists string length**
+   *
+   * .. math::
+   *   \inferrule{-\mid T n i} {\mathit{len}(k) = n}
+   *
+   * where :math:`k` is a skolem of string or sequence type :math:`T` and
+   * :math:`n` is a non-negative integer. The argument :math:`i` is an
+   * identifier for :math:`k`. These three arguments are the indices of
+   * :math:`k`, whose skolem identifier is
+   * :cpp:enumerator:`WITNESS_STRING_LENGTH <cvc5::SkolemId::WITNESS_STRING_LENGTH>`.
+   *
+   * \endverbatim
+   */
+  EVALUE(EXISTS_STRING_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Singleton injectivity**
    *
    * .. math::
