@@ -210,6 +210,19 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == Kind::CONST_SEQUENCE)
   {
+    // If we are a constant sequence that has "nested" constant sequences
+    // implicitly, e.g. for sequences of sequences, then we must ensure that
+    // all subterms of this constant are also considered as terms by the
+    // solver. Otherwise, these terms would be hidden inside of the sequence
+    // constant. To do so, we ensure a purify skolem is introduced for each
+    // subterm. For example, for the sequence constant t:
+    //   (str.++ (as seq.empty (Seq Int)) (seq.unit (str.++ 0 1)))
+    // We add the lemma:
+    //   k1 = (as seq.empty (Seq Int)) ^ k2 = (seq.unit (str.++ 0 1)) ^
+    //   t = (str.++ k1 k2).
+    // The right hand sides of the first two equalties will lead to
+    // preregistering these sequence constants in the same way.
+    // These lemmas can be justified trivially by MACRO_SR_PRED_INTRO.
     Node nc = utils::mkConcatForConstSequence(n);
     Kind nck = nc.getKind();
     if (nck != Kind::CONST_SEQUENCE)
