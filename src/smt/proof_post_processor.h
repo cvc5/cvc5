@@ -123,6 +123,12 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
                     Node res = Node::null());
   /**
    * Called when we require expanding a macro step from within the method above.
+   * This makes a recursive call to the above method.
+   * @param id The rule of the application
+   * @param children The children of the application
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
+   * @return The conclusion of the rule, or null if this rule is not eliminated.
    */
   Node addExpandStep(ProofRule id,
                      const std::vector<Node>& children,
