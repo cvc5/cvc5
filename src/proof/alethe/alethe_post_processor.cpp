@@ -398,7 +398,12 @@ bool AletheProofPostprocessCallback::update(Node res,
     // This rule is translated according to the singleton pattern.
     case ProofRule::ENCODE_EQ_INTRO:
     {
-      return addAletheStep(AletheRule::REFL,res,nm->mkNode(Kind::SEXPR,d_cl,res),{},{},*cdp);
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
     }
     // The conversion is into a "rare_rewrite" step where the first argument is
     // a string literal with the name of the rewrite, followed by the arguments,
