@@ -73,6 +73,8 @@ class Tester:
         if exit_status == STATUS_TIMEOUT:
             print_error("Timeout")
             return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+        elif exit_status == EXIT_SKIP:
+            return EXIT_SKIP
         elif exit_status != expected_exit_status:
             print_error(
                 'Unexpected exit status: expected "{}" but got "{}"'.format(
@@ -353,6 +355,8 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            if benchmark_info.safe_mode and re.search(r'\(error "Fatal error in option parsing: ', error.decode()):
+                return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
             # note this line is not necessary if in a safe build
@@ -363,9 +367,6 @@ class CpcTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if re.search(r'\(error "Fatal error in option parsing: ', output):
-                print_ok("OK")
-                return EXIT_OK
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
                 print()
@@ -710,6 +711,10 @@ def run_benchmark(benchmark_info):
         benchmark_info.timeout,
     )
 
+    # If we had a error due to safe mode and safe mode is enabled, we skip
+    if benchmark_info.safe_mode and re.search(r'\(error "Fatal error in option parsing: ', error.decode()):
+        return EXIT_SKIP
+
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
     if benchmark_info.scrubber:
@@ -914,7 +919,7 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
-            safe_mode="safe" in cvc5_features
+            safe_mode=("safe-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
