@@ -34,7 +34,10 @@ string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
 bool Configuration::isSafeBuild()
 {
-  return CVC5_SAFE_MODE;
+#ifdef CVC5_SAFE_MODE
+    return true;
+#endif
+  return false;
 }
 
 bool Configuration::isDebugBuild() {
