@@ -599,6 +599,9 @@ Term Smt2TermParser::parseTerm()
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);
+              // Corner case: the list of terms is empty. This is a legal
+              // pattern in SMT-LIB, and hence we ignore it, for other
+              // attributes we throw an error.
               if (d_lex.peekToken()==Token::RPAREN_TOK)
               {
                 if (attrKind==Kind::INST_PATTERN)
