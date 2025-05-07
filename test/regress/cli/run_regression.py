@@ -717,6 +717,8 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
+    # For all testers, if we throw an admissible error (with text
+    # "in safe mode"), we allow the benchmark to be skipped.
     if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
         return (output, error, EXIT_SKIP)
 
