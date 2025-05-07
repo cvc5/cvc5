@@ -222,6 +222,9 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
 {
   Trace("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
                       << std::endl;
+  // This rewrite performs an algorithm that is similar to the rewriter
+  // for rewriting addition in arithmetic flattenAndCollectSum
+  // (src/theory/arith/arith_rewriter.cpp).
   Kind nk = node.getKind();
   std::vector<std::pair<TNode, Integer>> children;
   // Note we use an *ordered* map, where we assume that nodes are ordered by
@@ -255,7 +258,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
         k = tc.getKind();
       }
     }
-    // figure out whether to recurse into cur
+    // recurse into the term if it has the same kind
     if (k == nk)
     {
       for (TNode cc : tc)
@@ -271,7 +274,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
 
   NodeManager* nm = node.getNodeManager();
   Integer coeff(0);
-  Integer flattenMax(8);
+  // note this may still overflow if MULT or XOR
   std::vector<Node> nchildren;
   for (const std::pair<TNode, Integer>& c : children)
   {
@@ -298,11 +301,8 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       }
       continue;
     }
-    else if (c.second > flattenMax)
-    {
-      // failed, leave the entire node as is
-      return node;
-    }
+    // we cannot "group" multiplication, we also don't cancel xor children
+    // here for now. Thus, we add num copies of the node
     uint32_t num = c.second.toUnsignedInt();
     for (uint32_t i = 0; i < num; i++)
     {
