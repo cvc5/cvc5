@@ -599,11 +599,27 @@ Term Smt2TermParser::parseTerm()
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);
-              // Will parse list as arguments to the kind + closing parenthesis.
-              ParseOp op;
-              op.d_kind = attrKind;
-              tstack.emplace_back(op, std::vector<Term>());
-              xstack.emplace_back(ParseCtx::NEXT_ARG);
+              if (d_lex.peekToken()==Token::RPAREN_TOK)
+              {
+                if (attrKind==Kind::INST_PATTERN)
+                {
+                  // silently ignores
+                  d_lex.eatToken(Token::RPAREN_TOK);
+                }
+                else
+                {
+                  d_lex.parseError(
+                      "Expecting at least one term in annotation.");
+                }
+              }
+              else
+              {
+                // Will parse list as arguments to the kind + closing parenthesis.
+                ParseOp op;
+                op.d_kind = attrKind;
+                tstack.emplace_back(op, std::vector<Term>());
+                xstack.emplace_back(ParseCtx::NEXT_ARG);
+              }
             }
             else if (!attrValue.isNull())
             {
