@@ -58,7 +58,7 @@ cvc5_add_api_test(reset_assertions "")
 cvc5_add_api_test(smt2_compliance "")
 cvc5_add_api_test(two_solvers "")
 
-if (NOT CVC5_SAFE_MODE)
+if (NOT ENABLE_SAFE_MODE)
   cvc5_add_api_test(sep_log_api "")
 endif()
 

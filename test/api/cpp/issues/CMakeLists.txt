@@ -52,7 +52,7 @@ cvc5_add_api_test(proj-issue654 "issues")
 cvc5_add_api_test(proj-issue655 "issues")
 cvc5_add_api_test(proj-issue666 "issues")
 
-if (NOT CVC5_SAFE_MODE)
+if (NOT ENABLE_SAFE_MODE)
   cvc5_add_api_test(issue4889 "issues")
   cvc5_add_api_test(proj-issue377 "issues")
   cvc5_add_api_test(proj-issue413 "issues")
