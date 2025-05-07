@@ -62,7 +62,7 @@ void checkForExperimentalFloatingPointType(const Node& n)
             "are supported in default mode. Try the experimental solver via "
             "--fp-exp. Note: There are known issues with the experimental "
             "solver, use at your own risk.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
 }
