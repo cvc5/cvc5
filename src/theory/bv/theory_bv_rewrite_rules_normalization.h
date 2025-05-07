@@ -308,11 +308,6 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     {
       nchildren.emplace_back(c.first);
     }
-    // in the rare case this is too many children, we leave the node as is.
-    if (nchildren.size()>d_nvMaxChildren)
-    {
-      return node;
-    }
   }
   if (nk == Kind::BITVECTOR_ADD)
   {
