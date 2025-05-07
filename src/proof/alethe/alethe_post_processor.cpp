@@ -91,6 +91,89 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
          || rule == AletheRule::CONTRACTION;
 }
 
+bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
+    Node res,
+    ProofRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate,
+    ProofRewriteRule di)
+{
+  NodeManager* nm = nodeManager();
+  std::vector<Node> new_args = std::vector<Node>();
+  switch (di)
+  {
+    // ======== DISTINCT_ELIM
+    // ======== DISTINCT_CARD_CONFLICT
+    // Both rules are translated according to the clauses pattern to
+    // distinct_elim. The only exception to this is when DISTINCT_ELIM results
+    // in a term with exactly two boolean arguments. The Alethe distinct_elim
+    // rule has a special handling in this case and rewrites the distinct term
+    // to False directly (as the DISTINCT_CARD_CONFLICT rule does in cvc5).
+    // Instead, we output a RARE_REWRITE step using the distinct_two_bool_elim
+    // rule.
+    //
+    // (define-rule distinct_bin_bool_elim ((t1 Bool) (t2 Bool))
+    // (distinct t1 t2)
+    // (not (= t1 t2)))
+    case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+    {
+      Node eq = res[0];
+      Node t1 = eq[0];
+      if (di == ProofRewriteRule::DISTINCT_ELIM && t1.getType().isBoolean()
+          && eq.getNumChildren() == 2)
+      {
+        return addAletheStep(
+            AletheRule::RARE_REWRITE,
+            res,
+            nm->mkNode(Kind::SEXPR, d_cl, res),
+            {},
+            {nm->mkRawSymbol("\"distinct_bin_bool_elim\"", nm->sExprType()),
+             t1,
+             eq[1]},
+            *cdp);
+      }
+      return addAletheStep(AletheRule::DISTINCT_ELIM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    // ======== QUANT_MERGE_PRENEX
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    {
+      return addAletheStep(AletheRule::QNT_JOIN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_UNUSED_VARS
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_UNUSED_VARS:
+    {
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    default: break;
+  }
+  return addAletheStep(AletheRule::HOLE,
+                       res,
+                       nm->mkNode(Kind::SEXPR, d_cl, res),
+                       children,
+                       new_args,
+                       *cdp);
+}
+
 bool AletheProofPostprocessCallback::update(Node res,
                                             ProofRule id,
                                             const std::vector<Node>& children,
@@ -437,6 +520,21 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    case ProofRule::THEORY_REWRITE:
+    {
+      ProofRewriteRule di;
+      if (rewriter::getRewriteRule(args[0], di))
+      {
+        return updateTheoryRewriteProofRewriteRule(
+            res, id, children, args, cdp, continueUpdate, di);
+      }
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
