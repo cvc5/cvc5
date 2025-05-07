@@ -273,13 +273,16 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
   std::vector<Node> nchildren;
   for (const std::pair<TNode, Integer>& c : children)
   {
+    if (c.second.isZero())
+    {
+      continue;
+    }
     if (nk==Kind::BITVECTOR_ADD)
     {
       if (c.first.isConst())
       {
-        // group the coefficient
+        // group the constant coefficient
         coeff += c.first.getConst<BitVector>().toInteger() * c.second;
-        continue;
       }
       else if (c.second.isOne())
       {
@@ -290,8 +293,8 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
         Node cn = utils::mkConst(nm, utils::getSize(node), c.second);
         Node gc = nm->mkNode(Kind::BITVECTOR_MULT, cn, c.first);
         nchildren.emplace_back(gc);
-        continue;
       }
+      continue;
     }
     else if (c.second>flattenMax)
     {
