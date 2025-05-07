@@ -611,6 +611,7 @@ Term Smt2TermParser::parseTerm()
                   d_lex.parseError(
                       "Expecting at least one term in annotation.");
                 }
+                needsUpdateCtx = true;
               }
               else
               {
