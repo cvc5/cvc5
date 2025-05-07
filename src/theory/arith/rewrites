@@ -97,17 +97,9 @@
   (>= (ite C t s) r)
   (ite C (>= t r) (>= s r)))
 
-(define-rule arith-gt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
-  (> (ite C t s) r)
-  (ite C (> t r) (> s r)))
-
 (define-rule arith-leq-ite-lift ((C Bool) (t ?) (s ?) (r ?))
   (<= (ite C t s) r)
   (ite C (<= t r) (<= s r)))
-
-(define-rule arith-lt-ite-lift ((C Bool) (t ?) (s ?) (r ?))
-  (< (ite C t s) r)
-  (ite C (< t r) (< s r)))
 
 ; min/max rules
 
