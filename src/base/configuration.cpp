@@ -32,6 +32,11 @@ namespace cvc5::internal {
 
 string Configuration::getName() { return CVC5_PACKAGE_NAME; }
 
+bool Configuration::isSafeBuild()
+{
+  return CVC5_SAFE_MODE;
+}
+
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;
 }
