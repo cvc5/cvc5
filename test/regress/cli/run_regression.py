@@ -714,8 +714,8 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
-    #if benchmark_info.safe_mode and (re.search(r'in safe mode', error) or re.search(r'in safe mode', output)):
-    #    return EXIT_SKIP
+    if benchmark_info.safe_mode and re.search(r'in safe mode', output.decode()):
+        return EXIT_SKIP
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
