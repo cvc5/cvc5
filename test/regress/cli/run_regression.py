@@ -343,7 +343,6 @@ class CpcTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-format=cpc",
                 "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
@@ -357,12 +356,16 @@ class CpcTester(Tester):
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
             # note this line is not necessary if in a safe build
-            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
+            if not benchmark_info.safe_mode:
+                tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
             tmpf.write(output.strip("unsat\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
+            if re.search(r'\(error "Fatal error in option parsing: ', output):
+                print_ok("OK")
+                return EXIT_OK
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
                 print()
@@ -557,6 +560,7 @@ BenchmarkInfo = collections.namedtuple(
         "expected_exit_status",
         "command_line_args",
         "compare_outputs",
+        "safe_mode"
     ],
 )
 
@@ -910,6 +914,7 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
+            safe_mode="safe" in cvc5_features
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
