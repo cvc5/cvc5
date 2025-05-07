@@ -98,9 +98,7 @@ class Tester:
         exit_code = self.check_exit_status(benchmark_info.expected_exit_status,
                                            exit_status, output, error,
                                            benchmark_info.command_line_args)
-        # If we had a error due to safe mode and safe mode is enabled, we skip
-        if benchmark_info.safe_mode and re.search(r'in safe mode', output):
-            return EXIT_SKIP
+
         if exit_code == EXIT_SKIP:
             return exit_code
 
@@ -715,7 +713,7 @@ def run_benchmark(benchmark_info):
         benchmark_info.timeout,
     )
     if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
-        return EXIT_SKIP
+        return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
