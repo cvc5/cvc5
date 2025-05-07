@@ -590,7 +590,7 @@ void TheoryFp::preRegisterTerm(TNode node)
     std::stringstream ss;
     ss << "Floating points not available in this configuration, try "
           "--fp.";
-    throw LogicException(ss.str());
+    throw SafeLogicException(ss.str());
   }
   if (!options().fp.fpExp)
   {

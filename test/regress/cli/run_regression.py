@@ -183,8 +183,7 @@ class ProofTester(Tester):
         return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--sat-solver=minisat",
-                 "--check-proofs",
+                ["--check-proofs",
                  "--proof-granularity=theory-rewrite",
                  "--proof-check=lazy"]
             )
@@ -355,7 +354,9 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            if benchmark_info.safe_mode and re.search(r'\(error "Fatal error in option parsing: ', error.decode()):
+            # if we throw an admissible error (with text "in safe mode"), we
+            # allow the benchmark to be skipped.
+            if benchmark_info.safe_mode and (re.search(r'in safe mode', error.decode()) or re.search(r'in safe mode', output.decode())):
                 return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
@@ -712,8 +713,8 @@ def run_benchmark(benchmark_info):
     )
 
     # If we had a error due to safe mode and safe mode is enabled, we skip
-    if benchmark_info.safe_mode and re.search(r'\(error "Fatal error in option parsing: ', error.decode()):
-        return EXIT_SKIP
+    #if benchmark_info.safe_mode and (re.search(r'in safe mode', error.decode()) or re.search(r'in safe mode', output.decode())):
+    #    return EXIT_SKIP
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""

@@ -60,7 +60,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofCheck"
-  category   = "expert"
+  category   = "common"
   long       = "proof-check=MODE"
   type       = "ProofCheckMode"
   default    = "NONE"
