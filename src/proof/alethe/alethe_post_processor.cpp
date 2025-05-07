@@ -93,7 +93,6 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 
 bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     Node res,
-    ProofRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp,
@@ -508,7 +507,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       ProofRewriteRule di;
       rewriter::getRewriteRule(args[0], di);
       return updateTheoryRewriteProofRewriteRule(
-          res, id, children, args, cdp, di);
+          res, children, args, cdp, di);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.
