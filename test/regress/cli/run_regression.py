@@ -223,6 +223,9 @@ class LfscTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # lfsc is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
@@ -280,6 +283,9 @@ class AletheTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # alethe is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
@@ -300,8 +306,7 @@ class AletheTester(Tester):
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
-                print_ok("OK")
-                return exit_code
+                return EXIT_SKIP
 
             if exit_code != EXIT_OK:
                 return exit_code
