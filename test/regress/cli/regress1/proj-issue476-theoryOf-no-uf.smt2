@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: -q --datatypes-exp
 ; EXPECT: sat
 (set-logic QF_ADTNIA)
 (set-info :status sat)
