@@ -243,10 +243,12 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     countMap.erase(cur);
     // Additionally collect coefficient, if plus. This is important since
     // the prerewrite may have already grouped the sum into multiplications
-    // times constants, in which case we should immediately group in the same way again.
+    // times constants, in which case we should immediately group in the same
+    // way again.
     if (nk == Kind::BITVECTOR_ADD)
     {
-      while (k == Kind::BITVECTOR_MULT && tc.getNumChildren() == 2 && tc[0].isConst())
+      while (k == Kind::BITVECTOR_MULT && tc.getNumChildren() == 2
+             && tc[0].isConst())
       {
         coeff *= tc[0].getConst<BitVector>().toInteger();
         tc = tc[1];
@@ -254,7 +256,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       }
     }
     // figure out whether to recurse into cur
-    if (k==nk)
+    if (k == nk)
     {
       for (TNode cc : tc)
       {
@@ -277,7 +279,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     {
       continue;
     }
-    if (nk==Kind::BITVECTOR_ADD)
+    if (nk == Kind::BITVECTOR_ADD)
     {
       if (c.first.isConst())
       {
@@ -296,18 +298,18 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       }
       continue;
     }
-    else if (c.second>flattenMax)
+    else if (c.second > flattenMax)
     {
       // failed, leave the entire node as is
       return node;
     }
     uint32_t num = c.second.toUnsignedInt();
-    for (uint32_t i=0; i<num; i++)
+    for (uint32_t i = 0; i < num; i++)
     {
       nchildren.emplace_back(c.first);
     }
   }
-  if (nk==Kind::BITVECTOR_ADD)
+  if (nk == Kind::BITVECTOR_ADD)
   {
     if (!coeff.isZero())
     {
@@ -315,8 +317,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       nchildren.emplace_back(cn);
     }
   }
-  if (nk == Kind::BITVECTOR_ADD
-      || nk == Kind::BITVECTOR_MULT)
+  if (nk == Kind::BITVECTOR_ADD || nk == Kind::BITVECTOR_MULT)
   {
     return utils::mkNaryNode(nm, nk, nchildren);
   }
