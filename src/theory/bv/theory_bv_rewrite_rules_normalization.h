@@ -251,10 +251,10 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     if (nk == Kind::BITVECTOR_ADD)
     {
       while (k == Kind::BITVECTOR_MULT && tc.getNumChildren() == 2
-             && tc[0].isConst())
+             && tc[1].isConst())
       {
-        coeff *= tc[0].getConst<BitVector>().toInteger();
-        tc = tc[1];
+        coeff *= tc[1].getConst<BitVector>().toInteger();
+        tc = tc[0];
         k = tc.getKind();
       }
     }
@@ -296,7 +296,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       else
       {
         Node cn = utils::mkConst(nm, utils::getSize(node), c.second);
-        Node gc = nm->mkNode(Kind::BITVECTOR_MULT, cn, c.first);
+        Node gc = nm->mkNode(Kind::BITVECTOR_MULT, c.first, cn);
         nchildren.emplace_back(gc);
       }
       continue;
