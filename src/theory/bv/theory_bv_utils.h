@@ -102,7 +102,7 @@ Node mkMaxSigned(NodeManager* nm, unsigned size);
 
 /* Create bit-vector constant of given size and value. */
 Node mkConst(NodeManager* nm, unsigned size, unsigned int value);
-Node mkConst(NodeManager* nm, unsigned size, Integer& value);
+Node mkConst(NodeManager* nm, unsigned size, const Integer& value);
 /* Create bit-vector constant from given bit-vector. */
 Node mkConst(NodeManager* nm, const BitVector& value);
 

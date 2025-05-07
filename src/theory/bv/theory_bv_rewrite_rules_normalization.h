@@ -232,20 +232,18 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
   std::map<TNode, Integer> countMap;
   countMap[node] = Integer(1);
   std::map<TNode, Integer>::iterator it;
-  Kind tk = node.getKind();
   while (!countMap.empty())
   {
     // Go off of end first. This is important for efficiency since later terms
     // in the map may contain subterms that are earlier terms in the map.
     std::map<TNode, Integer>::iterator cur = std::prev(countMap.end());
-    bool recurse = false;
     TNode tc = cur->first;
     Kind k = tc.getKind();
     Integer coeff = cur->second;
     countMap.erase(cur);
     // Additionally collect coefficient, if plus. This is important since
     // the prerewrite may have already grouped the sum into multiplications
-    // times constants, in which case we need to group in the same way again.
+    // times constants, in which case we should immediately group in the same way again.
     if (nk == Kind::BITVECTOR_ADD)
     {
       while (k == Kind::BITVECTOR_MULT && tc.getNumChildren() == 2 && tc[0].isConst())
@@ -269,6 +267,7 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     }
   }
 
+  NodeManager* nm = node.getNodeManager();
   Integer coeff(0);
   Integer flattenMax(8);
   std::vector<Node> nchildren;
@@ -282,38 +281,44 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
         coeff += c.first.getConst<BitVector>().toInteger() * c.second;
         continue;
       }
-      else if (c.second>flattenMax)
+      else if (c.second.isOne())
       {
-        Node gc = nm->mkNode(Kind::BITVECTOR_MULT, nm->mkConstRealOrInt(c.second), c.first);
-        nchildren.push_back(gc);
+        nchildren.emplace_back(c.first);
+      }
+      else
+      {
+        Node cn = utils::mkConst(nm, utils::getSize(node), c.second);
+        Node gc = nm->mkNode(Kind::BITVECTOR_MULT, cn, c.first);
+        nchildren.emplace_back(gc);
         continue;
       }
     }
-    else if (nk != Kind::BITVECTOR_MULT && nk != Kind::BITVECTOR_XOR)
-    {
-      // all others are idempotent, add one copy
-      nchildren.push_back(c.first);
-      continue;
-    }
     else if (c.second>flattenMax)
     {
-      // failed, leave as is
+      // failed, leave the entire node as is
       return node;
     }
     uint32_t num = c.second.toUnsignedInt();
     for (uint32_t i=0; i<num; i++)
     {
-      nchildren.push_back(c.first);
+      nchildren.emplace_back(c.first);
     }
   }
-  if (node.getKind() == Kind::BITVECTOR_ADD
-      || node.getKind() == Kind::BITVECTOR_MULT)
+  if (nk==Kind::BITVECTOR_ADD)
   {
-    NodeManager* nm = node.getNodeManager();
-    return utils::mkNaryNode(nm, kind, nchildren);
+    if (!coeff.isZero())
+    {
+      Node cn = utils::mkConst(nm, utils::getSize(node), coeff);
+      nchildren.emplace_back(cn);
+    }
+  }
+  if (nk == Kind::BITVECTOR_ADD
+      || nk == Kind::BITVECTOR_MULT)
+  {
+    return utils::mkNaryNode(nm, nk, nchildren);
   }
   // otherwise sort
-  return utils::mkSortedNode(kind, nchildren);
+  return utils::mkSortedNode(nk, nchildren);
 }
 
 static inline void addToCoefMap(std::map<Node, BitVector>& map,
