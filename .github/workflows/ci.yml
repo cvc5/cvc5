@@ -26,6 +26,18 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:production-safe
+            os: ubuntu-22.04
+            config: safe-mode --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
+            cache-key: production-safe
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            build-documentation: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
