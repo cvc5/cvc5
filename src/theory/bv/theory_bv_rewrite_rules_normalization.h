@@ -302,11 +302,16 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
       continue;
     }
     // we cannot "group" multiplication, we also don't cancel xor children
-    // here for now. Thus, we add num copies of the node
+    // here for now. Thus, we add num copies of the child.
     uint32_t num = c.second.toUnsignedInt();
     for (uint32_t i = 0; i < num; i++)
     {
       nchildren.emplace_back(c.first);
+    }
+    // in the rare case this is too many children, we leave the node as is.
+    if (nchildren.size()>d_nvMaxChildren)
+    {
+      return node;
     }
   }
   if (nk == Kind::BITVECTOR_ADD)
