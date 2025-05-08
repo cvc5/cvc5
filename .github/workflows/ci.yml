@@ -28,7 +28,7 @@ jobs:
 
           - name: ubuntu:production-safe
             os: ubuntu-22.04
-            config: safe-mode --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
+            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-safe
             strip-bin: strip
             python-bindings: true
