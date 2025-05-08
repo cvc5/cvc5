@@ -90,7 +90,7 @@ bool LambdaLift::needsLift(const Node& lam)
   // The following lambdas require eager lifting:
   // - (lambda ((x Int)) (g x x))
   // - (lambda ((x Int) (y Int)) (f (g x y)))
-  // The following lambads do not require eager lifting:
+  // The following lambdas do not require eager lifting:
   // - (lambda ((x Int)) (+ x 1)), since it has no free symbols.
   // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
   // Int -> Int which is processed before the type of the lambda, i.e.
