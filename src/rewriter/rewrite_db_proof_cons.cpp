@@ -419,6 +419,12 @@ RewriteProofStatus RewriteDbProofCons::proveInternalViaStrategy(const Node& eqi)
   {
     return RewriteProofStatus::ARITH_POLY_NORM;
   }
+  // flattening
+  if (proveWithRule(
+          RewriteProofStatus::FLATTEN, eqi, {}, {}, false, false, true))
+  {
+    return RewriteProofStatus::FLATTEN;
+  }
   // Maybe holds via a THEORY_REWRITE that has been marked with
   // TheoryRewriteCtx::DSL_SUBCALL.
   if (d_tmode==TheoryRewriteMode::STANDARD)
@@ -731,6 +737,21 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       }
       pic.d_id = id;
     }
+  }
+  else if (id == RewriteProofStatus::FLATTEN)
+  {
+    Node an = expr::getACINormalForm(target[0]);
+    if (an==target[0])
+    {
+      an = theory::arith::PolyNorm::getPolyNorm(target[0]);
+    }
+    if (an==target[0])
+    {
+      return false;
+    }
+    transEq = an.eqNode(target[1]);
+    vcs.push_back(transEq);
+      pic.d_id = id;
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
