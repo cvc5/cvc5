@@ -751,7 +751,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     }
     transEq = an.eqNode(target[1]);
     vcs.push_back(transEq);
-      pic.d_id = id;
+    pic.d_id = id;
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
   {
@@ -1253,19 +1253,25 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       std::vector<Node>& ps = premises[cur];
       // get the conclusion
       Node conc;
-      if (pcur.d_id == RewriteProofStatus::TRANS)
+      RewriteProofStatus status = pcur.d_id;
+      if (status == RewriteProofStatus::FLATTEN)
+      {
+        Node cn = expr::getACINormalForm(cur[0]);
+        status = cn==cur[0] ? RewriteProofStatus::ARITH_POLY_NORM :RewriteProofStatus::ACI_NORM;
+      }
+      if (status == RewriteProofStatus::TRANS)
       {
         conc = ps[0][0].eqNode(ps.back()[1]);
         cdp->addStep(conc, ProofRule::TRANS, ps, {});
       }
-      else if (pcur.d_id == RewriteProofStatus::CONG)
+      else if (status == RewriteProofStatus::CONG)
       {
         // get the appropriate CONG rule
         std::vector<Node> cargs;
         ProofRule cr = expr::getCongRule(cur[0], cargs);
         cdp->addStep(cur, cr, ps, cargs);
       }
-      else if (pcur.d_id == RewriteProofStatus::CONG_EVAL)
+      else if (status == RewriteProofStatus::CONG_EVAL)
       {
         // congruence + evaluation, given we are trying to prove
         //   (f t1 ... tn) == c
@@ -1303,25 +1309,25 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         }
         cdp->addStep(cur, ProofRule::TRANS, transChildren, {});
       }
-      else if (pcur.d_id == RewriteProofStatus::TRUE_ELIM)
+      else if (status == RewriteProofStatus::TRUE_ELIM)
       {
         conc = ps[0][0];
         cdp->addStep(conc, ProofRule::TRUE_ELIM, ps, {});
       }
-      else if (pcur.d_id == RewriteProofStatus::TRUE_INTRO)
+      else if (status == RewriteProofStatus::TRUE_INTRO)
       {
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
       }
-      else if (pcur.d_id == RewriteProofStatus::ABSORB)
+      else if (status == RewriteProofStatus::ABSORB)
       {
         cdp->addStep(cur, ProofRule::ABSORB, {}, {cur});
       }
-      else if (pcur.d_id == RewriteProofStatus::ACI_NORM)
+      else if (status == RewriteProofStatus::ACI_NORM)
       {
         cdp->addStep(cur, ProofRule::ACI_NORM, {}, {cur});
       }
-      else if (pcur.d_id == RewriteProofStatus::ARITH_POLY_NORM)
+      else if (status == RewriteProofStatus::ARITH_POLY_NORM)
       {
         TypeNode tn =
             pcur.d_vars.empty() ? cur[0].getType() : cur[0][0].getType();
@@ -1340,14 +1346,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
         }
       }
-      else if (pcur.d_id == RewriteProofStatus::DSL
-               || pcur.d_id == RewriteProofStatus::THEORY_REWRITE)
+      else if (status == RewriteProofStatus::DSL
+               || status == RewriteProofStatus::THEORY_REWRITE)
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
         Assert(pcur.d_dslId != ProofRewriteRule::NONE);
         const std::vector<Node>& args = pfArgs[cur];
         ProofRule pfr;
-        if (pcur.d_id == RewriteProofStatus::DSL)
+        if (status == RewriteProofStatus::DSL)
         {
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
@@ -1360,7 +1366,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         }
         else
         {
-          Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
+          Assert(status == RewriteProofStatus::THEORY_REWRITE);
           // use the utility, possibly to do macro expansion
           d_trrc.ensureProofForTheoryRewrite(cdp, pcur.d_dslId, cur);
         }
