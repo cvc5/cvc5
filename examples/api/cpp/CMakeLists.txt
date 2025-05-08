@@ -22,7 +22,6 @@ set(CVC5_EXAMPLES_API_CPP
   helloworld
   linear_arith
   quickstart
-  relations
   sequences
   sets
   strings
@@ -38,6 +37,7 @@ endforeach()
 if(NOT CVC5_SAFE_BUILD)
   cvc5_add_example(floating_point_arith "" "api/cpp")
   cvc5_add_example(bags "" "api/cpp")
+  cvc5_add_example(relations "" "api/cpp")
   cvc5_add_example(transcendentals "" "api/cpp")
 endif()
 
