@@ -242,7 +242,7 @@ class RewriteDbProofCons : protected EnvObj
    */
   bool ensureProofInternal(CDProof* cdp, const Node& eqi);
   /** Return the evaluation of n, which uses local caching. */
-  Node doEvaluate(const Node& n);  
+  Node doEvaluate(const Node& n);
   /**
    * Return the flattening of n. For example, this returns (+ a b c) for
    * (+ (+ a b) c). This method is used in the CONG_FLATTEN tactic.

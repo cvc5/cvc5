@@ -742,7 +742,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   else if (id == RewriteProofStatus::FLATTEN)
   {
     Node an = doFlatten(target[0]);
-    if (an==target[0])
+    if (an == target[0])
     {
       return false;
     }
@@ -1254,7 +1254,9 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       if (status == RewriteProofStatus::FLATTEN)
       {
         Kind ck = cur[0].getKind();
-        status = (ck==Kind::ADD || ck==Kind::NONLINEAR_MULT) ? RewriteProofStatus::ARITH_POLY_NORM : RewriteProofStatus::ACI_NORM;
+        status = (ck == Kind::ADD || ck == Kind::NONLINEAR_MULT)
+                     ? RewriteProofStatus::ARITH_POLY_NORM
+                     : RewriteProofStatus::ACI_NORM;
       }
       if (status == RewriteProofStatus::TRANS)
       {

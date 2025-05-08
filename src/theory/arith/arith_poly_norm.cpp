@@ -249,7 +249,6 @@ Node PolyNorm::toNode(const TypeNode& tn) const
   {
     return Node::null();
   }
-  Trace("ajr-temp") << "toNode " << tn << " " << isArith << " " << isBv << std::endl;
   for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
     Node coeff;
@@ -269,12 +268,11 @@ Node PolyNorm::toNode(const TypeNode& tn) const
       continue;
     }
     Node t = m.first;
-    if (t.getKind()==Kind::SEXPR)
+    if (t.getKind() == Kind::SEXPR)
     {
       std::vector<Node> vars(t.begin(), t.end());
       t = nm->mkNode(multKind, vars);
     }
-  Trace("ajr-temp") << "...t is " << t << std::endl;
     if (coeff == one)
     {
       sum.push_back(t);
