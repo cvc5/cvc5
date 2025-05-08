@@ -16,6 +16,12 @@
 #include "smt/smt_solver.h"
 
 #include "options/arrays_options.h"
+#include "options/datatypes_options.h"
+#include "options/fp_options.h"
+#include "options/ff_options.h"
+#include "options/bags_options.h"
+#include "options/sets_options.h"
+#include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
@@ -108,6 +114,70 @@ void SmtSolver::finishInit()
       && !options().arrays.arraysExp)
   {
     d_illegalKinds.insert(Kind::STORE_ALL);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARITH)
+      && !options().arith.arithExp)
+  {    
+    d_illegalKinds.insert(Kind::PI);
+    d_illegalKinds.insert(Kind::EXPONENTIAL);
+    d_illegalKinds.insert(Kind::SINE);
+    d_illegalKinds.insert(Kind::COSINE);
+    d_illegalKinds.insert(Kind::TANGENT);
+    d_illegalKinds.insert(Kind::COSECANT);
+    d_illegalKinds.insert(Kind::SECANT);
+    d_illegalKinds.insert(Kind::COTANGENT);
+    d_illegalKinds.insert(Kind::ARCSINE);
+    d_illegalKinds.insert(Kind::ARCCOSINE);
+    d_illegalKinds.insert(Kind::ARCTANGENT);
+    d_illegalKinds.insert(Kind::ARCCOSECANT);
+    d_illegalKinds.insert(Kind::ARCSECANT);
+    d_illegalKinds.insert(Kind::ARCCOTANGENT);
+    d_illegalKinds.insert(Kind::SQRT);
+    d_illegalKinds.insert(Kind::IAND);
+    d_illegalKinds.insert(Kind::POW2);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_DATATYPES)
+      && !options().datatypes.datatypesExp)
+  {
+    d_illegalKinds.insert(Kind::MATCH);
+  }
+  if (!logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
+  {
+    d_illegalKinds.insert(Kind::CARDINALITY_CONSTRAINT);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
+    if (!options().sets.setsCardExp)
+    {
+      d_illegalKinds.insert(Kind::SET_CARD);
+    }
+    if (!options().sets.relsExp)
+    {  
+      d_illegalKinds.insert(Kind::RELATION_TABLE_JOIN);
+      d_illegalKinds.insert(Kind::RELATION_TRANSPOSE);
+      d_illegalKinds.insert(Kind::RELATION_PRODUCT);
+      d_illegalKinds.insert(Kind::RELATION_JOIN);
+      d_illegalKinds.insert(Kind::RELATION_TCLOSURE);
+      d_illegalKinds.insert(Kind::RELATION_IDEN);
+      d_illegalKinds.insert(Kind::RELATION_JOIN_IMAGE);
+      d_illegalKinds.insert(Kind::RELATION_GROUP);
+      d_illegalKinds.insert(Kind::RELATION_AGGREGATE);
+      d_illegalKinds.insert(Kind::RELATION_PROJECT);
+    }
+  }
+  // unsupported theories disables all kinds belonging to the 
+  std::unordered_set<theory::TheoryId> unsupportedTheories;
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FP) && !options().fp.fp)
+  {
+    unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FF) && !options().ff.ff)
+  {
+    unsupportedTheories.insert(theory::TheoryId::THEORY_FF);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_BAGS) && !options().bags.bags)
+  {
+    unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
   }
 }
 
