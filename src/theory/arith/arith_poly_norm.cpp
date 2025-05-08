@@ -320,6 +320,7 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
+  // we use SEXPR instead of multiplication, which is agnostic to types
   return m2.getNodeManager()->mkNode(Kind::SEXPR, vars);
 }
 
