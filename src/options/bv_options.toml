@@ -98,6 +98,7 @@ name   = "Bitvector Theory"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
   default    = "BITBLAST"
+  no_support = ["proofs"]
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]

@@ -3,10 +3,11 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  category   = "expert"
+  category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]

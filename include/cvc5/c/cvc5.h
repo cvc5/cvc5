@@ -3493,6 +3493,10 @@ struct Cvc5OptionInfo
   size_t num_aliases;
   /** The option name aliases */
   const char** aliases;
+  /** The number of unsupported features */
+  size_t num_no_supports;
+  /** The unsupported features */
+  const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
   /** True if the option is an expert option */

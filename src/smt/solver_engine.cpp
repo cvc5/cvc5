@@ -2163,11 +2163,11 @@ void SolverEngine::setOption(const std::string& key,
                              const std::string& value,
                              bool fromUser)
 {
-  if (fromUser && options().base.safeOptions)
+  if (fromUser && options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
     if (key == "trace")
     {
-      throw FatalOptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages with safe-mode");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2176,12 +2176,12 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safe-options is true.";
+         << " cannot be set when safe mode is enabled.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
       {
-        // note this is not the case for options which safe-options explicitly
+        // note this is not the case for options which safe mode explicitly
         // disables.
         ss << " The value for " << key << " is already its current value ("
            << value << "). Omitting this option may avoid this exception.";
@@ -2190,6 +2190,26 @@ void SolverEngine::setOption(const std::string& key,
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
+      if (options().base.safeMode == options::SafeMode::SAFE && !oinfo.noSupports.empty())
+      {
+        std::stringstream ss;
+        ss << "cannot set option " << key
+           << " when safe-mode=safe is enabled, as this option does not support ";
+        bool firstTime = true;
+        for (const std::string& s : oinfo.noSupports)
+        {
+          if (!firstTime)
+          {
+            ss << ", ";
+          }
+          else
+          {
+            firstTime = false;
+          }
+          ss << s;
+        }
+        throw FatalOptionException(ss.str());
+      }
       if (!d_safeOptsSetRegularOption)
       {
         d_safeOptsSetRegularOption = true;
@@ -2202,7 +2222,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safe-options is true.";
+           << " and " << key << ") when safe mode is enabled.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
@@ -2213,7 +2233,7 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            // note this is not the case for options which safe-options
+            // note this is not the case for options which safe mode
             // explicitly disables.
             ss << " The value for " << rkey << " is already its current value ("
                << rvalue << "). Omitting this option may avoid this exception.";
