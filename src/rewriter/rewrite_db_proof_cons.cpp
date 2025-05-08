@@ -16,6 +16,7 @@
 #include "rewriter/rewrite_db_proof_cons.h"
 
 #include "expr/aci_norm.h"
+#include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
@@ -740,11 +741,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   }
   else if (id == RewriteProofStatus::FLATTEN)
   {
-    Node an = expr::getACINormalForm(target[0]);
-    if (an==target[0])
-    {
-      an = theory::arith::PolyNorm::getPolyNorm(target[0]);
-    }
+    Node an = doFlatten(target[0]);
     if (an==target[0])
     {
       return false;
@@ -1256,8 +1253,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       RewriteProofStatus status = pcur.d_id;
       if (status == RewriteProofStatus::FLATTEN)
       {
-        Node cn = expr::getACINormalForm(cur[0]);
-        status = cn==cur[0] ? RewriteProofStatus::ARITH_POLY_NORM :RewriteProofStatus::ACI_NORM;
+        Kind ck = cur[0].getKind();
+        status = (ck==Kind::ADD || ck==Kind::NONLINEAR_MULT) ? RewriteProofStatus::ARITH_POLY_NORM : RewriteProofStatus::ACI_NORM;
       }
       if (status == RewriteProofStatus::TRANS)
       {
@@ -1574,6 +1571,18 @@ Node RewriteDbProofCons::rewriteConcrete(const Node& n)
     return n;
   }
   return rewrite(n);
+}
+
+Node RewriteDbProofCons::doFlatten(const Node& n)
+{
+  Kind k = n.getKind();
+  // must be able to prove with ACI_NORM or ARITH_POLY_NORM
+  if (expr::isAssocCommIdem(k) || expr::isAssoc(k) || k == Kind::ADD
+      || k == Kind::NONLINEAR_MULT)
+  {
+    return expr::algorithm::flatten(nodeManager(), n);
+  }
+  return n;
 }
 
 }  // namespace rewriter
