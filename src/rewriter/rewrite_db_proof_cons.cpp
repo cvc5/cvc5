@@ -746,8 +746,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     {
       return false;
     }
-    transEq = an.eqNode(target[1]);
-    vcs.push_back(transEq);
+    if (an!=target[1])
+    {
+      transEq = an.eqNode(target[1]);
+      vcs.push_back(transEq);
+    }
     pic.d_id = id;
   }
   else if (id == RewriteProofStatus::THEORY_REWRITE)
