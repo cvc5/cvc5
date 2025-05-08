@@ -181,6 +181,7 @@ set(regress_0_tests
   regress0/aufbv/bug580.delta.smt2
   regress0/aufbv/cee-small-shared-eq.smt2
   regress0/aufbv/dd_644_ph7.smt2
+  regress0/aufbv/dd.fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/diseqprop.01.smtv1.smt2
   regress0/aufbv/dubreva005ue.delta01.smtv1.smt2
   regress0/aufbv/fifo32bc06k08.delta01.smtv1.smt2
