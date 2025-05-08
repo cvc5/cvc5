@@ -743,7 +743,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   }
   // carry the mapping from symbols to their types, which is used when
   // eliminating internal-only operators for representing empty set and sequence
-  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
+  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap, false);
   // now print variables of the proof rule
   out << ssExplicit.str();
   out << ")" << std::endl;

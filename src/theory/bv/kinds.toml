@@ -61,7 +61,7 @@ typerule = "::cvc5::internal::theory::bv::BitVectorToBVTypeRule"
 [[kinds]]
 type     = "operator"
 name     = "BITVECTOR_SIZE"
-children = "1:"
+children = "1"
 comment  = "Size of bitvector"
 typerule = "::cvc5::internal::theory::bv::BitVectorSizeTypeRule"
 

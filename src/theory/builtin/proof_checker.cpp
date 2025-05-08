@@ -481,15 +481,22 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
+    std::unordered_map<TNode, Node> visited;
+    std::unordered_set<Node> selim;
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
-      Node scond = expr::narySubstitute(conds[i], varList, subs);
+      Node scond =
+          expr::narySubstitute(conds[i], varList, subs, visited, selim);
       if (scond != children[i])
       {
         return Node::null();
       }
     }
-    return rpr.getConclusionFor(subs);
+    Node conc = rpr.getConclusion(true);
+    Node proven = expr::narySubstitute(conc, varList, subs, visited, selim);
+    // Note that selim should be empty, or else the CPC+Eunoia proof will
+    // fail to check. We do not insist on this in the internal proof checker.
+    return proven;
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {
