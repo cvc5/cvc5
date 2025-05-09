@@ -631,7 +631,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     TypeNode eqct = eqc.getType();
     // count the number of equivalence classes of sorts in finite model finding
     if (options().quantifiers.finiteModelFind)
-    { 
+    {
       if (eqct.isUninterpretedSort())
       {
         eqc_usort_count[eqct]++;
