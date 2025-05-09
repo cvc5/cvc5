@@ -168,7 +168,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
       if (k != Kind::UNDEFINED_KIND)
       {
         std::stringstream ss;
-        ss << "ERROR: cannot handle assertion with term of kind " << k
+        ss << "Cannot handle assertion with term of kind " << k
            << " in this configuration.";
         // suggested options only in non-safe builds
 #ifndef CVC5_SAFE_MODE

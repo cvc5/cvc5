@@ -63,7 +63,6 @@ class ContextManager;
 class SolverEngineState;
 class ResourceOutListener;
 class CheckModels;
-class IllegalChecker;
 /** Subsolvers */
 class SmtSolver;
 class SmtDriver;
@@ -1096,10 +1095,6 @@ class CVC5_EXPORT SolverEngine
    * The utility used for checking models
    */
   std::unique_ptr<smt::CheckModels> d_checkModels;
-  /**
-   * The utility used for checking for illegal inputs
-   */
-  std::unique_ptr<smt::IllegalChecker> d_illegalChecker;
 
   /**
    * The proof manager, which manages all things related to checking,

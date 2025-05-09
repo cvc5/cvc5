@@ -25,6 +25,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
+#include "smt/illegal_checker.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -120,6 +121,10 @@ class SmtDriver : protected EnvObj
   ContextManager* d_ctx;
   /** assertions pipeline */
   preprocessing::AssertionPipeline d_ap;
+  /**
+   * The utility used for checking for illegal inputs
+   */
+  IllegalChecker d_illegalChecker;
 };
 
 /**
