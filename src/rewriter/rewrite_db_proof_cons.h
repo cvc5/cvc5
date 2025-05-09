@@ -245,7 +245,7 @@ class RewriteDbProofCons : protected EnvObj
   Node doEvaluate(const Node& n);
   /**
    * Return the flattening of n. For example, this returns (+ a b c) for
-   * (+ (+ a b) c). This method is used in the CONG_FLATTEN tactic.
+   * (+ (+ a b) c). This method is used in the FLATTEN tactic.
    */
   Node doFlatten(const Node& n);
   /**
