@@ -58,28 +58,28 @@
 (declare-parameterized-const <
   ((T Type :implicit) (U Type :implicit)
    (t T :requires (($is_arith_type T) true))
-   (u U :requires (($is_arith_type T) true)))
+   (u U :requires (($is_arith_type U) true)))
   Bool
   :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-parameterized-const <=
   ((T Type :implicit) (U Type :implicit)
    (t T :requires (($is_arith_type T) true))
-   (u U :requires (($is_arith_type T) true)))
+   (u U :requires (($is_arith_type U) true)))
   Bool
   :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-parameterized-const >
   ((T Type :implicit) (U Type :implicit)
    (t T :requires (($is_arith_type T) true))
-   (u U :requires (($is_arith_type T) true)))
+   (u U :requires (($is_arith_type U) true)))
   Bool
   :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
 (declare-parameterized-const >=
   ((T Type :implicit) (U Type :implicit)
    (t T :requires (($is_arith_type T) true))
-   (u U :requires (($is_arith_type T) true)))
+   (u U :requires (($is_arith_type U) true)))
   Bool
   :chainable and)
 
