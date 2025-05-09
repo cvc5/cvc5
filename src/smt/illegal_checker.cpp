@@ -120,6 +120,26 @@ IllegalChecker::IllegalChecker(Env& e)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
   }
+  if (!unsupportedTheories.empty())
+  {
+    for (int32_t i = 0;
+       i< static_cast<int32_t>(Kind::LAST_KIND);
+        ++i)
+    {
+      Kind k = static_cast<Kind>(i);
+      // these two kinds are special cased in kindToTheoryId, skip
+      if (k==Kind::UNDEFINED_KIND || k==Kind::NULL_EXPR)
+      {
+          continue;
+      }
+      Trace("ajr-temp") << "Check kind " << k << std::endl;
+      theory::TheoryId tid = theory::kindToTheoryId(k);
+      if (unsupportedTheories.find(tid)!=unsupportedTheories.end())
+      {
+          d_illegalKinds.insert(k);
+      }
+    }
+  }
 }
 
 void IllegalChecker::checkAssertions(Assertions& as)
