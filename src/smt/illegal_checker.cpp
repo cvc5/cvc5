@@ -52,12 +52,12 @@ IllegalChecker::IllegalChecker(Env& e)
   // in proofs.
 
   // Array constants are not supported unless arraysExp is enabled
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARRAYS)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_ARRAYS)
       && !options().arrays.arraysExp)
   {
     d_illegalKinds.insert(Kind::STORE_ALL);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARITH)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
       && !options().arith.arithExp)
   {
     d_illegalKinds.insert(Kind::PI);
@@ -78,7 +78,7 @@ IllegalChecker::IllegalChecker(Env& e)
     d_illegalKinds.insert(Kind::IAND);
     d_illegalKinds.insert(Kind::POW2);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_DATATYPES)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_DATATYPES)
       && !options().datatypes.datatypesExp)
   {
     d_illegalKinds.insert(Kind::MATCH);
@@ -87,7 +87,7 @@ IllegalChecker::IllegalChecker(Env& e)
   {
     d_illegalKinds.insert(Kind::CARDINALITY_CONSTRAINT);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_SETS))
+  if (logicInfo().isTheoryEnabled(theory::THEORY_SETS))
   {
     if (!options().sets.setsCardExp)
     {
@@ -109,22 +109,22 @@ IllegalChecker::IllegalChecker(Env& e)
   }
   // unsupported theories disables all kinds belonging to the theory
   std::unordered_set<theory::TheoryId> unsupportedTheories;
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FP)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_FP)
       && !options().fp.fp)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FF)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_FF)
       && !options().ff.ff)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FF);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_BAGS)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_BAGS)
       && !options().bags.bags)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_SEP)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_SEP)
       && !options().sep.sep)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_SEP);
@@ -169,11 +169,27 @@ void IllegalChecker::checkAssertions(Assertions& as)
       {
         std::stringstream ss;
         ss << "ERROR: cannot handle assertion with term of kind " << k
-           << " in this configuration";
+           << " in this configuration.";
+        // suggested options only in non-safe builds
+#ifndef CVC5_SAFE_MODE
         if (k == Kind::STORE_ALL)
         {
-          ss << ", unless --arrays-exp is enabled";
+          ss << " Try --arrays-exp.";
         }
+        else
+        {
+          theory::TheoryId tid = theory::kindToTheoryId(k);
+          // if the kind was disabled based a theory, report it.
+          switch (tid)
+          {
+            case theory::THEORY_FF: ss << " Try --ff."; break;
+            case theory::THEORY_FP: ss << " Try --fp."; break;
+            case theory::THEORY_BAGS: ss << " Try --bags."; break;
+            case theory::THEORY_SEP: ss << " Try --sep."; break;
+            default: break;
+          }
+        }
+#endif
         throw LogicException(ss.str());
       }
     }
