@@ -99,7 +99,7 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Logic with cardinality constraints not available in this "
             "configuration, try --uf-card-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
   }
   // Initialize the cardinality constraints solver if the logic includes UF,
@@ -120,7 +120,7 @@ void TheoryUF::finishInit() {
       std::stringstream ss;
       ss << "Higher-order logic not available in this configuration, try "
             "--uf-ho-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     d_equalityEngine->addFunctionKind(Kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
