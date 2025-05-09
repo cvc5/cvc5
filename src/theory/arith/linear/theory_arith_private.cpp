@@ -3457,7 +3457,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
             Node lem = possibleLemma.getProven();
             if (lemmas.find(lem) != lemmas.end())
             {
-              Trace("arith-round-robin") << "..already fail lemma" << std::endl;
+              Trace("arith-round-robin") << "..already failed lemma" << std::endl;
               continue;
             }
             lemmas.insert(lem);
