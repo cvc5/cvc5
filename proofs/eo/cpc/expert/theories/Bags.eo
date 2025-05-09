@@ -69,7 +69,7 @@
   ((T Type :implicit) (t (Bag T) :opaque))
   Int)
 (declare-parameterized-const @bags_map_preimage_injective
-  ((T Type :implicit) (U Type :implicit) (f (-> T U) :opaque) (t (Bag T)) (u U :opaque))
+  ((T Type :implicit) (U Type :implicit) (f (-> T U) :opaque) (t (Bag T) :opaque) (u U :opaque))
   T)
 
 ;(declare-const bag.from_set (# x term (apply f_bag.from_set x)))
