@@ -66,7 +66,7 @@
 ; requires: >
 ;   Reducing the left hand side to an integer term results in the right hand side.
 ; conclusion: The given equality.
-(declare-rule int-to-bv-elim ((w Int) (n Int) (b (BitVec n)))
+(declare-rule int-to-bv-elim ((w Int) (n Int) (b (BitVec w)))
   :args ((= (int2bv w n) b))
   :requires ((($singleton_elim ($abconv_int_to_bv_elim n w ($arith_eval_int_pow_2 w))) b))
   :conclusion (= (int2bv w n) b)

@@ -224,13 +224,12 @@
 ; - eq Bool: The equality to prove.
 ; requires: >
 ;   We require that $bv_mk_bitblast_step applied to the left hand side returns
-;   the right hand side.
+;   the right hand side. Note that a and b are either Booleans or bitvectors.
 ; conclusion: The given equality.
 ; note: >
 ;   The current implementation only covers some of the operators that may
 ;   appear in ProofRule::BV_BITBLAST_STEP.
-(declare-rule bv_bitblast_step
-  ((n Int) (a (BitVec n)) (b (BitVec n)))
+(declare-rule bv_bitblast_step ((U Type) (a U) (b U))
   :args ((= a b))
   :requires ((($bv_mk_bitblast_step a) b))
   :conclusion (= a b)

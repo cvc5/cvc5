@@ -61,7 +61,7 @@
                                                                         units
                                                                         chars
                                                                         n)))))
-    (($seq_to_string_rec (@seq.empty T) s units chars n)            (tuple s units chars))
+    (($seq_to_string_rec (@seq.empty (Seq T)) s units chars n)      (tuple s units chars))
   )
 )
 
