@@ -182,8 +182,9 @@
 (declare-parameterized-const @re_unfold_pos_component
   ((s String :opaque) (r RegLan :opaque) (n Int :opaque)) 
   String)
-(declare-parameterized-const @strings_deq_diff ((T Type :implicit))
-  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
+(declare-parameterized-const @strings_deq_diff
+  ((T Type :implicit) (s (Seq T) :opaque) (t (Seq T) :opaque))
+  Int)
 (declare-parameterized-const @strings_stoi_result ((s String :opaque))
   (-> Int Int))
 (declare-parameterized-const @strings_stoi_non_digit ((s String :opaque)) Int)
