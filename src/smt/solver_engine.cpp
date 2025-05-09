@@ -50,6 +50,7 @@
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
 #include "smt/find_synth_solver.h"
+#include "smt/illegal_checker.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -109,6 +110,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
       d_checkModels(nullptr),
+      d_illegalChecker(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
       d_sygusSolver(nullptr),
@@ -180,6 +182,8 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
+  // initialize the illegal checker utility
+  d_illegalChecker.reset(new IllegalChecker(*d_env.get()));
   if (d_env->getOptions().smt.produceProofs)
   {
     // make the proof manager

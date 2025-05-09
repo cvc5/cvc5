@@ -1,0 +1,55 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for checking for illegal inputs
+ */
+
+#include "cvc5_private.h"
+
+#ifndef __CVC5__THEORY__ILLEGAL_CHECKER_H
+#define __CVC5__THEORY__ILLEGAL_CHECKER_H
+
+#include <cvc5/cvc5_types.h>
+
+#include "context/cdhashset.h"
+
+#include "expr/node.h"
+#include "smt/env_obj.h"
+#include "smt/assertions.h"
+
+namespace cvc5::internal {
+namespace smt {
+
+
+/**
+ * A utility for determining whether inputs to the solver engine are illegal.
+ */
+class IllegalChecker : protected EnvObj
+{
+ public:
+  IllegalChecker(Env& e);
+  /**
+   */
+  void checkAssertions(Assertions& as);
+private:
+  /** Whether we check whether assertions have free variables */
+  bool d_checkFreeVar;
+  /** The illegal kinds that cannot appear in assertions */
+  std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
+  /** The index up to the index in the assertions we have checked */
+  context::CDO<size_t> d_assertionIndex;
+};
+
+}
+}  // namespace cvc5::internal
+
+#endif /* __CVC5__THEORY__ILLEGAL_CHECKER_H */
