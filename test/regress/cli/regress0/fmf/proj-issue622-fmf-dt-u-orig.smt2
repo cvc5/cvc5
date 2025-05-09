@@ -1,3 +1,4 @@
+; EXPECT: sat
 (set-logic DT)
 (set-option :finite-model-find true)
 (declare-sort u 0)
