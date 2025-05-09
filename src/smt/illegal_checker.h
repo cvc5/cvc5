@@ -21,14 +21,12 @@
 #include <cvc5/cvc5_types.h>
 
 #include "context/cdhashset.h"
-
 #include "expr/node.h"
-#include "smt/env_obj.h"
 #include "smt/assertions.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace smt {
-
 
 /**
  * A utility for determining whether inputs to the solver engine are illegal.
@@ -40,7 +38,8 @@ class IllegalChecker : protected EnvObj
   /**
    */
   void checkAssertions(Assertions& as);
-private:
+
+ private:
   /** Whether we check whether assertions have free variables */
   bool d_checkFreeVar;
   /** The illegal kinds that cannot appear in assertions */
@@ -49,7 +48,7 @@ private:
   context::CDO<size_t> d_assertionIndex;
 };
 
-}
+}  // namespace smt
 }  // namespace cvc5::internal
 
 #endif /* __CVC5__THEORY__ILLEGAL_CHECKER_H */

@@ -15,28 +15,29 @@
 
 #include "smt/illegal_checker.h"
 
-#include "expr/node_algorithm.h"
-#include "options/arrays_options.h"
-#include "options/datatypes_options.h"
-#include "options/fp_options.h"
-#include "options/ff_options.h"
-#include "options/bags_options.h"
-#include "options/sets_options.h"
-#include "options/arith_options.h"
-#include "options/base_options.h"
-#include "options/main_options.h"
-#include "options/uf_options.h"
-#include "options/smt_options.h"
-#include "smt/env.h"
 #include "base/modal_exception.h"
+#include "expr/node_algorithm.h"
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
+#include "options/bags_options.h"
+#include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
+#include "options/main_options.h"
+#include "options/sets_options.h"
+#include "options/smt_options.h"
+#include "options/uf_options.h"
+#include "smt/env.h"
 #include "smt/logic_exception.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-IllegalChecker::IllegalChecker(Env& e) : EnvObj(e), d_assertionIndex(userContext(), 0)
+IllegalChecker::IllegalChecker(Env& e)
+    : EnvObj(e), d_assertionIndex(userContext(), 0)
 {
-  d_checkFreeVar =language::isLangSygus(options().base.inputLanguage);
+  d_checkFreeVar = language::isLangSygus(options().base.inputLanguage);
 
   // Determine any illegal kinds that are dependent on options that need to be
   // guarded here. Note that nearly all illegal kinds should be properly guarded
@@ -104,15 +105,18 @@ IllegalChecker::IllegalChecker(Env& e) : EnvObj(e), d_assertionIndex(userContext
   }
   // unsupported theories disables all kinds belonging to the
   std::unordered_set<theory::TheoryId> unsupportedTheories;
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FP) && !options().fp.fp)
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FP)
+      && !options().fp.fp)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FF) && !options().ff.ff)
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FF)
+      && !options().ff.ff)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FF);
   }
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_BAGS) && !options().bags.bags)
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_BAGS)
+      && !options().bags.bags)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
   }
@@ -120,16 +124,15 @@ IllegalChecker::IllegalChecker(Env& e) : EnvObj(e), d_assertionIndex(userContext
 
 void IllegalChecker::checkAssertions(Assertions& as)
 {
-
   // check illegal kinds here
-    const context::CDList<Node>& assertions = as.getAssertionList();
-    size_t asize = assertions.size();
-    size_t i = d_assertionIndex.get();
-    std::unordered_set<TNode> visited;
-    while (i < asize)
-    {
-        Node n = assertions[i];
-        i++;
+  const context::CDList<Node>& assertions = as.getAssertionList();
+  size_t asize = assertions.size();
+  size_t i = d_assertionIndex.get();
+  std::unordered_set<TNode> visited;
+  while (i < asize)
+  {
+    Node n = assertions[i];
+    i++;
     if (!d_illegalKinds.empty())
     {
       Kind k = expr::hasSubtermKinds(d_illegalKinds, n, visited);
@@ -145,15 +148,15 @@ void IllegalChecker::checkAssertions(Assertions& as)
         throw LogicException(ss.str());
       }
     }
-  // Ensure that it does not contain free variables
-  if (d_checkFreeVar)
-  {
-    // Note that API users and the smt2 parser may generate assertions with
-    // shadowed variables, which are resolved during rewriting. Hence we do not
-    // check for this here.
-    if (expr::hasFreeVar(n))
+    // Ensure that it does not contain free variables
+    if (d_checkFreeVar)
     {
-      std::stringstream se;
+      // Note that API users and the smt2 parser may generate assertions with
+      // shadowed variables, which are resolved during rewriting. Hence we do
+      // not check for this here.
+      if (expr::hasFreeVar(n))
+      {
+        std::stringstream se;
         se << "Cannot process assertion with free variable.";
         if (language::isLangSygus(options().base.inputLanguage))
         {
@@ -161,13 +164,12 @@ void IllegalChecker::checkAssertions(Assertions& as)
           // constraint when defining the synthesis conjecture.
           se << " Perhaps you meant `constraint` instead of `assert`?";
         }
-      throw ModalException(se.str().c_str());
+        throw ModalException(se.str().c_str());
+      }
     }
   }
-    }
   d_assertionIndex = asize;
 }
 
-}
+}  // namespace smt
 }  // namespace cvc5::internal
-
