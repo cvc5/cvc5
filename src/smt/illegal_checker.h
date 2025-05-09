@@ -36,6 +36,8 @@ class IllegalChecker : protected EnvObj
  public:
   IllegalChecker(Env& e);
   /**
+   * Check whether the given assertions are legal. We check only the new
+   * assertions in the assertion list of as, in a user-context-dependent manner.
    */
   void checkAssertions(Assertions& as);
 
