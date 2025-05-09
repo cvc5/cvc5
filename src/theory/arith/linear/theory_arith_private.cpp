@@ -3440,14 +3440,21 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
     if(!emmittedConflictOrSplit) {
       bool tryNew;
-      std::unordered_set<Node> lemmas;
       Trace("arith-round-robin") << "Round robin branch..." << std::endl;
+      // This loop tries the lemmas returned by roundRobinBranch until
+      // either one of them is successfully sent on the output channel,
+      // or until the next lemma suggested by this method has already been
+      // tried in this call. We cache the lemmas tried using the set
+      // lemmas below. We know this loop terminates since there are only
+      // finitely many lemmas returned by roundRobinBranch.
+      std::unordered_set<Node> lemmas;
       do
       {
         tryNew = false;
         std::vector<TrustNode> possibleLemmas = roundRobinBranch();
         Trace("arith-round-robin") << "...consider " << possibleLemmas.size()
                                    << " lemmas" << std::endl;
+        // this is non-empty since we know !hasIntegerModel()
         Assert (!possibleLemmas.empty());
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
