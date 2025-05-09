@@ -814,10 +814,24 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // update the state to indicate we are about to run a check-sat
   d_state->notifyCheckSat();
 
+  // notify the context manager
+  bool hasAssumptions = !assumptions.empty();
+  d_ctxManager->notifyCheckSat(hasAssumptions);
+  Assertions& as = d_smtSolver->getAssertions();
+
+  // then, initialize the assertions
+  as.setAssumptions(assumptions);
+
+  // check that the assertions are legal
+  d_illegalChecker->checkAssertions(as);
+
   // Call the SMT solver driver to check for satisfiability. Note that in the
   // case of options like e.g. deep restarts, this may invokve multiple calls
   // to check satisfiability in the underlying SMT solver
   Result r = d_smtDriver->checkSat(assumptions);
+
+  // notify context manager we are done
+  d_ctxManager->notifyCheckSatResult(hasAssumptions);
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;

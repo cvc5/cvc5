@@ -24,6 +24,7 @@
 #include "options/datatypes_options.h"
 #include "options/ff_options.h"
 #include "options/fp_options.h"
+#include "options/sep_options.h"
 #include "options/main_options.h"
 #include "options/sets_options.h"
 #include "options/smt_options.h"
@@ -46,6 +47,9 @@ IllegalChecker::IllegalChecker(Env& e)
   // where array constants *must* be rewritten by the rewriter for the purposes
   // of model verification, but we do not want array constants to appear in
   // assertions unless --arrays-exp is enabled.
+
+  // Note that we don't guard against HO_APPLY, since it can naturally be handled
+  // in proofs.
 
   // Array constants are not supported unless arraysExp is enabled
   if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARRAYS)
@@ -79,7 +83,7 @@ IllegalChecker::IllegalChecker(Env& e)
   {
     d_illegalKinds.insert(Kind::MATCH);
   }
-  if (!logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
+  if (logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
   {
     d_illegalKinds.insert(Kind::CARDINALITY_CONSTRAINT);
   }
@@ -103,7 +107,7 @@ IllegalChecker::IllegalChecker(Env& e)
       d_illegalKinds.insert(Kind::RELATION_PROJECT);
     }
   }
-  // unsupported theories disables all kinds belonging to the
+  // unsupported theories disables all kinds belonging to the theory
   std::unordered_set<theory::TheoryId> unsupportedTheories;
   if (logicInfo().isTheoryEnabled(internal::theory::THEORY_FP)
       && !options().fp.fp)
@@ -119,6 +123,11 @@ IllegalChecker::IllegalChecker(Env& e)
       && !options().bags.bags)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
+  }
+  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_SEP)
+      && !options().sep.sep)
+  {
+    unsupportedTheories.insert(theory::TheoryId::THEORY_SEP);
   }
   if (!unsupportedTheories.empty())
   {

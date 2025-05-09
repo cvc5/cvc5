@@ -42,18 +42,10 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
-  bool hasAssumptions = !assumptions.empty();
-  if (d_ctx)
-  {
-    d_ctx->notifyCheckSat(hasAssumptions);
-  }
-  Assertions& as = d_smt.getAssertions();
   Result result;
   try
   {
-    // then, initialize the assertions
-    as.setAssumptions(assumptions);
-
+    // assertions are finalized, check for illegal inputs here
     // make the check, where notice smt engine should be fully inited by now
 
     Trace("smt") << "SmtSolver::check()" << std::endl;
@@ -107,10 +99,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     // an assertion failure.
     d_smt.getPropEngine()->resetTrail();
     throw;
-  }
-  if (d_ctx)
-  {
-    d_ctx->notifyCheckSatResult(hasAssumptions);
   }
   return result;
 }
