@@ -3448,41 +3448,39 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         std::vector<TrustNode> possibleLemmas = roundRobinBranch();
         Trace("arith-round-robin") << "...consider " << possibleLemmas.size()
                                    << " lemmas" << std::endl;
-        if (!possibleLemmas.empty())
+        Assert (!possibleLemmas.empty());
+        ++(d_statistics.d_externalBranchAndBounds);
+        d_cutCount = d_cutCount + 1;
+        for (const TrustNode& possibleLemma : possibleLemmas)
         {
-          ++(d_statistics.d_externalBranchAndBounds);
-          d_cutCount = d_cutCount + 1;
-          for (const TrustNode& possibleLemma : possibleLemmas)
+          Node lem = possibleLemma.getProven();
+          if (lemmas.find(lem) != lemmas.end())
           {
-            Node lem = possibleLemma.getProven();
-            if (lemmas.find(lem) != lemmas.end())
-            {
-              Trace("arith-round-robin") << "..already fail lemma" << std::endl;
-              continue;
-            }
-            lemmas.insert(lem);
-            tryNew = true;
-            Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
-            if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
-            {
-              emmittedConflictOrSplit = true;
-              Trace("arith-round-robin") << "..success lemma" << std::endl;
-            }
-            else
-            {
-              Trace("arith-round-robin") << "..failed lemma" << std::endl;
-            }
+            Trace("arith-round-robin") << "..already fail lemma" << std::endl;
+            continue;
           }
-          if (!emmittedConflictOrSplit)
+          lemmas.insert(lem);
+          tryNew = true;
+          Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
+          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
           {
-            // increment the next variable we are looking at
-            ArithVar numVars = d_partialModel.getNumberOfVariables();
-            Assert(numVars > 0);
-            d_nextIntegerCheckVar++;
-            if (d_nextIntegerCheckVar == numVars)
-            {
-              d_nextIntegerCheckVar = 0;
-            }
+            emmittedConflictOrSplit = true;
+            Trace("arith-round-robin") << "..success lemma" << std::endl;
+          }
+          else
+          {
+            Trace("arith-round-robin") << "..failed lemma" << std::endl;
+          }
+        }
+        if (!emmittedConflictOrSplit)
+        {
+          // increment the next variable we are looking at
+          ArithVar numVars = d_partialModel.getNumberOfVariables();
+          Assert(numVars > 0);
+          d_nextIntegerCheckVar++;
+          if (d_nextIntegerCheckVar == numVars)
+          {
+            d_nextIntegerCheckVar = 0;
           }
         }
       } while (!emmittedConflictOrSplit && tryNew);
