@@ -161,6 +161,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
   while (i < asize)
   {
     Node n = assertions[i];
+    Trace("illegal-check") << "Check assertion " << n << std::endl;
     i++;
     if (!d_illegalKinds.empty())
     {
