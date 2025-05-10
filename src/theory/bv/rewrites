@@ -1,13 +1,5 @@
 ; -- Core Normalization Rules --
 
-(define-rule* bv-concat-flatten
-  ((xs ?BitVec :list)
-   (s1 ?BitVec)
-   (s2 ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (concat xs (concat s1 s2 ys) zs)
-  (concat xs s1 s2 ys zs))
 (define-cond-rule bv-concat-extract-merge
   ((xs ?BitVec :list)
    (s ?BitVec)
@@ -222,15 +214,6 @@
   (distinct x (@bv n w)))
 
 ; Collapse rules
-
-(define-rule* bv-xor-flatten
-  ((xs ?BitVec :list)
-   (s1 ?BitVec)
-   (s2 ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (bvxor xs (bvxor s1 s2 ys) zs)
-  (bvxor xs s1 s2 ys zs))
 
 (define-cond-rule bv-concat-merge-const
   ((xs ?BitVec :list)

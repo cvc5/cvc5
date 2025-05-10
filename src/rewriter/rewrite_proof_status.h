@@ -41,6 +41,7 @@ enum class RewriteProofStatus : uint32_t
   ARITH_POLY_NORM,
   ACI_NORM,
   ABSORB,
+  FLATTEN,
   // we have a DSL proof rule that proves this goal.
   DSL,
   // we have a THEORY_REWRITE that proves this goal.

@@ -131,7 +131,11 @@ class PolyNorm
   static Node multMonoVar(TNode m1, TNode m2);
   /** Get the list of variables whose product is m */
   static std::vector<TNode> getMonoVars(TNode m);
-  /** The data, mapping monomial variables to coefficients */
+  /**
+   * The data, mapping monomial variables to coefficients. A monomial variable
+   * is either an (arithmetic or bitvector) term, treated as a variable, or
+   * an SEXPR of (arithmetic or bitvector) terms, treated as multiplication.
+   */
   std::map<Node, Rational> d_polyNorm;
 };
 
