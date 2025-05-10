@@ -195,6 +195,33 @@ void Assertions::addFormula(TNode n,
       return;
     }
   }
+
+  // Ensure that it does not contain free variables
+  if (maybeHasFv)
+  {
+    // Note that API users and the smt2 parser may generate assertions with
+    // shadowed variables, which are resolved during rewriting. Hence we do not
+    // check for this here.
+    if (expr::hasFreeVar(n))
+    {
+      std::stringstream se;
+      if (isFunDef)
+      {
+        se << "Cannot process function definition with free variable.";
+      }
+      else
+      {
+        se << "Cannot process assertion with free variable.";
+        if (language::isLangSygus(options().base.inputLanguage))
+        {
+          // Common misuse of SyGuS is to use top-level assert instead of
+          // constraint when defining the synthesis conjecture.
+          se << " Perhaps you meant `constraint` instead of `assert`?";
+        }
+      }
+      throw ModalException(se.str().c_str());
+    }
+  }
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)

@@ -42,8 +42,6 @@ class IllegalChecker : protected EnvObj
   void checkAssertions(Assertions& as);
 
  private:
-  /** Whether we check whether assertions have free variables */
-  bool d_checkFreeVar;
   /** The illegal kinds that cannot appear in assertions */
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
   /** The index up to the index in the assertions we have checked */

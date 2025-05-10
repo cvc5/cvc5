@@ -38,8 +38,6 @@ namespace smt {
 IllegalChecker::IllegalChecker(Env& e)
     : EnvObj(e), d_assertionIndex(userContext(), 0)
 {
-  d_checkFreeVar = language::isLangSygus(options().base.inputLanguage);
-
   // Determine any illegal kinds that are dependent on options that need to be
   // guarded here. Note that nearly all illegal kinds should be properly guarded
   // by either the theory engine, theory solvers, or by theory rewriters. We
@@ -192,25 +190,6 @@ void IllegalChecker::checkAssertions(Assertions& as)
         }
 #endif
         throw LogicException(ss.str());
-      }
-    }
-    // Ensure that it does not contain free variables
-    if (d_checkFreeVar)
-    {
-      // Note that API users and the smt2 parser may generate assertions with
-      // shadowed variables, which are resolved during rewriting. Hence we do
-      // not check for this here.
-      if (expr::hasFreeVar(n))
-      {
-        std::stringstream se;
-        se << "Cannot process assertion with free variable.";
-        if (language::isLangSygus(options().base.inputLanguage))
-        {
-          // Common misuse of SyGuS is to use top-level assert instead of
-          // constraint when defining the synthesis conjecture.
-          se << " Perhaps you meant `constraint` instead of `assert`?";
-        }
-        throw ModalException(se.str().c_str());
       }
     }
   }
