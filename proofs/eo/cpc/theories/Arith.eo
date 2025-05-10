@@ -55,53 +55,63 @@
 
 ; Core arithmetic predicates
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const < ((T Type :implicit) (U Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true))
-      (! U :requires (($is_arith_type U) true))
-      Bool)
-      :chainable and)
+(declare-parameterized-const <
+  ((T Type :implicit) (U Type :implicit)
+   (t T :requires (($is_arith_type T) true))
+   (u U :requires (($is_arith_type U) true)))
+  Bool
+  :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const <= ((T Type :implicit) (U Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true))
-      (! U :requires (($is_arith_type U) true))
-      Bool)
-      :chainable and)
+(declare-parameterized-const <=
+  ((T Type :implicit) (U Type :implicit)
+   (t T :requires (($is_arith_type T) true))
+   (u U :requires (($is_arith_type U) true)))
+  Bool
+  :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const > ((T Type :implicit) (U Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true))
-      (! U :requires (($is_arith_type U) true))
-      Bool)
-      :chainable and)
+(declare-parameterized-const >
+  ((T Type :implicit) (U Type :implicit)
+   (t T :requires (($is_arith_type T) true))
+   (u U :requires (($is_arith_type U) true)))
+  Bool
+  :chainable and)
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const >= ((T Type :implicit) (U Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true))
-      (! U :requires (($is_arith_type U) true))
-      Bool)
-      :chainable and)
+(declare-parameterized-const >=
+  ((T Type :implicit) (U Type :implicit)
+   (t T :requires (($is_arith_type T) true))
+   (u U :requires (($is_arith_type U) true)))
+  Bool
+  :chainable and)
 
 ; Conversion functions.
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-parameterized-const to_real ((T Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true)) Real))
+(declare-parameterized-const to_real
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  Real)
 ; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
-(declare-parameterized-const to_int ((T Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true)) Int))
+(declare-parameterized-const to_int
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  Int)
 ; disclaimer: The type of this function in SMT-LIB only accepts a Real as argument.
-(declare-parameterized-const is_int ((T Type :implicit))
-(-> (! T :requires (($is_arith_type T) true)) Bool))
+(declare-parameterized-const is_int
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  Bool)
 ; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
-(declare-parameterized-const abs ((T Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true)) T))
+(declare-parameterized-const abs
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  T)
 
 ; Power function.
 ; disclaimer: This function is not a function in SMT-LIB. 
-(declare-parameterized-const ^ ((T Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true)) T T))
+(declare-parameterized-const ^
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  (-> T T))
 
 ; Unary negation, which is overloaded with binary subtraction. We distinguish
 ; these two operators in Eunoia based on their arity when applied, and with
 ; eo::as when they are used in higher-order contexts, e.g. as an argument to
 ; the cong proof rule.
 ; disclaimer: This function is overloaded in SMT-LIB.
-(declare-parameterized-const - ((T Type :implicit))
-  (-> (! T :requires (($is_arith_type T) true)) T))
+(declare-parameterized-const -
+  ((T Type :implicit) (t T :requires (($is_arith_type T) true)))
+  T)
