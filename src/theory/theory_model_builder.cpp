@@ -1046,7 +1046,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               //---
             } while (!success);
             Assert(!n.isNull());
-            Trace("model-value-enum") << "Enum infinite " << t << " " << n << " for " << *i2 << std::endl;
+            Trace("model-value-enum") << "Enum infinite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           else
           {
@@ -1060,7 +1061,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
                 << "Get first value from finite type..." << std::endl;
             TypeEnumerator te(t);
             n = *te;
-            Trace("model-value-enum") << "Enum finite " << t << " " << n << " for " << *i2 << std::endl;
+            Trace("model-value-enum") << "Enum finite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           Trace("model-builder-debug") << "...got " << n << std::endl;
           assignConstantRep(tm, *i2, n);
