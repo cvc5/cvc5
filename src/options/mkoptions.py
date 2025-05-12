@@ -69,6 +69,9 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
+# legal values for the "no_support" field
+NO_SUPPORT_VALUES = ['proofs', 'models']
+
 ################################################################################
 ################################################################################
 # utility functions
@@ -1130,6 +1133,12 @@ class Checker:
                     self.__check_option_long(o, alias)
                     if o.alternate:
                         self.__check_option_long(o, 'no-' + alias)
+        if o.no_support:
+            if o.category != "regular":
+                self.perr("has a no_support field but is not a regular option", option=o)
+            for ns in o.no_support:
+                if ns not in NO_SUPPORT_VALUES:
+                    self.perr("has invalid no_support field '{}'", ns, option=o)
         return o
 
 
