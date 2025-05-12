@@ -168,7 +168,7 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
         {
           ss << ", unless --arrays-exp is enabled";
         }
-        throw LogicException(ss.str());
+        throw SafeLogicException(ss.str());
       }
     }
   }
