@@ -636,7 +636,22 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       if (eqct.isUninterpretedSort())
       {
+        // we never assign uninterpreted sorts a priori.
+        Assert (constRep.isNull());
         eqc_usort_count[eqct]++;
+        // For uninterpreted sorts when finite model finding is enabled,
+        // we preemptively assign the next value in the enumeration here.
+        // This is important because uninterpreted sorts are considered
+        // "INTERPRETED_FINITE" cardinality when finite model finding is
+        // enabled, and hence would otherwise be assigned using the finite
+        // case below (assigning them to the first value), which we do not
+        // want. Instead, all initial equivalence classes of uninterpreted
+        // sorts are assigned distinct values, and all further values
+        // (e.g. terms introduced as subfields of datatypes) are assign
+        // arbitrary values.
+        constRep = typeConstSet.nextTypeEnum(eqct);
+        Trace("model-value-enum") << "Enum fmf usort " << eqct << " " << constRep
+                                  << " for " << eqc << std::endl;
       }
     }
     // Assign representative for this equivalence class
