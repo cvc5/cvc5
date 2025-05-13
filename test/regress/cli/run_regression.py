@@ -241,7 +241,7 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.write(output.strip("unsat\n(\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
@@ -300,7 +300,7 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.write(output.strip("unsat\n(\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
@@ -369,7 +369,7 @@ class CpcTester(Tester):
             # note this line is not necessary if in a safe build
             if not benchmark_info.safe_mode:
                 tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
-            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.write(output.strip("unsat\n(\n".encode()))
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
