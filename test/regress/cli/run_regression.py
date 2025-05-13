@@ -312,6 +312,8 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output.decode()):
+                return EXIT_SKIP
             # strip the unsat and parentheses
             output, exit_code = self.strip_proof_body(output)
             if exit_code == EXIT_FAILURE:
@@ -321,8 +323,6 @@ class AletheTester(Tester):
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
-                return EXIT_SKIP
 
             if exit_code != EXIT_OK:
                 return exit_code
