@@ -118,6 +118,14 @@ class Tester:
             print_ok("OK")
         return exit_code
 
+    def strip_proof_body(self, output):
+        # strip the unsat and parentheses
+        if not output.startswith("unsat\n(\n".encode()) or not output.endswith("\n)\n".encode()):
+            print_error("Failed to parse result for proof")
+            return output, EXIT_FAILURE
+        output = output[8:-2]
+        return output, EXIT_OK
+
 
 ################################################################################
 # The testers
@@ -241,7 +249,11 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n(\n".encode()))
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
@@ -300,7 +312,11 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n(\n".encode()))
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
@@ -369,15 +385,17 @@ class CpcTester(Tester):
             # note this line is not necessary if in a safe build
             if not benchmark_info.safe_mode:
                 tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
-            tmpf.write(output.strip("unsat\n(\n".encode()))
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
-                print()
-                print_outputs(output, error)
                 return EXIT_FAILURE
             if exit_code != EXIT_OK:
                 return exit_code

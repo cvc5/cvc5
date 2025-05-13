@@ -1472,7 +1472,6 @@ void SolverEngine::printProof(std::ostream& out,
                           mode,
                           ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
                           assertionNames);
-  out << std::endl;
   out << ")" << std::endl;
 }
 
