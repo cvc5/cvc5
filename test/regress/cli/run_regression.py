@@ -185,7 +185,6 @@ class ProofTester(Tester):
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
                 ["--check-proofs",
-                 "--proof-granularity=theory-rewrite",
                  "--proof-check=lazy"]
             )
         )
