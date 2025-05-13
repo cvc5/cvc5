@@ -25,7 +25,7 @@
   :right-assoc-nil @bv_empty)
 
 (declare-parameterized-const extract ((n Int :implicit) (h Int) (l Int))
-  (-> (BitVec n) (BitVec (eo::add h (eo::neg l) 1))))
+  (-> (BitVec n) (BitVec (eo::add h (eo::neg l) 1))))   ; TODO: must depend on n
 
 (declare-parameterized-const repeat ((n Int :implicit) (i Int))
   (-> (BitVec n) (BitVec (eo::mul i n))))

@@ -104,7 +104,7 @@
                        (b Bool) (b2 Bool) (bs Bool :list) (n Int) (m Int)
                        (xb (BitVec m)) (yb (BitVec m)) (ybs (BitVec m) :list) (zbs (BitVec n) :list)
                        (sx (Seq T)) (sy (Seq T)) (sz (Seq T)) (sys (Seq T) :list)
-                       (ssx String) (ssy String))
+                       (ssx String) (ssy String) (ssz String))
     (S) S
     (
       ; core
@@ -173,8 +173,8 @@
                                                   (eo::extract ex (eo::add r (eo::len ey)) (eo::len ex)))
                                               )
                                             ))))
-      (($run_evaluate (str.replace_all sx sy sz))
-                                            ($str_eval_replace_all sx sy sz))
+      (($run_evaluate (str.replace_all ssx ssy ssz))
+                                            ($str_eval_replace_all ssx ssy ssz))
       (($run_evaluate (str.prefixof sx sy)) (eo::define ((ex ($run_evaluate sx)))
                                             (eo::define ((ey ($run_evaluate sy)))
                                             (eo::define ((r (eo::extract ey 0 (eo::add (eo::len ex) -1))))
@@ -409,8 +409,8 @@
 ; - zero U: The zero element of f.
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
-(program $is_absorb_rec ((T Type) (U Type) (f (-> T U U)) (a T) (b U) (zero U))
-  ((-> T U U) U U) Bool
+(program $is_absorb_rec ((T Type) (U Type) (f (-> U U U)) (a U) (b U) (zero U))
+  ((-> U U U) U U) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)

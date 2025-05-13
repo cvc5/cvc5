@@ -14,7 +14,7 @@
 ; return: >
 ;   The result of the reduction for the remaining bits for (ubv_to_int b),
 ;   which is an arithmetic sum.
-(program $abconv_ubv_to_int_elim ((n Int) (b (BitVec n)) (i Int) (w Int) (p Int))
+(program $abconv_ubv_to_int_elim ((n Int) (b eo::?) (i Int) (w Int) (p Int))
   ((BitVec n) Int Int Int) Int
   (
     (($abconv_ubv_to_int_elim b w w p) 0)
