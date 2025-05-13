@@ -357,7 +357,7 @@ name   = "Base"
   help = "Do not allow using expert options or theories, more than one regular option, or any feature that does not have full proof and model support."
 [[option.mode.STABLE]]
   name = "stable"
-  help = "Do not allow using expert options or theories, more than one regular option. May allow incomplete proofs or models."
+  help = "Do not allow using expert options or theories, or more than one regular option. May allow incomplete proofs or models."
 
 [[option]]
   name       = "pluginNotifySatClauseInSolve"
