@@ -4218,7 +4218,6 @@ set(testers
   synth
   abduct
   dump
-  dsl-proof
   cpc
 )
 
