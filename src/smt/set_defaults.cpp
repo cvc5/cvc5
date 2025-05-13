@@ -137,8 +137,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // safe options
   if (options().base.safeOptions)
   {
-    // if we check proofs, we require that they are checked for completeness
-    SET_AND_NOTIFY(proof, checkProofsComplete, true, "safe options")
     // all "experimental" theories that are enabled by default should be
     // disabled here
     SET_AND_NOTIFY(sep, sep, false, "safe options");
@@ -164,6 +162,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
     // always use cegqi midpoint, which avoids virtual term substitution
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
+    // if we check proofs, we require that they are checked for completeness
+    if (opts.proof.checkProofs)
+    {
+      SET_AND_NOTIFY(proof, checkProofsComplete, true, "safe options with check-proofs")
+    }
   }
   // implied options
   if (opts.proof.checkProofsComplete)
