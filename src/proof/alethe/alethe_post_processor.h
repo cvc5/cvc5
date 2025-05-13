@@ -150,7 +150,18 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * clause.
    */
   bool maybeReplacePremiseProof(Node premise, CDProof* cdp);
-
+  /**
+   * This method updates applications of the `THEORY_REWRITE` rule that
+   * are explained by a specific `ProofRewriteRule` and translates them
+   * into a proof node in terms of the Alethe rules.
+   */
+  bool updateTheoryRewriteProofRewriteRule(Node res,
+                                           ProofRule id,
+                                           const std::vector<Node>& children,
+                                           const std::vector<Node>& args,
+                                           CDProof* cdp,
+                                           bool& continueUpdate,
+                                           ProofRewriteRule di);
   /** Nodes corresponding to the Boolean values. */
   Node d_true;
   Node d_false;
