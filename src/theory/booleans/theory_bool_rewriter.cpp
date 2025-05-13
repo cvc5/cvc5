@@ -37,7 +37,7 @@ TheoryBoolRewriter::TheoryBoolRewriter(NodeManager* nm) : TheoryRewriter(nm)
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_NNF_NORM,
-                           TheoryRewriteCtx::POST_DSL);
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE,
                            TheoryRewriteCtx::POST_DSL);
 }

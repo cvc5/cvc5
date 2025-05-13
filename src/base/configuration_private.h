@@ -30,6 +30,12 @@ namespace cvc5::internal {
 #  define IS_DEBUG_BUILD false
 #endif /* CVC5_DEBUG */
 
+#ifdef CVC5_SAFE_MODE
+#  define IS_SAFE_BUILD true
+#else /* CVC5_SAFE_MODE */
+#  define IS_SAFE_BUILD false
+#endif /* CVC5_SAFE_MODE */
+
 #ifdef CVC5_TRACING
 #  define IS_TRACING_BUILD true
 #else /* CVC5_TRACING */

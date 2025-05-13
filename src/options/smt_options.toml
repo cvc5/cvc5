@@ -68,7 +68,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "expert"
+  category   = "common"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
