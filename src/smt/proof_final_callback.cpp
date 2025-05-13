@@ -104,7 +104,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   {
     d_minPedanticLevel.minAssign(plevel);
   }
-  // if not taking statistics, don't bother computing the following
+  // if not taking statistics or checking completeness, don't bother computing the following
   if (d_checkProofHoles)
   {
     // record stats for the rule
