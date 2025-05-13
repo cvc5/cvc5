@@ -137,6 +137,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // safe options
   if (options().base.safeOptions)
   {
+    // if we check proofs, we require that they are checked for completeness
+    SET_AND_NOTIFY(proof, checkProofsComplete, true, "safe options")
     // all "experimental" theories that are enabled by default should be
     // disabled here
     SET_AND_NOTIFY(sep, sep, false, "safe options");
@@ -164,6 +166,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
   }
   // implied options
+  if (opts.proof.checkProofsComplete)
+  {
+    SET_AND_NOTIFY(smt, checkProofs, true, "checkProofsComplete");
+  }
   if (opts.smt.debugCheckModels)
   {
     SET_AND_NOTIFY(smt, checkModels, true, "debugCheckModels");
