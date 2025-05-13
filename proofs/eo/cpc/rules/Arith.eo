@@ -309,7 +309,7 @@
 ; - m T: The monomial we are considering.
 ; return: >
 ;   Whether the monomial we have processed is entailed to be positive (resp. negative).
-(program $mk_arith_mult_sign_sgn ((T Type) (U Type) (F Bool :list) (l Bool) (t T) (z T) (m T :list) (sgn Bool))
+(program $mk_arith_mult_sign_sgn ((T Type) (U Type) (F Bool :list) (l Bool) (t eo::?) (z eo::?) (m eo::? :list) (sgn Bool))
   (Bool Bool T) Bool
   (
   (($mk_arith_mult_sign_sgn sgn (and (not (= t z)) F) (* t t m))  ; ensures non-empty
@@ -352,8 +352,8 @@
 ; return: >
 ;   The left hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
-(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
-  ((-> T U Bool) Bool) S
+(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
+  (T Bool) S
   (
     (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
     (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
@@ -372,8 +372,8 @@
 ;   The right hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
 ; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
-(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r (-> T U Bool)) (t T) (u U) (z T) (B Bool :list) (S Type))
-  ((-> T U Bool) Bool) S
+(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
+  (T Bool) S
   (
     (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
     (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
@@ -491,7 +491,7 @@
 ;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
 ;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
 ;   scaling factors must have the same sign. Returns false for any other relation.
-(program $is_poly_norm_rel_consts ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
+(program $is_poly_norm_rel_consts ((cx eo::?) (cy eo::?) (b Bool))
   (Bool) Bool
   (
     (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
