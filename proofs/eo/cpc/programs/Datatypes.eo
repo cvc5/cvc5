@@ -9,7 +9,7 @@
 ;   constructor. Parametric datatypes must reference the type constructor to
 ;   extract their constructors, which generates a list of *unannotated*
 ;   datatype constructors.
-(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
+(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC eo::?))
   (Type) eo::List
   (
     (($dt_get_constructors (Tuple T1 T2)) (eo::cons eo::List::cons tuple eo::List::nil))
@@ -83,7 +83,7 @@
 ; return: >
 ;   The list of arguments of the constructor application t.
 (program $dt_arg_list ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
-  (T) U
+  (T) eo::List
   (
     ; for tuples, we manually accumulate the list.
     (($dt_arg_list (tuple t1 t2))  (eo::cons @list t1 ($dt_arg_list t2)))

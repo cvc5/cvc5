@@ -585,7 +585,7 @@
 ;   terms which represents an overapproximation of what s may contain.
 ;   In particular, note that all string literals are broken up into string
 ;   literals of size one.
-(program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
+(program $str_multiset_overapprox ((T Type) (s eo::?) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
     ((Seq T)) @List
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))

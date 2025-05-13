@@ -860,7 +860,7 @@
 ;   The result of "flattening" all children of t. For example, given
 ;   (str.++ "AB" x "CD"), this returns the term
 ;   (str.++ "A" (str.++ "B" (str.++ x (str.++ "C" (str.++ "D" ""))))).
-(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list))
+(program $str_flatten ((U Type) (t eo::?) (tail (Seq U) :list))
   ((Seq U)) (Seq U)
   (
     (($str_flatten (str.++ t tail))
