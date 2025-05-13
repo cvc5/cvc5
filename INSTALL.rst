@@ -492,9 +492,12 @@ All custom test targets build and run a preconfigured set of tests.
 
 We use ``ctest`` as test infrastructure, and by default all test targets
 are configured to **run** in parallel with the maximum number of threads
-available on the system. Override with ``ARGS=-jN``.
+available on the system. The default parallelism of the **build** itself
+depends on the underlying build system (e.g., `make` builds using a
+single thread by default, while `ninja` uses all available cores).
 
-Use ``-jN`` for parallel **building** with ``N`` threads.
+Use ``-jN`` to override the number of parallel threads used for both
+building and running the tests.
 
 
 Recompiling a specific cvc5 version with different LGPL library versions
