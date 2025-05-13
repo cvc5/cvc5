@@ -165,7 +165,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if we check proofs, we require that they are checked for completeness
     if (opts.proof.checkProofs)
     {
-      SET_AND_NOTIFY(proof, checkProofsComplete, true, "safe options with check-proofs")
+      SET_AND_NOTIFY(
+          proof, checkProofsComplete, true, "safe options with check-proofs")
     }
   }
   // implied options
