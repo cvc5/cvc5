@@ -118,7 +118,7 @@ typerule MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule NONLINEAR_MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule SUB ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule NEG ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule DIVISION ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule DIVISION "SimpleTypeRule<RReal, AReal, AReal>"
 typerule POW ::cvc5::internal::theory::arith::PowTypeRule
 
 typerule CONST_RATIONAL ::cvc5::internal::theory::arith::ArithConstantTypeRule
@@ -145,7 +145,7 @@ typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"
 typerule DIVISIBLE_OP "SimpleTypeRule<RBuiltinOperator>"
 
-typerule DIVISION_TOTAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
+typerule DIVISION_TOTAL "SimpleTypeRule<RReal, AReal, AReal>"
 typerule INTS_DIVISION_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 
