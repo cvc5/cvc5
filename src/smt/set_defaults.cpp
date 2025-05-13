@@ -163,7 +163,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // always use cegqi midpoint, which avoids virtual term substitution
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
     // if we check proofs, we require that they are checked for completeness
-    if (opts.proof.checkProofs)
+    if (opts.smt.checkProofs)
     {
       SET_AND_NOTIFY(
           proof, checkProofsComplete, true, "safe options with check-proofs")
