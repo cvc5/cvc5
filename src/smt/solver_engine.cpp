@@ -2165,6 +2165,8 @@ void SolverEngine::setOption(const std::string& key,
 {
   if (fromUser && options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
+    // Note that the text "in safe mode" must appear in the error messages or
+    // CI will fail, as it searches for this text.
     if (key == "trace")
     {
       throw FatalOptionException("cannot use trace messages in safe mode");
@@ -2194,7 +2196,7 @@ void SolverEngine::setOption(const std::string& key,
       {
         std::stringstream ss;
         ss << "cannot set option " << key
-           << " when safe-mode=safe is enabled, as this option does not support ";
+           << " in safe mode, as this option does not support ";
         bool firstTime = true;
         for (const std::string& s : oinfo.noSupports)
         {
