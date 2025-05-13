@@ -12,6 +12,8 @@ This file contains a summary of important user-visible changes.
 ## Changes
 
 - Bumped CaDiCaL to version 2.1.3.
+- Following the SMT-LIB requirement, we now print parentheses around all proof
+  outputs.
 
 cvc5 1.2.1
 ==========
