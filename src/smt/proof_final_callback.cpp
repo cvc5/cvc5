@@ -195,7 +195,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
       }
       else if (r == ProofRule::THEORY_REWRITE)
       {
-        ss << " due to a nunhandled instance of rewrite rule " << dslId;
+        ss << " due to an unhandled instance of rewrite rule " << dslId;
       }
       else
       {
