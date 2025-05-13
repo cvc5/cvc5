@@ -176,17 +176,17 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
   return d_cond;
 }
 
-bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
+void RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
 {
+  std::unordered_map<TNode, Node> visited;
   // substitute into each condition
   for (const Node& c : d_cond)
   {
-    Node sc = expr::narySubstitute(c, vs, ss);
+    Node sc = expr::narySubstitute(c, vs, ss, visited);
     vcs.push_back(sc);
   }
-  return true;
 }
 
 void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const

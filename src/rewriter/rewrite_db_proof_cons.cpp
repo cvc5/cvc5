@@ -815,18 +815,11 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
       std::vector<Node> subsall = subs;
       vsall.insert(vsall.end(), impliedVs.begin(), impliedVs.end());
       subsall.insert(subsall.end(), impliedSs.begin(), impliedSs.end());
-      if (!rpr.getObligations(vsall, subsall, vcs))
-      {
-        // cannot get conditions, likely due to failed side condition
-        Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
-        return false;
-      }
+      rpr.getObligations(vsall, subsall, vcs);
     }
-    else if (!rpr.getObligations(vars, subs, vcs))
+    else
     {
-      // cannot get conditions, likely due to failed side condition
-      Trace("rpc-debug2") << "...fail (obligations)" << std::endl;
-      return false;
+      rpr.getObligations(vars, subs, vcs);
     }
     // Prove transitive equality last. We choose this order since the
     // transitive equality is expected to be the hardest to prove. Also, the
@@ -1190,27 +1183,156 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 nm->mkConstInt(Rational(static_cast<uint32_t>(pcur.d_dslId))));
             if (pcur.d_id == RewriteProofStatus::DSL)
             {
+              // we will fully process the current conclusion at pre-visit.
+              it->second = true;
               const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
               // compute premises based on the used substitution
               // build the substitution context
               const std::vector<Node>& vs = rpr.getVarList();
               Assert(pcur.d_vars.size() == vs.size());
-              std::vector<Node> rsubs;
               // must order the variables to match order of rewrite rule
+              std::vector<Node> rsubs[2];
+              std::map<Node, size_t> varToIndex;
               for (const Node& v : vs)
               {
                 itv = std::find(pcur.d_vars.begin(), pcur.d_vars.end(), v);
                 size_t d = std::distance(pcur.d_vars.begin(), itv);
                 Assert(d < pcur.d_subs.size());
-                rsubs.push_back(pcur.d_subs[d]);
+                varToIndex[v] = rsubs[0].size();
+                rsubs[0].emplace_back(pcur.d_subs[d]);
               }
-              // get the conditions, store into premises of cur.
-              if (!rpr.getObligations(vs, rsubs, ps))
+              Node conc = rpr.getConclusion(true);
+              std::vector<Node> cpremises[2];
+              Node proven[2];
+              // will run at most twice: first to check for singleton
+              // elimination, and then to run the corrected (avoiding) version
+              for (size_t a = 0; a < 2; a++)
               {
-                Assert(false) << "failed a side condition?";
-                return false;
+                // Do a "dry run" of the proof rule, which determines which
+                // occurrences of singleton elimination happened.
+                std::unordered_map<TNode, Node> dvisited;
+                std::unordered_set<Node> dselim;
+                // substitute into each condition
+                const std::vector<Node>& conds = rpr.getConditions();
+                std::vector<Node>& cps = cpremises[a];
+                Assert(vs.size() == rsubs[a].size());
+                for (const Node& c : conds)
+                {
+                  Node p =
+                      expr::narySubstitute(c, vs, rsubs[a], dvisited, dselim);
+                  cps.push_back(p);
+                }
+                // substitute conclusion
+                proven[a] =
+                    expr::narySubstitute(conc, vs, rsubs[a], dvisited, dselim);
+                // For each subterm that led to a result where implicit
+                // singleton elimination occurred, we compute a sufficient set
+                // of variables that would have avoided the singleton
+                // elimination, had they been mapped to a non-empty list.
+                if (!dselim.empty())
+                {
+                  Trace("rare-selim-avoid")
+                      << "For " << conc << ", need to avoid singleton terms"
+                      << std::endl;
+                  std::unordered_set<Node> explictVar;
+                  rsubs[1] = rsubs[0];
+                  for (const Node& tse : dselim)
+                  {
+                    Trace("rare-selim-avoid")
+                        << "Process term: " << tse << std::endl;
+                    Assert(a == 0) << "After trying again with " << rsubs[a]
+                                   << ", still have " << tse;
+                    // list variables
+                    size_t nlistChildren = 0;
+                    std::vector<size_t> empListVars;
+                    for (const Node& tsec : tse)
+                    {
+                      if (!expr::isListVar(tsec))
+                      {
+                        nlistChildren++;
+                        continue;
+                      }
+                      Assert(varToIndex.find(tsec) != varToIndex.end());
+                      size_t index = varToIndex[tsec];
+                      Node r = rsubs[0][index];
+                      Assert(!r.isNull() && r.getKind() == Kind::SEXPR)
+                          << "Expected list substitution for " << tsec
+                          << ", got " << r;
+                      if (r.getNumChildren() == 0)
+                      {
+                        empListVars.push_back(index);
+                      }
+                      else
+                      {
+                        // already non-empty, counts as non-list
+                        Assert(r.getNumChildren() == 1);
+                        nlistChildren++;
+                      }
+                    }
+                    Assert(nlistChildren < 2);
+                    size_t nexplicit = 2 - nlistChildren;
+                    Assert(nexplicit <= empListVars.size())
+                        << "Need to add " << nexplicit
+                        << " explicits, only have " << empListVars.size();
+                    Assert(dvisited.find(tse) != dvisited.end());
+                    Node subsCtx = dvisited[tse];
+                    Node nt = expr::getNullTerminator(
+                        nm, tse.getKind(), subsCtx.getType());
+                    nt = nm->mkNode(Kind::SEXPR, nt);
+                    Trace("rare-selim-avoid")
+                        << "...use null terminator " << nt << std::endl;
+                    for (size_t i = 0; i < nexplicit; i++)
+                    {
+                      Assert(i < empListVars.size());
+                      size_t vindex = empListVars[i];
+                      Trace("rare-selim-avoid")
+                          << "- make variable #" << vindex
+                          << " equal to singleton list with null terminator to "
+                             "avoid singleton elimination semantics"
+                          << std::endl;
+                      Assert(vindex < rsubs[1].size());
+                      rsubs[1][vindex] = nt;
+                    }
+                  }
+                  // try again with the modified arguments, which should
+                  // now avoid all implicit singleton elimination
+                  continue;
+                }
+                if (a == 1)
+                {
+                  // if we modified to avoid singleton elimination, we
+                  // "repair" the proof here
+                  Assert(cpremises[0].size() == cpremises[1].size());
+                  for (size_t i = 0, nps = cpremises[0].size(); i < nps; i++)
+                  {
+                    if (cpremises[0][i] != cpremises[1][i])
+                    {
+                      Trace("rare-selim-avoid")
+                          << "Prove premise " << cpremises[1][i] << " from "
+                          << cpremises[0][i] << std::endl;
+                      ensureProofSingletonElim(
+                          cdp, cpremises[1][i], cpremises[0][i], true);
+                    }
+                  }
+                  // also convert the conclusion
+                  if (proven[0] != proven[1])
+                  {
+                    Trace("rare-selim-avoid")
+                        << "Prove conclusion " << proven[0] << " to "
+                        << proven[1] << std::endl;
+                    ensureProofSingletonElim(cdp, proven[1], proven[0], false);
+                  }
+                }
+                // use the (possibly repaired) premises, arguments and
+                // conclusion.
+                pfac.insert(pfac.end(), rsubs[a].begin(), rsubs[a].end());
+                cdp->addStep(
+                    proven[a], ProofRule::DSL_REWRITE, cpremises[a], pfac);
+                // get the conditions, store into premises of cur.
+                // we always go and connect the *original* premises
+                ps.insert(ps.end(), cpremises[0].begin(), cpremises[0].end());
+                break;
               }
-              pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
             else
             {
@@ -1324,18 +1446,16 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         Assert(pfArgs.find(cur) != pfArgs.end());
         Assert(pcur.d_dslId != ProofRewriteRule::NONE);
-        const std::vector<Node>& args = pfArgs[cur];
-        ProofRule pfr;
         if (pcur.d_id == RewriteProofStatus::DSL)
         {
+          const std::vector<Node>& args = pfArgs[cur];
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
           conc = rpr.getConclusionFor(subs);
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
           Trace("rpc-debug") << "Proved: " << cur << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
-          pfr = ProofRule::DSL_REWRITE;
-          cdp->addStep(conc, pfr, ps, args);
+          cdp->addStep(conc, ProofRule::DSL_REWRITE, ps, args);
         }
         else
         {
@@ -1547,6 +1667,38 @@ Node RewriteDbProofCons::rewriteConcrete(const Node& n)
     return n;
   }
   return rewrite(n);
+}
+
+void RewriteDbProofCons::ensureProofSingletonElim(CDProof* cdp,
+                                                  const Node& eq,
+                                                  const Node& eqSe,
+                                                  bool fromSe)
+{
+  TConvProofGenerator tpg(d_env, nullptr, TConvPolicy::ONCE);
+  std::vector<Node> convEq;
+  expr::getConversionConditions(eq, eqSe, convEq);
+  for (const Node& ceq : convEq)
+  {
+    Trace("rare-selim-avoid") << "...requires " << ceq << std::endl;
+    // this step likely can be filled by ACI_NORM
+    tpg.addRewriteStep(
+        ceq[0], ceq[1], nullptr, false, TrustId::RARE_SINGLETON_ELIM);
+  }
+  Node equiv = eq.eqNode(eqSe);
+  std::shared_ptr<ProofNode> pfn = tpg.getProofFor(equiv);
+  cdp->addProof(pfn);
+  if (fromSe)
+  {
+    Node equivs = eqSe.eqNode(eq);
+    cdp->addStep(equivs, ProofRule::SYMM, {equiv}, {});
+    equiv = equivs;
+  }
+  // For example:
+  //      ------------ via ACI_NORM on subterms where (src, target) differ
+  // src  src = target
+  // ----------------- EQ_RESOLVE
+  // target
+  cdp->addStep(equiv[1], ProofRule::EQ_RESOLVE, {equiv[0], equiv}, {});
 }
 
 }  // namespace rewriter

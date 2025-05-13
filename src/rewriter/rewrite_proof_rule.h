@@ -91,7 +91,7 @@ class RewriteProofRule
   /**
    * Get the conditions of the rule under the substitution { vs -> ss }.
    */
-  bool getObligations(const std::vector<Node>& vs,
+  void getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
                       std::vector<Node>& vcs) const;
   /**

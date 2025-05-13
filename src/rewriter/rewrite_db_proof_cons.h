@@ -241,6 +241,21 @@ class RewriteDbProofCons : protected EnvObj
    * @param eqi The proven equality
    */
   bool ensureProofInternal(CDProof* cdp, const Node& eqi);
+  /**
+   * Ensure proof for singleton elimination. This proves eqSe from eq or
+   * vice versa, if fromSe is true, where eqSe is the singleton elimination
+   * version of eq.
+   * @param cdp The proof to add a proof of eqSe (resp. eq) given assumption
+   * eq (resp. eqSe) when fromSe is true (resp. false).
+   * @param eq The original equality.
+   * @param eqSe The singleton elimination form of eq.
+   * @param fromSe Determines whether we are proving eqSe from eq or vice
+   * versa.
+   */
+  void ensureProofSingletonElim(CDProof* cdp,
+                                const Node& eq,
+                                const Node& eqSe,
+                                bool fromSe);
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
