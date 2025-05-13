@@ -1,5 +1,5 @@
 ; DISABLE-TESTER: lfsc
-; DISABLE-TESTER: dsl-proof
+
 ;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-logic QF_BV)

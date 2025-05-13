@@ -2,7 +2,7 @@
 ; EXPECT: unsat
 ;; slow conversion
 ; DISABLE-TESTER: alethe
-; DISABLE-TESTER: dsl-proof
+
 (set-logic AUFLIRA)
 (set-info :source |http://proval.lri.fr/why-benchmarks |)
 (set-info :smt-lib-version 2.6)

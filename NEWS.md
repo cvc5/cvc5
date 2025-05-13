@@ -12,6 +12,9 @@ This file contains a summary of important user-visible changes.
 ## Changes
 
 - Bumped CaDiCaL to version 2.1.3.
+- The proof granularity is now `dsl-rewrite` by default. The regression test
+  `make regress-dsl-proof` is deleted and is now equivalent to
+  `make regress-proof`.
 
 cvc5 1.2.1
 ==========
