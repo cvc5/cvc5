@@ -27,8 +27,8 @@ ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
 bool ProofNodeUpdaterCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                            const std::vector<Node>& fa,
-                            bool& continueUpdate)
+                                            const std::vector<Node>& fa,
+                                            bool& continueUpdate)
 {
   return false;
 }

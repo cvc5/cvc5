@@ -75,7 +75,8 @@ void ProofFinalCallback::initializeUpdate()
   d_pedanticFailure = false;
   d_pedanticFailureOut.str("");
   ++d_numFinalProofs;
-  d_checkProofHoles = options().base.statisticsInternal || options().proof.checkProofsComplete;
+  d_checkProofHoles =
+      options().base.statisticsInternal || options().proof.checkProofsComplete;
 }
 
 void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
@@ -104,7 +105,8 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   {
     d_minPedanticLevel.minAssign(plevel);
   }
-  // if not taking statistics or checking completeness, don't bother computing the following
+  // if not taking statistics or checking completeness, don't bother computing
+  // the following
   if (d_checkProofHoles)
   {
     // record stats for the rule
@@ -182,7 +184,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
       if (r == ProofRule::TRUST)
       {
         ss << " due to a trust step with id " << trustId;
-        if (trustId==TrustId::THEORY_LEMMA)
+        if (trustId == TrustId::THEORY_LEMMA)
         {
           ss << ", from theory " << trustTid;
         }
