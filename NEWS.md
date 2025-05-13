@@ -13,7 +13,7 @@ This file contains a summary of important user-visible changes.
 
 - Bumped CaDiCaL to version 2.1.3.
 - The option `--safe-options` is renamed to `--safe-mode=safe`. We additionally
-  support the configuration `--safe-mode=stable`, which disables experimental
+  support the option `--safe-mode=stable`, which disables experimental
   features but does not insist on complete proofs or models.
 
 cvc5 1.2.1
