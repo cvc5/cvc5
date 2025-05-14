@@ -355,7 +355,7 @@
 ; - sz Int: The number of bits left to process.
 ; return:
 ;   A pair corresponding to the bitblasted form of the quotient/remainder of x and y.
-(program $bv_div_mod_impl ((n Int) (a1 eo::?) (a2 (BitVec n)) (sz Int) (zero eo::?))
+(program $bv_div_mod_impl ((n Int) (a1 (BitVec n)) (a2 (BitVec n)) (sz Int) (zero (BitVec n)))
   ((BitVec n) (BitVec n) (BitVec n) Int) (@Pair (BitVec n) (BitVec n))
   (
   (($bv_div_mod_impl a1 a2 zero 0)    (@pair zero zero))
@@ -369,7 +369,7 @@
         (eo::define ((r1s ($bv_bitblast_lshift r1 1)))
         (eo::define ((r1sa ($bv_ripple_carry_adder r1s zero (ite (= isodd true) true false))))
         (eo::define ((a2n ($bv_bitblast_apply_unary not a2)))
-        (eo::match ((m2 Int) (rmb_carry Bool) (rmb (BitVec m2)))
+        (eo::match ((m2 Int) (rmb_carry Bool) (rmb (BitVec n)))
           ($bv_ripple_carry_adder_2 r1sa a2n true @bv_empty)
           (((@pair rmb_carry rmb)
             (eo::define ((q1ss (eo::match ((mm1 Int) (b1q Bool) (a1q (BitVec mm1) :list))

@@ -411,8 +411,8 @@
 ; - zero U: The zero element of f.
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
-(program $is_absorb_rec ((T Type) (U Type) (f (-> U U U)) (a U) (b U) (zero U))
-  ((-> U U U) U U) Bool
+(program $is_absorb_rec ((U Type) (V Type) (W Type) (f (-> U U U)) (a U) (b U) (zero U))
+  ((-> U U U) V W) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)
@@ -452,7 +452,7 @@
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
 (define $is_absorb ((S Type :implicit) (t S) (zero S))
   (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
-  (eo::match ((T Type) (U Type) (f eo::?) (t1 U) (t2 U))
+  (eo::match ((T Type) (U Type) (f (-> U U U)) (t1 U) (t2 U))
     t
     (((f t1 t2) ($is_absorb_rec f t zero))))))
 

@@ -144,7 +144,7 @@
 ; args:
 ; - a T: The arithmetic term to process of type Int or Real.
 ; return: the polynomial corresponding to the (normalized) form of a.
-(program $get_arith_poly_norm ((T Type) (U Type) (V Type) (a T) (a1 eo::?) (a2 eo::? :list))
+(program $get_arith_poly_norm ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
   (T) @Polynomial
   (
     (($get_arith_poly_norm (- a1))          ($poly_neg ($get_arith_poly_norm a1)))

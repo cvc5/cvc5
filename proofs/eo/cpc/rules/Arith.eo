@@ -290,7 +290,7 @@
 ; - m U: The monomial to process.
 ; return: >
 ;   The result of stripping even exponent of t from the beginning of m.
-(program $strip_even_exponent ((T Type) (t T) (U Type) (m eo::? :list))
+(program $strip_even_exponent ((T Type) (t T) (U Type) (V Type) (m V :list))
   (T U) U
   (
   (($strip_even_exponent t (* t t m)) ($strip_even_exponent t m))
@@ -487,7 +487,7 @@
 ;   formula of the form (= (r x1 x2) (r y1 y2)), where it is already known that
 ;   (= (* cx (- x1 x2)) (* cy (- y1 y2))). If r is any of <, <=, >=, or >, the
 ;   scaling factors must have the same sign. Returns false for any other relation.
-(program $is_poly_norm_rel_consts ((cx eo::?) (cy eo::?) (b Bool))
+(program $is_poly_norm_rel_consts ((T Type) (U Type) (cx T) (cy U) (b Bool))
   (Bool) Bool
   (
     (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))

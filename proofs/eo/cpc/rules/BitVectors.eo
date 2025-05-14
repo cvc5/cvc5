@@ -31,7 +31,7 @@
 ; return: >
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_smulo_elim_rec ((n Int) (xa (BitVec n)) (xb (BitVec n))
-                             (ppc eo::?) (res (BitVec 1)) (i Int) (nm2 Int))  ; FIXME
+                             (ppc (BitVec 1)) (res (BitVec 1)) (i Int) (nm2 Int))
   ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_smulo_elim_rec xa xb ppc res nm2 nm2)   res)
@@ -91,7 +91,7 @@
 ; return: >
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
-                             (uppc (BitVec 1)) (res (BitVec 1)) (i Int))     ; FIXME
+                             (uppc (BitVec 1)) (res (BitVec 1)) (i Int))
   ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_umulo_elim_rec a b uppc res n n)   res)
