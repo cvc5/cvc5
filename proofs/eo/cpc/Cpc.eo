@@ -356,7 +356,7 @@
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
 (define $get_aci_normal_form ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
+  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 eo::?) (x2 eo::? :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list)
               (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
@@ -426,7 +426,7 @@
 ; return: >
 ;   The zero element for t, if it is found.
 (define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (x1 T) (x2 U :list) (m Int)
+  (eo::match ((x1 eo::?) (x2 eo::? :list) (m Int)
               (xb1 (BitVec m)) (xb2 (BitVec m) :list))
     t
     (
@@ -449,7 +449,7 @@
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
 (define $is_absorb ((S Type :implicit) (t S) (zero S))
   (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (t1 T) (t2 U))
+  (eo::match ((T Type) (U Type) (f eo::?) (t1 U) (t2 U))
     t
     (((f t1 t2) ($is_absorb_rec f t zero))))))
 

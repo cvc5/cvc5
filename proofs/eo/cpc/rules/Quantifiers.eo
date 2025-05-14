@@ -123,7 +123,7 @@
 ; - F Bool: The body of the quantified formula.
 ; return: the sublist of variables in x that should be quantified for F.
 (program $mk_quant_unused_vars_rec ((T Type) (xs @List :list) (x T) (F Bool))
-  (@List Bool) Bool
+  (@List Bool) eo::List
   (
   (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
