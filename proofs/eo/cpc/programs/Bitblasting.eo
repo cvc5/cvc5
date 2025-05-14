@@ -405,7 +405,7 @@
 (define $bv_mk_bitblast_step_urem ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
   (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
   (eo::define ((zero ($bv_bitblast_zero sz)))
-  (eo::match ((m Int) (q (BitVec m)) (r eo::?))
+  (eo::match ((m Int) (q (BitVec m)) (r (BitVec sz)))
     ($bv_div_mod_impl a1 a2 zero sz)
     (((@pair q r) (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
                     ($bv_bitblast_apply_ite isz a1 r))))))))
