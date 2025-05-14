@@ -162,8 +162,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
     // always use cegqi midpoint, which avoids virtual term substitution
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
-    // if we check proofs, we require that they are checked for completeness
-    if (opts.smt.checkProofs)
+    // if we check proofs, we require that they are checked for completeness,
+    // unless the granularity is intentionally set to lower.
+    if (opts.smt.checkProofs && opts.proof.proofGranularityMode>=options::ProofGranularityMode::DSL_REWRITE)
     {
       SET_AND_NOTIFY(
           proof, checkProofsComplete, true, "safe options with check-proofs")

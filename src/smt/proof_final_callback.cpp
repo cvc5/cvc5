@@ -176,6 +176,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], trustTid);
       d_trustTheoryRewriteCount << trustTid;
     }
+    // If the rule is not handled, and we are checking for complete proofs
     if (!isHandled && options().proof.checkProofsComplete)
     {
       // internal error if hardFailure is true
