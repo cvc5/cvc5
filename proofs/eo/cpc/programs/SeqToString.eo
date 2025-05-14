@@ -91,10 +91,10 @@
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (@seq.empty (Seq V)) units chars)     (tuple "" units chars))
-  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((fs eo::?) (nunits1 @List) (nchars1 @List))
+  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((W Type) (X Type) (fs (-> W X)) (nunits1 @List) (nchars1 @List))
                                                                   ($seq_to_string_op_rec f units chars)
                                                                   (((tuple fs nunits1 nchars1)
-                                                                    (eo::match ((bs eo::?) (nunits2 @List) (nchars2 @List))
+                                                                    (eo::match ((bs W) (nunits2 @List) (nchars2 @List))
                                                                       ($seq_to_string_op_rec b nunits1 nchars1)
                                                                       (((tuple bs nunits2 nchars2) (tuple (fs bs) nunits2 nchars2))))))))
   (($seq_to_string_op_rec b units chars)                        (tuple b units chars))

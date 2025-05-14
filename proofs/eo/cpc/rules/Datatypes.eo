@@ -407,7 +407,7 @@
 ; - ss eo::List: The list of selectors for the type of s.
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
-(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a eo::?) (tr D) (c U) (n Int) (ss eo::List))
+(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
   (D U eo::List) D
   (
     (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs s t a ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated

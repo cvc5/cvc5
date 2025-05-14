@@ -318,6 +318,7 @@
      ($bv_shift_add_multiplier_rec a1 a2 (eo::add k 1) ($bv_shift_add_multiplier_rec_step b1 a2 k res false)))
   )
 )
+
 ; define: $bv_shift_add_multiplier
 ; args:
 ; - a (BitVec n): The first term to multiply, a lists of bits.

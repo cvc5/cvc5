@@ -331,7 +331,7 @@
 ; return: >
 ;    The true iff G corresponds to a conjunct expected in the rule
 ;    quant-dt-split for the current constructor.
-(program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (x T) (c eo::?) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
+(program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (W Type) (x T) (cx T) (c (-> U W)) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
   (T C @List Bool Bool) Bool
   (
     (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
@@ -339,7 +339,7 @@
     (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
     (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
-    (($is_quant_dt_split_conj x c @list.nil F G)                          (eo::is_eq ($substitute x c F) G))
+    (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::is_eq ($substitute x cx F) G))
   )
 )
 
@@ -390,7 +390,7 @@
 ; - n Int: The current constant we are considering.
 ; return: >
 ;    A disjunct used in the invertibility conditions for some shift operators.
-(program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (t eo::?) (w Int))
+(program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (w Int) (t (BitVec n)))
   ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
   (
   (($mk_inv_cond_op_disj f t w w)  (eo::cons or (= (f (eo::to_bin w w)) t) false))
