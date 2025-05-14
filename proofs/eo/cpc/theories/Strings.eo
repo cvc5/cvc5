@@ -50,13 +50,8 @@
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
 ; disclaimer: This function is not in SMT-LIB.
-(program seq.empty ((U Type))
-  (Type) (Seq U)
-  (
-    ((seq.empty String)  "")
-    ((seq.empty (Seq U)) (@seq.empty (Seq U)))
-  )
-)
+(define seq.empty ((U Type))
+  (eo::ite (eo::is_eq U String) "" (@seq.empty U)))
 
 ; define: $mk_emptystr
 ; note: >

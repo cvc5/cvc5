@@ -44,7 +44,7 @@
 ;   Tuples use a special selector tuple.select indexed by an integer, which is
 ;   why they require a special method here.
 (program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
-  (Type Int) Bool
+  (Type Int) eo::List
   (
     (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
     (($tuple_get_selectors_rec (Tuple T1 T2) n) (eo::cons eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
