@@ -375,12 +375,13 @@
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)))
-  ((-> D T) D T eo::List X) eo::?
+(program $dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
+  (D eo::List X) D
   (
-    (($dt_updater_elim_rhs s t a (eo::List::cons s ss) c)   ($dt_updater_elim_rhs s t a ss (c a)))
-    (($dt_updater_elim_rhs s t a (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs s t a ss (c (s1 t))))
-    (($dt_updater_elim_rhs s t a eo::List::nil c)           c)
+    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)   ($dt_updater_elim_rhs (update s t a) ss (c a)))
+    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs (update s t a) ss (c (s1 t))))
+    (($dt_updater_elim_rhs (update s t a) eo::List::nil cd)          cd)
   )
 )
 
@@ -410,7 +411,7 @@
 (program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
   (D U eo::List) D
   (
-    (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs s t a ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
+    (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
     (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)  ($tuple_updater_elim_rhs n t a ss))
   )
 )
