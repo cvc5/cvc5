@@ -99,7 +99,7 @@
 ; - t S: The term to evaluate.
 ; return: The result of evaluating t.
 (program $run_evaluate ((T Type) (S Type) 
-                       (x eo::?) (y eo::?) (z eo::?) (ys S :list)
+                       (x T) (y T) (z S) (ys S :list)
                        (i1 Int) (i2 Int)
                        (b Bool) (b2 Bool) (bs Bool :list) (n Int) (m Int)
                        (xb (BitVec m)) (yb (BitVec m)) (ybs (BitVec m) :list) (zbs (BitVec n) :list)
@@ -356,20 +356,22 @@
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
 (define $get_aci_normal_form ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 eo::?) (x2 eo::? :list) (m Int)
-              (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (xs1 (Seq U)) (xs2 (Seq U) :list))
+  (eo::match ((T Type) (x T)
+              (b1 Bool) (b2 Bool :list)
+              (r1 RegLan) (r2 RegLan :list)
+              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+              (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
-      ((or x1 x2)        ($get_aci_norm t true))
-      ((and x1 x2)       ($get_aci_norm t true))
-      ((re.union x1 x2)  ($get_aci_norm t true))
-      ((re.inter x1 x2)  ($get_aci_norm t true))
+      ((or b1 b2)        ($get_aci_norm t true))
+      ((and b1 b2)       ($get_aci_norm t true))
+      ((re.union r1 r2)  ($get_aci_norm t true))
+      ((re.inter r1 r2)  ($get_aci_norm t true))
       ((bvor xb1 xb2)    ($get_aci_norm t true))
       ((bvand xb1 xb2)   ($get_aci_norm t true))
       ((bvxor xb1 xb2)   ($get_aci_norm t false))
       ((str.++ xs1 xs2)  ($get_a_norm t))
-      ((re.++ x1 x2)     ($get_a_norm t))
+      ((re.++ r1 r2)     ($get_a_norm t))
       ((concat xb1 xb2)  ($get_a_norm t))
       (x                 x)
     )

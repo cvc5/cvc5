@@ -91,7 +91,7 @@
 ; return: >
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
-                             (uppc eo::?) (res (BitVec 1)) (i Int))     ; FIXME
+                             (uppc (BitVec 1)) (res (BitVec 1)) (i Int))     ; FIXME
   ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_umulo_elim_rec a b uppc res n n)   res)
