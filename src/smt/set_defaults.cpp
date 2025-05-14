@@ -165,10 +165,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if we check proofs, we require that they are checked for completeness,
     // unless the granularity is intentionally set to lower.
     if (opts.smt.checkProofs
-        && (!opts.proof.proofGranularityModeWasSetByUser ||
-          opts.proof.proofGranularityMode
-               >= options::ProofGranularityMode::DSL_REWRITE)
-        )
+        && (!opts.proof.proofGranularityModeWasSetByUser
+            || opts.proof.proofGranularityMode
+                   >= options::ProofGranularityMode::DSL_REWRITE))
     {
       SET_AND_NOTIFY(
           proof, checkProofsComplete, true, "safe options with check-proofs")
