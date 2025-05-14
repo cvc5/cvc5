@@ -349,7 +349,7 @@
 ;   The left hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
 (program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
-  (T Bool) eo::?
+  (T Bool) eo::?   ; Int or Real
   (
     (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
     (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
