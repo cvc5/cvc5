@@ -426,15 +426,16 @@
 ; return: >
 ;   The zero element for t, if it is found.
 (define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((x1 eo::?) (x2 eo::? :list) (m Int)
-              (xb1 (BitVec m)) (xb2 (BitVec m) :list))
+  (eo::match ((b1 Bool) (b2 Bool :list)
+              (r1 RegLan) (r2 RegLan :list)
+              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
     t
     (
-    ((or x1 x2)        true)
-    ((and x1 x2)       false)
-    ((re.union x1 x2)  re.all)
-    ((re.inter x1 x2)  re.none)
-    ((re.++ x1 x2)     re.none)
+    ((or b1 b2)        true)
+    ((and b1 b2)       false)
+    ((re.union r1 r2)  re.all)
+    ((re.inter r1 r2)  re.none)
+    ((re.++ r1 r2)     re.none)
     ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
     ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
     )
