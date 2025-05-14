@@ -104,7 +104,7 @@
                        (b Bool) (b2 Bool) (bs Bool :list) (n Int) (m Int)
                        (xb (BitVec m)) (yb (BitVec m)) (ybs (BitVec m) :list) (zbs (BitVec n) :list)
                        (sx (Seq T)) (sy (Seq T)) (sz (Seq T)) (sys (Seq T) :list)
-                       (ssx String) (ssy String))
+                       (ssx String) (ssy String) (ssz String))
     (S) S
     (
       ; core
@@ -173,8 +173,8 @@
                                                   (eo::extract ex (eo::add r (eo::len ey)) (eo::len ex)))
                                               )
                                             ))))
-      (($run_evaluate (str.replace_all sx sy sz))
-                                            ($str_eval_replace_all sx sy sz))
+      (($run_evaluate (str.replace_all ssx ssy ssz))
+                                            ($str_eval_replace_all ssx ssy ssz))
       (($run_evaluate (str.prefixof sx sy)) (eo::define ((ex ($run_evaluate sx)))
                                             (eo::define ((ey ($run_evaluate sy)))
                                             (eo::define ((r (eo::extract ey 0 (eo::add (eo::len ex) -1))))
@@ -356,20 +356,22 @@
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
 (define $get_aci_normal_form ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (V Type) (x V) (x1 T) (x2 U :list) (m Int)
-              (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (xs1 (Seq U)) (xs2 (Seq U) :list))
+  (eo::match ((T Type) (x T)
+              (b1 Bool) (b2 Bool :list)
+              (r1 RegLan) (r2 RegLan :list)
+              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+              (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
-      ((or x1 x2)        ($get_aci_norm t true))
-      ((and x1 x2)       ($get_aci_norm t true))
-      ((re.union x1 x2)  ($get_aci_norm t true))
-      ((re.inter x1 x2)  ($get_aci_norm t true))
+      ((or b1 b2)        ($get_aci_norm t true))
+      ((and b1 b2)       ($get_aci_norm t true))
+      ((re.union r1 r2)  ($get_aci_norm t true))
+      ((re.inter r1 r2)  ($get_aci_norm t true))
       ((bvor xb1 xb2)    ($get_aci_norm t true))
       ((bvand xb1 xb2)   ($get_aci_norm t true))
       ((bvxor xb1 xb2)   ($get_aci_norm t false))
       ((str.++ xs1 xs2)  ($get_a_norm t))
-      ((re.++ x1 x2)     ($get_a_norm t))
+      ((re.++ r1 r2)     ($get_a_norm t))
       ((concat xb1 xb2)  ($get_a_norm t))
       (x                 x)
     )
@@ -409,8 +411,8 @@
 ; - zero U: The zero element of f.
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
-(program $is_absorb_rec ((T Type) (U Type) (f (-> T U U)) (a T) (b U) (zero U))
-  ((-> T U U) U U) Bool
+(program $is_absorb_rec ((T Type) (U Type) (f (-> U U U)) (a U) (b U) (zero U))
+  ((-> U U U) U U) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)
@@ -426,15 +428,16 @@
 ; return: >
 ;   The zero element for t, if it is found.
 (define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((T Type) (U Type) (x1 T) (x2 U :list) (m Int)
-              (xb1 (BitVec m)) (xb2 (BitVec m) :list))
+  (eo::match ((b1 Bool) (b2 Bool :list)
+              (r1 RegLan) (r2 RegLan :list)
+              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
     t
     (
-    ((or x1 x2)        true)
-    ((and x1 x2)       false)
-    ((re.union x1 x2)  re.all)
-    ((re.inter x1 x2)  re.none)
-    ((re.++ x1 x2)     re.none)
+    ((or b1 b2)        true)
+    ((and b1 b2)       false)
+    ((re.union r1 r2)  re.all)
+    ((re.inter r1 r2)  re.none)
+    ((re.++ r1 r2)     re.none)
     ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
     ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
     )
@@ -449,7 +452,7 @@
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
 (define $is_absorb ((S Type :implicit) (t S) (zero S))
   (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (t1 T) (t2 U))
+  (eo::match ((T Type) (U Type) (f (-> U U U)) (t1 U) (t2 U))
     t
     (((f t1 t2) ($is_absorb_rec f t zero))))))
 
