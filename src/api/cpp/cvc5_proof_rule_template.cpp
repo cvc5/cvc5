@@ -131,6 +131,7 @@ const char* toString(ProofRule rule)
     case ProofRule::INSTANTIATE: return "INSTANTIATE";
     case ProofRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
     case ProofRule::QUANT_VAR_REORDERING: return "QUANT_VAR_REORDERING";
+    case ProofRule::EXISTS_STRING_LENGTH: return "EXISTS_STRING_LENGTH";
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";

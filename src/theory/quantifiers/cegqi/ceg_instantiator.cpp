@@ -1027,7 +1027,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
-      const std::vector<Node>& wexists = ewc.getExistentials();
+      const std::vector<Node>& wexists = ewc.getAxioms();
       exists.insert(exists.end(), wexists.begin(), wexists.end());
       svec.push_back(sc);
     }
@@ -1434,14 +1434,8 @@ void CegInstantiator::processAssertions() {
 Node CegInstantiator::getModelValue(Node n)
 {
   Node mv = d_treg.getModel()->getValue(n);
-  // if the model value is not constant, it may require some processing
-  if (!mv.isConst())
-  {
-    // Witness terms with identifiers may appear in the model. We require
-    // dropping their annotations here.
-    AnnotationElimNodeConverter aenc(nodeManager());
-    mv = aenc.convert(mv);
-  }
+  // if mv is a witness term, we require keeping its annotation, which may
+  // specify its proof.
   return mv;
 }
 

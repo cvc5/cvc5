@@ -20,7 +20,9 @@
 #include "expr/bound_var_manager.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "options/strings_options.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
@@ -481,16 +483,11 @@ Node mkForallInternal(NodeManager* nm, Node bvl, Node body)
 Node mkAbstractStringValueForLength(Node n, Node len, size_t id)
 {
   NodeManager* nm = n.getNodeManager();
-  BoundVarManager* bvm = nm->getBoundVarManager();
-  Node cacheVal = BoundVarManager::getCacheValue(n, len);
-  Node v = bvm->mkBoundVar(
-      BoundVarId::STRINGS_VALUE_FOR_LENGTH, cacheVal, "s", n.getType());
-  Node pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(len);
-  // return (witness ((v String)) (= (str.len v) len))
-  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, v);
-  std::stringstream ss;
-  ss << "w" << id;
-  return quantifiers::mkNamedQuant(Kind::WITNESS, bvl, pred, ss.str());
+  Node tn = nm->mkConst(SortToTerm(n.getType()));
+  Node idn = nm->mkConstInt(Rational(id));
+  Node w = ValidWitnessProofGenerator::mkWitness(
+      nm, ProofRule::EXISTS_STRING_LENGTH, {tn, len, idn});
+  return w;
 }
 
 Node mkCodeRange(Node t, uint32_t alphaCard)

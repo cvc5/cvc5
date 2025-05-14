@@ -4565,7 +4565,7 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  internal::NodeManager* d_nm;
+  std::unique_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */

@@ -166,7 +166,19 @@ Node ValidWitnessProofGenerator::mkAxiom(NodeManager* nm,
   // then construct the predicate
   Node pred;
   Node spec = mkProofSpec(nm, r, args);
-  // TODO (PR #11461).
+  switch (r)
+  {
+    case ProofRule::EXISTS_STRING_LENGTH:
+      Assert(args.size() == 3);
+      // only applicable for non-negative constants (for now)
+      if (args[1].getKind() == Kind::CONST_INTEGER
+          && args[1].getConst<Rational>().getNumerator().sgn() >= 0)
+      {
+        pred = nm->mkNode(Kind::STRING_LENGTH, v).eqNode(args[1]);
+      }
+      break;
+    default: break;
+  }
   // mark the attribute, to remember proof reconstruction
   if (!pred.isNull())
   {
@@ -181,7 +193,13 @@ Node ValidWitnessProofGenerator::mkSkolem(NodeManager* nm,
                                           const std::vector<Node>& args)
 {
   SkolemId id = SkolemId::NONE;
-  // TODO (PR #11461).
+  switch (r)
+  {
+    case ProofRule::EXISTS_STRING_LENGTH:
+      id = SkolemId::WITNESS_STRING_LENGTH;
+      break;
+    default: break;
+  }
   if (id == SkolemId::NONE)
   {
     return Node::null();

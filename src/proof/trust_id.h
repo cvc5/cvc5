@@ -33,6 +33,11 @@ enum class TrustId : uint32_t
   /** A lemma sent by a theory without a proof */
   THEORY_LEMMA,
   /**
+   * A step proving false, used as a trust step when the prop engine is not SAT
+   * proof producing (--proof-mode=pp-only).
+   */
+  SMT_REFUTATION,
+  /**
    * An internal inference made by a theory without a proof. These are split
    * per theory, and introduced as needed.
    */

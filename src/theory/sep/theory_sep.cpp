@@ -134,7 +134,7 @@ void TheorySep::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Separation logic not available in this configuration, try "
             "--sep.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     ensureHeapTypesFor(n);
   }

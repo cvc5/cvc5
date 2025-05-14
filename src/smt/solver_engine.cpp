@@ -745,9 +745,17 @@ std::shared_ptr<ProofNode> SolverEngine::getAvailableSatProof()
     ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
     for (const Node& a : assertions)
     {
-      ps.push_back(pnm->mkAssume(a));
+      // skip true assertions
+      if (!a.isConst() || !a.getConst<bool>())
+      {
+        ps.push_back(pnm->mkAssume(a));
+      }
     }
-    pePfn = pnm->mkNode(ProofRule::SAT_REFUTATION, ps, {});
+    // since we do not have the theory lemmas, this is an SMT refutation trust
+    // step, not a SAT refutation.
+    NodeManager* nm = d_env->getNodeManager();
+    Node fn = nm->mkConst(false);
+    pePfn = pnm->mkTrustedNode(TrustId::SMT_REFUTATION, ps, {}, fn);
   }
   return pePfn;
 }
@@ -2159,7 +2167,7 @@ void SolverEngine::setOption(const std::string& key,
   {
     if (key == "trace")
     {
-      throw FatalOptionException("cannot use trace messages with safe-options");
+      throw FatalOptionException("cannot use trace messages in safe mode");
     }
     // verify its a regular option
     options::OptionInfo oinfo = options::getInfo(getOptions(), key);
@@ -2168,7 +2176,7 @@ void SolverEngine::setOption(const std::string& key,
       // option exception
       std::stringstream ss;
       ss << "expert option " << key
-         << " cannot be set when safe-options is true.";
+         << " cannot be set in safe mode.";
       // If we are setting to a default value, the exception can be avoided
       // by omitting the expert option.
       if (getOption(key) == value)
@@ -2194,7 +2202,7 @@ void SolverEngine::setOption(const std::string& key,
         // option exception
         std::stringstream ss;
         ss << "cannot set two regular options (" << d_safeOptsRegularOption
-           << " and " << key << ") when safe-options is true.";
+           << " and " << key << ") in safe mode.";
         // similar to above, if setting to default value for either of the
         // regular options.
         for (size_t i = 0; i < 2; i++)
