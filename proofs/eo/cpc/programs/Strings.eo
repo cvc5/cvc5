@@ -844,8 +844,8 @@
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
-(program $str_flatten_word ((t String))
-  (String) String
+(program $str_flatten_word ((U Type) (t (Seq U)))
+  ((Seq U)) (Seq U)  ; NOTE: this could be string, but leads to upstream type checking issues
   (
     (($str_flatten_word "") "")
     (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
@@ -859,7 +859,7 @@
 ;   The result of "flattening" all children of t. For example, given
 ;   (str.++ "AB" x "CD"), this returns the term
 ;   (str.++ "A" (str.++ "B" (str.++ x (str.++ "C" (str.++ "D" ""))))).
-(program $str_flatten ((U Type) (t eo::?) (tail (Seq U) :list))
+(program $str_flatten ((U Type) (t (Seq U)) (tail (Seq U) :list))
   ((Seq U)) (Seq U)
   (
     (($str_flatten (str.++ t tail))

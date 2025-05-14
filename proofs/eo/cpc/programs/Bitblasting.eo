@@ -323,7 +323,7 @@
 ; - a (BitVec n): The first term to multiply, a lists of bits.
 ; - b (BitVec n): The second term to multiply, a lists of bits.
 ; return: the bitblasted term for (bvmul a b).
-(program $bv_shift_add_multiplier ((n Int) (m Int) (b1 Bool) (a1 (BitVec n) :list) (a2 eo::?))
+(program $bv_shift_add_multiplier ((n Int) (m Int) (k Int) (b1 Bool) (a1 (BitVec k) :list) (a2 (BitVec n)))
   ((BitVec n) (BitVec m)) (BitVec n)
   (
   (($bv_shift_add_multiplier a2 (@from_bools b1 a1))

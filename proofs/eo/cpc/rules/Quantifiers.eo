@@ -406,7 +406,7 @@
 ;    The invertibility condition for x in R. This is a quantifier-free formula that is
 ;    equivalent to (exists x. R).
 (program $mk_invertibility_condition ((n Int) (m Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
-                                      (tk eo::?) (nil (BitVec n) :list))
+                                      (k Int) (tk (BitVec k)) (nil (BitVec n) :list))
   ((BitVec n) Bool) Bool
   (
   (($mk_invertibility_condition x (= (bvmul x s nil) t))    (eo::requires (eo::to_z nil) 1

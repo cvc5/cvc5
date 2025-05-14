@@ -37,7 +37,7 @@
 ; - x D: The datatype term we applying dt-inst to.
 ; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
-(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (t eo::?) (s eo::?) (xs eo::List :list))
+(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (s (-> D T)) (xs eo::List :list))
   (eo::List D T) eo::?
   (
     (($mk_dt_inst_rec eo::List::nil x t)          t)
@@ -336,7 +336,7 @@
 ; - c U: The update term to process, expected to be an updater applied to a constructor application.
 ; return: >
 ;   The result of collapsing the update term.
-(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (s (-> D T)) (t D) (a eo::?) (tr D) (n Int))
+(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (U Type) (s (-> D T)) (t D) (a U) (tr D) (n Int))
   (D) D
   (
   (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((c ($get_fun t)))
@@ -375,8 +375,8 @@
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c eo::?))
-  ((-> D T) D T eo::List U) D
+(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (W Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)))
+  ((-> D T) D T eo::List eo::?) eo::?
   (
     (($dt_updater_elim_rhs s t a (eo::List::cons s ss) c)   ($dt_updater_elim_rhs s t a ss (c a)))
     (($dt_updater_elim_rhs s t a (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs s t a ss (c (s1 t))))

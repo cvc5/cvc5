@@ -87,7 +87,7 @@
 ;   A tuple containing the result of converting t, and the substitution
 ;   (units and chars) that was used to convert it.
 (program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (V Type) (u V) (ts (Seq V) :list))
-  (T @List @List) (Tuple eo::? @List @List)
+  (T @List @List) (Tuple String @List @List)
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (@seq.empty (Seq V)) units chars)     (tuple "" units chars))
