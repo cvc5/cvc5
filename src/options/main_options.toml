@@ -74,7 +74,7 @@ name   = "Driver"
 
 [[option]]
   name       = "earlyExit"
-  category   = "expert"
+  category   = "common"
   long       = "early-exit"
   type       = "bool"
   default    = "true"

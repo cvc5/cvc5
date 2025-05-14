@@ -718,8 +718,8 @@ def run_benchmark(benchmark_info):
     )
     # For all testers, if we throw an admissible error (with text
     # "in safe mode"), we allow the benchmark to be skipped.
-    #if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
-    #    return (output, error, EXIT_SKIP)
+    if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+        return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
