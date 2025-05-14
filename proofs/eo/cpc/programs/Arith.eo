@@ -147,7 +147,7 @@
 ; - n Int: The number of times to multiply, expected to be a non-negative numeral.
 ; - a T: The term to muliply.
 ; return: The result of multiplying a, n times.
-(program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
+(program $arith_unfold_pow_rec ((T Type) (n Int) (a eo::?))
   (Int T) T
   (
     (($arith_unfold_pow_rec 0 a)  1)

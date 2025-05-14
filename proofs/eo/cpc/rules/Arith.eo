@@ -33,13 +33,9 @@
 ; args:
 ; - u Type : The type of the zero, which should be Int or Real.
 ; return: the zero for the given type.
-(program $arith_mk_zero ((T Type))
-  (Type) T
-  (
-    (($arith_mk_zero Real) 0/1)
-    (($arith_mk_zero Int)  0)
-  )
-)
+(define $arith_mk_zero ((T Type))
+  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
+    
 
 ; program: $mk_arith_sum_ub
 ; args:
@@ -105,14 +101,14 @@
 ; return: >
 ;   the relation that is obtained by flipping its side. This is used for
 ;   determining the relation obtained when multiply both sides by a negative term.
-(program $arith_rel_inv ((T Type))
-  (T) T
+(program $arith_rel_inv ((T Type) (U Type) (V Type) (a eo::?) (b eo::?))
+  (T U V) Bool
   (
-    (($arith_rel_inv =) =)
-    (($arith_rel_inv <) >)
-    (($arith_rel_inv <=) >=)
-    (($arith_rel_inv >) <)
-    (($arith_rel_inv >=) <=)
+    (($arith_rel_inv = a b) (= a b))
+    (($arith_rel_inv < a b) (> a b))
+    (($arith_rel_inv <= a b) (>= a b))
+    (($arith_rel_inv > a b) (< a b))
+    (($arith_rel_inv >= a b) (<= a b))
   )
 )
 
@@ -126,7 +122,7 @@
 (program $mk_arith_mult_neg ((T Type) (U Type) (S Type) (r (-> T U Bool)) (a T) (b U) (m S))
   (S Bool) Bool
   (
-    (($mk_arith_mult_neg m (r a b)) (_ ($arith_rel_inv r) (* m a) (* m b)))
+    (($mk_arith_mult_neg m (r a b)) ($arith_rel_inv r (* m a) (* m b)))
   )
 )
 
@@ -168,13 +164,13 @@
 ; args:
 ; - r T: The arithmetic relation.
 ; return: the relation corresponding to the negation of r.
-(program $arith_rel_neg ((T Type))
-  (T) T
+(program $arith_rel_neg ((T Type) (U Type) (V Type) (a eo::?) (b eo::?))
+  (T U V) Bool
   (
-    (($arith_rel_neg <) >=)
-    (($arith_rel_neg <=) >)
-    (($arith_rel_neg >) <=)
-    (($arith_rel_neg >=) <)
+    (($arith_rel_neg < a b) (>= a b))
+    (($arith_rel_neg <= a b) (> a b))
+    (($arith_rel_neg > a b) (<= a b))
+    (($arith_rel_neg >= a b) (< a b))
   )
 )
 
@@ -186,7 +182,7 @@
   (Bool) Bool
   (
     (($arith_normalize_lit (not (not (r a b)))) (r a b))
-    (($arith_normalize_lit (not (r a b)))       (_ ($arith_rel_neg r) a b))
+    (($arith_normalize_lit (not (r a b)))       ($arith_rel_neg r a b))
     (($arith_normalize_lit (r a b))             (r a b))
   )
 )
@@ -294,7 +290,7 @@
 ; - m U: The monomial to process.
 ; return: >
 ;   The result of stripping even exponent of t from the beginning of m.
-(program $strip_even_exponent ((T Type) (t T) (U Type) (m U :list))
+(program $strip_even_exponent ((T Type) (t T) (U Type) (m eo::? :list))
   (T U) U
   (
   (($strip_even_exponent t (* t t m)) ($strip_even_exponent t m))
@@ -353,7 +349,7 @@
 ;   The left hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
 (program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
-  (T Bool) S
+  (T Bool) eo::?
   (
     (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
     (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
@@ -373,7 +369,7 @@
 ;   r and the remaining premises F.
 ; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
 (program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
-  (T Bool) S
+  (T Bool) eo::?
   (
     (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
     (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
@@ -431,7 +427,7 @@
 ; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
 ; return: the reduction predicate for term t.
 (define $arith_reduction_pred ((T Type :implicit) (t T))
-  (eo::match ((r Real) (a Int) (b Int) (U Type) (u U) (V Type) (v V))
+  (eo::match ((r Real) (a Int) (b Int) (u eo::?) (v eo::?))
     t
     (
     ((is_int u)       (eo::define ((k (@purify (to_int u))))
@@ -508,7 +504,7 @@
 ; - t U: The term to process.
 ; return: The result of removing an application of to_real from t, if applicable.
 (program $remove_to_real ((U Type) (x U) (T Type))
-  (U) T
+  (U) eo::?
   (
   (($remove_to_real (to_real x)) x)
   (($remove_to_real x)           x)
