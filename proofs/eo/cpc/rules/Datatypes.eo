@@ -375,8 +375,8 @@
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (W Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)))
-  ((-> D T) D T eo::List eo::?) eo::?
+(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)))
+  ((-> D T) D T eo::List X) eo::?
   (
     (($dt_updater_elim_rhs s t a (eo::List::cons s ss) c)   ($dt_updater_elim_rhs s t a ss (c a)))
     (($dt_updater_elim_rhs s t a (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs s t a ss (c (s1 t))))

@@ -369,7 +369,7 @@
 ;   r and the remaining premises F.
 ; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
 (program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
-  (T Bool) eo::?
+  (T Bool) eo::?  ; Int or Real
   (
     (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
     (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
@@ -504,7 +504,7 @@
 ; - t U: The term to process.
 ; return: The result of removing an application of to_real from t, if applicable.
 (program $remove_to_real ((U Type) (x U) (T Type))
-  (U) eo::?
+  (U) eo::? ; Int or Real
   (
   (($remove_to_real (to_real x)) x)
   (($remove_to_real x)           x)

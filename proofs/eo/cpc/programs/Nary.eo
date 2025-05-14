@@ -52,8 +52,8 @@
 ; return: >
 ;   The result of removing the first occurrence of c from xs if it exists.
 (program $nary_remove
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
-    (eo::? eo::? eo::? eo::?) eo::?
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
+    (T U V W) eo::?
     (
         (($nary_remove cons nil c (cons c xs)) xs)
         (($nary_remove cons nil c (cons y xs)) (eo::cons cons y ($nary_remove cons nil c xs)))
@@ -102,8 +102,8 @@
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: true if c1 is a prefix of c2.
 (program $nary_is_prefix
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    (eo::? eo::? eo::? eo::?) Bool
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
+    (T U V W) Bool
     (
         (($nary_is_prefix cons nil nil t)                       true)
         (($nary_is_prefix cons nil t nil)                       false)
@@ -119,8 +119,8 @@
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
 (program $nary_is_compatible
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    (eo::? eo::? eo::? eo::?) Bool
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
+    (T U V W) Bool
     (
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
@@ -136,8 +136,8 @@
 ; - t L: The term to process, which is expected to be a cons-list.
 ; return: the prefix of t consisting of at most l children.
 (program $nary_prefix
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
-    (eo::? eo::? Int eo::?) eo::?
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
+    (T U V W) eo::?
     (
         (($nary_prefix cons nil l nil)             nil)
         (($nary_prefix cons nil 0 t)               nil)
@@ -156,8 +156,8 @@
 ;   The subsequent of t between indices l and u inclusive. Indices that
 ;   fall out of bounds of the number of children of t are ignored.
 (program $nary_subsequence
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
-    (eo::? eo::? Int Int eo::?) eo::?
+    ((T Type) (U Type) (V Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
+    (T U Int Int V) eo::?
     (
         (($nary_subsequence cons nil l u nil)            nil)
         (($nary_subsequence cons nil 0 u t)              ($nary_prefix cons nil (eo::add u 1) t))
@@ -176,8 +176,8 @@
 ;   first child of c2, then those 2 children are dropped and c1 and c2 are
 ;   appended together. Otherwise, this program does not evaluate.
 (program $nary_join
-    ((L Type) (cons (-> L L L)) (nil L) (elim-nil L) (c L) (x L) (xs L :list) (y L) (ys L :list))
-    (eo::? eo::? eo::? eo::?) eo::?
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (elim-nil L) (c L) (x L) (xs L :list) (y L) (ys L :list))
+    (T U V W) eo::?
     (
         (($nary_join cons nil (cons x nil) (cons x ys)) ys)
         (($nary_join cons nil (cons x xs) y)            (cons x ($nary_join cons nil xs y)))
@@ -199,8 +199,8 @@
 ;   list only in order. This corresponds to set difference only if the lists are
 ;   both ordered.
 (program $nary_diff
-    ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    (eo::? eo::? eo::? eo::?) eo::?
+    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
+    (T U V W) eo::?
     (
         (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
                                                               ($nary_diff cons nil xs1 xs2)
