@@ -154,13 +154,11 @@ void IllegalChecker::checkAssertions(Assertions& as)
   // check illegal kinds here
   const context::CDList<Node>& assertions = as.getAssertionList();
   size_t asize = assertions.size();
-  size_t i = d_assertionIndex.get();
   std::unordered_set<TNode> visited;
-  while (i < asize)
+  for (size_t i = d_assertionIndex.get(); i < asize; ++i)
   {
     Node n = assertions[i];
     Trace("illegal-check") << "Check assertion " << n << std::endl;
-    i++;
     if (!d_illegalKinds.empty())
     {
       Kind k = expr::hasSubtermKinds(d_illegalKinds, n, visited);
