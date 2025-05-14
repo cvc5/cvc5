@@ -305,7 +305,7 @@
 ; - m T: The monomial we are considering.
 ; return: >
 ;   Whether the monomial we have processed is entailed to be positive (resp. negative).
-(program $mk_arith_mult_sign_sgn ((T Type) (U Type) (F Bool :list) (l Bool) (t eo::?) (z eo::?) (m eo::? :list) (sgn Bool))
+(program $mk_arith_mult_sign_sgn ((T Type) (U Type) (V Type) (F Bool :list) (l Bool) (t T) (z U) (m V :list) (sgn Bool))
   (Bool Bool T) Bool
   (
   (($mk_arith_mult_sign_sgn sgn (and (not (= t z)) F) (* t t m))  ; ensures non-empty
@@ -348,7 +348,7 @@
 ; return: >
 ;   The left hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
-(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
+(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
   (T Bool) eo::?
   (
     (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
@@ -368,7 +368,7 @@
 ;   The right hand side of the equality proven by arith_mult_abs_comparison for
 ;   r and the remaining premises F.
 ; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
-(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (r eo::?) (t eo::?) (u eo::?) (z eo::?) (B Bool :list) (S Type))
+(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
   (T Bool) eo::?
   (
     (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
@@ -427,7 +427,7 @@
 ; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
 ; return: the reduction predicate for term t.
 (define $arith_reduction_pred ((T Type :implicit) (t T))
-  (eo::match ((r Real) (a Int) (b Int) (u eo::?) (v eo::?))
+  (eo::match ((U Type) (V Type) (r Real) (a Int) (b Int) (u U) (v V))
     t
     (
     ((is_int u)       (eo::define ((k (@purify (to_int u))))
