@@ -24,8 +24,8 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
-#include "util/result.h"
 #include "smt/illegal_checker.h"
+#include "util/result.h"
 
 namespace cvc5::internal {
 namespace smt {

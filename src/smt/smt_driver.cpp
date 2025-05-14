@@ -53,7 +53,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     // then, initialize the assertions
     as.setAssumptions(assumptions);
-    
+
     // the assertions are now finalized, we call the illegal checker to
     // verify that any new assertions are legal
     d_illegalChecker.checkAssertions(as);

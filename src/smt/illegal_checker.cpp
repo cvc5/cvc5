@@ -24,8 +24,8 @@
 #include "options/datatypes_options.h"
 #include "options/ff_options.h"
 #include "options/fp_options.h"
-#include "options/sep_options.h"
 #include "options/main_options.h"
+#include "options/sep_options.h"
 #include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -46,8 +46,8 @@ IllegalChecker::IllegalChecker(Env& e)
   // of model verification, but we do not want array constants to appear in
   // assertions unless --arrays-exp is enabled.
 
-  // Note that we don't guard against HO_APPLY, since it can naturally be handled
-  // in proofs.
+  // Note that we don't guard against HO_APPLY, since it can naturally be
+  // handled in proofs.
 
   // Array constants are not supported unless arraysExp is enabled
   if (logicInfo().isTheoryEnabled(theory::THEORY_ARRAYS)
@@ -107,43 +107,37 @@ IllegalChecker::IllegalChecker(Env& e)
   }
   // unsupported theories disables all kinds belonging to the theory
   std::unordered_set<theory::TheoryId> unsupportedTheories;
-  if (logicInfo().isTheoryEnabled(theory::THEORY_FP)
-      && !options().fp.fp)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_FP) && !options().fp.fp)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
   }
-  if (logicInfo().isTheoryEnabled(theory::THEORY_FF)
-      && !options().ff.ff)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_FF) && !options().ff.ff)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FF);
   }
-  if (logicInfo().isTheoryEnabled(theory::THEORY_BAGS)
-      && !options().bags.bags)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_BAGS) && !options().bags.bags)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_BAGS);
   }
-  if (logicInfo().isTheoryEnabled(theory::THEORY_SEP)
-      && !options().sep.sep)
+  if (logicInfo().isTheoryEnabled(theory::THEORY_SEP) && !options().sep.sep)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_SEP);
   }
   if (!unsupportedTheories.empty())
   {
-    for (int32_t i = 0;
-       i< static_cast<int32_t>(Kind::LAST_KIND);
-        ++i)
+    for (int32_t i = 0; i < static_cast<int32_t>(Kind::LAST_KIND); ++i)
     {
       Kind k = static_cast<Kind>(i);
       // these two kinds are special cased in kindToTheoryId, skip
-      if (k==Kind::UNDEFINED_KIND || k==Kind::NULL_EXPR)
+      if (k == Kind::UNDEFINED_KIND || k == Kind::NULL_EXPR)
       {
-          continue;
+        continue;
       }
       Trace("ajr-temp") << "Check kind " << k << std::endl;
       theory::TheoryId tid = theory::kindToTheoryId(k);
-      if (unsupportedTheories.find(tid)!=unsupportedTheories.end())
+      if (unsupportedTheories.find(tid) != unsupportedTheories.end())
       {
-          d_illegalKinds.insert(k);
+        d_illegalKinds.insert(k);
       }
     }
   }
