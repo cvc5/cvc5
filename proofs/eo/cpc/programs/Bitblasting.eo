@@ -436,7 +436,7 @@
 ; - n Int: The bitwidth of c.
 ; return: the bitlist for a starting with index i.
 (program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
-  ((BitVec n) Int Int) eo::?      ; needs dependent type, (BitVec of (- n i))
+  ((BitVec n) (eo::arg i) Int) (BitVec (eo::add n (eo::neg i)))
   (
     (($bv_const_to_bitlist_rec c n n)   @bv_empty)
     (($bv_const_to_bitlist_rec c i n)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))
