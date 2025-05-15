@@ -332,7 +332,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
         std::stringstream ss;
         ss << "Codatatypes not available in this configuration, try "
               "--datatypes-exp.";
-        throw LogicException(ss.str());
+        throw SafeLogicException(ss.str());
       }
     }
   }
@@ -349,7 +349,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Match terms not available in this configuration, try "
             "--datatypes-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
       break;
     default:

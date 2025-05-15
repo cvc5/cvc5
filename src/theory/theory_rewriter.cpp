@@ -150,7 +150,7 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
     case THEORY_SEP: ss << " Try --sep."; break;
     default: break;
   }
-  throw LogicException(ss.str());
+  throw SafeLogicException(ss.str());
   return RewriteResponse(REWRITE_DONE, node);
 }
 
