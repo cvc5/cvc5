@@ -34,7 +34,7 @@
   (
     (($poly_mod_coeffs @poly.zero w)           @poly.zero)
     (($poly_mod_coeffs (@poly (@mon a c) p) w) (eo::define ((newc (eo::zmod (eo::to_z c) w)))
-                                               (eo::ite (eo::is_eq newc 0)
+                                               (eo::ite (eo::eq newc 0)
                                                  ; if it becomes zero, it cancels
                                                  ($poly_mod_coeffs p w)
                                                  (eo::cons @poly (@mon a (eo::to_q newc)) ($poly_mod_coeffs p w)))))
@@ -49,10 +49,10 @@
 (program $poly_add ((T Type) (U Type) (c1 Real) (a1 T) (c2 Real) (a2 U) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
   (@Polynomial @Polynomial) @Polynomial
   (
-    (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::is_eq a1 a2)
+    (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::eq a1 a2)
                                                                   (eo::define ((ca (eo::add c1 c2)) (pa ($poly_add p1 p2)))
                                                                   ; check if cancels
-                                                                  (eo::ite (eo::is_eq ca 0/1) pa (eo::cons @poly (@mon a1 ca) pa)))
+                                                                  (eo::ite (eo::eq ca 0/1) pa (eo::cons @poly (@mon a1 ca) pa)))
                                                                 (eo::ite ($compare_var a1 a2)
                                                                   (eo::cons @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
                                                                   (eo::cons @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
@@ -134,7 +134,7 @@
 ;   The polynomial corresponding to the (normalized) form of (/ a1 a2).
 (define $get_arith_poly_norm_div ((U Type :implicit) (V Type :implicit) (a1 U) (a1p @Polynomial) (a2 V))
   (eo::define ((a2q (eo::to_q a2)))
-  (eo::ite (eo::and (eo::is_q a2q) (eo::not (eo::is_eq a2q 0/1)))
+  (eo::ite (eo::ite (eo::is_q a2q) (eo::not (eo::eq a2q 0/1)) false)
     ; if division by non-zero constant, we normalize
     ($poly_mul_mon (@mon 1 (eo::qdiv 1/1 a2q)) a1p)
     ; otherwise it is treated as a variable

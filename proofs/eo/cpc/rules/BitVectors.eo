@@ -53,10 +53,10 @@
   (eo::define ((w ($bv_bitwidth (eo::typeof a))))
   (eo::define ((wm1 (eo::add w -1)))
   (eo::define ((one (eo::to_bin 1 1)))
-  (eo::ite (eo::is_eq w 1)
+  (eo::ite (eo::eq w 1)
     (= (bvand a b) one)
     (eo::define ((mul (bvmul (sign_extend 1 a) (sign_extend 1 b))))
-    (eo::ite (eo::is_eq w 2)
+    (eo::ite (eo::eq w 2)
       (= (bvxor (extract w w mul) (extract wm1 wm1 mul)) one)
       (eo::define ((xa (bvxor a (sign_extend wm1 (extract wm1 wm1 a)))))
       (eo::define ((xb (bvxor b (sign_extend wm1 (extract wm1 wm1 b)))))
@@ -111,7 +111,7 @@
 ;   The result of eliminating (bvumulo a b).
 (define $bv_umulo_elim ((n Int :implicit) (a (BitVec n)) (b (BitVec n)))
   (eo::define ((w ($bv_bitwidth (eo::typeof a))))
-  (eo::ite (eo::is_eq w 1)
+  (eo::ite (eo::eq w 1)
     false
     (eo::define ((wm1 (eo::add w -1)))
     (eo::define ((zero (eo::to_bin 1 0)))
@@ -158,7 +158,7 @@
       (eo::cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))
   (($bv_mk_bitwise_slicing_rec f c a (@from_bools b bs) bn start end)
         (eo::define ((em1 (eo::add end -1)) (ep1 (eo::add end 1)))
-        (eo::ite (eo::is_eq b bn)
+        (eo::ite (eo::eq b bn)
           ($bv_mk_bitwise_slicing_rec f c a bs b start em1)
           (eo::cons concat
             ($nary_app f (extract start ep1 c) (extract start ep1 a))
@@ -173,7 +173,7 @@
 ;   true if we can apply bitwise slicing to f. This is the case if f
 ;   is either bvand, bvor, or bvxor.
 (define $bv_is_bitwise_slicing_op ((n Int :implicit) (f (-> (BitVec n) (BitVec n) (BitVec n))))
-  (eo::or (eo::is_eq f bvand) (eo::is_eq f bvor) (eo::is_eq f bvxor)))
+  (eo::or (eo::eq f bvand) (eo::eq f bvor) (eo::eq f bvxor)))
 
 ; program: $bv_mk_bitwise_slicing
 ; args:
@@ -190,7 +190,7 @@
     ((f a1 a2)    ($singleton_elim
                   (eo::define ((c ($bv_get_first_const_child a)))
                   (eo::requires ($bv_is_bitwise_slicing_op f) true
-                  (eo::requires (eo::is_eq c @bv_empty) false
+                  (eo::requires (eo::eq c @bv_empty) false
                   (eo::define ((wm1 (eo::add (eo::len c) -1)))
                   ($bv_mk_bitwise_slicing_rec
                     f
@@ -248,7 +248,7 @@
 (declare-rule bv_poly_norm ((n Int) (a (BitVec n)) (b (BitVec n)))
   :args ((= a b))
   :requires (((eo::define ((w ($arith_eval_int_pow_2 ($bv_bitwidth (eo::typeof a)))))
-                (eo::is_eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
+                (eo::eq ($get_bv_poly_norm w a) ($get_bv_poly_norm w b))) true))
   :conclusion (= a b)
 )
 

@@ -99,7 +99,7 @@
 ;   applied with duplication of variables.
 (declare-rule quant_var_reordering ((x @List) (y @List) (F Bool))
     :args ((= (forall x F) (forall y F)))
-    :requires ((($nary_is_eq_set @list @list.nil x y) true))
+    :requires ((($nary_eq_set @list @list.nil x y) true))
     :conclusion (= (forall x F) (forall y F))
 )
 
@@ -189,7 +189,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-merge-prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
-  :requires (((eo::or (eo::is_eq Q forall) (eo::is_eq Q exists)) true)
+  :requires (((eo::or (eo::eq Q forall) (eo::eq Q exists)) true)
              (($mk_quant_merge_prenex Q (Q x F)) G))
   :conclusion (= (Q x F) G)
 )
@@ -339,7 +339,7 @@
     (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
     (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
-    (($is_quant_dt_split_conj x c @list.nil F G)                          (eo::is_eq ($substitute x c F) G))
+    (($is_quant_dt_split_conj x c @list.nil F G)                          (eo::eq ($substitute x c F) G))
   )
 )
 

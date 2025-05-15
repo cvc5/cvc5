@@ -102,7 +102,7 @@
 ; conclusion: The given equality.
 (declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
   :args ((= a b))
-  :requires ((($nary_is_eq_set @list @list.nil
+  :requires ((($nary_eq_set @list @list.nil
                 ($eval_sets_op a)
                 ($set_union_to_list b)) true))
   :conclusion (= a b)

@@ -134,8 +134,8 @@
   :args ((= (is c t) b))
   :requires (((eo::define ((f ($get_fun t)))
               (eo::ite b
-                (eo::is_eq f c)
-                (eo::and ($dt_is_cons f) (eo::not (eo::is_eq f c))))) true))
+                (eo::eq f c)
+                (eo::and ($dt_is_cons f) (eo::not (eo::eq f c))))) true))
   :conclusion (= (is c t) b)
 )
 
@@ -182,7 +182,7 @@
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
   :requires (((eo::define ((c ($get_fun t))) 
-              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)
+              (eo::and ($dt_is_cons c) (eo::eq c ($get_fun s)))) true)
              (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
   :conclusion (= (= t s) B)
 )
@@ -203,7 +203,7 @@
   (eo::define ((ct ($get_fun t)))
   (eo::define ((cs ($get_fun s)))
   (eo::ite ($dt_is_cons ct)
-    (eo::ite (eo::is_eq ct cs)
+    (eo::ite (eo::eq ct cs)
       ; recurse on each argument
       ($dt_cons_eq_find_clash_list ($dt_arg_list t) ($dt_arg_list s))
       ; otherwise conflicting only if cs is also a constructor

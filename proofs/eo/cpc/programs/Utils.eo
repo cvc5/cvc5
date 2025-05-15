@@ -4,7 +4,7 @@
 ; - y T: The second term to compare.
 ; return: true if x >= y, where x and y are assumed to be arithmetic values.
 (define $compare_geq ((T Type :implicit) (x T) (y T))
-  (eo::ite (eo::is_eq x y) true (eo::gt x y)))
+  (eo::ite (eo::eq x y) true (eo::gt x y)))
 
 ; define: $sgn
 ; args:
@@ -83,7 +83,7 @@
   ((-> T U) S) Bool
   (
     (($is_app f (g x))  ($is_app f g))
-    (($is_app f x)      (eo::is_eq f x))
+    (($is_app f x)      (eo::eq f x))
   )
 )
 
@@ -137,7 +137,7 @@
 (program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::is_eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
     (($singleton_elim x)          x)
   )
 )

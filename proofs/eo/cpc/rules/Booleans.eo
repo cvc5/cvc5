@@ -38,7 +38,7 @@
 (program $from_clause ((F1 Bool) (F2 Bool :list))
   (Bool) Bool
   (
-    (($from_clause (or F1 F2)) (eo::ite (eo::is_eq F2 false) F1 (or F1 F2)))
+    (($from_clause (or F1 F2)) (eo::ite (eo::eq F2 false) F1 (or F1 F2)))
     (($from_clause F1)         F1)
   )
 )
@@ -51,7 +51,7 @@
 ;   The result of removing l from C, where additionally if C itself is
 ;   l, then we return the empty or-list false.
 (define $remove_maybe_self ((l Bool) (C Bool))
-    (eo::ite (eo::is_eq l C) false ($nary_remove or false l C)))
+    (eo::ite (eo::eq l C) false ($nary_remove or false l C)))
 
 ; define: $resolve
 ; args:
