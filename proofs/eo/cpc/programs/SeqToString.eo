@@ -40,7 +40,7 @@
   ((Seq T) String @List @List Int) (Tuple String @List @List)
   (
     (($seq_to_string_rec (seq.unit t) s units chars n)              (eo::define ((u (seq.unit t)))
-                                                                    ($seq_to_string_rec (eo::cons seq.++ u (@seq.empty (eo::typeof u))) s units chars n)))
+                                                                    ($seq_to_string_rec (eo::cons seq.++ u (as seq.empty (eo::typeof u))) s units chars n)))
     (($seq_to_string_rec (seq.++ (seq.unit t) ss) s units chars n)  (eo::define ((u (seq.unit t)))
                                                                     (eo::define ((id (eo::list_find @list units u)))
                                                                     (eo::ite (eo::is_neg id)
@@ -61,7 +61,7 @@
                                                                         units
                                                                         chars
                                                                         n)))))
-    (($seq_to_string_rec (@seq.empty (Seq T)) s units chars n)      (tuple s units chars))
+    (($seq_to_string_rec (as seq.empty T) s units chars n)            (tuple s units chars))
   )
 )
 
@@ -90,7 +90,7 @@
   (T @List @List) (Tuple S @List @List)
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
-  (($seq_to_string_op_rec (@seq.empty (Seq V)) units chars)     (tuple "" units chars))
+  (($seq_to_string_op_rec (as seq.empty (Seq V)) units chars)   (tuple "" units chars))
   (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((S1 Type) (fs S1) (nunits1 @List) (nchars1 @List))
                                                                   ($seq_to_string_op_rec f units chars)
                                                                   (((tuple fs nunits1 nchars1)
