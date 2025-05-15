@@ -187,7 +187,7 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
   {
     std::stringstream ss;
     ss << "Finite fields not available in this configuration, try --ff.";
-    throw LogicException(ss.str());
+    throw SafeLogicException(ss.str());
   }
   if (d_subTheories.count(fieldTy) == 0)
   {

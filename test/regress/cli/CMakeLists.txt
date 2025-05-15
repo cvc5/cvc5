@@ -181,6 +181,7 @@ set(regress_0_tests
   regress0/aufbv/bug580.delta.smt2
   regress0/aufbv/cee-small-shared-eq.smt2
   regress0/aufbv/dd_644_ph7.smt2
+  regress0/aufbv/dd.fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/diseqprop.01.smtv1.smt2
   regress0/aufbv/dubreva005ue.delta01.smtv1.smt2
   regress0/aufbv/fifo32bc06k08.delta01.smtv1.smt2
@@ -1457,6 +1458,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue698.smt2
   regress0/proofs/proj-issue711-open-sat-proof.smt2
   regress0/proofs/proj-issue723-rdb-step.smt2
+  regress0/proofs/proj-issue765-open.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -2865,6 +2867,8 @@ set(regress_1_tests
   regress1/proj-issue623-bv2nat-static.smt2
   regress1/proj-issue634-diff-mc.smt2
   regress1/proj-issue719-zll-repeat.smt2
+  regress1/proj-issue764-block-model.smt2
+  regress1/proj-issue766-block-model.smt2
   regress1/proof00.smt2
   regress1/proofs/add_two_base.smt2
   regress1/proofs/alpha-eq-var-shadow.smt2
