@@ -24,7 +24,7 @@
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
 (program $bv_bitblast_repeat ((b Bool) (n Int))
-  (Bool Int) eo::?      ; needs dependent type (BitVec n)
+  (Bool (eo::arg n)) (BitVec n)
   (
     (($bv_bitblast_repeat b 0)  @bv_empty)
     (($bv_bitblast_repeat b n)  (eo::cons @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
@@ -568,7 +568,7 @@
 ; - i Int: The index of the bit we are currently processing.
 ; return: the bitblasted term for variable a.
 (program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
-  ((BitVec n) Int) eo::?  ; needs dependent type (BitVec i+1)
+  ((BitVec n) (eo::arg i)) (BitVec (eo::add i 1))
   (
     (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
     (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
