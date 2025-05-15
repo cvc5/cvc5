@@ -393,12 +393,16 @@
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $tuple_updater_elim_rhs ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
-  (Int D T eo::List) eo::?
+(program $tuple_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
+  (D eo::List) D
   (
-    (($tuple_updater_elim_rhs n t a (eo::List::cons (tuple.select n) ss))   (eo::cons tuple a ($tuple_updater_elim_rhs n t a ss)))
-    (($tuple_updater_elim_rhs n t a (eo::List::cons s ss))                  (eo::cons tuple (s t) ($tuple_updater_elim_rhs n t a ss)))
-    (($tuple_updater_elim_rhs n t a eo::List::nil)                          tuple.unit)
+    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
+       (eo::cons tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
+       (eo::cons tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+    (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)
+       tuple.unit)
   )
 )
 
@@ -408,11 +412,14 @@
 ; - ss eo::List: The list of selectors for the type of s.
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
-(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
+(program $mk_dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
   (D U eo::List) D
   (
-    (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
-    (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)  ($tuple_updater_elim_rhs n t a ss))
+    (($mk_dt_updater_elim_rhs (update s t a) c ss)
+       ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
+    (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)
+       ($tuple_updater_elim_rhs (tuple.update n t a) ss))
   )
 )
 

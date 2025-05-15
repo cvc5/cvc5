@@ -69,7 +69,7 @@
 (program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type) 
                          (a1 T) (a2 U :list) (c1 V) (c2 W :list)
                          (m Int)  (ba1 (BitVec m)) (ba2 (BitVec m) :list) (bc1 (BitVec m)) (bc2 (BitVec m) :list))
-  (X Y) eo::?
+  (X Y) eo::?   ; Int Real or BitVec, can be solved by merging with below
   (
     (($mvar_mul_mvar (* a1 a2) (* c1 c2))  (eo::ite ($compare_var a1 c1)
                                              (eo::cons * a1 ($mvar_mul_mvar a2 (* c1 c2)))
@@ -202,7 +202,7 @@
 ; return: The term corresponding to the polynomial p.
 ; note: This is a helper for $arith_poly_to_term below.
 (program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a T) (c Real))
-  (@Polynomial) eo::?
+  (@Polynomial) eo::?   ; Int or Real
   (
     (($arith_poly_to_term_rec @poly.zero) 0)
     (($arith_poly_to_term_rec (@poly (@mon a c) p)) (+ (* c a) ($arith_poly_to_term_rec p)))

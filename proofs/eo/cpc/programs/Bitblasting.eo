@@ -24,7 +24,7 @@
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
 (program $bv_bitblast_repeat ((b Bool) (n Int))
-  (Bool Int) eo::?
+  (Bool Int) eo::?      ; needs dependent type (BitVec n)
   (
     (($bv_bitblast_repeat b 0)  @bv_empty)
     (($bv_bitblast_repeat b n)  (eo::cons @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
