@@ -153,7 +153,7 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
     default: break;
   }
 #endif
-  throw LogicException(ss.str());
+  throw SafeLogicException(ss.str());
   return RewriteResponse(REWRITE_DONE, node);
 }
 

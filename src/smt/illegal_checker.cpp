@@ -181,7 +181,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
           }
         }
 #endif
-        throw LogicException(ss.str());
+        throw SafeLogicException(ss.str());
       }
     }
   }

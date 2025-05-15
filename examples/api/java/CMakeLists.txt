@@ -14,25 +14,21 @@
 ##
 
 set(EXAMPLES_API_JAVA
-   Bags
    BitVectors
    BitVectorsAndArrays
    Combination
    Datatypes
    Exceptions
    Extract
-   FloatingPointArith
    HelloWorld
    LinearArith
    QuickStart
-   Relations
    Sequences
    Sets
    Statistics
    Strings
    SygusFun
    SygusInv
-   Transcendentals
    UnsatCores
    Uf
 )
@@ -64,6 +60,13 @@ endfunction()
 foreach(example ${EXAMPLES_API_JAVA})
   add_java_example(${example})
 endforeach()
+
+if(NOT CVC5_SAFE_BUILD)
+  add_java_example(FloatingPointArith)
+  add_java_example(Bags)
+  add_java_example(Relations)
+  add_java_example(Transcendentals)
+endif()
 
 if(CVC5_USE_COCOA)
   add_java_example(FiniteField)

@@ -14,27 +14,23 @@
 ##
 
 set(EXAMPLES_API_PYTHON
-  bags
   bitvectors_and_arrays
   bitvectors
   combination
   datatypes
   exceptions
   extract
-  floating_point
   helloworld
   id
   linear_arith
   parser
   parser_sym_manager
   quickstart
-  relations
   sequences
   sets
   strings
   sygus-fun
   sygus-inv
-  transcendentals
   uf
 )
 
@@ -74,6 +70,13 @@ endfunction()
 foreach(example ${EXAMPLES_API_PYTHON})
   create_python_example(${example})
 endforeach()
+
+if(NOT CVC5_SAFE_BUILD)
+  create_python_example("floating_point")
+  create_python_example("bags")
+  create_python_example("relations")
+  create_python_example("transcendentals")
+endif()
 
 if(CVC5_USE_COCOA)
   create_python_example("finite_field")
