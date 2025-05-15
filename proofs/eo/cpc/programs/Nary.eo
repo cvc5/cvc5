@@ -52,8 +52,8 @@
 ; return: >
 ;   The result of removing the first occurrence of c from xs if it exists.
 (program $nary_remove
-    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
-    (T U V W) eo::?         ; used in several places in strings, quantifiers, Bools (for @list, or)
+    ((U Type) (T Type) (W Type) (L Type) (cons (-> T L L)) (nil U) (c W) (y W) (xs U :list))
+    ((-> T L L) U W U) U
     (
         (($nary_remove cons nil c (cons c xs)) xs)
         (($nary_remove cons nil c (cons y xs)) (eo::cons cons y ($nary_remove cons nil c xs)))
@@ -71,8 +71,8 @@
 ; return: >
 ;   The result of prepending the reverse of c to acc.
 (program $nary_reverse_rec
-    ((L Type) (cons (-> L L L)) (nil L) (x L) (xs L :list) (l L :list))
-    ((-> L L L) L L L) L
+    ((U Type) (L Type) (cons (-> L L L)) (nil U) (x U) (xs U :list) (l U :list))
+    ((-> L L L) U U U) U
     (
         (($nary_reverse_rec cons nil (cons x xs) l) ($nary_reverse_rec cons nil xs (eo::cons cons x l)))
         (($nary_reverse_rec cons nil nil l)         l)
@@ -102,8 +102,8 @@
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
 (program $nary_is_compatible
-    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    (T U V W) Bool      ; only used by strings
+    ((U Type) (L Type) (cons (-> L L L)) (nil U) (t U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
+    ((-> L L L) U U U) Bool      ; only used by strings
     (
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
@@ -163,8 +163,8 @@
 ;   list only in order. This corresponds to set difference only if the lists are
 ;   both ordered.
 (program $nary_diff
-    ((T Type) (U Type) (V Type) (W Type) (L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
-    (T U V W) eo::?     ; only used by bitwise slicing, remove?
+    ((U Type) (L Type) (cons (-> L L L)) (nil U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
+    ((-> L L L) U U U) U
     (
         (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
                                                               ($nary_diff cons nil xs1 xs2)
