@@ -133,7 +133,6 @@ IllegalChecker::IllegalChecker(Env& e)
       {
         continue;
       }
-      Trace("ajr-temp") << "Check kind " << k << std::endl;
       theory::TheoryId tid = theory::kindToTheoryId(k);
       if (unsupportedTheories.find(tid) != unsupportedTheories.end())
       {
