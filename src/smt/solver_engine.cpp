@@ -2163,8 +2163,10 @@ void SolverEngine::setOption(const std::string& key,
                              const std::string& value,
                              bool fromUser)
 {
-  if (fromUser && options().base.safeOptions)
+  if (fromUser && options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
+    // Note that the text "in safe mode" must appear in the error messages or
+    // CI will fail, as it searches for this text.
     if (key == "trace")
     {
       throw FatalOptionException("cannot use trace messages in safe mode");
@@ -2181,7 +2183,7 @@ void SolverEngine::setOption(const std::string& key,
       // by omitting the expert option.
       if (getOption(key) == value)
       {
-        // note this is not the case for options which safe-options explicitly
+        // note this is not the case for options which safe mode explicitly
         // disables.
         ss << " The value for " << key << " is already its current value ("
            << value << "). Omitting this option may avoid this exception.";
@@ -2190,6 +2192,26 @@ void SolverEngine::setOption(const std::string& key,
     }
     else if (oinfo.category == options::OptionInfo::Category::REGULAR)
     {
+      if (options().base.safeMode == options::SafeMode::SAFE && !oinfo.noSupports.empty())
+      {
+        std::stringstream ss;
+        ss << "cannot set option " << key
+           << " in safe mode, as this option does not support ";
+        bool firstTime = true;
+        for (const std::string& s : oinfo.noSupports)
+        {
+          if (!firstTime)
+          {
+            ss << ", ";
+          }
+          else
+          {
+            firstTime = false;
+          }
+          ss << s;
+        }
+        throw FatalOptionException(ss.str());
+      }
       if (!d_safeOptsSetRegularOption)
       {
         d_safeOptsSetRegularOption = true;
@@ -2213,7 +2235,7 @@ void SolverEngine::setOption(const std::string& key,
                                   : (getOption(key) == value);
           if (isDefault)
           {
-            // note this is not the case for options which safe-options
+            // note this is not the case for options which safe mode
             // explicitly disables.
             ss << " The value for " << rkey << " is already its current value ("
                << rvalue << "). Omitting this option may avoid this exception.";
