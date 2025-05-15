@@ -108,8 +108,7 @@
 ;   t if it corresponds to the empty string for its type, otherwise evaluates
 ;   to an unevaluated eo::requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
-  (eo::requires t ($mk_emptystr (eo::typeof t)) t)
-)
+  (eo::requires t ($mk_emptystr (eo::typeof t)) t))
 
 ; program: $str_fixed_len_re
 ; args:
@@ -681,8 +680,8 @@
                 (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
                 (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
             )))))))
-    (($str_reduction_pred (str.to_lower x)) ($str_reduction_pred_case_conv (@purify (str.to_lower x)) x true))
-    (($str_reduction_pred (str.to_upper x)) ($str_reduction_pred_case_conv (@purify (str.to_upper x)) x false))
+    (($str_reduction_pred (str.to_lower s)) ($str_reduction_pred_case_conv (@purify (str.to_lower s)) s true))
+    (($str_reduction_pred (str.to_upper s)) ($str_reduction_pred_case_conv (@purify (str.to_upper s)) s false))
     (($str_reduction_pred (str.rev x))
         (eo::define ((k (@purify (str.rev x))))
           (and (= (str.len x) (str.len k))
@@ -698,7 +697,7 @@
 ; args:
 ; - t U: The term to process.
 ; return: the eager reduction predicate of term t.
-(program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
+(program $mk_str_eager_reduction ((U Type) (x (Seq U)) (y (Seq U)) (r RegLan) (n Int) (m Int) (s String))
   (U) Bool
   (
     (($mk_str_eager_reduction (str.from_code n))
@@ -707,14 +706,14 @@
         (and (<= 0 n) (< n 196608))
         (= n (str.to_code k))
         (= k ""))))
-    (($mk_str_eager_reduction (str.to_code x))
-        (eo::define ((t (str.to_code x)))
+    (($mk_str_eager_reduction (str.to_code s))
+        (eo::define ((t (str.to_code s)))
         (ite
-          (= (str.len x) 1)
+          (= (str.len s) 1)
           (and (>= t 0) (< t 196608))
           (= t (eo::neg 1)))))
-    (($mk_str_eager_reduction (str.to_int x))
-        (>= (str.to_int x) -1))
+    (($mk_str_eager_reduction (str.to_int s))
+        (>= (str.to_int s) -1))
     (($mk_str_eager_reduction (str.contains x y))
         (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
         (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
@@ -727,12 +726,12 @@
         (eo::define ((t (str.indexof x y n)))
         (and (or (= t (eo::neg 1)) (>= t n))
           (<= t (str.len x)))))
-    (($mk_str_eager_reduction (str.indexof_re x r n))
-        (eo::define ((t (str.indexof_re x r n)))
+    (($mk_str_eager_reduction (str.indexof_re s r n))
+        (eo::define ((t (str.indexof_re s r n)))
         (and (or (= t (eo::neg 1)) (>= t n))
-          (<= t (str.len x)))))
-    (($mk_str_eager_reduction (str.in_re x r))
-        (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
+          (<= t (str.len s)))))
+    (($mk_str_eager_reduction (str.in_re s r))
+        (=> (str.in_re s r) (= (str.len s) ($str_fixed_len_re r))))
   )
 )
 
@@ -797,10 +796,10 @@
 ;     (str.++ x (str.++ y ""))
 ;   this returns:
 ;     (and (= x "") (and (= y "") true)).
-(program $str_non_empty_concats ((U Type) (t (Seq U)) (s U :list))
+(program $str_non_empty_concats ((U Type) (t (Seq U)) (s (Seq U) :list))
   ((Seq U)) Bool
   (
-    (($str_non_empty_concats t)             ($str_self_if_empty t))
+    (($str_non_empty_concats t)             (eo::requires t ($mk_emptystr (eo::typeof t)) true))
     (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($mk_emptystr (eo::typeof t)))) ($str_non_empty_concats s)))
   )
 )
@@ -1374,7 +1373,7 @@
 ;   normalize the polynomial corresponding to F and check this
 ;   using the $str_arith_entail_simple program above.
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
-  (Bool) Int
+  (Bool) Bool
   (
     (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
     (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
@@ -1753,7 +1752,7 @@
 ;   The result of evaluating `(str.to_int s)` given the current exponent and
 ;   accumulated return value.
 (program $str_to_int_eval_rec ((s1 String) (s2 String :list) (e Int) (n Int))
-  (String Int Int) Bool
+  (String Int Int) Int
   (
   (($str_to_int_eval_rec (str.++ s1 s2) e n)  (eo::define ((c (eo::add (eo::to_z s1) -48)))
                                               (eo::ite (eo::and (eo::gt 10 c) (eo::not (eo::is_neg c)))
