@@ -135,7 +135,7 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 void SetDefaults::setDefaultsPre(Options& opts)
 {
   // safe options
-  if (options().base.safeOptions)
+  if (options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
     // all "experimental" theories that are enabled by default should be
     // disabled here
@@ -155,13 +155,19 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(fp, fpExp, false, "safe options");
     SET_AND_NOTIFY(arrays, arraysExp, false, "safe options");
     SET_AND_NOTIFY(sets, setsExp, false, "safe options");
-    // specific options that are disabled
-    OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
-    SET_AND_NOTIFY(arith, nlCov, false, "safe options");
-    // never use symmetry breaker, which does not have proofs
-    SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
-    // always use cegqi midpoint, which avoids virtual term substitution
-    SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
+    // disable features that have no proof support but are considered regular.
+    if (options().base.safeMode == options::SafeMode::SAFE)
+    {
+      // specific options that are disabled
+      OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
+      SET_AND_NOTIFY(arith, nlCov, false, "safe options");
+      // never use symmetry breaker, which does not have proofs
+      SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
+      // always use cegqi midpoint, which avoids virtual term substitution
+      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
+      // proofs not yet supported on main
+      SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+    }
   }
   // implied options
   if (opts.smt.debugCheckModels)
@@ -369,7 +375,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // upgrade to full strict if safe options
-    if (options().base.safeOptions
+    if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
     {
       SET_AND_NOTIFY_IF_NOT_USER(
