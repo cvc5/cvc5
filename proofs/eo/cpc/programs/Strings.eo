@@ -18,9 +18,9 @@
 (program $str_is_empty ((U Type) (x U))
   (U) Bool
   (
-    (($str_is_empty (@seq.empty U)) true)
-    (($str_is_empty "") true)
-    (($str_is_empty x) false)
+    (($str_is_empty (as seq.empty U)) true)
+    (($str_is_empty "")               true)
+    (($str_is_empty x)                false)
   )
 )
 
@@ -34,7 +34,7 @@
   ((Seq T)) Int
   (
     (($str_value_len (seq.++ (seq.unit e) ss))  (eo::add 1 ($str_value_len ss)))
-    (($str_value_len (@seq.empty (Seq T)))      0)
+    (($str_value_len (as seq.empty (Seq T)))    0)
     (($str_value_len (seq.unit e))              1)
     (($str_value_len s)                         (eo::requires (eo::is_str s) true (eo::len s)))
   )
@@ -108,8 +108,7 @@
 ;   t if it corresponds to the empty string for its type, otherwise evaluates
 ;   to an unevaluated eo::requires term.
 (define $str_self_if_empty ((T Type :implicit) (t T))
-  (eo::requires t ($mk_emptystr (eo::typeof t)) t)
-)
+  (eo::requires t ($seq_empty (eo::typeof t)) t))
 
 ; program: $str_fixed_len_re
 ; args:
@@ -386,7 +385,7 @@
     ((Seq T)) (Seq T)
     (
         (($str_nary_intro (str.++ t ss)) (str.++ t ss))
-        (($str_nary_intro t)             (eo::define ((nil ($mk_emptystr (eo::typeof t))))
+        (($str_nary_intro t)             (eo::define ((nil ($seq_empty (eo::typeof t))))
                                             (eo::ite (eo::is_eq t nil) t ($str_cons t nil))))
     )
 )
@@ -418,7 +417,7 @@
     ((T Type) (t (Seq T)) (ss (Seq T) :list))
     ((Seq T)) (Seq T)
     (
-        (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($mk_emptystr (eo::typeof t))))
+        (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($seq_empty (eo::typeof t))))
                                            (eo::ite (eo::is_eq ss nil) t (str.++ t ss))))
         (($str_nary_elim t)             ($str_self_if_empty t))
     )
@@ -487,7 +486,7 @@
             (or (= (str.len k2) (- (str.len x) npm))
                 (= (str.len k2) 0))
             (<= (str.len k) m))
-        (= k ($mk_emptystr (eo::typeof x)))))))))
+        (= k ($seq_empty (eo::typeof x)))))))))
     (($str_reduction_pred (str.indexof x y n))
       (eo::define ((k (@purify (str.indexof x y n))))
       (eo::define ((xn (str.substr x n (- (str.len x) n))))
@@ -495,7 +494,7 @@
       (eo::define ((k2 (@purify ($str_first_ctn_post xn y))))
       (ite (or (not (str.contains xn y)) (> n (str.len x)) (> 0 n))
         (= k -1)
-        (ite (= y ($mk_emptystr (eo::typeof x)))
+        (ite (= y ($seq_empty (eo::typeof x)))
           (= k n)
           (and (= xn (str.++ k1 y k2))
               (not (str.contains
@@ -503,7 +502,7 @@
               (= k (+ n (str.len k1)))))))))))
     (($str_reduction_pred (str.replace x y z)) 
         (eo::define ((k (@purify (str.replace x y z))))
-        (ite (= y ($mk_emptystr (eo::typeof y)))
+        (ite (= y ($seq_empty (eo::typeof y)))
           (= k (str.++ z x))
           (ite (str.contains x y)
             (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
@@ -581,7 +580,7 @@
         (eo::define ((numOcc (@strings_num_occur x y)))
         (eo::define ((result (@strings_replace_all_result (str.replace_all x y z))))
         (eo::define ((occIndex (@strings_occur_index x y)))
-        (ite (= y ($mk_emptystr (eo::typeof x)))
+        (ite (= y ($seq_empty (eo::typeof x)))
           (= k x)
           (and (>= numOcc 0)
                (= k (result 0))
@@ -681,8 +680,8 @@
                 (>= (str.to_code (str.substr s @var.str_index 1)) (str.to_code (str.substr t @var.str_index 1)))
                 (>= (str.to_code (str.substr t @var.str_index 1)) (str.to_code (str.substr s @var.str_index 1)))
             )))))))
-    (($str_reduction_pred (str.to_lower x)) ($str_reduction_pred_case_conv (@purify (str.to_lower x)) x true))
-    (($str_reduction_pred (str.to_upper x)) ($str_reduction_pred_case_conv (@purify (str.to_upper x)) x false))
+    (($str_reduction_pred (str.to_lower s)) ($str_reduction_pred_case_conv (@purify (str.to_lower s)) s true))
+    (($str_reduction_pred (str.to_upper s)) ($str_reduction_pred_case_conv (@purify (str.to_upper s)) s false))
     (($str_reduction_pred (str.rev x))
         (eo::define ((k (@purify (str.rev x))))
           (and (= (str.len x) (str.len k))
@@ -698,7 +697,7 @@
 ; args:
 ; - t U: The term to process.
 ; return: the eager reduction predicate of term t.
-(program $mk_str_eager_reduction ((U Type) (x U) (y U) (r RegLan) (n Int) (m Int))
+(program $mk_str_eager_reduction ((U Type) (x (Seq U)) (y (Seq U)) (r RegLan) (n Int) (m Int) (s String))
   (U) Bool
   (
     (($mk_str_eager_reduction (str.from_code n))
@@ -707,14 +706,14 @@
         (and (<= 0 n) (< n 196608))
         (= n (str.to_code k))
         (= k ""))))
-    (($mk_str_eager_reduction (str.to_code x))
-        (eo::define ((t (str.to_code x)))
+    (($mk_str_eager_reduction (str.to_code s))
+        (eo::define ((t (str.to_code s)))
         (ite
-          (= (str.len x) 1)
+          (= (str.len s) 1)
           (and (>= t 0) (< t 196608))
           (= t (eo::neg 1)))))
-    (($mk_str_eager_reduction (str.to_int x))
-        (>= (str.to_int x) -1))
+    (($mk_str_eager_reduction (str.to_int s))
+        (>= (str.to_int s) -1))
     (($mk_str_eager_reduction (str.contains x y))
         (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))
         (eo::define ((k2 (@purify ($str_first_ctn_post x y))))
@@ -727,12 +726,12 @@
         (eo::define ((t (str.indexof x y n)))
         (and (or (= t (eo::neg 1)) (>= t n))
           (<= t (str.len x)))))
-    (($mk_str_eager_reduction (str.indexof_re x r n))
-        (eo::define ((t (str.indexof_re x r n)))
+    (($mk_str_eager_reduction (str.indexof_re s r n))
+        (eo::define ((t (str.indexof_re s r n)))
         (and (or (= t (eo::neg 1)) (>= t n))
-          (<= t (str.len x)))))
-    (($mk_str_eager_reduction (str.in_re x r))
-        (=> (str.in_re x r) (= (str.len x) ($str_fixed_len_re r))))
+          (<= t (str.len s)))))
+    (($mk_str_eager_reduction (str.in_re s r))
+        (=> (str.in_re s r) (= (str.len s) ($str_fixed_len_re r))))
   )
 )
 
@@ -797,11 +796,11 @@
 ;     (str.++ x (str.++ y ""))
 ;   this returns:
 ;     (and (= x "") (and (= y "") true)).
-(program $str_non_empty_concats ((U Type) (t (Seq U)) (s U :list))
+(program $str_non_empty_concats ((U Type) (t (Seq U)) (s (Seq U) :list))
   ((Seq U)) Bool
   (
     (($str_non_empty_concats t)             ($str_self_if_empty t))
-    (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($mk_emptystr (eo::typeof t)))) ($str_non_empty_concats s)))
+    (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($seq_empty (eo::typeof t)))) ($str_non_empty_concats s)))
   )
 )
 
@@ -1374,7 +1373,7 @@
 ;   normalize the polynomial corresponding to F and check this
 ;   using the $str_arith_entail_simple program above.
 (program $str_arith_entail_simple_pred ((n Int) (m Int))
-  (Bool) Int
+  (Bool) Bool
   (
     (($str_arith_entail_simple_pred (>= n m))  ($str_arith_entail_simple ($arith_poly_to_term (- n m))))
     (($str_arith_entail_simple_pred (> n m))   ($str_arith_entail_simple ($arith_poly_to_term (- n (+ m 1)))))
@@ -1753,7 +1752,7 @@
 ;   The result of evaluating `(str.to_int s)` given the current exponent and
 ;   accumulated return value.
 (program $str_to_int_eval_rec ((s1 String) (s2 String :list) (e Int) (n Int))
-  (String Int Int) Bool
+  (String Int Int) Int
   (
   (($str_to_int_eval_rec (str.++ s1 s2) e n)  (eo::define ((c (eo::add (eo::to_z s1) -48)))
                                               (eo::ite (eo::and (eo::gt 10 c) (eo::not (eo::is_neg c)))

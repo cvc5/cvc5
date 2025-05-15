@@ -372,10 +372,12 @@ void TheoryEngineModelBuilder::addToTypeList(
         const DType& dt = tn.getDType();
         for (unsigned i = 0; i < dt.getNumConstructors(); i++)
         {
-          for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+          // Note that we may be a parameteric datatype, in which case the
+          // instantiated sorts need to be considered.
+          TypeNode ctn = dt[i].getInstantiatedConstructorType(tn);
+          for (const TypeNode& ctnc : ctn)
           {
-            TypeNode ctn = dt[i][j].getRangeType();
-            addToTypeList(ctn, type_list, visiting);
+            addToTypeList(ctnc, type_list, visiting);
           }
         }
       }

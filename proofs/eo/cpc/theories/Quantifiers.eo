@@ -20,7 +20,7 @@
 ; - i Int: The integer indicating the index of the variable.
 ; return: >
 ;   The i^th variable in the binder of F.
-(program $get_var_at_index ((Q (-> @List Bool)) (xs @List) (G Bool) (i Int))
+(program $get_var_at_index ((Q (-> @List Bool Bool)) (xs @List) (G Bool) (i Int))
   (Bool Int) Type
   (
     (($get_var_at_index (Q xs G) i) (eo::list_nth @list xs i))

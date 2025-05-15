@@ -34,35 +34,29 @@
 ; Empty sequence
 ; note: >
 ;   This symbol is used as the term denoting the empty sequence.
-;   This is not the same as seq.empty, which is defined as the
+;   This is not the same as $seq_empty, which is defined as the
 ;   (user-facing) constructor of the empty string or sequence,
-;   defined as seq.empty below. It is never used for strings.
-(declare-parameterized-const @seq.empty ((T Type)) T)
+;   defined as $seq_empty below. Note seq.empty is never used for strings.
+; disclaimer: This function is not in SMT-LIB.
+(declare-parameterized-const seq.empty ((T Type :implicit)) (Seq T))
 
-; program: seq.empty
+; program: $seq_empty
 ; args:
 ; - T Type: The string-like type.
 ; return: The empty string of the given string-like type T.
 ; note: >
-;   We define seq.empty in this way since the same symbols in our theory
+;   We define $seq_empty in this way since the same symbols in our theory
 ;   are used for strings and sequences, yet for the purposes of
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
-; disclaimer: This function is not in SMT-LIB.
-(program seq.empty ((U Type))
+(program $seq_empty ((U Type))
   (Type) (Seq U)
   (
-    ((seq.empty String)  "")
-    ((seq.empty (Seq U)) (@seq.empty (Seq U)))
+    (($seq_empty String)  "")
+    (($seq_empty (Seq U)) (as seq.empty (Seq U)))
   )
 )
-
-; define: $mk_emptystr
-; note: >
-;   This is used as a macro for constructing the empty string or sequence.
-;   It is equivalent to seq.empty above.
-(define $mk_emptystr () seq.empty)
 
 ; Core functions of strings.
 (declare-parameterized-const str.len ((T Type :implicit)) (-> (Seq T) Int))
@@ -72,7 +66,7 @@
 ;   declare it to be :right-assoc-nil to model cvc5's treatment of variadic
 ;   functions.
 (declare-parameterized-const str.++ ((T Type :implicit))
-  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil (seq.empty (Seq T)))
+  (-> (Seq T) (Seq T) (Seq T)) :right-assoc-nil ($seq_empty (Seq T)))
 
 ; Extended functions for strings.
 (declare-parameterized-const str.substr ((T Type :implicit))
