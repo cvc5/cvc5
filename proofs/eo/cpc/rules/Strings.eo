@@ -17,7 +17,7 @@
 (declare-rule string_length_pos ((U Type) (s U))
   :args (s)
   :conclusion
-    (or (and (= (str.len s) 0) (= s (@seq.empty (eo::typeof s)))) (> (str.len s) 0))
+    (or (and (= (str.len s) 0) (= s ($seq_empty (eo::typeof s)))) (> (str.len s) 0))
 )
 
 ; rule: string_length_non_empty
@@ -127,7 +127,7 @@
               (eo::ite rev
                 (str.++ k t1)
                 (str.++ t1 k))))
-            (not (= k (@seq.empty (eo::typeof k))))
+            (not (= k ($seq_empty (eo::typeof k))))
             (> (str.len k) 0)
         ))))))
 )
@@ -156,7 +156,7 @@
               (eo::ite rev
                 (str.++ k s1)
                 (str.++ s1 k)))
-            (not (= k (@seq.empty (eo::typeof k))))
+            (not (= k ($seq_empty (eo::typeof k))))
             (> (str.len k) 0)))))))
 )
 

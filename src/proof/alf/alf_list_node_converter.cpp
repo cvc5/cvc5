@@ -59,9 +59,9 @@ Node AlfListNodeConverter::preConvert(Node n)
         {
           tn = d_nm->mkSequenceType(tn);
           Node ntn = d_tproc.typeAsNode(tn);
-          // must use @seq.empty side condition, since string and sequence
+          // must use $seq_empty side condition, since string and sequence
           // have different representations in the Eunoia signature
-          return d_tproc.mkInternalApp("@seq.empty", {ntn}, n.getType());
+          return d_tproc.mkInternalApp("$seq_empty", {ntn}, n.getType());
         }
       }
     }
