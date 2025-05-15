@@ -204,7 +204,7 @@
 ;   the concatenation term to this method to match the bitblasted form that is
 ;   generated.
 (program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
-  ((BitVec n)) eo::?
+  ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
   (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (eo::list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
@@ -246,7 +246,7 @@
 ; - ac (BitVec m): The accumulated return value.
 ; return: a pair corresponding to the final carry bit and accumulated result.
 (program $bv_ripple_carry_adder_2 ((n Int) (m Int) (b1 Bool) (b2 Bool) (a1 (BitVec n) :list) (a2 (BitVec n) :list) (carry Bool) (res (BitVec m)))
-  ((BitVec n) (BitVec n) Bool (BitVec m)) (@Pair Bool eo::?)
+  ((BitVec n) (BitVec n) Bool (BitVec m)) (@Pair Bool (BitVec (eo::add n m)))
   (
   (($bv_ripple_carry_adder_2 (@from_bools b1 a1) (@from_bools b2 a2) carry res) ($bv_ripple_carry_adder_2 a1 a2 
                                                                                   (or (and b1 b2) (and (xor b1 b2) carry))

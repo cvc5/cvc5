@@ -38,7 +38,7 @@
 ; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
 (program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (s (-> D T)) (xs eo::List :list))
-  (eo::List D T) eo::?
+  (eo::List D T) eo::?    ; Very tricky type, it is a partial application of constructors
   (
     (($mk_dt_inst_rec eo::List::nil x t)          t)
     (($mk_dt_inst_rec (eo::List::cons s xs) x t)  ($mk_dt_inst_rec xs x (t (s x))))
