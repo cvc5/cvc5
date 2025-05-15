@@ -5,7 +5,9 @@ requires = [
     "setuptools!=70.2.0; os_name == 'nt'",
     # Avoid issue #283: https://github.com/pypa/distutils/issues/283
     "setuptools<72.2.0; implementation_name == 'pypy'",
-    "Cython>=3"
+    "Cython>=3",
+    # Avoid issue #6867: https://github.com/cython/cython/issues/6867
+    "Cython<3.1.0; implementation_name == 'pypy' and python_version < '3.9'"
 ]
 build-backend = "setuptools.build_meta"
 

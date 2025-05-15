@@ -2,8 +2,8 @@
 
 ; program: $dt_get_constructors
 ; args:
-; - T Type: The datatype to get the constructors for.
-; return: The list of constructors of T, as a eo::List.
+; - D U: The datatype (or parametric datatype) to get the constructors for.
+; return: The list of constructors of D, as a eo::List.
 ; note: >
 ;   (Unit) tuples are treated as a special case of datatypes with a single
 ;   constructor. Parametric datatypes must reference the type constructor to

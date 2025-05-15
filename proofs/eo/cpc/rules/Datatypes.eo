@@ -72,7 +72,7 @@
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
 (program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)) (xu UnitTuple))
-  (Type C D) D       ; dependent type, return type is the value of the first argument
+  (Type C D) D
   (
     (($mk_dt_inst (Tuple T1 T2) tuple x)    ($mk_dt_inst_tuple_rec (Tuple T1 T2) x 0))
     (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
