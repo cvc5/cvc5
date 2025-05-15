@@ -312,7 +312,7 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output.decode()):
+            if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
                 return EXIT_SKIP
             # strip the unsat and parentheses
             output, exit_code = self.strip_proof_body(output)
