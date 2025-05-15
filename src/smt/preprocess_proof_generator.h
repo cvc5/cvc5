@@ -114,13 +114,6 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-  /**
-   * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in the context. This feature is used to construct
-   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
-   * that connect AssertionPipeline::conjoin steps.
-   */
-  LazyCDProof* allocateHelperProof();
 
  private:
   /**
@@ -140,8 +133,6 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
-  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  CDProofSet<LazyCDProof> d_helperProofs;
   /**
    * A cd proof for input assertions, this is an empty proof that intentionally
    * returns (ASSUME f) for all f.
