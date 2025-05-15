@@ -37,10 +37,10 @@
 ; - x D: The datatype term we applying dt-inst to.
 ; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
-(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (s (-> D T)) (xs eo::List :list))
-  (eo::List D T) eo::?    ; Very tricky type, it is a partial application of constructors
+(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (tb D) (s (-> D T)) (xs eo::List :list))
+  (eo::List D T) D
   (
-    (($mk_dt_inst_rec eo::List::nil x t)          t)
+    (($mk_dt_inst_rec eo::List::nil x tb)         tb)
     (($mk_dt_inst_rec (eo::List::cons s xs) x t)  ($mk_dt_inst_rec xs x (t (s x))))
   )
 )
@@ -71,13 +71,13 @@
 ; - c C: The (unannotated) constructor of datatype D.
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
-(program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
-  (Type C D) eo::?        ; dependent type, return type is the value of the first argument
+(program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)) (xu UnitTuple))
+  (Type C D) D       ; dependent type, return type is the value of the first argument
   (
-    (($mk_dt_inst (Tuple T1 T2) tuple x)  ($mk_dt_inst_tuple_rec (Tuple T1 T2) x 0))
-    (($mk_dt_inst UnitTuple tuple.unit x) tuple.unit)
+    (($mk_dt_inst (Tuple T1 T2) tuple x)    ($mk_dt_inst_tuple_rec (Tuple T1 T2) x 0))
+    (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
     ; user-defined datatypes, note that if c needs an annotation, we get it via $dt_inst_cons_of
-    (($mk_dt_inst D c x)                  ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
+    (($mk_dt_inst D c x)                    ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
   )
 )
 

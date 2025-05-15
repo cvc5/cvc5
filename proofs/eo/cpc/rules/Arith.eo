@@ -341,42 +341,28 @@
 
 ;;;;; ProofRule::ARITH_MULT_ABS_COMPARISON
 
-; program: $mk_arith_mult_abs_comparison_lhs
-; args:
-; - r (-> T U Bool): The relation.
-; - F Bool: A conjunction of the remaining premises we have left to process.
-; return: >
-;   The left hand side of the equality proven by arith_mult_abs_comparison for
-;   r and the remaining premises F.
-(program $mk_arith_mult_abs_comparison_lhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
-  (T Bool) eo::?   ; Int or Real
+(program $mk_arith_mult_abs_comparison_rec
+  ((T Type) (U Type) (V Type) (W Type) (X Type)
+   (a W) (b X) (r (-> W X Bool)) (t T) (u U) (z V) (B Bool :list))
+  (Bool Bool) Bool
   (
-    (($mk_arith_mult_abs_comparison_lhs = (and (= (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs = B)))
-    (($mk_arith_mult_abs_comparison_lhs > (and (> (abs t) (abs u)) B))  (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B)))
-    (($mk_arith_mult_abs_comparison_lhs > (and (and (= (abs t) (abs u)) 
-                                                    (not (= t z))) B))  (eo::requires (eo::to_z z) 0 
-                                                                        (eo::cons * t ($mk_arith_mult_abs_comparison_lhs > B))))
-    (($mk_arith_mult_abs_comparison_lhs r true)                            1)
+    (($mk_arith_mult_abs_comparison_rec (and (r (abs t) (abs u)) B) (r a b))
+       ($mk_arith_mult_abs_comparison_rec B (r (eo::cons * t a) (eo::cons * u b))))
+    (($mk_arith_mult_abs_comparison_rec (and (and (= (abs t) (abs u))
+                                                  (not (= t z))) B) (= a b))
+      (eo::requires (eo::to_z z) 0
+        ($mk_arith_mult_abs_comparison_rec B (= (eo::cons * t a) (eo::cons * u b)))))
+    (($mk_arith_mult_abs_comparison_rec true (r a b))  (r a b))
   )
 )
 
-; program: $mk_arith_mult_abs_comparison_rhs
-; args:
-; - r (-> T U Bool): The relation.
-; - F Bool: A conjunction of the remaining premises we have left to process.
-; return: >
-;   The right hand side of the equality proven by arith_mult_abs_comparison for
-;   r and the remaining premises F.
-; note: This program is analogous to $mk_arith_mult_abs_comparison_lhs.
-(program $mk_arith_mult_abs_comparison_rhs ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
-  (T Bool) eo::?  ; Int or Real
+(program $mk_arith_mult_abs_comparison ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
+  (Bool) Bool
   (
-    (($mk_arith_mult_abs_comparison_rhs = (and (= (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs = B)))
-    (($mk_arith_mult_abs_comparison_rhs > (and (> (abs t) (abs u)) B))  (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B)))
-    (($mk_arith_mult_abs_comparison_rhs > (and (and (= (abs t) (abs u))
-                                                    (not (= t z))) B))  (eo::requires (eo::to_z z) 0
-                                                                        (eo::cons * u ($mk_arith_mult_abs_comparison_rhs > B))))
-    (($mk_arith_mult_abs_comparison_rhs r true)                           1)
+    (($mk_arith_mult_abs_comparison (and (> t u) B))
+      ($mk_arith_mult_abs_comparison_rec (and (> t u) B) (> 1 1)))
+    (($mk_arith_mult_abs_comparison B)
+      ($mk_arith_mult_abs_comparison_rec B (= 1 1)))
   )
 )
 
@@ -388,10 +374,7 @@
 ;   The arithmetic relation that is implied by combining the relations in F.
 (declare-rule arith_mult_abs_comparison ((F Bool))
   :premise-list F and
-  :conclusion (eo::define ((f ($get_fun ($head F))))
-              (f
-                (abs ($mk_arith_mult_abs_comparison_lhs f F))
-                (abs ($mk_arith_mult_abs_comparison_rhs f F))))
+  :conclusion ($mk_arith_mult_abs_comparison F)
 )
 
 ;;;;; ProofRule::ARITH_REDUCTION
@@ -503,11 +486,11 @@
 ; args:
 ; - t U: The term to process.
 ; return: The result of removing an application of to_real from t, if applicable.
-(program $remove_to_real ((U Type) (x U) (T Type))
-  (U) eo::? ; Int or Real
+(program $is_eq_maybe_to_real ((U Type) (x U) (T Type))
+  (U T) Bool
   (
-  (($remove_to_real (to_real x)) x)
-  (($remove_to_real x)           x)
+  (($is_eq_maybe_to_real x x)           true)
+  (($is_eq_maybe_to_real (to_real x) x) true)
   )
 )
 
@@ -529,8 +512,8 @@
   :premises ((= (* cx x) (* cy y)))
   :args ((= (r x1 x2) (r y1 y2)))
   :requires ((($is_poly_norm_rel_consts (r cx cy)) true)
-             (($remove_to_real x) (- x1 x2))
-             (($remove_to_real y) (- y1 y2)))
+             (($is_eq_maybe_to_real x (- x1 x2)) true)
+             (($is_eq_maybe_to_real y (- y1 y2)) true))
   :conclusion (= (r x1 x2) (r y1 y2))
 )
 

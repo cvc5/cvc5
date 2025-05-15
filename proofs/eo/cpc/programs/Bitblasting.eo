@@ -568,7 +568,7 @@
 ; - i Int: The index of the bit we are currently processing.
 ; return: the bitblasted term for variable a.
 (program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
-  ((BitVec n) Int) eo::?
+  ((BitVec n) Int) eo::?  ; needs dependent type (BitVec i+1)
   (
     (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
     (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
