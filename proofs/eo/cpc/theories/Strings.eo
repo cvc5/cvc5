@@ -143,7 +143,7 @@
 (declare-parameterized-const seq.unit ((T Type :implicit)) (-> T (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const seq.nth ((T Type :implicit))
-  (-> (Seq T) Int (eo::ite (eo::is_eq T Char) Int T)))
+  (-> (Seq T) Int (eo::ite (eo::eq T Char) Int T)))
 
 ; Sequence operators are automatically translated to the string operators.
 ; disclaimer: This function is not in SMT-LIB.

@@ -30,7 +30,7 @@
     )
 )
 
-; define: $nary_is_eq_set
+; define: $nary_eq_set
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.
 ; - nil L: The nil terminator of cons.
@@ -38,7 +38,7 @@
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: >
 ;   true if c1 is a subset of c2 and c2 is a subset of c1.
-(define $nary_is_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
+(define $nary_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
   (eo::ite ($nary_is_subset cons nil c1 c2)
     ($nary_is_subset cons nil c2 c1)
     false))
@@ -107,7 +107,7 @@
     (
         (($nary_is_prefix cons nil nil t)                       true)
         (($nary_is_prefix cons nil t nil)                       false)
-        (($nary_is_prefix cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::is_eq c1 c2) ($nary_is_prefix cons nil xs1 xs2) false))
+        (($nary_is_prefix cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::eq c1 c2) ($nary_is_prefix cons nil xs1 xs2) false))
     )
 )
 
@@ -124,7 +124,7 @@
     (
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
-        (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::is_eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
+        (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
     )
 )
 
@@ -202,7 +202,7 @@
     ((L Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L) (xs1 L :list) (xs2 L :list))
     ((-> L L L) L L L) L
     (
-        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
+        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::eq c1 c2)
                                                               ($nary_diff cons nil xs1 xs2)
                                                               (eo::cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
         (($nary_diff cons nil c1 nil)                       c1)

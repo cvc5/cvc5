@@ -16,7 +16,7 @@
 (program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
   ((-> T U S) S S) S
   (
-    (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::is_eq x2 id) x1 (f x1 x2)))
+    (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::eq x2 id) x1 (f x1 x2)))
     (($singleton_elim_aci f id x)          x)
   )
 )
@@ -34,7 +34,7 @@
 (program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list) (isi Bool))
   ((-> T U S) S S S Bool) S
   (
-    (($ac_append f id (f x1 x2) (f y1 y2) isi)  (eo::ite (eo::ite (eo::is_eq x1 y1) isi false)
+    (($ac_append f id (f x1 x2) (f y1 y2) isi)  (eo::ite (eo::ite (eo::eq x1 y1) isi false)
                                                   ($ac_append f id (f x1 x2) y2 isi)
                                                   (eo::ite ($compare_var x1 y1)
                                                     (eo::cons f x1 ($ac_append f id x2 (f y1 y2) isi))

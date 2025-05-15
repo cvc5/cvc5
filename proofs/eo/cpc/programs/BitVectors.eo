@@ -26,7 +26,7 @@
   (eo::define ((w ($bv_bitwidth T)))
   (eo::define ((wm1 (eo::add w -1)))
   (eo::define ((z (eo::to_z (eo::extract b 0 (eo::add w -2)))))
-    (eo::ite (eo::is_eq ($bv_sign_bit b) #b1)
+    (eo::ite (eo::eq ($bv_sign_bit b) #b1)
       (eo::add (eo::neg ($arith_eval_int_pow_2 wm1)) z)
       z))))))
 
@@ -75,7 +75,7 @@
 ; - i Int: The index of the bit.
 ; return: true if the i^th bit of a is set.
 (define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
-  (eo::is_eq (eo::extract a i i) #b1))
+  (eo::eq (eo::extract a i i) #b1))
   
 ; define: $nary_app
 ; args:

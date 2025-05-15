@@ -226,7 +226,7 @@
   (R) Int
   (
     (($greatest_int_lt c) (eo::define ((ci (eo::to_z c)))
-                               (eo::ite (eo::is_eq (eo::to_q c) (eo::to_q ci))
+                               (eo::ite (eo::eq (eo::to_q c) (eo::to_q ci))
                                  (eo::add -1 ci)
                                  ci)))
   )
@@ -420,7 +420,7 @@
   (eo::define ((k (@purify (div_total u v))))
   (eo::define ((lb (<= (* v k) u)))
   (eo::ite (eo::is_z v)
-    (eo::requires (eo::is_eq v 0) false
+    (eo::requires (eo::eq v 0) false
       (and lb (< u (* v (+ k (eo::ite (eo::is_neg v) -1 1))))))
     (and
       (=> (> v 0) (and lb (< u (* v (+ k 1)))))
@@ -438,7 +438,7 @@
                         (and (= t (= (- u k) 0/1)) ($arith_to_int_reduction u))))
     ((to_int u)       (eo::define ((k (@purify (to_int u))))
                         (and (= t k) ($arith_to_int_reduction u))))
-    ((/ u v)          (eo::define ((ur (eo::ite (eo::is_eq (eo::typeof u) Int) (to_real u) u)))
+    ((/ u v)          (eo::define ((ur (eo::ite (eo::eq (eo::typeof u) Int) (to_real u) u)))
                         (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero ur) (/_total u v)))))
     ((div a b)        (= t (ite (= b 0) (@int_div_by_zero a) (div_total a b))))
     ((mod a b)        (= t (ite (= b 0) (@mod_by_zero a) (mod_total a b))))
@@ -494,11 +494,11 @@
 (program $is_poly_norm_rel_consts ((U Type) (r (-> U U Bool)) (cx U) (cy U) (b Bool))
   (Bool) Bool
   (
-    (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (< cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (<= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts (= cx cy))  true)
-    (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (>= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (> cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts b)          false)
   )
 )
