@@ -3721,7 +3721,8 @@ Node SequencesRewriter::rewriteReplace(Node node)
                              children0.end());
       Node rem = utils::mkConcat(remc, stype);
       std::vector<Node> rchildren;
-      rchildren.push_back(nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
+      rchildren.push_back(
+          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
       // "inline" the components of concatenation, which makes RARE
       // reconstruction easier.
       utils::getConcat(rem, rchildren);

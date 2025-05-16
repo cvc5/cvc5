@@ -746,7 +746,7 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
     {
       return false;
     }
-    if (an!=target[1])
+    if (an != target[1])
     {
       transEq = an.eqNode(target[1]);
       vcs.push_back(transEq);
