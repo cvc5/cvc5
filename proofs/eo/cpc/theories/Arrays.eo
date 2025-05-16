@@ -8,9 +8,8 @@
 (declare-parameterized-const store ((U Type :implicit) (T Type :implicit))
    (-> (Array U T) U T (Array U T)))
 
-; The array diff skolem.
-; (@array_deq_diff A B) denotes an index where A and B differ if A and B are not equal.
-(declare-parameterized-const @array_deq_diff ((T Type :implicit) (U Type :implicit))
-  (-> (! (Array T U) :opaque)
-      (! (Array T U) :opaque)
-      T))
+; The array diff skolem. (@array_deq_diff A B) denotes an index where A and B
+; differ if A and B are not equal.
+(declare-parameterized-const @array_deq_diff
+  ((T Type :implicit) (U Type :implicit) (a (Array T U) :opaque) (b (Array T U) :opaque))
+  T)

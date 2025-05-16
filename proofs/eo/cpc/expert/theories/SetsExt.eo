@@ -48,10 +48,12 @@
   (-> (Set (Tuple T T)) Int (Set (Tuple T))))
 
 ; Skolems for the extended theory of sets.
-(declare-parameterized-const @relations_group_part ((T Type :implicit))
-  (-> (! (Set (Set T)) :opaque) T (Set T)))
-(declare-parameterized-const @relations_group_part_element ((T Type :implicit))
-  (-> (! (Set (Set T)) :opaque) (! (Set T) :opaque) T))
+(declare-parameterized-const @relations_group_part
+  ((T Type :implicit) (r (Set (Set T)) :opaque))
+  (-> T (Set T)))
+(declare-parameterized-const @relations_group_part_element
+  ((T Type :implicit) (r (Set (Set T)) :opaque) (s (Set T) :opaque))
+  T)
 
 ; The following skolems are not yet incorporated into the signature:
 ;SETS_CHOOSE
