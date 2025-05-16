@@ -529,7 +529,9 @@
 ;  equivalent to y1-y2.
 ; conclusion: >
 ;   An equivalence between relations specified by eqr and justified by eq.
-(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U))
+(declare-rule arith_poly_norm_rel
+  ((U Type) (U1 Type) (U2 Type) (V Type) (V1 Type) (V2 Type) (T Type) (r T)
+   (x U) (y V) (cx U) (cy V) (x1 U1) (x2 U2) (y1 V1) (y2 V2))
   :premises ((= (* cx x) (* cy y)))
   :args ((= (r x1 x2) (r y1 y2)))
   :requires ((($is_poly_norm_rel_consts (r cx cy)) true)
