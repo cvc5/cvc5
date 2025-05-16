@@ -14,6 +14,7 @@
  */
 
 #include "smt/illegal_checker.h"
+#include <unordered_set>
 
 #include "base/modal_exception.h"
 #include "expr/dtype.h"
@@ -193,7 +194,7 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
 {
   Assert(!d_illegalKinds.empty());
   std::vector<TNode> visit;
-  std::unordered_set<TypeNode> ctypes;
+  std::unordered_set<TypeNode> allTypes;
   TNode cur;
   visit.push_back(n);
   Kind k;
@@ -212,7 +213,7 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
       {
         // check its type
         TypeNode tn = cur.getType();
-        expr::getComponentTypes(tn, ctypes);
+        expr::getComponentTypes(tn, allTypes);
       }
       visited.insert(cur);
       if (cur.hasOperator())
@@ -223,14 +224,34 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
     }
   } while (!visit.empty());
   // now, go back and check if the types are legal
-  std::unordered_set<TypeNode> cctypes;
-  for (const TypeNode& tn : ctypes)
+  std::vector<TypeNode> tlist(allTypes.begin(), allTypes.end());
+  for (size_t i=0; i<tlist.size(); i++)
   {
+    TypeNode tn = tlist[i];
+    // Must additionally get the subfield types from datatypes.
     if (tn.isDatatype())
     {
       const DType& dt = tn.getDType();
-      // must get the subfield types
-      std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
+      std::unordered_set<TypeNode> sftypes = dt.getSubfieldTypes();
+      std::unordered_set<TypeNode> sfctypes;
+      // get the component types of each of the subfield types
+      for (const TypeNode& sft : sftypes)
+      {
+        // as an optimization, if we've already considered this type, don't
+        // have to find its component types
+        if (allTypes.find(sft)==allTypes.end())
+        {
+          expr::getComponentTypes(sft, sfctypes);
+        }
+      }
+      for (const TypeNode& sft : sfctypes)
+      {
+        if (allTypes.find(sft)==allTypes.end())
+        {
+          tlist.emplace_back(sft);
+          allTypes.insert(sft);
+        }
+      }
     }
     k = tn.getKind();
     if (d_illegalKinds.find(k) != d_illegalKinds.end()
