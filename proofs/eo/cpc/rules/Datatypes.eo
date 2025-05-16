@@ -131,7 +131,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-collapse-tester ((D Type) (T Type) (c T) (t D) (b Bool))
   :args ((= (is c t) b))
-  :requires (((eo::define ((f ($get_fun t)))
+  :requires (((eo::define ((f ($get_fun t))) ; application of constructor c
               (eo::ite b
                 (eo::is_eq f c)
                 (eo::and ($dt_is_cons f) (eo::not (eo::is_eq f c))))) true))
@@ -180,52 +180,13 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires (((eo::define ((c ($get_fun t))) 
-              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)
+  :requires (((eo::define ((c ($get_fun t)))  ; application of same constructor
+              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)   ; application of same constructor
              (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
   :conclusion (= (= t s) B)
 )
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
-
-; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
-(program $dt_cons_eq_find_clash_list () (@List @List) Bool)
-
-; define: $dt_cons_eq_find_clash
-; args:
-; - t T: The left hand side of the equality.
-; - s T: The right hand side of the equality.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(define $dt_cons_eq_find_clash ((T Type :implicit) (t T) (s T))
-  (eo::define ((ct ($get_fun t)))
-  (eo::define ((cs ($get_fun s)))
-  (eo::ite ($dt_is_cons ct)
-    (eo::ite (eo::is_eq ct cs)
-      ; recurse on each argument
-      ($dt_cons_eq_find_clash_list ($dt_arg_list t) ($dt_arg_list s))
-      ; otherwise conflicting only if cs is also a constructor
-      ($dt_is_cons cs))
-    false)))
-)
-
-; program: $dt_cons_eq_find_clash_list
-; args:
-; - ts @List: The list of arguments to the left hand side of the equality left to process.
-; - ss @List: The list of arguments to the right hand side of the equality left to process.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(program $dt_cons_eq_find_clash_list ((U Type) (t U) (s U) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
-  (
-  (($dt_cons_eq_find_clash_list (@list t ts) (@list s ss))  (eo::ite ($dt_cons_eq_find_clash t s)
-                                                              true
-                                                              ($dt_cons_eq_find_clash_list ts ss)))
-  (($dt_cons_eq_find_clash_list @list.nil @list.nil)        false)
-  )
-)
 
 ; rule: dt-cons-eq
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
@@ -238,7 +199,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
-  :requires ((($dt_cons_eq_find_clash t s) true))
+  :requires ((($are_distinct_terms t s) true))
   :conclusion (= (= t s) false)
 )
 
@@ -250,6 +211,27 @@
 ;   the term to find (the s argument of dt-cycle) in a list.
 (program $dt_find_cycle_list () (@List @List) Bool)
 
+
+; define: $dt_find_cycle_rec
+; args:
+; - t T: The term.
+; - s @List: A list containing the term to find.
+; - l @List: The list of arguments to t we have seen so far.
+; return: >
+;   True iff t contains s as a strict subterm beneath constructor applications.
+; note: This is a helper for $dt_find_cycle below.
+(program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
+  (T @List @List) Bool
+  (
+    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (eo::cons @list a l)))
+    (($dt_find_cycle_rec c s l)
+      (eo::ite ($dt_is_cons c)
+        ; only if the head is a constructor, we recurse on each argument
+        ($dt_find_cycle_list l s)
+        false))
+  )
+)
+
 ; define: $dt_find_cycle
 ; args:
 ; - t T: The term.
@@ -257,12 +239,7 @@
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 (define $dt_find_cycle ((T Type :implicit) (t T) (s @List))
-  (eo::define ((ct ($get_fun t)))
-  (eo::ite ($dt_is_cons ct)
-    ; recurse on each argument
-    ($dt_find_cycle_list ($dt_arg_list t) s)
-    false))
-)
+  ($dt_find_cycle_rec t s @list.nil))
 
 ; program: $dt_find_cycle_list
 ; args:
