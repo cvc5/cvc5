@@ -40,7 +40,7 @@
 
 ; disclaimer: this function is not in SMT-LIB.
 (declare-parameterized-const lambda ((B Type :implicit) (L @List))
-  (-> B (-> (eo::typeof ($head L)) ($get_lambda_type ($tail L) B))) :binder @list)
+  (-> B ($get_lambda_type L B)) :binder @list)
 
 (declare-parameterized-const distinct ((A Type :implicit)) (-> A A Bool) :pairwise and)
 

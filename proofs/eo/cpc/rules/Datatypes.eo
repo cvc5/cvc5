@@ -58,7 +58,7 @@
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
 (program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type))
-  ((eo::arg U) D Int) U
+  (Type D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -154,15 +154,15 @@
 
 ; define: $mk_dt_cons_eq
 ; args:
-; - t T: The left hand side of the equality.
-; - s T: The right hand side of the equality.
+; - ts @List: The list of arguments to the left hand side of the equality.
+; - ss @List: The list of arguments to the right hand side of the equality.
 ; return: >
-;   The conjunction of equalities between the arguments of t and s.
-(program $mk_dt_cons_eq ((T Type) (U Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U))
-  (T T) Bool
+;   The conjunction of equalities between the arguments of ts and ss.
+(program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
+  (@List @List) Bool
   (
-  (($mk_dt_cons_eq (f a) (g b)) (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
-  (($mk_dt_cons_eq c c)         true)
+  (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
+  (($mk_dt_cons_eq @list.nil @list.nil)       true)
   )
 )
 
@@ -177,7 +177,8 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires ((($singleton_elim ($mk_dt_cons_eq t s)) B))
+  :requires ((($dt_eq_cons t s) true)   ; application of same constructor
+             (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
   :conclusion (= (= t s) B)
 )
 
