@@ -3340,6 +3340,8 @@ struct CVC5_EXPORT OptionInfo
   std::string name;
   /** The option name aliases */
   std::vector<std::string> aliases;
+  /** The features not supported with this */
+  std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** Whether this is an expert option */
