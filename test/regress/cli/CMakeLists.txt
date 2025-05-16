@@ -1383,6 +1383,8 @@ set(regress_0_tests
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
+  regress0/proofs/big-rec-len.smt2
+  regress0/proofs/big-ss-len-include.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
@@ -2034,6 +2036,7 @@ set(regress_0_tests
   regress0/strings/large-unify.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/leq.smt2
+  regress0/strings/long-easy-clash.smt2
   regress0/strings/loop-wrong-sem.smt2
   regress0/strings/loop001.smt2
   regress0/strings/min-norn-re-include.smt2
