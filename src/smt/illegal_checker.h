@@ -19,6 +19,7 @@
 #define __CVC5__THEORY__ILLEGAL_CHECKER_H
 
 #include <cvc5/cvc5_types.h>
+#include <unordered_set>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
@@ -46,6 +47,12 @@ class IllegalChecker : protected EnvObj
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
   /** The index up to the index in the assertions we have checked */
   context::CDO<size_t> d_assertionIndex;
+  /**
+   * Check internal, which traverses the term to look for illegal
+   * terms.
+   */
+  Kind checkInternal(TNode n,
+                     std::unordered_set<TNode>& visited);
 };
 
 }  // namespace smt

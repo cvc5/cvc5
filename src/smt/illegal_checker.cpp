@@ -154,7 +154,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
     Trace("illegal-check") << "Check assertion " << n << std::endl;
     if (!d_illegalKinds.empty())
     {
-      Kind k = expr::hasSubtermKinds(d_illegalKinds, n, visited);
+      Kind k = checkInternal(n, visited);
       if (k != Kind::UNDEFINED_KIND)
       {
         std::stringstream ss;
@@ -186,6 +186,41 @@ void IllegalChecker::checkAssertions(Assertions& as)
   }
   d_assertionIndex = asize;
 }
+
+Kind IllegalChecker::checkInternal(TNode n,
+                     std::unordered_set<TNode>& visited)
+{
+  Assert(!d_illegalKinds.empty());
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  Kind k;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      k = cur.getKind();
+      if (d_illegalKinds.find(k) != d_illegalKinds.end())
+      {
+        return k;
+      }
+      else if (cur.isVar())
+      {
+        // check its type
+      }
+      visited.insert(cur);
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return Kind::UNDEFINED_KIND;
+}
+
 
 }  // namespace smt
 }  // namespace cvc5::internal
