@@ -103,7 +103,7 @@
 ; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
 (program $nary_is_compatible
     ((U Type) (L Type) (cons (-> L L L)) (nil U) (t U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
-    ((-> L L L) U U U) Bool      ; only used by strings
+    ((-> L L L) U U U) Bool
     (
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
@@ -120,7 +120,7 @@
 ; return: the prefix of t consisting of at most l children.
 (program $nary_prefix
     ((T Type) (U Type) (V Type) (W Type) (L Type) (Any Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (l Int))
-    (T U V W) Any     ; only used by subsequence method
+    (T U V W) Any
     (
         (($nary_prefix cons nil l nil)             nil)
         (($nary_prefix cons nil 0 t)               nil)
@@ -140,7 +140,7 @@
 ;   fall out of bounds of the number of children of t are ignored.
 (program $nary_subsequence
     ((T Type) (U Type) (V Type) (L Type) (Any Type) (cons (-> L L L)) (nil L) (t L) (c1 L) (c2 L :list) (u Int) (l Int))
-    (T U Int Int V) Any       ; subsequence used several places, only in bitblasting
+    (T U Int Int V) Any
     (
         (($nary_subsequence cons nil l u nil)            nil)
         (($nary_subsequence cons nil 0 u t)              ($nary_prefix cons nil (eo::add u 1) t))
