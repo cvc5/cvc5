@@ -339,6 +339,7 @@
                   (r m ($arith_mk_zero (eo::typeof m)))))
 )
 
+
 ;;;;; ProofRule::ARITH_MULT_ABS_COMPARISON
 
 (program $mk_arith_mult_abs_comparison_rec
@@ -347,12 +348,12 @@
   (Bool Bool) Bool
   (
     (($mk_arith_mult_abs_comparison_rec (and (r (abs t) (abs u)) B) (r a b))
-       ($mk_arith_mult_abs_comparison_rec B (r (eo::cons * t a) (eo::cons * u b))))
+       ($mk_arith_mult_abs_comparison_rec B (r (eo::list_concat * a (* t)) (eo::list_concat * b (* u)))))
     (($mk_arith_mult_abs_comparison_rec (and (and (= (abs t) (abs u))
-                                                  (not (= t z))) B) (= a b))
+                                                  (not (= t z))) B) (> a b))
       (eo::requires (eo::to_z z) 0
-        ($mk_arith_mult_abs_comparison_rec B (= (eo::cons * t a) (eo::cons * u b)))))
-    (($mk_arith_mult_abs_comparison_rec true (r a b))  (r a b))
+        ($mk_arith_mult_abs_comparison_rec B (> (eo::list_concat * a (* t)) (eo::list_concat * b (* u))))))
+    (($mk_arith_mult_abs_comparison_rec true (r a b))  (r (abs a) (abs b)))
   )
 )
 
