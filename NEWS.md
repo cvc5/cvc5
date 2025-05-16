@@ -12,6 +12,9 @@ This file contains a summary of important user-visible changes.
 ## Changes
 
 - Bumped CaDiCaL to version 2.1.3.
+- Corrected an issue with where errors are printed. Based on the SMT-LIB
+  standard, we now always print user-facing errors on the regular output
+  channel of the solver (stdout by default).
 - Following the SMT-LIB standard, we now print parentheses around all proof
   outputs.
 - The option `--safe-options` is renamed to `--safe-mode=safe`. We additionally

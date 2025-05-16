@@ -41,20 +41,22 @@ int main(int argc, char* argv[])
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
-    std::cerr << "(error \"" << e.getMessage() << "\")" << std::endl
-              << std::endl
-              << "Please use --help to get help on command-line options."
-              << std::endl;
+    solver->getDriverOptions().out()
+        << "(error \"" << e.getMessage() << "\")" << std::endl
+        << std::endl
+        << "Please use --help to get help on command-line options."
+        << std::endl;
   }
   catch (OptionException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
 #endif
-    std::cerr << "(error \"" << e.getMessage() << "\")" << std::endl
-              << std::endl
-              << "Please use --help to get help on command-line options."
-              << std::endl;
+    solver->getDriverOptions().out()
+        << "(error \"" << e.getMessage() << "\")" << std::endl
+        << std::endl
+        << "Please use --help to get help on command-line options."
+        << std::endl;
   }
   catch (cvc5::CVC5ApiException& e)
   {
