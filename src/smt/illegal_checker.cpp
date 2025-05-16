@@ -16,6 +16,7 @@
 #include "smt/illegal_checker.h"
 
 #include "base/modal_exception.h"
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
@@ -31,7 +32,6 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "expr/dtype.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -189,8 +189,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
   d_assertionIndex = asize;
 }
 
-Kind IllegalChecker::checkInternal(TNode n,
-                     std::unordered_set<TNode>& visited)
+Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
 {
   Assert(!d_illegalKinds.empty());
   std::vector<TNode> visit;
@@ -232,10 +231,10 @@ Kind IllegalChecker::checkInternal(TNode n,
       const DType& dt = tn.getDType();
       // must get the subfield types
       std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
-      
     }
     k = tn.getKind();
-    if (d_illegalKinds.find(k)!=d_illegalKinds.end() || d_illegalTypes.find(tn)!=d_illegalTypes.end())
+    if (d_illegalKinds.find(k) != d_illegalKinds.end()
+        || d_illegalTypes.find(tn) != d_illegalTypes.end())
     {
       std::stringstream ss;
       ss << "Cannot handle term with type " << tn << " in this configuration";
@@ -244,7 +243,6 @@ Kind IllegalChecker::checkInternal(TNode n,
   }
   return Kind::UNDEFINED_KIND;
 }
-
 
 }  // namespace smt
 }  // namespace cvc5::internal
