@@ -14,6 +14,7 @@
  */
 
 #include "smt/illegal_checker.h"
+
 #include <unordered_set>
 
 #include "base/modal_exception.h"
@@ -225,7 +226,7 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
   } while (!visit.empty());
   // now, go back and check if the types are legal
   std::vector<TypeNode> tlist(allTypes.begin(), allTypes.end());
-  for (size_t i=0; i<tlist.size(); i++)
+  for (size_t i = 0; i < tlist.size(); i++)
   {
     TypeNode tn = tlist[i];
     // Must additionally get the subfield types from datatypes.
@@ -239,14 +240,14 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
       {
         // as an optimization, if we've already considered this type, don't
         // have to find its component types
-        if (allTypes.find(sft)==allTypes.end())
+        if (allTypes.find(sft) == allTypes.end())
         {
           expr::getComponentTypes(sft, sfctypes);
         }
       }
       for (const TypeNode& sft : sfctypes)
       {
-        if (allTypes.find(sft)==allTypes.end())
+        if (allTypes.find(sft) == allTypes.end())
         {
           tlist.emplace_back(sft);
           allTypes.insert(sft);
