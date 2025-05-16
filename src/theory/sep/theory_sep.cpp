@@ -20,6 +20,7 @@
 #include "base/map_util.h"
 #include "expr/emptyset.h"
 #include "expr/kind.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -133,7 +134,7 @@ void TheorySep::preRegisterTerm(TNode n)
       std::stringstream ss;
       ss << "Separation logic not available in this configuration, try "
             "--sep.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     ensureHeapTypesFor(n);
   }
@@ -954,7 +955,8 @@ size_t TheorySep::processAssertion(
     else if (n.getKind() == Kind::SEP_PTO)
     {
       ensureHeapTypesFor(n);
-      if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
+      if (expr::hasBoundVar(n[0]))
+      {
         Assert(n[0].getType() == d_type_ref);
         if (d_bound_kind != bound_strict && d_bound_kind != bound_invalid)
         {
@@ -963,7 +965,9 @@ size_t TheorySep::processAssertion(
               << "reference cannot be bound (due to quantified pto)."
               << std::endl;
         }
-      }else{
+      }
+      else
+      {
         references[index][n].push_back( n[0] );
       }
       if( hasPol && pol ){

@@ -135,29 +135,39 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 void SetDefaults::setDefaultsPre(Options& opts)
 {
   // safe options
-  if (options().base.safeOptions)
+  if (options().base.safeMode != options::SafeMode::UNRESTRICTED)
   {
     // all "experimental" theories that are enabled by default should be
     // disabled here
-    SET_AND_NOTIFY_IF_NOT_USER(sep, sep, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(bags, bags, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(ff, ff, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(fp, fp, false, "safe options");
+    SET_AND_NOTIFY(sep, sep, false, "safe options");
+    SET_AND_NOTIFY(bags, bags, false, "safe options");
+    SET_AND_NOTIFY(ff, ff, false, "safe options");
+    SET_AND_NOTIFY(fp, fp, false, "safe options");
     // expert extensions to theories
-    SET_AND_NOTIFY_IF_NOT_USER(uf, ufHoExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(uf, ufCardExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(datatypes, datatypesExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(arith, arithExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(sets, relsExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(sets, setsCardExp, false, "safe options");
+    SET_AND_NOTIFY(uf, ufHoExp, false, "safe options");
+    SET_AND_NOTIFY(uf, ufCardExp, false, "safe options");
+    SET_AND_NOTIFY(datatypes, datatypesExp, false, "safe options");
+    SET_AND_NOTIFY(arith, arithExp, false, "safe options");
+    SET_AND_NOTIFY(sets, relsExp, false, "safe options");
+    SET_AND_NOTIFY(sets, setsCardExp, false, "safe options");
     // these are disabled by default but are listed here in case they are
     // enabled by default later
-    SET_AND_NOTIFY_IF_NOT_USER(fp, fpExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(arrays, arraysExp, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, false, "safe options");
-    // specific options that are disabled
-    OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
-    SET_AND_NOTIFY_IF_NOT_USER(arith, nlCov, false, "safe options");
+    SET_AND_NOTIFY(fp, fpExp, false, "safe options");
+    SET_AND_NOTIFY(arrays, arraysExp, false, "safe options");
+    SET_AND_NOTIFY(sets, setsExp, false, "safe options");
+    // disable features that have no proof support but are considered regular.
+    if (options().base.safeMode == options::SafeMode::SAFE)
+    {
+      // specific options that are disabled
+      OPTION_EXCEPTION_IF_NOT(arith, nlCov, false, "safe options");
+      SET_AND_NOTIFY(arith, nlCov, false, "safe options");
+      // never use symmetry breaker, which does not have proofs
+      SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
+      // always use cegqi midpoint, which avoids virtual term substitution
+      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
+      // proofs not yet supported on main
+      SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+    }
   }
   // implied options
   if (opts.smt.debugCheckModels)
@@ -250,15 +260,15 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY_IF_NOT_USER(
           smt, proofMode, options::ProofMode::FULL, "enabling proofs");
     }
-    // Default granularity is theory rewrite if we are intentionally using
+    // Default granularity is DSL rewrite if we are intentionally using
     // proofs, otherwise it is MACRO (e.g. if produce unsat cores is true)
     if (!opts.proof.proofGranularityModeWasSetByUser
         && opts.proof.proofGranularityMode
-               < options::ProofGranularityMode::THEORY_REWRITE)
+               < options::ProofGranularityMode::DSL_REWRITE)
     {
       SET_AND_NOTIFY(proof,
                      proofGranularityMode,
-                     options::ProofGranularityMode::THEORY_REWRITE,
+                     options::ProofGranularityMode::DSL_REWRITE,
                      "enabling proofs");
     }
     // unsat cores are available due to proofs being enabled, as long as
@@ -291,7 +301,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
     if (opts.proof.proofFormatMode == options::ProofFormatMode::ALETHE)
     {
       if (opts.proof.proofGranularityMode
-          < options::ProofGranularityMode::THEORY_REWRITE)
+              < options::ProofGranularityMode::THEORY_REWRITE
+          || !opts.proof.proofGranularityModeWasSetByUser)
       {
         SET_AND_NOTIFY_VAL_SYM(
             proof,
@@ -364,7 +375,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // upgrade to full strict if safe options
-    if (options().base.safeOptions
+    if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
     {
       SET_AND_NOTIFY_IF_NOT_USER(
@@ -886,12 +897,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // set all defaults in the quantifiers theory, which includes sygus
   setDefaultsQuantifiers(logic, opts);
 
-  // shared selectors are generally not good to combine with standard
-  // quantifier techniques e.g. E-matching
-  if (logic.isQuantified() && !usesSygus(opts))
+  // Shared selectors are generally not good to combine with standard
+  // quantifier techniques e.g. E-matching.
+  // We only enable them if SyGuS is enabled.
+  if (isSygus(opts))
   {
     SET_AND_NOTIFY_IF_NOT_USER(
-        datatypes, dtSharedSelectors, false, "quantified logic without SyGuS");
+        datatypes, dtSharedSelectors, true, "SyGuS");
   }
 
   if (opts.prop.minisatSimpMode == options::MinisatSimpMode::ALL)
@@ -1128,7 +1140,10 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         bv, bvSolver, options::BVSolver::BITBLAST_INTERNAL, "proofs");
   }
-  SET_AND_NOTIFY_IF_NOT_USER(arith, nlCovVarElim, false, "proofs");
+  if (options().arith.nlCov)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(arith, nlCovVarElim, false, "proofs");
+  }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
     reason << "deep restarts";

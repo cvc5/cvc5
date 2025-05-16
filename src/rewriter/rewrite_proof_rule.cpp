@@ -221,6 +221,7 @@ Node RewriteProofRule::getConclusionFor(
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = getConclusion(true);
+  NodeManager* nm = conc.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   Node ret = expr::narySubstitute(conc, d_fvs, ss, visited);
   // also compute for the condition
@@ -250,7 +251,7 @@ Node RewriteProofRule::getConclusionFor(
         // list context of the variable.
         Node subsCtx = visited[ctx];
         Assert(!subsCtx.isNull()) << "Failed to get context for " << ctx << " in " << d_id;
-        Node nt = expr::getNullTerminator(ctx.getKind(), subsCtx.getType());
+        Node nt = expr::getNullTerminator(nm, ctx.getKind(), subsCtx.getType());
         wargs.push_back(nt);
       }
       else

@@ -135,27 +135,6 @@ InferInfo InferenceGenerator::bagMake(Node n, Node e)
   return inferInfo;
 }
 
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
-
 InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
 {
   Assert(equality.getKind() == Kind::EQUAL && equality[0].getType().isBag());
@@ -435,9 +414,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node totalSumEqualCountE = d_nm->mkNode(Kind::EQUAL, totalSum, countE);
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
-  Node j =
-      bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, n, "i", d_nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(Kind::ADD, i, d_one);

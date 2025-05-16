@@ -115,19 +115,6 @@ class QuantDSplitProofGenerator : protected EnvObj, public ProofGenerator
   context::CDHashMap<Node, size_t> d_index;
 };
 
-/**
- * Attributes used for constructing bound variables in a canonical way. These
- * are attributes that map to bound variable, introduced for the following
- * purpose:
- * - QDSplitVarAttribute: cached on (q, v, i) where QuantDSplit::split is called
- * to split the variable v of q. We introduce bound variables, where the i^th
- * variable created in that method is cached based on i.
- */
-struct QDSplitVarAttributeId
-{
-};
-using QDSplitVarAttribute = expr::Attribute<QDSplitVarAttributeId, Node>;
-
 QuantDSplit::QuantDSplit(Env& env,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
@@ -304,7 +291,7 @@ Node QuantDSplit::split(NodeManager* nm, const Node& q, size_t index)
       TypeNode tns = dtjtn[k];
       Node cacheVal = bvm->getCacheValue(q[1], q[0][index], varCount);
       varCount++;
-      Node v = bvm->mkBoundVar<QDSplitVarAttribute>(cacheVal, tns);
+      Node v = bvm->mkBoundVar(BoundVarId::QUANT_DT_SPLIT, cacheVal, tns);
       vars.push_back(v);
     }
     std::vector<Node> bvs_cmb;

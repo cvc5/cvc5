@@ -133,7 +133,7 @@ name   = "Base"
   help       = "exit after preprocessing input"
 
 [[option]]
-  category   = "regular"
+  category   = "expert"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
@@ -342,12 +342,22 @@ name   = "Base"
   default    = '{}'
 
 [[option]]
-  name       = "safeOptions"
+  name       = "safeMode"
   category   = "expert"
-  long       = "safe-options"
-  type       = "bool"
-  default    = "false"
-  help       = "do not allow setting any option that is not common or regular"
+  long       = "safe-mode=MODE"
+  type       = "SafeMode"
+  default    = "UNRESTRICTED"
+  help       = "modes for restricting expert options and theories"
+  help_mode  = "Modes for restricting expert options and theories."
+[[option.mode.UNRESTRICTED]]
+  name = "unrestricted"
+  help = "Do not restrict options or theories."
+[[option.mode.SAFE]]
+  name = "safe"
+  help = "Do not allow using expert options or theories, more than one regular option, or any feature that does not have full proof and model support."
+[[option.mode.STABLE]]
+  name = "stable"
+  help = "Do not allow using expert options or theories, or more than one regular option. May allow incomplete proofs or models."
 
 [[option]]
   name       = "pluginNotifySatClauseInSolve"

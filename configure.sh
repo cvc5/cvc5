@@ -17,7 +17,7 @@ Build types:
   competition
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
-    Like production except --safe-options is set to true
+    Like production except --safe-mode is set to safe
 
 
 General options;
@@ -106,6 +106,15 @@ msg () {
 build_dir=build
 install_prefix=default
 program_prefix=""
+
+# Converts a relative path (from the script directory) into
+# an absolute path.
+make_abs_path() {
+  local input_path="$1"
+  local script_dir="$(dirname -- "${BASH_SOURCE[0]}")"
+  local abs_script_dir="$(cd -- "$script_dir" &>/dev/null && pwd)"
+  echo "$abs_script_dir/$input_path"
+}
 
 #--------------------------------------------------------------------------#
 
@@ -383,12 +392,12 @@ fi
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-mingw64.cmake')"
 # Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
 [ $win64_native != default ] \
   && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
 [ $arm64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"

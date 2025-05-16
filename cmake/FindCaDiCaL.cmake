@@ -66,9 +66,9 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   endif()
 
   # Minimum supported version
-  set(CaDiCaL_FIND_VERSION "1.6.0")
+  set(CaDiCaL_FIND_VERSION "2.1.0")
   # Maximum supported version
-  set(CaDiCaL_FIND_VERSION_MAX "2.0.0")
+  set(CaDiCaL_FIND_VERSION_MAX "2.1.3")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required
@@ -87,8 +87,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-2.0.0")
-  set(CaDiCaL_CHECKSUM "9afe5f6439442d854e56fc1fac3244ce241dbb490735939def8fd03584f89331")
+  set(CaDiCaL_VERSION "rel-2.1.3")
+  set(CaDiCaL_CHECKSUM "abfe890aa4ccda7b8449c7ad41acb113cfb8e7e8fbf5e49369075f9b00d70465")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -102,6 +102,11 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
     string(APPEND CaDiCaL_CXXFLAGS " -DNUNLOCKED")
+  endif()
+  # check for closefrom
+  check_symbol_exists("closefrom" "fcntl.h" HAVE_CLOSEFROM)
+  if(NOT HAVE_CLOSEFROM)
+    string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
   endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are

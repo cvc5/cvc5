@@ -126,7 +126,7 @@ bool ProofStepBuffer::addTrustedStep(TrustId id,
                                      Node conc)
 {
   std::vector<Node> sargs;
-  sargs.push_back(mkTrustId(NodeManager::currentNM(), id));
+  sargs.push_back(mkTrustId(conc.getNodeManager(), id));
   sargs.push_back(conc);
   sargs.insert(sargs.end(), args.begin(), args.end());
   return addStep(ProofRule::TRUST, children, sargs, conc);

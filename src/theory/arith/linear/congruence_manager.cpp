@@ -18,11 +18,13 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "proof/conv_proof_generator.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
 #include "theory/arith/arith_proof_utilities.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -190,7 +192,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   {
     pf = d_pnm->mkNode(
         ProofRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {}, eqC->getProofLiteral());
-    pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {eq}, eq);
+    pf = ensurePredTransform(d_pnm, pf, eq);
   }
 
   d_keepAlive.push_back(reason);
@@ -223,8 +225,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   auto pf = eq->externalExplainByAssertions(nb);
   if (isProofEnabled())
   {
-    pf = d_pnm->mkNode(
-        ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
+    pf = ensurePredTransform(d_pnm, pf, d_watchedEqualities[s]);
   }
   Node reason = mkAndFromBuilder(nodeManager(), nb);
 
@@ -258,7 +259,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     {
       Assert(c->getLiteral() == d_watchedEqualities[s].negate());
       // We have to prove equivalence to the watched disequality.
-      pf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {disEq});
+      pf = ensurePredTransform(d_pnm, pf, disEq);
     }
     else
     {
@@ -283,10 +284,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       std::vector<Node> coeff{nm->mkConstInt(Rational(-1 * cSign)),
                               nm->mkConstInt(Rational(cSign))};
       std::vector<Node> coeffUse = getMacroSumUbCoeff(nm, pfs, coeff);
-      const auto sumPf =
+      auto sumPf =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, pfs, coeffUse);
-      const auto botPf = d_pnm->mkNode(
-          ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+      Node fn = nm->mkConst(false);
+      const auto botPf = ensurePredTransform(d_pnm, sumPf, fn);
       std::vector<Node> assumption = {isZero};
       pf = d_pnm->mkScope(botPf, assumption, false);
       if (TraceIsOn("arith::cong::notzero"))
@@ -327,8 +328,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       if (isProofEnabled())
       {
         auto pf = trn.getGenerator()->getProofFor(trn.getProven());
-        auto confPf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {pf}, {conf.negate()});
+        auto confPf = ensurePredTransform(d_pnm, pf, conf.negate());
         raiseConflict(conf, confPf);
       }
       else
@@ -405,16 +405,39 @@ bool ArithCongruenceManager::propagate(TNode x){
         Node peq = proven[1][0].isConst() ? proven[1][1].eqNode(proven[1][0])
                                           : proven[1];
         ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+        // We substitute t -> c within the arithmetic context of neg.
+        // In particular using an arithmetic context ensures that this rewrite
+        // should be locally handled as an ARITH_POLY_NORM step.
+        // Otherwise, we may require the full rewriter. For example:
+        // (= x f(x)) => (not (>= (+ x (* -1 f(x))) 0)) would otherwise fail if
+        // we applied at general substitution
+        // (not (>= (+ f(x) (* -1 f(f(x)))) 0)),
+        // whereas since x in f(x) is not in an arithmetic context, we want
+        // (not (>= (+ f(x) (* -1 f(x))) 0)).
+        ArithSubsTermContext astc;
+        TConvProofGenerator tcnv(d_env,
+                                 nullptr,
+                                 TConvPolicy::FIXPOINT,
+                                 TConvCachePolicy::NEVER,
+                                 "ArithRConsTConv",
+                                 &astc);
+        tcnv.addRewriteStep(peq[0], peq[1], &cdp);
+        std::shared_ptr<ProofNode> pfna = tcnv.getProofForRewriting(neg);
+        Node negr = pfna->getResult()[1];
         Node res = pc->checkDebug(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {neg, peq}, {falsen}, falsen);
+            ProofRule::MACRO_SR_PRED_TRANSFORM, {negr}, {falsen}, falsen);
         Assert(!res.isNull());
         if (!res.isNull())
         {
-            cdp.addStep(falsen,
-                        ProofRule::MACRO_SR_PRED_TRANSFORM,
-                        {neg, peq},
-                        {falsen});
-            success = true;
+          cdp.addStep(
+              falsen, ProofRule::MACRO_SR_PRED_TRANSFORM, {negr}, {falsen});
+          success = true;
+          if (negr != neg)
+          {
+            cdp.addProof(pfna);
+            cdp.addStep(
+                negr, ProofRule::EQ_RESOLVE, {neg, pfna->getResult()}, {});
+          }
         }
       }
       if (success)
@@ -510,8 +533,11 @@ TrustNode ArithCongruenceManager::explain(TNode external)
       assumptionPfs.push_back(
           d_pnm->mkNode(ProofRule::TRUE_INTRO, {d_pnm->mkAssume(a)}, {}));
     }
-    auto litPf = d_pnm->mkNode(
-        ProofRule::MACRO_SR_PRED_TRANSFORM, {assumptionPfs}, {external});
+    // uses substitution to true
+    auto litPf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               {assumptionPfs},
+                               {external},
+                               external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }
