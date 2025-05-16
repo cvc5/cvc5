@@ -141,8 +141,6 @@ class SmtSolver : protected EnvObj
   Preprocessor d_pp;
   /** Assertions manager */
   Assertions d_asserts;
-  /** The illegal kinds that cannot appear in assertions */
-  std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */

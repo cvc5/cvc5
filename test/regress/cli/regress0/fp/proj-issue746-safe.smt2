@@ -1,7 +1,7 @@
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
-; SCRUBBER: grep -o "THEORY_FP is disabled in this configuration, but got a constraint in that theory. Try --fp"
-; EXPECT: THEORY_FP is disabled in this configuration, but got a constraint in that theory. Try --fp
+; SCRUBBER: grep -o "Cannot handle term with type"
+; EXPECT: Cannot handle term with type
 ; EXIT: 1
 (set-option :safe-mode safe)
 (set-logic ALL)
