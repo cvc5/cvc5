@@ -411,8 +411,8 @@
 ; - zero U: The zero element of f.
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
-(program $is_absorb_rec ((T Type) (U Type) (f (-> U U U)) (a U) (b U) (zero U))
-  ((-> U U U) U U) Bool
+(program $is_absorb_rec ((U Type) (V Type) (W Type) (f (-> U U U)) (a U) (b U) (zero U))
+  ((-> U U U) V W) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)

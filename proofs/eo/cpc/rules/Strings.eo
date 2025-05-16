@@ -41,11 +41,11 @@
 ; conclusion: >
 ;   An equality between the components of s and t beyond their equal components.
 ;   For example, from (= (str.++ x y) (str.++ x z)), we conclude (= y z).
-(declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
+(declare-rule concat_eq ((U Type) (s (Seq U)) (t (Seq U)) (rev Bool))
   :premises ((= s t))
   :args (rev)
   :conclusion
-    (eo::match ((ss U) (ts U))
+    (eo::match ((ss (Seq U)) (ts (Seq U)))
       ($str_strip_prefix
            ($str_to_nary_form s rev)
            ($str_to_nary_form t rev))

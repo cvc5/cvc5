@@ -61,7 +61,7 @@
                                                                         units
                                                                         chars
                                                                         n)))))
-    (($seq_to_string_rec (as seq.empty T) s units chars n)            (tuple s units chars))
+    (($seq_to_string_rec (as seq.empty (Seq T)) s units chars n)   (tuple s units chars))
   )
 )
 
@@ -86,15 +86,15 @@
 ; return: >
 ;   A tuple containing the result of converting t, and the substitution
 ;   (units and chars) that was used to convert it.
-(program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (S Type) (V Type) (u V) (ts (Seq V) :list))
-  (T @List @List) (Tuple S @List @List)
+(program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (V Type) (u V) (ts (Seq V) :list))
+  (T @List @List) (Tuple String @List @List)
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (as seq.empty (Seq V)) units chars)   (tuple "" units chars))
-  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((S1 Type) (fs S1) (nunits1 @List) (nchars1 @List))
+  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((W Type) (X Type) (fs (-> W X)) (nunits1 @List) (nchars1 @List))
                                                                   ($seq_to_string_op_rec f units chars)
                                                                   (((tuple fs nunits1 nchars1)
-                                                                    (eo::match ((S2 Type) (bs S2) (nunits2 @List) (nchars2 @List))
+                                                                    (eo::match ((bs W) (nunits2 @List) (nchars2 @List))
                                                                       ($seq_to_string_op_rec b nunits1 nchars1)
                                                                       (((tuple bs nunits2 nchars2) (tuple (fs bs) nunits2 nchars2))))))))
   (($seq_to_string_op_rec b units chars)                        (tuple b units chars))
