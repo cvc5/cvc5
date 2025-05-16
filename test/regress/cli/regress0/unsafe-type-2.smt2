@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 (set-logic ALL)
-(declare-datatype FList ((cons (head (_ FloatingPoint 4 5)) (tail FList)) (nil)))
+(declare-datatype FList ((cons (head (Set (_ FloatingPoint 4 5))) (tail FList)) (nil)))
 (assert false)
 (declare-const a FList)
 (declare-const b FList)
