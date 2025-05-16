@@ -125,7 +125,6 @@
 (define $dt_distinct_terms ((T Type :implicit) (t T) (s T))
   ($dt_distinct_terms_rec t s @list.nil @list.nil))
 
-
 ;;;;; Definitions
 
 ; define: $are_distinct_terms_type
