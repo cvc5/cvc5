@@ -46,7 +46,10 @@ class IllegalChecker : protected EnvObj
  private:
   /** The illegal kinds that cannot appear in assertions */
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
-  /** Illegal types */
+  /**
+   * Illegal types. We only require adding atomic types (e.g. RoundingMode)
+   * to this set, as their kind is TYPE_CONSTANT, which cannot be excluded.
+   */
   std::unordered_set<TypeNode> d_illegalTypes;
   /** The index up to the index in the assertions we have checked */
   context::CDO<size_t> d_assertionIndex;

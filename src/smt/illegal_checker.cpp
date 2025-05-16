@@ -113,6 +113,7 @@ IllegalChecker::IllegalChecker(Env& e)
   if (logicInfo().isTheoryEnabled(theory::THEORY_FP) && !options().fp.fp)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
+    // Require a special check for rounding mode
     d_illegalTypes.insert(nodeManager()->roundingModeType());
   }
   if (logicInfo().isTheoryEnabled(theory::THEORY_FF) && !options().ff.ff)
@@ -148,6 +149,11 @@ IllegalChecker::IllegalChecker(Env& e)
 
 void IllegalChecker::checkAssertions(Assertions& as)
 {
+  if (d_illegalKinds.empty() && d_illegalTypes.empty())
+  {
+    // nothing to check
+    return;
+  }
   // check illegal kinds here
   const context::CDList<Node>& assertions = as.getAssertionList();
   size_t asize = assertions.size();
@@ -156,36 +162,33 @@ void IllegalChecker::checkAssertions(Assertions& as)
   {
     Node n = assertions[i];
     Trace("illegal-check") << "Check assertion " << n << std::endl;
-    if (!d_illegalKinds.empty())
+    Kind k = checkInternal(n, visited);
+    if (k != Kind::UNDEFINED_KIND)
     {
-      Kind k = checkInternal(n, visited);
-      if (k != Kind::UNDEFINED_KIND)
-      {
-        std::stringstream ss;
-        ss << "Cannot handle assertion with term of kind " << k
-           << " in this configuration.";
-        // suggested options only in non-safe builds
+      std::stringstream ss;
+      ss << "Cannot handle assertion with term of kind " << k
+          << " in this configuration.";
+      // suggested options only in non-safe builds
 #ifndef CVC5_SAFE_MODE
-        if (k == Kind::STORE_ALL)
-        {
-          ss << " Try --arrays-exp.";
-        }
-        else
-        {
-          theory::TheoryId tid = theory::kindToTheoryId(k);
-          // if the kind was disabled based a theory, report it.
-          switch (tid)
-          {
-            case theory::THEORY_FF: ss << " Try --ff."; break;
-            case theory::THEORY_FP: ss << " Try --fp."; break;
-            case theory::THEORY_BAGS: ss << " Try --bags."; break;
-            case theory::THEORY_SEP: ss << " Try --sep."; break;
-            default: break;
-          }
-        }
-#endif
-        throw SafeLogicException(ss.str());
+      if (k == Kind::STORE_ALL)
+      {
+        ss << " Try --arrays-exp.";
       }
+      else
+      {
+        theory::TheoryId tid = theory::kindToTheoryId(k);
+        // if the kind was disabled based a theory, report it.
+        switch (tid)
+        {
+          case theory::THEORY_FF: ss << " Try --ff."; break;
+          case theory::THEORY_FP: ss << " Try --fp."; break;
+          case theory::THEORY_BAGS: ss << " Try --bags."; break;
+          case theory::THEORY_SEP: ss << " Try --sep."; break;
+          default: break;
+        }
+      }
+#endif
+      throw SafeLogicException(ss.str());
     }
   }
   d_assertionIndex = asize;
