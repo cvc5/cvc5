@@ -368,13 +368,11 @@
 
 ; program: $dt_updater_elim_rhs
 ; args:
-; - s (-> D T): the selector specifying the argument.
-; - D t: The datatype term we are updating.
-; - a T: The value to replace at the s argument of t.
+; - u D: The application of update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
-;   The result of updating the argument specified by s in t.
+;   The result of updating t as specified by u.
 (program $dt_updater_elim_rhs
   ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
   (D eo::List X) D
@@ -387,12 +385,10 @@
 
 ; program: $tuple_updater_elim_rhs
 ; args:
-; - n Int: the index specifying the argument.
-; - D t: The tuple term we are updating.
-; - a T: The value to replace at the n^th argument of t.
+; - u D: The application of tuple.update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
-;   The result of updating the argument specified by s in t.
+;   The result of updating t as specified by u.
 (program $tuple_updater_elim_rhs
   ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
   (D eo::List) D
