@@ -641,7 +641,7 @@ eq::EqualityEngine* Theory::getEqualityEngine()
 
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
-  return id != THEORY_ARITH;
+  return id != THEORY_ARITH && id != THEORY_ARRAYS;
 }
 
 theory::Assertion Theory::get()
