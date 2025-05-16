@@ -15,9 +15,12 @@ This file contains a summary of important user-visible changes.
 - Corrected an issue with where errors are printed. Based on the SMT-LIB
   standard, we now always print user-facing errors on the regular output
   channel of the solver (stdout by default).
+- Following the SMT-LIB standard, we now print parentheses around all proof
+  outputs.
 - The option `--safe-options` is renamed to `--safe-mode=safe`. We additionally
   support the option `--safe-mode=stable`, which disables experimental
   features but does not insist on complete proofs or models.
+
 
 cvc5 1.2.1
 ==========
