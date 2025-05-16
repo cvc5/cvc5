@@ -23,7 +23,7 @@
 ;   c2, or false otherwise.
 (program $nary_is_subset
     ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
-    ((-> L L L) L L L) Bool     ; used only for Bools
+    ((-> L L L) L L L) Bool
     (
         (($nary_is_subset cons nil (cons c xs) t) (eo::ite (eo::is_neg (eo::list_find cons t c)) false ($nary_is_subset cons nil xs t)))
         (($nary_is_subset cons nil nil t)         true)
