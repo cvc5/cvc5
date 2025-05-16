@@ -110,11 +110,10 @@
 ;       this is not the case for tuple selectors.
 (declare-rule dt-collapse-selector ((D Type) (T Type) (S Type) (s S) (t D) (ti T))
   :args ((= (s t) ti))
-  :requires (((eo::define ((c ($get_fun t)))
-              (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+  :requires (((eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
               ; note that s must be a selector of the constructor of t, or else index will not evaluate
               (eo::define ((index (eo::list_find eo::List::cons ss s)))
-                ($dt_arg_nth t index)))) ti))
+                ($dt_arg_nth t index))) ti))
   :conclusion (= (s t) ti)
 )
 
@@ -339,12 +338,11 @@
 (program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (U Type) (s (-> D T)) (t D) (a U) (tr D) (n Int))
   (D) D
   (
-  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((c ($get_fun t)))
-                                                      (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
                                                       (eo::define ((index (eo::list_find eo::List::cons ss s)))
                                                         (eo::ite (eo::is_neg index)
                                                           t ; unchanged if not correct constructor
-                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1)))))))
+                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1))))))
   (($mk_dt_collapse_updater_rhs (tuple.update n t a)) ($tuple_collapse_updater_rhs t a n))
   )
 )

@@ -68,6 +68,19 @@
   )
 )
 
+; program: $dt_get_selectors_of_app
+; args:
+; - D Type: The type to get the selectors for.
+; - t T: The constructor application of D.
+; return: The list of selectors of the constructor of t, as a eo::List.
+(program $dt_get_selectors_of_app ((T Type) (U Type) (f (-> U T)) (a U))
+  (Type T) eo::List
+  (
+    (($dt_get_selectors_of_app T (f a))  ($dt_get_selectors_of_app T f))
+    (($dt_get_selectors_of_app T a)      ($dt_get_selectors T a))
+  )
+)
+
 ; define: $dt_is_cons
 ; args:
 ; - t T: The term in question.

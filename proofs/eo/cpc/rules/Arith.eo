@@ -11,9 +11,11 @@
 ; args:
 ; - r1 T : The first arithmetic relation.
 ; - r2 U : The second arithmetic relation.
+; - a V: The first term in the relation.
+; - b W: The second term in the relation.
 ; return: >
-;   the relation that is implied when applications of the relations r1 and
-;   r2 are added together for ProofRule::ARITH_SUM_UB.
+;   The relation that is implied when applications of the relations r1 and
+;   r2 are added together for ProofRule::ARITH_SUM_UB and applied to a and b.
 (program $arith_rel_sum ((T Type) (U Type) (V Type) (W Type) (a V) (b W))
   (T U V W) Bool
   (
@@ -29,13 +31,12 @@
   )
 )
 
-; program: $arith_mk_zero
+; define: $arith_mk_zero
 ; args:
 ; - u Type : The type of the zero, which should be Int or Real.
 ; return: the zero for the given type.
 (define $arith_mk_zero ((T Type))
   (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
-    
 
 ; program: $mk_arith_sum_ub
 ; args:
@@ -98,9 +99,12 @@
 ; program: $arith_rel_inv
 ; args:
 ; - r T: An arithmetic relation.
+; - a U: The first term in the relation.
+; - b V: The second term in the relation.
 ; return: >
-;   the relation that is obtained by flipping its side. This is used for
-;   determining the relation obtained when multiply both sides by a negative term.
+;   the relation that is obtained by flipping its arguments, applied to a and b.
+;   This is used for determining the relation obtained when multiply both sides
+;   by a negative term.
 (program $arith_rel_inv ((T Type) (U Type) (V Type) (a U) (b V))
   (T U V) Bool
   (
@@ -145,9 +149,11 @@
 ; args:
 ; - r1 T: The first arithmetic relation.
 ; - r2 U: The second arithmetic relation.
+; - a V: The first term in the relation.
+; - b W: The second term in the relation.
 ; return: >
 ;   the relation that along with r1 and r2 form a trichotomy over
-;   arithmetic values.
+;   arithmetic values, applied to a and b.
 (program $arith_rel_trichotomy ((T Type) (U Type) (V Type) (W Type) (a V) (b W))
   (T U V W) Bool
   (
@@ -163,7 +169,10 @@
 ; program: $arith_rel_trichotomy
 ; args:
 ; - r T: The arithmetic relation.
-; return: the relation corresponding to the negation of r.
+; - a V: The first term in the relation.
+; - b W: The second term in the relation.
+; return: >
+;   The relation corresponding to the negation of r, applied to a and b.
 (program $arith_rel_neg ((T Type) (U Type) (V Type) (a U) (b V))
   (T U V) Bool
   (
@@ -192,7 +201,8 @@
 ; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
 ; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
 ; return: the relation that along with F1 and F2 forms a trichotomy.
-(program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
+(program $mk_arith_trichotomy
+  ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
   (Bool Bool) Bool
   (
     (($mk_arith_trichotomy (r1 a b) (r2 a b)) ($arith_rel_trichotomy r1 r2 a b))
@@ -499,10 +509,13 @@
   )
 )
 
-; program: $remove_to_real
+; program: $is_eq_maybe_to_real
 ; args:
-; - t U: The term to process.
-; return: The result of removing an application of to_real from t, if applicable.
+; - x U: The term to check.
+; - y T: The target term.
+; return: >
+;   True if x is syntactically equal to y, possibly removing an application of
+;   to_real.
 (program $is_eq_maybe_to_real ((U Type) (x U) (T Type))
   (U T) Bool
   (
