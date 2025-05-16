@@ -319,7 +319,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<std::vector<Node>> col;
   std::vector<Node> lts;
   const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
-  mc->separateByLength(repVec, col, lts);
+  mc->separateByLength(m, repVec, col, lts);
   Assert(col.size() == lts.size());
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
