@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 (set-logic ALL)
-(declare-const a RoundingMode)
-(declare-const b RoundingMode)
+(declare-const a (Array RoundingMode Int))
+(declare-const b (Array RoundingMode Int))
 (assert false)
 (assert (= a b))
 (check-sat)

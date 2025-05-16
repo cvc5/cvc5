@@ -45,8 +45,11 @@ class IllegalChecker : protected EnvObj
  private:
   /** The illegal kinds that cannot appear in assertions */
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
+  /** Illegal types */
+  std::unordered_set<TypeNode> d_illegalTypes;
   /** The index up to the index in the assertions we have checked */
   context::CDO<size_t> d_assertionIndex;
+  /** The set of illegal kinds of types */
   /**
    * Check internal, which traverses the term to look for illegal
    * terms.

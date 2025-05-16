@@ -31,6 +31,7 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "expr/dtype.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -110,6 +111,7 @@ IllegalChecker::IllegalChecker(Env& e)
   if (logicInfo().isTheoryEnabled(theory::THEORY_FP) && !options().fp.fp)
   {
     unsupportedTheories.insert(theory::TheoryId::THEORY_FP);
+    d_illegalTypes.insert(nodeManager()->roundingModeType());
   }
   if (logicInfo().isTheoryEnabled(theory::THEORY_FF) && !options().ff.ff)
   {
@@ -192,6 +194,7 @@ Kind IllegalChecker::checkInternal(TNode n,
 {
   Assert(!d_illegalKinds.empty());
   std::vector<TNode> visit;
+  std::unordered_set<TypeNode> ctypes;
   TNode cur;
   visit.push_back(n);
   Kind k;
@@ -209,6 +212,8 @@ Kind IllegalChecker::checkInternal(TNode n,
       else if (cur.isVar())
       {
         // check its type
+        TypeNode tn = cur.getType();
+        expr::getComponentTypes(tn, ctypes);
       }
       visited.insert(cur);
       if (cur.hasOperator())
@@ -218,6 +223,25 @@ Kind IllegalChecker::checkInternal(TNode n,
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
+  // now, go back and check if the types are legal
+  std::unordered_set<TypeNode> cctypes;
+  for (const TypeNode& tn : ctypes)
+  {
+    if (tn.isDatatype())
+    {
+      const DType& dt = tn.getDType();
+      // must get the subfield types
+      std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
+      
+    }
+    k = tn.getKind();
+    if (d_illegalKinds.find(k)!=d_illegalKinds.end() || d_illegalTypes.find(tn)!=d_illegalTypes.end())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle term with type " << tn << " in this configuration";
+      throw SafeLogicException(ss.str());
+    }
+  }
   return Kind::UNDEFINED_KIND;
 }
 
