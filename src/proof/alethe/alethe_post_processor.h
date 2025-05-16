@@ -159,7 +159,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    * @param children The children of the application
    * @param args The arguments of the application
    * @param cdp The proof to add to
-   * @param did The id of the ProofRewriteRule the THEORY_REWRITE step expresses,
+   * @param di The id of the ProofRewriteRule the THEORY_REWRITE step expresses,
    * @return True if the step could be added, or false if not.
    */
   bool updateTheoryRewriteProofRewriteRule(Node res,
