@@ -131,10 +131,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-collapse-tester ((D Type) (T Type) (c T) (t D) (b Bool))
   :args ((= (is c t) b))
-  :requires (((eo::define ((f ($get_fun t))) ; application of constructor c
-              (eo::ite b
-                (eo::is_eq f c)
-                (eo::and ($dt_is_cons f) (eo::not (eo::is_eq f c))))) true))
+  :requires ((($dt_eq_cons c t) b))
   :conclusion (= (is c t) b)
 )
 
@@ -157,15 +154,15 @@
 
 ; define: $mk_dt_cons_eq
 ; args:
-; - ts @List: The list of arguments to the left hand side of the equality.
-; - ss @List: The list of arguments to the right hand side of the equality.
+; - t T: The left hand side of the equality.
+; - s T: The right hand side of the equality.
 ; return: >
-;   The conjunction of equalities between the arguments of ts and ss.
-(program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
+;   The conjunction of equalities between the arguments of t and s.
+(program $mk_dt_cons_eq ((T Type) (U Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U))
+  (T T) Bool
   (
-  (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
-  (($mk_dt_cons_eq @list.nil @list.nil)       true)
+  (($mk_dt_cons_eq (f a) (g b)) (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
+  (($mk_dt_cons_eq c c)         true)
   )
 )
 
@@ -180,9 +177,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires (((eo::define ((c ($get_fun t)))  ; application of same constructor
-              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)   ; application of same constructor
-             (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
+  :requires ((($singleton_elim ($mk_dt_cons_eq t s)) B))
   :conclusion (= (= t s) B)
 )
 
