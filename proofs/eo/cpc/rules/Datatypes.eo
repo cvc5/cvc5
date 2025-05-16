@@ -208,7 +208,8 @@
 ;   could in theory find a conflict for a different reason than
 ;   DT_CONS_EQ_CLASH, for example (cons 0 (cons a b)) = (cons 1 nil),
 ;   where $are_distinct_terms succeds since 0 != 1, whereas DT_CONS_EQ_CLASH
-;   was applied since (cons a b) != nil.
+;   was applied since (cons a b) != nil. However, both are valid reasons
+;   why the equality is conflicting.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
   :requires ((($are_distinct_terms t s) true))
