@@ -158,7 +158,7 @@ void TheoryUF::postCheck(Effort level)
       d_csolver->check();
     }
     // check with the higher-order extension at full effort
-    if (fullEffort(level) && logicInfo().isHigherOrder())
+    if (fullEffort(level) && d_ho!=nullptr)
     {
       d_ho->check();
     }
@@ -167,7 +167,9 @@ void TheoryUF::postCheck(Effort level)
 
 void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
-  if (d_state.isInConflict())
+  // if we are in conflict, or higher-order and finite model finding are
+  // disabled, then return immediately.
+  if (d_state.isInConflict() || (d_ho==nullptr && d_thss==nullptr))
   {
     return;
   }
@@ -181,7 +183,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   {
     case Kind::EQUAL:
     {
-      if (logicInfo().isHigherOrder() && options().uf.ufHoExt)
+      if (d_ho!=nullptr && options().uf.ufHoExt)
       {
         if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
