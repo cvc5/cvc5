@@ -167,6 +167,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+      // bv-solver must be bitblast-internal for proofs, note this is set
+      // even if proofs are not enabled so that we are consistent.
+      SET_AND_NOTIFY(
+          bv, bvSolver, options::BVSolver::BITBLAST_INTERNAL, "safe options");
     }
   }
   // implied options
@@ -1093,8 +1097,14 @@ bool SetDefaults::usesInputConversion(const Options& opts,
 bool SetDefaults::incompatibleWithProofs(Options& opts,
                                          std::ostream& reason) const
 {
+  // For the sake of making the performance of cvc5 robust to whether or not
+  // proofs are enabled, any silent change to options in this method is
+  // recommended to either be:
+  // (A) be an expert (possibly internally managed) option,
+  // (B) be the forced configuration when safe-options is enabled.
   if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
   {
+    // this is an expert option, ok to silently change
     SET_AND_NOTIFY(prop,
                    satSolver,
                    options::SatSolverMode::MINISAT,
@@ -1131,17 +1141,20 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
+    // this is an expert option, ok to silently change
     SET_AND_NOTIFY_VAL_SYM(bv, bvAssertInput, false, "proofs");
   }
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (isFullPf)
   {
+    // this is always set by safe options, ok to silently change
     SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM(
         bv, bvSolver, options::BVSolver::BITBLAST_INTERNAL, "proofs");
   }
   if (options().arith.nlCov)
   {
+    // this is an expert option, ok to silently change
     SET_AND_NOTIFY_IF_NOT_USER(arith, nlCovVarElim, false, "proofs");
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
@@ -1177,12 +1190,14 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   if (opts.smt.proofMode == options::ProofMode::FULL_STRICT)
   {
+    // these are always disabled by safe options, ok to silently change
     // symmetry breaking does not have proof support
     SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "full strict proofs");
     // CEGQI with deltas and infinities is not supported
     SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfInt, false, "full strict proofs");
     SET_AND_NOTIFY(quantifiers, cegqiUseInfReal, false, "full strict proofs");
+    // this is an expert option, ok to silently change
     // shared selectors are not supported
     SET_AND_NOTIFY(datatypes, dtSharedSelectors, false, "full strict proofs");
   }
