@@ -184,21 +184,6 @@ Node AlfNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
-  else if (k == Kind::STORE_ALL)
-  {
-    TypeNode tn = n.getType();
-    Node t = typeAsNode(tn);
-    ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
-    Node val = convert(storeAll.getValue());
-    return mkInternalApp("store_all", {t, val}, tn);
-  }
-  else if (k == Kind::SET_EMPTY || k == Kind::SET_UNIVERSE
-           || k == Kind::BAG_EMPTY || k == Kind::SEP_NIL)
-  {
-    TypeNode tn = n.getType();
-    Node t = typeAsNode(tn);
-    return mkInternalApp(printer::smt2::Smt2Printer::smtKindString(k), {t}, tn);
-  }
   else if (k == Kind::SET_INSERT)
   {
     TypeNode tn = n.getType();
@@ -208,15 +193,12 @@ Node AlfNodeConverter::postConvert(Node n)
   }
   else if (k == Kind::CONST_SEQUENCE)
   {
-    if (n.getConst<Sequence>().empty())
+    if (!n.getConst<Sequence>().empty())
     {
-      TypeNode tn = n.getType();
-      Node t = typeAsNode(tn);
-      return mkInternalApp("seq.empty", {t}, tn);
+      // if non-empty, must convert to term representation and convert
+      Node cc = theory::strings::utils::mkConcatForConstSequence(n);
+      return convert(cc);
     }
-    // otherwise must convert to term representation and convert
-    Node cc = theory::strings::utils::mkConcatForConstSequence(n);
-    return convert(cc);
   }
   else if (k == Kind::CONST_FINITE_FIELD)
   {

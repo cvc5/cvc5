@@ -1,0 +1,9 @@
+(include "../../theories/Arrays.eo")
+
+; The arrays equal-range predicate.
+; disclaimer: This function is not in SMT-LIB.
+(declare-parameterized-const eqrange ((U Type :implicit) (T Type :implicit) (I Type :implicit)) (-> (Array U T) (Array U T) I I Bool))
+
+; The store all array constant.
+; disclaimer: This function is not in SMT-LIB.
+(declare-parameterized-const const ((T Type :implicit) (U Type :implicit)) (-> U (Array T U)))
