@@ -31,13 +31,6 @@
   )
 )
 
-; define: $arith_mk_zero
-; args:
-; - u Type : The type of the zero, which should be Int or Real.
-; return: the zero for the given type.
-(define $arith_mk_zero ((T Type))
-  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
-
 ; program: $mk_arith_sum_ub
 ; args:
 ; - F Bool: A conjunction of arithmetic relations.

@@ -2,6 +2,13 @@
 (include "../theories/Arith.eo")
 (include "../programs/Utils.eo")
 
+; define: $arith_mk_zero
+; args:
+; - u Type : The type of the zero, which should be Int or Real.
+; return: the zero for the given type.
+(define $arith_mk_zero ((T Type))
+  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
+
 ; define: $arith_eval_add
 ; args:
 ; - x T: The first arithmetic term to add.
