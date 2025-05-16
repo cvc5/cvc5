@@ -26,6 +26,13 @@ namespace cvc5::internal {
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
+bool ProofNodeUpdaterCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                            const std::vector<Node>& fa,
+                                            bool& continueUpdate)
+{
+  return false;
+}
+
 bool ProofNodeUpdaterCallback::update(Node res,
                                       ProofRule id,
                                       const std::vector<Node>& children,

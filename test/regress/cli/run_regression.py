@@ -185,7 +185,6 @@ class ProofTester(Tester):
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
                 ["--check-proofs",
-                 "--proof-granularity=theory-rewrite",
                  "--proof-check=lazy"]
             )
         )
@@ -350,7 +349,6 @@ class CpcTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
