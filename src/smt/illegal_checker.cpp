@@ -166,7 +166,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
     {
       std::stringstream ss;
       ss << "Cannot handle assertion with term of kind " << k
-          << " in this configuration.";
+         << " in this configuration.";
       // suggested options only in non-safe builds
 #ifndef CVC5_SAFE_MODE
       if (k == Kind::STORE_ALL)
