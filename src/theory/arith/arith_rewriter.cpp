@@ -1597,8 +1597,6 @@ Node ArithRewriter::expandPowConst(NodeManager* nm, const Node& t)
           Assert(nb.getNumChildren() > 0);
           ret = nb;
         }
-        // ensure real if applicable
-        ret = rewriter::maybeEnsureReal(t.getType(), ret);
         return ret;
       }
     }
