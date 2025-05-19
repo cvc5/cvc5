@@ -44,6 +44,8 @@ class IllegalChecker : protected EnvObj
   void checkAssertions(Assertions& as);
 
  private:
+  /** The assertions we have visited (user-context dependent) */
+  context::CDHashSet<Node> d_visited;
   /** The illegal kinds that cannot appear in assertions */
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
   /**
@@ -58,7 +60,7 @@ class IllegalChecker : protected EnvObj
    * Check internal, which traverses the term to look for illegal
    * terms.
    */
-  Kind checkInternal(TNode n, std::unordered_set<TNode>& visited);
+  Kind checkInternal(TNode n);
 };
 
 }  // namespace smt

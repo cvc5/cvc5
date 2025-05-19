@@ -39,7 +39,7 @@ namespace cvc5::internal {
 namespace smt {
 
 IllegalChecker::IllegalChecker(Env& e)
-    : EnvObj(e), d_assertionIndex(userContext(), 0)
+    : EnvObj(e), d_visited(userContext()), d_assertionIndex(userContext(), 0)
 {
   // Determine any illegal kinds that are dependent on options that need to be
   // guarded here. Note that nearly all illegal kinds should be properly guarded
@@ -157,12 +157,11 @@ void IllegalChecker::checkAssertions(Assertions& as)
   // check illegal kinds here
   const context::CDList<Node>& assertions = as.getAssertionList();
   size_t asize = assertions.size();
-  std::unordered_set<TNode> visited;
   for (size_t i = d_assertionIndex.get(); i < asize; ++i)
   {
     Node n = assertions[i];
     Trace("illegal-check") << "Check assertion " << n << std::endl;
-    Kind k = checkInternal(n, visited);
+    Kind k = checkInternal(n);
     if (k != Kind::UNDEFINED_KIND)
     {
       std::stringstream ss;
@@ -194,7 +193,7 @@ void IllegalChecker::checkAssertions(Assertions& as)
   d_assertionIndex = asize;
 }
 
-Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
+Kind IllegalChecker::checkInternal(TNode n)
 {
   Assert(!d_illegalKinds.empty());
   std::vector<TNode> visit;
@@ -206,7 +205,7 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (d_visited.find(cur) == d_visited.end())
     {
       k = cur.getKind();
       if (d_illegalKinds.find(k) != d_illegalKinds.end())
@@ -219,7 +218,7 @@ Kind IllegalChecker::checkInternal(TNode n, std::unordered_set<TNode>& visited)
         TypeNode tn = cur.getType();
         expr::getComponentTypes(tn, allTypes);
       }
-      visited.insert(cur);
+      d_visited.insert(cur);
       if (cur.hasOperator())
       {
         visit.push_back(cur.getOperator());
