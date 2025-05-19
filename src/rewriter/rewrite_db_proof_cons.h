@@ -244,6 +244,11 @@ class RewriteDbProofCons : protected EnvObj
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
+   * Return the flattening of n. For example, this returns (+ a b c) for
+   * (+ (+ a b) c). This method is used in the FLATTEN tactic.
+   */
+  Node doFlatten(const Node& n);
+  /**
    * A notification that s is equal to n * { vars -> subs }. In this context,
    * s is the current left hand side of a term we are trying to prove and n is
    * the head of a rewrite rule.
