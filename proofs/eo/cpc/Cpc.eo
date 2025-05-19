@@ -355,7 +355,8 @@
 ;   The result of normalizing t for the proof rule aci_norm. In
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
-;   the method $get_aci_norm (resp. $get_a_norm).
+;   the method $get_ai_norm (resp. $get_a_norm), possibly wrapping the
+;   placeholder @aci_sorted.
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (eo::match ((T Type) (x T)
               (b1 Bool) (b2 Bool :list)

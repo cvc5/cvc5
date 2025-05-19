@@ -41,7 +41,7 @@
 ; - t T: The term to process.
 ; return: the result of normalizing s based on associative+identity+idempotent reasoning.
 (define $get_ai_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
     t
     (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id t)))))))
 )
@@ -56,19 +56,26 @@
     (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
 )
 
+; A placeholder that indicates that the given list can be sorted.
 (declare-parameterized-const @aci_sorted ((T Type :implicit)) (-> T T))
 
+; program: $aci_norm_eq
+; args:
+; - a S: The first term.
+; - b S: The second term.
+; return: true if a can be shown to be equivalent to b.
 (program $aci_norm_eq ((S Type) (U Type) (V Type) (t S) (s S) (f (-> S U V)) (x S) (y U))
   (S S) Bool
   (
   (($aci_norm_eq t t) true)
   (($aci_norm_eq (@aci_sorted t) t) true)
   (($aci_norm_eq (@aci_sorted (f x y)) (@aci_sorted s)) (eo::list_is_submset f (f x y) s))
+  (($aci_norm_eq t s) false)
   )
 )
-
 
 (define $is_aci_norm ((S Type :implicit) (a S) (b S) (an S) (bn S))
   (eo::ite ($aci_norm_eq an b) true
   (eo::ite ($aci_norm_eq bn a) true
-    ($aci_norm_eq an bn))))
+  (eo::ite ($aci_norm_eq an bn) true
+    (eo::requires an bn true)))))
