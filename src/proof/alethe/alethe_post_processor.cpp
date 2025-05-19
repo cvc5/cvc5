@@ -93,11 +93,9 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 
 bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
     Node res,
-    ProofRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof* cdp,
-    bool& continueUpdate,
     ProofRewriteRule di)
 {
   NodeManager* nm = nodeManager();
@@ -529,17 +527,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     case ProofRule::THEORY_REWRITE:
     {
       ProofRewriteRule di;
-      if (rewriter::getRewriteRule(args[0], di))
-      {
-        return updateTheoryRewriteProofRewriteRule(
-            res, id, children, args, cdp, continueUpdate, di);
-      }
-      return addAletheStep(AletheRule::HOLE,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           new_args,
-                           *cdp);
+      rewriter::getRewriteRule(args[0], di);
+      return updateTheoryRewriteProofRewriteRule(
+          res, children, args, cdp, di);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.

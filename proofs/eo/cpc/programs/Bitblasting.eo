@@ -289,9 +289,9 @@
 ; - res (BitVec n): The accumulated return value, a list of bits.
 ; - carray Bool: The current carry bit.
 ; return: the bitblasted term for processing the multiplication at the current index.
-(program $bv_shift_add_multiplier_rec_step ((n Int) (m Int) (k Int) (b1 Bool) (b2 Bool) (a2 (BitVec n) :list) (res (BitVec n))
+(program $bv_shift_add_multiplier_rec_step ((n Int) (np Int) (m Int) (k Int) (b1 Bool) (b2 Bool) (a2 (BitVec n) :list) (res (BitVec n))
                                             (br Bool) (ar (BitVec m) :list) (carry Bool))
-  (Bool (BitVec n) Int (BitVec n) Bool) (BitVec n)
+  (Bool (BitVec n) Int (BitVec np) Bool) (BitVec n)
   (
   (($bv_shift_add_multiplier_rec_step b1 a2 0 @bv_empty carry)                              @bv_empty)
   (($bv_shift_add_multiplier_rec_step b1 (@from_bools b2 a2) 0 (@from_bools br ar) carry)
@@ -323,8 +323,8 @@
 ; - a (BitVec n): The first term to multiply, a lists of bits.
 ; - b (BitVec n): The second term to multiply, a lists of bits.
 ; return: the bitblasted term for (bvmul a b).
-(program $bv_shift_add_multiplier ((n Int) (b1 Bool) (a1 (BitVec n) :list) (a2 (BitVec n)))
-  ((BitVec n) (BitVec n)) (BitVec n)
+(program $bv_shift_add_multiplier ((n Int) (m Int) (b1 Bool) (a1 (BitVec n) :list) (a2 (BitVec n)))
+  ((BitVec n) (BitVec m)) (BitVec n)
   (
   (($bv_shift_add_multiplier a2 (@from_bools b1 a1))
     (eo::define ((sz ($bv_bitwidth (eo::typeof a2))))
@@ -534,8 +534,8 @@
 ; - lsz Int: The bitwidth of a1.
 ; - sbit Bool: The sign bit we are processing (the sign of first argument for bvashr, false otherwise).
 ; return: the bitblasted term for processing the left shift of a1 and a2.
-(program $bv_mk_bitblast_step_shr_rec ((s Int) (lsz Int) (n Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec n) :list) (sbit Bool))
-  ((BitVec n) (BitVec n) Int Int Bool) (BitVec n)
+(program $bv_mk_bitblast_step_shr_rec ((s Int) (lsz Int) (n Int) (m Int) (a1 (BitVec n)) (b2 Bool) (a2 (BitVec m) :list) (sbit Bool))
+  ((BitVec n) (BitVec m) Int Int Bool) (BitVec n)
   (
   (($bv_mk_bitblast_step_shr_rec a1 a2 lsz lsz sbit)                a1)
   (($bv_mk_bitblast_step_shr_rec a1 (@from_bools b2 a2) s lsz sbit)
