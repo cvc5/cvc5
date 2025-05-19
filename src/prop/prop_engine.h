@@ -147,6 +147,13 @@ class PropEngine : protected EnvObj
    * @param texp The explained propagation.
    */
   void notifyExplainedPropagation(TrustNode texp);
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause.
+   *
+   * @param clause The (node representation) of the clause.
+   */
+  void notifySatClause(const Node& clause);
 
   /**
    * Configure the preferred phase of a decision variable. This occurs
