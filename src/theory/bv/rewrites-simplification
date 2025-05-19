@@ -411,11 +411,6 @@
   ((x ?BitVec) (n Int))
   (bvult x (@bv 1 n))
   (= x (@bv 0 n)))
-(define-cond-rule bv-slt-zero
-  ((x ?BitVec) (n Int) (nm1 Int))
-  (= nm1 (- n 1))
-  (bvslt x (@bv 0 n))
-  (= (extract nm1 nm1 x) (@bv 1 1)))
 
 (define-cond-rule bv-merge-sign-extend-1
   ((x ?BitVec) (i Int) (j Int) (k Int))

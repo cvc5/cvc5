@@ -114,27 +114,6 @@ inline Node RewriteRule<SgeEliminate>::apply(TNode node)
 }
 
 template <>
-inline bool RewriteRule<SltEliminate>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_SLT);
-}
-
-template <>
-inline Node RewriteRule<SltEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<SltEliminate>(" << node << ")"
-                      << std::endl;
-  NodeManager* nm = node.getNodeManager();
-  unsigned size = utils::getSize(node[0]);
-  Integer val = Integer(1).multiplyByPow2(size - 1);
-  Node pow_two = utils::mkConst(nm, size, val);
-  Node a = NodeManager::mkNode(Kind::BITVECTOR_ADD, node[0], pow_two);
-  Node b = NodeManager::mkNode(Kind::BITVECTOR_ADD, node[1], pow_two);
-
-  return NodeManager::mkNode(Kind::BITVECTOR_ULT, a, b);
-}
-
-template <>
 inline bool RewriteRule<SleEliminate>::applies(TNode node)
 {
   return (node.getKind() == Kind::BITVECTOR_SLE);
@@ -166,25 +145,6 @@ inline Node RewriteRule<UleEliminate>::apply(TNode node)
   TNode b = node[1];
   Node b_ult_a = NodeManager::mkNode(Kind::BITVECTOR_ULT, b, a);
   return NodeManager::mkNode(Kind::NOT, b_ult_a);
-}
-
-template <>
-inline bool RewriteRule<CompEliminate>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_COMP);
-}
-
-template <>
-inline Node RewriteRule<CompEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<CompEliminate>(" << node << ")"
-                      << std::endl;
-  NodeManager* nm = node.getNodeManager();
-  Node comp = NodeManager::mkNode(Kind::EQUAL, node[0], node[1]);
-  Node one = utils::mkConst(nm, 1, 1);
-  Node zero = utils::mkConst(nm, 1, 0);
-
-  return NodeManager::mkNode(Kind::ITE, comp, one, zero);
 }
 
 template <>
@@ -368,46 +328,6 @@ inline Node RewriteRule<SdivEliminate>::apply(TNode node)
   return result;
 }
 
-/*
- * This rewrite is not meant to be used by the BV rewriter
- * It is specifically designed for the bv-to-int preprocessing pass.
- * Similar to ordinary sdiv elimination.
- * The sign-check is done with bvult instead of bit-extraction.
- */
-template <>
-inline bool RewriteRule<SdivEliminateFewerBitwiseOps>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_SDIV);
-}
-
-template <>
-inline Node RewriteRule<SdivEliminateFewerBitwiseOps>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<SdivEliminateFewerBitwiseOps>(" << node
-                      << ")" << std::endl;
-
-  TNode a = node[0];
-  TNode b = node[1];
-  unsigned size = utils::getSize(a);
-  NodeManager* nm = node.getNodeManager();
-  Node a_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, a, utils::mkMinSigned(nm, size));
-  Node b_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, b, utils::mkMinSigned(nm, size));
-  Node abs_a = NodeManager::mkNode(
-      Kind::ITE, a_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, a), a);
-  Node abs_b = NodeManager::mkNode(
-      Kind::ITE, b_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, b), b);
-
-  Node a_udiv_b = NodeManager::mkNode(Kind::BITVECTOR_UDIV, abs_a, abs_b);
-  Node neg_result = NodeManager::mkNode(Kind::BITVECTOR_NEG, a_udiv_b);
-
-  Node result = NodeManager::mkNode(
-      Kind::ITE, a_lt_0.xorNode(b_lt_0), neg_result, a_udiv_b);
-
-  return result;
-}
-
 template <>
 inline bool RewriteRule<SremEliminate>::applies(TNode node)
 {
@@ -434,43 +354,6 @@ inline Node RewriteRule<SremEliminate>::apply(TNode node)
   Node abs_b = NodeManager::mkNode(
       Kind::ITE, b_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, b), b);
 
-  Node a_urem_b = NodeManager::mkNode(Kind::BITVECTOR_UREM, abs_a, abs_b);
-  Node neg_result = NodeManager::mkNode(Kind::BITVECTOR_NEG, a_urem_b);
-
-  Node result = NodeManager::mkNode(Kind::ITE, a_lt_0, neg_result, a_urem_b);
-
-  return result;
-}
-
-/*
- * This rewrite is not meant to be used by the BV rewriter
- * It is specifically designed for the bv-to-int preprocessing pass.
- * Similar to ordinary srem elimination.
- * The sign-check is done with bvult instead of bit-extraction.
- */
-template <>
-inline bool RewriteRule<SremEliminateFewerBitwiseOps>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_SREM);
-}
-
-template <>
-inline Node RewriteRule<SremEliminateFewerBitwiseOps>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<SremEliminateFewerBitwiseOps>(" << node
-                      << ")" << std::endl;
-  TNode a = node[0];
-  TNode b = node[1];
-  unsigned size = utils::getSize(a);
-  NodeManager* nm = node.getNodeManager();
-  Node a_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, a, utils::mkMinSigned(nm, size));
-  Node b_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, b, utils::mkMinSigned(nm, size));
-  Node abs_a = NodeManager::mkNode(
-      Kind::ITE, a_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, a), a);
-  Node abs_b = NodeManager::mkNode(
-      Kind::ITE, b_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, b), b);
   Node a_urem_b = NodeManager::mkNode(Kind::BITVECTOR_UREM, abs_a, abs_b);
   Node neg_result = NodeManager::mkNode(Kind::BITVECTOR_NEG, a_urem_b);
 
@@ -542,76 +425,6 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
   return result;
 }
 
-/*
- * This rewrite is not meant to be used by the BV rewriter
- * It is specifically designed for the bv-to-int preprocessing pass.
- * Similar to ordinary smod elimination.
- * The sign-check is done with bvult instead of bit-extraction.
- */
-template <>
-inline bool RewriteRule<SmodEliminateFewerBitwiseOps>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_SMOD);
-}
-
-template <>
-inline Node RewriteRule<SmodEliminateFewerBitwiseOps>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<SmodEliminate>(" << node << ")"
-                      << std::endl;
-  NodeManager* nm = node.getNodeManager();
-  TNode s = node[0];
-  TNode t = node[1];
-  unsigned size = utils::getSize(s);
-
-  /*
-   * (bvsmod s t) abbreviates
-   *    (let ((?msb_s ((_ extract |m-1| |m-1|) s))
-   *          (?msb_t ((_ extract |m-1| |m-1|) t)))
-   *      (let ((abs_s (ite (= ?msb_s #b0) s (bvneg s)))
-   *            (abs_t (ite (= ?msb_t #b0) t (bvneg t))))
-   *        (let ((u (bvurem abs_s abs_t)))
-   *          (ite (= u (_ bv0 m))
-   *               u
-   *          (ite (and (= ?msb_s #b0) (= ?msb_t #b0))
-   *               u
-   *          (ite (and (= ?msb_s #b1) (= ?msb_t #b0))
-   *               (bvadd (bvneg u) t)
-   *          (ite (and (= ?msb_s #b0) (= ?msb_t #b1))
-   *               (bvadd u t)
-   *               (bvneg u))))))))
-   */
-
-  Node s_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, s, utils::mkMinSigned(nm, size));
-  Node t_lt_0 =
-      NodeManager::mkNode(Kind::BITVECTOR_UGE, t, utils::mkMinSigned(nm, size));
-  Node abs_s = NodeManager::mkNode(
-      Kind::ITE, s_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, s), s);
-  Node abs_t = NodeManager::mkNode(
-      Kind::ITE, t_lt_0, NodeManager::mkNode(Kind::BITVECTOR_NEG, t), t);
-
-  Node u = NodeManager::mkNode(Kind::BITVECTOR_UREM, abs_s, abs_t);
-  Node neg_u = NodeManager::mkNode(Kind::BITVECTOR_NEG, u);
-
-  Node cond0 = u.eqNode(utils::mkConst(nm, size, 0));
-  Node cond1 = NodeManager::mkNode(Kind::NOT, s_lt_0)
-                   .andNode(NodeManager::mkNode(Kind::NOT, t_lt_0));
-  Node cond2 = s_lt_0.andNode(NodeManager::mkNode(Kind::NOT, t_lt_0));
-  Node cond3 = NodeManager::mkNode(Kind::NOT, s_lt_0).andNode(t_lt_0);
-
-  Node result = cond0.iteNode(
-      u,
-      cond1.iteNode(
-          u,
-          cond2.iteNode(
-              NodeManager::mkNode(Kind::BITVECTOR_ADD, neg_u, t),
-              cond3.iteNode(NodeManager::mkNode(Kind::BITVECTOR_ADD, u, t),
-                            neg_u))));
-
-  return result;
-}
-
 template <>
 inline bool RewriteRule<ZeroExtendEliminate>::applies(TNode node)
 {
@@ -633,29 +446,6 @@ inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node)
   Node result = utils::mkConcat(zero, node[0]); 
 
   return result;
-}
-
-template <>
-inline bool RewriteRule<SignExtendEliminate>::applies(TNode node)
-{
-  return (node.getKind() == Kind::BITVECTOR_SIGN_EXTEND);
-}
-
-template <>
-inline Node RewriteRule<SignExtendEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<SignExtendEliminate>(" << node << ")" << std::endl;
-
-  unsigned amount =
-      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
-  if(amount == 0) {
-    return node[0]; 
-  }
-  unsigned size = utils::getSize(node[0]); 
-  Node sign_bit = utils::mkExtract(node[0], size-1, size-1); 
-  Node extension = utils::mkConcat(sign_bit, amount);
-
-  return utils::mkConcat(extension, node[0]);
 }
 
 template <>
