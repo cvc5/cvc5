@@ -36,6 +36,7 @@ set(regress_0_tests
   regress0/arith/bug569.smt2
   regress0/arith/dd_59_static_learn.smt2
   regress0/arith/dd_cs_dekker.smt2
+  regress0/arith/dd-10890-round-robin.smt2
   regress0/arith/delta-minimized-row-vector-bug.smtv1.smt2
   regress0/arith/div-chainable.smt2
   regress0/arith/div.01.smt2
@@ -162,6 +163,7 @@ set(regress_0_tests
   regress0/arrays/issue9043_4.smt2
   regress0/arrays/issue10494.smt2
   regress0/arrays/issue10494-2.smt2
+  regress0/arrays/issue11889-eec-unsat.smt2
   regress0/arrays/proj-issue322-has-term.smt2
   regress0/arrays/proj-issue391-minisat-elim.smt2
   regress0/arrays/proj-issue467-cm.smt2
@@ -181,6 +183,7 @@ set(regress_0_tests
   regress0/aufbv/bug580.delta.smt2
   regress0/aufbv/cee-small-shared-eq.smt2
   regress0/aufbv/dd_644_ph7.smt2
+  regress0/aufbv/dd.fifo32bc06k08.delta01.smtv1.smt2
   regress0/aufbv/diseqprop.01.smtv1.smt2
   regress0/aufbv/dubreva005ue.delta01.smtv1.smt2
   regress0/aufbv/fifo32bc06k08.delta01.smtv1.smt2
@@ -898,6 +901,8 @@ set(regress_0_tests
   regress0/fmf/issue5922-fmf-not-x.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
+  regress0/fmf/proj-issue622-fmf-dt-u.smt2
+  regress0/fmf/proj-issue622-fmf-dt-u-orig.smt2
   regress0/fmf/QEpres-uf.855035.smtv1.smt2
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
@@ -1380,6 +1385,8 @@ set(regress_0_tests
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
+  regress0/proofs/big-rec-len.smt2
+  regress0/proofs/big-ss-len-include.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
@@ -2031,6 +2038,7 @@ set(regress_0_tests
   regress0/strings/large-unify.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/leq.smt2
+  regress0/strings/long-easy-clash.smt2
   regress0/strings/loop-wrong-sem.smt2
   regress0/strings/loop001.smt2
   regress0/strings/min-norn-re-include.smt2

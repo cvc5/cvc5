@@ -361,6 +361,7 @@ name   = "SMT Layer"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "mode for translating BVAnd to integer"
   help_mode  = "solve-bv-as-int modes."
 [[option.mode.OFF]]
