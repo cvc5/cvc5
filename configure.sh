@@ -17,7 +17,7 @@ Build types:
   competition
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
-    Like production except --safe-options is set to true
+    Like production except --safe-mode is set to safe
 
 
 General options;

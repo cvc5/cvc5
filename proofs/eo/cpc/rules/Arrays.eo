@@ -48,13 +48,3 @@
   :premises ((not (= a b)))
   :conclusion (not (= (select a (@array_deq_diff a b)) (select b (@array_deq_diff a b))))
 )
-
-; rule: arrays-select-const
-; implements: ProofRewriteRule::ARRAYS_SELECT_CONST.
-; args:
-; - eq : Bool. The equality between a select of an array constant and the constant it stores.
-; conclusion: The given equality.
-(declare-rule arrays-select-const ((T Type) (U Type) (i T) (c U))
-  :args ((= (select (store_all (Array T U) c) i) c))
-  :conclusion (= (select (store_all (Array T U) c) i) c)
-)

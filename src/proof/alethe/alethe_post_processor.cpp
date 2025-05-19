@@ -91,6 +91,65 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
          || rule == AletheRule::CONTRACTION;
 }
 
+bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
+    Node res,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    ProofRewriteRule di)
+{
+  NodeManager* nm = nodeManager();
+  std::vector<Node> new_args = std::vector<Node>();
+  switch (di)
+  {
+    // ======== DISTINCT_ELIM
+    // ======== DISTINCT_CARD_CONFLICT
+    // Both rules are translated according to the clauses pattern to
+    // distinct_elim. The only exception to this is when DISTINCT_ELIM results
+    // in a term with exactly two boolean arguments. The Alethe distinct_elim
+    // rule has a special handling in this case and rewrites the distinct term
+    // to False directly (as the DISTINCT_CARD_CONFLICT rule does in cvc5).
+    // Instead, we output a RARE_REWRITE step using the distinct_two_bool_elim
+    // rule.
+    //
+    // (define-rule distinct_bin_bool_elim ((t1 Bool) (t2 Bool))
+    // (distinct t1 t2)
+    // (not (= t1 t2)))
+    case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
+    {
+      Node eq = res[0];
+      Node t1 = eq[0];
+      if (di == ProofRewriteRule::DISTINCT_ELIM && t1.getType().isBoolean()
+          && eq.getNumChildren() == 2)
+      {
+        return addAletheStep(
+            AletheRule::RARE_REWRITE,
+            res,
+            nm->mkNode(Kind::SEXPR, d_cl, res),
+            {},
+            {nm->mkRawSymbol("\"distinct_bin_bool_elim\"", nm->sExprType()),
+             t1,
+             eq[1]},
+            *cdp);
+      }
+      return addAletheStep(AletheRule::DISTINCT_ELIM,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           new_args,
+                           *cdp);
+    }
+    default: break;
+  }
+  return addAletheStep(AletheRule::HOLE,
+                       res,
+                       nm->mkNode(Kind::SEXPR, d_cl, res),
+                       children,
+                       new_args,
+                       *cdp);
+}
+
 bool AletheProofPostprocessCallback::update(Node res,
                                             ProofRule id,
                                             const std::vector<Node>& children,
@@ -442,6 +501,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            children,
                            new_args,
                            *cdp);
+    }
+    case ProofRule::THEORY_REWRITE:
+    {
+      ProofRewriteRule di;
+      rewriter::getRewriteRule(args[0], di);
+      return updateTheoryRewriteProofRewriteRule(
+          res, children, args, cdp, di);
     }
     // Both ARITH_POLY_NORM and EVALUATE, which are used by the Rare
     // elaboration, are captured by the "rare_rewrite" rule.

@@ -27,7 +27,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPrintConclusion"
-  category   = "expert"
+  category   = "common"
   long       = "proof-print-conclusion"
   type       = "bool"
   default    = "false"
@@ -60,7 +60,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofCheck"
-  category   = "expert"
+  category   = "common"
   long       = "proof-check=MODE"
   type       = "ProofCheckMode"
   default    = "NONE"
@@ -201,7 +201,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPrintReference"
-  category   = "expert"
+  category   = "common"
   long       = "proof-print-reference"
   type       = "bool"
   default    = "false"

@@ -1,13 +1,5 @@
 ; -- Core Normalization Rules --
 
-(define-rule* bv-concat-flatten
-  ((xs ?BitVec :list)
-   (s1 ?BitVec)
-   (s2 ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (concat xs (concat s1 s2 ys) zs)
-  (concat xs s1 s2 ys zs))
 (define-cond-rule bv-concat-extract-merge
   ((xs ?BitVec :list)
    (s ?BitVec)
@@ -80,18 +72,6 @@
   (= x (concat y (extract im1 0 x))))
 
 ; -- Normalization Rules --
-(define-rule bv-extract-bitwise-and
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvand x y))
-  (bvand (extract j i x) (extract j i y)))
-(define-rule bv-extract-bitwise-or
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvor x y))
-  (bvor (extract j i x) (extract j i y)))
-(define-rule bv-extract-bitwise-xor
-  ((x ?BitVec) (y ?BitVec) (i Int) (j Int))
-  (extract j i (bvxor x y))
-  (bvxor (extract j i x) (extract j i y)))
 (define-rule bv-extract-not
   ((x ?BitVec) (i Int) (j Int))
   (extract j i (bvnot x))
@@ -167,11 +147,6 @@
   (and
     (not (= (bvadd ys zs) (bvnot (@bv 0 w))))
     (not (bvult (bvadd ys zs) x))))
-(define-cond-rule bv-concat-to-mult
-  ((x ?BitVec) (i Int) (m Int) (n0 Int) (w Int))
-  (and (= (+ 1 i m) (@bvsize x)) (= n0 0) (= w (@bvsize x)))
-  (concat (extract i n0 x) (@bv n0 m))
-  (bvmul x (bvshl (@bv 1 w) (@bv m w))))
 
 (define-cond-rule bv-mult-slt-mult-1
   ((x ?BitVec) (y ?BitVec) (a ?BitVec) (n Int) (m Int) (tn Int) (an Int))
@@ -222,15 +197,6 @@
   (distinct x (@bv n w)))
 
 ; Collapse rules
-
-(define-rule* bv-xor-flatten
-  ((xs ?BitVec :list)
-   (s1 ?BitVec)
-   (s2 ?BitVec)
-   (ys ?BitVec :list)
-   (zs ?BitVec :list))
-  (bvxor xs (bvxor s1 s2 ys) zs)
-  (bvxor xs s1 s2 ys zs))
 
 (define-cond-rule bv-concat-merge-const
   ((xs ?BitVec :list)
