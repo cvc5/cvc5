@@ -602,9 +602,9 @@ Term Smt2TermParser::parseTerm()
               // Corner case: the list of terms is empty. This is a legal
               // pattern in SMT-LIB, and hence we ignore it, for other
               // attributes we throw an error.
-              if (d_lex.peekToken()==Token::RPAREN_TOK)
+              if (d_lex.peekToken() == Token::RPAREN_TOK)
               {
-                if (attrKind==Kind::INST_PATTERN)
+                if (attrKind == Kind::INST_PATTERN)
                 {
                   // silently ignores
                   d_lex.eatToken(Token::RPAREN_TOK);
@@ -618,7 +618,8 @@ Term Smt2TermParser::parseTerm()
               }
               else
               {
-                // Will parse list as arguments to the kind + closing parenthesis.
+                // Will parse list as arguments to the kind + closing
+                // parenthesis.
                 ParseOp op;
                 op.d_kind = attrKind;
                 tstack.emplace_back(op, std::vector<Term>());
