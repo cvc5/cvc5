@@ -20,61 +20,6 @@
     (($singleton_elim_aci f id x)          x)
   )
 )
-
-;; =============== for ACI_NORM associative, commutative and idempotent
-
-; program: $ac_append
-; args:
-; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
-; - id S: The nil terminator of f.
-; - s1 S: The first term to process.
-; - s2 S: The second term to process.
-; - isi Bool: Whether f is idempotent.
-; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
-(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list) (isi Bool))
-  ((-> T U S) S S S Bool) S
-  (
-    (($ac_append f id (f x1 x2) (f y1 y2) isi)  (eo::ite (eo::ite (eo::is_eq x1 y1) isi false)
-                                                  ($ac_append f id (f x1 x2) y2 isi)
-                                                  (eo::ite ($compare_var x1 y1)
-                                                    (eo::cons f x1 ($ac_append f id x2 (f y1 y2) isi))
-                                                    (eo::cons f y1 ($ac_append f id (f x1 x2) y2 isi)))))
-    (($ac_append f id (f x1 x2) id isi)         (f x1 x2))
-    (($ac_append f id id (f y1 y2) isi)         (f y1 y2))
-    (($ac_append f id id id isi)                id)
-  )
-)
-
-; program: $get_aci_norm_rec
-; args:
-; - f (-> T U S): The function, which is assumed to be associative, commutative, idempotent and has the given identity.
-; - id S: The nil terminator of f.
-; - s S: The term to process.
-; - isi Bool: Whether f is idempotent.
-; return: the result of normalizing s based on ACI reasoning.
-(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (isi Bool))
-  ((-> T U S) S S Bool) S
-  (
-    (($get_aci_norm_rec f id (f id x2) isi)   ($get_aci_norm_rec f id x2 isi))
-    (($get_aci_norm_rec f id (f x1 x2) isi)   ($ac_append f id ($get_aci_norm_rec f id x1 isi) ($get_aci_norm_rec f id x2 isi) isi))
-    (($get_aci_norm_rec f id id isi)          id)
-    (($get_aci_norm_rec f id x isi)           (eo::cons f x id))
-  )
-)
-
-; define: $get_aci_norm
-; args:
-; - t T: The term to process.
-; - isi Bool: Whether f is idempotent.
-; return: the result of normalizing s based on ACI reasoning.
-(define $get_aci_norm ((T Type :implicit) (t T) (isi Bool))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
-    t
-    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_aci_norm_rec f id t isi))))))
-)
-
-;; =============== for ACI_NORM associative
-
 ; program: $get_a_norm_rec
 ; args:
 ; - f (-> T U S): The function we are considering, which is assumed to be associative and has the given identity.
@@ -91,13 +36,39 @@
   )
 )
 
+; define: $get_ai_norm
+; args:
+; - t T: The term to process.
+; return: the result of normalizing s based on associative+identity+idempotent reasoning.
+(define $get_ai_norm ((T Type :implicit) (t T))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+    t
+    (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id t)))))))
+)
+
 ; define: $get_a_norm
 ; args:
 ; - t T: The term to process.
 ; return: the result of normalizing s based on associative+identity reasoning.
 (define $get_a_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
     t
     (((f x y) (eo::define ((id (eo::nil f x y))) ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
 )
 
+(declare-parameterized-const @aci_sorted ((T Type :implicit)) (-> T T))
+
+(program $aci_norm_eq ((S Type) (U Type) (V Type) (t S) (s S) (f (-> S U V)) (x S) (y U))
+  (S S) Bool
+  (
+  (($aci_norm_eq t t) true)
+  (($aci_norm_eq (@aci_sorted t) t) true)
+  (($aci_norm_eq (@aci_sorted (f x y)) (@aci_sorted s)) (eo::list_is_submset f (f x y) s))
+  )
+)
+
+
+(define $is_aci_norm ((S Type :implicit) (a S) (b S) (an S) (bn S))
+  (eo::ite ($aci_norm_eq an b) true
+  (eo::ite ($aci_norm_eq bn a) true
+    ($aci_norm_eq an bn))))
