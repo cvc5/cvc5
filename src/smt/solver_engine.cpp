@@ -1334,7 +1334,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
     for (const Node& sym : syms)
     {
       SkolemId kid = sym.getSkolemId();
-      if (kid==SkolemId::NONE)
+      if (kid == SkolemId::NONE)
       {
         continue;
       }

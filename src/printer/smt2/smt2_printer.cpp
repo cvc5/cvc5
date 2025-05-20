@@ -1655,7 +1655,7 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
     varList = value[0];
     body = value[1];
   }
-  if (kid==SkolemId::NONE)
+  if (kid == SkolemId::NONE)
   {
     out << "(define-fun " << n << " ";
   }
@@ -1673,7 +1673,7 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
       case SkolemId::MOD_BY_ZERO:
       {
         std::vector<Node> vars(varList.begin(), varList.end());
-        Assert (vars.size()==1);
+        Assert(vars.size() == 1);
         // Each of these defines the case of a binary function when the
         // second argument is zero.
         Kind k = Kind::UNDEFINED_KIND;
@@ -1682,21 +1682,22 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
           case SkolemId::DIV_BY_ZERO: k = Kind::DIVISION; break;
           case SkolemId::INT_DIV_BY_ZERO: k = Kind::INTS_DIVISION; break;
           case SkolemId::MOD_BY_ZERO: k = Kind::INTS_MODULUS; break;
-          default:
-            break;
+          default: break;
         }
         out << "(refine-fun " << smtKindString(k) << " ";
-        Node v = nm->mkBoundVar("_arg_denominator_2", n.getType().getArgTypes()[0]);
+        Node v =
+            nm->mkBoundVar("_arg_denominator_2", n.getType().getArgTypes()[0]);
         vars.push_back(v);
         Node elseCase = nm->mkNode(k, vars);
-        Node cond = nm->mkNode(Kind::EQUAL, v, nm->mkConstRealOrInt(v.getType(), Rational(0)));
+        Node cond = nm->mkNode(
+            Kind::EQUAL, v, nm->mkConstRealOrInt(v.getType(), Rational(0)));
         body = nm->mkNode(Kind::ITE, {cond, body, elseCase});
         varList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
       }
-        break;
+      break;
       default:
-      // unhandled, ignore
-      return;
+        // unhandled, ignore
+        return;
     }
   }
   if (varList.isNull())
