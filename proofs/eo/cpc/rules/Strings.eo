@@ -614,7 +614,7 @@
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
     ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr (eo::list_erase @list xs s)))
                                                             (eo::define ((nrem (eo::is_eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs

@@ -12,55 +12,6 @@
 ;
 ; =============================================
 
-; program: $nary_is_subset
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2, e.g. all children of c1 are also children of
-;   c2, or false otherwise.
-(program $nary_is_subset
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
-    ((-> L L L) L L L) Bool
-    (
-        (($nary_is_subset cons nil (cons c xs) t) (eo::ite (eo::is_neg (eo::list_find cons t c)) false ($nary_is_subset cons nil xs t)))
-        (($nary_is_subset cons nil nil t)         true)
-    )
-)
-
-; define: $nary_is_eq_set
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2 and c2 is a subset of c1.
-(define $nary_is_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
-  (eo::ite ($nary_is_subset cons nil c1 c2)
-    ($nary_is_subset cons nil c2 c1)
-    false))
-
-; program: $nary_remove
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to find.
-; - xs L: The term to search in, assumed to be a cons-list.
-; return: >
-;   The result of removing the first occurrence of c from xs if it exists.
-(program $nary_remove
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (y L) (xs L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_remove cons nil c (cons c xs)) xs)
-        (($nary_remove cons nil c (cons y xs)) (eo::cons cons y ($nary_remove cons nil c xs)))
-        (($nary_remove cons nil c nil)         nil)
-    )
-)
-
 ; program: $nary_is_prefix
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.
