@@ -77,8 +77,9 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
-  # only supports C17. Thus, we fix it to C17.
-  set(GMP_CFLAGS "-std=gnu17")
+  # only supports C17. To also support older compiler versions, we fix the
+  # standard for GMP to C99.
+  set(GMP_CFLAGS "-std=gnu99")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
