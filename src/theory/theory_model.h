@@ -268,6 +268,10 @@ class TheoryModel : protected EnvObj
    * has called buildModel(...) on this model.
    */
   Node getValue(TNode n) const;
+  /**
+   * Get all symbols in the model
+   */
+  std::unordered_set<Node> getAllSymbols() const;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */

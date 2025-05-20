@@ -1326,6 +1326,8 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
     std::pair<Node, Node> sh = getSepHeapAndNilExpr();
     m.setHeapModel(sh.first, sh.second);
   }
+  // get all symbols
+  std::unordered_set<Node> syms = tm->getAllSymbols();
   // print the model
   std::stringstream ssm;
   ssm << m;
