@@ -75,7 +75,7 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=-std=gnu17")
+  set(GMP_CFLAGS "-std=gnu17")
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -113,10 +113,11 @@ if(NOT GMP_FOUND_SYSTEM)
     if (CMAKE_CROSSCOMPILING_MACOS)
       set(CONFIGURE_ENV
         ${CONFIGURE_ENV}
-        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(GMP_CFLAGS "${GMP_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
   endif()
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
