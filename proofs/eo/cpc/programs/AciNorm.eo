@@ -71,7 +71,7 @@
   (
   (($aci_norm_eq t t) true)
   (($aci_norm_eq (@aci_sorted t) t) true)
-  (($aci_norm_eq (@aci_sorted (f x y)) (@aci_sorted s)) (eo::list_is_mset_eq f (f x y) s))
+  (($aci_norm_eq (@aci_sorted (f x y)) (@aci_sorted s)) (eo::list_meq f (f x y) s))
   (($aci_norm_eq t s) false)
   )
 )
