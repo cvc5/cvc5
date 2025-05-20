@@ -1678,6 +1678,7 @@ set(regress_0_tests
   regress0/rels/card_transpose.cvc.smt2
   regress0/rels/iden_0.cvc.smt2
   regress0/rels/iden_1.cvc.smt2
+  regress0/rels/issue11903-join-unit-tuple.smt2
   regress0/rels/join-eq-u-sat.cvc.smt2
   regress0/rels/join-eq-u.cvc.smt2
   regress0/rels/joinImg_0.cvc.smt2
