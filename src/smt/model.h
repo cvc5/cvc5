@@ -84,9 +84,6 @@ class Model {
   const std::vector<TypeNode>& getDeclaredSorts() const;
   /** get declared terms */
   const std::vector<Node>& getDeclaredTerms() const;
-  /** get all symbols known to the model, even if they were not user
-   * declarations */
-  const std::vector<Node>& getAllTerms() const;
   //----------------------- end model declarations
  protected:
   /** the input name (file name, etc.) this model is associated to */
@@ -110,8 +107,6 @@ class Model {
   std::vector<Node> d_declareTerms;
   /** Mapping terms to values */
   std::map<Node, Node> d_declareTermValues;
-  /** */
-  std::vector<Node> d_allTerms;
   /** Separation logic heap and nil */
   Node d_sepHeap;
   Node d_sepNilEq;

@@ -1327,7 +1327,21 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
     m.setHeapModel(sh.first, sh.second);
   }
   // get all symbols
+  Trace("ajr-temp") << "getModel: get all symbols ..." << std::endl;
   std::unordered_set<Node> syms = tm->getAllSymbols();
+  for (const Node& sym : syms)
+  {
+    SkolemId kid = sym.getSkolemId();
+    if (kid==SkolemId::NONE)
+    {
+      continue;
+    }
+    Trace("ajr-temp") << "Skolem: " << sym << std::endl;
+    Node kv = tm->getValue(sym);
+    Trace("ajr-temp") << "Model value: " << kv << std::endl;
+    m.addDeclarationTerm(sym, kv);
+  }
+  Trace("ajr-temp") << "...finished." << std::endl;
   // print the model
   std::stringstream ssm;
   ssm << m;

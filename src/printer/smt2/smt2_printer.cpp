@@ -1647,19 +1647,62 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
                                     const Node& n,
                                     const Node& value) const
 {
+  SkolemId kid = n.getSkolemId();
+  Node varList;
+  Node body = value;
   if (value.getKind() == Kind::LAMBDA)
   {
-    TypeNode rangeType = n.getType().getRangeType();
-    out << "(define-fun " << n << " " << value[0] << " " << rangeType << " ";
-    toStream(out, value[1]);
-    out << ")" << endl;
+    varList = value[0];
+    body = value[1];
+  }
+  if (kid==SkolemId::NONE)
+  {
+    out << "(define-fun " << n << " ";
   }
   else
   {
-    out << "(define-fun " << n << " () " << n.getType() << " ";
-    toStream(out, value);
-    out << ")" << endl;
+    NodeManager* nm = n.getNodeManager();
+    std::vector<Node> vars(varList.begin(), varList.end());
+    switch (kid)
+    {
+      case SkolemId::DIV_BY_ZERO:
+      case SkolemId::INT_DIV_BY_ZERO:
+      case SkolemId::MOD_BY_ZERO:
+      {
+        Kind k = Kind::UNDEFINED_KIND;
+        switch (kid)
+        {
+          case SkolemId::DIV_BY_ZERO: k = Kind::DIVISION; break;
+          case SkolemId::INT_DIV_BY_ZERO: k = Kind::INTS_DIVISION; break;
+          case SkolemId::MOD_BY_ZERO: k = Kind::INTS_MODULUS; break;
+          default:
+            break;
+        }
+        out << "(refine-fun " << smtKindString(k) << " ";
+        Node v = nm->mkBoundVar("_arg_denominator_2", n.getType().getArgTypes()[0]);
+        vars.push_back(v);
+        Node elseCase = nm->mkNode(k, vars);
+        Node cond = nm->mkNode(Kind::EQUAL, v, nm->mkConstRealOrInt(v.getType(), Rational(0)));
+        body = nm->mkNode(Kind::ITE, {cond, body, elseCase});
+      }
+        break;
+      default:
+      // unhandled
+      return;
+    }
+    varList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
   }
+  if (varList.isNull())
+  {
+    out << "() ";
+  }
+  else
+  {
+    out << varList << " ";
+  }
+  out << body.getType() << " ";
+  toStream(out, body);
+  out << ")" << endl;
 }
 
 void Smt2Printer::toStreamCmdSuccess(std::ostream& out) const

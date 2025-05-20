@@ -175,13 +175,14 @@ std::unordered_set<Node> TheoryModel::getAllSymbols() const
     Node eqc = *eqcs_i;
     ++eqcs_i;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
-    while (!eqc_i.isFinished(); ++eqc_i)
+    while (!eqc_i.isFinished())
     {
       Node n = *eqc_i;
       ++eqc_i;
       expr::getSymbols(n, syms, visited);
     }
   }
+  return syms;
 }
 
 bool TheoryModel::isModelCoreSymbol(Node s) const
