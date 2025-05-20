@@ -1661,14 +1661,21 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
   }
   else
   {
+    // If it is a skolem, then we may be the case that we should print a
+    // "refinement" of an existing theory function, e.g. / if the skolem is
+    // DIV_BY_ZERO. All skolems that indicate this kind of information should
+    // be manually handled below.
     NodeManager* nm = n.getNodeManager();
-    std::vector<Node> vars(varList.begin(), varList.end());
     switch (kid)
     {
       case SkolemId::DIV_BY_ZERO:
       case SkolemId::INT_DIV_BY_ZERO:
       case SkolemId::MOD_BY_ZERO:
       {
+        std::vector<Node> vars(varList.begin(), varList.end());
+        Assert (vars.size()==1);
+        // Each of these defines the case of a binary function when the
+        // second argument is zero.
         Kind k = Kind::UNDEFINED_KIND;
         switch (kid)
         {
@@ -1684,13 +1691,13 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
         Node elseCase = nm->mkNode(k, vars);
         Node cond = nm->mkNode(Kind::EQUAL, v, nm->mkConstRealOrInt(v.getType(), Rational(0)));
         body = nm->mkNode(Kind::ITE, {cond, body, elseCase});
+        varList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
       }
         break;
       default:
-      // unhandled
+      // unhandled, ignore
       return;
     }
-    varList = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
   }
   if (varList.isNull())
   {
