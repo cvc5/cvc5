@@ -1096,6 +1096,7 @@ set(regress_0_tests
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
+  regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
