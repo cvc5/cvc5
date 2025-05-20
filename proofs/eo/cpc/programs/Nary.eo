@@ -61,39 +61,6 @@
     )
 )
 
-; Helper for reverse
-; program: $nary_reverse_rec
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to reverse, assumed to be a cons-list.
-; - acc L: The current accumulated reversal of elements we have processed.
-; return: >
-;   The result of prepending the reverse of c to acc.
-(program $nary_reverse_rec
-    ((L Type) (cons (-> L L L)) (nil L) (x L) (xs L :list) (l L :list))
-    ((-> L L L) L L L) L
-    (
-        (($nary_reverse_rec cons nil (cons x xs) l) ($nary_reverse_rec cons nil xs (eo::cons cons x l)))
-        (($nary_reverse_rec cons nil nil l)         l)
-    )
-)
-
-; program: $nary_reverse
-; args:
-; - x L: The term to reverse.
-; return: >
-;   The reverse of x. Assumes that x is the application of a :right-assoc-nil
-;   function, otherwise returns x itself.
-(program $nary_reverse
-    ((L Type) (cons (-> L L L)) (x L) (xs L :list))
-    (L) L
-    (
-        (($nary_reverse (cons x xs)) (eo::define ((nil (eo::nil cons x xs))) ($nary_reverse_rec cons nil (cons x xs) nil)))
-        (($nary_reverse x)           x)
-    )
-)
-
 ; program: $nary_is_prefix
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.

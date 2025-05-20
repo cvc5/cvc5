@@ -99,7 +99,7 @@
 ;   applied with duplication of variables.
 (declare-rule quant_var_reordering ((x @List) (y @List) (F Bool))
     :args ((= (forall x F) (forall y F)))
-    :requires ((($nary_is_eq_set @list @list.nil x y) true))
+    :requires (((eo::list_meq @list x y) true))
     :conclusion (= (forall x F) (forall y F))
 )
 
