@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-datatype FList ((cons (head (Set (_ FloatingPoint 4 5))) (tail FList)) (nil)))
 (assert false)
