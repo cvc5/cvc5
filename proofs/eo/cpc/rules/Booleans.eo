@@ -51,7 +51,7 @@
 ;   The result of removing l from C, where additionally if C itself is
 ;   l, then we return the empty or-list false.
 (define $remove_maybe_self ((l Bool) (C Bool))
-    (eo::ite (eo::is_eq l C) false ($nary_remove or false l C)))
+    (eo::ite (eo::is_eq l C) false (eo::list_erase or C l)))
 
 ; define: $resolve
 ; args:
