@@ -58,8 +58,11 @@
                 ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
 )
 
-; A placeholder that indicates that the given list can be sorted.
-(declare-parameterized-const @aci_sorted ((T Type :implicit)) (-> T T))
+; A placeholder that indicates that the given list can be sorted with respect
+; to operator f. For example, (@aci_sorted f t) indicates that t is an application
+; of a commutative operator f. We show the equivalence of two applications marked
+; in this way using the operator for multiset equality below.
+(declare-parameterized-const @aci_sorted ((U Type :implicit) (T Type :implicit)) (-> U T T))
 
 ; program: $aci_norm_eq
 ; args:
@@ -70,8 +73,8 @@
   (S S) Bool
   (
   (($aci_norm_eq t t) true)
-  (($aci_norm_eq (@aci_sorted t) t) true)
-  (($aci_norm_eq (@aci_sorted (f x y)) (@aci_sorted s)) (eo::list_is_mset_eq f (f x y) s))
+  (($aci_norm_eq (@aci_sorted f t) t) true)
+  (($aci_norm_eq (@aci_sorted f t) (@aci_sorted f s)) (eo::list_is_mset_eq f t s))
   (($aci_norm_eq t s) false)
   )
 )
