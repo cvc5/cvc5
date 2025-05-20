@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
+    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env), d_illegalChecker(env)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -53,6 +53,10 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     // then, initialize the assertions
     as.setAssumptions(assumptions);
+
+    // the assertions are now finalized, we call the illegal checker to
+    // verify that any new assertions are legal
+    d_illegalChecker.checkAssertions(as);
 
     // make the check, where notice smt engine should be fully inited by now
 
