@@ -84,7 +84,8 @@ class Model {
   const std::vector<TypeNode>& getDeclaredSorts() const;
   /** get declared terms */
   const std::vector<Node>& getDeclaredTerms() const;
-  /** get all symbols known to the model, even if they were not user declarations */
+  /** get all symbols known to the model, even if they were not user
+   * declarations */
   const std::vector<Node>& getAllTerms() const;
   //----------------------- end model declarations
  protected:
