@@ -75,7 +75,11 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
+
+  # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
+  # only supports C17. Thus, we fix it to C17.
   set(GMP_CFLAGS "-std=gnu17")
+
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
