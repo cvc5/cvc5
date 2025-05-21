@@ -47,7 +47,7 @@ name   = "SMT Layer"
   long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
-  no_support = ["unsat-cores"]
+  no_support = ["proofs", "unsat-cores"]
   help       = "rewrite the input based on learned literals"
 
 [[option]]
