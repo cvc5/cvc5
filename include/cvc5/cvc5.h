@@ -3340,6 +3340,8 @@ struct CVC5_EXPORT OptionInfo
   std::string name;
   /** The option name aliases */
   std::vector<std::string> aliases;
+  /** The features not supported with this */
+  std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** Whether this is an expert option */
@@ -4565,7 +4567,7 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  internal::NodeManager* d_nm;
+  std::unique_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */

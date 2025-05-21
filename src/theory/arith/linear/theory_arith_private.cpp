@@ -43,6 +43,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_proof_rcons.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
@@ -481,7 +482,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
   if(cmpToUB > 0){ //  c_i < \lowerbound(x_i)
     ConstraintP ubc = d_partialModel.getUpperBoundConstraint(x_i);
     ConstraintP negation = constraint->getNegation();
-    negation->impliedByUnate(ubc, true);
+    negation->impliedByUnate(nodeManager(), ubc, true);
 
     raiseConflict(constraint, InferenceId::ARITH_CONF_LOWER);
 
@@ -623,7 +624,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     // or ... |= not (x_i <= c_i)
     ConstraintP lbc = d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP negConstraint = constraint->getNegation();
-    negConstraint->impliedByUnate(lbc, true);
+    negConstraint->impliedByUnate(nodeManager(), lbc, true);
     raiseConflict(constraint, InferenceId::ARITH_CONF_UPPER);
     ++(d_statistics.d_statAssertUpperConflicts);
     return true;
@@ -763,7 +764,7 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
       d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP diseq = constraint->getNegation();
     Assert(!diseq->isTrue());
-    diseq->impliedByUnate(cb, true);
+    diseq->impliedByUnate(nodeManager(), cb, true);
     raiseConflict(constraint, InferenceId::ARITH_CONF_EQ);
     return true;
   }
@@ -1350,7 +1351,8 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   const DeltaRational& beta = d_partialModel.getAssignment(v);
 
   Assert(beta.isIntegral());
-  Polynomial betaAsPolynomial = Polynomial::mkPolynomial( Constant::mkConstant(beta.floor()) );
+  Polynomial betaAsPolynomial = Polynomial::mkPolynomial(
+      Constant::mkConstant(nodeManager(), beta.floor()));
 
   TNode var = d_partialModel.asNode(v);
   Polynomial varAsPolynomial = Polynomial::parsePolynomial(var);
@@ -1387,7 +1389,8 @@ TrustNode TheoryArithPrivate::dioCutting()
     return TrustNode::null();
   }else{
     Polynomial p = plane.getPolynomial();
-    Polynomial c = Polynomial::mkPolynomial(plane.getConstant() * Constant::mkConstant(-1));
+    Polynomial c = Polynomial::mkPolynomial(
+        plane.getConstant() * Constant::mkConstant(nodeManager(), -1));
     Integer gcd = p.gcd();
     Assert(p.isIntegral());
     Assert(c.isIntegral());
@@ -1411,26 +1414,21 @@ TrustNode TheoryArithPrivate::dioCutting()
       TypeNode type = gt[0].getType();
 
       Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
-      Pf pfGt =
-          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt}, gt);
+      Pf pfGt = ensurePredTransform(d_pnm, pfNotLeq, gt);
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
-      Pf pfLt =
-          d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt}, lt);
+      Pf pfLt = ensurePredTransform(d_pnm, pfNotGeq, lt);
       std::vector<Pf> args{pfGt, pfLt};
       std::vector<Node> coeffs{nm->mkConstReal(-1), nm->mkConstReal(1)};
       std::vector<Node> coeffsUse = getMacroSumUbCoeff(nm, args, coeffs);
       Pf pfSum =
           d_pnm->mkNode(ProofRule::MACRO_ARITH_SCALE_SUM_UB, args, coeffsUse);
       Node falsen = nm->mkConst(false);
-      Pf pfBot = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
-                               {pfSum},
-                               {falsen}, falsen);
+      Pf pfBot = ensurePredTransform(d_pnm, pfSum, falsen);
       std::vector<Node> assumptions = {leq.getNode().negate(),
                                        geq.getNode().negate()};
       Pf pfNotAndNot = d_pnm->mkScope(pfBot, assumptions);
       Pf pfOr = d_pnm->mkNode(ProofRule::NOT_AND, {pfNotAndNot}, {});
-      Pf pfRewritten = d_pnm->mkNode(
-          ProofRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma}, rewrittenLemma);
+      Pf pfRewritten = ensurePredTransform(d_pnm, pfOr, rewrittenLemma);
       return d_pfGen->mkTrustNode(rewrittenLemma, pfRewritten);
     }
     else
@@ -1505,11 +1503,9 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
         {
           Pf assume = d_pnm->mkAssume(assertion);
           std::vector<Node> assumptions = {assertion};
-          Pf pf =
-              d_pnm->mkScope(d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                           {d_pnm->mkAssume(assertion)},
-                                           {}),
-                             assumptions);
+          Node fn = nodeManager()->mkConst(false);
+          Pf pfb = ensurePredTransform(d_pnm, assume, fn);
+          Pf pf = d_pnm->mkScope(pfb, assumptions);
           raiseBlackBoxConflict(assertion, pf);
         }
         else
@@ -3408,12 +3404,9 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           {
             assump.push_back(possibleConflict);
           }
-          Node falsen = nodeManager()->mkConst(false);
-          CDProof cdp(d_env);
-          cdp.addTrustedStep(falsen, TrustId::ARITH_DIO_LEMMA, assump, {});
           Node npc = possibleConflict.notNode();
-          cdp.addStep(npc, ProofRule::SCOPE, {falsen}, assump);
-          pf = cdp.getProofFor(npc);
+          ArithProofRCons arc(d_env, TrustId::ARITH_DIO_LEMMA);
+          pf = arc.getProofFor(npc);
         }
         raiseBlackBoxConflict(possibleConflict, pf);
         outputConflicts();
@@ -3439,20 +3432,58 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
 
     if(!emmittedConflictOrSplit) {
-      std::vector<TrustNode> possibleLemmas = roundRobinBranch();
-      if (!possibleLemmas.empty())
+      bool tryNew;
+      Trace("arith-round-robin") << "Round robin branch..." << std::endl;
+      // This loop tries the lemmas returned by roundRobinBranch until
+      // either one of them is successfully sent on the output channel,
+      // or until the next lemma suggested by this method has already been
+      // tried in this call. We cache the lemmas tried using the set
+      // lemmas below. We know this loop terminates since there are only
+      // finitely many lemmas returned by roundRobinBranch.
+      std::unordered_set<Node> lemmas;
+      do
       {
+        tryNew = false;
+        std::vector<TrustNode> possibleLemmas = roundRobinBranch();
+        Trace("arith-round-robin") << "...consider " << possibleLemmas.size()
+                                   << " lemmas" << std::endl;
+        // this is non-empty since we know !hasIntegerModel()
+        Assert (!possibleLemmas.empty());
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
         for (const TrustNode& possibleLemma : possibleLemmas)
         {
+          Node lem = possibleLemma.getProven();
+          if (lemmas.find(lem) != lemmas.end())
+          {
+            Trace("arith-round-robin") << "..already failed lemma" << std::endl;
+            continue;
+          }
+          lemmas.insert(lem);
+          tryNew = true;
           Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
           if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
           {
             emmittedConflictOrSplit = true;
+            Trace("arith-round-robin") << "..success lemma" << std::endl;
+          }
+          else
+          {
+            Trace("arith-round-robin") << "..failed lemma" << std::endl;
           }
         }
-      }
+        if (!emmittedConflictOrSplit)
+        {
+          // increment the next variable we are looking at
+          ArithVar numVars = d_partialModel.getNumberOfVariables();
+          Assert(numVars > 0);
+          d_nextIntegerCheckVar++;
+          if (d_nextIntegerCheckVar == numVars)
+          {
+            d_nextIntegerCheckVar = 0;
+          }
+        }
+      } while (!emmittedConflictOrSplit && tryNew);
     }
 
     if (options().arith.maxCutsInContext <= d_cutCount)
@@ -3769,8 +3800,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
             {pfAnt, exp.getGenerator()->getProofFor(exp.getProven())},
             {});
         // prove toProp (rewritten)
-        Pf pfConcRewritten = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
+        Pf pfConcRewritten = ensurePredTransform(d_pnm, pfConc, normalized);
         Pf pfNotNormalized = d_pnm->mkAssume(notNormalized);
         // prove bottom from toProp and ~toProp
         Pf pfBot;
@@ -4209,7 +4239,8 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
+        d_linEq.propagateBasicFromRow(
+            nodeManager(), bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(TraceIsOn("arith::prop")){
@@ -4551,11 +4582,9 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         TypeNode type = pfLit[0].getType();
         // Assume the negated getLiteral version of the implied constaint
         // then rewrite it into proof normal form.
-        conflictPfs.push_back(
-            d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
-                          {d_pnm->mkAssume(implied->getLiteral().negate())},
-                          {pfLit},
-                          pfLit));
+        auto pf = d_pnm->mkAssume(implied->getLiteral().negate());
+        pf = ensurePredTransform(d_pnm, pf, pfLit);
+        conflictPfs.push_back(pf);
         // Add the explaination proofs.
         for (const auto constraint : explain)
         {
@@ -4580,8 +4609,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
                                    conflictPfs,
                                    farkasCoefficientsUse);
         Node falsen = nm->mkConst(false);
-        auto botPf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {falsen}, falsen);
+        auto botPf = ensurePredTransform(d_pnm, sumPf, falsen);
 
         // Prove the conflict
         std::vector<Node> assumptions;
@@ -4594,8 +4622,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
         // Convert it to a clause
         auto orNotNotPf = d_pnm->mkNode(ProofRule::NOT_AND, {notAndNotPf}, {});
-        clausePf = d_pnm->mkNode(
-            ProofRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause}, clause);
+        clausePf = ensurePredTransform(d_pnm, orNotNotPf, clause);
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
@@ -4609,7 +4636,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     else
     {
       Assert(!implied->negationHasProof());
-      implied->impliedByFarkas(explain, coeffs, false);
+      implied->impliedByFarkas(nodeManager(), explain, coeffs, false);
       implied->tryToPropagate();
     }
     return true;

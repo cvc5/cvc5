@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bv-solver=bitblast
 (set-option :produce-models true)
 (set-option :produce-unsat-cores true)
 (set-logic QF_BV)

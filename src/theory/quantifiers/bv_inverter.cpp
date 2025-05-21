@@ -164,7 +164,7 @@ Node BvInverter::getPathToPv(Node lit,
           {
             children.push_back(j == ii ? litc : lit[j]);
           }
-          return NodeManager::currentNM()->mkNode(lit.getKind(), children);
+          return lit.getNodeManager()->mkNode(lit.getKind(), children);
         }
       }
     }
@@ -363,7 +363,7 @@ Node BvInverter::solveBvLit(Node sv,
         unsigned upper, lower;
         upper = bv::utils::getSize(t) - 1;
         lower = 0;
-        NodeBuilder nb(NodeManager::currentNM(), Kind::BITVECTOR_CONCAT);
+        NodeBuilder nb(nm, Kind::BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
           if (i < index)

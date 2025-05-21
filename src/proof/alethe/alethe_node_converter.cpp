@@ -19,6 +19,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_rule_checker.h"
+#include "theory/builtin/generic_op.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -38,6 +39,39 @@ Node AletheNodeConverter::maybeConvert(Node n, bool isAssumption)
     d_convToOriginalAssumption[res] = n;
   }
   return res;
+}
+
+void collectTypes(std::vector<TypeNode>& allTypesVec, std::unordered_set<TypeNode>& allTypes)
+{
+  for (size_t i = 0, size = allTypesVec.size(); i < size; ++i)
+  {
+    TypeNode tn = allTypesVec[i];
+    // Must additionally get the subfield types from datatypes.
+    if (tn.isDatatype())
+    {
+      const DType& dt = tn.getDType();
+      std::unordered_set<TypeNode> sftypes = dt.getSubfieldTypes();
+      std::unordered_set<TypeNode> sfctypes;
+      // get the component types of each of the subfield types
+      for (const TypeNode& sft : sftypes)
+      {
+        // as an optimization, if we've already considered this type, don't
+        // have to find its component types
+        if (allTypes.find(sft) == allTypes.end())
+        {
+          expr::getComponentTypes(sft, sfctypes);
+        }
+      }
+      for (const TypeNode& sft : sfctypes)
+      {
+        if (allTypes.find(sft) == allTypes.end())
+        {
+          allTypesVec.emplace_back(sft);
+          allTypes.insert(sft);
+        }
+      }
+    }
+  }
 }
 
 Node AletheNodeConverter::postConvert(Node n)
@@ -107,6 +141,7 @@ Node AletheNodeConverter::postConvert(Node n)
         // ignore purification skolems
         if (sfi != SkolemId::PURIFY)
         {
+          d_skolemsList.push_back(n);
           d_skolems[n] = conv;
         }
         return conv;
@@ -169,29 +204,16 @@ Node AletheNodeConverter::postConvert(Node n)
             Kind::WITNESS, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
         Trace("alethe-conv") << ".. witness: " << witness << "\n";
         witness = convert(witness);
+        d_skolems[n] = witness;
         if (d_defineSkolems)
         {
-          d_skolemsAux[n] = witness;
-          if (index == quant[0].getNumChildren() - 1)
+          if (std::find(d_skolemsList.begin(), d_skolemsList.end(), n)
+              == d_skolemsList.end())
           {
-            Trace("alethe-conv")
-                << "....populate map from aux : " << d_skolemsAux << "\n";
-            for (size_t i = index + 1; i > 0; --i)
-            {
-              std::vector<Node> cacheVals{quant,
-                                          d_nm->mkConstInt(Rational(i - 1))};
-              Node sk = sm->mkSkolemFunction(SkolemId::QUANTIFIERS_SKOLEMIZE,
-                                             cacheVals);
-              Assert(!sk.isNull());
-              Assert(d_skolemsAux.find(sk) != d_skolemsAux.end())
-                  << "Could not find sk " << sk;
-              d_skolems[sk] = d_skolemsAux[sk];
-            }
-            d_skolemsAux.clear();
+            d_skolemsList.push_back(n);
           }
           return n;
         }
-        d_skolems[n] = witness;
         return witness;
       }
       std::stringstream ss;
@@ -233,6 +255,8 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::SEXPR:
     case Kind::TYPE_CONSTANT:
     case Kind::RAW_SYMBOL:
+    case Kind::APPLY_INDEXED_SYMBOLIC:
+    case Kind::APPLY_INDEXED_SYMBOLIC_OP:
     /* from booleans */
     case Kind::CONST_BOOLEAN:
     case Kind::NOT:
@@ -247,7 +271,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::LAMBDA:
     case Kind::HO_APPLY:
     case Kind::FUNCTION_ARRAY_CONST:
-    case Kind::BITVECTOR_TO_NAT:
+    case Kind::BITVECTOR_UBV_TO_INT:
     case Kind::INT_TO_BITVECTOR_OP:
     case Kind::INT_TO_BITVECTOR:
     /* from arith */
@@ -271,6 +295,7 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::IS_INTEGER:
     case Kind::TO_INTEGER:
     case Kind::TO_REAL:
+    case Kind::POW2:
     /* from BV */
     case Kind::BITVECTOR_TYPE:
     case Kind::CONST_BITVECTOR:
@@ -405,70 +430,89 @@ Node AletheNodeConverter::postConvert(Node n)
     {
       // see if variable has a supported type. We need this check because in
       // some problems involving unsupported theories there are no operators,
-      // just variables of unsupported type
+      // just variables of unsupported type. Note that we need to consider the
+      // subtypes of a given type as well.
+      std::unordered_set<TypeNode> allTypes;
       TypeNode tn = n.getType();
-      Kind tnk = tn.getKind();
-      switch (tnk)
+      expr::getComponentTypes(tn, allTypes);
+      std::vector<TypeNode> allTypesVec(allTypes.begin(), allTypes.end());
+      collectTypes(allTypesVec, allTypes);
+      TypeNode unsupported = TypeNode::null();
+      for (const TypeNode& ttn : allTypes)
       {
-        case Kind::SORT_TYPE:
-        case Kind::INSTANTIATED_SORT_TYPE:
-        case Kind::FUNCTION_TYPE:
-        case Kind::BITVECTOR_TYPE:
-        case Kind::ARRAY_TYPE:
-        case Kind::CONSTRUCTOR_TYPE:
-        case Kind::SELECTOR_TYPE:
-        case Kind::TESTER_TYPE:
-        case Kind::ASCRIPTION_TYPE:
+
+        Kind tnk = ttn.getKind();
+        Trace("test") << "Test " << ttn << ", kind " << tnk << "\n";
+        switch (tnk)
         {
-          return n;
-        }
-        default:
-        {
-          // The supported constant types
-          if (tnk == Kind::TYPE_CONSTANT)
+          case Kind::SORT_TYPE:
+          case Kind::INSTANTIATED_SORT_TYPE:
+          case Kind::FUNCTION_TYPE:
+          case Kind::BITVECTOR_TYPE:
+          case Kind::ARRAY_TYPE:
+          case Kind::CONSTRUCTOR_TYPE:
+          case Kind::SELECTOR_TYPE:
+          case Kind::TESTER_TYPE:
+          case Kind::ASCRIPTION_TYPE:
           {
-            switch (tn.getConst<TypeConstant>())
+            continue;
+          }
+          default:
+          {
+            // The supported constant types
+            if (tnk == Kind::TYPE_CONSTANT)
             {
-              case TypeConstant::SEXPR_TYPE:
-              case TypeConstant::BOOLEAN_TYPE:
-              case TypeConstant::REAL_TYPE:
-              case TypeConstant::INTEGER_TYPE:
-              case TypeConstant::STRING_TYPE:
-              case TypeConstant::REGEXP_TYPE:
+              switch (ttn.getConst<TypeConstant>())
               {
-                return n;
+                case TypeConstant::SEXPR_TYPE:
+                case TypeConstant::BOOLEAN_TYPE:
+                case TypeConstant::REAL_TYPE:
+                case TypeConstant::INTEGER_TYPE:
+                case TypeConstant::STRING_TYPE:
+                case TypeConstant::REGEXP_TYPE:
+                {
+                  continue;
+                }
+                default:  // fallthrough to the error handling below
+                  break;
               }
-              default:  // fallthrough to the error handling below
-                break;
             }
+            // Only regular datatypes (parametric or not) are supported
+            else if (ttn.isDatatype() && !ttn.getDType().isCodatatype()
+                     && (tnk == Kind::DATATYPE_TYPE
+                         || tnk == Kind::PARAMETRIC_DATATYPE))
+            {
+              continue;
+            }
+            Trace("test") << "\tBad: " << ttn << ", kind " << tnk << "\n";
+            unsupported = ttn;
+            break;
           }
-          // Only regular datatypes (parametric or not) are supported
-          else if (tn.isDatatype() && !tn.getDType().isCodatatype()
-                   && (tnk == Kind::DATATYPE_TYPE
-                       || tnk == Kind::PARAMETRIC_DATATYPE))
-          {
-            return n;
-          }
-          Trace("alethe-conv") << "AletheNodeConverter: ...unsupported type\n";
-          std::stringstream ss;
-          ss << "\"Proof unsupported by Alethe: contains ";
-          if (tnk == Kind::TYPE_CONSTANT)
-          {
-            ss << tn.getConst<TypeConstant>();
-          }
-          else if (tn.isDatatype())
-          {
-            ss << "non-standard datatype";
-          }
-          else
-          {
-            ss << tnk;
-          }
-          ss << "\"";
-          d_error = ss.str();
-          return Node::null();
         }
       }
+      if (unsupported.isNull())
+      {
+        return n;
+      }
+      Trace("alethe-conv") << "AletheNodeConverter: ...unsupported type\n";
+      std::stringstream ss;
+      ss << "\"Proof unsupported by Alethe: contains ";
+      Kind utnk = unsupported.getKind();
+      if (utnk == Kind::TYPE_CONSTANT)
+      {
+        ss << unsupported.getConst<TypeConstant>();
+      }
+      else if (unsupported.isDatatype())
+      {
+        ss << "non-standard datatype";
+      }
+      else
+      {
+        ss << utnk;
+      }
+      ss << "\"";
+      d_error = ss.str();
+      return Node::null();
     }
     default:
     {
@@ -519,6 +563,11 @@ Node AletheNodeConverter::getOriginalAssumption(Node n)
 const std::map<Node, Node>& AletheNodeConverter::getSkolemDefinitions()
 {
   return d_skolems;
+}
+
+const std::vector<Node>& AletheNodeConverter::getSkolemList()
+{
+  return d_skolemsList;
 }
 
 }  // namespace proof

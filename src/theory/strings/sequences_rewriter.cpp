@@ -120,7 +120,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       // Rewrite without using the rewriter as a subutility, which ensures
       // that we can reconstruct the reasoning in a proof.
       Rewrite rule;
-      ArithEntail ae(nullptr);
+      ArithEntail ae(nodeManager(), nullptr);
       StringsEntail sent(nullptr, ae);
       return rewriteViaMacroSubstrStripSymLength(n, rule, sent);
     }
@@ -1113,6 +1113,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_AND_EMPTY);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (nik == Kind::REGEXP_STAR
              && ni[0].getKind() == Kind::REGEXP_ALLCHAR)
@@ -1122,6 +1123,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         return returnRewrite(node, ni, Rewrite::RE_OR_ALL);
       }
       // otherwise, can ignore
+      changed = true;
     }
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
@@ -2512,7 +2514,9 @@ Node SequencesRewriter::rewriteSubstr(Node node)
           return returnRewrite(node, ret, Rewrite::SS_CONST_START_OOB);
         }
       }
-      if (node[2].getConst<Rational>() > rMaxInt)
+      Rational endPt(node[1].getConst<Rational>()
+                     + node[2].getConst<Rational>());
+      if (endPt > rMaxInt)
       {
         // take up to the end of the string
         size_t lenS = Word::getLength(s);
@@ -2528,6 +2532,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       {
         uint32_t len =
             node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+        // should not overflow due to checks above
+        Assert(start == 0 || start + len > len);
         if (start + len > Word::getLength(node[0]))
         {
           // take up to the end of the string
@@ -2890,6 +2896,16 @@ Node SequencesRewriter::rewriteContains(Node node)
     return returnRewrite(node, cret, Rewrite::CTN_COMPONENT);
   }
   TypeNode stype = node[0].getType();
+  
+  // (str.contains (str.++ ... s ...) (str.substr s n m)) ---> true
+  if (node[1].getKind()==Kind::STRING_SUBSTR)
+  {
+    if (std::find(nc1.begin(), nc1.end(), node[1][0])!=nc1.end())
+    {
+      Node res = nm->mkConst(true);
+      return returnRewrite(node, res, Rewrite::CTN_CONCAT_CTN_SUBSTR);
+    }
+  }
 
   // strip endpoints
   Node retStr =
@@ -3704,10 +3720,13 @@ Node SequencesRewriter::rewriteReplace(Node node)
       std::vector<Node> remc(children0.begin() + lastCheckIndex,
                              children0.end());
       Node rem = utils::mkConcat(remc, stype);
-      Node ret = nm->mkNode(
-          Kind::STRING_CONCAT,
-          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]),
-          rem);
+      std::vector<Node> rchildren;
+      rchildren.push_back(
+          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
+      // "inline" the components of concatenation, which makes RARE
+      // reconstruction easier.
+      utils::getConcat(rem, rchildren);
+      Node ret = utils::mkConcat(rchildren, lastLhs.getType());
       // for example:
       //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
       // Since we know that the first occurrence of "A" cannot be in the
@@ -3774,6 +3793,13 @@ Node SequencesRewriter::rewriteReplaceAll(Node node)
   {
     // printing of the rewrite managed by the call above
     return rri;
+  }
+
+  Node cmp_conr = d_stringsEntail.checkContains(node[0], node[1]);
+  if (!cmp_conr.isNull() && !cmp_conr.getConst<bool>())
+  {
+    // ~contains( t, s ) => ( replace_all( t, s, r ) ----> t )
+    return returnRewrite(node, node[0], Rewrite::RPL_NCTN);
   }
 
   return node;

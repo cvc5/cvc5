@@ -438,7 +438,8 @@
                         (and (= t (= (- u k) 0/1)) ($arith_to_int_reduction u))))
     ((to_int u)       (eo::define ((k (@purify (to_int u))))
                         (and (= t k) ($arith_to_int_reduction u))))
-    ((/ u v)          (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero u) (/_total u v))))
+    ((/ u v)          (eo::define ((ur (eo::ite (eo::is_eq (eo::typeof u) Int) (to_real u) u)))
+                        (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero ur) (/_total u v)))))
     ((div a b)        (= t (ite (= b 0) (@int_div_by_zero a) (div_total a b))))
     ((mod a b)        (= t (ite (= b 0) (@mod_by_zero a) (mod_total a b))))
     ((/_total u v)    (eo::define ((k (@purify (/_total u v))))
@@ -528,7 +529,9 @@
 ;  equivalent to y1-y2.
 ; conclusion: >
 ;   An equivalence between relations specified by eqr and justified by eq.
-(declare-rule arith_poly_norm_rel ((U Type) (r (-> U U Bool)) (x U) (y U) (cx U) (cy U) (x1 U) (x2 U) (y1 U) (y2 U))
+(declare-rule arith_poly_norm_rel
+  ((U Type) (U1 Type) (U2 Type) (V Type) (V1 Type) (V2 Type) (T Type) (r T)
+   (x U) (y V) (cx U) (cy V) (x1 U1) (x2 U2) (y1 V1) (y2 V2))
   :premises ((= (* cx x) (* cy y)))
   :args ((= (r x1 x2) (r y1 y2)))
   :requires ((($is_poly_norm_rel_consts (r cx cy)) true)

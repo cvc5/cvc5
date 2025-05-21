@@ -599,11 +599,32 @@ Term Smt2TermParser::parseTerm()
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);
-              // Will parse list as arguments to the kind + closing parenthesis.
-              ParseOp op;
-              op.d_kind = attrKind;
-              tstack.emplace_back(op, std::vector<Term>());
-              xstack.emplace_back(ParseCtx::NEXT_ARG);
+              // Corner case: the list of terms is empty. This is a legal
+              // pattern in SMT-LIB, and hence we ignore it, for other
+              // attributes we throw an error.
+              if (d_lex.peekToken() == Token::RPAREN_TOK)
+              {
+                if (attrKind == Kind::INST_PATTERN)
+                {
+                  // silently ignores
+                  d_lex.eatToken(Token::RPAREN_TOK);
+                }
+                else
+                {
+                  d_lex.parseError(
+                      "Expecting at least one term in annotation.");
+                }
+                needsUpdateCtx = true;
+              }
+              else
+              {
+                // Will parse list as arguments to the kind + closing
+                // parenthesis.
+                ParseOp op;
+                op.d_kind = attrKind;
+                tstack.emplace_back(op, std::vector<Term>());
+                xstack.emplace_back(ParseCtx::NEXT_ARG);
+              }
             }
             else if (!attrValue.isNull())
             {
@@ -1256,6 +1277,9 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
       case Token::HEX_LITERAL:
         // (_ char <hex_literal>) expects a hex literal
         symbols.push_back(d_lex.tokenStr());
+        break;
+      case Token::QUOTED_SYMBOL:
+        symbols.push_back(tokenStrToSymbol(tok));
         break;
       default:
         d_lex.unexpectedTokenError(

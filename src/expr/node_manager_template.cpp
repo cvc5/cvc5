@@ -107,7 +107,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
     LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager(this)),
       d_bvManager(new BoundVarManager),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -125,12 +125,6 @@ NodeManager::NodeManager()
       d_operators[i] = mkConst(Kind(k));
     }
   }
-}
-
-NodeManager* NodeManager::currentNM()
-{
-  thread_local static NodeManager nm;
-  return &nm;
 }
 
 bool NodeManager::isNAryKind(Kind k)
@@ -350,7 +344,6 @@ const DType& NodeManager::getDTypeForIndex(size_t index) const
 
 void NodeManager::reclaimZombies()
 {
-  // FIXME multithreading
   Assert(!d_attrManager->inGarbageCollection());
 
   Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
@@ -926,6 +919,26 @@ TypeNode NodeManager::RecTypeCache::getRecordType(NodeManager* nm,
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
 {
   Assert(sorts.size() >= 2);
+  // we always ensure that the function is "flat", i.e. it does not
+  // return a function. We turn (-> T (-> U V)) into (-> T U V).
+  TypeNode rangeType = sorts[sorts.size() - 1];
+  std::vector<TypeNode> flattenArgTypes;
+  while (rangeType.isFunction())
+  {
+    std::vector<TypeNode> argTypes = rangeType.getArgTypes();
+    flattenArgTypes.insert(
+        flattenArgTypes.end(), argTypes.begin(), argTypes.end());
+    rangeType = rangeType.getRangeType();
+  }
+  if (!flattenArgTypes.empty())
+  {
+    std::vector<TypeNode> newSorts(sorts.begin(), sorts.end());
+    newSorts.pop_back();
+    newSorts.insert(
+        newSorts.end(), flattenArgTypes.begin(), flattenArgTypes.end());
+    newSorts.push_back(rangeType);
+    return mkTypeNode(Kind::FUNCTION_TYPE, newSorts);
+  }
   return mkTypeNode(Kind::FUNCTION_TYPE, sorts);
 }
 
@@ -1393,7 +1406,6 @@ Node NodeManager::mkDummySkolem(const std::string& prefix,
 
 bool NodeManager::safeToReclaimZombies() const
 {
-  // FIXME multithreading
   return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();
 }
 
@@ -1472,11 +1484,12 @@ Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
 {
   Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
                            << tn;
+  NodeManager* nm = tn.getNodeManager();
   if (tn.isInteger())
   {
-    return mkConstInt(r);
+    return nm->mkConstInt(r);
   }
-  return mkConstReal(r);
+  return nm->mkConstReal(r);
 }
 
 Node NodeManager::mkRealAlgebraicNumber(const RealAlgebraicNumber& ran)

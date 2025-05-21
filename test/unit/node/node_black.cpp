@@ -67,7 +67,7 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    d_slvEngine.reset(new SolverEngine(&opts));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager.get(), &opts));
     d_slvEngine->setOption("output-language", "ast");
   }
 
@@ -78,7 +78,7 @@ class TestNodeBlackNode : public TestNode
 
   void testNaryExpForSize(Kind k, uint32_t n)
   {
-    NodeBuilder nbz(d_nodeManager, k);
+    NodeBuilder nbz(d_nodeManager.get(), k);
     Node trueNode = d_nodeManager->mkConst(true);
     for (uint32_t i = 0; i < n; ++i)
     {
@@ -468,7 +468,7 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 
 TEST_F(TestNodeBlackNode, iterator)
 {
-  NodeBuilder b(d_nodeManager);
+  NodeBuilder b(d_nodeManager.get());
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
@@ -494,7 +494,7 @@ TEST_F(TestNodeBlackNode, iterator)
 
 TEST_F(TestNodeBlackNode, const_reverse_iterator)
 {
-  NodeBuilder b(d_nodeManager);
+  NodeBuilder b(d_nodeManager.get());
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
@@ -545,8 +545,8 @@ TEST_F(TestNodeBlackNode, toString)
       "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder(d_nodeManager) << w << x << Kind::OR;
-  Node n = NodeBuilder(d_nodeManager) << m << y << z << Kind::AND;
+  Node m = NodeBuilder(d_nodeManager.get()) << w << x << Kind::OR;
+  Node n = NodeBuilder(d_nodeManager.get()) << m << y << z << Kind::AND;
 
   ASSERT_EQ(n.toString(), "(AND (OR w x) y z)");
 }
@@ -563,9 +563,9 @@ TEST_F(TestNodeBlackNode, toStream)
       "y", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
       "z", booleanType, "", SkolemFlags::SKOLEM_EXACT_NAME);
-  Node m = NodeBuilder(d_nodeManager) << x << y << Kind::OR;
-  Node n = NodeBuilder(d_nodeManager) << w << m << z << Kind::AND;
-  Node o = NodeBuilder(d_nodeManager) << n << n << Kind::XOR;
+  Node m = NodeBuilder(d_nodeManager.get()) << x << y << Kind::OR;
+  Node n = NodeBuilder(d_nodeManager.get()) << w << m << z << Kind::AND;
+  Node o = NodeBuilder(d_nodeManager.get()) << n << n << Kind::XOR;
 
   std::stringstream sstr;
   options::ioutils::applyDagThresh(sstr, 0);
@@ -664,7 +664,7 @@ TEST_F(TestNodeBlackNode, dagifier)
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(Kind::ADD, skolems);
   std::vector<Node> children;
   for (Node child : add)
@@ -678,7 +678,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(Kind::ADD, skolems);
   std::vector<TNode> children;
   for (TNode child : add)
@@ -692,7 +692,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(Kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<Node> children;
@@ -707,7 +707,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(Kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<TNode> children;
@@ -813,8 +813,8 @@ TNode level1(NodeManager* nm) { return level0(nm); }
 TEST_F(TestNodeBlackNode, node_tnode_usage)
 {
   Node n;
-  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager));
-  ASSERT_DEATH(n = level1(d_nodeManager), "d_nv->d_rc > 0");
+  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager.get()));
+  ASSERT_DEATH(n = level1(d_nodeManager.get()), "d_nv->d_rc > 0");
 }
 
 }  // namespace test

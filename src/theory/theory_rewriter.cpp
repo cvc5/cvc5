@@ -141,6 +141,8 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
   ss << "The theory " << d_tid
      << " is disabled in this configuration, but got a constraint in that "
         "theory.";
+  // suggested options only in non-safe builds
+#ifndef CVC5_SAFE_MODE
   // hardcoded, for better error messages.
   switch (d_tid)
   {
@@ -150,7 +152,8 @@ RewriteResponse NoOpTheoryRewriter::preRewrite(TNode node)
     case THEORY_SEP: ss << " Try --sep."; break;
     default: break;
   }
-  throw LogicException(ss.str());
+#endif
+  throw SafeLogicException(ss.str());
   return RewriteResponse(REWRITE_DONE, node);
 }
 

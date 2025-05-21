@@ -46,7 +46,7 @@ class ArithEntail
    * @param recApprox Whether to use recursive arithmetic approxiations in this
    * class.
    */
-  ArithEntail(Rewriter* r, bool recApprox = false);
+  ArithEntail(NodeManager* nm, Rewriter* r, bool recApprox = false);
   /**
    * Returns the rewritten form of a term, which must be an integer term.
    * This method invokes the rewriter, if one is provided, and uses the

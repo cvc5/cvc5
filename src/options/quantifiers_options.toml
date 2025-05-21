@@ -202,7 +202,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqi"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi"
   type       = "bool"
   default    = "false"
@@ -210,7 +210,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiEnum"
-  category   = "expert"
+  category   = "regular"
   long       = "mbqi-enum"
   type       = "bool"
   default    = "false"
@@ -849,7 +849,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "regular"
+  category   = "expert"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1597,7 +1597,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfInt"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-int"
   type       = "bool"
   default    = "false"
@@ -1605,7 +1605,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiUseInfReal"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-inf-real"
   type       = "bool"
   default    = "false"
@@ -1633,6 +1633,7 @@ name   = "Quantifiers"
   long       = "cegqi-midpoint"
   type       = "bool"
   default    = "false"
+  no_support = ["proofs"]
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1651,6 +1652,7 @@ name   = "Quantifiers"
   long       = "cegqi-bv"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors"
 
 [[option]]
@@ -1663,7 +1665,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiBvIneqMode"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-bv-ineq=MODE"
   type       = "CegqiBvIneqMode"
   default    = "EQ_BOUNDARY"

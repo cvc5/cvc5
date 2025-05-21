@@ -43,6 +43,7 @@ enum class RewriteProofStatus : uint32_t
   ABSORB,
   // we can prove the encoded form of the goal (via rewrite_db_term_process)
   ENCODE,
+  FLATTEN,
   // we have a DSL proof rule that proves this goal.
   DSL,
   // we have a THEORY_REWRITE that proves this goal.

@@ -159,7 +159,8 @@ void FarkasConflictBuilder::makeLastConsequent(){
 }
 
 /* Turns the vector under construction into a conflict */
-ConstraintCP FarkasConflictBuilder::commitConflict(){
+ConstraintCP FarkasConflictBuilder::commitConflict(NodeManager* nm)
+{
   Assert(underConstruction());
   Assert(!d_constraints.empty());
   Assert(
@@ -171,7 +172,7 @@ ConstraintCP FarkasConflictBuilder::commitConflict(){
 
   ConstraintP not_c = d_consequent->getNegation();
   RationalVectorCP coeffs = d_produceProofs ? &d_farkas : nullptr;
-  not_c->impliedByFarkas(d_constraints, coeffs, true );
+  not_c->impliedByFarkas(nm, d_constraints, coeffs, true);
 
   reset();
   Assert(!underConstruction());

@@ -325,6 +325,8 @@ libcvc5_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
+  smt/illegal_checker.cpp
+  smt/illegal_checker.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/model.cpp
@@ -389,6 +391,8 @@ libcvc5_add_sources(
   theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
+  theory/arith/arith_proof_rcons.cpp
+  theory/arith/arith_proof_rcons.h
   theory/arith/arith_proof_utilities.cpp
   theory/arith/arith_proof_utilities.h
   theory/arith/arith_rewriter.cpp
@@ -1431,6 +1435,21 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
+  set(KINDS_TOML_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds.toml)
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES

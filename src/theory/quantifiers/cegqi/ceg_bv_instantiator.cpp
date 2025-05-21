@@ -136,13 +136,17 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          Node lit,
                                          CegInstEffort effort)
 {
-  NodeManager* nm = lit.getNodeManager();
-  ;
   if (effort == CEG_INST_EFFORT_FULL)
   {
     // always use model values at full effort
     return Node::null();
   }
+  return processAssertionInternal(ci, lit);
+}
+
+Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
+{
+  NodeManager* nm = lit.getNodeManager();
   Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
   bool pol = lit.getKind() != Kind::NOT;
   Kind k = atom.getKind();
@@ -466,7 +470,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       {
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+          ret = nodeManager()->mkNode(cur.getKind(), children);
         }
         else
         {
@@ -530,6 +534,9 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       }
     } while (!trace_visit.empty());
   }
+  // process again, to ensure the policy for cegqiBvIneqMode is handled after
+  // rewriting above.
+  result = processAssertionInternal(ci, result);
 
   return result;
 }
@@ -648,7 +655,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
 
   if (d_opts.quantifiers.cegqiBvRmExtract)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = lem.getNodeManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
     std::map<Node, std::vector<Node> > extract_map;

@@ -73,6 +73,8 @@ class Tester:
         if exit_status == STATUS_TIMEOUT:
             print_error("Timeout")
             return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+        elif exit_status == EXIT_SKIP:
+            return EXIT_SKIP
         elif exit_status != expected_exit_status:
             print_error(
                 'Unexpected exit status: expected "{}" but got "{}"'.format(
@@ -96,6 +98,7 @@ class Tester:
         exit_code = self.check_exit_status(benchmark_info.expected_exit_status,
                                            exit_status, output, error,
                                            benchmark_info.command_line_args)
+
         if exit_code == EXIT_SKIP:
             return exit_code
 
@@ -114,6 +117,14 @@ class Tester:
         if exit_code == EXIT_OK:
             print_ok("OK")
         return exit_code
+
+    def strip_proof_body(self, output):
+        # strip the unsat and parentheses
+        if not output.startswith("unsat\n(\n".encode()) or not output.endswith("\n)\n".encode()):
+            print_error("Failed to parse result for proof")
+            return output, EXIT_FAILURE
+        output = output[8:-2]
+        return output, EXIT_OK
 
 
 ################################################################################
@@ -181,30 +192,8 @@ class ProofTester(Tester):
         return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--sat-solver=minisat",
-                 "--check-proofs",
-                 "--proof-granularity=theory-rewrite",
+                ["--check-proofs",
                  "--proof-check=lazy"]
-            )
-        )
-
-class DslProofTester(Tester):
-
-    def __init__(self):
-        super().__init__("dsl-proof")
-
-    def applies(self, benchmark_info):
-        expected_output_lines = benchmark_info.expected_output.split()
-        return (
-            benchmark_info.benchmark_ext != ".sy"
-            and "unsat" in benchmark_info.expected_output.split()
-        )
-
-    def run_internal(self, benchmark_info):
-        return super().run_internal(
-            benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
             )
         )
 
@@ -221,6 +210,9 @@ class LfscTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # lfsc is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
@@ -236,7 +228,11 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
@@ -278,6 +274,9 @@ class AletheTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
+        # alethe is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
         with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
@@ -292,14 +291,17 @@ class AletheTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
+            if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
+                return EXIT_SKIP
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if re.match(r'^unsat\n\(error "Proof unsupported by Alethe:', output):
-                print_ok("OK")
-                return exit_code
 
             if exit_code != EXIT_OK:
                 return exit_code
@@ -343,8 +345,6 @@ class CpcTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-format=cpc",
-                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
@@ -354,19 +354,26 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            # if we throw an admissible error (with text "in safe mode"), we
+            # allow the benchmark to be skipped.
+            if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+                return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
             # note this line is not necessary if in a safe build
-            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
-            tmpf.write(output.strip("unsat\n".encode()))
+            if not benchmark_info.safe_mode:
+                tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
             tmpf.flush()
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if ("step" not in output) and ("assume" not in output):
                 print_error("Empty proof")
-                print()
-                print_outputs(output, error)
                 return EXIT_FAILURE
             if exit_code != EXIT_OK:
                 return exit_code
@@ -519,7 +526,6 @@ g_testers = {
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
-    "dsl-proof": DslProofTester(),
     "alethe": AletheTester(),
     "cpc": CpcTester()
 }
@@ -557,6 +563,7 @@ BenchmarkInfo = collections.namedtuple(
         "expected_exit_status",
         "command_line_args",
         "compare_outputs",
+        "safe_mode"
     ],
 )
 
@@ -705,6 +712,10 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
+    # For all testers, if we throw an admissible error (with text
+    # "in safe mode"), we allow the benchmark to be skipped.
+    if benchmark_info.safe_mode and (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+        return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
     scrubber_error = ""
@@ -823,14 +834,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-            if disable_tester == "dsl-proof":
-                if "cpc" in testers:
-                    testers.remove("cpc")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")
-                if "dsl-proof" in testers:
-                    testers.remove("dsl-proof")
                 if "alethe" in testers:
                     testers.remove("alethe")
                 if "cpc" in testers:
@@ -910,6 +916,7 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
+            safe_mode=("safe-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):

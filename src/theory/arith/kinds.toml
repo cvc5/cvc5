@@ -1,0 +1,402 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_ARITH"
+base_class         = "::cvc5::internal::theory::arith::TheoryArith"
+base_class_header  = "theory/arith/theory_arith.h"
+properties         = ["stable-infinite", "check", "propagate", "ppStaticLearn", "presolve", "notifyRestart"]
+typechecker_header = "theory/arith/theory_arith_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::arith::ArithRewriter"
+header = "theory/arith/arith_rewriter.h"
+
+[[kinds]]
+type     = "operator"
+name     = "ADD"
+children = "2:"
+comment  = "arithmetic addition (N-ary)"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "MULT"
+children = "2:"
+comment  = "arithmetic multiplication (N-ary)"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "NONLINEAR_MULT"
+children = "2:"
+comment  = "synonym for MULT"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "SUB"
+children = 2
+comment  = "arithmetic binary subtraction operator"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "NEG"
+children = 1
+comment  = "arithmetic unary negation"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "DIVISION"
+children = 2
+comment  = "real division, division by 0 undefined (user symbol)"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "DIVISION_TOTAL"
+children = 2
+comment  = "real division with interpreted division by 0 (internal symbol)"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_DIVISION"
+children = 2
+comment  = "integer division, division by 0 undefined (user symbol)"
+typerule = "SimpleTypeRule<RInteger, AInteger, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_DIVISION_TOTAL"
+children = 2
+comment  = "integer division with interpreted division by 0 (internal symbol)"
+typerule = "SimpleTypeRule<RInteger, AInteger, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_MODULUS"
+children = 2
+comment  = "integer modulus, division by 0 undefined (user symbol)"
+typerule = "SimpleTypeRule<RInteger, AInteger, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_MODULUS_TOTAL"
+children = 2
+comment  = "integer modulus with interpreted division by 0 (internal symbol)"
+typerule = "SimpleTypeRule<RInteger, AInteger, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "ABS"
+children = 1
+comment  = "absolute value"
+typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "DIVISIBLE"
+K2       = "DIVISIBLE_OP" 
+children = 1
+comment  = "divisibility-by-k predicate; first parameter is a DIVISIBLE_OP, second is integer term"
+typerule = "SimpleTypeRule<RBool, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "POW"
+children = 2
+comment  = "arithmetic power"
+typerule = "::cvc5::internal::theory::arith::PowTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "POW2"
+children = 1
+comment  = "arithmetic power of 2"
+typerule = "SimpleTypeRule<RInteger, AInteger>" 
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_ISPOW2"
+children = 1
+comment  = "test if an integer is a power of 2"
+typerule = "SimpleTypeRule<RBool, AInteger>" 
+
+[[kinds]]
+type     = "operator"
+name     = "INTS_LOG2"
+children = 1
+comment  = "integer logarithm base 2 (round down to power of 2)"
+typerule = "SimpleTypeRule<RInteger, AInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "EXPONENTIAL"
+children = 1
+comment  = "exponential"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "SINE"
+children = 1
+comment  = "sine"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "COSINE"
+children = 1
+comment  = "consine"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "TANGENT"
+children = 1
+comment  = "tangent"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "COSECANT"
+children = 1
+comment  = "cosecant"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "SECANT"
+children = 1
+comment  = "secant"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "COTANGENT"
+children = 1
+comment  = "cotangent"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "ARCSINE"
+children = 1
+comment  = "arc sine"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "ARCCOSINE"
+children = 1
+comment  = "arc consine"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "ARCTANGENT"
+children = 1
+comment  = "arc tangent"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "ARCCOSECANT"
+children = 1
+comment  = "arc cosecant"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type     = "operator"
+name     = "ARCSECANT"
+children = 1
+comment  = "arc secant"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "ARCCOTANGENT"
+children = 1
+comment  = "arc cotangent"
+typerule = "SimpleTypeRule<RReal, AReal>" 
+
+[[kinds]]
+type     = "operator"
+name     = "SQRT"
+children = 1
+comment  = "square root"
+typerule = "SimpleTypeRule<RReal, AReal>"
+
+[[kinds]]
+type      = "constant"
+name      = "DIVISIBLE_OP" 
+class_key = "struct"
+cpp_type  = "Divisible"
+hasher    = "::cvc5::internal::DivisibleHashFunction"
+header    = "util/divisible.h"
+comment   = "operator for the divisibility-by-k predicate; payload is an instance of the cvc5::internal::Divisible class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>" 
+
+[[kinds]]
+type          = "sort"
+name          = "REAL_TYPE"
+cardinality   = "Cardinality::REALS"
+well_founded  = true
+ground-term   = "nm->mkConstReal(Rational(0))"
+header        = "expr/node_manager.h"
+comment       = "real type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::arith::RationalEnumerator"
+header = "theory/arith/type_enumerator.h"
+
+[[kinds]]
+type          = "sort"
+name          = "INTEGER_TYPE"
+cardinality   = "Cardinality::INTEGERS"
+well_founded  = true
+ground-term   = "nm->mkConstInt(Rational(0))"
+header        = "expr/node_manager.h"
+comment       = "integer type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::arith::IntegerEnumerator"
+header = "theory/arith/type_enumerator.h"
+
+[[kinds]]
+type      = "constant"
+name      = "CONST_RATIONAL"
+class_key = "class"
+cpp_type  = "Rational+"
+hasher    = "::cvc5::internal::RationalHashFunction"
+header    = "util/rational.h"
+comment   = "a multiple-precision rational constant; payload is an instance of the cvc5::internal::Rational class"
+typerule  = "::cvc5::internal::theory::arith::ArithConstantTypeRule" 
+
+[[kinds]]
+type      = "constant"
+name      = "CONST_INTEGER"
+class_key = "class"
+cpp_type  = "Rational+"
+hasher    = "::cvc5::internal::RationalHashFunction"
+header    = "util/rational.h"
+comment   = "a multiple-precision integer constant; payload is an instance of the cvc5::internal::Rational class"
+typerule  = "::cvc5::internal::theory::arith::ArithConstantTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "REAL_ALGEBRAIC_NUMBER_OP"
+class_key = "class"
+cpp_type  = "RealAlgebraicNumber+"
+hasher    = "::cvc5::internal::RealAlgebraicNumberHashFunction"
+header    = "util/real_algebraic_number.h"
+comment   = "a real algebraic number constant; payload is an instance of the cvc5::internal::RealAlgebraicNumber class"
+typerule  = "::cvc5::internal::theory::arith::ArithRealAlgebraicNumberOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "REAL_ALGEBRAIC_NUMBER"
+K2       = "REAL_ALGEBRAIC_NUMBER_OP"
+children = 0
+comment  = "a real algebraic number constant; payload is an instance of the cvc5::internal::RealAlgebraicNumber class"
+typerule = "::cvc5::internal::theory::arith::ArithRealAlgebraicNumberTypeRule"
+
+[[kinds]]
+type = "operator"
+name     = "LT"
+children = 2
+comment  = "less than, x < y"
+typerule = "::cvc5::internal::theory::arith::ArithRelationTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "LEQ"
+children = 2
+comment  = "less than or equal, x <= y"
+typerule = "::cvc5::internal::theory::arith::ArithRelationTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "GT"
+children = 2
+comment  = "greater than, x > y"
+typerule = "::cvc5::internal::theory::arith::ArithRelationTypeRule" 
+
+[[kinds]]
+type     = "operator"
+name     = "GEQ"
+children = 2
+comment  = "greater than or equal, x >= y"
+typerule = "::cvc5::internal::theory::arith::ArithRelationTypeRule" 
+
+# represents an indexed root predicate. See util/indexed_root_predicate.h for more documentation.
+[[kinds]]
+type      = "constant"
+name      = "INDEXED_ROOT_PREDICATE_OP" 
+class_key = "struct"
+cpp_type  = "IndexedRootPredicate"
+hasher    = "::cvc5::internal::IndexedRootPredicateHashFunction"
+header    = "util/indexed_root_predicate.h"
+comment   = "operator for the indexed root predicate; payload is an instance of the cvc5::internal::IndexedRootPredicate class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "INDEXED_ROOT_PREDICATE"
+K2       = "INDEXED_ROOT_PREDICATE_OP" 
+children = 2
+comment  = "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
+typerule = "::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "IS_INTEGER"
+children = 1
+comment  = "term-is-integer predicate (parameter is a real-sorted term)"
+typerule = "SimpleTypeRule<RBool, ARealOrInteger>" 
+
+[[kinds]]
+type = "operator"
+name     = "TO_INTEGER"
+children = 1
+comment  = "convert term to integer by the floor function (parameter is a real-sorted term)"
+typerule = "SimpleTypeRule<RInteger, ARealOrInteger>"
+
+[[kinds]]
+type     = "operator"
+name     = "TO_REAL"
+children = 1
+comment  = "cast term to real (parameter is an integer-sorted term)"
+typerule = "SimpleTypeRule<RReal, ARealOrInteger>"
+
+[[kinds]]
+type     = "nullaryoperator"
+name     = "PI"
+comment  = "pi"
+typerule = "::cvc5::internal::theory::arith::RealNullaryOperatorTypeRule"
+
+# Integer AND, which is parameterized by a (positive) bitwidth k.
+# ((_ iand k) i1 i2) is equivalent to:
+# (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+# for all integers i1, i2.
+[[kinds]]
+type      = "constant"
+name      = "IAND_OP"
+class_key = "struct"
+cpp_type  = "IntAnd"
+hasher    = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntAnd >"
+header    = "util/iand.h"
+comment   = "operator for integer AND; payload is an instance of the cvc5::internal::IntAnd class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "IAND"
+K2       = "IAND_OP" 
+children = 2
+comment  = "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
+typerule = "::cvc5::internal::theory::arith::IAndTypeRule"

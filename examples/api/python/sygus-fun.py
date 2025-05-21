@@ -22,7 +22,7 @@ from cvc5 import Kind
 
 if __name__ == "__main__":
   tm = cvc5.TermManager()
-  slv = cvc5.Solver()
+  slv = cvc5.Solver(tm)
 
   # required options
   slv.setOption("sygus", "true")

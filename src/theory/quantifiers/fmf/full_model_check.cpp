@@ -264,8 +264,7 @@ void Def::simplify(NodeManager* nm, FullModelChecker* mc, FirstOrderModelFmc* m)
       for( unsigned j=0; j< cc.getNumChildren(); j++){
         nc.push_back(m->getStar(cc[j].getType()));
       }
-      cond[cond.size() - 1] =
-          NodeManager::currentNM()->mkNode(Kind::APPLY_UF, nc);
+      cond[cond.size() - 1] = nm->mkNode(Kind::APPLY_UF, nc);
       //re-add the entries
       for (unsigned i=0; i<cond.size(); i++) {
         addEntry(m, cond[i], value[i]);
