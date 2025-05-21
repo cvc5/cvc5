@@ -1187,7 +1187,10 @@ void TheoryEngine::assertFact(TNode literal)
         assertToTheory(
             toAssert, literal, request.d_toTheory, THEORY_SAT_SOLVER);
         // Also send to THEORY_BUILTIN, similar to above
-        assertToTheory(toAssert, literal, /* to */ THEORY_BUILTIN, /* from */ THEORY_SAT_SOLVER);
+        assertToTheory(toAssert,
+                       literal,
+                       /* to */ THEORY_BUILTIN,
+                       /* from */ THEORY_SAT_SOLVER);
         it.next();
       }
     }
