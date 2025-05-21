@@ -47,18 +47,23 @@ void ModelConsDefault::getStringRepresentativesFrom(
   }
 }
 
-void ModelConsDefault::separateByLength(const std::vector<Node>& ns,
+void ModelConsDefault::separateByLength(TheoryModel * m,
+                                        const std::vector<Node>& ns,
                                         std::vector<std::vector<Node>>& cols,
                                         std::vector<Node>& lts)
 {
   d_state.separateByLength(ns, cols, lts);
   // look up the values of each length term
-  Valuation& val = d_state.getValuation();
   for (Node& ll : lts)
   {
-    if (!ll.isConst())
+    // Previously we called Valuation::getCandidateModelValue for this purpose,
+    // which relied on the arithmetic theory solver to confirm the value of ll.
+    // However, it is better to simply ask the model object (which the
+    // arithmetic solver has already populated for us). Moreover this
+    // avoids assertion failures when using ee-mode=central.
+    if (!ll.isConst() && m->hasTerm(ll))
     {
-      ll = val.getCandidateModelValue(ll);
+      ll = m->getRepresentative(ll);
     }
   }
 }
