@@ -33,9 +33,9 @@ name   = "Driver"
   help       = "regular command line reference"
 
 [[option]]
-  name       = "helpCategories"
+  name       = "helpOptionCategories"
   category   = "common"
-  long       = "help-categories"
+  long       = "help-option-categories"
   type       = "bool"
   default    = "false"
   alternate  = false

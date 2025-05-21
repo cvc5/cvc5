@@ -99,28 +99,37 @@ void printUsageCategories(cvc5::Solver& solver,
 {
   std::stringstream ssCommon;
   std::stringstream ssRegular;
+  std::stringstream ssRegularNoSupport;
   std::stringstream ssExpert;
   for (const auto& name : options::getNames())
   {
     auto info = solver.getOptionInfo(name);
-    // skip if an expert option
     if (info.isExpert)
     {
-      ssExpert << "- `--" << name << "`" << std::endl;
+      ssExpert << "- " << name << std::endl;
     }
     else if (info.isRegular)
     {
-      ssRegular << "- `--" << name << "`" << std::endl;
+      if (info.noSupports.empty())
+      {
+        ssRegular << "- " << name << std::endl;
+      }
+      else
+      {
+        ssRegularNoSupport << "- " << name << std::endl;
+      }
     }
     else
     {
-      ssCommon << "- `--" << name << "`" << std::endl;
+      ssCommon << "- " << name << std::endl;
     }
   }
   os << "Common options:" << std::endl;
   os << ssCommon.str();
   os << "Regular options:" << std::endl;
   os << ssRegular.str();
+  os << "Regular options with a no-support restriction:" << std::endl;
+  os << ssRegularNoSupport.str();
   os << "Expert options:" << std::endl;
   os << ssExpert.str();
 }
