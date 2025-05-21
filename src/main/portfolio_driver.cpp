@@ -314,6 +314,17 @@ class Pipe
   int d_pipe[2];
 };
 
+void printPortfolioConfig(Solver& solver, PortfolioConfig& config)
+{
+  if (solver.isOutputOn("portfolio"))
+  {
+    std::ostream& out = solver.getOutput("portfolio");
+    out << "(portfolio \"" << config.toOptionString() << "\"";
+    out << " :timeout " << config.d_timeout;
+    out << ")" << std::endl;
+  }
+}
+
 /**
  * Manages running portfolio configurations until one has solved the input
  * problem. Depending on --portfolio-jobs runs multiple jobs in parallel.
@@ -398,13 +409,7 @@ class PortfolioProcessPool
     Assert(d_nextJob < d_jobs.size());
     Job& job = d_jobs[d_nextJob];
     Trace("portfolio") << "Starting " << job.d_config << std::endl;
-    if (d_ctx.solver().isOutputOn("portfolio"))
-    {
-      std::ostream& out = d_ctx.solver().getOutput("portfolio");
-      out << "(portfolio \"" << job.d_config.toOptionString() << "\"";
-      out << " :timeout " << job.d_config.d_timeout;
-      out << ")" << std::endl;
-    }
+    printPortfolioConfig(d_ctx.solver(), job.d_config);
 
     // Set up pipes to capture output of worker
     job.d_errPipe.open();
@@ -581,7 +586,9 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
   if (strategy.d_strategies.size() == 1)
   {
-    strategy.d_strategies.front().applyOptions(solver);
+    PortfolioConfig& config = strategy.d_strategies.front();
+    printPortfolioConfig(ctx.solver(), config);
+    config.applyOptions(solver);
     return ctx.solveContinuous(d_parser, false);
   }
 
