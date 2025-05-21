@@ -908,6 +908,8 @@ enum class InferenceId
   STRINGS_REGISTER_TERM,
   // a split during collect model info
   STRINGS_CMI_SPLIT,
+  // constant sequence purification
+  STRINGS_CONST_SEQ_PURIFY,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory
