@@ -134,6 +134,12 @@ enum class BoundVarId
   QUANT_REW_PRENEX,
   /** Mapping sygus variables to builtin variables */
   QUANT_SYGUS_BUILTIN_FV,
+  /**
+   * A variable used by the valid witness proof generator. This is cached based
+   * on the skolem that witnesses the variable, whose skolem identifier is one
+   * of WITNESS_*.
+   */
+  VALID_WITNESS_VAR,
 };
 /** Converts a bound variable identifier to a string. */
 const char* toString(BoundVarId id);

@@ -32,12 +32,12 @@ class TestEnv : public TestInternal
   void SetUp() override
   {
     d_options.reset(new Options());
-    d_nodeManager = NodeManager::currentNM();
-    d_env.reset(new Env(d_nodeManager, d_options.get()));
+    d_nodeManager = std::make_unique<NodeManager>();
+    d_env.reset(new Env(d_nodeManager.get(), d_options.get()));
   }
 
   std::unique_ptr<Options> d_options;
-  NodeManager* d_nodeManager;
+  std::unique_ptr<NodeManager> d_nodeManager;
   std::unique_ptr<Env> d_env;
 };
 

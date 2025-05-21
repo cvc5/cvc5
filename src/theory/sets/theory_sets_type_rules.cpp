@@ -724,6 +724,14 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
         }
         return TypeNode::null();
       }
+      else if (firstTupleTypes.empty() || secondTupleTypes.empty())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Join requires non-nullary relations";
+        }
+        return TypeNode::null();
+      }
       else if (firstTupleTypes.back() != secondTupleTypes.front())
       {
         if (errOut)
@@ -1275,7 +1283,7 @@ bool SetsProperties::isWellFounded(TypeNode type)
 Node SetsProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.isSet());
-  return NodeManager::currentNM()->mkConst(EmptySet(type));
+  return type.getNodeManager()->mkConst(EmptySet(type));
 }
 
 }  // namespace sets

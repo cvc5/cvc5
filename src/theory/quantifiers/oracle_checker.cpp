@@ -73,6 +73,12 @@ Node OracleChecker::evaluateApp(Node app)
     d_env.output(options::OutputTag::ORACLES)
         << "(oracle-call " << app << " " << ret << ")" << std::endl;
   }
+  if (ret.getNodeManager() != app.getNodeManager())
+  {
+    throw LogicException(
+        "Evaluated an oracle call that is not associated with the term manager "
+        "of this solver");
+  }
   if (ret.getType() != app.getType())
   {
     std::stringstream ss;

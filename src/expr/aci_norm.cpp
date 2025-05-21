@@ -30,9 +30,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace expr {
 
-Node getNullTerminator(Kind k, TypeNode tn)
+Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Node nullTerm;
   switch (k)
   {
@@ -175,7 +174,7 @@ Node getACINormalForm(Node a)
     return a;
   }
   TypeNode atn = a.getType();
-  Node nt = getNullTerminator(k, atn);
+  Node nt = getNullTerminator(a.getNodeManager(), k, atn);
   if (nt.isNull())
   {
     // no null terminator, likely abstract type, return self
@@ -213,10 +212,10 @@ Node getACINormalForm(Node a)
     // sort if commutative
     std::sort(children.begin(), children.end());
   }
-  an = children.empty() ? nt
-                        : (children.size() == 1
-                               ? children[0]
-                               : NodeManager::currentNM()->mkNode(k, children));
+  an = children.empty()
+           ? nt
+           : (children.size() == 1 ? children[0]
+                                   : a.getNodeManager()->mkNode(k, children));
   a.setAttribute(nfa, an);
   return an;
 }
@@ -262,6 +261,7 @@ Node getZeroElement(NodeManager* nm, Kind k, TypeNode tn)
       zeroTerm = nm->mkNode(Kind::REGEXP_ALL);
       break;
     case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
       // empty language
       zeroTerm = nm->mkNode(Kind::REGEXP_NONE);
       break;
@@ -308,6 +308,7 @@ bool isAbsorb(Kind k)
     case Kind::AND:
     case Kind::REGEXP_UNION:
     case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
     case Kind::BITVECTOR_AND:
     case Kind::BITVECTOR_OR: return true;
     default: break;

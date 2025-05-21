@@ -1,0 +1,133 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_UF"
+base_class         = "::cvc5::internal::theory::uf::TheoryUF"
+base_class_header  = "theory/uf/theory_uf.h"
+properties         = ["stable-infinite", "parametric", "check", "ppStaticLearn", "presolve"]
+typechecker_header = "theory/uf/theory_uf_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::uf::TheoryUfRewriter"
+header = "theory/uf/theory_uf_rewriter.h"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "APPLY_UF"
+K2       = "VARIABLE" 
+children = "1:"
+comment  = "application of an uninterpreted function; first parameter is the function, remaining ones are parameters to that function"
+typerule = "::cvc5::internal::theory::uf::UfTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "FUNCTION_TYPE"
+children = "2:"
+comment  = "a function type"
+[kinds.cardinality]
+computer = "::cvc5::internal::theory::uf::FunctionProperties::computeCardinality(%TYPE%)"
+header   = "theory/uf/theory_uf_type_rules.h"
+[kinds.well-founded]
+wellfoundedness-computer = "::cvc5::internal::theory::uf::FunctionProperties::isWellFounded(%TYPE%)"
+ground-term-computer     = "::cvc5::internal::theory::uf::FunctionProperties::mkGroundTerm(%TYPE%)"
+header                   = "theory/uf/theory_uf_type_rules.h"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::uf::FunctionEnumerator"
+header = "theory/uf/type_enumerator.h"
+
+[[kinds]]
+type     = "operator"
+name     = "LAMBDA"
+children = 2
+comment  = "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
+typerule = "::cvc5::internal::theory::uf::LambdaTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "HO_APPLY"
+children = 2
+comment  = "higher-order (partial) function application"
+typerule = "::cvc5::internal::theory::uf::HoApplyTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "CARDINALITY_CONSTRAINT_OP" 
+class_key = "class"
+cpp_type  = "CardinalityConstraint"
+hasher    = "::cvc5::internal::CardinalityConstraintHashFunction"
+header    = "expr/cardinality_constraint.h"
+comment   = "the cardinality constraint operator; payload is an instance of the cvc5::internal::CardinalityConstraint class"
+typerule  = "::cvc5::internal::theory::uf::CardinalityConstraintOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "CARDINALITY_CONSTRAINT"
+K2       = "CARDINALITY_CONSTRAINT_OP"
+children = 0
+comment  = "a fixed upper bound on the cardinality of an uninterpreted sort"
+typerule = "SimpleTypeRule<RBool>"
+
+[[kinds]]
+type      = "constant"
+name      = "COMBINED_CARDINALITY_CONSTRAINT_OP"
+class_key = "class"
+cpp_type  = "CombinedCardinalityConstraint"
+hasher    = "::cvc5::internal::CombinedCardinalityConstraintHashFunction"
+header    = "expr/cardinality_constraint.h"
+comment   = "the combined cardinality constraint operator; payload is an instance of the cvc5::internal::CombinedCardinalityConstraint class"
+typerule  = "::cvc5::internal::theory::uf::CombinedCardinalityConstraintOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "COMBINED_CARDINALITY_CONSTRAINT"
+K2       = "COMBINED_CARDINALITY_CONSTRAINT_OP"
+children = 0
+comment  = "a fixed upper bound on the sum of cardinalities of uninterpreted sorts"
+typerule = "SimpleTypeRule<RBool>"
+
+[[kinds]]
+type      = "constant"
+name      = "FUNCTION_ARRAY_CONST"
+class_key = "class"
+cpp_type  = "FunctionArrayConst"
+hasher    = "::cvc5::internal::FunctionArrayConstHashFunction"
+header    = "expr/function_array_const.h"
+comment   = "the function constant; payload is an instance of the cvc5::internal::FunctionArrayConst class"
+typerule  = "::cvc5::internal::theory::uf::FunctionArrayConstTypeRule"
+
+## conversion kinds
+[[kinds]]
+type     = "operator"
+name     = "BITVECTOR_UBV_TO_INT"
+children = 1
+comment  = "bit-vector conversion to integer; parameter is treated as an unsigned bit-vector"
+typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BITVECTOR_SBV_TO_INT"
+children = 1
+comment  = "bit-vector conversion to integer; parameter is treated as a signed bit-vector"
+typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "INT_TO_BITVECTOR_OP"
+class_key = "struct"
+cpp_type  = "IntToBitVector"
+hasher    = "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >"
+header    = "util/bitvector.h"
+comment   = "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
+typerule  = "::cvc5::internal::theory::uf::IntToBitVectorOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "INT_TO_BITVECTOR"
+K2       = "INT_TO_BITVECTOR_OP"
+children = 1
+comment  = "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
+typerule = "::cvc5::internal::theory::uf::BitVectorConversionTypeRule"

@@ -67,7 +67,8 @@ struct SubsolverSetupInfo
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
+void initializeSubsolver(NodeManager* nm,
+                         std::unique_ptr<SolverEngine>& smte,
                          const SubsolverSetupInfo& info,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);

@@ -15,9 +15,15 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/arith_options.h"
 #include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/main_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
@@ -94,21 +100,6 @@ void SmtSolver::finishInit()
       pm->startProofLogging(options().base.out, d_asserts);
     }
   }
-
-  // Determine any illegal kinds that are dependent on options that need to be
-  // guarded here. Note that nearly all illegal kinds should be properly guarded
-  // by either the theory engine, theory solvers, or by theory rewriters. We
-  // only require special handling for rare cases, including array constants,
-  // where array constants *must* be rewritten by the rewriter for the purposes
-  // of model verification, but we do not want array constants to appear in
-  // assertions unless --arrays-exp is enabled.
-
-  // Array constants are not supported unless arraysExp is enabled
-  if (logicInfo().isTheoryEnabled(internal::theory::THEORY_ARRAYS)
-      && !options().arrays.arraysExp)
-  {
-    d_illegalKinds.insert(Kind::STORE_ALL);
-  }
 }
 
 void SmtSolver::resetAssertions()
@@ -150,28 +141,6 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-
-  // check illegal kinds here
-  if (!d_illegalKinds.empty())
-  {
-    const std::vector<Node>& assertions = ap.ref();
-    std::unordered_set<TNode> visited;
-    for (const Node& a : assertions)
-    {
-      Kind k = expr::hasSubtermKinds(d_illegalKinds, a, visited);
-      if (k != Kind::UNDEFINED_KIND)
-      {
-        std::stringstream ss;
-        ss << "ERROR: cannot handle assertion with term of kind " << k
-           << " in this configuration";
-        if (k == Kind::STORE_ALL)
-        {
-          ss << ", unless --arrays-exp is enabled";
-        }
-        throw LogicException(ss.str());
-      }
-    }
-  }
 
   // process the assertions with the preprocessor
   d_pp.process(ap);

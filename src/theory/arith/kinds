@@ -56,13 +56,13 @@ constant DIVISIBLE_OP \
 sort REAL_TYPE \
     Cardinality::REALS \
     well-founded \
-        "NodeManager::currentNM()->mkConstReal(Rational(0))" \
+        "nm->mkConstReal(Rational(0))" \
         "expr/node_manager.h" \
     "real type"
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConstInt(Rational(0))" \
+        "nm->mkConstInt(Rational(0))" \
         "expr/node_manager.h" \
     "integer type"
 

@@ -55,7 +55,7 @@ bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
          || k == Kind::SET_INTER || k == Kind::SET_SUBSET
          || k == Kind::SET_MINUS || k == Kind::SET_MEMBER
          || k == Kind::SET_SINGLETON || k == Kind::SEP_PTO
-         || k == Kind::BITVECTOR_TO_NAT || k == Kind::INT_TO_BITVECTOR
+         || k == Kind::BITVECTOR_UBV_TO_INT || k == Kind::INT_TO_BITVECTOR
          || k == Kind::HO_APPLY || k == Kind::STRING_LENGTH
          || k == Kind::SEQ_NTH;
 }

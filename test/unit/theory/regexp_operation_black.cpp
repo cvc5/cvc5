@@ -142,7 +142,7 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 
 TEST_F(TestTheoryBlackRegexpOperation, generalizedRegExp)
 {
-  RegExpEntail re(d_nodeManager, nullptr);
+  RegExpEntail re(d_nodeManager.get(), nullptr);
 
   TypeNode strType = d_nodeManager->stringType();
   TypeNode intType = d_nodeManager->integerType();

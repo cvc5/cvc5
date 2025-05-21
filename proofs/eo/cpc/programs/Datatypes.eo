@@ -2,15 +2,15 @@
 
 ; program: $dt_get_constructors
 ; args:
-; - T Type: The datatype to get the constructors for.
-; return: The list of constructors of T, as a eo::List.
+; - D U: The datatype (or parametric datatype) to get the constructors for.
+; return: The list of constructors of D, as a eo::List.
 ; note: >
 ;   (Unit) tuples are treated as a special case of datatypes with a single
 ;   constructor. Parametric datatypes must reference the type constructor to
 ;   extract their constructors, which generates a list of *unannotated*
 ;   datatype constructors.
-(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
-  (Type) eo::List
+(program $dt_get_constructors ((D Type) (T Type) (c T) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
+  (U) eo::List
   (
     (($dt_get_constructors (Tuple T1 T2)) (eo::cons eo::List::cons tuple eo::List::nil))
     (($dt_get_constructors UnitTuple)     (eo::cons eo::List::cons tuple.unit eo::List::nil))
@@ -44,7 +44,7 @@
 ;   Tuples use a special selector tuple.select indexed by an integer, which is
 ;   why they require a special method here.
 (program $tuple_get_selectors_rec ((D Type) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
-  (Type Int) Bool
+  (Type Int) eo::List
   (
     (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
     (($tuple_get_selectors_rec (Tuple T1 T2) n) (eo::cons eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
@@ -83,7 +83,7 @@
 ; return: >
 ;   The list of arguments of the constructor application t.
 (program $dt_arg_list ((T Type) (U Type) (V Type) (W Type) (t T) (n Int) (t1 V) (t2 W :list))
-  (T) U
+  (T) eo::List
   (
     ; for tuples, we manually accumulate the list.
     (($dt_arg_list (tuple t1 t2))  (eo::cons @list t1 ($dt_arg_list t2)))

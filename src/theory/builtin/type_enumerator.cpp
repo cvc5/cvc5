@@ -51,7 +51,7 @@ Node UninterpretedSortEnumerator::operator*()
   {
     throw NoMoreValuesException(getType());
   }
-  return NodeManager::currentNM()->mkConst(
+  return getType().getNodeManager()->mkConst(
       UninterpretedSortValue(getType(), d_count));
 }
 

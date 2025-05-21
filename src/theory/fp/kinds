@@ -36,7 +36,7 @@ typerule CONST_ROUNDINGMODE    ::cvc5::internal::theory::fp::RoundingModeConstan
 sort ROUNDINGMODE_TYPE \
     5 \
     well-founded \
-    "NodeManager::currentNM()->mkConst<RoundingMode>(RoundingMode())" \
+    "nm->mkConst<RoundingMode>(RoundingMode())" \
     "expr/node_manager.h" \
     "floating-point rounding mode"
 

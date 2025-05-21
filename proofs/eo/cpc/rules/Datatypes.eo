@@ -58,7 +58,7 @@
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
 (program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
-  (Type D Int) Bool
+  (Type D Int) D
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -72,7 +72,7 @@
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
 (program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
-  (Type C D) Bool
+  (Type C D) D
   (
     (($mk_dt_inst (Tuple T1 T2) tuple x)  ($mk_dt_inst_tuple_rec (Tuple T1 T2) x 0))
     (($mk_dt_inst UnitTuple tuple.unit x) tuple.unit)
@@ -89,7 +89,7 @@
 ;   We require that $mk_dt_inst applied to the left hand side returns
 ;   the right hand side.
 ; conclusion: The given equality.
-(declare-rule dt-inst ((D Type) (T Type) (c T) (x D) (t T))
+(declare-rule dt-inst ((D Type) (T Type) (c T) (x D) (t D))
   :args ((= (is c x) (= x t)))
   :requires ((($mk_dt_inst (eo::typeof x) c x) t))
   :conclusion (= (is c x) (= x t))
@@ -106,7 +106,9 @@
 ;   is the right hand side of the equality, where index is the index of the
 ;   selector in the constructor of t.
 ; conclusion: The given equality.
-(declare-rule dt-collapse-selector ((D Type) (T Type) (s (-> D T)) (t D) (ti T))
+; note: The type of the selector s in this rule is typically (-> D T), although
+;       this is not the case for tuple selectors.
+(declare-rule dt-collapse-selector ((D Type) (T Type) (S Type) (s S) (t D) (ti T))
   :args ((= (s t) ti))
   :requires (((eo::define ((c ($get_fun t)))
               (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
@@ -406,7 +408,7 @@
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
 (program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
-  (D U eo::List) Bool
+  (D U eo::List) D
   (
     (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs s t a ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
     (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)  ($tuple_updater_elim_rhs n t a ss))
@@ -421,7 +423,9 @@
 ;   We require that the right hand side is an ITE where the then branch is
 ;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
 ; conclusion: The given equality.
-(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (s S) (t D) (a T) (u (-> S D T D)) (tu D) (c C))
+; note: The parameter u is expected to be an updater (either update or tuple.update). Its
+;       given type is U here (which is unconstrained).
+(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (U Type) (s S) (t D) (a T) (u U) (tu D) (c C))
   :args ((= (u s t a) (ite (is c t) tu t)))
   :requires ((($mk_dt_updater_elim_rhs (u s t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
   :conclusion (= (u s t a) (ite (is c t) tu t))

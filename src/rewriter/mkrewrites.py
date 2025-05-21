@@ -364,8 +364,8 @@ def gen_rewrite_db(args):
         db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp, flag_expert)
         ids += db.ids
         printer_code += db.printer_code
-        decl_individual_rewrites.append(f"void {db.function_name}(RewriteDb&);")
-        call_individual_rewrites.append(f"{db.function_name}(db);")
+        decl_individual_rewrites.append(f"void {db.function_name}(NodeManager* nm, RewriteDb&);")
+        call_individual_rewrites.append(f"{db.function_name}(nm, db);")
 
     # Note that we manually indent by two spaces, since we do not clang-format
     # the include file automatically.

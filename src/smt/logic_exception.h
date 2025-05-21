@@ -41,6 +41,21 @@ class LogicException : public cvc5::internal::Exception
   }
 }; /* class LogicException */
 
+/**
+ * Prepends a logic exception with the text "Logic restricted in safe mode".
+ * This kind of logic exception should be thrown for any failure that is
+ * admissible in safe mode. The regression testers will consider any exception
+ * having text "in safe mode" as an admissible failure, and skip the benchmark.
+ */
+class SafeLogicException : public LogicException
+{
+ public:
+  SafeLogicException(const std::string& s)
+      : LogicException("Logic restricted in safe mode. " + s)
+  {
+  }
+};
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

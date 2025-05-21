@@ -32,10 +32,10 @@ class RewriteDb;
  * rewrite rule database with rules based on the compilation of the DSL
  * rewrite rule files.
  */
-void addRules(RewriteDb& db);
+void addRules(NodeManager* nm, RewriteDb& db);
 
 /** Make node from proof rewrite rule */
-Node mkRewriteRuleNode(ProofRewriteRule rule);
+Node mkRewriteRuleNode(NodeManager* nm, ProofRewriteRule rule);
 
 /** get a proof rewrite rule from a node, return false if we fail */
 bool getRewriteRule(TNode n, ProofRewriteRule& rule);

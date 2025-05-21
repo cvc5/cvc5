@@ -3,19 +3,17 @@
 ; Real-specific operators of arithmetic.
 
 ; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-const / (-> (! Type :var T :implicit)
-                     (! Type :var U :implicit)
-                     (! T :requires (($is_arith_type T) true))
-                     (! U :requires (($is_arith_type U) true))
-                     Real) :left-assoc)
+(declare-parameterized-const / ((T Type :implicit) (U Type :implicit))
+  (-> (! T :requires (($is_arith_type T) true))
+  (! U :requires (($is_arith_type U) true))
+  Real) :left-assoc)
 
 ; Internally generated terms.
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const /_total (-> (! Type :var T :implicit)
-                           (! Type :var U :implicit)
-                           (! T :requires (($is_arith_type T) true))
-                           (! U :requires (($is_arith_type U) true))
-                           Real) :left-assoc)
+(declare-parameterized-const /_total ((T Type :implicit) (U Type :implicit))
+  (-> (! T :requires (($is_arith_type T) true))
+      (! U :requires (($is_arith_type U) true))
+      Real) :left-assoc)
 
 ; skolems
 (declare-const @div_by_zero (-> Real Real))

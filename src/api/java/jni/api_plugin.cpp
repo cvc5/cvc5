@@ -19,7 +19,7 @@
 using namespace cvc5;
 
 ApiPlugin::ApiPlugin(TermManager& tm, JNIEnv* env, jobject plugin)
-    : Plugin(tm), d_env(env), d_tm(tm), d_plugin(plugin)
+    : Plugin(tm), d_env(env), d_plugin(plugin)
 {
 }
 

@@ -10,9 +10,9 @@
 
 (assert (or (= a b) (= a c) (= a d) (= a e)))
 
-(assert (not (= (bv2nat a) (bv2nat b))))
-(assert (not (= (bv2nat a) (bv2nat c))))
-(assert (not (= (bv2nat a) (bv2nat d))))
-(assert (not (= (bv2nat a) (bv2nat e))))
+(assert (not (= (ubv_to_int a) (ubv_to_int b))))
+(assert (not (= (ubv_to_int a) (ubv_to_int c))))
+(assert (not (= (ubv_to_int a) (ubv_to_int d))))
+(assert (not (= (ubv_to_int a) (ubv_to_int e))))
 
 (check-sat)

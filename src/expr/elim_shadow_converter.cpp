@@ -67,7 +67,7 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
                                                const Node& n,
                                                size_t i)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node ii = nm->mkConstInt(Rational(i));
   Node cacheVal = BoundVarManager::getCacheValue(q, n, ii);
@@ -77,7 +77,7 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
 Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
 {
   Assert(q.isClosure());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = q.getNodeManager();
   ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;

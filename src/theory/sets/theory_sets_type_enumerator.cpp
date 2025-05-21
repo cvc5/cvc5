@@ -23,7 +23,7 @@ namespace sets {
 
 SetEnumerator::SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<SetEnumerator>(type),
-      d_nodeManager(NodeManager::currentNM()),
+      d_nodeManager(type.getNodeManager()),
       d_elementEnumerator(type.getSetElementType(), tep),
       d_isFinished(false),
       d_currentSetIndex(0),

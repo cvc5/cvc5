@@ -14,12 +14,15 @@
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
 (declare-type @Pair (Type Type))
-(declare-const @pair (-> (! Type :var U :implicit) (! Type :var T :implicit) U T (@Pair U T)))
+(declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
 
-; untyped list
-(declare-type @List ())
-(declare-const @list.nil @List)
-(declare-const @list (-> (! Type :var T :implicit) T @List @List) :right-assoc-nil @list.nil)
+; untyped list.
+; note: >
+;   We use this as a synonym for eo::List. We use this syntax as it avoids
+;   the usage of eo:: in proofs.
+(define @List () eo::List)
+(define @list.nil () eo::List::nil)
+(define @list () eo::List::cons)
 
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () (@List) @List)
@@ -174,7 +177,7 @@
 ; - B U: The term that is potentially a pairwise application of f for the given elements.
 ; - rem @List: The list of elements we have yet to process on the LHS.
 ; return: True if B is a pairwise application of f for the given arguments.
-(program $is_pairwise ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (bs T :list) (B U :list) (nil U) (rem @List :list))
+(program $is_pairwise ((T Type) (U Type) (f (-> T T U)) (op (-> U U U)) (a T) (b T) (bs @List :list) (B U :list) (nil U) (rem @List :list))
   ((-> T T U) (-> U U U) T @List U @List) Bool
   (
   (($is_pairwise f op a (@list b bs) (op (f a b) B) rem) ($is_pairwise f op a bs B rem))

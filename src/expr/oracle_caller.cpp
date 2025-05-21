@@ -21,7 +21,7 @@ namespace cvc5::internal {
 
 OracleCaller::OracleCaller(const Node& n)
     : d_oracleNode(getOracleFor(n)),
-      d_oracle(NodeManager::currentNM()->getOracleFor(d_oracleNode))
+      d_oracle(n.getNodeManager()->getOracleFor(d_oracleNode))
 {
   Assert(!d_oracleNode.isNull());
 }

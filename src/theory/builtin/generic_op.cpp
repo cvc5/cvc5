@@ -84,7 +84,7 @@ bool GenericOp::isIndexedOperatorKind(Kind k)
 
 std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::vector<Node> indices;
   switch (k)
   {
@@ -412,7 +412,7 @@ Node GenericOp::getConcreteApp(const Node& app)
   // usually one, but we handle cases where it is >1.
   size_t nargs = metakind::getMinArityForKind(okind);
   std::vector<Node> indices(app.begin(), app.end() - nargs);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = app.getNodeManager();
   Node op = getOperatorForIndices(nm, okind, indices);
   // could have a bad index, in which case we don't rewrite
   if (op.isNull())

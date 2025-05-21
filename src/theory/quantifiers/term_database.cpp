@@ -255,7 +255,7 @@ Node TermDb::getMatchOperator(TNode n)
       || k == Kind::SET_MEMBER || k == Kind::SET_SINGLETON
       || k == Kind::APPLY_SELECTOR || k == Kind::APPLY_TESTER
       || k == Kind::SEP_PTO || k == Kind::HO_APPLY || k == Kind::SEQ_NTH
-      || k == Kind::STRING_LENGTH || k == Kind::BITVECTOR_TO_NAT
+      || k == Kind::STRING_LENGTH || k == Kind::BITVECTOR_UBV_TO_INT
       || k == Kind::INT_TO_BITVECTOR)
   {
     //since it is parametric, use a particular one as op

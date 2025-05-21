@@ -121,6 +121,8 @@ libcvc5_add_sources(
   sygus_term_enumerator.h
   variadic_trie.cpp
   variadic_trie.h
+  non_closed_node_converter.cpp
+  non_closed_node_converter.h
 )
 
 libcvc5_add_sources(GENERATED
@@ -141,7 +143,7 @@ libcvc5_add_sources(GENERATED
 
 set(mkkind_script ${CMAKE_CURRENT_LIST_DIR}/mkkind)
 set(mkmetakind_script ${CMAKE_CURRENT_LIST_DIR}/mkmetakind)
-set(mkexpr_script ${CMAKE_CURRENT_LIST_DIR}/mkexpr)
+set(mkexpr_script ${CMAKE_CURRENT_LIST_DIR}/mkexpr.py)
 
 add_custom_command(
   OUTPUT kind.h
@@ -226,11 +228,12 @@ add_custom_command(
 add_custom_command(
   OUTPUT type_checker.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkexpr_script}
-    ${CMAKE_CURRENT_LIST_DIR}/type_checker_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/type_checker.cpp
-  DEPENDS mkexpr type_checker_template.cpp ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/type_checker_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/type_checker.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkexpr.py type_checker_template.cpp ${KINDS_TOML_FILES}
 )
 
 add_custom_target(gen-expr

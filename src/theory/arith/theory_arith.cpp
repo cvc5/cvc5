@@ -133,7 +133,7 @@ void TheoryArith::preRegisterTerm(TNode n)
       ss << "Support for arithmetic extensions (required for " << k
          << ") not available in this configuration, try "
             "--arith-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     if (d_nonlinearExtension == nullptr)
     {

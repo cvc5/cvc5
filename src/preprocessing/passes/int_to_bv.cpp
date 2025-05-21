@@ -245,13 +245,13 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
            * where x refers to the bit-vector term `result`.
            */
           BitVector bvzero(size, Integer(0));
-          Node negResult = nm->mkNode(Kind::BITVECTOR_TO_NAT,
+          Node negResult = nm->mkNode(Kind::BITVECTOR_UBV_TO_INT,
                                       nm->mkNode(Kind::BITVECTOR_NEG, result));
           Node bv2int = nm->mkNode(
               Kind::ITE,
               nm->mkNode(Kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
               nm->mkNode(Kind::NEG, negResult),
-              nm->mkNode(Kind::BITVECTOR_TO_NAT, result));
+              nm->mkNode(Kind::BITVECTOR_UBV_TO_INT, result));
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }

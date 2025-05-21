@@ -183,7 +183,7 @@ void MonomialDb::registerMonomialSubset(Node a, Node b)
   d_m_contain_children[b].push_back(a);
 
   // currently use real type here
-  TypeNode tn = NodeManager::currentNM()->realType();
+  TypeNode tn = a.getNodeManager()->realType();
   Node mult_term = safeConstructNaryType(tn, Kind::MULT, diff_children);
   Node nlmult_term =
       safeConstructNaryType(tn, Kind::NONLINEAR_MULT, diff_children);

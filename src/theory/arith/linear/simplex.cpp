@@ -112,10 +112,12 @@ ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) 
 
   if(d_variables.cmpAssignmentLowerBound(basic) < 0){
     Assert(d_linEq.nonbasicsAtUpperBounds(basic));
-    return d_linEq.generateConflictBelowLowerBound(basic, *d_conflictBuilder);
+    return d_linEq.generateConflictBelowLowerBound(
+        nodeManager(), basic, *d_conflictBuilder);
   }else if(d_variables.cmpAssignmentUpperBound(basic) > 0){
     Assert(d_linEq.nonbasicsAtLowerBounds(basic));
-    return d_linEq.generateConflictAboveUpperBound(basic, *d_conflictBuilder);
+    return d_linEq.generateConflictAboveUpperBound(
+        nodeManager(), basic, *d_conflictBuilder);
   }else{
     Unreachable();
     return NullConstraint;

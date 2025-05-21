@@ -14,7 +14,7 @@ rewriter ::cvc5::internal::theory::booleans::TheoryBoolRewriter "theory/booleans
 sort BOOLEAN_TYPE \
     2 \
     well-founded \
-        "NodeManager::currentNM()->mkConst(false)" \
+        "nm->mkConst(false)" \
         "expr/node_manager.h" \
     "Boolean type"
 

@@ -670,7 +670,7 @@ class Constraint {
    * After calling impliedByUnate(), the caller should either raise a conflict
    * or try call tryToPropagate().
    */
-  void impliedByUnate(ConstraintCP a, bool inConflict);
+  void impliedByUnate(NodeManager* nm, ConstraintCP a, bool inConflict);
 
   /**
    * Marks a the constraint c as being entailed by a.
@@ -725,7 +725,10 @@ class Constraint {
    * After calling impliedByFarkas(), the caller should either raise a conflict
    * or try call tryToPropagate().
    */
-  void impliedByFarkas(const ConstraintCPVec& b, RationalVectorCP coeffs, bool inConflict);
+  void impliedByFarkas(NodeManager* nm,
+                       const ConstraintCPVec& b,
+                       RationalVectorCP coeffs,
+                       bool inConflict);
 
   /**
    * Generates an implication node, B => getLiteral(),
@@ -903,7 +906,7 @@ class Constraint {
    * a contradiction.
    */
 
-  bool wellFormedFarkasProof() const;
+  bool wellFormedFarkasProof(NodeManager* nm) const;
 
   /** The ArithVar associated with the constraint. */
   const ArithVar d_variable;

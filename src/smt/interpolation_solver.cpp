@@ -180,7 +180,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, ssi);
+    initializeSubsolver(nodeManager(), itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)

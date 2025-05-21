@@ -35,7 +35,7 @@ int main(void)
                             "01111101110010010010110100110101000100101001101000"
                             "0111011010001110001111010101100",
                             2);
-  Term t37 = tm.mkTerm(Kind::BITVECTOR_TO_NAT, {t35});
+  Term t37 = tm.mkTerm(Kind::BITVECTOR_UBV_TO_INT, {t35});
   Term t40 = tm.mkTerm(Kind::PI);
   Term t43 = tm.mkTerm(Kind::ADD, {t40, t40});
   Term t45 = tm.mkTerm(tm.mkOp(Kind::IAND, {31}), {t37, t5});
