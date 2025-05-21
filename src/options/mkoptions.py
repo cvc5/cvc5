@@ -70,7 +70,7 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 # legal values for the "no_support" field
-NO_SUPPORT_VALUES = ['proofs', 'models']
+NO_SUPPORT_VALUES = ['proofs', 'models', 'unsat-cores']
 
 ################################################################################
 ################################################################################
