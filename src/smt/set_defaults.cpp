@@ -167,6 +167,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+      // if we check proofs, we require that they are checked for completeness,
+      // unless the granularity is intentionally set to lower.
+      if (opts.smt.checkProofs
+          && (!opts.proof.proofGranularityModeWasSetByUser
+              || opts.proof.proofGranularityMode
+                    >= options::ProofGranularityMode::DSL_REWRITE))
+      {
+        SET_AND_NOTIFY(
+            proof, checkProofsComplete, true, "safe options with check-proofs")
+      }
       // bv-solver must be bitblast-internal for proofs, note this is set
       // even if proofs are not enabled so that we are consistent.
       SET_AND_NOTIFY(
@@ -174,6 +184,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
   // implied options
+  if (opts.proof.checkProofsComplete)
+  {
+    SET_AND_NOTIFY(smt, checkProofs, true, "checkProofsComplete");
+  }
   if (opts.smt.debugCheckModels)
   {
     SET_AND_NOTIFY(smt, checkModels, true, "debugCheckModels");

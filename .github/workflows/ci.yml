@@ -35,7 +35,7 @@ jobs:
             java-bindings: true
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+            run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm

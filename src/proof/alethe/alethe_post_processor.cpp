@@ -140,6 +140,28 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                            new_args,
                            *cdp);
     }
+    // ======== QUANT_MERGE_PRENEX
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    {
+      return addAletheStep(AletheRule::QNT_JOIN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== QUANT_UNUSED_VARS
+    // This rule is translated according to the clause pattern.
+    case ProofRewriteRule::QUANT_UNUSED_VARS:
+    {
+      return addAletheStep(AletheRule::QNT_RM_UNUSED,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     default: break;
   }
   return addAletheStep(AletheRule::HOLE,
@@ -597,6 +619,12 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (hasTrustId)
       {
         ss << "\"" << tid << "\"";
+        cvc5::internal::theory::TheoryId thid;
+        if (theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[0],
+                                                                  thid))
+        {
+          ss << " \"" << thid << "\"";
+        }
       }
       else
       {
