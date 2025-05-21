@@ -49,7 +49,7 @@ class ProofNodeUpdaterCallback
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                             const std::vector<Node>& fa,
-                            bool& continueUpdate) = 0;
+                            bool& continueUpdate);
   /**
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
