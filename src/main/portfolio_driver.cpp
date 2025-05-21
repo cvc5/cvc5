@@ -95,11 +95,91 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
   return status;
 }
 
+bool ExecutionContext::continueAfterSolving(parser::InputParser* parser)
+{
+  Command cmd;
+  bool interrupted = false;
+  bool status = true;
+  while (status)
+  {
+    if (interrupted)
+    {
+      solver().getDriverOptions().out() << CommandInterrupted();
+      d_executor->reset();
+      break;
+    }
+    cmd = parser->nextCommand();
+    if (cmd.isNull())
+    {
+      break;
+    }
+    Cmd* cc = cmd.d_cmd.get();
+    if (dynamic_cast<GetModelCommand*>(cc) != nullptr)
+    {
+      try
+      {
+        std::string result = solver().getModel(d_sorts, d_terms);
+        solver().getDriverOptions().out() << result;
+        status = true;
+      }
+      catch (std::exception& e)
+      {
+        status = false;
+      }
+    }
+    else if (dynamic_cast<GetUnsatCoreCommand*>(cc) != nullptr)
+    {
+      try
+      {
+        std::vector<cvc5::Term> core = solver().getUnsatCore();
+        std::ostream& out = solver().getDriverOptions().out();
+        out << "(" << std::endl;
+        for (const cvc5::Term& t : core)
+        {
+          auto it = d_named_terms.find(t);
+          if (it != d_named_terms.end())
+          {
+            out << it->second << std::endl;
+          }
+        }
+        out << ")" << std::endl;
+        status = true;
+      }
+      catch (std::exception& e)
+      {
+        status = false;
+      }
+    }
+    else
+    {
+      status = d_executor->doCommand(&cmd);
+    }
+    if (cc->interrupted() && status == 0)
+    {
+      interrupted = true;
+      break;
+    }
+    if (dynamic_cast<QuitCommand*>(cc) != nullptr)
+    {
+      break;
+    }
+  }
+  return status;
+}
+
 bool ExecutionContext::runCheckSatCommand()
 {
   std::shared_ptr<Cmd> cmd(new CheckSatCommand());
   Command command(cmd);
   return d_executor->doCommand(&command);
+}
+
+void ExecutionContext::storeDeclarationsAndNamedTerms()
+{
+  SymbolManager* sm = d_executor->getSymbolManager();
+  d_sorts = sm->getDeclaredSorts();
+  d_terms = sm->getDeclaredTerms();
+  d_named_terms = sm->getNamedTerms();
 }
 
 bool ExecutionContext::runResetCommand()
@@ -343,8 +423,16 @@ class PortfolioProcessPool
       std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
       std::string logic = d_ctx.solver().getLogic();
 
+      std::string produceUnsatCoresValue =
+          d_ctx.solver().getOption("produce-unsat-cores");
+      std::string produceModelsValue =
+          d_ctx.solver().getOption("produce-models");
+      d_ctx.storeDeclarationsAndNamedTerms();
+
       d_ctx.runResetCommand();
 
+      d_ctx.solver().setOption("produce-unsat-cores", produceUnsatCoresValue);
+      d_ctx.solver().setOption("produce-models", produceModelsValue);
       job.d_config.applyOptions(d_ctx.solver());
       d_ctx.solver().setLogic(logic);
 
@@ -358,6 +446,7 @@ class PortfolioProcessPool
       // if (d_ctx.solveCommands(d_commands))
       {
         Result res = d_ctx.d_executor->getResult();
+        d_ctx.continueAfterSolving(d_parser);
         if (res.isSat() || res.isUnsat())
         {
           rc = SolveStatus::STATUS_SOLVED;
