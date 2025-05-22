@@ -50,20 +50,27 @@
   (-> @List (Bag T) (Bag (Bag T))))
 
 ; Skolems for the theory of bags.
-(declare-parameterized-const @bags_deq_diff ((T Type :implicit))
-  (-> (! (Bag T) :opaque) (! (Bag T) :opaque) T))
-(declare-parameterized-const @tables_group_part ((T Type :implicit))
-  (-> (! (Bag (Bag T)) :opaque) T (Bag T)))
-(declare-parameterized-const @tables_group_part_element ((T Type :implicit))
-  (-> (! (Bag (Bag T)) :opaque) (! (Bag T) :opaque) T))
-(declare-parameterized-const @bags_map_sum ((T Type :implicit) (U Type :implicit))
-  (-> (! (-> T U) :opaque) (! (Bag T) :opaque) (! U :opaque) Int Int))
-(declare-parameterized-const @bags_distinct_elements ((T Type :implicit))
-  (-> (! (Bag T) :opaque) Int T))
-(declare-parameterized-const @bags_distinct_elements_size ((T Type :implicit))
-  (-> (! (Bag T) :opaque) Int))
-(declare-parameterized-const @bags_map_preimage_injective ((T Type :implicit) (U Type :implicit))
-  (-> (! (-> T U) :opaque) (! (Bag T) :opaque) (! U :opaque) T))
+(declare-parameterized-const @bags_deq_diff
+  ((T Type :implicit) (t (Bag T) :opaque) (s (Bag T) :opaque))
+  T)
+(declare-parameterized-const @tables_group_part
+  ((T Type :implicit) (t (Bag (Bag T)) :opaque))
+  (-> T (Bag T)))
+(declare-parameterized-const @tables_group_part_element
+  ((T Type :implicit) (t (Bag (Bag T)) :opaque) (s (Bag T)))
+  T)
+(declare-parameterized-const @bags_map_sum
+  ((T Type :implicit) (U Type :implicit) (f (-> T U) :opaque) (s (Bag T) :opaque) (u U :opaque))
+  (-> Int Int))
+(declare-parameterized-const @bags_distinct_elements
+  ((T Type :implicit) (t (Bag T) :opaque))
+  (-> Int T))
+(declare-parameterized-const @bags_distinct_elements_size
+  ((T Type :implicit) (t (Bag T) :opaque))
+  Int)
+(declare-parameterized-const @bags_map_preimage_injective
+  ((T Type :implicit) (U Type :implicit) (f (-> T U) :opaque) (t (Bag T) :opaque) (u U :opaque))
+  T)
 
 ;(declare-const bag.from_set (# x term (apply f_bag.from_set x)))
 ;(declare-const bag.to_set (# x term (apply f_bag.to_set x)))

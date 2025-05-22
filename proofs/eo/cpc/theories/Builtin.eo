@@ -44,4 +44,4 @@
 (declare-parameterized-const distinct ((A Type :implicit)) (-> A A Bool) :pairwise and)
 
 ; The purification skolem.
-(declare-parameterized-const @purify ((A Type :implicit)) (-> (! A :opaque) A))
+(declare-parameterized-const @purify ((A Type :implicit) (t A :opaque)) A)

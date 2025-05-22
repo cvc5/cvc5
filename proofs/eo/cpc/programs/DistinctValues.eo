@@ -19,7 +19,7 @@
 ; return: >
 ;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
 (define $are_distinct_terms ((T Type :implicit) (t T) (s T))
-  (eo::ite (eo::is_eq t s) false ($are_distinct_terms_list (@list t s) (eo::typeof t))))
+  (eo::ite (eo::eq t s) false ($are_distinct_terms_list (@list t s) (eo::typeof t))))
 
 ; program: $some_pairwise_distinct_term
 ; args:
@@ -104,12 +104,12 @@
     (($dt_distinct_terms_rec (f a) cs l1 l2) ($dt_distinct_terms_rec f cs (eo::cons @list a l1) l2))
     (($dt_distinct_terms_rec ct (f a) l1 l2) ($dt_distinct_terms_rec ct f l1 (eo::cons @list a l2)))
     (($dt_distinct_terms_rec ct cs l1 l2)
-      (eo::ite (eo::is_eq ($dt_is_cons ct) true)
-        (eo::ite (eo::is_eq ct cs)
+      (eo::ite (eo::eq ($dt_is_cons ct) true)
+        (eo::ite (eo::eq ct cs)
           ; recurse on each argument
           ($some_pairwise_distinct_term l1 l2)  ; get the argument list of the datatypes
           ; otherwise conflicting only if cs is also a constructor
-          (eo::is_eq ($dt_is_cons cs) true))
+          (eo::eq ($dt_is_cons cs) true))
         false))
   )
 )
