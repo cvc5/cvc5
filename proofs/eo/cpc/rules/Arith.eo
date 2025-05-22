@@ -385,9 +385,9 @@
   ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
   (Bool) Bool
   (
-    (($mk_arith_mult_abs_comparison (and (> t u) B))
+    (($mk_arith_mult_abs_comparison (and (> (abs t) (abs u)) B))
       ($mk_arith_mult_abs_comparison_rec B (> (* t) (* u))))
-    (($mk_arith_mult_abs_comparison (and (= t u) B))
+    (($mk_arith_mult_abs_comparison (and (= (abs t) (abs u)) B))
       ($mk_arith_mult_abs_comparison_rec B (= (* t) (* u))))
   )
 )
