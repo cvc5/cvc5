@@ -2248,14 +2248,6 @@ void SolverEngine::setOption(const std::string& key,
   }
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
   options::set(getOptions(), key, value);
-  if (key == "stats-all")
-  {
-    d_env->d_statisticsRegistry.get()->setStatsAll(true);
-  }
-  else if (key == "stats-internal")
-  {
-    d_env->d_statisticsRegistry.get()->setStatsInternal(true);
-  }
 }
 
 void SolverEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }

@@ -94,6 +94,14 @@ void Env::finishInit(smt::PfManager* pm)
   {
     d_ochecker.reset(new theory::quantifiers::OracleChecker(*this));
   }
+  if (d_options.base.statisticsAll)
+  {
+    d_statisticsRegistry->setStatsAll(true);
+  }
+  if (d_options.base.statisticsInternal)
+  {
+    d_statisticsRegistry->setStatsInternal(true);
+  }
 }
 
 void Env::shutdown()
