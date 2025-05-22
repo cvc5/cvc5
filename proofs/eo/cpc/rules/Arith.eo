@@ -34,7 +34,7 @@
 ; define: $arith_mk_zero
 ; args:
 ; - u Type : The type of the zero, which should be Int or Real.
-; return: the zero for the given type.
+; return: The zero for the given type.
 (define $arith_mk_zero ((T Type))
   (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
 
@@ -102,9 +102,9 @@
 ; - a U: The first term in the relation.
 ; - b V: The second term in the relation.
 ; return: >
-;   the relation that is obtained by flipping its arguments, applied to a and b.
-;   This is used for determining the relation obtained when multiply both sides
-;   by a negative term.
+;   The relation that is obtained by flipping its arguments, applied to a and b.
+;   This is used for determining the relation obtained when both sides are
+;   multiplied by a negative term.
 (program $arith_rel_inv ((T Type) (U Type) (V Type) (a U) (b V))
   (T U V) Bool
   (
@@ -152,7 +152,7 @@
 ; - a V: The first term in the relation.
 ; - b W: The second term in the relation.
 ; return: >
-;   the relation that along with r1 and r2 form a trichotomy over
+;   The relation that, along with r1 and r2, forms a trichotomy over
 ;   arithmetic values, applied to a and b.
 (program $arith_rel_trichotomy ((T Type) (U Type) (V Type) (W Type) (a V) (b W))
   (T U V W) Bool
@@ -200,7 +200,7 @@
 ; premises:
 ; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
 ; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
-; return: the relation that along with F1 and F2 forms a trichotomy.
+; return: The relation that along with F1 and F2 forms a trichotomy.
 (program $mk_arith_trichotomy
   ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
   (Bool Bool) Bool
@@ -349,7 +349,6 @@
                   (r m ($arith_mk_zero (eo::typeof m)))))
 )
 
-
 ;;;;; ProofRule::ARITH_MULT_ABS_COMPARISON
 
 ; program: $mk_arith_mult_abs_comparison_rec
@@ -383,13 +382,13 @@
 ; return: >
 ;   The literal proven by arith_mult_abs_comparison given premises F.
 (program $mk_arith_mult_abs_comparison
-  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
+  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
   (Bool) Bool
   (
     (($mk_arith_mult_abs_comparison (and (> t u) B))
-      ($mk_arith_mult_abs_comparison_rec (and (> t u) B) (> 1 1)))
-    (($mk_arith_mult_abs_comparison B)
-      ($mk_arith_mult_abs_comparison_rec B (= 1 1)))
+      ($mk_arith_mult_abs_comparison_rec B (> (* t) (* u))))
+    (($mk_arith_mult_abs_comparison (and (= t u) B))
+      ($mk_arith_mult_abs_comparison_rec B (= (* t) (* u))))
   )
 )
 
