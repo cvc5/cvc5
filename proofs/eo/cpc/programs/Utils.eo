@@ -43,8 +43,8 @@
 ; return: >
 ;   The function at the head of the application of t, or t itself if it is not
 ;   an application.
-(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S))
-  (S) U
+(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S) (Any Type))
+  (S) Any
   (
     (($get_fun (f x))  ($get_fun f))
     (($get_fun y)      y)
