@@ -173,37 +173,44 @@
 
 ; Skolem functions for strings and sequences.
 
-(declare-const @re_unfold_pos_component
-  (-> (! String :opaque) (! RegLan :opaque) (! Int :opaque) String))
-(declare-parameterized-const @strings_deq_diff ((T Type :implicit))
-  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_stoi_result
-  (-> (! String :opaque) Int Int))
-(declare-const @strings_stoi_non_digit
-  (-> (! String :opaque) Int))
-(declare-const @strings_itos_result
-  (-> (! Int :opaque) Int Int))
-
-(declare-parameterized-const @strings_num_occur ((T Type :implicit))
-  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int))
-(declare-const @strings_num_occur_re
-  (-> (! String :opaque) (! RegLan :opaque) Int))
-(declare-parameterized-const @strings_occur_index ((T Type :implicit))
-  (-> (! (Seq T) :opaque) (! (Seq T) :opaque) Int Int))
-(declare-const @strings_occur_index_re
-  (-> (! String :opaque) (! RegLan :opaque) Int Int))
-(declare-const @strings_occur_len_re
-  (-> (! String :opaque) (! RegLan :opaque) Int Int))
-
-(declare-parameterized-const @strings_replace_all_result ((T Type :implicit))
-  (-> (! (Seq T) :opaque) Int (Seq T)))
-
-(declare-const @re_first_match_pre
-  (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match
-  (-> (! String :opaque) (! RegLan :opaque) String))
-(declare-const @re_first_match_post
-  (-> (! String :opaque) (! RegLan :opaque) String))
+(declare-parameterized-const @re_unfold_pos_component
+  ((s String :opaque) (r RegLan :opaque) (n Int :opaque)) 
+  String)
+(declare-parameterized-const @strings_deq_diff
+  ((T Type :implicit) (s (Seq T) :opaque) (t (Seq T) :opaque))
+  Int)
+(declare-parameterized-const @strings_stoi_result ((s String :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_stoi_non_digit ((s String :opaque)) Int)
+(declare-parameterized-const @strings_itos_result ((n Int :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_num_occur
+  ((T Type :implicit) (s (Seq T)) (t (Seq T)))
+  Int)
+(declare-parameterized-const @strings_num_occur_re 
+  ((e String :opaque) (b RegLan :opaque))
+  Int)
+(declare-parameterized-const @strings_occur_index
+  ((T Type :implicit) (s (Seq T)) (t (Seq T)))
+  (-> Int Int))
+(declare-parameterized-const @strings_occur_index_re
+  ((s String :opaque) (r RegLan :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_occur_len_re
+  ((s String :opaque) (r RegLan :opaque))
+  (-> Int Int))
+(declare-parameterized-const @strings_replace_all_result
+  ((T Type :implicit) (t (Seq T) :opaque))
+  (-> Int (Seq T)))
+(declare-parameterized-const @re_first_match_pre
+  ((h String :opaque) (e RegLan :opaque))
+  String)
+(declare-parameterized-const @re_first_match
+  ((i String :opaque) (f RegLan :opaque))
+  String)
+(declare-parameterized-const @re_first_match_post
+  ((j String :opaque) (g RegLan :opaque))
+  String)
 
 (declare-parameterized-const @witness_string_length ((T Type))
   (-> Int Int T))
