@@ -80,6 +80,14 @@ name   = "Proof"
   help       = "do not check rule applications"
 
 [[option]]
+  name       = "checkProofsComplete"
+  category   = "expert"
+  long       = "check-proofs-complete"
+  type       = "bool"
+  default    = "false"
+  help       = "treat an incomplete proof as a failure (enabled by default in safe builds)"
+
+[[option]]
   name       = "proofPpMerge"
   category   = "expert"
   long       = "proof-pp-merge"

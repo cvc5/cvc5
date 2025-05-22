@@ -7680,6 +7680,10 @@ std::string OptionInfo::toString() const
   {
     internal::container_to_stream(os, aliases, ", ", "", ", ");
   }
+  if (!noSupports.empty())
+  {
+    internal::container_to_stream(os, noSupports, ", ", "", ", ");
+  }
   auto printNum = [&os](const std::string& type, const auto& vi) {
     os << " | " << type << " | " << vi.currentValue << " | default "
        << vi.defaultValue;
@@ -7755,6 +7759,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7766,6 +7771,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7778,6 +7784,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7791,6 +7798,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7804,6 +7812,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7816,6 +7825,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7828,6 +7838,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,

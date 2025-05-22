@@ -33,6 +33,12 @@ void printUsage(const std::string& binary,
                 bool printRegular = false);
 
 /**
+ * Print overall command-line options, partitioned into categories.
+ */
+void printUsageCategories(cvc5::Solver& solver,
+                          std::ostream& os);
+
+/**
  * Initialize the Options object options based on the given
  * command-line arguments given in argc and argv.  The return value
  * is what's left of the command line (that is, the non-option
