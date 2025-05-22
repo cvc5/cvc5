@@ -323,7 +323,8 @@ Node TheoryModel::getModelValue(TNode n) const
       {
         // If null, if an argument is not constant, then it *might* be the
         // same as a constrained application of rk. In this case, we cannot
-        // evaluate to an arbitrary value.
+        // evaluate to an arbitrary value, and instead we use ret itself
+        // (unevaluated) as the model value.
         for (const Node& rc : ret)
         {
           if (!rc.isConst())
