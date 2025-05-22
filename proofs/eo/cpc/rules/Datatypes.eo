@@ -189,45 +189,6 @@
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
 
-; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
-(program $dt_cons_eq_find_clash_list () (@List @List) Bool)
-
-; define: $dt_cons_eq_find_clash
-; args:
-; - t T: The left hand side of the equality.
-; - s T: The right hand side of the equality.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(define $dt_cons_eq_find_clash ((T Type :implicit) (t T) (s T))
-  (eo::define ((ct ($get_fun t)))
-  (eo::define ((cs ($get_fun s)))
-  (eo::ite ($dt_is_cons ct)
-    (eo::ite (eo::eq ct cs)
-      ; recurse on each argument
-      ($dt_cons_eq_find_clash_list ($dt_arg_list t) ($dt_arg_list s))
-      ; otherwise conflicting only if cs is also a constructor
-      ($dt_is_cons cs))
-    false)))
-)
-
-; program: $dt_cons_eq_find_clash_list
-; args:
-; - ts @List: The list of arguments to the left hand side of the equality left to process.
-; - ss @List: The list of arguments to the right hand side of the equality left to process.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(program $dt_cons_eq_find_clash_list ((U Type) (t U) (s U) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
-  (
-  (($dt_cons_eq_find_clash_list (@list t ts) (@list s ss))  (eo::ite ($dt_cons_eq_find_clash t s)
-                                                              true
-                                                              ($dt_cons_eq_find_clash_list ts ss)))
-  (($dt_cons_eq_find_clash_list @list.nil @list.nil)        false)
-  )
-)
-
 ; rule: dt-cons-eq
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
 ; args:
@@ -237,9 +198,21 @@
 ;   subterms (beneath constructor applications) that have distinct constructor
 ;   symbols on either side.
 ; conclusion: The given equality.
+; note: >
+;   We reuse the side condition $are_distinct_terms to check this rule, which
+;   is sound and suffices to check this rule. Internally in cvc5, the rules
+;   DISTINCT_VALUES and DT_CONS_EQ_CLASH are incomparable, as the former
+;   insists that t and s are values, but is more powerful since it considers
+;   values of any type, whereas DT_CONS_EQ_CLASH does not insist on values but
+;   only considers datatype constructors. This means that $are_distinct_terms
+;   could in theory find a conflict for a different reason than
+;   DT_CONS_EQ_CLASH, for example (cons 0 (cons a b)) = (cons 1 nil),
+;   where $are_distinct_terms succeds since 0 != 1, whereas DT_CONS_EQ_CLASH
+;   was applied since (cons a b) != nil. However, both are valid reasons
+;   why the equality is conflicting.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
-  :requires ((($dt_cons_eq_find_clash t s) true))
+  :requires ((($are_distinct_terms t s) true))
   :conclusion (= (= t s) false)
 )
 

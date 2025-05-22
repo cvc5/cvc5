@@ -88,6 +88,32 @@
 
 ;;;;; Theory of datatypes
 
+; program: $dt_distinct_terms_rec
+; args:
+; - t T: The first term, expected to be of datatype type.
+; - s T: The second term, expected to be of datatype type.
+; - l1 @List: The accumulated list of arguments of t.
+; - l2 @List: The accumulated list of arguments of s.
+; return: >
+;   True if we can show that t and s denote distinct terms. This is true
+;   if t and s are distinct constructor applications, or are applications
+;   of the same constructor and one of their arguments can be shown distinct.
+(program $dt_distinct_terms_rec ((T Type) (U Type) (V Type) (W Type) (ct T) (cs V) (f (-> U W)) (a U) (l1 @List) (l2 @List))
+  (T V @List @List) Bool
+  (
+    (($dt_distinct_terms_rec (f a) cs l1 l2) ($dt_distinct_terms_rec f cs (eo::cons @list a l1) l2))
+    (($dt_distinct_terms_rec ct (f a) l1 l2) ($dt_distinct_terms_rec ct f l1 (eo::cons @list a l2)))
+    (($dt_distinct_terms_rec ct cs l1 l2)
+      (eo::ite (eo::eq ($dt_is_cons ct) true)
+        (eo::ite (eo::eq ct cs)
+          ; recurse on each argument
+          ($some_pairwise_distinct_term l1 l2)  ; get the argument list of the datatypes
+          ; otherwise conflicting only if cs is also a constructor
+          (eo::eq ($dt_is_cons cs) true))
+        false))
+  )
+)
+
 ; define: $dt_distinct_terms
 ; args:
 ; - t T: The first term, expected to be of datatype type.
@@ -97,17 +123,7 @@
 ;   if t and s are distinct constructor applications, or are applications
 ;   of the same constructor and one of their arguments can be shown distinct.
 (define $dt_distinct_terms ((T Type :implicit) (t T) (s T))
-  (eo::define ((ct ($get_fun t)))
-  (eo::define ((cs ($get_fun s)))
-  (eo::ite (eo::eq ($dt_is_cons ct) true)
-    (eo::ite (eo::eq ct cs)
-      ; recurse on each argument
-      ($some_pairwise_distinct_term ($dt_arg_list t) ($dt_arg_list s))  ; get the argument list of the datatypes
-      ; otherwise conflicting only if cs is also a constructor
-      (eo::eq ($dt_is_cons cs) true))
-    false)))
-)
-
+  ($dt_distinct_terms_rec t s @list.nil @list.nil))
 
 ;;;;; Definitions
 
