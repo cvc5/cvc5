@@ -327,7 +327,7 @@
             (eo::match ((tk String) (M Bool :list))
             ($re_unfold_pos_concat t r)
             (((@pair tk M)
-                (eo::define ((teq (= t tk))) (eo::ite (eo::is_eq M true) teq (and teq M)))))))
+                (eo::define ((teq (= t tk))) (eo::ite (eo::eq M true) teq (and teq M)))))))
     ))
 )
 
@@ -615,7 +615,7 @@
     ((Seq T) @List @List) Bool
     (
       (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
-                                                            (eo::define ((nrem (eo::is_eq xs xsr)))
+                                                            (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
                                                                 (eo::ite nrem (@list s nr) nr)))))
@@ -860,7 +860,7 @@
     (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
                                 ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
                                 (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
-                                                        (eo::ite (eo::is_eq (eo::typeof ue) String)
+                                                        (eo::ite (eo::eq (eo::typeof ue) String)
                                                           ($singleton_elim
                                                           ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
                                                             (eo::cons @list "" chars)
