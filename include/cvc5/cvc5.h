@@ -3344,10 +3344,8 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** Whether this is an expert option */
-  bool isExpert;
-  /** Whether this is a regular option */
-  bool isRegular;
+  /** The category of this option (regular, expert, or all) */
+  modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
