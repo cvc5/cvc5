@@ -7746,6 +7746,20 @@ std::vector<std::string> Solver::getOptionNames() const
   CVC5_API_TRY_CATCH_END;
 }
 
+// Helper function to convert internal category to external enum
+modes::OptionCategory convertOptionCategory(internal::options::OptionInfo::Category internalCategory)
+{
+  switch (internalCategory) {
+    case internal::options::OptionInfo::Category::REGULAR:
+      return modes::OptionCategory::REGULAR;
+    case internal::options::OptionInfo::Category::EXPERT:
+      return modes::OptionCategory::EXPERT;
+    // Add other cases if the internal enum has more values
+    default:
+      return modes::OptionCategory::REGULAR; // safe default
+  }
+}
+
 OptionInfo Solver::getOptionInfo(const std::string& option) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7761,10 +7775,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
@@ -7773,10 +7784,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
@@ -7786,10 +7794,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::ValueInfo<std::string>{vi.defaultValue,
                                                    vi.currentValue}};
           },
@@ -7800,10 +7805,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7814,10 +7816,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7827,10 +7826,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
@@ -7840,10 +7836,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                info.category
-                    == internal::options::OptionInfo::Category::EXPERT,
-                info.category
-                    == internal::options::OptionInfo::Category::REGULAR,
+                convertOptionCategory(info.category),
                 OptionInfo::ModeInfo{
                     vi.defaultValue, vi.currentValue, vi.modes}};
           },
