@@ -4875,8 +4875,20 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   info->no_supports = c_no_supports.data();
 
   info->is_set_by_user = cpp_info.setByUser;
-  info->is_expert = cpp_info.isExpert;
-  info->is_regular = cpp_info.isRegular;
+  switch (cpp_info.category) {
+    case cvc5::modes::OptionCategory::REGULAR:
+      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      break;
+    case cvc5::modes::OptionCategory::EXPERT:
+      info->category = CVC5_OPTION_CATEGORY_EXPERT;
+      break;
+    case cvc5::modes::OptionCategory::ALL:
+      info->category = CVC5_OPTION_CATEGORY_ALL;
+      break;
+    default:
+      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      break;
+  }
 
   std::visit(
       overloaded{
@@ -5795,3 +5807,4 @@ Cvc5Term cvc5_find_synth_next(Cvc5* cvc5)
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
+  
