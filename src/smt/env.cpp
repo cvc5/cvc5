@@ -96,7 +96,6 @@ void Env::finishInit(smt::PfManager* pm)
   }
   d_statisticsRegistry->setStatsAll(d_options.base.statisticsAll);
   d_statisticsRegistry->setStatsInternal(d_options.base.statisticsInternal);
-
 }
 
 void Env::shutdown()
