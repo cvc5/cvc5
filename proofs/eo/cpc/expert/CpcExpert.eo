@@ -49,9 +49,9 @@
   (eo::match ((x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
     t
     (
-      ((sep x1 x2)       ($get_aci_norm t true))
-      ((ff.add xf1 xf2)  ($get_aci_norm t true))
-      ((ff.mul xf1 xf2)  ($get_aci_norm t true))
+      ((sep x1 x2)       (@aci_sorted sep ($get_ai_norm t)))
+      ((ff.add xf1 xf2)  (@aci_sorted ff.add ($get_ai_norm t)))
+      ((ff.mul xf1 xf2)  (@aci_sorted ff.mul ($get_ai_norm t)))
     )
   )
 )
@@ -71,9 +71,8 @@
 ;   not its own dedicated rule.
 (declare-rule aci_norm_expert ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((eo::define ((an ($get_aci_normal_form_expert a)) (bn ($get_aci_normal_form_expert b)))
-              (eo::ite (eo::eq an b) true
-              (eo::ite (eo::eq a bn) true
-                (eo::eq an bn)))) true))
+  :requires (((eo::define ((an ($get_aci_normal_form_expert a)) 
+                           (bn ($get_aci_normal_form_expert b)))
+              ($is_aci_norm a b an bn)) true))
   :conclusion (= a b)
 )

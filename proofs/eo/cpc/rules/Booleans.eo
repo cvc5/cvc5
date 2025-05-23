@@ -51,7 +51,7 @@
 ;   The result of removing l from C, where additionally if C itself is
 ;   l, then we return the empty or-list false.
 (define $remove_maybe_self ((l Bool) (C Bool))
-    (eo::ite (eo::eq l C) false ($nary_remove or false l C)))
+  (eo::ite (eo::eq l C) false (eo::list_erase or C l)))
 
 ; define: $resolve
 ; args:
@@ -147,27 +147,6 @@
             (((and C1 C2) ($chain_resolve_rec ($to_clause C1) C2 pols lits))))
 )
 
-; program: $factor_literals
-; args:
-; - xs Bool: The current accumulated clause containing the unique literals we have seen thus far.
-; - ys Bool: The remainder of the clause to process.
-; return: >
-;   The result of concatenating all the unique literals in the order in
-;   which they were seen. Note that we do not return the accumulator, which has
-;   the literals in reverse order, which is why the recursive case of this method
-;   constructs both versions.
-(program $factor_literals ((xs Bool :list) (l Bool) (ls Bool :list))
-    (Bool Bool) Bool
-    (
-        (($factor_literals xs (or l ls)) (eo::define ((cond (eo::is_neg (eo::list_find or xs l))))
-                                         (eo::define ((ret ($factor_literals
-                                                    (eo::ite cond (eo::cons or l xs) xs)
-                                                    ls)))
-                                            (eo::ite cond (eo::cons or l ret) ret))))
-        (($factor_literals xs false)      false)
-    )
-)
-
 ; rule: factoring
 ; implements: ProofRule::FACTORING
 ; premises:
@@ -177,7 +156,7 @@
 ;   $factor_literals routine.
 (declare-rule factoring ((C Bool))
     :premises (C)
-    :conclusion ($from_clause ($factor_literals false C))
+    :conclusion ($from_clause (eo::list_setof or C))
 )
 
 ; rule: reordering
@@ -196,7 +175,7 @@
 (declare-rule reordering ((C1 Bool) (C2 Bool))
     :premises (C1)
     :args (C2)
-    :requires ((($nary_is_subset or false C1 C2) true))
+    :requires (((eo::list_minclude or C1 C2) true))
     :conclusion C2
 )
 

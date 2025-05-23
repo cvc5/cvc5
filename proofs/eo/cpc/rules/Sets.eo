@@ -39,7 +39,7 @@
   ((Set T)) @List
   (
     (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
-    (($set_union_to_list (set.empty (Set T)))             @list.nil)
+    (($set_union_to_list (as set.empty (Set T)))          @list.nil)
     (($set_union_to_list (set.singleton e))               (eo::cons @list e @list.nil))
   )
 )
@@ -102,9 +102,9 @@
 ; conclusion: The given equality.
 (declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
   :args ((= a b))
-  :requires ((($nary_eq_set @list @list.nil
-                ($eval_sets_op a)
-                ($set_union_to_list b)) true))
+  :requires (((eo::list_meq @list
+              (eo::list_setof @list ($eval_sets_op a))
+              ($set_union_to_list b)) true))    ; b is already assumed to have no duplicates
   :conclusion (= a b)
 )
 

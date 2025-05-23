@@ -349,12 +349,12 @@
   :args (rev)
   :conclusion
     (eo::match ((r1 RegLan) (r2 RegLan :list))
-      ($str_rev rev r)
+      ($str_re_rev rev r)
       (
         ((re.++ r1 r2) (eo::define ((n ($str_fixed_len_re r1)))
                        (eo::ite rev
                        (or (not (str.in_re ($str_suffix s n) r1))
-                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_re_rev rev r2)))))
                        (or (not (str.in_re ($str_prefix s n) r1))
                            (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
@@ -614,7 +614,7 @@
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
     ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr (eo::list_erase @list xs s)))
                                                             (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
