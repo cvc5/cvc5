@@ -104,11 +104,11 @@ void printUsageCategories(cvc5::Solver& solver,
   for (const auto& name : options::getNames())
   {
     auto info = solver.getOptionInfo(name);
-    if (info.isExpert)
+    if (info.category == cvc5::modes::OptionCategory::EXPERT)
     {
       ssExpert << "- " << name << std::endl;
     }
-    else if (info.isRegular)
+    else if (info.category == cvc5::modes::OptionCategory::REGULAR)
     {
       if (info.noSupports.empty())
       {
