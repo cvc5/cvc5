@@ -3499,10 +3499,8 @@ struct Cvc5OptionInfo
   const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
-  /** True if the option is an expert option */
-  bool is_expert;
-  /** True if the option is a regular option */
-  bool is_regular;
+  /** The category of this option (regular, expert, or all) */
+  Cvc5OptionCategory category;
 
   /** Information for boolean option values. */
   struct BoolInfo
