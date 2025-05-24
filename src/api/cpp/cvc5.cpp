@@ -7754,9 +7754,10 @@ modes::OptionCategory convertOptionCategory(internal::options::OptionInfo::Categ
       return modes::OptionCategory::REGULAR;
     case internal::options::OptionInfo::Category::EXPERT:
       return modes::OptionCategory::EXPERT;
-    // Add other cases if the internal enum has more values
-    default:
-      return modes::OptionCategory::REGULAR; // safe default
+    case internal::options::OptionInfo::Category::COMMON:
+      return modes::OptionCategory::COMMON;
+    case internal::options::OptionInfo::Category::UNDOCUMENTED:
+      return modes::OptionCategory::UNDOCUMENTED;
   }
 }
 

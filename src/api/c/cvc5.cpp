@@ -4882,11 +4882,14 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
     case cvc5::modes::OptionCategory::EXPERT:
       info->category = CVC5_OPTION_CATEGORY_EXPERT;
       break;
-    case cvc5::modes::OptionCategory::ALL:
-      info->category = CVC5_OPTION_CATEGORY_ALL;
+    case cvc5::modes::OptionCategory::COMMON:
+      info->category = CVC5_OPTION_CATEGORY_COMMON;
+      break;
+    case cvc5::modes::OptionCategory::UNDOCUMENTED:
+      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
       break;
     default:
-      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
       break;
   }
 
