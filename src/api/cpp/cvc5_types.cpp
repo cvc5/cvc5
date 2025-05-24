@@ -214,6 +214,21 @@ std::string to_string(cvc5::modes::FindSynthTarget target)
 }  // namespace std
 
 namespace cvc5::modes {
+std::ostream& operator<<(std::ostream& out, OptionCategory cat)
+{
+  switch (cat)
+  {
+    case OptionCategory::REGULAR: out << "regular"; break;
+    case OptionCategory::EXPERT: out << "expert"; break;
+    case OptionCategory::COMMON: out << "common"; break;
+    case OptionCategory::UNDOCUMENTED: out << "undocumented"; break;
+    default: out << "?";
+  }
+  return out;
+}
+}
+
+namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, InputLanguage lang)
 {
   switch (lang)
