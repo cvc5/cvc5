@@ -7759,7 +7759,7 @@ modes::OptionCategory convertOptionCategory(internal::options::OptionInfo::Categ
     case internal::options::OptionInfo::Category::UNDOCUMENTED:
       return modes::OptionCategory::UNDOCUMENTED;
     default:
-      Assert(internalCategory == modes::OptionCategory::UNDOCUMENTED);
+      Assert(internalCategory == internal::options::OptionInfo::Category::UNDOCUMENTED);
       return modes::OptionCategory::UNDOCUMENTED;
   }
 }
