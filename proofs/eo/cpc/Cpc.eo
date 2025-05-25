@@ -442,17 +442,18 @@
   )
 )
 
-; define: $is_absorb
+; program: $is_absorb
 ; args:
 ; - t U: The term to compute whether it simplifies to a zero element.
 ; - zero U: The zero element of the function of t.
 ; return: >
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
-(define $is_absorb ((S Type :implicit) (t S) (zero S))
-  (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
-  (eo::match ((T Type) (U Type) (f (-> U U U)) (t1 U) (t2 U))
-    t
-    (((f t1 t2) ($is_absorb_rec f t zero))))))
+(program $is_absorb ((T Type) (U Type) (f (-> U U U)) (t1 T) (t2 T) (zero T))
+  (T T) Bool
+  (
+  (($is_absorb (f t1 t2) zero) ($is_absorb_rec f (f t1 t2) zero))
+  )
+)
 
 ; rule: absorb
 ; implements: ProofRule::ABSORB
@@ -463,7 +464,7 @@
 ; conclusion: The given equality.
 (declare-rule absorb ((U Type) (t U) (zero U))
   :args ((= t zero))
-  :requires ((($is_absorb t zero) true))
+  :requires ((($get_zero t) zero) (($is_absorb t zero) true))
   :conclusion (= t zero)
 )
 
