@@ -138,13 +138,10 @@
 ; conclusion: >
 ;   The result of the chain resolution of the premises clauses for
 ;   the given polarities and pivots.
-(declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @List))
-    :premise-list Cs and
+(declare-rule chain_resolution ((Cs Bool) (C1 Bool) (C2 Bool :list) (pols @List) (lits @List))
+    :premise-list (and C1 C2) and
     :args (pols lits)
-    :conclusion
-        (eo::match ((C1 Bool) (C2 Bool :list))
-            Cs
-            (((and C1 C2) ($chain_resolve_rec ($to_clause C1) C2 pols lits))))
+    :conclusion ($chain_resolve_rec C1 C2 pols lits)
 )
 
 ; program: $factor_literals
