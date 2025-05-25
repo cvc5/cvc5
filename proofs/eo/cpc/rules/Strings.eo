@@ -755,6 +755,20 @@
 
 ;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
 
+; define: $str_eval_indexof_re_in_bound
+; args:
+; - res (@Pair Int Int): The result of finding (a suffix of) string s in r.
+; - n Int: A start position.
+; return: >
+;   The result of evaluating (str.indexof_re s r n), assuming n is in bounds.
+(program $str_eval_indexof_re_in_bound ((sp Int) (ep Int) (n Int))
+  ((@Pair Int Int) Int) Int
+  (
+  (($str_eval_indexof_re_in_bound (@pair -1 -1) n) -1)
+  (($str_eval_indexof_re_in_bound (@pair sp ep) n) (eo::add n sp))
+  )
+)
+
 ; define: $str_eval_indexof_re
 ; args:
 ; - s String: A string.
@@ -765,13 +779,7 @@
 (define $str_eval_indexof_re ((s String) (r RegLan) (n Int))
   (eo::ite (eo::or (eo::gt n (eo::len s)) (eo::is_neg n))
     -1
-    (eo::match ((sp Int) (ep Int))
-      ($str_first_match (eo::extract s n (eo::len s)) r)
-      (
-      ((@pair -1 -1) -1)
-      ((@pair sp ep) (eo::add n sp))
-      ))))
-
+    ($str_eval_indexof_re_in_bound ($str_first_match (eo::extract s n (eo::len s)) r) n)))
 
 ; rule: str-indexof-re-eval
 ; implements: ProofRewriteRule::STR_INDEXOF_RE_EVAL

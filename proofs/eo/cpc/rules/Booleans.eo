@@ -138,7 +138,7 @@
 ; conclusion: >
 ;   The result of the chain resolution of the premises clauses for
 ;   the given polarities and pivots.
-(declare-rule chain_resolution ((Cs Bool) (C1 Bool) (C2 Bool :list) (pols @List) (lits @List))
+(declare-rule chain_resolution ((C1 Bool) (C2 Bool :list) (pols @List) (lits @List))
     :premise-list (and C1 C2) and
     :args (pols lits)
     :conclusion ($chain_resolve_rec C1 C2 pols lits)
