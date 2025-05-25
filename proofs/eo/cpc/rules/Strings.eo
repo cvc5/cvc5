@@ -298,6 +298,33 @@
 
 ;;;;; ProofRule::RE_UNFOLD_POS
 
+; program: $mk_re_unfold_pos
+; args:
+; - t String: The string.
+; - r RegLan: The regular expression.
+; return: The conclusion for rule RE_UNFOLD_POS.
+(program $mk_re_unfold_pos ((t String) (r1 RegLan) (r2 RegLan :list))
+  (String RegLan) Bool
+  (
+    (($mk_re_unfold_pos t (re.* r1))
+        (eo::match ((k1 String) (k2 String) (k3 String) (M Bool :list))
+        ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))
+        (((@pair (str.++ k1 k2 k3) M)
+            (or
+            (= t "")
+            (str.in_re t r1)
+            (and
+                (eo::cons and (= t (str.++ k1 k2 k3)) M)
+                (not (= k1 ""))
+                (not (= k3 ""))))))))
+    (($mk_re_unfold_pos t (re.++ r1 r2))
+        (eo::match ((tk String) (M Bool :list))
+        ($re_unfold_pos_concat t (re.++ r1 r2))
+        (((@pair tk M)
+            (eo::define ((teq (= t tk))) (eo::ite (eo::eq M true) teq (and teq M)))))))
+  )
+)
+
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
 ; premises:
@@ -308,30 +335,30 @@
 ;   r if the latter is a regular expression concatenation.
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
-  :conclusion
-    (eo::match ((r1 RegLan) (r2 RegLan :list))
-      r
-      (
-        ((re.* r1)
-            (eo::match ((k1 String) (k2 String) (k3 String) (M Bool :list))
-            ($re_unfold_pos_concat t (re.++ r1 r r1))
-            (((@pair (str.++ k1 k2 k3) M)
-                (or 
-                (= t "") 
-                (str.in_re t r1)
-                (and
-                    (eo::cons and (= t (str.++ k1 k2 k3)) M)
-                    (not (= k1 ""))
-                    (not (= k3 ""))))))))
-        ((re.++ r1 r2)
-            (eo::match ((tk String) (M Bool :list))
-            ($re_unfold_pos_concat t r)
-            (((@pair tk M)
-                (eo::define ((teq (= t tk))) (eo::ite (eo::eq M true) teq (and teq M)))))))
-    ))
+  :conclusion ($mk_re_unfold_pos t r)
+
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+
+; program: $mk_re_unfold_neg_concat_fixed
+; args:
+; - s String: The string.
+; - r RegLan: The regular expression.
+; - rev Bool: Whether we are in the reverse direction.
+; return: The conclusion for rule RE_UNFOLD_NEG_CONCAT_FIXED.
+(program $mk_re_unfold_neg_concat_fixed ((s String) (r1 RegLan) (r2 RegLan :list) (rev Bool))
+  (String RegLan Bool) Bool
+  (
+    (($mk_re_unfold_neg_concat_fixed s (re.++ r1 r2) rev)
+        (eo::define ((n ($str_fixed_len_re r1)))
+          (eo::ite rev
+          (or (not (str.in_re ($str_suffix s n) r1))
+              (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+          (or (not (str.in_re ($str_prefix s n) r1))
+              (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
+  )
+)
 
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
@@ -347,17 +374,7 @@
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
-  :conclusion
-    (eo::match ((r1 RegLan) (r2 RegLan :list))
-      ($str_rev rev r)
-      (
-        ((re.++ r1 r2) (eo::define ((n ($str_fixed_len_re r1)))
-                       (eo::ite rev
-                       (or (not (str.in_re ($str_suffix s n) r1))
-                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re ($str_prefix s n) r1))
-                           (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
-    ))
+  :conclusion ($mk_re_unfold_neg_concat_fixed s ($str_rev rev r) rev)
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG

@@ -168,14 +168,11 @@
 ; - Q (-> @List Bool Bool): The binding operator (forall or exists).
 ; - F Bool: The formula for which we are merging prenexes.
 ; return: the result of merging all bound variables bound by Q in F.
-(program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool))
-  ((-> @List Bool Bool) Bool) Bool
+(program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (y @List) (F Bool))
+  ((-> @List Bool Bool) Bool @List) Bool
   (
-  (($mk_quant_merge_prenex Q (Q x F))  (eo::match ((R (-> @List Bool Bool)) (y @List) (G Bool))
-                                         ($mk_quant_merge_prenex Q F)
-                                         ; note that since this method returns Q terms only, R is Q
-                                         (((R y G) (Q (eo::list_concat @list x y) G)))))
-  (($mk_quant_merge_prenex Q F)        (Q @list.nil F))
+  (($mk_quant_merge_prenex Q (Q x F) y)  ($mk_quant_merge_prenex Q F (eo::list_concat @list y x)))
+  (($mk_quant_merge_prenex Q F y)        (Q y F))
   )
 )
 
@@ -190,7 +187,7 @@
 (declare-rule quant-merge-prenex ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
   :requires (((eo::or (eo::eq Q forall) (eo::eq Q exists)) true)
-             (($mk_quant_merge_prenex Q (Q x F)) G))
+             (($mk_quant_merge_prenex Q (Q x F) @list.nil) G))
   :conclusion (= (Q x F) G)
 )
 
