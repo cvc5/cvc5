@@ -427,20 +427,18 @@
 ; - t S: The term to compute whether it simplifies to a zero element.
 ; return: >
 ;   The zero element for t, if it is found.
-(define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((b1 Bool) (b2 Bool :list)
-              (r1 RegLan) (r2 RegLan :list)
-              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
-    t
-    (
-    ((or b1 b2)        true)
-    ((and b1 b2)       false)
-    ((re.union r1 r2)  re.all)
-    ((re.inter r1 r2)  re.none)
-    ((re.++ r1 r2)     re.none)
-    ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
-    ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
-    )
+(program $get_zero ((S Type) (b1 Bool) (b2 Bool :list)
+                    (r1 RegLan) (r2 RegLan :list)
+                    (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
+  (S) S
+  (
+  (($get_zero (or b1 b2))        true)
+  (($get_zero (and b1 b2))       false)
+  (($get_zero (re.union r1 r2))  re.all)
+  (($get_zero (re.inter r1 r2))  re.none)
+  (($get_zero (re.++ r1 r2))     re.none)
+  (($get_zero (bvor xb1 xb2))    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
+  (($get_zero (bvand xb1 xb2))   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
   )
 )
 

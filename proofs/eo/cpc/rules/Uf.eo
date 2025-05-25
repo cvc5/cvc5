@@ -217,13 +217,10 @@
 ;   the premises E. Note that the first equality in E should be an equality
 ;   between the functions that are respectively applied to the arguments given by
 ;   the remaining equalities.
-(declare-rule ho_cong ((T Type) (U Type) (E Bool) (f (-> T U)))
-    :premise-list E and
+(declare-rule ho_cong ((T Type) (t1 T) (t2 T) (tail Bool :list))
+    :premise-list (and (= t1 t2) tail) and
     :args ()
-    :conclusion
-        (eo::match ((t1 U) (t2 U) (tail Bool :list))
-        E
-        (((and (= t1 t2) tail) ($mk_ho_cong t1 t2 tail))))
+    :conclusion ($mk_ho_cong t1 t2 tail)
 )
 
 ;;-------------------- Instances of THEORY_REWRITE

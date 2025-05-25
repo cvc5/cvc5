@@ -40,12 +40,15 @@
   )
 )
 
-; define: $char_type_of
+; program: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
 ; return: the character type of the string-like type T
-(define $char_type_of ((T Type)) 
-  (eo::match ((U Type)) T (((Seq U) U)))
+(program $char_type_of ((U Type))
+  (Type) Type
+  (
+  (($char_type_of (Seq U)) U)
+  )
 )
 
 ; define: $str_concat
