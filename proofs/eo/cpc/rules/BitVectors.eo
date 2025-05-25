@@ -183,23 +183,23 @@
 ;   (bvand x #b0011) as a, this program will return
 ;   (concat (bvand ((_ extract 3 2) #b0011) ((_ extract 3 2) x))
 ;           (bvand ((_ extract 1 0) #b0011) ((_ extract 1 0) x))).
-(define $bv_mk_bitwise_slicing ((n Int :implicit) (a (BitVec n)))
-  (eo::match ((m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec m)) (a2 (BitVec m) :list))
-    a
-    (
-    ((f a1 a2)    ($singleton_elim
-                  (eo::define ((c ($bv_get_first_const_child a)))
-                  (eo::requires ($bv_is_bitwise_slicing_op f) true
-                  (eo::requires (eo::eq c @bv_empty) false
-                  (eo::define ((wm1 (eo::add (eo::len c) -1)))
-                  ($bv_mk_bitwise_slicing_rec
-                    f
-                    c
-                    (eo::define ((nil (eo::nil f a1 a2)))
-                      ($singleton_elim ($nary_diff f nil a (eo::cons f c nil))))  ; remove the constant and recollect
-                    ($nary_reverse ($bv_mk_bitblast_step_const c))                ; convert the constant to a bitlist
-                    ($bv_bit_set c wm1) wm1 wm1)))))))
-    )
+(program $bv_mk_bitwise_slicing
+  ((n Int) (m Int) (f (-> (BitVec m) (BitVec m) (BitVec m))) (a1 (BitVec n)) (a2 (BitVec n) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitwise_slicing (f a1 a2))
+              ($singleton_elim
+                (eo::define ((c ($bv_get_first_const_child (f a1 a2))))
+                (eo::requires ($bv_is_bitwise_slicing_op f) true
+                (eo::requires (eo::eq c @bv_empty) false
+                (eo::define ((wm1 (eo::add (eo::len c) -1)))
+                ($bv_mk_bitwise_slicing_rec
+                  f
+                  c
+                  (eo::define ((nil (eo::nil f a1 a2)))
+                    ($singleton_elim ($nary_diff f nil (f a1 a2) (eo::cons f c nil))))  ; remove the constant and recollect
+                  ($nary_reverse ($bv_mk_bitblast_step_const c))                ; convert the constant to a bitlist
+                  ($bv_bit_set c wm1) wm1 wm1)))))))
   )
 )
 
