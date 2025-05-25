@@ -788,23 +788,25 @@
 
 ;;;;; ProofRewriteRule::STR_REPLACE_RE_EVAL
 
-; define: $str_eval_indexof_re
+; program: $str_eval_indexof_re
 ; args:
 ; - s String: A string.
 ; - r RegLan: A regular expression.
 ; - t String: A string to replace with.
+; - res (@Pair Int Int): The result of finding the first match of s in r.
 ; return: >
 ;   The result of evaluating (str.replace_re s r t), which is either s or a
 ;   concatenation of the prefix of s before the match, t and the suffix of s
 ;   after the match.
-(define $str_eval_replace_re ((s String) (r RegLan) (t String))
-  (eo::match ((sp Int) (ep Int))
-    ($str_first_match s r)
-    (
-    ((@pair -1 -1) s)
-    ; note that t does not need to be a constant, so the returned term is a concat term
-    ((@pair sp ep) (str.++ (eo::extract s 0 (eo::add sp -1)) t (eo::extract s ep (eo::len s))))
-    )))
+(program $str_eval_replace_re ((s String) (r RegLan) (t String) (sp Int) (ep Int))
+  (String RegLan String (@Pair Int Int)) String
+  (
+  (($str_eval_replace_re s r t (@pair -1 -1)) s)
+  ; note that t does not need to be a constant, so the returned term is a concat term
+  (($str_eval_replace_re s r t (@pair sp ep))
+    (str.++ (eo::extract s 0 (eo::add sp -1)) t (eo::extract s ep (eo::len s))))
+  )
+)
 
 ; rule: str-replace-re-eval
 ; implements: ProofRewriteRule::STR_REPLACE_RE_EVAL
@@ -815,7 +817,7 @@
 ; conclusion: The given equality.
 (declare-rule str-replace-re-eval ((s String) (r RegLan) (t String) (u String))
   :args ((= (str.replace_re s r t) u))
-  :requires ((($str_eval_replace_re s r t) u))
+  :requires ((($str_eval_replace_re s r t ($str_first_match s r)) u))
   :conclusion (= (str.replace_re s r t) u)
 )
 

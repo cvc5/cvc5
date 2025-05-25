@@ -347,7 +347,7 @@
 
 ;;;;; ProofRule::ACI_NORM
 
-; define: $get_aci_normal_form
+; program: $get_aci_normal_form
 ; args:
 ; - t S: The term to compute the normal form for.
 ; return: >
@@ -355,26 +355,24 @@
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
-(define $get_aci_normal_form ((S Type :implicit) (t S))
-  (eo::match ((T Type) (x T)
-              (b1 Bool) (b2 Bool :list)
-              (r1 RegLan) (r2 RegLan :list)
-              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
-    t
-    (
-      ((or b1 b2)        ($get_aci_norm t true))
-      ((and b1 b2)       ($get_aci_norm t true))
-      ((re.union r1 r2)  ($get_aci_norm t true))
-      ((re.inter r1 r2)  ($get_aci_norm t true))
-      ((bvor xb1 xb2)    ($get_aci_norm t true))
-      ((bvand xb1 xb2)   ($get_aci_norm t true))
-      ((bvxor xb1 xb2)   ($get_aci_norm t false))
-      ((str.++ xs1 xs2)  ($get_a_norm t))
-      ((re.++ r1 r2)     ($get_a_norm t))
-      ((concat xb1 xb2)  ($get_a_norm t))
-      (x                 x)
-    )
+(program $get_aci_normal_form ((T Type) (x T)
+                               (b1 Bool) (b2 Bool :list)
+                               (r1 RegLan) (r2 RegLan :list)
+                               (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+                               (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
+  (T) T
+  (
+    (($get_aci_normal_form (or b1 b2))        ($get_aci_norm (or b1 b2) true))
+    (($get_aci_normal_form (and b1 b2))       ($get_aci_norm (and b1 b2) true))
+    (($get_aci_normal_form (re.union r1 r2))  ($get_aci_norm (re.union r1 r2) true))
+    (($get_aci_normal_form (re.inter r1 r2))  ($get_aci_norm (re.inter r1 r2) true))
+    (($get_aci_normal_form (bvor xb1 xb2))    ($get_aci_norm (bvor xb1 xb2) true))
+    (($get_aci_normal_form (bvand xb1 xb2))   ($get_aci_norm (bvand xb1 xb2) true))
+    (($get_aci_normal_form (bvxor xb1 xb2))   ($get_aci_norm (bvxor xb1 xb2) false))
+    (($get_aci_normal_form (str.++ xs1 xs2))  ($get_a_norm (str.++ xs1 xs2)))
+    (($get_aci_normal_form (re.++ r1 r2))     ($get_a_norm (re.++ r1 r2)))
+    (($get_aci_normal_form (concat xb1 xb2))  ($get_a_norm (concat xb1 xb2)))
+    (($get_aci_normal_form x)                 x)
   )
 )
 
