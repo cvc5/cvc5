@@ -134,19 +134,19 @@
   )
 )
 
-; program: $mk_quant_unused_vars
+; program: $mk_quant
 ; args:
 ; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
 ; - x @List: The list of variables of the quantified formula.
 ; - F Bool: The body of the quantified formula.
-; return: the result of removing duplicate and unused variables from x.
-(define $mk_quant_unused_vars ((Q (-> @List Bool Bool)) (x @List) (F Bool))
-  (eo::match ((y @List))
-    ($mk_quant_unused_vars_rec x F)
-    (
-      (@list.nil F)
-      (y (Q y F))
-    )))
+; return: The quantified formula (Q x F), or just F is x is the empty list.
+(program $mk_quant ((Q (-> @List Bool Bool)) (x @List) (F Bool))
+  ((-> @List Bool Bool) @List Bool) Bool
+  (
+  (($mk_quant Q @list.nil F) F)
+  (($mk_quant Q x F) (Q x F))
+  )
+)
 
 ; rule: quant-unused-vars
 ; implements: ProofRewriteRule::QUANT_UNUSED_VARS
@@ -157,7 +157,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-unused-vars ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
-  :requires ((($mk_quant_unused_vars Q x F) G))
+  :requires ((($mk_quant Q ($mk_quant_unused_vars_rec x F) F) G))
   :conclusion (= (Q x F) G)
 )
 
