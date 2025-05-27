@@ -58,7 +58,7 @@
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
 (program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type))
-  ((eo::arg U) D Int) U
+  ((eo::quote U) D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))

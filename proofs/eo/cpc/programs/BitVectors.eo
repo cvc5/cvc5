@@ -36,7 +36,7 @@
 ; - b (BitVec m): The bitvector term.
 ; return: The result of concatenating b n times.
 (program $bv_unfold_repeat_rec ((m Int) (n Int) (b (BitVec m)))
-  ((eo::arg n) (BitVec m)) (BitVec (eo::mul n m))
+  ((eo::quote n) (BitVec m)) (BitVec (eo::mul n m))
   (
     (($bv_unfold_repeat_rec 0 b)  (eo::to_bin 0 0))
     (($bv_unfold_repeat_rec n b)  (eo::cons concat b ($bv_unfold_repeat_rec (eo::add n -1) b)))

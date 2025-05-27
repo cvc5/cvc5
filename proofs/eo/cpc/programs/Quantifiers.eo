@@ -82,7 +82,7 @@
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
 (program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list))
-  ((eo::arg U) (eo::arg ss)) ($get_lambda_type ss U)
+  ((eo::quote U) (eo::quote ss)) ($get_lambda_type ss U)
   (
   ; handle higher-order case: if lambda is applied to one argument, it may be a partial application
   (($beta_reduce (_ (lambda (@list x xs) t) a) @list.nil)

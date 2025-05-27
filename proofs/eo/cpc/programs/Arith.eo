@@ -163,7 +163,7 @@
 ; - a T: The term to muliply.
 ; return: The result of multiplying a, n times.
 (program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
-  ((eo::arg n) T) (eo::ite (eo::eq n 0) Int T)
+  ((eo::quote n) T) (eo::ite (eo::eq n 0) Int T)
   (
     (($arith_unfold_pow_rec 0 a)  1)
     (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))

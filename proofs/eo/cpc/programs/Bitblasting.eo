@@ -24,7 +24,7 @@
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
 (program $bv_bitblast_repeat ((b Bool) (n Int))
-  (Bool (eo::arg n)) (BitVec n)
+  (Bool (eo::quote n)) (BitVec n)
   (
     (($bv_bitblast_repeat b 0)  @bv_empty)
     (($bv_bitblast_repeat b n)  (eo::cons @from_bools b ($bv_bitblast_repeat b (eo::add n -1))))
@@ -38,7 +38,7 @@
 ; return: the prefix of t consisting of at most l children.
 (program $bv_bitblast_prefix
   ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (l Int))
-  ((eo::arg l) (BitVec n)) (BitVec l)
+  ((eo::quote l) (BitVec n)) (BitVec l)
   (
     (($bv_bitblast_prefix 0 t)                   @bv_empty)
     (($bv_bitblast_prefix l (@from_bools b a))
@@ -55,7 +55,7 @@
 ;   The subsequent of t between indices l and u inclusive.
 (program $bv_bitblast_subsequence
   ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (u Int) (l Int))
-  ((eo::arg l) (eo::arg u) (BitVec n)) (BitVec (eo::add u (eo::neg l)))
+  ((eo::quote l) (eo::quote u) (BitVec n)) (BitVec (eo::add u (eo::neg l)))
   (
     (($bv_bitblast_subsequence l u @bv_empty)      @bv_empty)
     (($bv_bitblast_subsequence 0 u t)
@@ -472,7 +472,7 @@
 ; - n Int: The bitwidth of c.
 ; return: the bitlist for a starting with index i.
 (program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
-  ((BitVec n) (eo::arg i) Int) (BitVec (eo::add n (eo::neg i)))
+  ((BitVec n) (eo::quote i) Int) (BitVec (eo::add n (eo::neg i)))
   (
     (($bv_const_to_bitlist_rec c n n)   @bv_empty)
     (($bv_const_to_bitlist_rec c i n)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))
@@ -604,7 +604,7 @@
 ; - i Int: The index of the bit we are currently processing.
 ; return: the bitblasted term for variable a.
 (program $bv_mk_bitblast_step_var_rec ((n Int) (a (BitVec n)) (i Int))
-  ((BitVec n) (eo::arg i)) (BitVec (eo::add i 1))
+  ((BitVec n) (eo::quote i)) (BitVec (eo::add i 1))
   (
     (($bv_mk_bitblast_step_var_rec a -1)  @bv_empty)
     (($bv_mk_bitblast_step_var_rec a i)   (eo::cons @from_bools (@bit i a) ($bv_mk_bitblast_step_var_rec a (eo::add i -1))))
