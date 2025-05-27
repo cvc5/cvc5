@@ -35,15 +35,14 @@
 ; args:
 ; - F Bool: A conjunction of arithmetic relations.
 ; return: the arithmetic relation that is implied by adding each of the relations in F together.
-(program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list))
-    (Bool) Bool
-    (
-        (($mk_arith_sum_ub true)               (= 0 0))
-        (($mk_arith_sum_ub (and (r a b) tail)) 
-          (eo::match ((S Type) (V Type) (r2 (-> S V Bool)) (a2 S :list) (b2 V :list))
-            ($mk_arith_sum_ub tail)
-            (((r2 a2 b2) ($arith_rel_sum r r2 (+ a a2) (+ b b2))))))
-    )
+(program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list)
+                           (S Type) (V Type) (r2 (-> S V Bool)) (a2 S :list) (b2 V :list) (acc Bool))
+  (Bool Bool) Bool
+  (
+    (($mk_arith_sum_ub true acc)                      acc)
+    (($mk_arith_sum_ub (and (r a b) tail) (r2 a2 b2)) ($mk_arith_sum_ub tail ($arith_rel_sum r r2 (+ a a2) (+ b b2))))
+
+  )
 )
 
 ; rule: arith_sum_ub
@@ -55,7 +54,7 @@
 ;   relations in F together.
 (declare-rule arith_sum_ub ((F Bool))
   :premise-list F and
-  :conclusion ($mk_arith_sum_ub F)
+  :conclusion ($mk_arith_sum_ub ($nary_reverse F) (= 0 0))
 )
 
 ;;;;; ProofRule::ARITH_MULT_POS
@@ -425,30 +424,28 @@
       (=> (> v 0) (and lb (< u (* v (+ k 1)))))
       (=> (< v 0) (and lb (< u (* v (+ k -1))))))))))
 
-; define: $arith_reduction_pred
+; program: $arith_reduction_pred
 ; args:
 ; - t T: The term we are considering, which is expected to be an application of an extended arithmetic operator.
 ; return: the reduction predicate for term t.
-(define $arith_reduction_pred ((T Type :implicit) (t T))
-  (eo::match ((U Type) (V Type) (r Real) (a Int) (b Int) (u U) (v V))
-    t
-    (
-    ((is_int u)       (eo::define ((k (@purify (to_int u))))
-                        (and (= t (= (- u k) 0/1)) ($arith_to_int_reduction u))))
-    ((to_int u)       (eo::define ((k (@purify (to_int u))))
-                        (and (= t k) ($arith_to_int_reduction u))))
-    ((/ u v)          (eo::define ((ur (eo::ite (eo::eq (eo::typeof u) Int) (to_real u) u)))
-                        (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero ur) (/_total u v)))))
-    ((div a b)        (= t (ite (= b 0) (@int_div_by_zero a) (div_total a b))))
-    ((mod a b)        (= t (ite (= b 0) (@mod_by_zero a) (mod_total a b))))
-    ((/_total u v)    (eo::define ((k (@purify (/_total u v))))
-                        (and (= t k) (=> (not (= v ($arith_mk_zero (eo::typeof v)))) (= (* v k) u)))))
-    ((div_total a b)  (eo::define ((k (@purify (div_total a b))))
-                        (and (= t k) ($arith_int_div_total_reduction a b))))
-    ((mod_total a b)  (eo::define ((k (@purify (div_total a b))))
-                        (and (= t (- a (* b k))) ($arith_int_div_total_reduction a b))))
-    ((abs u)          (= t (ite (< u ($arith_mk_zero (eo::typeof u))) (- u) u)))
-    )
+(program $arith_reduction_pred ((T Type) (U Type) (V Type) (r Real) (a Int) (b Int) (u U) (v V))
+  (T) Bool
+  (
+  (($arith_reduction_pred (is_int u))       (eo::define ((k (@purify (to_int u))))
+                                              (and (= (is_int u) (= (- u k) 0/1)) ($arith_to_int_reduction u))))
+  (($arith_reduction_pred (to_int u))       (eo::define ((k (@purify (to_int u))))
+                                              (and (= (to_int u) k) ($arith_to_int_reduction u))))
+  (($arith_reduction_pred (/ u v))          (eo::define ((ur (eo::ite (eo::eq (eo::typeof u) Int) (to_real u) u)))
+                                              (= (/ u v) (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero ur) (/_total u v)))))
+  (($arith_reduction_pred (div a b))        (= (div a b) (ite (= b 0) (@int_div_by_zero a) (div_total a b))))
+  (($arith_reduction_pred (mod a b))        (= (mod a b) (ite (= b 0) (@mod_by_zero a) (mod_total a b))))
+  (($arith_reduction_pred (/_total u v))    (eo::define ((k (@purify (/_total u v))))
+                                              (and (= (/_total u v) k) (=> (not (= v ($arith_mk_zero (eo::typeof v)))) (= (* v k) u)))))
+  (($arith_reduction_pred (div_total a b))  (eo::define ((k (@purify (div_total a b))))
+                                              (and (= (div_total a b) k) ($arith_int_div_total_reduction a b))))
+  (($arith_reduction_pred (mod_total a b))  (eo::define ((k (@purify (div_total a b))))
+                                              (and (= (mod_total a b) (- a (* b k))) ($arith_int_div_total_reduction a b))))
+  (($arith_reduction_pred (abs u))          (= (abs u) (ite (< u ($arith_mk_zero (eo::typeof u))) (- u) u)))
   )
 )
 

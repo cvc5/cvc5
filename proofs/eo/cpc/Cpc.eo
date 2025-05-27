@@ -347,7 +347,7 @@
 
 ;;;;; ProofRule::ACI_NORM
 
-; define: $get_aci_normal_form
+; program: $get_aci_normal_form
 ; args:
 ; - t S: The term to compute the normal form for.
 ; return: >
@@ -355,26 +355,24 @@
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
-(define $get_aci_normal_form ((S Type :implicit) (t S))
-  (eo::match ((T Type) (x T)
-              (b1 Bool) (b2 Bool :list)
-              (r1 RegLan) (r2 RegLan :list)
-              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
-              (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
-    t
-    (
-      ((or b1 b2)        ($get_aci_norm t true))
-      ((and b1 b2)       ($get_aci_norm t true))
-      ((re.union r1 r2)  ($get_aci_norm t true))
-      ((re.inter r1 r2)  ($get_aci_norm t true))
-      ((bvor xb1 xb2)    ($get_aci_norm t true))
-      ((bvand xb1 xb2)   ($get_aci_norm t true))
-      ((bvxor xb1 xb2)   ($get_aci_norm t false))
-      ((str.++ xs1 xs2)  ($get_a_norm t))
-      ((re.++ r1 r2)     ($get_a_norm t))
-      ((concat xb1 xb2)  ($get_a_norm t))
-      (x                 x)
-    )
+(program $get_aci_normal_form ((T Type) (x T)
+                               (b1 Bool) (b2 Bool :list)
+                               (r1 RegLan) (r2 RegLan :list)
+                               (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
+                               (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
+  (T) T
+  (
+    (($get_aci_normal_form (or b1 b2))        ($get_aci_norm (or b1 b2) true))
+    (($get_aci_normal_form (and b1 b2))       ($get_aci_norm (and b1 b2) true))
+    (($get_aci_normal_form (re.union r1 r2))  ($get_aci_norm (re.union r1 r2) true))
+    (($get_aci_normal_form (re.inter r1 r2))  ($get_aci_norm (re.inter r1 r2) true))
+    (($get_aci_normal_form (bvor xb1 xb2))    ($get_aci_norm (bvor xb1 xb2) true))
+    (($get_aci_normal_form (bvand xb1 xb2))   ($get_aci_norm (bvand xb1 xb2) true))
+    (($get_aci_normal_form (bvxor xb1 xb2))   ($get_aci_norm (bvxor xb1 xb2) false))
+    (($get_aci_normal_form (str.++ xs1 xs2))  ($get_a_norm (str.++ xs1 xs2)))
+    (($get_aci_normal_form (re.++ r1 r2))     ($get_a_norm (re.++ r1 r2)))
+    (($get_aci_normal_form (concat xb1 xb2))  ($get_a_norm (concat xb1 xb2)))
+    (($get_aci_normal_form x)                 x)
   )
 )
 
@@ -427,34 +425,33 @@
 ; - t S: The term to compute whether it simplifies to a zero element.
 ; return: >
 ;   The zero element for t, if it is found.
-(define $get_zero ((S Type :implicit) (t S))
-  (eo::match ((b1 Bool) (b2 Bool :list)
-              (r1 RegLan) (r2 RegLan :list)
-              (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
-    t
-    (
-    ((or b1 b2)        true)
-    ((and b1 b2)       false)
-    ((re.union r1 r2)  re.all)
-    ((re.inter r1 r2)  re.none)
-    ((re.++ r1 r2)     re.none)
-    ((bvor xb1 xb2)    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
-    ((bvand xb1 xb2)   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
-    )
+(program $get_zero ((S Type) (b1 Bool) (b2 Bool :list)
+                    (r1 RegLan) (r2 RegLan :list)
+                    (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
+  (S) S
+  (
+  (($get_zero (or b1 b2))        true)
+  (($get_zero (and b1 b2))       false)
+  (($get_zero (re.union r1 r2))  re.all)
+  (($get_zero (re.inter r1 r2))  re.none)
+  (($get_zero (re.++ r1 r2))     re.none)
+  (($get_zero (bvor xb1 xb2))    ($bv_ones ($bv_bitwidth (eo::typeof xb1))))
+  (($get_zero (bvand xb1 xb2))   (eo::to_bin ($bv_bitwidth (eo::typeof xb1)) 0))
   )
 )
 
-; define: $is_absorb
+; program: $is_absorb
 ; args:
 ; - t U: The term to compute whether it simplifies to a zero element.
 ; - zero U: The zero element of the function of t.
 ; return: >
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
-(define $is_absorb ((S Type :implicit) (t S) (zero S))
-  (eo::requires ($get_zero t) zero  ; verify that we are using the right zero
-  (eo::match ((T Type) (U Type) (f (-> U U U)) (t1 U) (t2 U))
-    t
-    (((f t1 t2) ($is_absorb_rec f t zero))))))
+(program $is_absorb ((T Type) (U Type) (f (-> U U U)) (t1 T) (t2 T) (zero T))
+  (T T) Bool
+  (
+  (($is_absorb (f t1 t2) zero) ($is_absorb_rec f (f t1 t2) zero))
+  )
+)
 
 ; rule: absorb
 ; implements: ProofRule::ABSORB
@@ -465,7 +462,7 @@
 ; conclusion: The given equality.
 (declare-rule absorb ((U Type) (t U) (zero U))
   :args ((= t zero))
-  :requires ((($is_absorb t zero) true))
+  :requires ((($get_zero t) zero) (($is_absorb t zero) true))
   :conclusion (= t zero)
 )
 
