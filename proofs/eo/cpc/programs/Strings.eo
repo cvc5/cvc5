@@ -373,7 +373,15 @@
 ; - t (Seq U): The string term.
 ; return: the reverse of t if rev is true, return t unchanged otherwise.
 (define $str_rev ((U Type :implicit) (rev Bool) (t (Seq U))) 
-  (eo::ite rev ($nary_reverse t) t))
+  (eo::ite rev (eo::list_rev str.++ t) t))
+
+; define: $str_re_rev
+; args:
+; - rev Bool: Whether to reverse the regular expression term.
+; - t RegLan: The regular expression term.
+; return: the reverse of t if rev is true, return t unchanged otherwise.
+(define $str_re_rev ((rev Bool) (t RegLan))
+  (eo::ite rev (eo::list_rev re.++ t) t))
 
 ; program: $str_nary_intro
 ; args:
@@ -1073,8 +1081,7 @@
 ;   (3) (optionally) reverse.
 (define $str_to_flat_form ((U Type :implicit) (s (Seq U)) (rev Bool))
   ; intro, flatten, reverse
-  ($str_rev rev ($str_flatten ($str_nary_intro s)))
-)
+  ($str_rev rev ($str_flatten ($str_nary_intro s))))
 
 ; define: $str_to_nary_form
 ; args:
@@ -1119,7 +1126,7 @@
 ;   result to their flat form. Note that other strings in r, i.e. those that
 ;   occur beneath other children remain unchanged.
 (define $re_to_flat_form ((r RegLan) (rev Bool))
-  ($re_str_to_flat_form rev ($str_rev rev ($re_nary_intro r))))
+  ($re_str_to_flat_form rev ($str_re_rev rev ($re_nary_intro r))))
 
 ; define: $str_from_flat_form
 ; args:
@@ -1179,8 +1186,7 @@
 ;   (3) eliminate n-ary form to its element if the term is a singleton list.
 (define $re_from_flat_form ((r RegLan) (rev Bool))
   ; (un?)flatten, reverse, elim
-  ($re_nary_elim ($str_rev rev ($re_str_from_flat_form rev r)))
-)
+  ($re_nary_elim ($str_re_rev rev ($re_str_from_flat_form rev r))))
 
 ; note: This is a forward declaration of $str_re_includes below.
 (program $str_re_includes () (RegLan RegLan) Bool)

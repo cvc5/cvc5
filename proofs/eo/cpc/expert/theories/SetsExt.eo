@@ -52,7 +52,7 @@
 (declare-parameterized-const rel.tclosure ((T Type :implicit))
   (-> (Set (Tuple T T)) (Set (Tuple T T))))
 (declare-parameterized-const rel.transpose ((T Type :implicit))
-  (-> (Set T) (Set ($nary_reverse T))))
+  (-> (Set T) (Set (eo::list_rev Tuple T))))
 (declare-parameterized-const rel.product ((T Type :implicit) (U Type :implicit))
   (-> (Set T) (Set U) (Set (eo::list_concat Tuple T U))))
 (declare-parameterized-const rel.join ((T Type :implicit) (U Type :implicit))

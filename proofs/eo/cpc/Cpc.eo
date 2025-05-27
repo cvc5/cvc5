@@ -354,7 +354,8 @@
 ;   The result of normalizing t for the proof rule aci_norm. In
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
-;   the method $get_aci_norm (resp. $get_a_norm).
+;   the method $get_ai_norm (resp. $get_a_norm), possibly wrapping the
+;   placeholder @aci_sorted.
 (program $get_aci_normal_form ((T Type) (x T)
                                (b1 Bool) (b2 Bool :list)
                                (r1 RegLan) (r2 RegLan :list)
@@ -362,13 +363,13 @@
                                (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
   (T) T
   (
-    (($get_aci_normal_form (or b1 b2))        ($get_aci_norm (or b1 b2) true))
-    (($get_aci_normal_form (and b1 b2))       ($get_aci_norm (and b1 b2) true))
-    (($get_aci_normal_form (re.union r1 r2))  ($get_aci_norm (re.union r1 r2) true))
-    (($get_aci_normal_form (re.inter r1 r2))  ($get_aci_norm (re.inter r1 r2) true))
-    (($get_aci_normal_form (bvor xb1 xb2))    ($get_aci_norm (bvor xb1 xb2) true))
-    (($get_aci_normal_form (bvand xb1 xb2))   ($get_aci_norm (bvand xb1 xb2) true))
-    (($get_aci_normal_form (bvxor xb1 xb2))   ($get_aci_norm (bvxor xb1 xb2) false))
+    (($get_aci_normal_form (or b1 b2))        (@aci_sorted or ($get_ai_norm (or b1 b2))))
+    (($get_aci_normal_form (and b1 b2))       (@aci_sorted and ($get_ai_norm (and b1 b2))))
+    (($get_aci_normal_form (re.union r1 r2))  (@aci_sorted re.union ($get_ai_norm (re.union r1 r2))))
+    (($get_aci_normal_form (re.inter r1 r2))  (@aci_sorted re.inter ($get_ai_norm (re.inter r1 r2))))
+    (($get_aci_normal_form (bvor xb1 xb2))    (@aci_sorted bvor ($get_ai_norm (bvor xb1 xb2))))
+    (($get_aci_normal_form (bvand xb1 xb2))   (@aci_sorted bvand ($get_ai_norm (bvand xb1 xb2))))
+    (($get_aci_normal_form (bvxor xb1 xb2))   (@aci_sorted bvxor ($get_a_norm (bvxor xb1 xb2))))
     (($get_aci_normal_form (str.++ xs1 xs2))  ($get_a_norm (str.++ xs1 xs2)))
     (($get_aci_normal_form (re.++ r1 r2))     ($get_a_norm (re.++ r1 r2)))
     (($get_aci_normal_form (concat xb1 xb2))  ($get_a_norm (concat xb1 xb2)))
@@ -393,10 +394,9 @@
 ;   which are defined in CpcExpert.eo.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((eo::define ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
-              (eo::ite (eo::eq an b) true
-              (eo::ite (eo::eq a bn) true
-                (eo::eq an bn)))) true))
+  :requires (((eo::define ((an ($get_aci_normal_form a)) 
+                           (bn ($get_aci_normal_form b)))
+              ($is_aci_norm a b an bn)) true))
   :conclusion (= a b)
 )
 
