@@ -34,5 +34,6 @@
   (-> @List (Set T) (Set T)))
 
 ; Skolems for the theory of sets.
-(declare-parameterized-const @sets_deq_diff ((T Type :implicit))
-  (-> (! (Set T) :opaque) (! (Set T) :opaque) T))
+(declare-parameterized-const @sets_deq_diff
+  ((T Type :implicit) (s (Set T) :opaque) (t (Set T) :opaque))
+  T)
