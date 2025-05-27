@@ -101,14 +101,15 @@ void printUsageCategories(cvc5::Solver& solver,
   std::stringstream ssRegular;
   std::stringstream ssRegularNoSupport;
   std::stringstream ssExpert;
+  std::stringstream ssUndocumented;
   for (const auto& name : options::getNames())
   {
     auto info = solver.getOptionInfo(name);
-    if (info.isExpert)
+    if (info.category == cvc5::modes::OptionCategory::EXPERT)
     {
       ssExpert << "- " << name << std::endl;
     }
-    else if (info.isRegular)
+    else if (info.category == cvc5::modes::OptionCategory::REGULAR)
     {
       if (info.noSupports.empty())
       {
@@ -119,9 +120,13 @@ void printUsageCategories(cvc5::Solver& solver,
         ssRegularNoSupport << "- " << name << std::endl;
       }
     }
-    else
+    else if (info.category == cvc5::modes::OptionCategory::COMMON)
     {
       ssCommon << "- " << name << std::endl;
+    }
+    else if (info.category == cvc5::modes::OptionCategory::UNDOCUMENTED)
+    {
+      ssUndocumented << "- " << name << std::endl;
     }
   }
   os << "Common options:" << std::endl;
@@ -132,6 +137,8 @@ void printUsageCategories(cvc5::Solver& solver,
   os << ssRegularNoSupport.str();
   os << "Expert options:" << std::endl;
   os << ssExpert.str();
+  os << "Undocumented options:" << std::endl;
+  os << ssUndocumented.str();
 }
 
 /**

@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cvc5/cvc5_types.h>
 
 #include "base/output.h"
 #include "test_api.h"
@@ -654,8 +655,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("verbose");
     ASSERT_EQ("verbose", info.name);
     ASSERT_EQ(std::vector<std::string>{}, info.aliases);
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
     std::stringstream ss;
@@ -667,8 +668,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("print-success");
     ASSERT_EQ("print-success", info.name);
     ASSERT_EQ(std::vector<std::string>{}, info.aliases);
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(
         std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo));
@@ -686,8 +687,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("verbosity");
     ASSERT_EQ("verbosity", info.name);
     ASSERT_EQ(std::vector<std::string>{}, info.aliases);
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_TRUE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
         info.valueInfo));
@@ -707,8 +708,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("rlimit");
     ASSERT_EQ("rlimit", info.name);
     ASSERT_EQ(std::vector<std::string>{}, info.aliases);
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
         info.valueInfo));
@@ -726,8 +727,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto info = d_solver->getOptionInfo("random-freq");
     ASSERT_EQ(info.name, "random-freq");
     ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_TRUE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_EQ(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<cvc5::OptionInfo::NumberInfo<double>>(
         info.valueInfo));
@@ -749,8 +750,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("force-logic");
     ASSERT_EQ("force-logic", info.name);
     ASSERT_EQ(std::vector<std::string>{}, info.aliases);
-    ASSERT_FALSE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
         info.valueInfo));
@@ -768,8 +769,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     cvc5::OptionInfo info = d_solver->getOptionInfo("simplification");
     ASSERT_EQ("simplification", info.name);
     ASSERT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
-    ASSERT_TRUE(info.isRegular);
-    ASSERT_FALSE(info.isExpert);
+    ASSERT_EQ(info.category, cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_NE(info.category, cvc5::modes::OptionCategory::EXPERT);
     ASSERT_FALSE(info.setByUser);
     ASSERT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
