@@ -183,7 +183,7 @@
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
 
-; rule: dt-cons-eq
+; rule: dt-cons-eq-clash
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
 ; args:
 ; - eq Bool: The equality to prove.

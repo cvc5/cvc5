@@ -372,7 +372,7 @@
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
-  :conclusion ($mk_re_unfold_neg_concat_fixed s ($str_rev rev r) rev)
+  :conclusion ($mk_re_unfold_neg_concat_fixed s ($str_re_rev rev r) rev)
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG
