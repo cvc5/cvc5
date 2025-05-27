@@ -231,28 +231,20 @@
 
 ;;; concat
 
-; program: $bv_mk_bitblast_step_concat_rec
-; args:
-; - a (BitVec n): The (reverse) of the bitvector concatenation term to process.
-; return: >
-;   The bitblasted term for concatenation term a, reversed. We require reversing
-;   the concatenation term to this method to match the bitblasted form that is
-;   generated.
-(program $bv_mk_bitblast_step_concat_rec ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
-  ((BitVec n)) (BitVec n)
-  (
-  (($bv_mk_bitblast_step_concat_rec @bv_empty)      @bv_empty)
-  (($bv_mk_bitblast_step_concat_rec (concat a1 a2)) (eo::list_concat @from_bools a1 ($bv_mk_bitblast_step_concat_rec a2)))
-  )
-)
-
-; define: $bv_mk_bitblast_step_concat
+; program: $bv_mk_bitblast_step_concat
 ; args:
 ; - a (BitVec n): The bitvector concatenation term to process.
-; return: the bitblasted term for concatenation term a.
-(define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
-  ($bv_mk_bitblast_step_concat_rec (eo::list_rev concat a)))
-
+; return: >
+;   The bitblasted term for concatenation term a. We require prepending
+;   the intermediate arguments to match the bitblasted form that is
+;   generated.
+(program $bv_mk_bitblast_step_concat ((n Int) (a1 (BitVec n)) (m Int) (a2 (BitVec m) :list))
+  ((BitVec n)) (BitVec n)
+  (
+  (($bv_mk_bitblast_step_concat @bv_empty)      @bv_empty)
+  (($bv_mk_bitblast_step_concat (concat a1 a2)) (eo::list_concat @from_bools ($bv_mk_bitblast_step_concat a2) a1))
+  )
+)
 ;;; bitwise
 
 ; program: $bv_mk_bitblast_step_bitwise
