@@ -158,11 +158,12 @@
 ; - s T: The right hand side of the equality.
 ; return: >
 ;   The conjunction of equalities between the arguments of t and s.
-(program $mk_dt_cons_eq ((T Type) (U Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U))
+(program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
   (T T) Bool
   (
-  (($mk_dt_cons_eq (f a) (g b)) (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
-  (($mk_dt_cons_eq c c)         true)
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (eo::cons and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
+  (($mk_dt_cons_eq c c)                       true)
   )
 )
 
