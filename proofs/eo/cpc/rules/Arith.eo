@@ -95,9 +95,9 @@
 ; - a U: The first term in the relation.
 ; - b V: The second term in the relation.
 ; return: >
-;   the relation that is obtained by flipping its arguments, applied to a and b.
-;   This is used for determining the relation obtained when multiply both sides
-;   by a negative term.
+;   The relation that is obtained by flipping its arguments, applied to a and b.
+;   This is used for determining the relation obtained when both sides are
+;   multiplied by a negative term.
 (program $arith_rel_inv ((T Type) (U Type) (V Type) (a U) (b V))
   (T U V) Bool
   (
@@ -145,7 +145,7 @@
 ; - a V: The first term in the relation.
 ; - b W: The second term in the relation.
 ; return: >
-;   the relation that along with r1 and r2 form a trichotomy over
+;   The relation that, along with r1 and r2, forms a trichotomy over
 ;   arithmetic values, applied to a and b.
 (program $arith_rel_trichotomy ((T Type) (U Type) (V Type) (W Type) (a V) (b W))
   (T U V W) Bool
@@ -193,7 +193,7 @@
 ; premises:
 ; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
 ; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
-; return: the relation that along with F1 and F2 forms a trichotomy.
+; return: The relation that along with F1 and F2 forms a trichotomy.
 (program $mk_arith_trichotomy
   ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
   (Bool Bool) Bool
@@ -225,7 +225,7 @@
   (R) Int
   (
     (($greatest_int_lt c) (eo::define ((ci (eo::to_z c)))
-                               (eo::ite (eo::is_eq (eo::to_q c) (eo::to_q ci))
+                               (eo::ite (eo::eq (eo::to_q c) (eo::to_q ci))
                                  (eo::add -1 ci)
                                  ci)))
   )
@@ -376,13 +376,13 @@
 ; return: >
 ;   The literal proven by arith_mult_abs_comparison given premises F.
 (program $mk_arith_mult_abs_comparison
-  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list) (S Type))
+  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
   (Bool) Bool
   (
-    (($mk_arith_mult_abs_comparison (and (> t u) B))
-      ($mk_arith_mult_abs_comparison_rec (and (> t u) B) (> 1 1)))
-    (($mk_arith_mult_abs_comparison B)
-      ($mk_arith_mult_abs_comparison_rec B (= 1 1)))
+    (($mk_arith_mult_abs_comparison (and (> (abs t) (abs u)) B))
+      ($mk_arith_mult_abs_comparison_rec B (> (* t) (* u))))
+    (($mk_arith_mult_abs_comparison (and (= (abs t) (abs u)) B))
+      ($mk_arith_mult_abs_comparison_rec B (= (* t) (* u))))
   )
 )
 
@@ -419,7 +419,7 @@
   (eo::define ((k (@purify (div_total u v))))
   (eo::define ((lb (<= (* v k) u)))
   (eo::ite (eo::is_z v)
-    (eo::requires (eo::is_eq v 0) false
+    (eo::requires (eo::eq v 0) false
       (and lb (< u (* v (+ k (eo::ite (eo::is_neg v) -1 1))))))
     (and
       (=> (> v 0) (and lb (< u (* v (+ k 1)))))
@@ -437,7 +437,7 @@
                         (and (= t (= (- u k) 0/1)) ($arith_to_int_reduction u))))
     ((to_int u)       (eo::define ((k (@purify (to_int u))))
                         (and (= t k) ($arith_to_int_reduction u))))
-    ((/ u v)          (eo::define ((ur (eo::ite (eo::is_eq (eo::typeof u) Int) (to_real u) u)))
+    ((/ u v)          (eo::define ((ur (eo::ite (eo::eq (eo::typeof u) Int) (to_real u) u)))
                         (= t (ite (= v ($arith_mk_zero (eo::typeof v))) (@div_by_zero ur) (/_total u v)))))
     ((div a b)        (= t (ite (= b 0) (@int_div_by_zero a) (div_total a b))))
     ((mod a b)        (= t (ite (= b 0) (@mod_by_zero a) (mod_total a b))))
@@ -493,11 +493,11 @@
 (program $is_poly_norm_rel_consts ((T Type) (U Type) (cx T) (cy U) (b Bool))
   (Bool) Bool
   (
-    (($is_poly_norm_rel_consts (< cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (<= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (< cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (<= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts (= cx cy))  true)
-    (($is_poly_norm_rel_consts (>= cx cy)) (eo::is_eq ($sgn cx) ($sgn cy)))
-    (($is_poly_norm_rel_consts (> cx cy))  (eo::is_eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (>= cx cy)) (eo::eq ($sgn cx) ($sgn cy)))
+    (($is_poly_norm_rel_consts (> cx cy))  (eo::eq ($sgn cx) ($sgn cy)))
     (($is_poly_norm_rel_consts b)          false)
   )
 )

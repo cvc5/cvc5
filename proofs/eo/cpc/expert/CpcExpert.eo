@@ -72,8 +72,8 @@
 (declare-rule aci_norm_expert ((U Type) (a U) (b U))
   :args ((= a b))
   :requires (((eo::define ((an ($get_aci_normal_form_expert a)) (bn ($get_aci_normal_form_expert b)))
-              (eo::ite (eo::is_eq an b) true
-              (eo::ite (eo::is_eq a bn) true
-                (eo::is_eq an bn)))) true))
+              (eo::ite (eo::eq an b) true
+              (eo::ite (eo::eq a bn) true
+                (eo::eq an bn)))) true))
   :conclusion (= a b)
 )
