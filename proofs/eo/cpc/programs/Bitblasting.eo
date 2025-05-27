@@ -41,6 +41,7 @@
   ((eo::quote l) (BitVec n)) (BitVec l)
   (
     (($bv_bitblast_prefix 0 t)                   @bv_empty)
+    (($bv_bitblast_prefix l @bv_empty)           @bv_empty)
     (($bv_bitblast_prefix l (@from_bools b a))
       (eo::cons @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
   )
