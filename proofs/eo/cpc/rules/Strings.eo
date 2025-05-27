@@ -291,7 +291,7 @@
 ;   expressions in E.
 (declare-rule re_concat ((E Bool))
   :premise-list E and
-  :conclusion ($mk_re_concat ($nary_reverse E) (str.in_re "" @re.empty))
+  :conclusion ($mk_re_concat (eo::list_rev and E) (str.in_re "" @re.empty))
 )
 
 ;;;;; ProofRule::RE_UNFOLD_POS
