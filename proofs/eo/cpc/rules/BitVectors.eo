@@ -195,7 +195,7 @@
                 ($bv_mk_bitwise_slicing_rec
                   f
                   c
-                  (eo::define ((nil (eo::nil f a1 a2)))
+                  (eo::define ((nil (eo::nil f (eo::typeof a1))))
                     ($singleton_elim ($nary_diff f nil (f a1 a2) (eo::cons f c nil))))  ; remove the constant and recollect
                   (eo::list_rev @from_bools ($bv_mk_bitblast_step_const c))             ; convert the constant to a bitlist
                   ($bv_bit_set c wm1) wm1 wm1))))))

@@ -54,7 +54,7 @@
 ;   relations in F together.
 (declare-rule arith_sum_ub ((F Bool))
   :premise-list F and
-  :conclusion ($mk_arith_sum_ub ($nary_reverse F) (= 0 0))
+  :conclusion ($mk_arith_sum_ub (eo::list_rev and F) (= 0 0))
 )
 
 ;;;;; ProofRule::ARITH_MULT_POS
