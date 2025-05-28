@@ -95,6 +95,8 @@ class TheoryFiniteFieldsRewriter : public TheoryRewriter
   Node postRewriteFfMult(TNode t);
   /** postRewrite equality */
   Node postRewriteFfEq(TNode t);
+  /** postRewrite multiplication */
+  Node postRewriteFfBitsum(TNode t);
 }; /* class TheoryFiniteFieldsRewriter */
 
 }  // namespace ff

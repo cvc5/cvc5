@@ -63,6 +63,7 @@ Result SubTheory::postCheck(Theory::Effort e)
 {
   d_conflict.clear();
   d_model.clear();
+  bool modelSet = false;
   if (e == Theory::EFFORT_FULL)
   {
     try
@@ -172,6 +173,7 @@ Result SubTheory::postCheck(Theory::Effort e)
             Assert(d_model.empty());
             const auto nm = nodeManager();
             Trace("ff::model") << "Model GF(" << size() << "):" << std::endl;
+            modelSet = true;
             for (const auto& [idx, node] : enc.nodeIndets())
             {
               if (isFfLeaf(node))
@@ -189,7 +191,7 @@ Result SubTheory::postCheck(Theory::Effort e)
       {
         Unreachable() << options().ff.ffSolver << std::endl;
       }
-      AlwaysAssert((!d_conflict.empty() ^ !d_model.empty()) || d_facts.empty());
+      AlwaysAssert((!d_conflict.empty() ^ modelSet) || d_facts.empty());
       return d_facts.empty() || d_conflict.empty() ? Result::SAT
                                                    : Result::UNSAT;
     }

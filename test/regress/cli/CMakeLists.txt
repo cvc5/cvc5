@@ -856,6 +856,7 @@ set(regress_0_tests
   regress0/ff/negneg.smt2
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
+  regress0/ff/issue11932.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
