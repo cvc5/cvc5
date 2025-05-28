@@ -31,6 +31,41 @@
   )
 )
 
+; program: $bv_bitblast_prefix
+; args:
+; - l Int: The number of elements in the prefix left to extract.
+; - t L: The term to process, which is expected to be a cons-list.
+; return: the prefix of t consisting of at most l children.
+(program $bv_bitblast_prefix
+  ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (l Int))
+  (Int (BitVec n)) (BitVec l)
+  (
+    (($bv_bitblast_prefix 0 t)                   @bv_empty)
+    (($bv_bitblast_prefix l @bv_empty)           @bv_empty)
+    (($bv_bitblast_prefix l (@from_bools b a))
+      (eo::cons @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
+  )
+)
+
+; program: $bv_bitblast_subsequence
+; args:
+; - l Int: The starting index, inclusive, of elements of t to extract.
+; - u Int: The end index, inclusive, of elements of t to extract.
+; - t L: The term to process, which is expected to be a cons-list.
+; return: >
+;   The subsequent of t between indices l and u inclusive.
+(program $bv_bitblast_subsequence
+  ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (u Int) (l Int))
+  (Int Int (BitVec n)) (BitVec (eo::add u (eo::neg l)))
+  (
+    (($bv_bitblast_subsequence l u @bv_empty)      @bv_empty)
+    (($bv_bitblast_subsequence 0 u t)
+      ($bv_bitblast_prefix (eo::add u 1) t))
+    (($bv_bitblast_subsequence l u (@from_bools b a))
+      ($bv_bitblast_subsequence (eo::add l -1) (eo::add u -1) a))
+  )
+)
+
 ; define: $bv_bitblast_zero
 ; args:
 ; - n Int: The bitwidth.
@@ -92,7 +127,7 @@
 ; return: the result of shifting a right by amount.
 (define $bv_bitblast_rshift ((n Int :implicit) (a (BitVec n)) (amount Int))
   (eo::define ((len (eo::list_len @from_bools a)))
-    (eo::list_concat @from_bools ($nary_subsequence @from_bools @bv_empty amount len a) ($bv_bitblast_repeat false amount))))
+    (eo::list_concat @from_bools ($bv_bitblast_subsequence amount len a) ($bv_bitblast_repeat false amount))))
 
 ; define: $bv_bitblast_lshift
 ; args:
@@ -101,7 +136,7 @@
 ; return: the result of shifting a left by amount.
 (define $bv_bitblast_lshift ((n Int :implicit) (a (BitVec n)) (amount Int))
   (eo::define ((len (eo::list_len @from_bools a)))
-    (eo::list_concat @from_bools ($bv_bitblast_repeat false amount) ($nary_subsequence @from_bools @bv_empty 0 (eo::add len (eo::neg amount) -1) a))))
+    (eo::list_concat @from_bools ($bv_bitblast_repeat false amount) ($bv_bitblast_subsequence 0 (eo::add len (eo::neg amount) -1) a))))
 
 ;;; equality
 
@@ -192,7 +227,7 @@
 ; - a (BitVec n): The argument of the extract, expected to be a list of bits.
 ; return: the bitblasted term for (extract u l a).
 (define $bv_mk_bitblast_step_extract ((n Int :implicit) (u Int) (l Int) (a (BitVec n)))
-  ($nary_subsequence @from_bools @bv_empty l u a))
+  ($bv_bitblast_subsequence l u a))
 
 ;;; concat
 
@@ -437,8 +472,8 @@
 ; - i Int: The index we are currently processing.
 ; - n Int: The bitwidth of c.
 ; return: the bitlist for a starting with index i.
-(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int) (Any Type))
-  ((BitVec n) Int Int) Any
+(program $bv_const_to_bitlist_rec ((n Int) (c (BitVec n)) (i Int))
+  ((BitVec n) Int Int) (BitVec (eo::add n (eo::neg i)))
   (
     (($bv_const_to_bitlist_rec c n n)   @bv_empty)
     (($bv_const_to_bitlist_rec c i n)   (eo::cons @from_bools ($bv_bit_set c i) ($bv_const_to_bitlist_rec c (eo::add i 1) n)))

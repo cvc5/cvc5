@@ -826,9 +826,8 @@
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
-; note: This method only evaluates if called on inputs of type String.
 (program $str_flatten_word ((U Type) (t (Seq U)))
-  ((Seq U)) (Seq U)
+  ((Seq U)) (Seq U)  ; NOTE: this could be string, but leads to upstream type checking issues
   (
     (($str_flatten_word "") "")
     (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
