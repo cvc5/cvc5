@@ -77,7 +77,7 @@
 ; - a X: The first monomial variable to multiply.
 ; - c Y: The second monomial variable to multiply.
 ; return: the multiplication of the given monomial variables.
-(program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type) 
+(program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type)
                          (a1 T) (a2 U :list) (c1 V) (c2 W :list)
                          (m Int)  (ba1 (BitVec m)) (ba2 (BitVec m) :list) (bc1 (BitVec m)) (bc2 (BitVec m) :list))
   (X Y) ($typeunion X Y)

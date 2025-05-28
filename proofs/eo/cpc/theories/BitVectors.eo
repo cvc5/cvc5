@@ -29,8 +29,9 @@
 
 (declare-parameterized-const extract ((n Int :implicit) (h Int) (l Int))
   (-> (BitVec n)
-      (BitVec (eo::requires (eo::and (eo::gt (eo::add l 1) 0) (eo::gt n h)) true
-                (eo::add h (eo::neg l) 1)))))
+      (BitVec (eo::requires (eo::gt (eo::add l 1) 0) true
+              (eo::requires (eo::gt n h) true
+                (eo::add h (eo::neg l) 1))))))
 
 (declare-parameterized-const repeat ((n Int :implicit) (i Int))
   (-> (BitVec n) (BitVec (eo::mul i n))))

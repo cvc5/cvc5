@@ -336,7 +336,7 @@
     (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
     (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
-    (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::is_eq ($substitute x cx F) G))
+    (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::eq ($substitute x cx F) G))
   )
 )
 

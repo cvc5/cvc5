@@ -351,9 +351,7 @@
 
 ; program: $dt_updater_elim_rhs
 ; args:
-; - s (-> D T): the selector specifying the argument.
-; - D t: The datatype term we are updating.
-; - a T: The value to replace at the s argument of t.
+; - u D: The application of update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
@@ -370,9 +368,7 @@
 
 ; program: $tuple_updater_elim_rhs
 ; args:
-; - n Int: the index specifying the argument.
-; - D t: The tuple term we are updating.
-; - a T: The value to replace at the n^th argument of t.
+; - u D: The application of tuple.update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
 ;   The result of updating the argument specified by s in t.

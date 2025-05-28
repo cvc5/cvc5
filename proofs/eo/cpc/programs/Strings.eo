@@ -800,23 +800,6 @@
   ($re_unfold_pos_concat_rec t r r 0)
 )
 
-; program: $str_non_empty_concats
-; args:
-; - t (Seq U): A concatenation term.
-; return: >
-;   A formula corresponding to a conjunction saying that each of the
-;   elements of str.++ application t is empty. For example for
-;     (str.++ x (str.++ y ""))
-;   this returns:
-;     (and (= x "") (and (= y "") true)).
-(program $str_non_empty_concats ((U Type) (t (Seq U)) (s (Seq U) :list))
-  ((Seq U)) Bool
-  (
-    (($str_non_empty_concats t)             (eo::requires t ($seq_empty (eo::typeof t)) true))
-    (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($seq_empty (eo::typeof t)))) ($str_non_empty_concats s)))
-  )
-)
-
 ; define: $str_check_length_one
 ; args:
 ; - s String: The string term.

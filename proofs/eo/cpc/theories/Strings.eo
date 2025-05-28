@@ -50,7 +50,6 @@
 ;   e.g. evaluation, strings require using string literals as their
 ;   values. In places where seq.empty can be used for a string or
 ;   sequence (e.g., RARE), we use this program to ensure this is the case.
-; disclaimer: This function is not in SMT-LIB.
 (define $seq_empty ((U Type))
   (eo::ite (eo::is_eq U String) "" (as seq.empty U)))
 

@@ -55,6 +55,7 @@
       (eo::cons @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
   )
 )
+
 ; program: $bv_bitblast_head
 ; args:
 ; - t (BitVec n) The term to process, which is expected to be a bitlist.
