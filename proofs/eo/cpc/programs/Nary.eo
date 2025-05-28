@@ -28,28 +28,3 @@
         (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
     )
 )
-
-; program: $nary_diff
-; args:
-; - cons (-> L L L): >
-;   The function whose applications we are considering. It is assumed that
-;   cons is a function with attribute :right-assoc-nil.
-; - nil L: The nil terminator of cons.
-; - t1 L: The first term, assumed to be a cons-list.
-; - t2 L: The second term, assumed to be a cons-list.
-; return: >
-;   The result of subtracting t2 from t1, where these terms are cons-lists.
-;   For example, ($nary_diff or false (or a b c d) (or a c)) = (or b d).
-;   This is different from set difference, in that we eliminate elements of the
-;   list only in order. This corresponds to set difference only if the lists are
-;   both ordered.
-(program $nary_diff
-    ((U Type) (L Type) (cons (-> L L L)) (nil U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
-    ((-> L L L) U U U) U
-    (
-        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::eq c1 c2)
-                                                              ($nary_diff cons nil xs1 xs2)
-                                                              (eo::cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
-        (($nary_diff cons nil c1 nil)                       c1)
-    )
-)
