@@ -37,26 +37,28 @@
   )
 )
 
-; define: $get_ai_norm
+; program: $get_ai_norm
 ; args:
 ; - t T: The term to process.
-; return: the result of normalizing s based on associative+identity+idempotent reasoning.
-(define $get_ai_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
-    t
-    (((f x y) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id t)))))))
+; return: the result of normalizing t based on associative+identity+idempotent reasoning.
+(program $get_ai_norm ((T Type ) (S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
+  (T) T
+  (
+    (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
+                              ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id (f x y))))))
+  )
 )
 
-; define: $get_a_norm
+; program: $get_a_norm
 ; args:
 ; - t T: The term to process.
-; return: the result of normalizing s based on associative+identity reasoning.
-(define $get_a_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
-    t
-    (((f x y) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))
+; return: the result of normalizing t based on associative+identity reasoning.
+(program $get_a_norm ((T Type) (S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U))
+  (T) T
+  (
+    (($get_a_norm (f x y))  (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
+                              ($singleton_elim_aci f id ($get_a_norm_rec f id (f x y)))))
+  )
 )
 
 ; A placeholder that indicates that the given list can be sorted with respect
