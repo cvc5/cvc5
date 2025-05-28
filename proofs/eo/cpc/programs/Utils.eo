@@ -16,6 +16,27 @@
 (declare-type @Pair (Type Type))
 (declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
 
+; program: $pair_first
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_first ((T Type) (S Type) (t T) (s S))
+  ((@Pair T S)) T
+  (
+  (($pair_first (@pair t s)) t)
+  )
+)
+; program: $pair_second
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_second ((T Type) (S Type) (t T) (s S))
+  ((@Pair T S)) S
+  (
+  (($pair_second (@pair t s)) s)
+  )
+)
+
 ; untyped list.
 ; note: >
 ;   We use this as a synonym for eo::List. We use this syntax as it avoids
