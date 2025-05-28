@@ -2,6 +2,15 @@
 
 ;;; utils
 
+(program $bv_bitblast_concat
+  ((n Int) (m Int) (k Int) (x Bool) (y (BitVec k) :list) (z (BitVec m)))
+  ((BitVec n) (BitVec m)) (BitVec (eo::add n m))
+  (
+  (($bv_bitblast_concat (@from_bools x y) z)  (eo::cons @from_bools x ($bv_bitblast_concat y z)))
+  (($bv_bitblast_concat @bv_empty z)          z)
+  )
+)
+
 ; program: $bv_bitblast_binary_app
 ; args:
 ; - f (-> T T Bool): The binary function to apply to b1 and b2.
@@ -87,7 +96,7 @@
 ; - a (Bitvec n): The list of bits.
 ; return: the sign bit of a, which is the last bit.
 (define $bv_bitblast_sign_bit ((n Int :implicit) (a (BitVec n)))
-  (eo::list_nth @from_bools a (eo::add (eo::list_len @from_bools a) -1)))
+  ($bv_bitblast_head (eo::list_rev @from_bools a)))
 
 ; program: $bv_bitblast_apply_unary
 ; args:
@@ -137,7 +146,7 @@
 ; return: the result of shifting a right by amount.
 (define $bv_bitblast_rshift ((n Int :implicit) (a (BitVec n)) (amount Int))
   (eo::define ((len (eo::list_len @from_bools a)))
-    (eo::list_concat @from_bools ($bv_bitblast_subsequence amount len a) ($bv_bitblast_repeat false amount))))
+    ($bv_bitblast_concat ($bv_bitblast_subsequence amount len a) ($bv_bitblast_repeat false amount))))
 
 ; define: $bv_bitblast_lshift
 ; args:
@@ -146,7 +155,7 @@
 ; return: the result of shifting a left by amount.
 (define $bv_bitblast_lshift ((n Int :implicit) (a (BitVec n)) (amount Int))
   (eo::define ((len (eo::list_len @from_bools a)))
-    (eo::list_concat @from_bools ($bv_bitblast_repeat false amount) ($bv_bitblast_subsequence 0 (eo::add len (eo::neg amount) -1) a))))
+    ($bv_bitblast_concat ($bv_bitblast_repeat false amount) ($bv_bitblast_subsequence 0 (eo::add len (eo::neg amount) -1) a))))
 
 ;;; equality
 
@@ -252,7 +261,7 @@
   ((BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_concat @bv_empty)      @bv_empty)
-  (($bv_mk_bitblast_step_concat (concat a1 a2)) (eo::list_concat @from_bools ($bv_mk_bitblast_step_concat a2) a1))
+  (($bv_mk_bitblast_step_concat (concat a1 a2)) ($bv_bitblast_concat ($bv_mk_bitblast_step_concat a2) a1))
   )
 )
 ;;; bitwise
@@ -653,7 +662,7 @@
   (($bv_mk_bitblast_step (bvcomp a1 a2))     (@from_bools ($bv_mk_bitblast_step_eq a1 a2)))
   (($bv_mk_bitblast_step (bvultbv a1 a2))    (@from_bools ($bv_bitblast_ult a1 a2 false)))
   (($bv_mk_bitblast_step (bvsltbv a1 a2))    (@from_bools ($bv_bitblast_slt a1 a2 false)))
-  (($bv_mk_bitblast_step (sign_extend n a1)) (eo::list_concat @from_bools a1 ($bv_bitblast_repeat ($bv_bitblast_sign_bit a1) n)))
+  (($bv_mk_bitblast_step (sign_extend n a1)) ($bv_bitblast_concat a1 ($bv_bitblast_repeat ($bv_bitblast_sign_bit a1) n)))
   (($bv_mk_bitblast_step a1)                 (eo::ite (eo::is_bin a1)
                                                ($bv_mk_bitblast_step_const a1)
                                                ($bv_mk_bitblast_step_var a1)))    ; otherwise assume a variable

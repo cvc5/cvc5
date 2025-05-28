@@ -1722,7 +1722,7 @@
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
 (program $str_from_int_eval_rec ((s String) (n Int))
-  (Int String) Bool
+  (Int String) String
   (
   (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
                                   (eo::ite (eo::eq s "") "0" s)
