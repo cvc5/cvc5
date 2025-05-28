@@ -931,16 +931,14 @@
   ((Seq U)) (Seq U)
   (
     (($str_collect (str.++ t s))
-      (eo::match ((s1 (Seq U)) (s2 (Seq U)))
-        ($str_collect_acc (str.++ t s))
-        (
+      (eo::define ((res ($str_collect_acc (str.++ t s))))
+      (eo::define ((s1 ($pair_first res)))
+      (eo::define ((s2 ($pair_second res)))
+        (eo::ite (eo::eq s1 "")
           ; did not strip a constant prefix, just append t to the result of processing s
-          ((@pair "" s2)  ($str_cons t ($str_collect s)))
+          ($str_cons t ($str_collect s))
           ; stripped a constant prefix, append it to second term in the pair
-          ((@pair s1 s2)  ($str_cons s1 ($str_collect s2)))
-        )
-      )
-    )
+          ($str_cons s1 ($str_collect s2)))))))
     (($str_collect t)       ($str_self_if_empty t))
   )
 )
