@@ -45,14 +45,10 @@
   :premises ((= s t))
   :args (rev)
   :conclusion
-    (eo::match ((ss (Seq U)) (ts (Seq U)))
-      ($str_strip_prefix
-           ($str_to_nary_form s rev)
-           ($str_to_nary_form t rev))
-      (((@pair ss ts)
+    (eo::define ((res ($str_strip_prefix ($str_to_nary_form s rev) ($str_to_nary_form t rev))))
         (= 
-          ($str_from_nary_form ss rev)
-          ($str_from_nary_form ts rev)))))
+          ($str_from_nary_form ($pair_first res) rev)
+          ($str_from_nary_form ($pair_second res) rev)))
 )
 
 ; rule: concat_unify
@@ -755,20 +751,6 @@
 
 ;;;;; ProofRewriteRule::STR_INDEXOF_RE_EVAL
 
-; define: $str_eval_indexof_re_in_bound
-; args:
-; - res (@Pair Int Int): The result of finding (a suffix of) string s in r.
-; - n Int: A start position.
-; return: >
-;   The result of evaluating (str.indexof_re s r n), assuming n is in bounds.
-(program $str_eval_indexof_re_in_bound ((sp Int) (ep Int) (n Int))
-  ((@Pair Int Int) Int) Int
-  (
-  (($str_eval_indexof_re_in_bound (@pair -1 -1) n) -1)
-  (($str_eval_indexof_re_in_bound (@pair sp ep) n) (eo::add n sp))
-  )
-)
-
 ; define: $str_eval_indexof_re
 ; args:
 ; - s String: A string.
@@ -779,7 +761,9 @@
 (define $str_eval_indexof_re ((s String) (r RegLan) (n Int))
   (eo::ite (eo::or (eo::gt n (eo::len s)) (eo::is_neg n))
     -1
-    ($str_eval_indexof_re_in_bound ($str_first_match (eo::extract s n (eo::len s)) r) n)))
+    (eo::define ((res ($str_first_match (eo::extract s n (eo::len s)) r)))
+    (eo::define ((sp ($pair_first res)))
+      (eo::ite (eo::eq sp -1) -1 (eo::add n sp))))))
 
 ; rule: str-indexof-re-eval
 ; implements: ProofRewriteRule::STR_INDEXOF_RE_EVAL
