@@ -1297,6 +1297,7 @@ set(regress_0_tests
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
   regress0/parser/version2.7.smt2
+  regress0/parser/version2.7-sort-param.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
