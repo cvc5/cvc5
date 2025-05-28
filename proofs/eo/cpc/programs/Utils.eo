@@ -137,7 +137,7 @@
 (program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
   (S) S
   (
-    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f x1 x2)) x1 (f x1 x2)))
+    (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
     (($singleton_elim x)          x)
   )
 )
@@ -182,7 +182,7 @@
   (
   (($is_pairwise f op a (@list b bs) (op (f a b) B) rem) ($is_pairwise f op a bs B rem))
   (($is_pairwise f op a @list.nil B (@list b rem))       ($is_pairwise f op b rem B rem))
-  (($is_pairwise f op a @list.nil nil @list.nil)         (eo::requires nil (eo::nil op) true))
+  (($is_pairwise f op a @list.nil nil @list.nil)         (eo::requires nil (eo::nil op (eo::typeof a)) true))
   )
 )
 

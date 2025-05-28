@@ -88,4 +88,4 @@
 ;   This is a helpful method for constructing n-ary terms with exactly two
 ;   children.
 (define $nary_app ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V)) (a T) (b U))
-  (f a (f b (eo::nil f a b))))
+  (f a (f b (eo::nil f (eo::typeof a)))))
