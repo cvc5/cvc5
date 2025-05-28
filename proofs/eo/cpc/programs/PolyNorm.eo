@@ -3,6 +3,17 @@
 (include "../theories/BitVectors.eo")
 (include "../programs/Utils.eo")
 
+; define: $typeunion
+; args:
+; - T Type: A type.
+; - U Type: A type.
+; return: >
+;   The "type union" of T and U. This method is used for the type rules
+;   for operators that allow mixed arithmetic. It also permits that the union
+;   of two equal types is itself.
+(define $typeunion ((T Type) (U Type))
+  (eo::ite (eo::eq T U) T ($arith_typeunion T U)))
+
 ; Definitions of monomials and polynomials.
 ; A monomial is a list of terms that are ordered by `$compare_var` and a rational coefficient.
 ; A polynomial is a list of monomials whose monomials are ordered by `$compare_var`.
@@ -66,10 +77,10 @@
 ; - a X: The first monomial variable to multiply.
 ; - c Y: The second monomial variable to multiply.
 ; return: the multiplication of the given monomial variables.
-(program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type) 
+(program $mvar_mul_mvar ((T Type) (U Type) (V Type) (W Type) (X Type) (Y Type) (Z Type)
                          (a1 T) (a2 U :list) (c1 V) (c2 W :list)
                          (m Int)  (ba1 (BitVec m)) (ba2 (BitVec m) :list) (bc1 (BitVec m)) (bc2 (BitVec m) :list))
-  (X Y) Z
+  (X Y) ($typeunion X Y)
   (
     (($mvar_mul_mvar (* a1 a2) (* c1 c2))  (eo::ite ($compare_var a1 c1)
                                              (eo::cons * a1 ($mvar_mul_mvar a2 (* c1 c2)))
@@ -200,11 +211,13 @@
 ; args:
 ; - p @Polynomial: The polynomial to convert to a term.
 ; return: The term corresponding to the polynomial p.
+; note: This method always returns a term of type Real and is not in n-ary
+;       form, as 0/1 instead of 0 is used as the last element.
 ; note: This is a helper for $arith_poly_to_term below.
 (program $arith_poly_to_term_rec ((T Type) (p @Polynomial :list) (a T) (c Real))
-  (@Polynomial) T
+  (@Polynomial) Real
   (
-    (($arith_poly_to_term_rec @poly.zero) 0)
+    (($arith_poly_to_term_rec @poly.zero) 0/1)
     (($arith_poly_to_term_rec (@poly (@mon a c) p)) (+ (* c a) ($arith_poly_to_term_rec p)))
   )
 )

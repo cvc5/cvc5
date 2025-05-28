@@ -15,12 +15,12 @@
 ; args:
 ; - s U: a string term.
 ; return: true if s is the empty string or sequence.
-(program $str_is_empty ((U Type) (x U))
-  (U) Bool
+(program $str_is_empty ((U Type) (x (Seq U)))
+  ((Seq U)) Bool
   (
-    (($str_is_empty (as seq.empty U)) true)
-    (($str_is_empty "")               true)
-    (($str_is_empty x)                false)
+    (($str_is_empty (as seq.empty (Seq U)))  true)
+    (($str_is_empty "")                      true)
+    (($str_is_empty x)                       false)
   )
 )
 
@@ -794,23 +794,6 @@
   ($re_unfold_pos_concat_rec t r r 0)
 )
 
-; program: $str_non_empty_concats
-; args:
-; - t (Seq U): A concatenation term.
-; return: >
-;   A formula corresponding to a conjunction saying that each of the
-;   elements of str.++ application t is empty. For example for
-;     (str.++ x (str.++ y ""))
-;   this returns:
-;     (and (= x "") (and (= y "") true)).
-(program $str_non_empty_concats ((U Type) (t (Seq U)) (s (Seq U) :list))
-  ((Seq U)) Bool
-  (
-    (($str_non_empty_concats t)             ($str_self_if_empty t))
-    (($str_non_empty_concats (str.++ t s))  (eo::cons and (not (= t ($seq_empty (eo::typeof t)))) ($str_non_empty_concats s)))
-  )
-)
-
 ; define: $str_check_length_one
 ; args:
 ; - s String: The string term.
@@ -851,8 +834,8 @@
 ; return: >
 ;   The result of "flattening" t, for example given "AB", this returns the term
 ;   (str.++ "A" (str.++ "B" "")).
-(program $str_flatten_word ((t String))
-  (String) String
+(program $str_flatten_word ((U Type) (t (Seq U)))
+  ((Seq U)) (Seq U)  ; NOTE: this could be string, but leads to upstream type checking issues
   (
     (($str_flatten_word "") "")
     (($str_flatten_word t)  ($str_cons (eo::extract t 0 0) ($str_flatten_word (eo::extract t 1 (eo::len t)))))
