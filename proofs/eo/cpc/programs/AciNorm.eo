@@ -13,8 +13,8 @@
 ; note: >
 ;   This method is similar in purpose to $singleton_elim, but insists that
 ;   the function and its nil terminator are provided explicitly.
-(program $singleton_elim_aci ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
-  ((-> T U S) S S) S
+(program $singleton_elim_aci ((T Type) (S Type) (U Type) (W Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
+  ((-> T U S) W W) W
   (
     (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::eq x2 id) x1 (f x1 x2)))
     (($singleton_elim_aci f id x)          x)
@@ -31,8 +31,8 @@
 ; - s2 S: The second term to process.
 ; - isi Bool: Whether f is idempotent.
 ; return: the result of appending the children of two applications s1 and s2 of the ACI operator f.
-(program $ac_append ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (y1 T) (y2 U :list) (isi Bool))
-  ((-> T U S) S S S Bool) S
+(program $ac_append ((T Type) (S Type) (U Type) (W Type) (f (-> S S S)) (id S) (x S) (x1 S) (x2 S :list) (y1 S) (y2 S :list) (isi Bool))
+  ((-> S S S) W W W Bool) W
   (
     (($ac_append f id (f x1 x2) (f y1 y2) isi)  (eo::ite (eo::ite (eo::eq x1 y1) isi false)
                                                   ($ac_append f id (f x1 x2) y2 isi)
@@ -52,8 +52,8 @@
 ; - s S: The term to process.
 ; - isi Bool: Whether f is idempotent.
 ; return: the result of normalizing s based on ACI reasoning.
-(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list) (isi Bool))
-  ((-> T U S) S S Bool) S
+(program $get_aci_norm_rec ((T Type) (S Type) (U Type) (W Type) (f (-> S S S)) (id S) (x S) (x1 S) (x2 S :list) (isi Bool))
+  ((-> S S S) W W Bool) W
   (
     (($get_aci_norm_rec f id (f id x2) isi)   ($get_aci_norm_rec f id x2 isi))
     (($get_aci_norm_rec f id (f x1 x2) isi)   ($ac_append f id ($get_aci_norm_rec f id x1 isi) ($get_aci_norm_rec f id x2 isi) isi))
@@ -68,7 +68,7 @@
 ; - isi Bool: Whether f is idempotent.
 ; return: the result of normalizing s based on ACI reasoning.
 (define $get_aci_norm ((T Type :implicit) (t T) (isi Bool))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S S S)) (x S) (y U :list))
     t
     (((f x y) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
                 ($singleton_elim_aci f id ($get_aci_norm_rec f id t isi))))))
@@ -82,8 +82,8 @@
 ; - id S: The nil terminator of f.
 ; - s S: The term to process.
 ; return: the result of normalizing s based on associative+identity reasoning.
-(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> T U S)) (id S) (x S) (x1 T) (x2 U :list))
-  ((-> T U S) S S) S
+(program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> S S S)) (id S) (x S) (x1 S) (x2 S :list))
+  ((-> S S S) T T) T
   (
     (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
@@ -97,7 +97,7 @@
 ; - t T: The term to process.
 ; return: the result of normalizing s based on associative+identity reasoning.
 (define $get_a_norm ((T Type :implicit) (t T))
-  (eo::match ((S Type) (U Type) (V Type) (f (-> S U V)) (x S) (y U :list))
+  (eo::match ((S Type) (U Type) (V Type) (f (-> S S S)) (x S) (y U :list))
     t
     (((f x y) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
                 ($singleton_elim_aci f id ($get_a_norm_rec f id t))))))

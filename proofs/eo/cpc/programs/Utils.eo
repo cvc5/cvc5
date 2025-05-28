@@ -37,20 +37,6 @@
 ;   theories and thus is contained in Cpc.eo.
 (define $evaluate ((T Type :implicit) (t T)) (eo::list_nth @list ($evaluate_list (@list t)) 0))
 
-; program: $get_fun
-; args:
-; - t S: The term to inspect.
-; return: >
-;   The function at the head of the application of t, or t itself if it is not
-;   an application.
-(program $get_fun ((T Type) (S Type) (U Type) (f (-> T S)) (x T) (y S))
-  (S) U
-  (
-    (($get_fun (f x))  ($get_fun f))
-    (($get_fun y)      y)
-  )
-)
-
 ; program: $get_arg_list_rec
 ; args:
 ; - t S: The term to inspect.
