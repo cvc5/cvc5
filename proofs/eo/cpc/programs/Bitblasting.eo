@@ -34,16 +34,26 @@
 ; program: $bv_bitblast_prefix
 ; args:
 ; - l Int: The number of elements in the prefix left to extract.
-; - t L: The term to process, which is expected to be a cons-list.
+; - t L: The term to process, which is expected to be a bitlist.
 ; return: the prefix of t consisting of at most l children.
 (program $bv_bitblast_prefix
   ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (l Int))
-  ((eo::quote l) (BitVec n)) (BitVec l)
+  ((eo::quote l) (BitVec n)) (BitVec (eo::ite (eo::gt l n) n l))
   (
     (($bv_bitblast_prefix 0 t)                   @bv_empty)
     (($bv_bitblast_prefix l @bv_empty)           @bv_empty)
     (($bv_bitblast_prefix l (@from_bools b a))
       (eo::cons @from_bools b ($bv_bitblast_prefix (eo::add l -1) a)))
+  )
+)
+; program: $bv_bitblast_head
+; args:
+; - t (BitVec n) The term to process, which is expected to be a bitlist.
+; return: the first Boolean in the list t.
+(program $bv_bitblast_head ((n Int) (b Bool) (a (BitVec n) :list))
+  ((BitVec n)) Bool
+  (
+    (($bv_bitblast_head (@from_bools b a)) b)
   )
 )
 
@@ -394,7 +404,7 @@
      (eo::match ((m1 Int) (q1 (BitVec m1)) (r1 (BitVec m1)))
       ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero (eo::add sz -1))
       (((@pair q1 r1)
-        (eo::define ((isodd (eo::list_nth @from_bools a1 0)))
+        (eo::define ((isodd ($bv_bitblast_head a1)))
         (eo::define ((q1s ($bv_bitblast_lshift q1 1)))
         (eo::define ((r1s ($bv_bitblast_lshift r1 1)))
         (eo::define ((r1sa ($bv_ripple_carry_adder r1s zero (ite (= isodd true) true false))))

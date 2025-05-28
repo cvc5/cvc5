@@ -95,7 +95,7 @@
 ;   The result of applying singleton elimination for s. In particular,
 ;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
 ;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 S) (x2 T))
   (S) S
   (
     (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
