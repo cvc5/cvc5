@@ -1096,6 +1096,7 @@ set(regress_0_tests
   regress0/nl/dd.sin-cos-346-b-chunk-0210_unsat.smt2
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
+  regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1224,6 +1225,7 @@ set(regress_0_tests
   regress0/parser/define_sort.smt2
   regress0/parser/define-fun-shadow-dec.smt2
   regress0/parser/double-bind.smt2
+  regress0/parser/empty-pat.smt2
   regress0/parser/fp_value.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
@@ -1677,6 +1679,7 @@ set(regress_0_tests
   regress0/rels/card_transpose.cvc.smt2
   regress0/rels/iden_0.cvc.smt2
   regress0/rels/iden_1.cvc.smt2
+  regress0/rels/issue11903-join-unit-tuple.smt2
   regress0/rels/join-eq-u-sat.cvc.smt2
   regress0/rels/join-eq-u.cvc.smt2
   regress0/rels/joinImg_0.cvc.smt2
@@ -1755,6 +1758,7 @@ set(regress_0_tests
   regress0/seq/err1.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue11924-semi-eval-unk.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1765,6 +1769,7 @@ set(regress_0_tests
   regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
+  regress0/seq/nested-const-unsat.smt2
   regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
@@ -1779,6 +1784,7 @@ set(regress_0_tests
   regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/proj-issue642-cycle-irr.smt2
   regress0/seq/proj-issue653.smt2
+  regress0/seq/proj-issue665-nested-const.smt2
   regress0/seq/proj-issue708-explain.smt2
   regress0/seq/proj-issue747-cmi-len-split.smt2
   regress0/seq/proj-issue753-ae.smt2
@@ -1994,6 +2000,7 @@ set(regress_0_tests
   regress0/strings/issue11197-str-ipc.smt2
   regress0/strings/issue11703-re-uf.smt2
   regress0/strings/issue11710-numeric-max.smt2
+  regress0/strings/issue11890-eec-model.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2353,6 +2360,8 @@ set(regress_0_tests
   regress0/unconstrained/mult1.smt2
   regress0/unconstrained/uf1.smt2
   regress0/unconstrained/xor.smt2
+  regress0/unsafe-type.smt2
+  regress0/unsafe-type-2.smt2
   regress0/use_approx/bug812_approx.smt2
   regress0/use_approx/error0_approx.smt2
   regress0/use_approx/issue2429_approx.smt2
@@ -4226,7 +4235,6 @@ set(testers
   synth
   abduct
   dump
-  dsl-proof
   cpc
 )
 

@@ -47,8 +47,8 @@
 ; - p Int: Equal to 2 to the power of w.
 ; return: >
 ;   The result of reducing (int2bv w n), which is a bitvector concatenation.
-(program $abconv_int_to_bv_elim ((n Int) (w Int) (p Int))
-  (Int Int Int) (BitVec w)
+(program $abconv_int_to_bv_elim ((n Int) (w Int) (p Int) (Any Type))
+  (Int Int Int) Any
   (
     (($abconv_int_to_bv_elim n 0 p) @bv_empty)
     (($abconv_int_to_bv_elim n w p) (eo::define ((wm1 (eo::add w -1)))

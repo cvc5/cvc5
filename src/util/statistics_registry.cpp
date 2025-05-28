@@ -149,6 +149,10 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
   }
 }
 
+void StatisticsRegistry::setStatsAll(bool val) { d_all = val; }
+
+void StatisticsRegistry::setStatsInternal(bool val) { d_internal = val; }
+
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
 {
   sr.print(os);

@@ -70,7 +70,7 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 # legal values for the "no_support" field
-NO_SUPPORT_VALUES = ['proofs', 'models']
+NO_SUPPORT_VALUES = ['proofs', 'models', 'unsat-cores']
 
 ################################################################################
 ################################################################################
@@ -197,8 +197,6 @@ class Option(object):
             self.names.add(self.long_name)
         if self.alias:
             self.names.update(self.alias)
-        if self.no_support:
-            self.names.update(self.no_support)
         if self.mode:
             self.mode_name = { k: v[0]['name'] for k,v in self.mode.items() }
             self.mode_help = { k: v[0].get('help', None) for k,v in self.mode.items() }

@@ -319,6 +319,22 @@ Node TheoryModel::getModelValue(TNode n) const
     if (d_semi_evaluated_kinds.find(rk) != d_semi_evaluated_kinds.end())
     {
       Node retSev = evaluateSemiEvalTerm(ret);
+      if (retSev.isNull())
+      {
+        // If null, if an argument is not constant, then it *might* be the
+        // same as a constrained application of rk. In this case, we cannot
+        // evaluate to an arbitrary value, and instead we use ret itself
+        // (unevaluated) as the model value.
+        for (const Node& rc : ret)
+        {
+          if (!rc.isConst())
+          {
+            retSev = ret;
+            break;
+          }
+        }
+        
+      }
       // if the result was entailed, return it
       if (!retSev.isNull())
       {
@@ -911,7 +927,9 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
   {
     std::vector<Node> nargs = getModelValueArgs(n);
     Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
-    return it->second.existsTerm(nargs);
+    Node result = it->second.existsTerm(nargs);
+    Trace("semi-eval") << "...result is " << result << std::endl;    
+    return result;
   }
   return Node::null();
 }

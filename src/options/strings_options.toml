@@ -19,10 +19,11 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLazyPreproc"
-  category   = "expert"
+  category   = "regular"
   long       = "strings-lazy-pp"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "perform string preprocessing lazily"
 
 [[option]]
@@ -107,10 +108,11 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "regExpElim"
-  category   = "expert"
+  category   = "regular"
   long       = "re-elim=MODE"
   type       = "RegExpElimMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "regular expression elimination mode"
   help_mode  = "Regular expression elimination modes."
 [[option.mode.OFF]]

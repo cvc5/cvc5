@@ -57,8 +57,8 @@
 ;   (tuple (tuple.select 0 x) (tuple (tuple.select 1 x) tuple.unit)), whereas
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
-(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type))
-  (Type D Int) U
+(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type) (Any Type))
+  (Type D Int) Any
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -193,6 +193,18 @@
 ;   subterms (beneath constructor applications) that have distinct constructor
 ;   symbols on either side.
 ; conclusion: The given equality.
+; note: >
+;   We reuse the side condition $are_distinct_terms to check this rule, which
+;   is sound and suffices to check this rule. Internally in cvc5, the rules
+;   DISTINCT_VALUES and DT_CONS_EQ_CLASH are incomparable, as the former
+;   insists that t and s are values, but is more powerful since it considers
+;   values of any type, whereas DT_CONS_EQ_CLASH does not insist on values but
+;   only considers datatype constructors. This means that $are_distinct_terms
+;   could in theory find a conflict for a different reason than
+;   DT_CONS_EQ_CLASH, for example (cons 0 (cons a b)) = (cons 1 nil),
+;   where $are_distinct_terms succeds since 0 != 1, whereas DT_CONS_EQ_CLASH
+;   was applied since (cons a b) != nil. However, both are valid reasons
+;   why the equality is conflicting.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
   :requires ((($are_distinct_terms t s) true))
@@ -339,9 +351,7 @@
 
 ; program: $dt_updater_elim_rhs
 ; args:
-; - s (-> D T): the selector specifying the argument.
-; - D t: The datatype term we are updating.
-; - a T: The value to replace at the s argument of t.
+; - u D: The application of update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
@@ -358,9 +368,7 @@
 
 ; program: $tuple_updater_elim_rhs
 ; args:
-; - n Int: the index specifying the argument.
-; - D t: The tuple term we are updating.
-; - a T: The value to replace at the n^th argument of t.
+; - u D: The application of tuple.update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
 ;   The result of updating the argument specified by s in t.

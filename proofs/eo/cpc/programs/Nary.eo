@@ -30,7 +30,7 @@
     )
 )
 
-; define: $nary_is_eq_set
+; define: $nary_eq_set
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.
 ; - nil L: The nil terminator of cons.
@@ -38,7 +38,7 @@
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: >
 ;   true if c1 is a subset of c2 and c2 is a subset of c1.
-(define $nary_is_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
+(define $nary_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
   (eo::ite ($nary_is_subset cons nil c1 c2)
     ($nary_is_subset cons nil c2 c1)
     false))
@@ -103,11 +103,11 @@
 ; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
 (program $nary_is_compatible
     ((U Type) (L Type) (cons (-> L L L)) (nil U) (t U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
-    ((-> L L L) U U U) Bool      ; only used by strings
+    ((-> L L L) U U U) Bool
     (
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
-        (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::is_eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
+        (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
     )
 )
 
@@ -129,7 +129,7 @@
     ((U Type) (L Type) (cons (-> L L L)) (nil U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
     ((-> L L L) U U U) U
     (
-        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::is_eq c1 c2)
+        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::eq c1 c2)
                                                               ($nary_diff cons nil xs1 xs2)
                                                               (eo::cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
         (($nary_diff cons nil c1 nil)                       c1)

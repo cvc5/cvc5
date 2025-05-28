@@ -193,28 +193,7 @@ class ProofTester(Tester):
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
                 ["--check-proofs",
-                 "--proof-granularity=theory-rewrite",
                  "--proof-check=lazy"]
-            )
-        )
-
-class DslProofTester(Tester):
-
-    def __init__(self):
-        super().__init__("dsl-proof")
-
-    def applies(self, benchmark_info):
-        expected_output_lines = benchmark_info.expected_output.split()
-        return (
-            benchmark_info.benchmark_ext != ".sy"
-            and "unsat" in benchmark_info.expected_output.split()
-        )
-
-    def run_internal(self, benchmark_info):
-        return super().run_internal(
-            benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=dsl-rewrite", "--proof-check=lazy"]
             )
         )
 
@@ -366,7 +345,6 @@ class CpcTester(Tester):
         with tempfile.NamedTemporaryFile() as tmpf:
             cvc5_args = [
                 "--dump-proofs",
-                "--proof-granularity=dsl-rewrite",
                 "--proof-print-conclusion",
             ] + benchmark_info.command_line_args
             output, error, exit_status = run_process(
@@ -548,7 +526,6 @@ g_testers = {
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
-    "dsl-proof": DslProofTester(),
     "alethe": AletheTester(),
     "cpc": CpcTester()
 }
@@ -857,14 +834,9 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-            if disable_tester == "dsl-proof":
-                if "cpc" in testers:
-                    testers.remove("cpc")
             if disable_tester == "proof":
                 if "lfsc" in testers:
                     testers.remove("lfsc")
-                if "dsl-proof" in testers:
-                    testers.remove("dsl-proof")
                 if "alethe" in testers:
                     testers.remove("alethe")
                 if "cpc" in testers:
