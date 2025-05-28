@@ -203,7 +203,7 @@
   (
   ; bitwidth one case is handled separately
   (($bv_bitblast_slt_impl (@from_bools b1) (@from_bools b2) orEqual)        (eo::ite orEqual (or (= b1 b2) (and b1 (not b2))) (and b1 (not b2))))
-  (($bv_bitblast_slt_impl (@from_bools b1 a1) (@from_bools b2 a2) orEqual)  (eo::define ((ures ($bv_bitblast_ult ($nary_reverse a1) ($nary_reverse a2) orEqual)))
+  (($bv_bitblast_slt_impl (@from_bools b1 a1) (@from_bools b2 a2) orEqual)  (eo::define ((ures ($bv_bitblast_ult (eo::list_rev @from_bools a1) (eo::list_rev @from_bools a2) orEqual)))
                                                                               (or (and (= b1 b2) ures) (and b1 (not b2)))))
   )
 )
@@ -216,7 +216,7 @@
 ; return: the bitblasted term for the signed inequality between x and y.
 (define $bv_bitblast_slt ((n Int :implicit) (x (BitVec n)) (y (BitVec n)) (orEqual Bool))
   ; reverse to make sign bit extractable
-  ($bv_bitblast_slt_impl ($nary_reverse x) ($nary_reverse y) orEqual))
+  ($bv_bitblast_slt_impl (eo::list_rev @from_bools x) (eo::list_rev @from_bools y) orEqual))
 
 ;;; extract
 
@@ -251,7 +251,7 @@
 ; - a (BitVec n): The bitvector concatenation term to process.
 ; return: the bitblasted term for concatenation term a.
 (define $bv_mk_bitblast_step_concat ((n Int :implicit) (a (BitVec n)))
-  ($bv_mk_bitblast_step_concat_rec ($nary_reverse a)))
+  ($bv_mk_bitblast_step_concat_rec (eo::list_rev concat a)))
 
 ;;; bitwise
 
@@ -286,7 +286,7 @@
   (($bv_ripple_carry_adder_2 (@from_bools b1 a1) (@from_bools b2 a2) carry res) ($bv_ripple_carry_adder_2 a1 a2 
                                                                                   (or (and b1 b2) (and (xor b1 b2) carry))
                                                                                   (eo::cons @from_bools (xor (xor b1 b2) carry) res)))
-  (($bv_ripple_carry_adder_2 @bv_empty @bv_empty carry res)                     (@pair carry ($nary_reverse res)))
+  (($bv_ripple_carry_adder_2 @bv_empty @bv_empty carry res)                     (@pair carry (eo::list_rev @from_bools res)))
   )
 )
 
@@ -617,7 +617,7 @@
 ; - a (BitVec n): The bitvector variable to bitblast.
 ; return: the bitblasted term for variable a.
 (define $bv_mk_bitblast_step_var ((n Int :implicit) (a (BitVec n)))
-  ($nary_reverse ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
+  (eo::list_rev @from_bools ($bv_mk_bitblast_step_var_rec a (eo::add ($bv_bitwidth (eo::typeof a)) -1))))
 
 ;;; $bv_mk_bitblast_step
 

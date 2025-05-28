@@ -12,88 +12,6 @@
 ;
 ; =============================================
 
-; program: $nary_is_subset
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2, e.g. all children of c1 are also children of
-;   c2, or false otherwise.
-(program $nary_is_subset
-    ((L Type) (cons (-> L L L)) (nil L) (c L) (t L) (xs L :list))
-    ((-> L L L) L L L) Bool     ; used only for Bools
-    (
-        (($nary_is_subset cons nil (cons c xs) t) (eo::ite (eo::is_neg (eo::list_find cons t c)) false ($nary_is_subset cons nil xs t)))
-        (($nary_is_subset cons nil nil t)         true)
-    )
-)
-
-; define: $nary_eq_set
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c1 L: The first term, assumed to be a cons-list.
-; - c2 L: The second term, assumed to be a cons-list.
-; return: >
-;   true if c1 is a subset of c2 and c2 is a subset of c1.
-(define $nary_eq_set ((L Type :implicit) (cons (-> L L L)) (nil L) (c1 L) (c2 L))
-  (eo::ite ($nary_is_subset cons nil c1 c2)
-    ($nary_is_subset cons nil c2 c1)
-    false))
-
-; program: $nary_remove
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to find.
-; - xs L: The term to search in, assumed to be a cons-list.
-; return: >
-;   The result of removing the first occurrence of c from xs if it exists.
-(program $nary_remove
-    ((U Type) (T Type) (W Type) (L Type) (cons (-> T L L)) (nil U) (c W) (y W) (xs U :list))
-    ((-> T L L) U W U) U
-    (
-        (($nary_remove cons nil c (cons c xs)) xs)
-        (($nary_remove cons nil c (cons y xs)) (eo::cons cons y ($nary_remove cons nil c xs)))
-        (($nary_remove cons nil c nil)         nil)
-    )
-)
-
-; Helper for reverse
-; program: $nary_reverse_rec
-; args:
-; - cons (-> L L L): The n-ary function symbol.
-; - nil L: The nil terminator of cons.
-; - c L: The term to reverse, assumed to be a cons-list.
-; - acc L: The current accumulated reversal of elements we have processed.
-; return: >
-;   The result of prepending the reverse of c to acc.
-(program $nary_reverse_rec
-    ((U Type) (L Type) (cons (-> L L L)) (nil U) (x U) (xs U :list) (l U :list))
-    ((-> L L L) U U U) U
-    (
-        (($nary_reverse_rec cons nil (cons x xs) l) ($nary_reverse_rec cons nil xs (eo::cons cons x l)))
-        (($nary_reverse_rec cons nil nil l)         l)
-    )
-)
-
-; program: $nary_reverse
-; args:
-; - x L: The term to reverse.
-; return: >
-;   The reverse of x. Assumes that x is the application of a :right-assoc-nil
-;   function, otherwise returns x itself.
-(program $nary_reverse
-    ((L Type) (cons (-> L L L)) (x L) (xs L :list))
-    (L) L
-    (
-        (($nary_reverse (cons x xs)) (eo::define ((nil (eo::nil cons (eo::typeof (cons x xs))))) ($nary_reverse_rec cons nil (cons x xs) nil)))
-        (($nary_reverse x)           x)
-    )
-)
-
 ; program: $nary_is_compatible
 ; args:
 ; - cons (-> L L L): The n-ary function symbol.
@@ -108,30 +26,5 @@
         (($nary_is_compatible cons nil nil t)                       true)
         (($nary_is_compatible cons nil t nil)                       true)
         (($nary_is_compatible cons nil (cons c1 xs1) (cons c2 xs2)) (eo::ite (eo::eq c1 c2) ($nary_is_compatible cons nil xs1 xs2) false))
-    )
-)
-
-; program: $nary_diff
-; args:
-; - cons (-> L L L): >
-;   The function whose applications we are considering. It is assumed that
-;   cons is a function with attribute :right-assoc-nil.
-; - nil L: The nil terminator of cons.
-; - t1 L: The first term, assumed to be a cons-list.
-; - t2 L: The second term, assumed to be a cons-list.
-; return: >
-;   The result of subtracting t2 from t1, where these terms are cons-lists.
-;   For example, ($nary_diff or false (or a b c d) (or a c)) = (or b d).
-;   This is different from set difference, in that we eliminate elements of the
-;   list only in order. This corresponds to set difference only if the lists are
-;   both ordered.
-(program $nary_diff
-    ((U Type) (L Type) (cons (-> L L L)) (nil U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
-    ((-> L L L) U U U) U
-    (
-        (($nary_diff cons nil (cons c1 xs1) (cons c2 xs2))  (eo::ite (eo::eq c1 c2)
-                                                              ($nary_diff cons nil xs1 xs2)
-                                                              (eo::cons cons c1 ($nary_diff cons nil xs1 (cons c2 xs2)))))
-        (($nary_diff cons nil c1 nil)                       c1)
     )
 )

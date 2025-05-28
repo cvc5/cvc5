@@ -347,6 +347,7 @@
 
 ;;;;; ProofRule::ACI_NORM
 
+
 ; define: $get_aci_normal_form
 ; args:
 ; - t S: The term to compute the normal form for.
@@ -354,7 +355,8 @@
 ;   The result of normalizing t for the proof rule aci_norm. In
 ;   particular, if t is an application of a known operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
-;   the method $get_aci_norm (resp. $get_a_norm).
+;   the method $get_ai_norm (resp. $get_a_norm), possibly wrapping the
+;   placeholder @aci_sorted.
 (define $get_aci_normal_form ((S Type :implicit) (t S))
   (eo::match ((T Type) (x T)
               (b1 Bool) (b2 Bool :list)
@@ -363,13 +365,13 @@
               (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
     t
     (
-      ((or b1 b2)        ($get_aci_norm t true))
-      ((and b1 b2)       ($get_aci_norm t true))
-      ((re.union r1 r2)  ($get_aci_norm t true))
-      ((re.inter r1 r2)  ($get_aci_norm t true))
-      ((bvor xb1 xb2)    ($get_aci_norm t true))
-      ((bvand xb1 xb2)   ($get_aci_norm t true))
-      ((bvxor xb1 xb2)   ($get_aci_norm t false))
+      ((or b1 b2)        (@aci_sorted or ($get_ai_norm t)))
+      ((and b1 b2)       (@aci_sorted and ($get_ai_norm t)))
+      ((re.union r1 r2)  (@aci_sorted re.union ($get_ai_norm t)))
+      ((re.inter r1 r2)  (@aci_sorted re.inter ($get_ai_norm t)))
+      ((bvor xb1 xb2)    (@aci_sorted bvor ($get_ai_norm t)))
+      ((bvand xb1 xb2)   (@aci_sorted bvand ($get_ai_norm t)))
+      ((bvxor xb1 xb2)   (@aci_sorted bvxor ($get_a_norm t)))
       ((str.++ xs1 xs2)  ($get_a_norm t))
       ((re.++ r1 r2)     ($get_a_norm t))
       ((concat xb1 xb2)  ($get_a_norm t))
@@ -395,10 +397,9 @@
 ;   which are defined in CpcExpert.eo.
 (declare-rule aci_norm ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((eo::define ((an ($get_aci_normal_form a)) (bn ($get_aci_normal_form b)))
-              (eo::ite (eo::eq an b) true
-              (eo::ite (eo::eq a bn) true
-                (eo::eq an bn)))) true))
+  :requires (((eo::define ((an ($get_aci_normal_form a)) 
+                           (bn ($get_aci_normal_form b)))
+              ($is_aci_norm a b an bn)) true))
   :conclusion (= a b)
 )
 
