@@ -419,7 +419,8 @@
             (eo::match ((m3 Int) (amb_carry Bool) (amb (BitVec m3)))
               ($bv_ripple_carry_adder_2 a1 a2n true @bv_empty)
               (((@pair amb_carry amb)
-                (@pair ($bv_bitblast_apply_ite (not amb_carry) zero q1ss) ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))))
+                (@pair ($bv_bitblast_apply_ite (not amb_carry) zero q1ss)
+                       ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))))
   )
 )
 
