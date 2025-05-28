@@ -24,6 +24,17 @@
   )
 )
 
+; program: $seq_element_of_unit
+; args:
+; - s U: a string term.
+; return: true if s is the empty string or sequence.
+(program $seq_element_of_unit ((U Type) (x U))
+  ((Seq U)) U
+  (
+    (($seq_element_of_unit (seq.unit x)) x)
+  )
+)
+
 ; define: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.

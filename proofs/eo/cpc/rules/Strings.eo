@@ -870,9 +870,8 @@
   (T) T
   (
     ; handle sequence-specific operators here
-    (($seq_eval (seq.nth t n))  (eo::match ((e T))
-                                  (eo::list_nth str.++ ($str_to_nary_form t false) n)
-                                  (((seq.unit e) e))))
+    (($seq_eval (seq.nth t n))  (eo::define ((res (eo::list_nth str.++ ($str_to_nary_form t false) n)))
+                                  ($seq_element_of_unit res)))
     ; otherwise, we rely on the strings evaluator
     (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
                                 ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
