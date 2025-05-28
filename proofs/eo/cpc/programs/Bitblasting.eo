@@ -299,9 +299,7 @@
 ; - carry Bool: The current carry bit.
 ; return: the result of adding a1 and a2.
 (define $bv_ripple_carry_adder ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)) (carry Bool))
-  (eo::match ((m Int) (carryr Bool) (res (BitVec m)))
-    ($bv_ripple_carry_adder_2 a1 a2 carry @bv_empty)
-    (((@pair carryr res) res))))
+  ($pair_second ($bv_ripple_carry_adder_2 a1 a2 carry @bv_empty)))
 
 ; define: $bv_mk_bitblast_step_add
 ; args:
@@ -401,12 +399,10 @@
   (($bv_div_mod_impl a1 a2 zero 0)    (@pair zero zero))
   (($bv_div_mod_impl zero a2 zero sz) (@pair zero zero))
   (($bv_div_mod_impl a1 a2 zero sz)
-     (eo::match ((m1 Int) (q1 (BitVec m1)) (r1 (BitVec m1)))
-      ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero (eo::add sz -1))
-      (((@pair q1 r1)
+        (eo::define ((recres ($bv_div_mod_impl ($bv_bitblast_rshift a1 1) a2 zero (eo::add sz -1))))
         (eo::define ((isodd ($bv_bitblast_head a1)))
-        (eo::define ((q1s ($bv_bitblast_lshift q1 1)))
-        (eo::define ((r1s ($bv_bitblast_lshift r1 1)))
+        (eo::define ((q1s ($bv_bitblast_lshift ($pair_first recres) 1)))
+        (eo::define ((r1s ($bv_bitblast_lshift ($pair_second recres) 1)))
         (eo::define ((r1sa ($bv_ripple_carry_adder r1s zero (ite (= isodd true) true false))))
         (eo::define ((a2n ($bv_bitblast_apply_unary not a2)))
         (eo::define ((cares1 ($bv_ripple_carry_adder_2 r1sa a2n true @bv_empty)))
@@ -420,7 +416,7 @@
         (eo::define ((amb_carry ($pair_first cares2)))
         (eo::define ((amb ($pair_second cares2)))
             (@pair ($bv_bitblast_apply_ite (not amb_carry) zero q1ss)
-                    ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))))
+                    ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))
   )
 )
 
@@ -432,10 +428,9 @@
 (define $bv_mk_bitblast_step_udiv ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
   (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
   (eo::define ((zero ($bv_bitblast_zero sz)))
-  (eo::match ((m Int) (q (BitVec m)) (r (BitVec m)))
-    ($bv_div_mod_impl a1 a2 zero sz)
-    (((@pair q r) (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
-                    ($bv_bitblast_apply_ite isz ($bv_bitblast_repeat true sz) q))))))))
+  (eo::define ((res ($bv_div_mod_impl a1 a2 zero sz)))
+  (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
+    ($bv_bitblast_apply_ite isz ($bv_bitblast_repeat true sz) ($pair_first res)))))))
 
 ; define: $bv_mk_bitblast_step_urem
 ; args:
@@ -445,10 +440,9 @@
 (define $bv_mk_bitblast_step_urem ((n Int :implicit) (a1 (BitVec n)) (a2 (BitVec n)))
   (eo::define ((sz ($bv_bitwidth (eo::typeof a1))))
   (eo::define ((zero ($bv_bitblast_zero sz)))
-  (eo::match ((m Int) (q (BitVec m)) (r (BitVec sz)))
-    ($bv_div_mod_impl a1 a2 zero sz)
-    (((@pair q r) (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
-                    ($bv_bitblast_apply_ite isz a1 r))))))))
+  (eo::define ((res ($bv_div_mod_impl a1 a2 zero sz)))
+  (eo::define ((isz ($bv_mk_bitblast_step_eq a2 zero)))
+    ($bv_bitblast_apply_ite isz a1 ($pair_second res)))))))
 
 ;;; ite
 
@@ -624,42 +618,44 @@
 
 ;;; $bv_mk_bitblast_step
 
-; define: $bv_mk_bitblast_step
+; program: $bv_mk_bitblast_step
 ; args:
 ; - a T: The bitvector term or predicate to bitblast.
 ; return: the bitblasted term for a.
-(define $bv_mk_bitblast_step ((T Type :implicit) (a T))
-  (eo::match ((n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list) (ac (BitVec 1)))
-  a
+(program $bv_mk_bitblast_step
+  ((T Type) (n Int) (a1 (BitVec n)) (a2 (BitVec n) :list) (u Int) (l Int) (m Int) (a3 (BitVec m) :list) (ac (BitVec 1)))
+  (T) T
   (
-  ((bvnot a1)         ($bv_bitblast_apply_unary not a1))
-  ((= a1 a2)          ($bv_mk_bitblast_step_eq a1 a2))
-  ((bvult a1 a2)      ($bv_bitblast_ult a1 a2 false))
-  ((bvule a1 a2)      ($bv_bitblast_ult a1 a2 true))
-  ((bvslt a1 a2)      ($bv_bitblast_slt a1 a2 false))
-  ((bvsle a1 a2)      ($bv_bitblast_slt a1 a2 true))
-  ((extract u l a1)   ($bv_mk_bitblast_step_extract u l a1))
-  ((concat a1 a3)     ($bv_mk_bitblast_step_concat (concat a1 a3)))
-  ((bvor a1 a2)       ($bv_mk_bitblast_step_bitwise bvor or a2 a1))
-  ((bvand a1 a2)      ($bv_mk_bitblast_step_bitwise bvand and a2 a1))
-  ((bvxor a1 a2)      ($bv_mk_bitblast_step_bitwise bvxor xor a2 a1))
-  ((bvxnor a1 a2)     ($bv_bitblast_apply_binary = a1 a2))
-  ((bvadd a1 a2)      ($bv_mk_bitblast_step_add a2 a1))
-  ((bvmul a1 a2)      ($bv_mk_bitblast_step_mul a2 a1))
-  ((bvudiv a1 a2)     ($bv_mk_bitblast_step_udiv a1 a2))
-  ((bvurem a1 a2)     ($bv_mk_bitblast_step_urem a1 a2))
-  ((bvsub a1 a2)      ($bv_ripple_carry_adder a1 ($bv_bitblast_apply_unary not a2) true))
-  ((bvneg a1)         ($bv_ripple_carry_adder ($bv_bitblast_apply_unary not a1) ($bv_bitblast_zero ($bv_bitwidth (eo::typeof a1))) true))
-  ((bvite ac a1 a2)   ($bv_mk_bitblast_step_ite ac a1 a2))
-  ((bvashr a1 a2)     ($bv_mk_bitblast_step_shr a1 a2 ($bv_bitblast_sign_bit a1)))
-  ((bvlshr a1 a2)     ($bv_mk_bitblast_step_shr a1 a2 false))
-  ((bvshl a1 a2)      ($bv_mk_bitblast_step_shl a1 a2))
-  ((bvcomp a1 a2)     (@from_bools ($bv_mk_bitblast_step_eq a1 a2)))
-  ((bvultbv a1 a2)    (@from_bools ($bv_bitblast_ult a1 a2 false)))
-  ((bvsltbv a1 a2)    (@from_bools ($bv_bitblast_slt a1 a2 false)))
-  ((sign_extend n a1) (eo::list_concat @from_bools a1 ($bv_bitblast_repeat ($bv_bitblast_sign_bit a1) n)))
-  (a1                 (eo::ite (eo::is_bin a1)
-                        ($bv_mk_bitblast_step_const a1)
-                        ($bv_mk_bitblast_step_var a1)))    ; otherwise assume a variable
-  ))
+  (($bv_mk_bitblast_step (bvnot a1))         ($bv_bitblast_apply_unary not a1))
+  (($bv_mk_bitblast_step (= a1 a2))          ($bv_mk_bitblast_step_eq a1 a2))
+  (($bv_mk_bitblast_step (bvult a1 a2))      ($bv_bitblast_ult a1 a2 false))
+  (($bv_mk_bitblast_step (bvule a1 a2))      ($bv_bitblast_ult a1 a2 true))
+  (($bv_mk_bitblast_step (bvslt a1 a2))      ($bv_bitblast_slt a1 a2 false))
+  (($bv_mk_bitblast_step (bvsle a1 a2))      ($bv_bitblast_slt a1 a2 true))
+  (($bv_mk_bitblast_step (extract u l a1))   ($bv_mk_bitblast_step_extract u l a1))
+  (($bv_mk_bitblast_step (concat a1 a3))     ($bv_mk_bitblast_step_concat (concat a1 a3)))
+  (($bv_mk_bitblast_step (bvor a1 a2))       ($bv_mk_bitblast_step_bitwise bvor or a2 a1))
+  (($bv_mk_bitblast_step (bvand a1 a2))      ($bv_mk_bitblast_step_bitwise bvand and a2 a1))
+  (($bv_mk_bitblast_step (bvxor a1 a2))      ($bv_mk_bitblast_step_bitwise bvxor xor a2 a1))
+  (($bv_mk_bitblast_step (bvxnor a1 a2))     ($bv_bitblast_apply_binary = a1 a2))
+  (($bv_mk_bitblast_step (bvadd a1 a2))      ($bv_mk_bitblast_step_add a2 a1))
+  (($bv_mk_bitblast_step (bvmul a1 a2))      ($bv_mk_bitblast_step_mul a2 a1))
+  (($bv_mk_bitblast_step (bvudiv a1 a2))     ($bv_mk_bitblast_step_udiv a1 a2))
+  (($bv_mk_bitblast_step (bvurem a1 a2))     ($bv_mk_bitblast_step_urem a1 a2))
+  (($bv_mk_bitblast_step (bvsub a1 a2))      ($bv_ripple_carry_adder a1 ($bv_bitblast_apply_unary not a2) true))
+  (($bv_mk_bitblast_step (bvneg a1))         ($bv_ripple_carry_adder 
+                                                ($bv_bitblast_apply_unary not a1) 
+                                                ($bv_bitblast_zero ($bv_bitwidth (eo::typeof a1))) true))
+  (($bv_mk_bitblast_step (bvite ac a1 a2))   ($bv_mk_bitblast_step_ite ac a1 a2))
+  (($bv_mk_bitblast_step (bvashr a1 a2))     ($bv_mk_bitblast_step_shr a1 a2 ($bv_bitblast_sign_bit a1)))
+  (($bv_mk_bitblast_step (bvlshr a1 a2))     ($bv_mk_bitblast_step_shr a1 a2 false))
+  (($bv_mk_bitblast_step (bvshl a1 a2))      ($bv_mk_bitblast_step_shl a1 a2))
+  (($bv_mk_bitblast_step (bvcomp a1 a2))     (@from_bools ($bv_mk_bitblast_step_eq a1 a2)))
+  (($bv_mk_bitblast_step (bvultbv a1 a2))    (@from_bools ($bv_bitblast_ult a1 a2 false)))
+  (($bv_mk_bitblast_step (bvsltbv a1 a2))    (@from_bools ($bv_bitblast_slt a1 a2 false)))
+  (($bv_mk_bitblast_step (sign_extend n a1)) (eo::list_concat @from_bools a1 ($bv_bitblast_repeat ($bv_bitblast_sign_bit a1) n)))
+  (($bv_mk_bitblast_step a1)                 (eo::ite (eo::is_bin a1)
+                                               ($bv_mk_bitblast_step_const a1)
+                                               ($bv_mk_bitblast_step_var a1)))    ; otherwise assume a variable
+  )
 )
