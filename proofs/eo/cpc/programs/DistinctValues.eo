@@ -134,7 +134,8 @@
 ; - T Type: The type of the arguments.
 ; return: >
 ;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
-(program $are_distinct_terms_type ((T Type) (t T) (s T) (U Type) (W Type) (n Int))
+(program $are_distinct_terms_type
+  ((T Type) (t T) (s T) (U Type) (W Type) (n Int) (st (Set U)) (ss (Set U)) (sst (Seq U)) (sss (Seq U)))
   (T T Type) Bool
   (
   (($are_distinct_terms_type t t T)           false)
@@ -143,8 +144,8 @@
   (($are_distinct_terms_type t s String)      (eo::and (eo::is_str t) (eo::is_str s)))
   (($are_distinct_terms_type t s (BitVec n))  (eo::and (eo::is_bin t) (eo::is_bin s)))
   (($are_distinct_terms_type t s Bool)        (eo::and (eo::is_bool t) (eo::is_bool s)))
-  (($are_distinct_terms_type t s (Set U))     (eo::or ($set_is_not_subset t s) ($set_is_not_subset s t)))
-  (($are_distinct_terms_type t s (Seq U))     ($seq_distinct_terms t s))
+  (($are_distinct_terms_type st ss (Set U))   (eo::or ($set_is_not_subset st ss) ($set_is_not_subset ss st)))
+  (($are_distinct_terms_type sst sss (Seq U)) ($seq_distinct_terms sst sss))
   (($are_distinct_terms_type t s T)           ($dt_distinct_terms t s)) ; otherwise assume we are a user datatype
   )
 )
