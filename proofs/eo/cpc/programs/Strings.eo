@@ -767,23 +767,21 @@
     (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       ; match recursive call
-      (eo::match ((c String :list) (M Bool :list))
-        ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))
-        (((@pair c M)
-          ; match on what r1 is
-          (eo::match ((s String) (r RegLan))
-            r1
-            (
-              ; a constant regular expression, append s
-              ((str.to_re s) (@pair (str.++ s c) M))
-              ; otherwise, make the skolem and append with constraint
-              (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
-                            (@pair (str.++ k c) (and (str.in_re k r) M))))
-            )
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
+        ; match on what r1 is
+        (eo::match ((s String) (r RegLan))
+          r1
+          (
+            ; a constant regular expression, append s
+            ((str.to_re s) (@pair (eo::cons str.++ s c) M))
+            ; otherwise, make the skolem and append with constraint
+            (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
+                          (@pair (eo::cons str.++ k c) (eo::cons and (str.in_re k r) M))))
           )
-        ))
-      )
-    )
+        )
+        ))))
   )
 )
 
