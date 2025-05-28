@@ -761,27 +761,21 @@
 ;   We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
 ;   application of the unfolding skolem program @re_unfold_pos_component.
 ; note: A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
-(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
+(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int) (s String))
   (String RegLan RegLan Int) (@Pair String Bool)
   (
     (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
-    (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
-      ; match recursive call
+    (($re_unfold_pos_concat_rec t (re.++ (str.to_re s) r2) ro i)
       (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
       (eo::define ((c ($pair_first res)))
-      (eo::define ((M ($pair_second res)))
-        ; match on what r1 is
-        (eo::match ((s String) (r RegLan))
-          r1
-          (
-            ; a constant regular expression, append s
-            ((str.to_re s) (@pair (eo::cons str.++ s c) M))
-            ; otherwise, make the skolem and append with constraint
-            (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
-                          (@pair (eo::cons str.++ k c) (eo::cons and (str.in_re k r) M))))
-          )
-        )
-        ))))
+        ; a constant regular expression, append s
+        (@pair (eo::cons str.++ s ($pair_first res)) ($pair_second res)))))
+    (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((k (@re_unfold_pos_component t ro i)))
+        ; otherwise, make the skolem and append with constraint
+        (@pair (eo::cons str.++ k ($pair_first res))
+               (eo::cons and (str.in_re k r1) ($pair_second res))))))
   )
 )
 
@@ -900,13 +894,12 @@
     ; Check if t is a word constant
     (($str_collect_acc (str.++ t tail))
       (eo::ite ($str_check_length_one t)
-        (eo::match ((s1 (Seq U)) (s2 (Seq U))) 
-          ($str_collect_acc tail)
-          (
-            ((@pair "" s2)  (@pair t s2))
-            ((@pair s1 s2)  (@pair (eo::concat t s1) s2))    ; concatenate the constant
-          )
-        )
+        (eo::define ((res ($str_collect_acc tail)))
+        (eo::define ((s1 ($pair_first res)))
+        (eo::define ((s2 ($pair_second res)))
+          (eo::ite (eo::eq s1 "")
+            (@pair t s2)
+            (@pair (eo::concat t s1) s2)))))    ; concatenate the constant
         (@pair "" (str.++ t tail))))
     (($str_collect_acc "")            (@pair "" ""))
   )
@@ -1575,24 +1568,18 @@
       ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
     ; Intersection reports conflicts eagerly, and otherwise combines the results
     (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::match ((bb Bool))
-                                                          ($str_re_consume_rec s1 r1r @result.null rev)
-                                                          (
-                                                            (false  false)
-                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
-                                                          )
-                                                       )))
+                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
+                                                         (eo::ite (eo::eq bb false)
+                                                           false
+                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
     (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
     (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
     ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
     (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::match ((bb Bool))
-                                                          ($str_re_consume_rec s1 r1r @result.null rev)
-                                                          (
-                                                            (false  ($str_re_consume_rec s1 r2 b rev))
-                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
-                                                          )
-                                                       )))
+                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
+                                                         (eo::ite (eo::eq bb false)
+                                                           ($str_re_consume_rec s1 r2 b rev)
+                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
     (($str_re_consume_rec s1 re.none @result.null rev) false)     ; end of re.union, conflict, also used if re.none appears in unexpected position
     (($str_re_consume_rec s1 re.none b rev)            b)         ; end of re.union, no conflict
     (($str_re_consume_rec s1 r1 @result.null rev)      (str.in_re s1 r1))
