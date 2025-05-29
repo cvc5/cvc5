@@ -48,6 +48,18 @@
 ; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
 (program $evaluate_list () (@List) @List)
 
+; program: $evaluate_internal
+; args:
+; - t T: The original term.
+; - l @List: A list containing the evaluation of t.
+; return: The evaluation of t.
+(program $evaluate_internal ((T Type) (t T) (tev T))
+  (T @List) T
+  (
+  (($evaluate_internal t (@list tev)) tev)
+  )
+)
+
 ; define: $evaluate
 ; args:
 ; - t S: The term to evaluate.
@@ -56,7 +68,8 @@
 ;   This method is defined in terms of the forward declaration $evaluate_list here.
 ;   The implementation of this method depends on defining the evaluation for all
 ;   theories and thus is contained in Cpc.eo.
-(define $evaluate ((T Type :implicit) (t T)) (eo::list_nth @list ($evaluate_list (@list t)) 0))
+(define $evaluate ((T Type :implicit) (t T))
+  ($evaluate_internal t ($evaluate_list (@list t))))
 
 ; program: $get_arg_list_rec
 ; args:

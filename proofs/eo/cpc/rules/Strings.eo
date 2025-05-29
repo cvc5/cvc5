@@ -892,7 +892,7 @@
     (($seq_eval (seq.nth t n))  (eo::define ((res (eo::list_nth str.++ ($str_to_nary_form t false) n)))
                                   ($seq_element_of_unit res)))
     ; otherwise, we rely on the strings evaluator
-    (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
+    (($seq_eval t)              (eo::match ((S Type) (u (Seq S)) (units @List) (chars @List))
                                 ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
                                 (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
                                                         (eo::ite (eo::eq (eo::typeof ue) String)
