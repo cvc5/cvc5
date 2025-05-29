@@ -162,6 +162,7 @@
   (($str_membership_re (str.in_re s r)) r)
   )
 )
+
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
@@ -1537,21 +1538,17 @@
         ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
         (eo::ite (eo::eq ($str_membership_re res) @re.empty)
           ; If we fully consumed, now we go back and check if we get a conflict if we skip.
-          (eo::define ((sr ($str_membership_str res)))
-          (eo::match ((br Bool))
-            ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
-            (
-              ; Skipping would give a conflict.
-              (false (eo::ite (eo::eq (str.++ s1 s2) sr)
-                        ; if we did not consume anything, we are stuck.
-                        (str.in_re (str.++ s1 s2) (re.++ r r2))
-                        ; otherwise, we continue with the RE consumed once.
-                        ($str_re_consume_rec sr (re.++ r r2) @result.null rev)
-                      ))
-              ; Otherwise we are stuck.
-              (br    (str.in_re (str.++ s1 s2) (re.++ r r2)))
-            )
-          ))
+          (eo::define ((res2 ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)))
+          (eo::ite (eo::is_eq res2 false)
+            ; Skipping would give a conflict.
+            (eo::define ((sr ($str_membership_str res)))
+            (eo::ite (eo::eq (str.++ s1 s2) sr)
+              ; if we did not consume anything, we are stuck.
+              (str.in_re (str.++ s1 s2) (re.++ r r2))
+              ; otherwise, we continue with the RE consumed once.
+              ($str_re_consume_rec sr (re.++ r r2) @result.null rev)))
+            ; Otherwise we are stuck.
+            (str.in_re (str.++ s1 s2) (re.++ r r2))))
           ; Otherwise we are stuck.
           (str.in_re (str.++ s1 s2) (re.++ r r2)))))))
     (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)
@@ -1674,13 +1671,14 @@
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::match ((ss String) (ts String))
-    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
-    (((@pair ss ts) (eo::requires (eo::is_str ss) true
-                    (eo::requires (eo::is_str ts) true
-                      ($str_overlap_rec
-                        ($str_rev rev ($str_flatten_word ss))
-                        ($str_rev rev ($str_flatten_word ts)))))))))
+  (eo::define ((res ($seq_to_string_pair s t))) ; ensure we have converted to strings at this point
+  (eo::define ((ss ($pair_first res)))
+  (eo::define ((ts ($pair_second res)))
+  (eo::requires (eo::is_str ss) true
+  (eo::requires (eo::is_str ts) true
+    ($str_overlap_rec
+      ($str_rev rev ($str_flatten_word ss))
+      ($str_rev rev ($str_flatten_word ts)))))))))
 
 
 ; program: $str_has_overlap
