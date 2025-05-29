@@ -356,7 +356,8 @@
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
+(program $dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
   :signature (D eo::List X) D
   (
     (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)   ($dt_updater_elim_rhs (update s t a) ss (c a)))
@@ -371,7 +372,8 @@
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $tuple_updater_elim_rhs ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
+(program $tuple_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
   :signature (D eo::List) D
   (
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
@@ -389,7 +391,8 @@
 ; - ss eo::List: The list of selectors for the type of s.
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
-(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
+(program $mk_dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
   :signature (D U eo::List) D
   (
     (($mk_dt_updater_elim_rhs (update s t a) c ss)

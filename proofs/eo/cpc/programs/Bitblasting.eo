@@ -36,7 +36,8 @@
 ; - l Int: The number of elements in the prefix left to extract.
 ; - t L: The term to process, which is expected to be a cons-list.
 ; return: the prefix of t consisting of at most l children.
-(program $bv_bitblast_prefix ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (l Int))
+(program $bv_bitblast_prefix
+  ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (l Int))
   :signature (Int (BitVec n)) (BitVec l)
   (
     (($bv_bitblast_prefix 0 t)                   @bv_empty)
@@ -53,7 +54,8 @@
 ; - t L: The term to process, which is expected to be a cons-list.
 ; return: >
 ;   The subsequent of t between indices l and u inclusive.
-(program $bv_bitblast_subsequence ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (u Int) (l Int))
+(program $bv_bitblast_subsequence
+  ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (u Int) (l Int))
   :signature (Int Int (BitVec n)) (BitVec (eo::add u (eo::neg l)))
   (
     (($bv_bitblast_subsequence l u @bv_empty)      @bv_empty)

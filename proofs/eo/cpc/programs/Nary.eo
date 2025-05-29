@@ -19,7 +19,8 @@
 ; - c1 L: The first term, assumed to be a cons-list.
 ; - c2 L: The second term, assumed to be a cons-list.
 ; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
-(program $nary_is_compatible ((U Type) (L Type) (cons (-> L L L)) (nil U) (t U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
+(program $nary_is_compatible
+    ((U Type) (L Type) (cons (-> L L L)) (nil U) (t U) (c1 U) (c2 U) (xs1 U :list) (xs2 U :list))
     :signature ((-> L L L) U U U) Bool
     (
         (($nary_is_compatible cons nil nil t)                       true)

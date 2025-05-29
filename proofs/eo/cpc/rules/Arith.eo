@@ -201,7 +201,8 @@
 ; - F1: The first arithmetic atom, which is an application of a binary arithmetic relation.
 ; - F2: The first arithmetic atom, which is an application of a binary arithmetic relation over the same terms as F1.
 ; return: The relation that along with F1 and F2 forms a trichotomy.
-(program $mk_arith_trichotomy ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
+(program $mk_arith_trichotomy
+  ((T Type) (U Type) (S Type) (r1 (-> T U Bool)) (r2 (-> T U Bool)) (a T) (b U))
   :signature (Bool Bool) Bool
   (
     (($mk_arith_trichotomy (r1 a b) (r2 a b)) ($arith_rel_trichotomy r1 r2 a b))
@@ -359,7 +360,8 @@
 ;   The literal proven by arith_mult_abs_comparison given C and the remaining
 ;   premises F.
 ; note: This program is a helper for $mk_arith_mult_abs_comparison.
-(program $mk_arith_mult_abs_comparison_rec ((T Type) (U Type) (V Type) (W Type) (X Type)
+(program $mk_arith_mult_abs_comparison_rec
+  ((T Type) (U Type) (V Type) (W Type) (X Type)
    (a W) (b X) (r (-> W X Bool)) (t T) (u U) (z V) (B Bool :list))
   :signature (Bool Bool) Bool
   (
@@ -380,7 +382,8 @@
 ; - F Bool: A conjunction of the remaining premises.
 ; return: >
 ;   The literal proven by arith_mult_abs_comparison given premises F.
-(program $mk_arith_mult_abs_comparison ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
+(program $mk_arith_mult_abs_comparison
+  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
   :signature (Bool) Bool
   (
     (($mk_arith_mult_abs_comparison (and (> (abs t) (abs u)) B))
