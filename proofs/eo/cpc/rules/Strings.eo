@@ -292,6 +292,27 @@
 
 ;;;;; ProofRule::RE_UNFOLD_POS
 
+; program: $mk_re_unfold_pos_star
+; args:
+; - t String: The string.
+; - r RegLan: The body of the regular expression star.
+; - p (@Pair String Bool): The result of $re_unfold_pos_concat based on the body
+;                         of r.
+; return: The conclusion for rule RE_UNFOLD_POS in the case of RE star.
+(program $mk_re_unfold_pos_star ((t String) (r RegLan) (k1 String) (k2 String) (k3 String) (M Bool :list))
+  (String RegLan (@Pair String Bool)) Bool
+  (
+  (($mk_re_unfold_pos_star t r (@pair (str.++ k1 k2 k3) M))
+      (or
+        (= t "")
+        (str.in_re t r)
+        (and
+            (and (= t (str.++ k1 k2 k3)) M)
+            (not (= k1 ""))
+            (not (= k3 "")))))
+  )
+)
+                
 ; program: $mk_re_unfold_pos
 ; args:
 ; - t String: The string.
@@ -301,16 +322,7 @@
   (String RegLan) Bool
   (
     (($mk_re_unfold_pos t (re.* r1))
-        (eo::match ((k1 String) (k2 String) (k3 String) (M Bool :list))
-        ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))
-        (((@pair (str.++ k1 k2 k3) M)
-            (or
-            (= t "")
-            (str.in_re t r1)
-            (and
-                (eo::cons and (= t (str.++ k1 k2 k3)) M)
-                (not (= k1 ""))
-                (not (= k3 ""))))))))
+       ($mk_re_unfold_pos_star t r1 ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))))
     (($mk_re_unfold_pos t (re.++ r1 r2))
         (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
         (eo::define ((teq (= t ($pair_first res))))

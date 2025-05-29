@@ -29,18 +29,20 @@
     )
 )
 
-; program: $nary_nth_type
+;; =============== for assoc-nil
+
+; program: $assoc_nil_nth_type
 ; args:
 ; - f (-> T U V): The function, expected to be an n-ary function.
 ; - t W: The term to inspect, expected to be an f-list.
 ; - n Int: The index of the child in t.
 ; return: The type of the n^th child of t.
-(program $nary_nth_type
+(program $assoc_nil_nth_type
   ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
    (f (-> T U V)) (n Int) (x W) (x1 W1) (x2 W2))
   ((-> T U V) W Int) Type
   (
-  (($nary_nth_type f (f x1 x2) 0)   (eo::typeof x1))
-  (($nary_nth_type f (f x1 x2) n)   ($nary_nth_type f x2 (eo::add n -1)))
+  (($assoc_nil_nth_type f (f x1 x2) 0)   (eo::typeof x1))
+  (($assoc_nil_nth_type f (f x1 x2) n)   ($assoc_nil_nth_type f x2 (eo::add n -1)))
   )
 )
