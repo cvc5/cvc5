@@ -105,7 +105,7 @@
                        (xb (BitVec m)) (yb (BitVec m)) (ybs (BitVec m) :list) (zbs (BitVec n) :list)
                        (sx (Seq T)) (sy (Seq T)) (sz (Seq T)) (sys (Seq T) :list)
                        (ssx String) (ssy String) (ssz String))
-    (S) S
+    :signature (S) S
     (
       ; core
       (($run_evaluate (= x y))             (eo::define ((ex ($run_evaluate x)))
@@ -313,7 +313,7 @@
 ; - ts @List: The list of terms to evaluate.
 ; return: The list containing the result of evaluating the terms in ts.
 (program $evaluate_list ((U Type) (t U) (ts @List :list))
-  (@List) @List
+  :signature (@List) @List
   (
   (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
   (($evaluate_list @list.nil)     @list.nil)
@@ -413,7 +413,7 @@
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
 (program $is_absorb_rec ((U Type) (V Type) (W Type) (f (-> U U U)) (a U) (b U) (zero U))
-  ((-> U U U) V W) Bool
+  :signature ((-> U U U) V W) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)
@@ -481,7 +481,7 @@
 ;   We intentionally only handle finite types here, and moreover for simplicity
 ;   limit this method to atomic types (Bool and BitVec) only.
 (program $compute_card ((n Int))
-  (Type) Int
+  :signature (Type) Int
   (
     (($compute_card Bool)       2)
     (($compute_card (BitVec n)) ($arith_eval_int_pow_2 n))

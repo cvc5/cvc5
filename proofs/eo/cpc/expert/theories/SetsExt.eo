@@ -37,9 +37,8 @@
 ;   The "join" of c1 and c2, that is, if the last child of c1 is the same as the
 ;   first child of c2, then those 2 children are dropped and c1 and c2 are
 ;   appended together. Otherwise, this program does not evaluate.
-(program $tuple_type_join
-    ((x Type) (xs Type :list) (y Type) (ys Type :list))
-    (Type Type) Type
+(program $tuple_type_join ((x Type) (xs Type :list) (y Type) (ys Type :list))
+    :signature (Type Type) Type
     (
       (($tuple_type_join (Tuple x xs) (Tuple y ys))
         (eo::ite (eo::eq xs UnitTuple)
