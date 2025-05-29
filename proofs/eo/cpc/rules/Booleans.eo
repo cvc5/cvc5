@@ -19,7 +19,7 @@
 ;   The result of converting F to a clause. In particular, if F is not
 ;   an or-list, we return (or F), otherwise F is unchanged.
 (program $to_clause ((F1 Bool) (F2 Bool :list))
-  (Bool) Bool
+  :signature (Bool) Bool
   (
     (($to_clause (or F1 F2)) (or F1 F2))
     (($to_clause false)      false)
@@ -36,7 +36,7 @@
 ;   The result of converting F to a normal formula. In particular, if F
 ;   is (or F), we return F, otherwise F is unchanged.
 (program $from_clause ((F1 Bool) (F2 Bool :list))
-  (Bool) Bool
+  :signature (Bool) Bool
   (
     (($from_clause (or F1 F2)) (eo::ite (eo::eq F2 false) F1 (or F1 F2)))
     (($from_clause F1)         F1)
@@ -108,7 +108,7 @@
 ;   This side condition applies multiple steps of resolution but leaves the
 ;   first argument in n-ary form as an optimization.
 (program $chain_resolve_rec ((C1 Bool) (C2 Bool) (Cs Bool :list) (pol Bool) (pols @List :list) (L Bool) (lits @List :list))
-    (Bool Bool @List @List) Bool
+    :signature (Bool Bool @List @List) Bool
     (
         (($chain_resolve_rec C1 true @list.nil @list.nil)         ($from_clause C1))
         (($chain_resolve_rec C1 (and C2 Cs) (@list pol pols) (@list L lits))
@@ -138,13 +138,10 @@
 ; conclusion: >
 ;   The result of the chain resolution of the premises clauses for
 ;   the given polarities and pivots.
-(declare-rule chain_resolution ((Cs Bool) (pols @List) (lits @List))
-    :premise-list Cs and
+(declare-rule chain_resolution ((C1 Bool) (C2 Bool :list) (pols @List) (lits @List))
+    :premise-list (and C1 C2) and
     :args (pols lits)
-    :conclusion
-        (eo::match ((C1 Bool) (C2 Bool :list))
-            Cs
-            (((and C1 C2) ($chain_resolve_rec ($to_clause C1) C2 pols lits))))
+    :conclusion ($chain_resolve_rec C1 C2 pols lits)
 )
 
 ; rule: factoring
@@ -415,7 +412,7 @@
 ;   the result of negating F by turning it into a disjunction. For
 ;   example, we return (or (not l1) ... (not ln)) given input (and l1 .. ln).
 (program $lower_not_and ((l Bool) (ls Bool :list))
-    (Bool) Bool
+    :signature (Bool) Bool
     (
         (($lower_not_and true)       false) ; Terminator changes
         (($lower_not_and (and l ls)) (eo::cons or (not l) ($lower_not_and ls)))

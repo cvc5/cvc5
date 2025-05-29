@@ -32,7 +32,7 @@
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_smulo_elim_rec ((n Int) (xa (BitVec n)) (xb (BitVec n))
                              (ppc (BitVec 1)) (res (BitVec 1)) (i Int) (nm2 Int))
-  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  :signature ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_smulo_elim_rec xa xb ppc res nm2 nm2)   res)
   (($bv_smulo_elim_rec xa xb ppc res i nm2)
@@ -92,7 +92,7 @@
 ;   A portion of the result of eliminating (bvsmulo a b).
 (program $bv_umulo_elim_rec ((n Int) (a (BitVec n)) (b (BitVec n))
                              (uppc (BitVec 1)) (res (BitVec 1)) (i Int))
-  ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
+  :signature ((BitVec n) (BitVec n) (BitVec 1) (BitVec 1) Int Int) (BitVec 1)
   (
   (($bv_umulo_elim_rec a b uppc res n n)   res)
   (($bv_umulo_elim_rec a b uppc res i n)
@@ -152,7 +152,7 @@
   ((n Int) (m Int) (k Int)
    (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n)) (c (BitVec n))
    (b Bool) (bn Bool) (bs (BitVec m) :list) (start Int) (end Int))
-  ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec k) (BitVec k) (BitVec m) Bool Int Int) (BitVec k)
+  :signature ((-> (BitVec n) (BitVec n) (BitVec n)) (BitVec k) (BitVec k) (BitVec m) Bool Int Int) (BitVec k)
   (
   (($bv_mk_bitwise_slicing_rec f c a bs bn start -1)
       (eo::cons concat ($nary_app f (extract start 0 c) (extract start 0 a)) @bv_empty))

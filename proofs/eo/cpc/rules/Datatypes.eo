@@ -9,7 +9,7 @@
 ; - x D: The datatype term we are splitting on.
 ; return: A disjunction of testers for the constructors in L, applied to x.
 (program $mk_dt_split ((D Type) (x D) (T Type) (c T) (xs eo::List :list))
-  (eo::List D) Bool
+  :signature (eo::List D) Bool
   (
     (($mk_dt_split eo::List::nil x)          false)
     (($mk_dt_split (eo::List::cons c xs) x)  (eo::cons or (is c x) ($mk_dt_split xs x)))
@@ -38,7 +38,7 @@
 ; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
 (program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (tb D) (s (-> D T)) (xs eo::List :list))
-  (eo::List D T) D
+  :signature (eo::List D T) D
   (
     (($mk_dt_inst_rec eo::List::nil x tb)         tb)
     (($mk_dt_inst_rec (eo::List::cons s xs) x t)  ($mk_dt_inst_rec xs x (t (s x))))
@@ -58,7 +58,7 @@
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
 (program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type) (Any Type))
-  (Type D Int) Any
+  :signature (Type D Int) Any
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -72,7 +72,7 @@
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
 (program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)) (xt (Tuple T1 T2)) (xu UnitTuple))
-  (Type C D) D
+  :signature (Type C D) D
   (
     (($mk_dt_inst (Tuple T1 T2) tuple xt)   ($mk_dt_inst_tuple_rec (Tuple T1 T2) xt 0))
     (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
@@ -159,7 +159,7 @@
 ; return: >
 ;   The conjunction of equalities between the arguments of ts and ss.
 (program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
+  :signature (@List @List) Bool
   (
   (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
   (($mk_dt_cons_eq @list.nil @list.nil)       true)
@@ -217,7 +217,7 @@
 ; note: >
 ;   Since forward declarations must have a ground type signature, we wrap
 ;   the term to find (the s argument of dt-cycle) in a list.
-(program $dt_find_cycle_list () (@List @List) Bool)
+(program $dt_find_cycle_list () :signature (@List @List) Bool)
 
 
 ; define: $dt_find_cycle_rec
@@ -229,7 +229,7 @@
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 ; note: This is a helper for $dt_find_cycle below.
 (program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
-  (T @List @List) Bool
+  :signature (T @List @List) Bool
   (
     (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (eo::cons @list a l)))
     (($dt_find_cycle_rec c s l)
@@ -257,7 +257,7 @@
 ;   True iff a term in ts is s, or contains s as a strict subterm beneath
 ;   constructor applications.
 (program $dt_find_cycle_list ((U Type) (t U) (s U) (ts @List :list) (ss @List))
-  (@List @List) Bool
+  :signature (@List @List) Bool
   (
   (($dt_find_cycle_list (@list s ts) (@list s)) true)
   (($dt_find_cycle_list (@list t ts) ss)        (eo::ite ($dt_find_cycle t ss)
@@ -292,7 +292,7 @@
 ; return: >
 ;   The result of updating the n^th argument from the end in t.
 (program $dt_collapse_updater_rhs ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
-  (U T Int) U
+  :signature (U T Int) U
   (
     (($dt_collapse_updater_rhs (f x) a 0)  (f a))
     (($dt_collapse_updater_rhs (f x) a n)  (_ ($dt_collapse_updater_rhs f a (eo::add n -1)) x))
@@ -307,7 +307,7 @@
 ; return: >
 ;   The result of updating the n^th argument in t.
 (program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (f (-> T U)) (x T) (a T) (b T) (n Int) (ts W :list))
-  (U T Int) U
+  :signature (U T Int) U
   (
   (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
   (($tuple_collapse_updater_rhs (tuple b ts) a n)   (eo::cons tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
@@ -321,7 +321,7 @@
 ; return: >
 ;   The result of collapsing the update term.
 (program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (U Type) (s (-> D T)) (t D) (a U) (tr D) (n Int))
-  (D) D
+  :signature (D) D
   (
   (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
                                                       (eo::define ((index (eo::list_find eo::List::cons ss s)))
@@ -358,7 +358,7 @@
 ;   The result of updating the argument specified by s in t.
 (program $dt_updater_elim_rhs
   ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
-  (D eo::List X) D
+  :signature (D eo::List X) D
   (
     (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)   ($dt_updater_elim_rhs (update s t a) ss (c a)))
     (($dt_updater_elim_rhs (update s t a) (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs (update s t a) ss (c (s1 t))))
@@ -374,7 +374,7 @@
 ;   The result of updating the argument specified by s in t.
 (program $tuple_updater_elim_rhs
   ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
-  (D eo::List) D
+  :signature (D eo::List) D
   (
     (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
        (eo::cons tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
@@ -393,7 +393,7 @@
 ;   The right hand side is obtained by updating the proper argument of t.
 (program $mk_dt_updater_elim_rhs
   ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
-  (D U eo::List) D
+  :signature (D U eo::List) D
   (
     (($mk_dt_updater_elim_rhs (update s t a) c ss)
        ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
