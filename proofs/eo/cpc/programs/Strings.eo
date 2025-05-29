@@ -141,6 +141,27 @@
 (define $str_is_char_range ((s1 String) (s2 String))
   (eo::and (eo::is_eq (eo::len s1) 1) (eo::is_eq (eo::len s2) 1)))
 
+; program: $str_membership_str
+; args:
+; - B Bool: A predicate.
+; return: If B is of the form (str.in_re s r), this returns s.
+(program $str_membership_str ((s String) (r RegLan))
+  (Bool) String
+  (
+  (($str_membership_str (str.in_re s r)) s)
+  )
+)
+
+; program: $str_membership_re
+; args:
+; - B Bool: A predicate.
+; return: If B is of the form (str.in_re s r), this returns r.
+(program $str_membership_re ((s String) (r RegLan))
+  (Bool) RegLan
+  (
+  (($str_membership_re (str.in_re s r)) r)
+  )
+)
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
@@ -1584,25 +1605,21 @@
 (define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
   (eo::define ((ss ($str_to_flat_form s true)))  
   (eo::define ((rr ($re_to_flat_form r true)))
-  (eo::match ((s1 String) (r1 RegLan))
-      ($str_re_consume_rec ss rr @result.null true)
-      (
-        (false              false)
-        ((str.in_re s1 r1)  ; we revert if oneDir is true and we didn't fully consume
-                            (eo::define ((revert (eo::and oneDir (eo::not (eo::eq r1 @re.empty)))))
-                            (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
-                                         (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
-                            (eo::match ((s2 String) (r2 RegLan))
-                              ($str_re_consume_rec s1r r1r @result.null false)
-                              (
-                                (false              false)
-                                ((str.in_re s2 r2)  (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))
-                              )
-                            )))
-        )
-      )
-  )))
-)
+  (eo::define ((resrev ($str_re_consume_rec ss rr @result.null true)))
+  (eo::ite (eo::eq resrev false)
+    false
+    (eo::define ((s1 ($str_membership_str resrev)))
+    (eo::define ((r1 ($str_membership_re resrev)))
+    ; we revert if oneDir is true and we didn't fully consume
+    (eo::define ((revert (eo::and oneDir (eo::not (eo::eq r1 @re.empty)))))
+    (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
+                  (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
+    (eo::define ((resfwd ($str_re_consume_rec s1r r1r @result.null false)))
+    (eo::ite (eo::eq resfwd false)
+      false
+      (eo::define ((s2 ($str_membership_str resfwd)))
+      (eo::define ((r2 ($str_membership_re resfwd)))
+        (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))))))))))))))
 
 ; define: $str_re_consume
 ; args:
@@ -1619,13 +1636,11 @@
   (String RegLan) Bool
   (
   (($str_re_consume s (re.* r))
-    (eo::match ((s1 String))
-        ($str_re_consume_process s r true)  ; only process in a single direction
-        (
-          (false                    false)  ; conflict
-          ((str.in_re s1 @re.empty) (str.in_re s1 (re.* r))) ; one full copy
-        )
-    ))
+    (eo::define ((res ($str_re_consume_process s r true)))  ; only process in a single direction
+    (eo::ite (eo::eq res false)
+      false
+      (eo::requires ($str_membership_re res) @re.empty      ; must have consumed one full copy
+        (str.in_re ($str_membership_str res) (re.* r))))))
   (($str_re_consume s r) ($str_re_consume_process s r false))
   )
 )
