@@ -133,3 +133,16 @@
                                 (eo::requires ($dt_is_cons cs) true false))))
   )
 )
+
+; program: $tuple_nth
+; args:
+; - t T: The tuple term.
+; - n Int: The index.
+; return: The n^th component of the tuple.
+(program $tuple_nth ((T Type) (S Type) (U Type) (n Int) (s S) (ts U :list))
+  (T (eo::quote n)) (eo::list_nth Tuple T n)
+  (
+  (($tuple_nth (tuple s ts) 0) s)
+  (($tuple_nth (tuple s ts) n) ($tuple_nth ts (eo::add n -1)))
+  )
+)

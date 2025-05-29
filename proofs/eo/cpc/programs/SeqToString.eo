@@ -73,10 +73,8 @@
 (define $seq_to_string ((T Type :implicit) (s (Seq T)))
   (eo::ite (eo::is_str s)
     s   ; may already be a string
-    (eo::match ((ss String) (nunits @List) (nchars @List))
-      ($seq_to_string_rec s "" @list.nil @list.nil 0)
-      (((tuple ss nunits nchars) ss)))))
-
+    (eo::define ((res ($seq_to_string_rec s "" @list.nil @list.nil 0)))
+      ($tuple_nth res 0))))
 
 ; program: $seq_to_string_op_rec
 ; args:
@@ -97,6 +95,15 @@
                                                                     (eo::match ((bs W) (nunits2 @List) (nchars2 @List))
                                                                       ($seq_to_string_op_rec b nunits1 nchars1)
                                                                       (((tuple bs nunits2 nchars2) (tuple (fs bs) nunits2 nchars2))))))))
+    ;(eo::define ((resf ($seq_to_string_op_rec f units chars)))
+    ;(eo::define ((fs ($tuple_nth resf 0)))
+    ;(eo::define ((units1 ($tuple_nth resf 1)))
+    ;(eo::define ((chars1 ($tuple_nth resf 2)))
+    ;(eo::define ((resb ($seq_to_string_op_rec b units1 chars1)))
+    ;(eo::define ((bs ($tuple_nth resb 0)))
+    ;(eo::define ((units2 ($tuple_nth resb 1)))
+    ;(eo::define ((chars2 ($tuple_nth resb 2)))
+    ;  (tuple (_ fs bs) units2 chars2))))))))))
   (($seq_to_string_op_rec b units chars)                        (tuple b units chars))
   )
 )
@@ -109,4 +116,4 @@
 (define $seq_to_string_pair ((T Type :implicit) (s (Seq T)) (t (Seq T)))
   (eo::ite (eo::is_str s)
     (eo::requires (eo::is_str t) true (@pair s t))  ; if s and t are already strings, return them.
-    (eo::list_nth tuple ($seq_to_string_op_rec (@pair s t) @list.nil @list.nil) 0)))
+    ($tuple_nth ($seq_to_string_op_rec (@pair s t) @list.nil @list.nil) 0)))
