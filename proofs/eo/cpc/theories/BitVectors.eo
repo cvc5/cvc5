@@ -10,7 +10,7 @@
 ; - T Type: The bitvector type.
 ; return: The (integer value) bitwidth for a given bit-vector type.
 (program $bv_bitwidth ((n Int))
-  (Type) Int
+  :signature (Type) Int
   (
   (($bv_bitwidth (BitVec n)) n)
   )

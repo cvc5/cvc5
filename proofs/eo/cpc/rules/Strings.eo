@@ -271,7 +271,7 @@
 ;   The concatenation of the strings in E is in the concatenation of the regular
 ;   expressions in E.
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
-  (Bool Bool) Bool
+  :signature (Bool Bool) Bool
   (
   (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))
   (($mk_re_concat true (str.in_re s1 r1))                     (str.in_re s1 r1))
@@ -300,7 +300,7 @@
 ;                         of r.
 ; return: The conclusion for rule RE_UNFOLD_POS in the case of RE star.
 (program $mk_re_unfold_pos_star ((t String) (r RegLan) (k1 String) (k2 String) (k3 String) (M Bool :list))
-  (String RegLan (@Pair String Bool)) Bool
+  :signature (String RegLan (@Pair String Bool)) Bool
   (
   (($mk_re_unfold_pos_star t r (@pair (str.++ k1 k2 k3) M))
       (or
@@ -319,7 +319,7 @@
 ; - r RegLan: The regular expression.
 ; return: The conclusion for rule RE_UNFOLD_POS.
 (program $mk_re_unfold_pos ((t String) (r1 RegLan) (r2 RegLan :list))
-  (String RegLan) Bool
+  :signature (String RegLan) Bool
   (
     (($mk_re_unfold_pos t (re.* r1))
        ($mk_re_unfold_pos_star t r1 ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))))
@@ -354,7 +354,7 @@
 ; - rev Bool: Whether we are in the reverse direction.
 ; return: The conclusion for rule RE_UNFOLD_NEG_CONCAT_FIXED.
 (program $mk_re_unfold_neg_concat_fixed ((s String) (r1 RegLan) (r2 RegLan :list) (rev Bool))
-  (String RegLan Bool) Bool
+  :signature (String RegLan Bool) Bool
   (
     (($mk_re_unfold_neg_concat_fixed s (re.++ r1 r2) rev)
         (eo::define ((n ($str_fixed_len_re r1)))
@@ -392,7 +392,7 @@
 ; - r RegLan: The regular expression.
 ; return: The conclusion for rule RE_UNFOLD_NEG.
 (program $mk_re_unfold_neg ((t String) (r1 RegLan) (r2 RegLan :list))
-  (String RegLan) Bool
+  :signature (String RegLan) Bool
   (
     (($mk_re_unfold_neg t (re.* r1))
       (and
@@ -438,7 +438,7 @@
 ;   special case is a string of length one if s and t are strings. This is used
 ;   by ProofRule::STRING_EXT.
 (program $str_mk_ext_deq ((T Type) (s (Seq T)) (t (Seq T)) (k Int))
-  ((Seq T) (Seq T) Int Type) Bool
+  :signature ((Seq T) (Seq T) Int Type) Bool
   (
   (($str_mk_ext_deq s t k String)  (not (= (str.substr s k 1) (str.substr t k 1))))
   (($str_mk_ext_deq s t k (Seq T)) (not (= (seq.nth s k) (seq.nth t k))))
@@ -636,7 +636,7 @@
 ;   In particular, note that all string literals are broken up into string
 ;   literals of size one.
 (program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
-    ((Seq T)) @List
+    :signature ((Seq T)) @List
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
       (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
@@ -662,7 +662,7 @@
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, and then checking if a term in nr is provably distinct from the final xs.
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
-    ((Seq T) @List @List) Bool
+    :signature ((Seq T) @List @List) Bool
     (
       (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr (eo::list_erase @list xs s)))
                                                             (eo::define ((nrem (eo::eq xs xsr)))
@@ -822,7 +822,7 @@
 ;   concatenation of the prefix of s before the match, t and the suffix of s
 ;   after the match.
 (program $str_eval_replace_re ((s String) (r RegLan) (t String) (sp Int) (ep Int))
-  (String RegLan String (@Pair Int Int)) String
+  :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re s r t (@pair -1 -1)) s)
   ; note that t does not need to be a constant, so the returned term is a concat term
@@ -855,7 +855,7 @@
 ; return: >
 ;   The result of evaluating (str.replace_re_all s r t), which is a concatenation.
 (program $str_eval_replace_re_all_rec ((s String) (r RegLan) (t String) (sp Int) (ep Int))
-  (String RegLan String (@Pair Int Int)) String
+  :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
   (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
@@ -898,7 +898,7 @@
 ; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
 ; return: The result of evaluating t.
 (program $seq_eval ((T Type) (t (Seq T)) (n Int))
-  (T) T
+  :signature (T) T
   (
     ; handle sequence-specific operators here
     (($seq_eval (seq.nth t n))  (eo::define ((res (eo::list_nth str.++ ($str_to_nary_form t false) n)))

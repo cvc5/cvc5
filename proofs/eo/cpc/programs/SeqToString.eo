@@ -37,7 +37,7 @@
 ;   A tuple containing the result of converting t, and the substitution
 ;   (units and chars) that was used to convert it.
 (program $seq_to_string_rec ((T Type) (t T) (ss (Seq T) :list) (s String) (units @List) (chars @List) (n Int))
-  ((Seq T) String @List @List Int) (Tuple String @List @List)
+  :signature ((Seq T) String @List @List Int) (Tuple String @List @List)
   (
     (($seq_to_string_rec (seq.unit t) s units chars n)              (eo::define ((u (seq.unit t)))
                                                                     ($seq_to_string_rec (eo::cons seq.++ u (as seq.empty (eo::typeof u))) s units chars n)))
@@ -85,7 +85,7 @@
 ;   A tuple containing the result of converting t, and the substitution
 ;   (units and chars) that was used to convert it.
 (program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (V Type) (u V) (ts (Seq V) :list))
-  (T @List @List) (Tuple String @List @List)
+  :signature (T @List @List) (Tuple String @List @List)
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (as seq.empty (Seq V)) units chars)   (tuple "" units chars))

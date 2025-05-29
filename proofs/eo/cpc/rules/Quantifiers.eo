@@ -24,7 +24,7 @@
 ;   The list of skolem variables for the quantified formula whose bound variable list
 ;   is arg1 and whose body is arg2.
 (program $mk_skolems ((x @List) (xs @List :list) (F Bool) (i Int))
-  (@List Bool Int) @List
+  :signature (@List Bool Int) @List
   (
     (($mk_skolems (@list x xs) F i) (eo::cons @list (@quantifiers_skolemize F i) ($mk_skolems xs F (eo::add i 1))))
     (($mk_skolems @list.nil F i)    @list.nil)
@@ -123,7 +123,7 @@
 ; - F Bool: The body of the quantified formula.
 ; return: the sublist of variables in x that should be quantified for F.
 (program $mk_quant_unused_vars_rec ((T Type) (xs @List :list) (x T) (F Bool))
-  (@List Bool) eo::List
+  :signature (@List Bool) eo::List
   (
   (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
   (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
@@ -141,7 +141,7 @@
 ; - F Bool: The body of the quantified formula.
 ; return: The quantified formula (Q x F), or just F is x is the empty list.
 (program $mk_quant ((Q (-> @List Bool Bool)) (x @List) (F Bool))
-  ((-> @List Bool Bool) @List Bool) Bool
+  :signature ((-> @List Bool Bool) @List Bool) Bool
   (
   (($mk_quant Q @list.nil F) F)
   (($mk_quant Q x F) (Q x F))
@@ -169,7 +169,7 @@
 ; - F Bool: The formula for which we are merging prenexes.
 ; return: the result of merging all bound variables bound by Q in F.
 (program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (y @List) (F Bool))
-  ((-> @List Bool Bool) Bool @List) Bool
+  :signature ((-> @List Bool Bool) Bool @List) Bool
   (
   (($mk_quant_merge_prenex Q (Q x F) y)  ($mk_quant_merge_prenex Q F (eo::list_concat @list y x)))
   (($mk_quant_merge_prenex Q F y)        (Q y F))
@@ -199,7 +199,7 @@
 ; - F Bool: The body of the formula in question.
 ; return: The result of miniscoping (forall x F) based on conjunctions.
 (program $mk_quant_miniscope_and ((x @List) (f Bool) (fs Bool :list))
-  (@List Bool) Bool
+  :signature (@List Bool) Bool
   (
   (($mk_quant_miniscope_and x (and f fs)) (eo::cons and (forall x f) ($mk_quant_miniscope_and x fs)))
   (($mk_quant_miniscope_and x true)       true)
@@ -231,7 +231,7 @@
 ;    True if (forall x F) is equivalent to G based on miniscope reasoning with
 ;    free variables over OR.
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
-  (@List Bool Bool) Bool
+  :signature (@List Bool Bool) Bool
   (
   (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_aterm_list f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
@@ -295,7 +295,7 @@
 ;    is not a variable elimination, i.e. if F does not begin with a disequality
 ;    between x and a term not containing x.
 (program $mk_quant_var_elim_eq ((T Type) (x T) (t T) (F Bool :list))
-  (T Bool) Bool
+  :signature (T Bool) Bool
   (
   (($mk_quant_var_elim_eq x (not (= x t)))        ($mk_quant_var_elim_eq_subs x t false))
   (($mk_quant_var_elim_eq x (or (not (= x t)) F)) ($mk_quant_var_elim_eq_subs x t ($singleton_elim F)))
@@ -329,7 +329,7 @@
 ;    The true iff G corresponds to a conjunct expected in the rule
 ;    quant-dt-split for the current constructor.
 (program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (W Type) (x T) (cx T) (c (-> U W)) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
-  (T C @List Bool Bool) Bool
+  :signature (T C @List Bool Bool) Bool
   (
     (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_subterm zs y) false  ; ensure no shadowing
                                                                             ($is_quant_dt_split_conj x c ys F (forall zs G))))
@@ -351,7 +351,7 @@
 ;    The true iff splitting (forall (@list x ys) F) for the constructors
 ;    remaining in cs is equal to the remaining conjuncts in G.
 (program $is_quant_dt_split ((T Type) (x T) (C Type) (c C) (cs eo::List :list) (ys @List) (F Bool) (g Bool) (G Bool :list))
-  (T eo::List @List Bool Bool) Bool
+  :signature (T eo::List @List Bool Bool) Bool
   (
     (($is_quant_dt_split x (eo::List::cons c cs) ys F (and g G)) (eo::requires
                                                                     ($is_quant_dt_split_conj x c ys F g) true
@@ -388,7 +388,7 @@
 ; return: >
 ;    A disjunct used in the invertibility conditions for some shift operators.
 (program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (w Int) (t (BitVec n)))
-  ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
+  :signature ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
   (
   (($mk_inv_cond_op_disj f t w w)  (eo::cons or (= (f (eo::to_bin w w)) t) false))
   (($mk_inv_cond_op_disj f t w n)  (eo::cons or (= (f (eo::to_bin w n)) t) ($mk_inv_cond_op_disj f t w (eo::add n 1))))
@@ -404,7 +404,7 @@
 ;    equivalent to (exists x. R).
 (program $mk_invertibility_condition ((n Int) (m Int) (x (BitVec n)) (s (BitVec n)) (ss (BitVec n) :list) (t (BitVec n))
                                       (k Int) (tk (BitVec k)) (nil (BitVec n) :list))
-  ((BitVec n) Bool) Bool
+  :signature ((BitVec n) Bool) Bool
   (
   (($mk_invertibility_condition x (= (bvmul x s nil) t))    (eo::requires (eo::to_z nil) 1
                                                               (= (bvand (bvor (bvneg s) s) t) t)))

@@ -105,7 +105,7 @@
                        (xb (BitVec m)) (yb (BitVec m)) (ybs (BitVec m) :list) (zbs (BitVec n) :list)
                        (sx (Seq T)) (sy (Seq T)) (sz (Seq T)) (sys (Seq T) :list)
                        (ssx String) (ssy String) (ssz String))
-    (S) S
+    :signature (S) S
     (
       ; core
       (($run_evaluate (= x y))             (eo::define ((ex ($run_evaluate x)))
@@ -313,7 +313,7 @@
 ; - ts @List: The list of terms to evaluate.
 ; return: The list containing the result of evaluating the terms in ts.
 (program $evaluate_list ((U Type) (t U) (ts @List :list))
-  (@List) @List
+  :signature (@List) @List
   (
   (($evaluate_list (@list t ts))  (eo::cons @list ($run_evaluate t) ($evaluate_list ts)))
   (($evaluate_list @list.nil)     @list.nil)
@@ -361,7 +361,7 @@
                                (r1 RegLan) (r2 RegLan :list)
                                (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list)
                                (U Type) (xs1 (Seq U)) (xs2 (Seq U) :list))
-  (T) T
+  :signature (T) T
   (
     (($get_aci_normal_form (or b1 b2))        (@aci_sorted or ($get_ai_norm (or b1 b2))))
     (($get_aci_normal_form (and b1 b2))       (@aci_sorted and ($get_ai_norm (and b1 b2))))
@@ -410,7 +410,7 @@
 ; return: >
 ;   true, if zero is found as a subterm of t beneath f-applications.
 (program $is_absorb_rec ((U Type) (V Type) (W Type) (f (-> U U U)) (a U) (b U) (zero U))
-  ((-> U U U) V W) Bool
+  :signature ((-> U U U) V W) Bool
   (
     (($is_absorb_rec f zero zero)     true)
     (($is_absorb_rec f (f a b) zero)  (eo::ite ($is_absorb_rec f a zero)
@@ -428,7 +428,7 @@
 (program $get_zero ((S Type) (b1 Bool) (b2 Bool :list)
                     (r1 RegLan) (r2 RegLan :list)
                     (m Int) (xb1 (BitVec m)) (xb2 (BitVec m) :list))
-  (S) S
+  :signature (S) S
   (
   (($get_zero (or b1 b2))        true)
   (($get_zero (and b1 b2))       false)
@@ -447,7 +447,7 @@
 ; return: >
 ;   true, if zero is the zero element for t and is found as a subterm of t beneath f-applications.
 (program $is_absorb ((T Type) (U Type) (f (-> U U U)) (t1 T) (t2 T) (zero T))
-  (T T) Bool
+  :signature (T T) Bool
   (
   (($is_absorb (f t1 t2) zero) ($is_absorb_rec f (f t1 t2) zero))
   )
@@ -477,7 +477,7 @@
 ;   We intentionally only handle finite types here, and moreover for simplicity
 ;   limit this method to atomic types (Bool and BitVec) only.
 (program $compute_card ((n Int))
-  (Type) Int
+  :signature (Type) Int
   (
     (($compute_card Bool)       2)
     (($compute_card (BitVec n)) ($arith_eval_int_pow_2 n))

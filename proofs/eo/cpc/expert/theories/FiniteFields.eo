@@ -10,7 +10,7 @@
 ; - T Type: The finite field type.
 ; return: The (integer value) size for a given finite field type.
 (program $ff_size ((n Int))
-  (Type) Int
+  :signature (Type) Int
   (
   (($ff_size (FiniteField n)) n)
   )
