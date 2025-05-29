@@ -1556,17 +1556,15 @@
           (str.in_re (str.++ s1 s2) (re.++ r r2)))))))
     (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)
       ; likely intersection or union, process cases recursively
-      (eo::match ((sr String) (br Bool))
-        ($str_re_consume_rec (str.++ s1 s2) r1 @result.null rev)
-        (
-          ; conflict
-          (false                     false)
+      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r1 @result.null rev)))
+      (eo::ite (eo::is_eq res false)
+        ; conflict
+        false
+        (eo::ite (eo::is_eq ($str_membership_re res) @re.empty)
           ; if all cases consumed the same, continue
-          ((str.in_re sr @re.empty)  ($str_re_consume_rec sr r2 @result.null rev))
+          ($str_re_consume_rec ($str_membership_str res) r2 @result.null rev)
           ; otherwise we are stuck
-          (br                        (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
-        )
-      ))
+          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))))
     (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
       ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
     ; Intersection reports conflicts eagerly, and otherwise combines the results
