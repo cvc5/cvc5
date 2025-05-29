@@ -3863,6 +3863,32 @@ cdef class Solver:
             coreLemmas.append(_term(self.tm, a))
         return coreLemmas
 
+    def getPartitions(self):
+        """
+            Get the partitioning formula for this problem.
+
+            TODO: fix the documentation here.
+
+            SMT-LIB:
+
+            .. code-block:: smtlib
+
+                (get-unsat-core-lemmas)
+
+            Requires the SAT proof unsat core mode, so to enable option
+            :ref:`unsat-core-mode=sat-proof <lbl-option-unsat-core-mode>`.
+
+            .. warning:: This function is experimental and may change in
+                         future versions.
+
+            :return: A set of terms representing the lemmas used to derive
+            unsatisfiability.
+        """
+        partitions = []
+        for a in self.csolver.getPartitions():
+            partitions.append(_term(self.tm, a))
+        return partitions
+
     def getDifficulty(self):
         """
             Get a difficulty estimate for an asserted formula. This function is

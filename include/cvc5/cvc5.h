@@ -5997,6 +5997,8 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getUnsatCoreLemmas() const;
 
+  std::vector<Term> getPartitions() const;
+
   /**
    * Get a difficulty estimate for an asserted formula. This function is
    * intended to be called immediately after any response to a checkSat.
