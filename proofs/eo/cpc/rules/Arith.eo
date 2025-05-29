@@ -525,8 +525,13 @@
 ;  equivalent to y1-y2.
 ; conclusion: >
 ;   An equivalence between relations specified by eqr and justified by eq.
+; note: >
+;   The parameter r is expected to be a binary predicate. We provide the type
+;   (-> R1 R2 R3) to acccount for the fact that its return type involves
+;   eo::requires and hence is not Bool.
 (declare-rule arith_poly_norm_rel
-  ((U Type) (U1 Type) (U2 Type) (V Type) (V1 Type) (V2 Type) (T Type) (W Type) (r (-> T W Bool))
+  ((U Type) (U1 Type) (U2 Type) (V Type) (V1 Type) (V2 Type)
+   (R1 Type) (R2 Type) (R3 Type) (r (-> R1 R2 R3))
    (x U) (y V) (cx U) (cy V) (x1 U1) (x2 U2) (y1 V1) (y2 V2))
   :premises ((= (* cx x) (* cy y)))
   :args ((= (r x1 x2) (r y1 y2)))
