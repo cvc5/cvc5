@@ -904,15 +904,18 @@
     (($seq_eval (seq.nth t n))  (eo::define ((res (eo::list_nth str.++ ($str_to_nary_form t false) n)))
                                   ($seq_element_of_unit res)))
     ; otherwise, we rely on the strings evaluator
-    (($seq_eval t)              (eo::match ((S Type) (u (Seq S)) (units @List) (chars @List))
-                                ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
-                                (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
-                                                        (eo::ite (eo::eq (eo::typeof ue) String)
-                                                          ($singleton_elim
-                                                          ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
-                                                            (eo::cons @list "" chars)
-                                                            (eo::cons @list (as seq.empty (eo::typeof t)) units)))
-                                                          ue)))))) ; otherwise just return self
+    (($seq_eval t)
+      (eo::define ((res ($seq_to_string_op_rec t @list.nil @list.nil))) ; convert to string
+      (eo::define ((u ($tuple_nth res 0)))
+      (eo::define ((units ($tuple_nth res 1)))
+      (eo::define ((chars ($tuple_nth res 2)))
+      (eo::define ((ue ($evaluate u)))            ; evaluate on string
+        (eo::ite (eo::eq (eo::typeof ue) String)
+          ($singleton_elim
+            ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
+              (eo::cons @list "" chars)
+              (eo::cons @list (as seq.empty (eo::typeof t)) units)))
+          ue))))))) ; otherwise just return self
   )
 )
 
