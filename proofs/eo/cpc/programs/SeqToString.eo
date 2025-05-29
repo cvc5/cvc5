@@ -79,7 +79,10 @@
 ; program: $seq_to_string_op_rec_type
 ; args:
 ; - T Type: A type
-; return: The return type for $seq_to_string_op_rec.
+; return: >
+;   The type of the first component of the tuple in the return type of
+;   $seq_to_string_op_rec. Conceptually, this is a type whose subterms of
+;   the form (Seq T) are replaced by String.
 (program $seq_to_string_op_rec_type ((T Type) (U Type))
   (Type) Type
   (
