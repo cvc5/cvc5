@@ -414,16 +414,35 @@
 
 ;;;;; ProofRule::STRING_EXT
 
+
+; program: $str_mk_ext_deq
+; args:
+; - s (Seq T): The first string-like term
+; - t (Seq T): The second string-like term
+; - n Int: The index
+; - U Type: The type of s and t.
+; return: >
+;   A term corresponding to a disequality on the n^th position of s and t, which as a
+;   special case is a string of length one if s and t are strings. This is used
+;   by ProofRule::STRING_EXT.
+(program $str_mk_ext_deq ((T Type) (s (Seq T)) (t (Seq T)) (k Int))
+  ((Seq T) (Seq T) Int Type) Bool
+  (
+  (($str_mk_ext_deq s t k String)  (not (= (str.substr s k 1) (str.substr t k 1))))
+  (($str_mk_ext_deq s t k (Seq T)) (not (= (seq.nth s k) (seq.nth t k))))
+  )
+)
+
 ; rule: string_ext
 ; implements: ProofRule::STRING_EXT
 ; premises:
 ; - deq: A disequality between strings or sequences.
 ; conclusion: The strings have different length or are disequal for a witness index, as given by the skolem (@strings_deq_diff s t).
-(declare-rule string_ext ((T Type)  (s (Seq T)) (t (Seq T)))
+(declare-rule string_ext ((T Type) (s (Seq T)) (t (Seq T)))
   :premises ((not (= s t)))
   :conclusion (eo::define ((k (@strings_deq_diff s t)))
               (or (not (= (str.len s) (str.len t))) 
-                  (and (not (= ($str_mk_nth s k) ($str_mk_nth t k)))
+                  (and ($str_mk_ext_deq s t k (eo::typeof s))
                        (<= 0 k)
                        (< k (str.len s)))))
 )

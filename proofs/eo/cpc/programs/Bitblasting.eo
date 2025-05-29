@@ -67,6 +67,17 @@
   )
 )
 
+; program: $bv_bitblast_tail
+; args:
+; - t (BitVec n) The term to process, which is expected to be a bitlist.
+; return: the first Boolean in the list t.
+(program $bv_bitblast_tail ((n Int) (b Bool) (a (BitVec n) :list))
+  ((BitVec n)) (BitVec (eo::add n -1))
+  (
+    (($bv_bitblast_tail (@from_bools b a)) a)
+  )
+)
+
 ; program: $bv_bitblast_subsequence
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
@@ -418,15 +429,12 @@
         (eo::define ((cares1 ($bv_ripple_carry_adder_2 r1sa a2n true @bv_empty)))
         (eo::define ((rmb_carry ($pair_first cares1)))
         (eo::define ((rmb ($pair_second cares1)))
-        (eo::define ((q1ss (eo::match ((mm1 Int) (b1q Bool) (a1q (BitVec mm1) :list))
-                              q1s
-                              (((@from_bools b1q a1q) (@from_bools (ite (not rmb_carry) b1q true) a1q))))))
+        (eo::define ((q1ss (eo::cons @from_bools (ite (not rmb_carry) ($bv_bitblast_head q1s) true) ($bv_bitblast_tail q1s))))
         (eo::define ((r1sa2 ($bv_bitblast_apply_ite (not rmb_carry) r1sa rmb)))
         (eo::define ((cares2 ($bv_ripple_carry_adder_2 a1 a2n true @bv_empty)))
         (eo::define ((amb_carry ($pair_first cares2)))
-        (eo::define ((amb ($pair_second cares2)))
             (@pair ($bv_bitblast_apply_ite (not amb_carry) zero q1ss)
-                    ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2)))))))))))))))))
+                    ($bv_bitblast_apply_ite (not amb_carry) a1 r1sa2))))))))))))))))
   )
 )
 
