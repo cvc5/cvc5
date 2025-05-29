@@ -76,6 +76,20 @@
     (eo::define ((res ($seq_to_string_rec s "" @list.nil @list.nil 0)))
       ($tuple_nth res 0))))
 
+; program: $seq_to_string_op_rec_type
+; args:
+; - T Type: A type
+; return: The return type for $seq_to_string_op_rec.
+(program $seq_to_string_op_rec_type ((T Type) (U Type))
+  (Type) Type
+  (
+  (($seq_to_string_op_rec_type (Seq T))   String)
+  (($seq_to_string_op_rec_type (-> T U))  (-> ($seq_to_string_op_rec_type T) ($seq_to_string_op_rec_type U)))
+  (($seq_to_string_op_rec_type T)         T)
+  )
+)
+
+
 ; program: $seq_to_string_op_rec
 ; args:
 ; - t T: a term, possibly containing subterms that are sequence values.
@@ -85,25 +99,20 @@
 ;   A tuple containing the result of converting t, and the substitution
 ;   (units and chars) that was used to convert it.
 (program $seq_to_string_op_rec ((U Type) (T Type) (f (-> T U)) (b T) (units @List) (chars @List) (V Type) (u V) (ts (Seq V) :list))
-  :signature (T @List @List) (Tuple String @List @List)
+  :signature (T @List @List) (Tuple ($seq_to_string_op_rec_type T) @List @List)
   (
   (($seq_to_string_op_rec (seq.unit u) units chars)             ($seq_to_string_rec (seq.unit u) "" units chars (eo::list_len @list units)))
   (($seq_to_string_op_rec (as seq.empty (Seq V)) units chars)   (tuple "" units chars))
-  (($seq_to_string_op_rec (f b) units chars)                    (eo::match ((W Type) (X Type) (fs (-> W X)) (nunits1 @List) (nchars1 @List))
-                                                                  ($seq_to_string_op_rec f units chars)
-                                                                  (((tuple fs nunits1 nchars1)
-                                                                    (eo::match ((bs W) (nunits2 @List) (nchars2 @List))
-                                                                      ($seq_to_string_op_rec b nunits1 nchars1)
-                                                                      (((tuple bs nunits2 nchars2) (tuple (fs bs) nunits2 nchars2))))))))
-    ;(eo::define ((resf ($seq_to_string_op_rec f units chars)))
-    ;(eo::define ((fs ($tuple_nth resf 0)))
-    ;(eo::define ((units1 ($tuple_nth resf 1)))
-    ;(eo::define ((chars1 ($tuple_nth resf 2)))
-    ;(eo::define ((resb ($seq_to_string_op_rec b units1 chars1)))
-    ;(eo::define ((bs ($tuple_nth resb 0)))
-    ;(eo::define ((units2 ($tuple_nth resb 1)))
-    ;(eo::define ((chars2 ($tuple_nth resb 2)))
-    ;  (tuple (_ fs bs) units2 chars2))))))))))
+  (($seq_to_string_op_rec (f b) units chars)
+    (eo::define ((resf ($seq_to_string_op_rec f units chars)))
+    (eo::define ((fs ($tuple_nth resf 0)))
+    (eo::define ((units1 ($tuple_nth resf 1)))
+    (eo::define ((chars1 ($tuple_nth resf 2)))
+    (eo::define ((resb ($seq_to_string_op_rec b units1 chars1)))
+    (eo::define ((bs ($tuple_nth resb 0)))
+    (eo::define ((units2 ($tuple_nth resb 1)))
+    (eo::define ((chars2 ($tuple_nth resb 2)))
+      (tuple (_ fs bs) units2 chars2))))))))))
   (($seq_to_string_op_rec b units chars)                        (tuple b units chars))
   )
 )
