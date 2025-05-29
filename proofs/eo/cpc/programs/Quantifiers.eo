@@ -71,7 +71,19 @@
   )
 )
 
-(declare-const @beta_reduce_type (-> @List Type Type))
+; program: $beta_reduce_type
+; args:
+; - T Type: A type.
+; - xs @List: A list of arguments to give to a function of that type.
+; return: The return type of the application.
+; note: A helper to define the type of the $beta_reduce program below.
+(program $beta_reduce_type ((T Type) (U Type) (x T) (xs @List :list))
+  (Type @List) Type
+  (
+  (($beta_reduce_type (-> T U) (@list x xs)) ($beta_reduce_type U xs))
+  (($beta_reduce_type T @list.nil)           T)
+  )
+)
 
 ; program: $beta_reduce
 ; args:
@@ -80,8 +92,8 @@
 ;   whose arguments have been partially accumulated into ss.
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
-(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list) (X Type) (L (-> @List S T X)))
-  :signature (U (eo::quote ss)) (@beta_reduce_type ss (eo::typeof U))
+(program $beta_reduce ((U Type) (T Type) (S Type) (u U) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list) (X Type) (L (-> @List S T X)))
+  :signature ((eo::quote u) (eo::quote ss)) ($beta_reduce_type (eo::typeof u) ss)
   (
   ; handle higher-order case: if lambda is applied to one argument, it may be a partial application
   (($beta_reduce (_ (L (@list x xs) t) a) @list.nil)
