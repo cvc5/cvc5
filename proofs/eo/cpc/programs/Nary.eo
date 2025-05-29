@@ -37,10 +37,25 @@
 ; - n Int: The index of the child in t.
 ; return: The type of the n^th child of t.
 (program $assoc_nil_nth_type ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
-   (f (-> T U V)) (n Int) (x W) (x1 W1) (x2 W2))
+   (f (-> T U V)) (n Int) (x1 W1) (x2 W2))
   :signature ((-> T U V) W Int) Type
   (
   (($assoc_nil_nth_type f (f x1 x2) 0)   (eo::typeof x1))
   (($assoc_nil_nth_type f (f x1 x2) n)   ($assoc_nil_nth_type f x2 (eo::add n -1)))
+  )
+)
+
+; program: $assoc_nil_nth
+; args:
+; - f (-> T U V): The function, expected to be an n-ary function.
+; - t W: The term to inspect, expected to be an f-list.
+; - n Int: The index of the child in t.
+; return: The type of the n^th child of t.
+(program $assoc_nil_nth ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
+   (f (-> T U V)) (n Int) (x W) (x1 W1) (x2 W2))
+  :signature ((eo::quote f) (eo::quote x) (eo::quote n)) ($assoc_nil_nth_type f x n)
+  (
+  (($assoc_nil_nth f (f x1 x2) 0)   x1)
+  (($assoc_nil_nth f (f x1 x2) n)   ($assoc_nil_nth f x2 (eo::add n -1)))
   )
 )

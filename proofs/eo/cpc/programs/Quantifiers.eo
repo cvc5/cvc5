@@ -67,7 +67,7 @@
   (
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
   (($substitute_simul x xs ss)                      (eo::define ((i (eo::list_find @list xs x)))
-                                                      (eo::ite (eo::is_neg i) x (eo::list_nth @list ss i))))
+                                                      (eo::ite (eo::is_neg i) x ($assoc_nil_nth @list ss i))))
   )
 )
 
