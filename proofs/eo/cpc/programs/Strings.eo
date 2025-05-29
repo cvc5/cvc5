@@ -1188,6 +1188,18 @@
   )
 )
 
+; program $str_maybe_get_star_body
+; args:
+; - r RegLan: The regular expression
+; return: The body of r if it is a star, or r itself otherwise.
+(program $str_maybe_get_star_body ((r RegLan))
+  (RegLan) RegLan
+  (
+    (($str_maybe_get_star_body (re.* r)) r)
+    (($str_maybe_get_star_body r)        r)
+  )
+)
+
 ; Helper for `$str_re_includes`.
 ; program: $str_re_includes_lhs_star
 ; args:
@@ -1202,13 +1214,7 @@
   (
   (($str_re_includes_lhs_star (re.* r1) r2) (eo::ite (eo::eq r1 re.allchar)
                                               true
-                                              ($str_re_includes r1
-                                                (eo::match ((r3 RegLan))
-                                                  r2
-                                                  (
-                                                    ((re.* r3) r3) ; use the body if a star
-                                                    (r3 r3)        ; otherwise use self
-                                                  )))))
+                                              ($str_re_includes r1 ($str_maybe_get_star_body r2)))) ; use body if a star
   (($str_re_includes_lhs_star r1 r2)        false)
   )
 )

@@ -312,7 +312,7 @@
             (not (= k3 "")))))
   )
 )
-                
+
 ; program: $mk_re_unfold_pos
 ; args:
 ; - t String: The string.
