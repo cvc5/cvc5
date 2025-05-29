@@ -38,15 +38,6 @@
 (define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
   ($arith_eval_add x (eo::neg y)))
 
-; define: $arith_min
-; args:
-; - x T: The first arithmetic term to min.
-; - y U: The second arithmetic term to min.
-; return: >
-;   The minimum of x and y.
-(define $arith_min ((U Type :implicit) (T Type :implicit) (x U) (y T))
-  (eo::ite (eo::gt x y) y x))
-
 ; define: $arith_eval_mul
 ; args:
 ; - x T: The first arithmetic term to multiply.
