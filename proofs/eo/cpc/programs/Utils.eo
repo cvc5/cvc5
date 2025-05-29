@@ -16,6 +16,27 @@
 (declare-type @Pair (Type Type))
 (declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
 
+; program: $pair_first
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_first ((T Type) (S Type) (t T) (s S))
+  ((@Pair T S)) T
+  (
+  (($pair_first (@pair t s)) t)
+  )
+)
+; program: $pair_second
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_second ((T Type) (S Type) (t T) (s S))
+  ((@Pair T S)) S
+  (
+  (($pair_second (@pair t s)) s)
+  )
+)
+
 ; untyped list.
 ; note: >
 ;   We use this as a synonym for eo::List. We use this syntax as it avoids
@@ -88,31 +109,6 @@
 (define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
   (eo::cmp b a))
 
-; define: $head
-; args:
-; - x S: The term to inspect.
-; return: >
-;   The head of x, where x is expected to be an application of an n-ary
-;   function marked :right-assoc-nil.
-; return: the head of x, where x is expected to be a function application.
-(define $head ((S Type :implicit) (x S))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x1)))
-)
-
-; define: $tail
-; args:
-; - x S: The term to inspect.
-; return: >
-;   The tail of x, where x is expected to be an application of an n-ary
-;   function marked :right-assoc-nil.
-(define $tail ((U Type :implicit) (x U))
-  (eo::match ((T Type) (U Type) (f (-> T U U)) (x1 T) (x2 U :list))
-    x
-    (((f x1 x2) x2)))
-)
-
 ; program: $singleton_elim
 ; args:
 ; - s S: The term to proces.
@@ -120,7 +116,7 @@
 ;   The result of applying singleton elimination for s. In particular,
 ;   if s is of the form (f x1 x2) where x2 is the nil terminator of f, then we
 ;   return x1. Otherwise, we return s unchanged.
-(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 T) (x2 T :list))
+(program $singleton_elim ((T Type) (S Type) (U Type) (f (-> T U S)) (x S) (x1 S) (x2 T))
   (S) S
   (
     (($singleton_elim (f x1 x2))  (eo::ite (eo::eq x2 (eo::nil f (eo::typeof (f x1 x2)))) x1 (f x1 x2)))
@@ -206,5 +202,23 @@
                                                 (eo::define ((elems ($extract_pairwise_args_rec f op a D)))
                                                   (eo::requires ($is_pairwise f op a elems D elems) true (eo::cons @list a elems)))))
   (($extract_pairwise_args f op (f a b))        (@list a b)) ; binary case, trivial
+  )
+)
+
+;; =============== for assoc-nil
+
+; program: $assoc_nil_nth_type
+; args:
+; - f (-> T U V): The function, expected to be an n-ary function.
+; - t W: The term to inspect, expected to be an f-list.
+; - n Int: The index of the child in t.
+; return: The type of the n^th child of t.
+(program $assoc_nil_nth_type
+  ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
+   (f (-> T U V)) (n Int) (x W) (x1 W1) (x2 W2))
+  ((-> T U V) W Int) Type
+  (
+  (($assoc_nil_nth_type f (f x1 x2) 0)   (eo::typeof x1))
+  (($assoc_nil_nth_type f (f x1 x2) n)   ($assoc_nil_nth_type f x2 (eo::add n -1)))
   )
 )
