@@ -28,7 +28,7 @@
 ; Experimental sets operators.
 (declare-parameterized-const set.comprehension ((T Type :implicit))
   (-> @List Bool T (Set T)) :binder @list)
-  
+
 ; program: $tuple_type_join
 ; args:
 ; - c1 Type: The first tuple type.
