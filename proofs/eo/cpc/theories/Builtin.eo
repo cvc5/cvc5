@@ -31,7 +31,7 @@
 ;   The type of a lambda having the list of variables L and
 ;   body type B.
 (program $get_lambda_type ((x @List) (xs @List :list) (B Type))
-  (@List Type) Type
+  :signature (@List Type) Type
   (
     (($get_lambda_type (@list x xs) B) (-> (eo::typeof x) ($get_lambda_type xs B)))
     (($get_lambda_type @list.nil B)    B)

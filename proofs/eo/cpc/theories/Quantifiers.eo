@@ -20,7 +20,7 @@
 ; return: >
 ;   The variable list for F.
 (program $get_var_list ((Q (-> @List Bool Bool)) (xs @List) (G Bool) (i Int))
-  (Bool) @List
+  :signature (Bool) @List
   (
     (($get_var_list (Q xs G)) xs)
   )
