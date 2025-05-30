@@ -372,7 +372,8 @@
 ; - F Bool: A conjunction of the remaining premises.
 ; return: >
 ;   The literal proven by arith_mult_abs_comparison given premises F.
-(program $mk_arith_mult_abs_comparison ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
+(program $mk_arith_mult_abs_comparison
+  ((T Type) (U Type) (V Type) (r T) (t T) (u U) (z V) (B Bool :list))
   :signature (Bool) Bool
   (
     (($mk_arith_mult_abs_comparison (and (> (abs t) (abs u)) B))

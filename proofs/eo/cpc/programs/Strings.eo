@@ -406,7 +406,8 @@
 ;   The result of ensuring that the input t is a str.++ list.
 ;   In particular, if it is not a str.++ and not the empty string, then we
 ;   return (str.++ t empty) where empty is the empty string for the type of t.
-(program $str_nary_intro ((T Type) (t (Seq T)) (ss (Seq T) :list))
+(program $str_nary_intro
+    ((T Type) (t (Seq T)) (ss (Seq T) :list))
     :signature ((Seq T)) (Seq T)
     (
         (($str_nary_intro (str.++ t ss)) (str.++ t ss))

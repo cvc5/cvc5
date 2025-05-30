@@ -134,7 +134,8 @@
 ; - T Type: The type of the arguments.
 ; return: >
 ;   True if we can shown that t and s are semantically distinct, e.g. (not (= t s)) holds.
-(program $are_distinct_terms_type ((T Type) (t T) (s T) (U Type) (W Type) (n Int) (st (Set U)) (ss (Set U)) (sst (Seq U)) (sss (Seq U)))
+(program $are_distinct_terms_type
+  ((T Type) (t T) (s T) (U Type) (W Type) (n Int) (st (Set U)) (ss (Set U)) (sst (Seq U)) (sss (Seq U)))
   :signature (T T Type) Bool
   (
   (($are_distinct_terms_type t t T)           false)

@@ -70,8 +70,6 @@
    )
 )
 
-
-
 ; rule: process_scope
 ; premises:
 ; - F: A formula, expected to be one proven by n>0 consecutive applications of scope.
