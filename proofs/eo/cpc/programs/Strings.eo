@@ -149,7 +149,7 @@
 ; - B Bool: A predicate.
 ; return: If B is of the form (str.in_re s r), this returns s.
 (program $str_membership_str ((s String) (r RegLan))
-  (Bool) String
+  :signature (Bool) String
   (
   (($str_membership_str (str.in_re s r)) s)
   )
@@ -160,7 +160,7 @@
 ; - B Bool: A predicate.
 ; return: If B is of the form (str.in_re s r), this returns r.
 (program $str_membership_re ((s String) (r RegLan))
-  (Bool) RegLan
+  :signature (Bool) RegLan
   (
   (($str_membership_re (str.in_re s r)) r)
   )
