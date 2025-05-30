@@ -26,10 +26,11 @@
   (($pair_first (@pair t s)) t)
   )
 )
+
 ; program: $pair_second
 ; args:
 ; - t (@Pair T S)
-; return: The first element in the pair
+; return: The second element in the pair
 (program $pair_second ((T Type) (S Type) (t T) (s S))
   :signature ((@Pair T S)) S
   (

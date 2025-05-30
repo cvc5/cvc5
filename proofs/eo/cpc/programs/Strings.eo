@@ -1505,7 +1505,8 @@
 ;   be reversed when we recurse on non-str.to_re children.
 ; return: >
 ;   The result of implied consumption of string s in regular expression r.
-(program $str_re_consume_rec ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
+(program $str_re_consume_rec
+  ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
    (s3 String) (s4 String :list) (s5 String) (r3 RegLan))
   :signature (String RegLan Bool Bool) Bool
   (

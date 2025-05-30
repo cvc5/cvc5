@@ -37,7 +37,8 @@
 ; - t W: The term to inspect, expected to be an f-list.
 ; - n Int: The index of the child in t.
 ; return: The type of the n^th child of t.
-(program $assoc_nil_nth_type ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
+(program $assoc_nil_nth_type
+  ((T Type) (U Type) (V Type) (W Type) (W1 Type) (W2 Type)
    (f (-> T U V)) (n Int) (x1 W1) (x2 W2))
   :signature ((-> T U V) W Int) Type
   (
