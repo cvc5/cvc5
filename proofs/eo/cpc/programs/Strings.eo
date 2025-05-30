@@ -1502,7 +1502,6 @@
   )
 )
 
-
 ; program: $str_re_consume_rec
 ; args:
 ; - s String: The string argument of the membership to rewrite.
@@ -1533,7 +1532,7 @@
         (eo::ite ($str_eval_str_in_re s1 (re.range s3 s5))
           ($str_re_consume_rec s2 r2 @result.null rev)
           false)
-        (str.in_re (str.++ s1 s2) (re.++ @re.empty r2))))
+        (str.in_re (str.++ s1 s2) (re.++ (re.range s3 s5) r2))))
     (($str_re_consume_rec (str.++ s1 s2) (re.++ re.allchar r2) @result.null rev)
       (eo::ite ($str_check_length_one s1)
         ($str_re_consume_rec s2 r2 @result.null rev)
