@@ -1539,7 +1539,7 @@
         ($str_re_consume_rec s2 r2 @result.null rev)
         (str.in_re (str.++ s1 s2) (re.++ re.allchar r2))))
     (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.* r3) r2) @result.null rev)
-      (eo::define ((r (re.* r3)))
+      (eo::define ((r1 (re.* r3)))
       ; see what happens if we unroll once
       (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)))
       (eo::ite (eo::eq res false)
@@ -1553,13 +1553,13 @@
             (eo::define ((sr ($str_membership_str res)))
             (eo::ite (eo::eq (str.++ s1 s2) sr)
               ; if we did not consume anything, we are stuck.
-              (str.in_re (str.++ s1 s2) (re.++ r r2))
+              (str.in_re (str.++ s1 s2) (re.++ r1 r2))
               ; otherwise, we continue with the RE consumed once.
-              ($str_re_consume_rec sr (re.++ r r2) @result.null rev)))
+              ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)))
             ; Otherwise we are stuck.
-            (str.in_re (str.++ s1 s2) (re.++ r r2))))
+            (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
           ; Otherwise we are stuck.
-          (str.in_re (str.++ s1 s2) (re.++ r r2)))))))
+          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))))))
     (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)
       ; likely intersection or union, process cases recursively
       (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r1 @result.null rev)))
