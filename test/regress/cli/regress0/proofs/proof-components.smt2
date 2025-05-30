@@ -5,7 +5,6 @@
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 (set-logic QF_UFLIA)
-(set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
 (set-option :produce-proofs true)
 (declare-sort U 0)
