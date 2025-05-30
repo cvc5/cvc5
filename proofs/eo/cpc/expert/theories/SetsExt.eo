@@ -39,7 +39,7 @@
 ;   appended together. Otherwise, this program does not evaluate.
 (program $tuple_type_join
     ((x Type) (xs Type :list) (y Type) (ys Type :list))
-    (Type Type) Type
+    :signature (Type Type) Type
     (
       (($tuple_type_join (Tuple x xs) (Tuple y ys))
         (eo::ite (eo::eq xs UnitTuple)
