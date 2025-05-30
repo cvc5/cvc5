@@ -144,6 +144,28 @@
 (define $str_is_char_range ((s1 String) (s2 String))
   (eo::and (eo::is_eq (eo::len s1) 1) (eo::is_eq (eo::len s2) 1)))
 
+; program: $str_membership_str
+; args:
+; - B Bool: A predicate.
+; return: If B is of the form (str.in_re s r), this returns s.
+(program $str_membership_str ((s String) (r RegLan))
+  :signature (Bool) String
+  (
+  (($str_membership_str (str.in_re s r)) s)
+  )
+)
+
+; program: $str_membership_re
+; args:
+; - B Bool: A predicate.
+; return: If B is of the form (str.in_re s r), this returns r.
+(program $str_membership_re ((s String) (r RegLan))
+  :signature (Bool) RegLan
+  (
+  (($str_membership_re (str.in_re s r)) r)
+  )
+)
+
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
@@ -1492,89 +1514,78 @@
 ;   be reversed when we recurse on non-str.to_re children.
 ; return: >
 ;   The result of implied consumption of string s in regular expression r.
-(program $str_re_consume_rec ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool))
+(program $str_re_consume_rec
+  ((s1 String) (s2 String :list) (s String) (r1 RegLan) (r2 RegLan :list) (b Bool) (rev Bool)
+   (s3 String) (s4 String :list) (s5 String) (r3 RegLan))
   :signature (String RegLan Bool Bool) Bool
   (
-    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)  
-        (eo::match ((s3 String) (s4 String :list) (s5 String) (r3 RegLan))
-          r1
-          (
-          ((str.to_re (str.++ s3 s4)) (eo::ite (eo::eq s1 s3)
-                                        ($str_re_consume_rec s2 (re.++ (str.to_re s4) r2) @result.null rev)
-                                        (eo::ite (eo::and ($str_check_length_one s1) ($str_check_length_one s3))
-                                          false                                       ; conflicting characters
-                                          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))) ; otherwise stuck
-          (@re.empty                  ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)) ; finished current component
-          ((re.range s3 s5)           (eo::ite (eo::and ($str_check_length_one s1) ($str_is_char_range s3 s5))
-                                        (eo::ite ($str_eval_str_in_re s1 (re.range s3 s5))
-                                          ($str_re_consume_rec s2 r2 @result.null rev)
-                                          false)
-                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
-          (re.allchar                 (eo::ite ($str_check_length_one s1)
-                                        ($str_re_consume_rec s2 r2 @result.null rev)
-                                        (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
-          ((re.* r3)                  ; see what happens if we unroll once
-                                      (eo::match ((sr String) (rr RegLan))
-                                        ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)
-                                        (
-                                          ; We can't unroll even once, thus we must skip it.
-                                          (false                     ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev))
-                                          ; If we fully consumed, now we go back and check if we get a conflict if we skip.
-                                          ((str.in_re sr @re.empty)  (eo::match ((br Bool))
-                                                                        ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
-                                                                        (
-                                                                          ; Skipping would give a conflict.
-                                                                          (false (eo::ite (eo::eq (str.++ s1 s2) sr)
-                                                                                    ; if we did not consume anything, we are stuck.
-                                                                                    (str.in_re (str.++ s1 s2) (re.++ r1 r2))
-                                                                                    ; otherwise, we continue with the RE consumed once.
-                                                                                    ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)
-                                                                                  ))
-                                                                          ; Otherwise we are stuck.
-                                                                          (br    (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
-                                                                        )
-                                                                      ))
-                                          ; Otherwise we are stuck.
-                                          ((str.in_re sr rr)          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
-                                        )
-                                      ))
-          (r3                         ; likely intersection or union, process cases recursively
-                                      (eo::match ((sr String) (br Bool))
-                                        ($str_re_consume_rec (str.++ s1 s2) r3 @result.null rev)
-                                        (
-                                          ; conflict
-                                          (false                     false)
-                                          ; if all cases consumed the same, continue
-                                          ((str.in_re sr @re.empty)  ($str_re_consume_rec sr r2 @result.null rev))
-                                          ; otherwise we are stuck
-                                          (br                        (str.in_re (str.++ s1 s2) (re.++ r1 r2)))
-                                        )
-                                      ))
-          )
-        )
-    )
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (str.to_re (str.++ s3 s4)) r2) @result.null rev)
+      (eo::ite (eo::eq s1 s3)
+        ($str_re_consume_rec s2 (re.++ (str.to_re s4) r2) @result.null rev)
+        (eo::ite (eo::and ($str_check_length_one s1) ($str_check_length_one s3))
+          false                                       ; conflicting characters
+          (str.in_re (str.++ s1 s2) (re.++ (str.to_re (str.++ s3 s4)) r2))))) ; otherwise stuck
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ @re.empty r2) @result.null rev)
+      ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)) ; finished current component
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.range s3 s5) r2) @result.null rev)
+      (eo::ite (eo::and ($str_check_length_one s1) ($str_is_char_range s3 s5))
+        (eo::ite ($str_eval_str_in_re s1 (re.range s3 s5))
+          ($str_re_consume_rec s2 r2 @result.null rev)
+          false)
+        (str.in_re (str.++ s1 s2) (re.++ (re.range s3 s5) r2))))
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ re.allchar r2) @result.null rev)
+      (eo::ite ($str_check_length_one s1)
+        ($str_re_consume_rec s2 r2 @result.null rev)
+        (str.in_re (str.++ s1 s2) (re.++ re.allchar r2))))
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ (re.* r3) r2) @result.null rev)
+      (eo::define ((r1 (re.* r3)))
+      ; see what happens if we unroll once
+      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) ($re_to_flat_form r3 rev) @result.null rev)))
+      (eo::ite (eo::eq res false)
+        ; We can't unroll even once, thus we must skip it.
+        ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)
+        (eo::ite (eo::eq ($str_membership_re res) @re.empty)
+          ; If we fully consumed, now we go back and check if we get a conflict if we skip.
+          (eo::define ((res2 ($str_re_consume_rec (str.++ s1 s2) r2 @result.null rev)))
+          (eo::ite (eo::is_eq res2 false)
+            ; Skipping would give a conflict.
+            (eo::define ((sr ($str_membership_str res)))
+            (eo::ite (eo::eq (str.++ s1 s2) sr)
+              ; if we did not consume anything, we are stuck.
+              (str.in_re (str.++ s1 s2) (re.++ r1 r2))
+              ; otherwise, we continue with the RE consumed once.
+              ($str_re_consume_rec sr (re.++ r1 r2) @result.null rev)))
+            ; Otherwise we are stuck.
+            (str.in_re (str.++ s1 s2) (re.++ r1 r2))))
+          ; Otherwise we are stuck.
+          (str.in_re (str.++ s1 s2) (re.++ r1 r2)))))))
+    (($str_re_consume_rec (str.++ s1 s2) (re.++ r1 r2) @result.null rev)
+      ; likely intersection or union, process cases recursively
+      (eo::define ((res ($str_re_consume_rec (str.++ s1 s2) r1 @result.null rev)))
+      (eo::ite (eo::is_eq res false)
+        ; conflict
+        false
+        (eo::ite (eo::is_eq ($str_membership_re res) @re.empty)
+          ; if all cases consumed the same, continue
+          ($str_re_consume_rec ($str_membership_str res) r2 @result.null rev)
+          ; otherwise we are stuck
+          (str.in_re (str.++ s1 s2) (re.++ r1 r2))))))
     (($str_re_consume_rec s1 (re.++ @re.empty r2) @result.null rev)
       ($str_re_consume_rec s1 r2 @result.null rev)) ; finished current component
     ; Intersection reports conflicts eagerly, and otherwise combines the results
     (($str_re_consume_rec s1 (re.inter r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::match ((bb Bool))
-                                                          ($str_re_consume_rec s1 r1r @result.null rev)
-                                                          (
-                                                            (false  false)
-                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
-                                                          )
-                                                       )))
+                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
+                                                         (eo::ite (eo::eq bb false)
+                                                           false
+                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
     (($str_re_consume_rec s1 re.all @result.null rev)  (str.in_re "" @re.empty)) ; only used if re.all appears in unexpected position
     (($str_re_consume_rec s1 re.all b rev)             b)                        ; end of re.inter
     ; Union ignores conflicts, and otherwise combines the results. We report a conflict if all children give conflicts.
     (($str_re_consume_rec s1 (re.union r1 r2) b rev)   (eo::define ((r1r ($re_to_flat_form r1 rev)))
-                                                       (eo::match ((bb Bool))
-                                                          ($str_re_consume_rec s1 r1r @result.null rev)
-                                                          (
-                                                            (false  ($str_re_consume_rec s1 r2 b rev))
-                                                            (bb     ($str_re_consume_rec s1 r2 ($result_combine bb b) rev))
-                                                          )
-                                                       )))
+                                                       (eo::define ((bb ($str_re_consume_rec s1 r1r @result.null rev)))
+                                                         (eo::ite (eo::eq bb false)
+                                                           ($str_re_consume_rec s1 r2 b rev)
+                                                           ($str_re_consume_rec s1 r2 ($result_combine bb b) rev)))))
     (($str_re_consume_rec s1 re.none @result.null rev) false)     ; end of re.union, conflict, also used if re.none appears in unexpected position
     (($str_re_consume_rec s1 re.none b rev)            b)         ; end of re.union, no conflict
     (($str_re_consume_rec s1 r1 @result.null rev)      (str.in_re s1 r1))
@@ -1596,25 +1607,21 @@
 (define $str_re_consume_process ((s String) (r RegLan) (oneDir Bool))
   (eo::define ((ss ($str_to_flat_form s true)))  
   (eo::define ((rr ($re_to_flat_form r true)))
-  (eo::match ((s1 String) (r1 RegLan))
-      ($str_re_consume_rec ss rr @result.null true)
-      (
-        (false              false)
-        ((str.in_re s1 r1)  ; we revert if oneDir is true and we didn't fully consume
-                            (eo::define ((revert (eo::and oneDir (eo::not (eo::eq r1 @re.empty)))))
-                            (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
-                                         (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
-                            (eo::match ((s2 String) (r2 RegLan))
-                              ($str_re_consume_rec s1r r1r @result.null false)
-                              (
-                                (false              false)
-                                ((str.in_re s2 r2)  (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))
-                              )
-                            )))
-        )
-      )
-  )))
-)
+  (eo::define ((resrev ($str_re_consume_rec ss rr @result.null true)))
+  (eo::ite (eo::eq resrev false)
+    false
+    (eo::define ((s1 ($str_membership_str resrev)))
+    (eo::define ((r1 ($str_membership_re resrev)))
+    ; we revert if oneDir is true and we didn't fully consume
+    (eo::define ((revert (eo::and oneDir (eo::not (eo::eq r1 @re.empty)))))
+    (eo::define ((s1r ($str_rev true (eo::ite revert ss s1)))
+                  (r1r ($re_to_flat_form (eo::ite revert rr r1) true)))
+    (eo::define ((resfwd ($str_re_consume_rec s1r r1r @result.null false)))
+    (eo::ite (eo::eq resfwd false)
+      false
+      (eo::define ((s2 ($str_membership_str resfwd)))
+      (eo::define ((r2 ($str_membership_re resfwd)))
+        (str.in_re ($str_from_flat_form s2 false) ($re_from_flat_form r2 false)))))))))))))))
 
 ; define: $str_re_consume
 ; args:
@@ -1631,13 +1638,11 @@
   :signature (String RegLan) Bool
   (
   (($str_re_consume s (re.* r))
-    (eo::match ((s1 String))
-        ($str_re_consume_process s r true)  ; only process in a single direction
-        (
-          (false                    false)  ; conflict
-          ((str.in_re s1 @re.empty) (str.in_re s1 (re.* r))) ; one full copy
-        )
-    ))
+    (eo::define ((res ($str_re_consume_process s r true)))  ; only process in a single direction
+    (eo::ite (eo::eq res false)
+      false
+      (eo::requires ($str_membership_re res) @re.empty      ; must have consumed one full copy
+        (str.in_re ($str_membership_str res) (re.* r))))))
   (($str_re_consume s r) ($str_re_consume_process s r false))
   )
 )
