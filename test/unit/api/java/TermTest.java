@@ -787,7 +787,7 @@ class TermTest
     assertTrue(s1.isStringValue());
     assertEquals(s1.getStringValue(), "abcde");
     Term s2 = d_tm.mkString("\\u{200cb}", true);
-    assertEquals(s2.getStringValue(), Character.toString(0x200cb));
+    assertEquals(s2.getStringValue(), new String(Character.toChars(0x200cb)));
   }
 
   @Test
