@@ -35,12 +35,12 @@
 ; args:
 ; - F Bool: A conjunction of arithmetic relations.
 ; return: the arithmetic relation that is implied by adding each of the relations in F together.
-(program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list)
+(program $mk_arith_sum_ub ((T Type) (U Type) (r1 (-> T U Bool)) (a1 T) (b1 U) (tail Bool :list)
                            (S Type) (V Type) (r2 (-> S V Bool)) (a2 S :list) (b2 V :list) (acc Bool))
   :signature (Bool Bool) Bool
   (
     (($mk_arith_sum_ub true acc)                      acc)
-    (($mk_arith_sum_ub (and (r a b) tail) (r2 a2 b2)) ($mk_arith_sum_ub tail ($arith_rel_sum r r2 (+ a a2) (+ b b2))))
+    (($mk_arith_sum_ub (and (r1 a1 b1) tail) (r2 a2 b2)) ($mk_arith_sum_ub tail ($arith_rel_sum r1 r2 (+ a1 a2) (+ b1 b2))))
 
   )
 )
