@@ -2,6 +2,13 @@
 (include "../theories/Arith.eo")
 (include "../programs/Utils.eo")
 
+; define: $arith_mk_zero
+; args:
+; - u Type : The type of the zero, which should be Int or Real.
+; return: the zero for the given type.
+(define $arith_mk_zero ((T Type))
+  (eo::ite (eo::is_eq T Int) 0 (eo::requires T Real 0/1)))
+
 ; define: $arith_eval_add
 ; args:
 ; - x T: The first arithmetic term to add.
@@ -29,8 +36,7 @@
 ;   can each be integer or real. This method returns an integer value if x and y
 ;   are both integer, or a rational value otherwise.
 (define $arith_eval_sub ((U Type :implicit) (T Type :implicit) (x U) (y T))
-  ($arith_eval_add x (eo::neg y))
-)
+  ($arith_eval_add x (eo::neg y)))
 
 ; define: $arith_eval_mul
 ; args:
@@ -147,8 +153,8 @@
 ; - n Int: The number of times to multiply, expected to be a non-negative numeral.
 ; - a T: The term to muliply.
 ; return: The result of multiplying a, n times.
-(program $arith_unfold_pow_rec ((T Type) (n Int) (a T) (Any Type))
-  :signature (Int T) Any
+(program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
+  :signature ((eo::quote n) T) (eo::ite (eo::eq n 0) Int T)
   (
     (($arith_unfold_pow_rec 0 a)  1)
     (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
