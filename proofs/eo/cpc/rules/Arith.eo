@@ -34,6 +34,7 @@
 ; program: $mk_arith_sum_ub
 ; args:
 ; - F Bool: A conjunction of arithmetic relations.
+; - acc Bool: The current return value.
 ; return: the arithmetic relation that is implied by adding each of the relations in F together.
 (program $mk_arith_sum_ub ((T Type) (U Type) (r (-> T U Bool)) (a T) (b U) (tail Bool :list)
                            (S Type) (V Type) (r2 (-> S V Bool)) (a2 S :list) (b2 V :list) (acc Bool))
