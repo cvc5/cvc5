@@ -1233,10 +1233,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
               }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
-            else if (pcur.d_id == RewriteProofStatus::DSL_FIXED_POINT)
-            {
-              cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
-            }
             else
             {
               Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
@@ -1352,6 +1348,21 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
         }
       }
+      else if (status == RewriteProofStatus::DSL_FIXED_POINT)
+      {
+        //cdp->addTrustedStep(cur, TrustId::REWRITE_NO_ELABORATE, {}, {});
+        TConvProofGenerator tcpg(d_env);
+        Trace("rpc-debug") << "Prove fixed point " << pcur.d_dslId << " via:" << std::endl;
+        Trace("rpc-debug") << "- conclusion: " << cur << std::endl;
+        for (const Node& s : pcur.d_vars)
+        {
+          Trace("rpc-debug") << "  - step: " << s << std::endl;
+          tcpg.addRewriteStep(s[0], s[1], cdp);
+        }
+        std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(cur);
+        Assert (pfn!=nullptr);
+        cdp->addProof(pfn);
+      }
       else if (status == RewriteProofStatus::DSL
                || status == RewriteProofStatus::THEORY_REWRITE)
       {
@@ -1463,6 +1474,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     Node body = context[1];
     Node currConc = body;
     Node currContext = placeholder;
+    std::vector<Node> rews;
     for (size_t i = 0, size = steps.size(); i < size; ++i)
     {
       const std::vector<Node>& stepSubs = stepsSubs[i];
@@ -1473,7 +1485,14 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
                        << body << " " << vars << " -> " << stepSubs << ", "
                        << placeholder << " -> " << step << std::endl;
-
+      Node req = source.eqNode(target);
+      rews.push_back(req);
+      // will prove this via a DSL rewrite
+      ProvenInfo& dpi = d_pcache[req];
+      dpi.d_id = pi.d_id;
+      dpi.d_dslId = pi.d_dslId;
+      dpi.d_vars = vars;
+      dpi.d_subs = stepSubs;
       currConc = expr::narySubstitute(currConc, vars, stepSubs);
       Node prevConc = currConc;
       if (i < size - 1)
@@ -1486,12 +1505,12 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
 
     d_currFixedPointId = ProofRewriteRule::NONE;
     // add the transistivity rule here if needed
-    if (steps.size() >= 2)
+    if (rews.size() >= 2)
     {
       pi.d_id = RewriteProofStatus::DSL_FIXED_POINT;
       // store steps in d_vars
-      pi.d_vars = steps;
-      Trace("rpc-ctx") << "***RETURN trans " << prev << std::endl;
+      pi.d_vars = rews;
+      Trace("ajr-temp") << "***RETURN fixed point " << rews << std::endl;
       // return the end of the chain, which will be used for constrained
       // matching
       return prev;
