@@ -1233,6 +1233,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
               }
               pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
             }
+            else if (pcur.d_id == RewriteProofStatus::DSL_FIXED_POINT)
+            {
+              cdp->addTrustedStep(eq, TrustId::REWRITE_NO_ELABORATE, {}, {});
+            }
             else
             {
               Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
@@ -1454,7 +1458,6 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       d_currFixedPointConc = Node::null();
     } while (continueFixedPoint);
 
-    std::vector<Node> transEq;
     Node prev = ssrc;
     Node placeholder = context[0][0];
     Node body = context[1];
@@ -1467,40 +1470,31 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       Node source = expr::narySubstitute(conc[0], vars, stepSubs);
       Node target = expr::narySubstitute(body, vars, stepSubs);
       target = target.substitute(TNode(placeholder), TNode(step));
-      cacheProofSubPlaceholder(currContext, placeholder, source, target);
       Trace("rpc-ctx") << "Step " << source << " == " << target << " from "
                        << body << " " << vars << " -> " << stepSubs << ", "
                        << placeholder << " -> " << step << std::endl;
 
-      ProvenInfo& dpi = d_pcache[source.eqNode(target)];
-      dpi.d_id = pi.d_id;
-      dpi.d_dslId = pi.d_dslId;
-      dpi.d_vars = vars;
-      dpi.d_subs = stepSubs;
-
       currConc = expr::narySubstitute(currConc, vars, stepSubs);
-      currContext = currConc;
       Node prevConc = currConc;
       if (i < size - 1)
       {
         currConc = currConc.substitute(TNode(placeholder), TNode(body));
       }
       Node stepConc = prevConc.substitute(TNode(placeholder), TNode(step));
-      transEq.push_back(prev.eqNode(stepConc));
       prev = stepConc;
     }
 
     d_currFixedPointId = ProofRewriteRule::NONE;
     // add the transistivity rule here if needed
-    if (transEq.size() >= 2)
+    if (steps.size() >= 2)
     {
-      pi.d_id = RewriteProofStatus::TRANS;
-      // store transEq in d_vars
-      pi.d_vars = transEq;
-      Trace("rpc-ctx") << "***RETURN trans " << transEq.back()[1] << std::endl;
+      pi.d_id = RewriteProofStatus::DSL_FIXED_POINT;
+      // store steps in d_vars
+      pi.d_vars = steps;
+      Trace("rpc-ctx") << "***RETURN trans " << prev << std::endl;
       // return the end of the chain, which will be used for constrained
       // matching
-      return transEq.back()[1];
+      return prev;
     }
   }
 
