@@ -571,7 +571,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   //
   // where yi' and yi'' correspond to some yj and
   //   (<= (str.len x) (str.++ y1' ... ym'))
-  Node new_ret = rewriteViaStrEqLenUnifyPrefix(node);
+  new_ret = rewriteViaStrEqLenUnifyPrefix(node);
   if (!new_ret.isNull())
   {
     return returnRewrite(node, new_ret, Rewrite::STR_EQ_CONJ_LEN_ENTAIL);
