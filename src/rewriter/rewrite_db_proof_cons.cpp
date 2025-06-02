@@ -1372,9 +1372,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         for (const Node& s : pcur.d_vars)
         {
           Trace("rpc-debug") << "  - step: " << s << std::endl;
-          tcpg.addRewriteStep(s[0], s[1], cdp, false, TrustId::NONE, false, emptyPath ? 0 : tc);
-          // the next rewrite should be applied at the depth that adds the length
-          // of the path.
+          tcpg.addRewriteStep(
+              s[0], s[1], cdp, false, TrustId::NONE, false, emptyPath ? 0 : tc);
+          // the next rewrite should be applied at the depth that adds the
+          // length of the path.
           tc += path.size();
         }
         std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(cur);
