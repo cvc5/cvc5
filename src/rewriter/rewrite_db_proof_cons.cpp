@@ -1534,66 +1534,6 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
   return ret;
 }
 
-void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
-                                                  TNode placeholder,
-                                                  TNode source,
-                                                  TNode target)
-{
-  std::vector<TNode> toVisit = {context};
-  std::unordered_map<TNode, TNode> parent;
-  std::vector<Node> congs;
-  parent[context] = TNode::null();
-  std::unordered_map<TNode, Node> visitedSrc;
-  std::unordered_map<TNode, Node> visitedTgt;
-  while (!toVisit.empty())
-  {
-    TNode curr = toVisit.back();
-    toVisit.pop_back();
-
-    if (curr == placeholder)
-    {
-      TNode currp;
-      while ((currp = parent[curr]) != Node::null())
-      {
-        Node lhs =
-            expr::narySubstitute(currp, {placeholder}, {source}, visitedSrc);
-        Node rhs =
-            expr::narySubstitute(currp, {placeholder}, {target}, visitedTgt);
-        congs.emplace_back(lhs.eqNode(rhs));
-        curr = currp;
-      }
-      break;
-    }
-
-    for (TNode n : curr)
-    {
-      // if we successfully inserted
-      if (parent.emplace(n, curr).second)
-      {
-        toVisit.emplace_back(n);
-      }
-    }
-  }
-
-  for (const Node& cong : congs)
-  {
-    ProvenInfo& cpi = d_pcache[cong];
-    cpi.d_id = RewriteProofStatus::CONG;
-    cpi.d_vars.clear();
-    for (size_t i = 0, size = cong[0].getNumChildren(); i < size; i++)
-    {
-      TNode lhs = cong[0][i];
-      TNode rhs = cong[1][i];
-      if (lhs == rhs)
-      {
-        ProvenInfo& pi = d_pcache[lhs.eqNode(rhs)];
-        pi.d_id = RewriteProofStatus::REFL;
-      }
-      cpi.d_vars.emplace_back(lhs.eqNode(rhs));
-    }
-  }
-}
-
 Node RewriteDbProofCons::rewriteConcrete(const Node& n)
 {
   if (expr::hasAbstractSubterm(n))
