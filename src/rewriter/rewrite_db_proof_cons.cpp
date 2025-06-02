@@ -1350,10 +1350,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (status == RewriteProofStatus::DSL_FIXED_POINT)
       {
-        //cdp->addTrustedStep(cur, TrustId::REWRITE_NO_ELABORATE, {}, {});
         TConvProofGenerator tcpg(d_env);
         Trace("rpc-debug") << "Prove fixed point " << pcur.d_dslId << " via:" << std::endl;
         Trace("rpc-debug") << "- conclusion: " << cur << std::endl;
+        // not quite right, as it does not do the proper context
         for (const Node& s : pcur.d_vars)
         {
           Trace("rpc-debug") << "  - step: " << s << std::endl;
