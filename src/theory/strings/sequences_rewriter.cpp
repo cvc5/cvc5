@@ -1252,6 +1252,16 @@ Node SequencesRewriter::rewriteViaStrEqLenUnifyPrefix(const Node& node)
   return Node::null();
 }
 
+/**
+ * Reverse the strings in term or formula t. In particular,
+ * if t is a concatenation, we reverse its components so that
+ * e.g. (str.++ "AB" x) becomes (str.++ x "BA"). This method
+ * traverses over conjunctions as well.
+ *
+ * @param nm Pointer
+ * @param t The term or formula to reverse strings in.
+ * @param isRev If false, then this is a no-op.
+ */
 Node reverseStrings(NodeManager* nm, Node t, bool isRev)
 {
   if (!isRev)
