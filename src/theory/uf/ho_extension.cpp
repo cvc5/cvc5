@@ -359,6 +359,17 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
               {
                 return 1;
               }
+              // ensure finite skolems are set to arbitrary values eagerly
+              for (const Node& hk : edeq[0][r])
+              {
+                TypeNode tnk = hk.getType();
+                if (d_env.isFiniteType(tnk))
+                {
+                  TypeEnumerator te(tnk);
+                  Node v = *te;
+                  m->assertEquality(hk, v, true);
+                }
+              }
             }
             bool success = false;
             TypeNode tn = edeq[0][0].getType();
