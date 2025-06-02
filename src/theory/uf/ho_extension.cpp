@@ -359,7 +359,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
               {
                 return 1;
               }
-              // ensure finite skolems are set to arbitrary values eagerly
+              // Ensure finite skolems are set to arbitrary values eagerly.
+              // This ensures that partial function applications are identified
+              // with one another based on this assignment.
               for (const Node& hk : edeq[0][r])
               {
                 TypeNode tnk = hk.getType();
