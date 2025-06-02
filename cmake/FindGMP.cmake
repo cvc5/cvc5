@@ -126,7 +126,11 @@ if(NOT GMP_FOUND_SYSTEM)
     endif()
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
-  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${GMP_CXXFLAGS}")
+  # Set CXXFLAGS to suppress deprecated literal operator warnings
+  # Only for non-cross-compilation builds to avoid configure issues
+  if(NOT CMAKE_CROSSCOMPILING)
+    set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=-Wno-error=deprecated-literal-operator")
+  endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
