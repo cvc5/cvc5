@@ -341,6 +341,99 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       }
     }
   }
+  std::vector<Node> c[2];
+  for (unsigned i = 0; i < 2; i++)
+  {
+    utils::getConcat(node[i], c[i]);
+  }
+
+  // check if the prefix, suffix mismatches
+  //   For example, str.++( x, "a", y ) == str.++( x, "bc", z ) ---> false
+  unsigned minsize = std::min(c[0].size(), c[1].size());
+  for (unsigned r = 0; r < 2; r++)
+  {
+    for (unsigned i = 0; i < minsize; i++)
+    {
+      unsigned index1 = r == 0 ? i : (c[0].size() - 1) - i;
+      unsigned index2 = r == 0 ? i : (c[1].size() - 1) - i;
+      Node s = c[0][index1];
+      Node t = c[1][index2];
+      if (s.isConst() && t.isConst())
+      {
+        size_t lenS = Word::getLength(s);
+        size_t lenT = Word::getLength(t);
+        size_t lenShort = lenS <= lenT ? lenS : lenT;
+        bool isSameFix = r == 1 ? Word::rstrncmp(s, t, lenShort)
+                                : Word::strncmp(s, t, lenShort);
+        if (!isSameFix)
+        {
+          Node ret = nodeManager()->mkConst(false);
+          return returnRewrite(node, ret, Rewrite::EQ_NFIX);
+        }
+      }
+      if (s != t)
+      {
+        break;
+      }
+    }
+  }
+
+  Node new_ret;
+  // ------- equality unification
+  bool changed = false;
+  for (unsigned i = 0; i < 2; i++)
+  {
+    while (!c[0].empty() && !c[1].empty() && c[0].back() == c[1].back())
+    {
+      c[0].pop_back();
+      c[1].pop_back();
+      changed = true;
+    }
+    // splice constants
+    if (!c[0].empty() && !c[1].empty() && c[0].back().isConst()
+        && c[1].back().isConst())
+    {
+      Node cs[2];
+      size_t csl[2];
+      for (unsigned j = 0; j < 2; j++)
+      {
+        cs[j] = c[j].back();
+        csl[j] = Word::getLength(cs[j]);
+      }
+      size_t larger = csl[0] > csl[1] ? 0 : 1;
+      size_t smallerSize = csl[1 - larger];
+      if (cs[1 - larger]
+          == (i == 0 ? Word::suffix(cs[larger], smallerSize)
+                     : Word::prefix(cs[larger], smallerSize)))
+      {
+        size_t sizeDiff = csl[larger] - smallerSize;
+        c[larger][c[larger].size() - 1] =
+            i == 0 ? Word::prefix(cs[larger], sizeDiff)
+                   : Word::suffix(cs[larger], sizeDiff);
+        c[1 - larger].pop_back();
+        changed = true;
+      }
+    }
+    for (unsigned j = 0; j < 2; j++)
+    {
+      std::reverse(c[j].begin(), c[j].end());
+    }
+  }
+  if (changed)
+  {
+    // e.g. x++y = x++z ---> y = z, "AB" ++ x = "A" ++ y --> "B" ++ x = y
+    Node s1 = utils::mkConcat(c[0], stype);
+    Node s2 = utils::mkConcat(c[1], stype);
+    if (s1 != node[0] || s2 != node[1])
+    {
+      new_ret = s1.eqNode(s2);
+      // We generally don't apply the extended equality rewriter if the
+      // original node was an equality but we may be able to do additional
+      // rewriting here, e.g.,
+      // x++y = "" --> x = "" and y = ""
+      return returnRewrite(node, new_ret, Rewrite::STR_EQ_UNIFY);
+    }
+  }
 
   // ------- rewrites for (= "" _)
   Node empty = Word::mkEmptyWord(stype);
