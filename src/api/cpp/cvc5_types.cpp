@@ -235,3 +235,61 @@ std::string to_string(cvc5::modes::InputLanguage lang)
   return ss.str();
 }
 }  // namespace std
+
+
+namespace cvc5 {
+std::ostream& operator<<(std::ostream& out, ObjectiveKind ok)
+{
+  switch (ok)
+  {
+    case ObjectiveKind::OBJECTIVE_NONE: out << "OBJECTIVE_NONE"; break;
+    case ObjectiveKind::OBJECTIVE_MIN: out << "OBJECTIVE_MIN"; break;
+    case ObjectiveKind::OBJECTIVE_MAX: out << "OBJECTIVE_MAX"; break;
+    case ObjectiveKind::OBJECTIVE_LEX: out << "OBJECTIVE_LEX"; break;
+    case ObjectiveKind::OBJECTIVE_PARETO: out << "OBJECTIVE_PARETO"; break;
+    case ObjectiveKind::OBJECTIVE_MINMAX: out << "OBJECTIVE_MINMAX"; break;
+    case ObjectiveKind::OBJECTIVE_MAXMIN: out << "OBJECTIVE_MAXMIN"; break;
+    default:
+      throw CVC5ApiException("unhandled enum value '"
+                             + std::to_string(static_cast<int32_t>(ok))
+                             + "' encountered");
+  }
+  return out;
+}
+}  // namespace cvc5
+
+namespace std {
+std::string to_string(cvc5::ObjectiveKind ok)
+{
+  std::stringstream ss;
+  ss << ok;
+  return ss.str();
+}
+}  // namespace std
+
+
+namespace cvc5 {
+std::ostream& operator<<(std::ostream& out, OMTStrategyKind osk)
+{
+  switch (osk)
+  {
+    case OMTStrategyKind::STRATEGY_NONE: out << "STRATEGY_NONE"; break;
+    case OMTStrategyKind::STRATEGY_BINARY: out << "STRATEGY_BINARY"; break;
+    case OMTStrategyKind::STRATEGY_LINEAR: out << "STRATEGY_LINEAR"; break;
+    default:
+      throw CVC5ApiException("unhandled enum value '"
+                             + std::to_string(static_cast<int32_t>(osk))
+                             + "' encountered");
+  }
+  return out;
+}
+}  // namespace cvc5
+
+namespace std {
+std::string to_string(cvc5::OMTStrategyKind osk)
+{
+  std::stringstream ss;
+  ss << osk;
+  return ss.str();
+}
+}  // namespace std
