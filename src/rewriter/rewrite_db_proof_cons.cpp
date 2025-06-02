@@ -1352,23 +1352,29 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       {
         const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
         const std::vector<size_t>& path = rpr.getPathToContextVar();
+        // We only want to rewrite on the relevant path. So for example
+        // if our context is lambda x. (or C x), then we only apply
+        // rewrites on the path that traverses the second child of
+        // ors, recurisvely.
+        bool emptyPath = path.empty();
         WithinPathTermContext wptc(path);
         TConvProofGenerator tcpg(d_env,
                                  nullptr,
                                  TConvPolicy::FIXPOINT,
                                  TConvCachePolicy::NEVER,
                                  "DslFixedPointTConv",
-                                 path.empty() ? nullptr : &wptc);
+                                 emptyPath ? nullptr : &wptc);
         Trace("rpc-debug") << "Prove fixed point " << pcur.d_dslId
                            << " via:" << std::endl;
         Trace("rpc-debug") << "- path size is " << path.size() << std::endl;
         Trace("rpc-debug") << "- conclusion: " << cur << std::endl;
-        // not quite right, as it does not do the proper context
         size_t tc = 1;
         for (const Node& s : pcur.d_vars)
         {
           Trace("rpc-debug") << "  - step: " << s << std::endl;
-          tcpg.addRewriteStep(s[0], s[1], cdp, false, TrustId::NONE, false, tc);
+          tcpg.addRewriteStep(s[0], s[1], cdp, false, TrustId::NONE, false, emptyPath ? 0 : tc);
+          // the next rewrite should be applied at the depth that adds the length
+          // of the path.
           tc += path.size();
         }
         std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(cur);
@@ -1522,7 +1528,7 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       pi.d_id = RewriteProofStatus::DSL_FIXED_POINT;
       // store steps in d_vars
       pi.d_vars = rews;
-      Trace("ajr-temp") << "***RETURN fixed point " << rews << std::endl;
+      Trace("rpc-ctx") << "***RETURN fixed point " << rews << std::endl;
       // return the end of the chain, which will be used for constrained
       // matching
       return prev;

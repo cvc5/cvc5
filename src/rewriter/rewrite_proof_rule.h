@@ -84,7 +84,10 @@ class RewriteProofRule
   const std::vector<Node>& getVarList() const;
   /** The context that the rule is applied in */
   Node getContext() const { return d_context; }
-  /** Get path to context variable */
+  /**
+   * Get path to context variable, for example if
+   * d_context is (lambda x (f a (g x b))), then d_pathToCtx = [1,0].
+   */
   const std::vector<size_t> getPathToContextVar() const { return d_pathToCtx; }
   /** Does this rule have conditions? */
   bool hasConditions() const;
