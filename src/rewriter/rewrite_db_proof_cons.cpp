@@ -1350,14 +1350,25 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       else if (status == RewriteProofStatus::DSL_FIXED_POINT)
       {
-        TConvProofGenerator tcpg(d_env);
+        const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
+        const std::vector<size_t>& path = rpr.getPathToContextVar();
+        WithinPathTermContext wptc(path);
+        TConvProofGenerator tcpg(d_env,
+                                nullptr,
+                                TConvPolicy::FIXPOINT,
+                                TConvCachePolicy::NEVER,
+                                "DslFixedPointTConv",
+                                path.empty() ? nullptr : &wptc);
         Trace("rpc-debug") << "Prove fixed point " << pcur.d_dslId << " via:" << std::endl;
+        Trace("rpc-debug") << "- path size is " << path.size() << std::endl;
         Trace("rpc-debug") << "- conclusion: " << cur << std::endl;
         // not quite right, as it does not do the proper context
+        size_t tc = 1;
         for (const Node& s : pcur.d_vars)
         {
           Trace("rpc-debug") << "  - step: " << s << std::endl;
-          tcpg.addRewriteStep(s[0], s[1], cdp);
+          tcpg.addRewriteStep(s[0], s[1], cdp, false, TrustId::NONE, false, tc);
+          tc += path.size();
         }
         std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(cur);
         Assert (pfn!=nullptr);

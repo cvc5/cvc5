@@ -212,6 +212,24 @@ class WithinKindTermContext : public TermContext
   /** The kind */
   Kind d_kind;
 };
+
+/**
+ * Increments value if we are on (repeated) traversals of the given path.
+ */
+class WithinPathTermContext : public TermContext
+{
+public:
+  WithinPathTermContext(const std::vector<size_t>& path) : d_path(path){}
+  /** The initial value: not within kind. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ protected:
+  /** The path */
+  std::vector<size_t> d_path;
+};
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
