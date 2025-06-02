@@ -218,8 +218,8 @@ class WithinKindTermContext : public TermContext
  */
 class WithinPathTermContext : public TermContext
 {
-public:
-  WithinPathTermContext(const std::vector<size_t>& path) : d_path(path){}
+ public:
+  WithinPathTermContext(const std::vector<size_t>& path) : d_path(path) {}
   /** The initial value: not within kind. */
   uint32_t initialValue() const override;
   /** Compute the value of the index^th child of t whose hash is tval */

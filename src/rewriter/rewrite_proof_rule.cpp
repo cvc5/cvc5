@@ -126,14 +126,14 @@ void RewriteProofRule::init(ProofRewriteRule id,
   {
     d_mt.addTerm(conc[0]);
 
-    Assert (d_context.getKind()==Kind::LAMBDA);
+    Assert(d_context.getKind() == Kind::LAMBDA);
     Node var = d_context[0][0];
     Node curr = d_context[1];
-    while (curr!=var)
+    while (curr != var)
     {
       size_t nchild = curr.getNumChildren();
       size_t cfind = nchild;
-      for (size_t i=0; i<nchild; i++)
+      for (size_t i = 0; i < nchild; i++)
       {
         if (expr::hasSubterm(curr[i], var))
         {
@@ -141,7 +141,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
           break;
         }
       }
-      if (cfind==nchild)
+      if (cfind == nchild)
       {
         Unhandled() << "Failed to find context variable";
       }

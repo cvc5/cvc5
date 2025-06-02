@@ -184,15 +184,15 @@ uint32_t WithinPathTermContext::computeValue(TNode t,
                                              uint32_t tval,
                                              size_t index) const
 {
-  if (tval==0)
+  if (tval == 0)
   {
     return 0;
   }
-  Assert (!d_path.empty());
-  size_t cc = (tval-1)%d_path.size();
-  if (index==d_path[cc])
+  Assert(!d_path.empty());
+  size_t cc = (tval - 1) % d_path.size();
+  if (index == d_path[cc])
   {
-    return tval+1;
+    return tval + 1;
   }
   return 0;
 }
