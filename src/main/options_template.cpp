@@ -32,18 +32,18 @@ extern int optreset;
 
 // clean up
 #ifdef CVC5_IS_NOT_REALLY_BSD
-#  undef _BSD_SOURCE
+#undef _BSD_SOURCE
 #endif /* CVC5_IS_NOT_REALLY_BSD */
+
+#include <cstring>
+#include <iostream>
+#include <limits>
 
 #include "base/check.h"
 #include "base/output.h"
 #include "options/option_exception.h"
 #include "options/options_public.h"
 #include "util/didyoumean.h"
-
-#include <cstring>
-#include <iostream>
-#include <limits>
 
 namespace cvc5::main {
 
@@ -94,8 +94,7 @@ void printUsage(const std::string& binary, std::ostream& os, bool printRegular)
   os << optionsFootnote << std::endl;
 }
 
-void printUsageCategories(cvc5::Solver& solver,
-                          std::ostream& os)
+void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
 {
   std::stringstream ssCommon;
   std::stringstream ssRegular;
@@ -124,8 +123,9 @@ void printUsageCategories(cvc5::Solver& solver,
     {
       ssCommon << "- " << name << std::endl;
     }
-    else if (info.category == cvc5::modes::OptionCategory::UNDOCUMENTED)
+    else
     {
+      Assert(info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
       ssUndocumented << "- " << name << std::endl;
     }
   }
@@ -160,11 +160,10 @@ void printUsageCategories(cvc5::Solver& solver,
  *    value to set the 3rd entry to; see #3)
  */
 static struct option cmdlineOptions[] = {
-// clang-format off
+    // clang-format off
   ${cmdoptions_long}$
-// clang-format on
-  {nullptr, no_argument, nullptr, '\0'}
-};
+    // clang-format on
+    {nullptr, no_argument, nullptr, '\0'}};
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
@@ -201,8 +200,8 @@ void parseInternal(cvc5::Solver& solver,
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
   optind = 0;
 #if HAVE_DECL_OPTRESET
-  optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
-#endif /* HAVE_DECL_OPTRESET */
+  optreset = 1;  // on BSD getopt() (e.g. Mac OS), might need this
+#endif           /* HAVE_DECL_OPTRESET */
 
   // We must parse the binary name, which is manually ignored below. Setting
   // this to 1 leads to incorrect behavior on some platforms.
@@ -276,19 +275,19 @@ void parseInternal(cvc5::Solver& solver,
 
     switch (c)
     {
-// clang-format off
+      // clang-format off
     ${parseinternal_impl}$
-// clang-format on
+          // clang-format on
 
-    case ':' :
-      // This can be a long or short option, and the way to get at the
-      // name of it is different.
-      throw OptionException(std::string("option `") + option
-                            + "' missing its required argument");
-    case '?':
-    default:
-      throw OptionException(std::string("can't understand option `") + option
-                            + "'" + suggestCommandLineOptions(option));
+          case ':' :
+          // This can be a long or short option, and the way to get at the
+          // name of it is different.
+          throw OptionException(std::string("option `") + option
+                                + "' missing its required argument");
+      case '?':
+      default:
+        throw OptionException(std::string("can't understand option `") + option
+                              + "'" + suggestCommandLineOptions(option));
     }
   }
 
