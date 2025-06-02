@@ -496,18 +496,6 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
           return returnRewrite(node, ret, Rewrite::STR_EMP_SUBSTR_LEQ_Z);
         }
       }
-      /*
-      else if (ne.getKind() == Kind::STRING_CONCAT)
-      {
-        std::vector<Node> conj;
-        for (const Node& nec : ne)
-        {
-          conj.push_back(nec.eqNode(node[i]));
-        }
-        Node ret = nm->mkAnd(conj);
-        return returnRewrite(node, ret, Rewrite::STR_EMP_SUBSTR_LEQ_Z);
-      }
-      */
     }
   }
 
