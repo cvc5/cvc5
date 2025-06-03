@@ -96,6 +96,7 @@ cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
 cvc5_option(ENABLE_SAFE_MODE      "Enable safe mode")
+cvc5_option(ENABLE_STABLE_MODE    "Enable stable mode")
 cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
@@ -518,6 +519,10 @@ endif()
 
 if(ENABLE_SAFE_MODE)
   add_definitions(-DCVC5_SAFE_MODE)
+endif()
+
+if(ENABLE_STABLE_MODE)
+  add_definitions(-DCVC5_STABLE_MODE)
 endif()
 
 if(ENABLE_STATISTICS)
