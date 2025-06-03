@@ -1523,6 +1523,7 @@ set(regress_0_tests
   regress0/push-pop/inc-define.smt2
   regress0/push-pop/inc-double-u.smt2
   regress0/push-pop/incremental-subst-bug.cvc.smt2
+  regress0/push-pop/issue11934-ho-uf.smt2
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
