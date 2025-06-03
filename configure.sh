@@ -352,7 +352,7 @@ do
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
          safe-mode)       buildtype=Production; safe_mode=ON;;
-         stable-mode)       buildtype=Production; stable_mode=ON;;
+         stable-mode)     buildtype=Production; stable_mode=ON;;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
