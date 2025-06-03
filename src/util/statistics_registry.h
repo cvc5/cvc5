@@ -228,6 +228,14 @@ class StatisticsRegistry
    * Print all statistics as a diff to the last stored snapshot.
    */
   void printDiff(std::ostream& os) const;
+  /**
+   * Set d_all to val.
+   */
+  void setStatsAll(bool val);
+  /**
+   * Set d_internal to val.
+   */
+  void setStatsInternal(bool val);
 
  private:
   /**

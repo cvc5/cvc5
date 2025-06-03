@@ -121,6 +121,8 @@ if(NOT GMP_FOUND_SYSTEM)
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
       set(GMP_CFLAGS "${GMP_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
+  else()
+    set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
 

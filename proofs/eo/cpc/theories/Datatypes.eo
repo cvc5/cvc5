@@ -40,7 +40,7 @@
 ;   consists of lifting each argument and return type T to
 ;   (Nullable T).
 (program $get_type_nullable_lift ((T Type) (U Type))
-    (Type) Type
+    :signature (Type) Type
     (
       (($get_type_nullable_lift (-> T U)) (-> (Nullable T) ($get_type_nullable_lift U)))
       (($get_type_nullable_lift U)        (Nullable U))

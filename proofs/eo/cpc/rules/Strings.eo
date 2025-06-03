@@ -41,11 +41,11 @@
 ; conclusion: >
 ;   An equality between the components of s and t beyond their equal components.
 ;   For example, from (= (str.++ x y) (str.++ x z)), we conclude (= y z).
-(declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
+(declare-rule concat_eq ((U Type) (s (Seq U)) (t (Seq U)) (rev Bool))
   :premises ((= s t))
   :args (rev)
   :conclusion
-    (eo::match ((ss U) (ts U))
+    (eo::match ((ss (Seq U)) (ts (Seq U)))
       ($str_strip_prefix
            ($str_to_nary_form s rev)
            ($str_to_nary_form t rev))
@@ -275,7 +275,7 @@
 ;   The concatenation of the strings in E is in the concatenation of the regular
 ;   expressions in E.
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan))
-  (Bool) Bool
+  :signature (Bool) Bool
   (
   (($mk_re_concat (and (str.in_re s r) Es)) (eo::match ((s1 String) (r1 RegLan))
                                               ($mk_re_concat Es)
@@ -349,12 +349,12 @@
   :args (rev)
   :conclusion
     (eo::match ((r1 RegLan) (r2 RegLan :list))
-      ($str_rev rev r)
+      ($str_re_rev rev r)
       (
         ((re.++ r1 r2) (eo::define ((n ($str_fixed_len_re r1)))
                        (eo::ite rev
                        (or (not (str.in_re ($str_suffix s n) r1))
-                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
+                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_re_rev rev r2)))))
                        (or (not (str.in_re ($str_prefix s n) r1))
                            (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
     ))
@@ -586,7 +586,7 @@
 ;   In particular, note that all string literals are broken up into string
 ;   literals of size one.
 (program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
-    ((Seq T)) @List
+    :signature ((Seq T)) @List
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
       (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
@@ -612,9 +612,9 @@
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, and then checking if a term in nr is provably distinct from the final xs.
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
-    ((Seq T) @List @List) Bool
+    :signature ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr (eo::list_erase @list xs s)))
                                                             (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
@@ -807,7 +807,7 @@
 ; return: >
 ;   The result of evaluating (str.replace_re_all s r t), which is a concatenation.
 (program $str_eval_replace_re_all_rec ((s String) (r RegLan) (t String) (sp Int) (ep Int))
-  (String RegLan String (@Pair Int Int)) String
+  :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
   (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
@@ -850,7 +850,7 @@
 ; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
 ; return: The result of evaluating t.
 (program $seq_eval ((T Type) (t (Seq T)) (n Int))
-  (T) T
+  :signature (T) T
   (
     ; handle sequence-specific operators here
     (($seq_eval (seq.nth t n))  (eo::match ((e T))

@@ -15,7 +15,7 @@
 ;   The result of the reduction for the remaining bits for (ubv_to_int b),
 ;   which is an arithmetic sum.
 (program $abconv_ubv_to_int_elim ((n Int) (b (BitVec n)) (i Int) (w Int) (p Int))
-  ((BitVec n) Int Int Int) Int
+  :signature ((BitVec n) Int Int Int) Int
   (
     (($abconv_ubv_to_int_elim b w w p) 0)
     (($abconv_ubv_to_int_elim b i w p) (eo::cons +
@@ -47,8 +47,8 @@
 ; - p Int: Equal to 2 to the power of w.
 ; return: >
 ;   The result of reducing (int2bv w n), which is a bitvector concatenation.
-(program $abconv_int_to_bv_elim ((n Int) (w Int) (p Int))
-  (Int Int Int) (BitVec n)
+(program $abconv_int_to_bv_elim ((n Int) (w Int) (p Int) (Any Type))
+  :signature (Int Int Int) Any
   (
     (($abconv_int_to_bv_elim n 0 p) @bv_empty)
     (($abconv_int_to_bv_elim n w p) (eo::define ((wm1 (eo::add w -1)))
