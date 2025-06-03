@@ -226,7 +226,7 @@ std::ostream& operator<<(std::ostream& out, OptionCategory cat)
   }
   return out;
 }
-}
+}  // namespace cvc5::modes
 
 namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, InputLanguage lang)

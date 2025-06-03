@@ -407,7 +407,7 @@ CVC5_EXPORT int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
 CVC5_EXPORT Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort);
 
 /**
-   * Determine if the given sort has a symbol (a name).
+ * Determine if the given sort has a symbol (a name).
  *
  * For example, uninterpreted sorts and uninterpreted sort constructors have
  * symbols.
@@ -4836,7 +4836,7 @@ CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
  * Get an interpolant.
  *
  * Given that @f$A \rightarrow B@f$ is valid,
- * this function determines a term @f$I@f$ 
+ * this function determines a term @f$I@f$
  * over the shared variables of @f$A@f$ and @f$B@f$,
  * such that @f$A \rightarrow I@f$ and
  * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
@@ -4868,8 +4868,8 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  * Get an interpolant
  *
  * Given that @f$A \rightarrow B@f$ is valid,
- * this function determines a term @f$I@f$ 
- * over the shared variables of @f$A@f$ and @f$B@f$, 
+ * this function determines a term @f$I@f$
+ * over the shared variables of @f$A@f$ and @f$B@f$,
  * with respect to a given grammar, such that
  * @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a term
  * exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the

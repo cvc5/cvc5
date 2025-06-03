@@ -6440,7 +6440,7 @@ class CVC5_EXPORT Solver
    * Given that @f$A\rightarrow B@f$ is valid, this function
    * determines a term @f$I@f$ over the shared variables of
    * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I \rightarrow B@f$ are valid.
    * @f$I@f$ is constructed from the given grammar.
    * @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.

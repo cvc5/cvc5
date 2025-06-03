@@ -3337,7 +3337,9 @@ std::string Term::getFiniteFieldValue() const
       d_node->getKind() == internal::Kind::CONST_FINITE_FIELD, *d_node)
       << "Term to be a finite field value when calling getFiniteFieldValue()";
   //////// all checks before this line
-  return d_node->getConst<internal::FiniteFieldValue>().toSignedInteger().toString();
+  return d_node->getConst<internal::FiniteFieldValue>()
+      .toSignedInteger()
+      .toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3582,7 +3584,7 @@ std::vector<Term> Term::getSequenceValue() const
   //////// all checks before this line
   std::vector<Term> res;
   const internal::Sequence& seq = d_node->getConst<internal::Sequence>();
-  for (const auto& node: seq.getVec())
+  for (const auto& node : seq.getVec())
   {
     res.emplace_back(Term(d_tm, node));
   }
@@ -4940,9 +4942,7 @@ struct Stat::StatData
 
 Stat::Stat() {}
 Stat::~Stat() {}
-Stat::Stat(const Stat& s)
-    : d_internal(s.d_internal),
-      d_default(s.d_default)
+Stat::Stat(const Stat& s) : d_internal(s.d_internal), d_default(s.d_default)
 {
   if (s.d_data)
   {
@@ -4971,7 +4971,8 @@ bool Stat::isInt() const
 int64_t Stat::getInt() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
+  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data))
+      << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isInt()) << "expected Stat of type int64_t.";
   return std::get<int64_t>(d_data->data);
   CVC5_API_TRY_CATCH_END;
@@ -4984,7 +4985,8 @@ bool Stat::isDouble() const
 double Stat::getDouble() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
+  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data))
+      << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isDouble()) << "expected Stat of type double.";
   return std::get<double>(d_data->data);
   CVC5_API_TRY_CATCH_END;
@@ -4997,7 +4999,8 @@ bool Stat::isString() const
 const std::string& Stat::getString() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
+  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data))
+      << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isString())
       << "expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
@@ -5011,7 +5014,8 @@ bool Stat::isHistogram() const
 const Stat::HistogramData& Stat::getHistogram() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data)) << "Stat holds no value";
+  CVC5_API_RECOVERABLE_CHECK(static_cast<bool>(d_data))
+      << "Stat holds no value";
   CVC5_API_RECOVERABLE_CHECK(isHistogram())
       << "expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
@@ -5091,7 +5095,10 @@ Statistics::iterator::iterator(Statistics::BaseType::const_iterator it,
                                const Statistics::BaseType& base,
                                bool internal,
                                bool defaulted)
-    : d_it(it), d_base(&base), d_showInternal(internal), d_showDefault(defaulted)
+    : d_it(it),
+      d_base(&base),
+      d_showInternal(internal),
+      d_showDefault(defaulted)
 {
   while (!isVisible())
   {
@@ -5184,8 +5191,7 @@ ProofRewriteRule Proof::getRewriteRule() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_proofNode->getRule() == ProofRule::DSL_REWRITE
-                 || d_proofNode->getRule()
-                        == ProofRule::THEORY_REWRITE)
+                 || d_proofNode->getRule() == ProofRule::THEORY_REWRITE)
       << "expected `getRule()` to return `DSL_REWRITE` or `THEORY_REWRITE`, "
          "got "
       << d_proofNode->getRule() << " instead.";
@@ -5743,7 +5749,8 @@ Sort TermManager::mkFiniteFieldSort(const std::string& modulus, uint32_t base)
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Integer m(modulus, base);
-  CVC5_API_ARG_CHECK_EXPECTED(m.isProbablePrime(), modulus) << "modulus is prime";
+  CVC5_API_ARG_CHECK_EXPECTED(m.isProbablePrime(), modulus)
+      << "modulus is prime";
   return Sort(this, d_nm->mkFiniteFieldType(m));
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7610,8 +7617,13 @@ std::string Solver::getOption(const std::string& option) const
 
 // Supports a visitor from a list of lambdas
 // Taken from https://en.cppreference.com/w/cpp/utility/variant/visit
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 bool OptionInfo::boolValue() const
 {
@@ -7747,9 +7759,11 @@ std::vector<std::string> Solver::getOptionNames() const
 }
 
 // Helper function to convert internal category to external enum
-modes::OptionCategory convertOptionCategory(internal::options::OptionInfo::Category internalCategory)
+modes::OptionCategory convertOptionCategory(
+    internal::options::OptionInfo::Category internalCategory)
 {
-  switch (internalCategory) {
+  switch (internalCategory)
+  {
     case internal::options::OptionInfo::Category::REGULAR:
       return modes::OptionCategory::REGULAR;
     case internal::options::OptionInfo::Category::EXPERT:
@@ -7759,7 +7773,8 @@ modes::OptionCategory convertOptionCategory(internal::options::OptionInfo::Categ
     case internal::options::OptionInfo::Category::UNDOCUMENTED:
       return modes::OptionCategory::UNDOCUMENTED;
     default:
-      Assert(internalCategory == internal::options::OptionInfo::Category::UNDOCUMENTED);
+      Assert(internalCategory
+             == internal::options::OptionInfo::Category::UNDOCUMENTED);
       return modes::OptionCategory::UNDOCUMENTED;
   }
 }
@@ -7774,13 +7789,12 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{
-                info.name,
-                info.aliases,
-                info.noSupports,
-                info.setByUser,
-                convertOptionCategory(info.category),
-                OptionInfo::VoidInfo{}};
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.noSupports,
+                              info.setByUser,
+                              convertOptionCategory(info.category),
+                              OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
             return OptionInfo{
@@ -7793,14 +7807,13 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
           },
           [&info](
               const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            return OptionInfo{
-                info.name,
-                info.aliases,
-                info.noSupports,
-                info.setByUser,
-                convertOptionCategory(info.category),
-                OptionInfo::ValueInfo<std::string>{vi.defaultValue,
-                                                   vi.currentValue}};
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.noSupports,
+                              info.setByUser,
+                              convertOptionCategory(info.category),
+                              OptionInfo::ValueInfo<std::string>{
+                                  vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
@@ -7835,14 +7848,13 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            return OptionInfo{
-                info.name,
-                info.aliases,
-                info.noSupports,
-                info.setByUser,
-                convertOptionCategory(info.category),
-                OptionInfo::ModeInfo{
-                    vi.defaultValue, vi.currentValue, vi.modes}};
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.noSupports,
+                              info.setByUser,
+                              convertOptionCategory(info.category),
+                              OptionInfo::ModeInfo{
+                                  vi.defaultValue, vi.currentValue, vi.modes}};
           },
       },
       info.valueInfo);

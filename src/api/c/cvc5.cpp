@@ -4875,7 +4875,8 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   info->no_supports = c_no_supports.data();
 
   info->is_set_by_user = cpp_info.setByUser;
-  switch (cpp_info.category) {
+  switch (cpp_info.category)
+  {
     case cvc5::modes::OptionCategory::REGULAR:
       info->category = CVC5_OPTION_CATEGORY_REGULAR;
       break;
@@ -4888,9 +4889,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
     case cvc5::modes::OptionCategory::UNDOCUMENTED:
       info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
       break;
-    default:
-      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
-      break;
+    default: info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED; break;
   }
 
   std::visit(
@@ -5810,4 +5809,3 @@ Cvc5Term cvc5_find_synth_next(Cvc5* cvc5)
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
-  
