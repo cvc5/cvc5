@@ -81,9 +81,6 @@ if(NOT GMP_FOUND_SYSTEM)
   # standard for GMP to C99.
   set(GMP_CFLAGS "-std=gnu99")
 
-  # Set CXXFLAGS to suppress deprecated literal operator warnings
-  set(GMP_CXXFLAGS "-Wno-error=deprecated-literal-operator")
-
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -126,11 +123,6 @@ if(NOT GMP_FOUND_SYSTEM)
     endif()
   endif()
   set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
-  # Set CXXFLAGS to suppress deprecated literal operator warnings
-  # Only for non-cross-compilation builds to avoid configure issues
-  if(NOT CMAKE_CROSSCOMPILING)
-    set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=-Wno-error=deprecated-literal-operator")
-  endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
