@@ -38,6 +38,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["declare-datatype"] = Token::DECLARE_DATATYPE_TOK;
   d_table["declare-fun"] = Token::DECLARE_FUN_TOK;
   d_table["declare-sort"] = Token::DECLARE_SORT_TOK;
+  d_table["declare-sort-parameter"] = Token::DECLARE_SORT_PARAMETER_TOK;
   d_table["define-const"] = Token::DEFINE_CONST_TOK;
   d_table["define-funs-rec"] = Token::DEFINE_FUNS_REC_TOK;
   d_table["define-fun-rec"] = Token::DEFINE_FUN_REC_TOK;
@@ -349,6 +350,17 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       Trace("parser") << "declare sort: '" << name << "' arity=" << arity
                       << std::endl;
       cmd.reset(new DeclareSortCommand(name, arity));
+    }
+    break;
+    // (declare-sort-parameter <symbol>)
+    case Token::DECLARE_SORT_PARAMETER_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
+      // not supported
+      d_state.warning("Sort parameters not supported in this version");
+      cmd.reset(new EmptyCommand());
     }
     break;
     // (declare-var <symbol> <sort>)
