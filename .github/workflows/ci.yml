@@ -175,6 +175,7 @@ jobs:
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
+            java-version: 11
             macos-target: 11.0
             gpl-tag: -gpl
 
