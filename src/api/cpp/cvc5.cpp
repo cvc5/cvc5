@@ -7770,8 +7770,6 @@ modes::OptionCategory convertOptionCategory(
       return modes::OptionCategory::EXPERT;
     case internal::options::OptionInfo::Category::COMMON:
       return modes::OptionCategory::COMMON;
-    case internal::options::OptionInfo::Category::UNDOCUMENTED:
-      return modes::OptionCategory::UNDOCUMENTED;
     default:
       Assert(internalCategory
              == internal::options::OptionInfo::Category::UNDOCUMENTED);

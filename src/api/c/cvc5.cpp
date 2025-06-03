@@ -4886,10 +4886,9 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
     case cvc5::modes::OptionCategory::COMMON:
       info->category = CVC5_OPTION_CATEGORY_COMMON;
       break;
-    case cvc5::modes::OptionCategory::UNDOCUMENTED:
+    default:
+      Assert(cpp_info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
       info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
-      break;
-    default: info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED; break;
   }
 
   std::visit(

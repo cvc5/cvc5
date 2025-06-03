@@ -3499,7 +3499,17 @@ struct Cvc5OptionInfo
   const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
-  /** The category of this option (regular, expert, undocumented or unknown) */
+  /** 
+   * True if the option is an expert option 
+   * @warning This field is deprecated and replaced by Cvc5OptionCategory. It will be removed in a future release.
+   */
+  [[deprecated("Set Cvc5OptionCategory category to CVC5_OPTION_CATEGORY_EXPERT instead")]] bool is_expert;
+  /** 
+   * True if the option is a regular option 
+   * @warning This field is deprecated and replaced by Cvc5OptionCategory. It will be removed in a future release.
+   */
+  [[deprecated("Set Cvc5OptionCategory category to CVC5_OPTION_CATEGORY_REGULAR instead")]] bool is_regular;
+  /** The category of this option. */
   Cvc5OptionCategory category;
 
   /** Information for boolean option values. */
