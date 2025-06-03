@@ -859,6 +859,7 @@ set(regress_0_tests
   regress0/ff/negneg.smt2
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
+  regress0/ff/issue11932.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
@@ -1758,6 +1759,7 @@ set(regress_0_tests
   regress0/seq/err1.smt2
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
+  regress0/seq/issue11924-semi-eval-unk.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
@@ -1768,6 +1770,7 @@ set(regress_0_tests
   regress0/seq/issue9696-unit-type-cmi.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
+  regress0/seq/nested-const-unsat.smt2
   regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
   regress0/seq/nth-unit.smt2
@@ -1782,6 +1785,7 @@ set(regress_0_tests
   regress0/seq/proj-issue604-reg-closure.smt2
   regress0/seq/proj-issue642-cycle-irr.smt2
   regress0/seq/proj-issue653.smt2
+  regress0/seq/proj-issue665-nested-const.smt2
   regress0/seq/proj-issue708-explain.smt2
   regress0/seq/proj-issue747-cmi-len-split.smt2
   regress0/seq/proj-issue753-ae.smt2
@@ -1882,6 +1886,7 @@ set(regress_0_tests
   regress0/sets/proj-issue731.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
+  regress0/sets/set-eval-dup.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
   regress0/sets/sets-dsl-rew.smt2
@@ -1997,6 +2002,7 @@ set(regress_0_tests
   regress0/strings/issue11197-str-ipc.smt2
   regress0/strings/issue11703-re-uf.smt2
   regress0/strings/issue11710-numeric-max.smt2
+  regress0/strings/issue11890-eec-model.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
