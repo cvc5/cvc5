@@ -273,6 +273,17 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // no non-linear constraints, we are done
     return;
   }
+  Trace("nl-ext-mv") << "Shared terms : " << std::endl;
+  std::unordered_set<Node, Node> revSharedTermsPre;
+  for (context::CDList<TNode>::const_iterator its =
+           d_containing.shared_terms_begin();
+       its != d_containing.shared_terms_end();
+       ++its)
+  {
+    Node st = *its;
+    Node stv = d_model.computeAbstractModelValue(st);
+    revSharedTermsPre[st] = stv;
+  }
   if (TraceIsOn("nl-model-final"))
   {
     Trace("nl-model-final") << "MODEL INPUT:" << std::endl;
@@ -307,6 +318,33 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
           << "  " << m.first << " -> " << m.second << std::endl;
     }
     Trace("nl-model-final") << "END" << std::endl;
+  }
+  std::unordered_set<Node, std::vector<Node>> sharedTermsPost;
+  for (context::CDList<TNode>::const_iterator its =
+           d_containing.shared_terms_begin();
+       its != d_containing.shared_terms_end();
+       ++its)
+  {
+    Node st = *its;
+    Node stv = d_model.computeAbstractModelValue(st);
+    sharedTermsPost[stv].emplace_back(st):
+  }
+  std::unordered_set<Node, Node>::iterator itrs;
+  for (const std::pair<const Node, std::vector<Node>>& stp : sharedTermsPost)
+  {
+    Node cv;
+    for (const Node& st : stp.second)
+    {
+      Node stv = d_model.computeAbstractModelValue(st);
+      if (cv.isNull())
+      {
+        cv = stv;
+      }
+      else if (stv!=cv)
+      {
+        Trace("nl-model-final") << "*** Identified two shared terms that were disequal: " << st << " " << stp.second[0] << std::endl;
+      }
+    }
   }
 }
 
