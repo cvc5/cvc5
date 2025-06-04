@@ -297,7 +297,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cvc5-wasm
-        path: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.wasm
+        path: |
+          ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.wasm
+          ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.js
 
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
