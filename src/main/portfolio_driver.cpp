@@ -941,9 +941,14 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
         .set("repeat-simp");
     s.add();
   }
-  else if (isOneOf(logic, "QF_BV", "QF_UFBV"))
+  else if (isOneOf(logic, "QF_BV"))
   {
     s.add().set("bitblast", "eager").set("bv-assert-input");
+  }
+  else if (isOneOf(logic, "QF_UFBV"))
+  {
+    s.add(0.75).set("bitblast", "eager").set("bv-assert-input");
+    s.add();
   }
   else if (isOneOf(logic, "QF_AUFLIA"))
   {
