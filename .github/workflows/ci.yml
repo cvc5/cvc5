@@ -292,6 +292,13 @@ jobs:
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
 
+    - name: Upload wasm artifact
+      if: matrix.build.wasm-build
+      uses: actions/upload-artifact@v4
+      with:
+        name: cvc5-wasm
+        path: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.wasm
+
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-jar
