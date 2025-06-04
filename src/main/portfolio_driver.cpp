@@ -716,7 +716,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
         .set("replay-reject-cut", "512")
         .set("unconstrained-simp")
         .set("use-soi");
-    s.add(.5833333333)
+    s.add(0.583333333)
         .unset("restrict-pivots")
         .set("use-soi")
         .set("new-prop")
