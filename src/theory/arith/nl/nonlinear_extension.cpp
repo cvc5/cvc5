@@ -275,6 +275,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   }
   Trace("nl-ext-mv") << "Shared terms : " << std::endl;
   const context::CDList<TNode>& sts = d_astate.getSharedTerms();
+  // A mapping from shared terms to their model value, prior to
+  // processing the model below.
   std::unordered_map<TNode, Node> revSharedTermsPre;
   for (TNode st : sts)
   {
@@ -318,6 +320,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     Trace("nl-model-final") << "END" << std::endl;
   }
   d_model.reset(arithModel);
+  // Go back and see if we made two shared terms equal that were disequal prior to modifying the model.
+  // If we did so for two terms t and s, then we must split on t = s.
   std::unordered_map<TNode, std::vector<Node>> sharedTermsPost;
   for (TNode st : sts)
   {
