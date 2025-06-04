@@ -274,6 +274,9 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     return;
   }
   Trace("nl-ext-mv") << "Shared terms : " << std::endl;
+  // For the purposes of ensuring we do not introduce inconsistencies for
+  // theory combination, we first record the model values for all shared
+  // terms, if they exist.
   const context::CDList<TNode>& sts = d_astate.getSharedTerms();
   // A mapping from shared terms to their model value, prior to
   // processing the model below.
