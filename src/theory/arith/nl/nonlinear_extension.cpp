@@ -274,14 +274,12 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     return;
   }
   Trace("nl-ext-mv") << "Shared terms : " << std::endl;
-  std::unordered_set<Node, Node> revSharedTermsPre;
-  for (context::CDList<TNode>::const_iterator its =
-           d_containing.shared_terms_begin();
-       its != d_containing.shared_terms_end();
-       ++its)
+  const context::CDList<TNode>& sts = d_astate.getSharedTerms();
+  std::unordered_map<TNode, Node> revSharedTermsPre;
+  for (TNode st : sts)
   {
-    Node st = *its;
     Node stv = d_model.computeAbstractModelValue(st);
+    Trace("nl-model-final") << "- shared term value " << st << " = " << stv << std::endl;
     revSharedTermsPre[st] = stv;
   }
   if (TraceIsOn("nl-model-final"))
@@ -319,23 +317,23 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     }
     Trace("nl-model-final") << "END" << std::endl;
   }
-  std::unordered_set<Node, std::vector<Node>> sharedTermsPost;
-  for (context::CDList<TNode>::const_iterator its =
-           d_containing.shared_terms_begin();
-       its != d_containing.shared_terms_end();
-       ++its)
+  d_model.reset(arithModel);
+  std::unordered_map<TNode, std::vector<Node>> sharedTermsPost;
+  for (TNode st : sts)
   {
-    Node st = *its;
     Node stv = d_model.computeAbstractModelValue(st);
-    sharedTermsPost[stv].emplace_back(st):
+    Trace("nl-model-final") << "- shared term value (post) " << st << " = " << stv << std::endl;
+    sharedTermsPost[stv].emplace_back(st);
   }
-  std::unordered_set<Node, Node>::iterator itrs;
-  for (const std::pair<const Node, std::vector<Node>>& stp : sharedTermsPost)
+  std::unordered_map<TNode, Node>::iterator itrs;
+  for (const std::pair<const TNode, std::vector<Node>>& stp : sharedTermsPost)
   {
     Node cv;
-    for (const Node& st : stp.second)
+    for (TNode st : stp.second)
     {
-      Node stv = d_model.computeAbstractModelValue(st);
+      itrs = revSharedTermsPre.find(st);
+      Assert (itrs!=revSharedTermsPre.end());
+      Node stv = itrs->second;
       if (cv.isNull())
       {
         cv = stv;
@@ -343,6 +341,14 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       else if (stv!=cv)
       {
         Trace("nl-model-final") << "*** Identified two shared terms that were disequal: " << st << " " << stp.second[0] << std::endl;
+        Node eq = st.eqNode(stp.second[0]);
+        Node split = eq.orNode(eq.negate());
+        d_im.addPendingLemma(split,
+                              InferenceId::ARITH_NL_SHARED_TERM_SPLIT,
+                              nullptr,
+                              true);
+        // only consider one
+        break;
       }
     }
   }
