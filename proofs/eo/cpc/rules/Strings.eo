@@ -267,9 +267,9 @@
 ; program: $mk_re_concat
 ; args:
 ; - E: A conjunction of regular expression memberships.
+; - C: The current conclusion.
 ; return: >
-;   The concatenation of the strings in E is in the concatenation of the regular
-;   expressions in E.
+;   A regular expression membership corresponding to the conclusion of ProofRule::RE_CONCAT.
 (program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
   :signature (Bool Bool) Bool
   (
@@ -297,7 +297,7 @@
 ; - t String: The string.
 ; - r RegLan: The body of the regular expression star.
 ; - p (@Pair String Bool): The result of $re_unfold_pos_concat based on the body
-;                         of r.
+;                           of r.
 ; return: The conclusion for rule RE_UNFOLD_POS in the case of RE star.
 (program $mk_re_unfold_pos_star ((t String) (r RegLan) (k1 String) (k2 String) (k3 String) (M Bool :list))
   :signature (String RegLan (@Pair String Bool)) Bool
@@ -342,7 +342,6 @@
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
   :conclusion ($mk_re_unfold_pos t r)
-
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
