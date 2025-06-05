@@ -299,15 +299,6 @@ class RewriteDbProofCons : protected EnvObj
                          ProvenInfo& pi,
                          bool doFixedPoint = false);
   /**
-   * Adds to proof info (d_pcache) s.t. we can show that:
-   * context[placeholder -> source] = context[placeholder -> target]
-   * Note: we assume that the placeholder only appears once
-   */
-  void cacheProofSubPlaceholder(TNode context,
-                                TNode placeholder,
-                                TNode source,
-                                TNode target);
-  /**
    * Rewrite concrete, which returns the result of rewriting n if it contains
    * no abstract subterms, or n itself otherwise.
    *

@@ -44,6 +44,8 @@ enum class RewriteProofStatus : uint32_t
   FLATTEN,
   // we have a DSL proof rule that proves this goal.
   DSL,
+  // obtained by >1 applications of a DSL fixed point rule
+  DSL_FIXED_POINT,
   // we have a THEORY_REWRITE that proves this goal.
   THEORY_REWRITE
 };
