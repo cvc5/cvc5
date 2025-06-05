@@ -30,7 +30,6 @@
 (program $get_a_norm_rec ((T Type) (S Type) (U Type) (f (-> S S S)) (id S) (x S) (x1 S) (x2 S))
   :signature ((-> S S S) T T) T
   (
-    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
     (($get_a_norm_rec f id id)         id)
     (($get_a_norm_rec f id x)          (eo::cons f x id))
