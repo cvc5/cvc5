@@ -135,6 +135,7 @@ void RewriteProofRule::init(ProofRewriteRule id,
       size_t cfind = nchild;
       for (size_t i = 0; i < nchild; i++)
       {
+        // TODO (wishue #160): could use utility for finding path
         if (expr::hasSubterm(curr[i], var))
         {
           cfind = i;
