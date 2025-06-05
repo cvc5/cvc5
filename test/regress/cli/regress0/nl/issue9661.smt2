@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --nl-cov
 ; EXPECT: sat
+; REQUIRES: poly
 (set-logic QF_NIRA)
 (declare-fun a () Real)
 (declare-fun b () Real)
