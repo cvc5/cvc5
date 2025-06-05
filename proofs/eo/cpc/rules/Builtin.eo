@@ -33,7 +33,7 @@
 ;   The antecedant of F for conclusion C, e.g. this returns (and G1 G2) when F is
 ;   (=> G1 (=> G2 C)), or true if F is C. Otherwise, it does not evaluate.
 (program $extract_antec_rec
-  ((C Bool) (F1 Bool) (F2 Bool))
+   ((C Bool) (F1 Bool) (F2 Bool))
    :signature (Bool Bool) Bool
    (
    (($extract_antec_rec C C)          true)
@@ -50,7 +50,7 @@
 ;   Note that the singleton case is handled here to avoid constructing an and term with
 ;   single child.
 (program $extract_antec
-  ((C Bool) (F Bool))
+   ((C Bool) (F Bool))
    :signature (Bool Bool) Bool
    (
    (($extract_antec (=> F C) C) F)
@@ -65,7 +65,7 @@
 ; return: >
 ;   The expected conclusion of a ProofRule::SCOPE.
 (program $run_process_scope
-  ((C Bool) (F Bool))
+   ((C Bool) (F Bool))
    :signature (Bool Bool) Bool
    (
    (($run_process_scope F false)  (not ($extract_antec F false)))
