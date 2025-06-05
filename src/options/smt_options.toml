@@ -47,6 +47,7 @@ name   = "SMT Layer"
   long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
+  no_support = ["proofs", "unsat-cores"]
   help       = "rewrite the input based on learned literals"
 
 [[option]]
@@ -68,7 +69,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "expert"
+  category   = "common"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
@@ -234,7 +235,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkSynthSol"
-  category   = "regular"
+  category   = "common"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
@@ -361,6 +362,7 @@ name   = "SMT Layer"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "mode for translating BVAnd to integer"
   help_mode  = "solve-bv-as-int modes."
 [[option.mode.OFF]]
@@ -474,7 +476,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkInterpolants"
-  category   = "regular"
+  category   = "common"
   long       = "check-interpolants"
   type       = "bool"
   default    = "false"
@@ -482,7 +484,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkAbducts"
-  category   = "regular"
+  category   = "common"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"

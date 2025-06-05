@@ -7680,6 +7680,10 @@ std::string OptionInfo::toString() const
   {
     internal::container_to_stream(os, aliases, ", ", "", ", ");
   }
+  if (!noSupports.empty())
+  {
+    internal::container_to_stream(os, noSupports, ", ", "", ", ");
+  }
   auto printNum = [&os](const std::string& type, const auto& vi) {
     os << " | " << type << " | " << vi.currentValue << " | default "
        << vi.defaultValue;
@@ -7755,6 +7759,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7766,6 +7771,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7778,6 +7784,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7791,6 +7798,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7804,6 +7812,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7816,6 +7825,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -7828,6 +7838,7 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
             return OptionInfo{
                 info.name,
                 info.aliases,
+                info.noSupports,
                 info.setByUser,
                 info.category
                     == internal::options::OptionInfo::Category::EXPERT,
@@ -8537,9 +8548,9 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
          "'notes', 'smt-lib-version' or 'status'";
   CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword != "smt-lib-version" || value == "2" || value == "2.0"
-          || value == "2.5" || value == "2.6",
+          || value == "2.5" || value == "2.6" || value == "2.7",
       value)
-      << "'2.0', '2.5', '2.6'";
+      << "'2.0', '2.5', '2.6', '2.7'";
   CVC5_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
                                   || value == "unsat" || value == "unknown",
                               value)

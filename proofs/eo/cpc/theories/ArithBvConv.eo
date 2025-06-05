@@ -1,19 +1,13 @@
 (include "../theories/BitVectors.eo")
 (include "../theories/Ints.eo")
 
-(declare-const int_to_bv (->
-  (! Int :var w)
-  Int (BitVec w))
+(declare-parameterized-const int_to_bv ((w Int)) (-> Int (BitVec w))
 )
 
-(declare-const ubv_to_int (->
-  (! Int :var m :implicit)
-  (BitVec m) Int)
+(declare-parameterized-const ubv_to_int ((m Int :implicit)) (-> (BitVec m) Int)
 )
 
-(declare-const sbv_to_int (->
-  (! Int :var m :implicit)
-  (BitVec m) Int)
+(declare-parameterized-const sbv_to_int ((m Int :implicit)) (-> (BitVec m) Int)
 )
 
 ; disclaimer: >

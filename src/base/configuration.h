@@ -61,6 +61,8 @@ public:
 
   static std::string getName();
 
+  static bool isSafeBuild();
+
   static bool isDebugBuild();
 
   static bool isTracingBuild();

@@ -372,10 +372,12 @@ void TheoryEngineModelBuilder::addToTypeList(
         const DType& dt = tn.getDType();
         for (unsigned i = 0; i < dt.getNumConstructors(); i++)
         {
-          for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+          // Note that we may be a parameteric datatype, in which case the
+          // instantiated sorts need to be considered.
+          TypeNode ctn = dt[i].getInstantiatedConstructorType(tn);
+          for (const TypeNode& ctnc : ctn)
           {
-            TypeNode ctn = dt[i][j].getRangeType();
-            addToTypeList(ctn, type_list, visiting);
+            addToTypeList(ctnc, type_list, visiting);
           }
         }
       }
@@ -634,7 +636,22 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     {
       if (eqct.isUninterpretedSort())
       {
+        // we never assign uninterpreted sorts a priori.
+        Assert (constRep.isNull());
         eqc_usort_count[eqct]++;
+        // For uninterpreted sorts when finite model finding is enabled,
+        // we preemptively assign the next value in the enumeration here.
+        // This is important because uninterpreted sorts are considered
+        // "INTERPRETED_FINITE" cardinality when finite model finding is
+        // enabled, and hence would otherwise be assigned using the finite
+        // case below (assigning them to the first value), which we do not
+        // want. Instead, all initial equivalence classes of uninterpreted
+        // sorts are assigned distinct values, and all further values
+        // (e.g. terms introduced as subfields of datatypes) are assign
+        // arbitrary values.
+        constRep = typeConstSet.nextTypeEnum(eqct);
+        Trace("model-value-enum") << "Enum fmf usort " << eqct << " " << constRep
+                                  << " for " << eqc << std::endl;
       }
     }
     // Assign representative for this equivalence class
@@ -989,17 +1006,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isUninterpretedSort() || !d_env.isFiniteType(t))
+          else if (!d_env.isFiniteType(t))
           {
-            // If its interpreted as infinite, we get a fresh value that does
-            // not occur in the model.
-            // Note we also consider uninterpreted sorts to be infinite here
-            // regardless of whether the cardinality class of t is
-            // CardinalityClass::INTERPRETED_FINITE.
-            // This is required because the UF solver does not explicitly
-            // assign uninterpreted constants to equivalence classes in its
-            // collectModelValues method. Doing so would have the same effect
-            // as running the code in this case.
+            // If its infinite, we get a fresh value that does not occur in the
+            // model. Note that uninterpreted sorts are handled in the finite
+            // case below in the case that finite model finding is enabled.
             bool success;
             do
             {
@@ -1050,14 +1061,23 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
               //---
             } while (!success);
             Assert(!n.isNull());
+            Trace("model-value-enum") << "Enum infinite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           else
           {
             // Otherwise, we get the first value from the type enumerator.
+            // Note that uninterpreted sorts in finite model finding assign
+            // an arbitrary constant when unassigned. This case is applied
+            // e.g. for datatypes over uninterpreted sorts, where subfields
+            // of the datatype may be introduced when assigning arbitrary
+            // values.
             Trace("model-builder-debug")
                 << "Get first value from finite type..." << std::endl;
             TypeEnumerator te(t);
             n = *te;
+            Trace("model-value-enum") << "Enum finite " << t << " " << n
+                                      << " for " << *i2 << std::endl;
           }
           Trace("model-builder-debug") << "...got " << n << std::endl;
           assignConstantRep(tm, *i2, n);
@@ -1372,6 +1392,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
   Assert(logicInfo().isHigherOrder());
+  Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;

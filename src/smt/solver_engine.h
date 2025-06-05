@@ -187,7 +187,7 @@ class CVC5_EXPORT SolverEngine
    * @param key The option to set
    * @param value The value to set
    * @param fromUser Whether this option was set by the user. This impacts
-   * whether we enable checks e.g. when --safe-options is enabled.
+   * whether we enable checks e.g. when safe mode is enabled.
    * @throw OptionException, ModalException
    */
   void setOption(const std::string& key,
@@ -1127,11 +1127,11 @@ class CVC5_EXPORT SolverEngine
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
 
-  /** Have we set a regular option yet? (for --safe-options) */
+  /** Have we set a regular option yet? (for --safe-mode) */
   bool d_safeOptsSetRegularOption;
-  /** The regular option we set (for --safe-options) */
+  /** The regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOption;
-  /** The value of the regular option we set (for --safe-options) */
+  /** The value of the regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOptionValue;
   /** Was the option already the default setting */
   bool d_safeOptsSetRegularOptionToDefault;

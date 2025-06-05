@@ -53,8 +53,11 @@ endmacro()
 cvc5_add_capi_test(boilerplate "")
 cvc5_add_capi_test(ouroborous "")
 cvc5_add_capi_test(reset_assertions "")
-cvc5_add_capi_test(sep_log_api "")
 cvc5_add_capi_test(smt2_compliance "")
 cvc5_add_capi_test(two_solvers "")
+
+if (NOT ENABLE_SAFE_MODE)
+  cvc5_add_capi_test(sep_log_api "")
+endif()
 
 add_subdirectory(issues)
