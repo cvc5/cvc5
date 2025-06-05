@@ -100,7 +100,7 @@ class CodeGenerator:
             sys.exit(1)
 
     def register_kinds(self, kinds, theory_id, filename):
-        if len(kinds) == 0:
+        if not kinds:
             return
         
         target_kinds_types = ["variable", "operator", "parameterized", "constant", "nullaryoperator"]

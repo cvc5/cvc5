@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+from datetime import date
 from theory_validator import TheoryValidator
 
 try:
@@ -25,7 +26,9 @@ class CodeGenerator:
         self.type_constant_list              = ""
         self.template_data                   = ""
         self.command                         = command
-        self.copyright                       = "2010-2022"
+        
+        current_year               = date.today().year
+        self.copyright             = f"2010-{current_year}"
         
         self.copyright_replacement_pattern                       = b'${copyright}'
         self.generation_command_replacement_pattern              = b'${generation_command}'
@@ -44,7 +47,7 @@ class CodeGenerator:
         self.type_constant_groundterms_replacement_pattern       = b'${type_constant_groundterms}'
         self.type_groundterms_replacement_pattern                = b'${type_groundterms}'
         
-        self.template        = template
+        self.template              = template
         self.output_file           = output_file
         self.register_kind_counter = 0        
     
@@ -69,7 +72,7 @@ class CodeGenerator:
         
         general_kind_case_types = ["variable", "operator", "parameterized", "constant", "nullaryoperator"]
         
-        if len(kinds) == 0:
+        if not kinds:
             return
         
         for kind in kinds:
@@ -82,7 +85,7 @@ class CodeGenerator:
                 self.register_kind_counter += 1
 
                 self.kinds_enum_header += f"  {kind_name}, /**< {kind_comment} ({self.register_kind_counter}) */\n"
-                self.kind_printers +=f"    case Kind::{kind_name}: return \"{kind_name}\";\n"
+                self.kind_printers     += f"    case Kind::{kind_name}: return \"{kind_name}\";\n"
                 self.kind_to_theory_id += f"    case Kind::{kind_name}: return {theory_id};\n"
             elif kind_type == "sort":
                 self.register_sort(kind, theory_id)

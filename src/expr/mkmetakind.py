@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import sys
+from datetime import date
 from theory_validator import TheoryValidator
 
 try:
@@ -26,7 +27,9 @@ class CodeGenerator:
         self.metakind_fwd_decls              = ""
         self.template_data                   = ""
         self.command                         = command
-        self.copyright                       = "2010-2022"
+        
+        current_year               = date.today().year
+        self.copyright             = f"2010-{current_year}"
         
         self.copyright_replacement_pattern                       = b'${copyright}'
         self.generation_command_replacement_pattern              = b'${generation_command}'
@@ -110,8 +113,8 @@ template <>
   // "constructed" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.
   return d_nchildren == 0
-    ? *reinterpret_cast< {class_name} const* >(d_children)
-    : *reinterpret_cast< {class_name} const* >(d_children[0]);
+    ? *reinterpret_cast<{class_name} const*>(d_children)
+    : *reinterpret_cast<{class_name} const*>(d_children[0]);
 }}
 
 // re-enable the warning
@@ -159,13 +162,7 @@ Node NodeManager::mkConst(Kind k, const {class_name}& val)
         out << nv->getConst< {class_name} >();
         break;
 """
-        """
-        cname=`echo "${class}" | awk 'BEGIN {FS="::"} {print$NF}'` => this should be equivalent to cname = class_name.split("::")[-1]
-        metakind_constDeleters="${metakind_constDeleters}
-        case Kind::$1:
-            std::destroy_at(reinterpret_cast< ${class}* >(nv->d_children));
-            break;
-        """
+
         self.metakind_constDeleters += f"""
     case Kind::{name}:
         std::destroy_at(reinterpret_cast< {class_name}* >(nv->d_children));
@@ -220,7 +217,7 @@ Node NodeManager::mkConst(Kind k, const {class_name}& val)
     def register_kinds(self, kinds, filename):
         self.metakind_kinds += f"\n      /* from {filename} */\n"
         self.metakind_operatorKinds += f"\n\n    /* from {filename} */"
-        if len(kinds) == 0:
+        if not kinds:
             return
         
         for kind in kinds:
