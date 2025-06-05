@@ -3720,10 +3720,13 @@ Node SequencesRewriter::rewriteReplace(Node node)
       std::vector<Node> remc(children0.begin() + lastCheckIndex,
                              children0.end());
       Node rem = utils::mkConcat(remc, stype);
-      Node ret = nm->mkNode(
-          Kind::STRING_CONCAT,
-          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]),
-          rem);
+      std::vector<Node> rchildren;
+      rchildren.push_back(
+          nm->mkNode(Kind::STRING_REPLACE, lastLhs, node[1], node[2]));
+      // "inline" the components of concatenation, which makes RARE
+      // reconstruction easier.
+      utils::getConcat(rem, rchildren);
+      Node ret = utils::mkConcat(rchildren, lastLhs.getType());
       // for example:
       //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
       // Since we know that the first occurrence of "A" cannot be in the

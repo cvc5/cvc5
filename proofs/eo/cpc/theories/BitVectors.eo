@@ -5,12 +5,15 @@
 (declare-const BitVec (-> Int Type))
 (declare-consts <binary> (BitVec (eo::len eo::self)))
 
-; define: $bv_bitwidth
+; program: $bv_bitwidth
 ; args:
 ; - T Type: The bitvector type.
 ; return: The (integer value) bitwidth for a given bit-vector type.
-(define $bv_bitwidth ((T Type))
-  (eo::match ((n Int)) T (((BitVec n) n)))
+(program $bv_bitwidth ((n Int))
+  :signature (Type) Int
+  (
+  (($bv_bitwidth (BitVec n)) n)
+  )
 )
 
 ; bvsize
@@ -25,7 +28,10 @@
   :right-assoc-nil @bv_empty)
 
 (declare-parameterized-const extract ((n Int :implicit) (h Int) (l Int))
-  (-> (BitVec n) (BitVec (eo::add h (eo::neg l) 1))))
+  (-> (BitVec n)
+      (BitVec (eo::requires (eo::gt (eo::add l 1) 0) true
+              (eo::requires (eo::gt n h) true
+                (eo::add h (eo::neg l) 1))))))
 
 (declare-parameterized-const repeat ((n Int :implicit) (i Int))
   (-> (BitVec n) (BitVec (eo::mul i n))))

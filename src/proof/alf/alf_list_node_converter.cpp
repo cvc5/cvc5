@@ -57,8 +57,11 @@ Node AlfListNodeConverter::preConvert(Node n)
         }
         else
         {
-          std::vector<Node> seq;
-          return d_tproc.convert(d_nm->mkConst(Sequence(tn, seq)));
+          tn = d_nm->mkSequenceType(tn);
+          Node ntn = d_tproc.typeAsNode(tn);
+          // must use $seq_empty side condition, since string and sequence
+          // have different representations in the Eunoia signature
+          return d_tproc.mkInternalApp("$seq_empty", {ntn}, n.getType());
         }
       }
     }

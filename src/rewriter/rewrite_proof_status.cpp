@@ -33,6 +33,7 @@ const char* toString(RewriteProofStatus s)
     case RewriteProofStatus::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case RewriteProofStatus::ACI_NORM: return "ACI_NORM";
     case RewriteProofStatus::ABSORB: return "ABSORB";
+    case RewriteProofStatus::FLATTEN: return "FLATTEN";
     case RewriteProofStatus::DSL: return "DSL";
     case RewriteProofStatus::THEORY_REWRITE: return "THEORY_REWRITE";
     default: Unreachable();
