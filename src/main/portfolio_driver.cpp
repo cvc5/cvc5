@@ -726,7 +726,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   else if (isOneOf(logic, "QF_LIA"))
   {
     // same as QF_LRA but add --pb-rewrites
-    s.add(0.75)
+    s.add(0.95)
         .set("miplib-trick")
         .set("miplib-trick-subs", "4")
         .set("use-approx")
