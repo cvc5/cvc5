@@ -7787,72 +7787,93 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.noSupports,
-                              info.setByUser,
-                              convertOptionCategory(info.category),
-                              OptionInfo::VoidInfo{}};
+            auto cat = convertOptionCategory(info.category);
+            return OptionInfo{
+              info.name,
+              info.aliases,
+              info.noSupports,
+              info.setByUser,
+              cat == modes::OptionCategory::EXPERT,
+              cat == modes::OptionCategory::REGULAR,
+              convertOptionCategory(info.category),
+              OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
+            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
+                cat == modes::OptionCategory::EXPERT,
+                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
-          [&info](
-              const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.noSupports,
-                              info.setByUser,
-                              convertOptionCategory(info.category),
-                              OptionInfo::ValueInfo<std::string>{
-                                  vi.defaultValue, vi.currentValue}};
-          },
-          [&info](
-              const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
+          [&info](const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
+            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
+                cat == modes::OptionCategory::EXPERT,
+                cat == modes::OptionCategory::REGULAR,
+                convertOptionCategory(info.category),
+                OptionInfo::ValueInfo<std::string>{
+                    vi.defaultValue, vi.currentValue}};
+          },
+          [&info](const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
+            auto cat = convertOptionCategory(info.category);
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.noSupports,
+                info.setByUser,
+                cat == modes::OptionCategory::EXPERT,
+                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
-          [&info](
-              const internal::options::OptionInfo::NumberInfo<uint64_t>& vi) {
+          [&info](const internal::options::OptionInfo::NumberInfo<uint64_t>& vi) {
+            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
+                cat == modes::OptionCategory::EXPERT,
+                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::NumberInfo<double>& vi) {
+            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
+                cat == modes::OptionCategory::EXPERT,
+                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            return OptionInfo{info.name,
-                              info.aliases,
-                              info.noSupports,
-                              info.setByUser,
-                              convertOptionCategory(info.category),
-                              OptionInfo::ModeInfo{
-                                  vi.defaultValue, vi.currentValue, vi.modes}};
+            auto cat = convertOptionCategory(info.category);
+            return OptionInfo{
+              info.name,
+              info.aliases,
+              info.noSupports,
+              info.setByUser,
+              cat == modes::OptionCategory::EXPERT,
+              cat == modes::OptionCategory::REGULAR,
+              convertOptionCategory(info.category),
+              OptionInfo::ModeInfo{
+                  vi.defaultValue, vi.currentValue, vi.modes}};
           },
       },
       info.valueInfo);
