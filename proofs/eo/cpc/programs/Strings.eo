@@ -31,7 +31,7 @@
 (program $seq_element_of_unit ((U Type) (x U))
   :signature ((Seq U)) U
   (
-    (($seq_element_of_unit (seq.unit x)) x)
+  (($seq_element_of_unit (seq.unit x)) x)
   )
 )
 
