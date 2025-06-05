@@ -915,8 +915,9 @@
               (eo::cons @list "" chars)
               (eo::cons @list (as seq.empty (eo::typeof t)) units)))
           ue))))))) ; otherwise just return self
-    (($seq_eval (seq.len t))              (seq.len t))
-    (($seq_eval (seq.++ t ts))            (eo::list_concat seq.++ ($seq_eval t) ($seq_eval ts)))
+    (($seq_eval (seq.len t))              (eo::list_len seq.++ ($str_nary_intro ($seq_eval t))))
+    (($seq_eval (seq.++ t ts))            (eo::list_concat seq.++
+                                            ($str_nary_intro ($seq_eval t)) ($str_nary_intro ($seq_eval ts))))
     (($seq_eval (seq.extract t n m))      (seq.extract t n m))
     (($seq_eval (seq.contains t s))       (seq.contains t s))
     (($seq_eval (seq.replace t s r))      (seq.replace t s r))
@@ -924,8 +925,8 @@
     (($seq_eval (seq.indexof t s n))      (seq.indexof t s n))
     (($seq_eval (seq.prefixof t s))       (seq.prefixof t s))
     (($seq_eval (seq.suffixof t s))       (seq.suffixof t s))
-    (($seq_eval (seq.at t n))             (seq.at t n))
-    (($seq_eval (seq.rev t))              (seq.rev t))
+    (($seq_eval (seq.at t n))             ($seq_eval (seq.substr t n 1)))
+    (($seq_eval (seq.rev t))              (eo::list_rev seq.++ ($str_nary_intro ($seq_eval t))))
     (($seq_eval (= t s))                  (eo::ite (eo::eq ($seq_eval t) ($seq_eval s))
                                             true
                                             (eo::not ($are_distinct_terms t s))))
