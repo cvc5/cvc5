@@ -356,8 +356,8 @@ class CpcTester(Tester):
             )
             # if we throw an admissible error (with text "in safe mode"), we
             # allow the benchmark to be skipped.
-            if (benchmark_info.safe_mode or benchmark_info.stable_mode) and
-               (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+            if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+                (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
                 return EXIT_SKIP
             cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
             tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
@@ -716,8 +716,8 @@ def run_benchmark(benchmark_info):
     )
     # For all testers, if we throw an admissible error (with text
     # "in safe mode"), we allow the benchmark to be skipped.
-    if (benchmark_info.safe_mode or benchmark_info.stable_mode) and
-       (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode())):
+    if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
+        (re.search(r'in safe mode', output.decode()) or re.search(r'in safe mode', error.decode()))):
         return (output, error, EXIT_SKIP)
 
     # If a scrubber command has been specified then apply it to the output.
