@@ -8,7 +8,7 @@
 ; - arg3 U: The term to process.
 ; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
 (program $substitute
-  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U) (w T))
+  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U))
   :signature (S S U) U
   (
   (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))

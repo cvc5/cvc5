@@ -13,8 +13,8 @@
 ; note: >
 ;   This method is similar in purpose to $singleton_elim, but insists that
 ;   the function and its nil terminator are provided explicitly.
-(program $singleton_elim_aci ((S Type) (U Type) (V Type) (f (-> S V V)) (id U) (x U) (x1 U) (x2 U))
-  :signature ((-> S V V) U U) U
+(program $singleton_elim_aci ((S Type) (U Type) (f (-> S S S)) (id U) (x U) (x1 U) (x2 U))
+  :signature ((-> S S S) U U) U
   (
     (($singleton_elim_aci f id (f x1 x2))  (eo::ite (eo::eq x2 id) x1 (f x1 x2)))
     (($singleton_elim_aci f id x)          x)
@@ -27,10 +27,9 @@
 ; - id S: The nil terminator of f.
 ; - s S: The term to process.
 ; return: the result of normalizing s based on associative+identity reasoning.
-(program $get_a_norm_rec ((T Type) (S Type) (U Type) (V Type) (f (-> S V V)) (id S) (x S) (x1 S) (x2 S :list))
-  :signature ((-> S V V) T T) T
+(program $get_a_norm_rec ((T Type) (S Type) (f (-> S S S)) (id T) (x T) (x1 T) (x2 T))
+  :signature ((-> S S S) T T) T
   (
-    (($get_a_norm_rec f id (f id x2))  ($get_a_norm_rec f id x2))
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
     (($get_a_norm_rec f id id)         id)
     (($get_a_norm_rec f id x)          (eo::cons f x id))
@@ -53,7 +52,7 @@
 ; args:
 ; - t U: The term to process.
 ; return: the result of normalizing t based on associative+identity reasoning.
-(program $get_a_norm ((S Type) (U Type) (V Type) (f (-> S V V)) (x U) (y U))
+(program $get_a_norm ((S Type) (U Type) (f (-> S S S)) (x U) (y U))
   :signature (U) U
   (
     (($get_a_norm (f x y))  (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
@@ -72,7 +71,7 @@
 ; - a U: The first term, expected to be normalized for ACI_NORM.
 ; - b U: The second term, expected to be normalized for ACI_NORM.
 ; return: true if a can be shown to be equivalent to b.
-(program $aci_norm_eq ((S Type) (U Type) (V Type) (t U) (s U) (f (-> S V V)))
+(program $aci_norm_eq ((S Type) (U Type) (t U) (s U) (f (-> S S S)))
   :signature (U U) Bool
   (
   (($aci_norm_eq t t) true)
