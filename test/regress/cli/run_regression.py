@@ -919,7 +919,7 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
-            safe_mode=("safe-mode" in cvc5_features)
+            safe_mode=("safe-mode" in cvc5_features),
             stable_mode=("stable-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
