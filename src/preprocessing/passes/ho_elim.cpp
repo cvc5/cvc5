@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +42,6 @@ HoElim::HoElim(PreprocessingPassContext* preprocContext)
 Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
 {
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::vector<Node> visit;
   TNode cur;
@@ -75,7 +74,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
           {
             TypeNode vt = v.getType();
             ftypes.push_back(vt);
-            Node vs = nm->mkBoundVar(vt);
+            Node vs = NodeManager::mkBoundVar(vt);
             vars.push_back(v);
             nvars.push_back(vs);
             lvars.push_back(vs);
@@ -99,7 +98,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         }
         TypeNode rangeType = lam.getType().getRangeType();
         TypeNode nft = nm->mkFunctionType(ftypes, rangeType);
-        Node nf = sm->mkDummySkolem("ll", nft);
+        Node nf = NodeManager::mkDummySkolem("ll", nft);
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
@@ -160,7 +159,6 @@ Node HoElim::eliminateHo(Node n)
 {
   Trace("ho-elim-assert") << "Ho-elim assertion: " << n << std::endl;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   std::unordered_map<Node, Node>::iterator it;
   std::map<Node, Node> preReplace;
   std::map<Node, Node>::iterator itr;
@@ -193,11 +191,11 @@ Node HoElim::eliminateHo(Node n)
             TypeNode ut = getUSort(tn);
             if (cur.getKind() == Kind::BOUND_VARIABLE)
             {
-              ret = nm->mkBoundVar(ut);
+              ret = NodeManager::mkBoundVar(ut);
             }
             else
             {
-              ret = sm->mkDummySkolem("k", ut);
+              ret = NodeManager::mkDummySkolem("k", ut);
             }
             // must get the ho apply to ensure extensionality is applied
             Node hoa = getHoApplyUf(tn);
@@ -270,7 +268,7 @@ Node HoElim::eliminateHo(Node n)
             {
               Assert(!childrent.empty());
               TypeNode newFType = nm->mkFunctionType(childrent, cur.getType());
-              retOp = sm->mkDummySkolem("rf", newFType);
+              retOp = NodeManager::mkDummySkolem("rf", newFType);
               d_visited_op[op] = retOp;
             }
             else
@@ -329,9 +327,10 @@ PreprocessingPassResult HoElim::applyInternal(
       Node res = eliminateLambdaComplete(prev, newLambda);
       if (res != prev)
       {
-        res = rewrite(res);
-        Assert(!expr::hasFreeVar(res));
-        assertionsToPreprocess->replace(i, res);
+        assertionsToPreprocess->replace(
+            i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+        assertionsToPreprocess->ensureRewritten(i);
+        Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
       }
     }
     // do lambda lifting on new lambda definitions
@@ -347,7 +346,7 @@ PreprocessingPassResult HoElim::applyInternal(
         std::vector<Node> nvars;
         for (const Node& v : lambda[0])
         {
-          Node bv = nm->mkBoundVar(v.getType());
+          Node bv = NodeManager::mkBoundVar(v.getType());
           vars.push_back(v);
           nvars.push_back(bv);
         }
@@ -378,7 +377,8 @@ PreprocessingPassResult HoElim::applyInternal(
       {
         Node axr = rewrite(ax);
         Assert(!expr::hasFreeVar(axr));
-        assertionsToPreprocess->push_back(axr);
+        assertionsToPreprocess->push_back(
+            axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
       }
     }
     axioms.clear();
@@ -391,9 +391,10 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateHo(prev);
     if (res != prev)
     {
-      res = rewrite(res);
-      Assert(!expr::hasFreeVar(res));
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_HO_ELIM);
+      assertionsToPreprocess->ensureRewritten(i);
+      Assert(!expr::hasFreeVar((*assertionsToPreprocess)[i]));
     }
   }
   // extensionality: process all function types
@@ -407,9 +408,9 @@ PreprocessingPassResult HoElim::applyInternal(
       TypeNode uf = getUSort(ft[0]);
       TypeNode ut = getUSort(ft[1]);
       // extensionality
-      Node x = nm->mkBoundVar("x", uf);
-      Node y = nm->mkBoundVar("y", uf);
-      Node z = nm->mkBoundVar("z", ut);
+      Node x = NodeManager::mkBoundVar("x", uf);
+      Node y = NodeManager::mkBoundVar("y", uf);
+      Node z = NodeManager::mkBoundVar("z", ut);
       Node eq = nm->mkNode(Kind::APPLY_UF, h, x, z)
                     .eqNode(nm->mkNode(Kind::APPLY_UF, h, y, z));
       Node antec =
@@ -426,12 +427,12 @@ PreprocessingPassResult HoElim::applyInternal(
       // Without this axiom, the translation is model unsound.
       if (options().quantifiers.hoElimStoreAx)
       {
-        Node u = nm->mkBoundVar("u", uf);
-        Node v = nm->mkBoundVar("v", uf);
-        Node i = nm->mkBoundVar("i", ut);
-        Node ii = nm->mkBoundVar("ii", ut);
+        Node u = NodeManager::mkBoundVar("u", uf);
+        Node v = NodeManager::mkBoundVar("v", uf);
+        Node i = NodeManager::mkBoundVar("i", ut);
+        Node ii = NodeManager::mkBoundVar("ii", ut);
         Node huii = nm->mkNode(Kind::APPLY_UF, h, u, ii);
-        Node e = nm->mkBoundVar("e", huii.getType());
+        Node e = NodeManager::mkBoundVar("e", huii.getType());
         Node store = nm->mkNode(
             Kind::FORALL,
             nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),
@@ -448,13 +449,13 @@ PreprocessingPassResult HoElim::applyInternal(
     }
     else if (options().quantifiers.hoElimStoreAx)
     {
-      Node u = nm->mkBoundVar("u", ftn);
-      Node v = nm->mkBoundVar("v", ftn);
+      Node u = NodeManager::mkBoundVar("u", ftn);
+      Node v = NodeManager::mkBoundVar("v", ftn);
       std::vector<TypeNode> argTypes = ftn.getArgTypes();
-      Node i = nm->mkBoundVar("i", argTypes[0]);
-      Node ii = nm->mkBoundVar("ii", argTypes[0]);
+      Node i = NodeManager::mkBoundVar("i", argTypes[0]);
+      Node ii = NodeManager::mkBoundVar("ii", argTypes[0]);
       Node huii = nm->mkNode(Kind::HO_APPLY, u, ii);
-      Node e = nm->mkBoundVar("e", huii.getType());
+      Node e = NodeManager::mkBoundVar("e", huii.getType());
       Node store = nm->mkNode(
           Kind::FORALL,
           nm->mkNode(Kind::BOUND_VAR_LIST, u, e, i),
@@ -477,7 +478,8 @@ PreprocessingPassResult HoElim::applyInternal(
     {
       Node axr = rewrite(ax);
       Assert(!expr::hasFreeVar(axr));
-      assertionsToPreprocess->push_back(axr);
+      assertionsToPreprocess->push_back(
+          axr, false, nullptr, TrustId::PREPROCESS_HO_ELIM_LEMMA);
     }
   }
 
@@ -509,13 +511,12 @@ Node HoElim::getHoApplyUf(TypeNode tnf, TypeNode tna, TypeNode tnr)
   if (it == d_hoApplyUf.end())
   {
     NodeManager* nm = nodeManager();
-    SkolemManager* sm = nm->getSkolemManager();
 
     std::vector<TypeNode> hoTypeArgs;
     hoTypeArgs.push_back(tnf);
     hoTypeArgs.push_back(tna);
     TypeNode tnh = nm->mkFunctionType(hoTypeArgs, tnr);
-    Node k = sm->mkDummySkolem("ho", tnh);
+    Node k = NodeManager::mkDummySkolem("ho", tnh);
     d_hoApplyUf[tnf] = k;
     return k;
   }

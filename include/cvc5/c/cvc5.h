@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3493,6 +3493,10 @@ struct Cvc5OptionInfo
   size_t num_aliases;
   /** The option name aliases */
   const char** aliases;
+  /** The number of unsupported features */
+  size_t num_no_supports;
+  /** The unsupported features */
+  const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
   /** True if the option is an expert option */
@@ -4833,7 +4837,10 @@ CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
 /**
  * Get an interpolant.
  *
- * This determines a term @f$I@f$ such that @f$A \rightarrow I@f$ and
+ * Given that @f$A \rightarrow B@f$ is valid,
+ * this function determines a term @f$I@f$ 
+ * over the shared variables of @f$A@f$ and @f$B@f$,
+ * such that @f$A \rightarrow I@f$ and
  * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
  * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
  *
@@ -4862,7 +4869,10 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
 /**
  * Get an interpolant
  *
- * This determines a term @f$I@f$, with respect to a given grammar, such that
+ * Given that @f$A \rightarrow B@f$ is valid,
+ * this function determines a term @f$I@f$ 
+ * over the shared variables of @f$A@f$ and @f$B@f$, 
+ * with respect to a given grammar, such that
  * @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a term
  * exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
  * conjecture, given as `conj`.

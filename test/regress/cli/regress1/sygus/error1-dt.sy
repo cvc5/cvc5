@@ -4,19 +4,19 @@
 (set-logic ALL)
 
 (declare-datatypes ((IntRange 0))
-   (((IntRange (lower Int) (upper Int)))))
+   (((IntRangec (lower Int) (upper Int)))))
 
 (declare-datatypes ((Loc 0))
-   (((Loc (x Int) (y Int)))))
+   (((Locc (x Int) (y Int)))))
 
 (declare-datatypes ((LocRange 0))
-   (((LocRange (xD IntRange) (yD IntRange)))))
+   (((LocRangec (xD IntRange) (yD IntRange)))))
 
 (declare-datatypes ((Ship 0))
-   (((Ship (shipCapacity Int) (shipLoc Loc)))))
+   (((Shipc (shipCapacity Int) (shipLoc Loc)))))
 
 (declare-datatypes ((ShipRange 0))
-   (((ShipRange (shipCapacityD IntRange) (shipLocD LocRange)))))
+   (((ShipRangec (shipCapacityD IntRange) (shipLocD LocRange)))))
 
 (define-fun betweenInt ((x Int) (r IntRange)) Bool
     (and (< (lower r) x) (< x (upper r)))

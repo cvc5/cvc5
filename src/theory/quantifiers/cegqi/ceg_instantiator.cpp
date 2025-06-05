@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,6 +57,10 @@ CegInstantiator::CegInstantiator(Env& env,
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
+  if (d_env.isTheoryProofProducing())
+  {
+    d_vwpg.reset(new ValidWitnessProofGenerator(env));
+  }
 }
 
 CegInstantiator::~CegInstantiator() {
@@ -160,8 +164,7 @@ CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() != Kind::BOUND_VARIABLE
-          && TermUtil::hasBoundVarAttr(cur))
+      if (cur.getKind() != Kind::BOUND_VARIABLE && expr::hasBoundVar(cur))
       {
         if (cur.getKind() == Kind::FORALL || cur.getKind() == Kind::WITNESS)
         {
@@ -505,6 +508,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       }
     }
     // If the above call fails, resort to using value in model. We do so if:
+    // (A) we are doing quantifier elimination for this quantified formula, or
+    // (B) all of the following hold:
     // - we have yet to try an instantiation this round (or we are trying
     //   multiple instantiations, indicated by options::cegqiMultiInst),
     // - the instantiator uses model values at this effort or
@@ -512,9 +517,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator allows model values.
     // Furthermore, we only permit the value if it is constant, since the model
     // may contain internal-only expressions, e.g. RANs.
-    if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
-        && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
-        && vinst->allowModelValue(this, sf, pv, d_effort))
+    bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
+    if (isQElim
+        || ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
+            && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
+            && vinst->allowModelValue(this, sf, pv, d_effort)))
     {
       Node mv = getModelValue( pv );
       if (mv.isConst())
@@ -1005,15 +1012,22 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
 
   // construct the final instantiation by eliminating witness terms
+  bool isQElim = d_qreg.getQuantAttributes().isQuantElim(d_quant);
   std::vector<Node> svec;
   std::vector<Node> exists;
   for (const Node& s : subs)
   {
     if (expr::hasSubtermKind(Kind::WITNESS, s))
     {
+      if (isQElim)
+      {
+        Trace("cegqi-inst-debug") << "...no witness if QE" << std::endl;
+        // not allowed to use witness if doing quantifier elimination
+        return false;
+      }
       PreprocessElimWitnessNodeConverter ewc(d_env, d_qstate.getValuation());
       Node sc = ewc.convert(s);
-      const std::vector<Node>& wexists = ewc.getExistentials();
+      const std::vector<Node>& wexists = ewc.getAxioms();
       exists.insert(exists.end(), wexists.begin(), wexists.end());
       svec.push_back(sc);
     }
@@ -1044,7 +1058,10 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
     // add the existentials, if any witness term was eliminated
     for (const Node& q : exists)
     {
-      d_qim.addPendingLemma(q, InferenceId::QUANTIFIERS_CEGQI_WITNESS);
+      d_qim.addPendingLemma(q,
+                            InferenceId::QUANTIFIERS_CEGQI_WITNESS,
+                            LemmaProperty::NONE,
+                            d_vwpg.get());
     }
     return true;
   }
@@ -1417,14 +1434,8 @@ void CegInstantiator::processAssertions() {
 Node CegInstantiator::getModelValue(Node n)
 {
   Node mv = d_treg.getModel()->getValue(n);
-  // if the model value is not constant, it may require some processing
-  if (!mv.isConst())
-  {
-    // Witness terms with identifiers may appear in the model. We require
-    // dropping their annotations here.
-    AnnotationElimNodeConverter aenc(nodeManager());
-    mv = aenc.convert(mv);
-  }
+  // if mv is a witness term, we require keeping its annotation, which may
+  // specify its proof.
   return mv;
 }
 

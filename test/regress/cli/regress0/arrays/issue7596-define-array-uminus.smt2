@@ -1,4 +1,4 @@
-; COMMAND-LINE: --print-arith-lit-token
+; COMMAND-LINE: --arrays-exp --print-arith-lit-token
 (set-logic ALL)
 (set-info :status sat)
 (define-fun foo () (Array Int Int) ((as const (Array Int Int)) -1))

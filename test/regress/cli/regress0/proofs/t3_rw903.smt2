@@ -1,0 +1,22 @@
+; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: lfsc
+(set-logic UFNIA)
+(declare-fun pow2 (Int) Int)
+(declare-fun intor (Int Int Int) Int)
+(declare-fun intxor (Int Int Int) Int)
+(define-fun bitof ((k Int) (l Int) (a Int)) Int (mod (div a (pow2 l)) 2))
+(define-fun intmax ((k Int)) Int (- (pow2 k) 1))
+(define-fun in_range ((k Int) (x Int)) Bool (and (>= x 0) (<= x (intmax k))))
+(define-fun intmodtotal ((k Int) (a Int) (b Int)) Int (ite (= b 0) a (mod a b)))
+(define-fun intneg ((k Int) (a Int)) Int (intmodtotal k (- (pow2 k) a) (pow2 k)))
+(define-fun intshl ((k Int) (a Int) (b Int)) Int (intmodtotal k (* a (pow2 b)) (pow2 k)))
+(define-fun intadd ((k Int) (a Int) (b Int)) Int (intmodtotal k (+ a b) (pow2 k)))
+(define-fun intmul ((k Int) (a Int) (b Int)) Int (intmodtotal k (* a b) (pow2 k)))
+(define-fun and_ax ((k Int)) Bool true)
+(define-fun or_ax ((k Int)) Bool true)
+(define-fun xor_ax ((k Int)) Bool true)
+(define-fun is_bv_width ((k Int)) Bool (and (> k 0) (and_ax k) (or_ax k) (xor_ax k)))
+(define-fun is_bv_var ((k Int) (x Int)) Bool (in_range k x))
+(assert (not (forall ((s Int) (t Int) (k Int)) (=> (and (is_bv_var k s) (is_bv_var k t) (is_bv_width k)) (= (intshl k s (intadd k (intmul k t 0) s)) (intshl k s s))))))
+(check-sat)

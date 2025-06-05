@@ -1,0 +1,20 @@
+; Theory of sets with cardinality
+
+(define-rule sets-card-singleton ((x ?))
+  (set.card (set.singleton x))
+  1)
+
+(define-rule sets-card-union ((s ?Set) (t ?Set))
+  (set.card (set.union s t))
+  (- (+ (set.card s) (set.card t)) (set.card (set.inter s t))))
+
+(define-rule sets-card-minus ((s ?Set) (t ?Set))
+  (set.card (set.minus s t))
+  (- (set.card s) (set.card (set.inter s t))))
+
+(define-cond-rule sets-card-emp ((x ?Set))
+  (= x (@set.empty_of_type (@type_of x)))
+  (set.card x)
+  0)
+
+; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)

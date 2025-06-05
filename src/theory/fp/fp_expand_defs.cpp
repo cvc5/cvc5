@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Martin Brain, Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,7 +75,7 @@ Node FpExpandDefs::toRealUF(TNode node)
       node[0]);
 }
 
-TrustNode FpExpandDefs::expandDefinition(Node node)
+Node FpExpandDefs::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition")
       << "FpExpandDefs::expandDefinition(): " << node << std::endl;
@@ -120,9 +120,9 @@ TrustNode FpExpandDefs::expandDefinition(Node node)
   {
     Trace("fp-expandDefinition") << "FpExpandDefs::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
+    return res;
   }
-  return TrustNode::null();
+  return Node::null();
 }
 
 }  // namespace fp

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi --mbqi-fast-sygus
+; COMMAND-LINE: --mbqi --mbqi-enum
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-sort a 0)

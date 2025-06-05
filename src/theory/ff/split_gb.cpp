@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir
+ *   Alex Ozdemir, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,7 +41,7 @@ std::optional<std::unordered_map<Node, FiniteFieldValue>> split(
     const std::vector<Node>& facts, const FfSize& size, const Env& env)
 {
   std::unordered_set<Node> bits{};
-  CocoaEncoder enc(size);
+  CocoaEncoder enc(env.getNodeManager(), size);
   for (const auto& fact : facts)
   {
     enc.addFact(fact);

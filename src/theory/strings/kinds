@@ -42,14 +42,14 @@ operator STRING_REV 1 "string reverse"
 sort STRING_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-    "NodeManager::currentNM()->mkConst(::cvc5::internal::String())" \
+    "nm->mkConst(::cvc5::internal::String())" \
     "util/string.h" \
     "String type"
 
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-    "NodeManager::currentNM()->mkNode(Kind::REGEXP_NONE)" \
+    "nm->mkNode(Kind::REGEXP_NONE)" \
     "util/string.h" \
     "RegExp type"
 
@@ -188,5 +188,10 @@ typerule STRING_TO_LOWER "SimpleTypeRule<RString, AString>"
 typerule CONST_SEQUENCE ::cvc5::internal::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::cvc5::internal::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::cvc5::internal::theory::strings::SeqNthTypeRule
+
+# for RARE
+
+operator SEQ_EMPTY_OF_TYPE 1  "the empty sequence whose argument represents its type"
+typerule SEQ_EMPTY_OF_TYPE ::cvc5::internal::theory::strings::SeqEmptyOfTypeTypeRule
 
 endtheory

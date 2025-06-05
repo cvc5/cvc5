@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3122,8 +3122,12 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I} such that {@code A->I} and {@code I->B}
-   * are valid, if such a term exits. {@code A} is the current set of
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I} 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * such that {@code A->I} and {@code I->B}
+   * are valid. {@code A} is the current set of
    * assertions and {@code B} is the conjecture, given as {@code conj}.
    * </p>
    *
@@ -3154,7 +3158,11 @@ public class Solver extends AbstractPointer
    * Get an interpolant.
    *
    * <p>
-   * This determines a term {@code I}, with respect to a given grammar, such
+   * Given that {@code A->B} is valid,
+   * this function determines a term {@code I}, 
+   * over the shared variables of {@code A} and
+   * {@code B},
+   * with respect to a given grammar, such
    * that {@code A->I} and {@code I->B} are valid, if such a term exits.
    * {@code A} is the current set of assertions and {@code B} is the
    * conjecture, given as {@code conj}.

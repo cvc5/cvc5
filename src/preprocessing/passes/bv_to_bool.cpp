@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,8 +40,8 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
       d_liftCache(),
       d_boolCache(),
-      d_one(bv::utils::mkOne(1)),
-      d_zero(bv::utils::mkZero(1)),
+      d_one(bv::utils::mkOne(nodeManager(), 1)),
+      d_zero(bv::utils::mkZero(nodeManager(), 1)),
       d_statistics(statisticsRegistry()){};
 
 PreprocessingPassResult BVToBool::applyInternal(
@@ -52,7 +52,9 @@ PreprocessingPassResult BVToBool::applyInternal(
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(
+        i, new_assertions[i], nullptr, TrustId::PREPROCESS_BV_TO_BOOL);
+    assertionsToPreprocess->ensureRewritten(i);
     if (assertionsToPreprocess->isInConflict())
     {
       return PreprocessingPassResult::CONFLICT;
@@ -165,7 +167,8 @@ Node BVToBool::convertBvTerm(TNode node)
   if (node.getNumChildren() == 0)
   {
     Assert(node.getKind() == Kind::CONST_BITVECTOR);
-    Node result = node == d_one ? bv::utils::mkTrue() : bv::utils::mkFalse();
+    Node result =
+        node == d_one ? bv::utils::mkTrue(nm) : bv::utils::mkFalse(nm);
     // addToCache(node, result);
     Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
@@ -221,7 +224,7 @@ Node BVToBool::convertBvTerm(TNode node)
     default: Unhandled();
   }
 
-  NodeBuilder builder(new_kind);
+  NodeBuilder builder(nm, new_kind);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
   {
     builder << convertBvTerm(node[i]);
@@ -255,7 +258,7 @@ Node BVToBool::liftNode(TNode current)
     }
     else
     {
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();

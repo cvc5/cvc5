@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +43,7 @@ class TaylorGenerator
     Node d_upperPos;
   };
 
-  TaylorGenerator();
+  TaylorGenerator(NodeManager* nm);
 
   /**
    * Return the variable used as x in getTaylor().
@@ -107,6 +107,9 @@ class TaylorGenerator
 
  private:
   const Node d_taylor_real_fv;
+
+  /** the associated node manager */
+  NodeManager* d_nm;
 
   /**
    * For every kind (EXP or SINE) and every degree we store the taylor series up

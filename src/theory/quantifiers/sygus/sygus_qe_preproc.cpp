@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +36,6 @@ Node SygusQePreproc::preprocess(Node q)
     body = body[0][1];
   }
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
   quantifiers::SingleInvocationPartition sip(d_env);
@@ -86,7 +85,7 @@ Node SygusQePreproc::preprocess(Node q)
   // skolemize non-qe variables
   for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
   {
-    Node k = sm->mkDummySkolem(
+    Node k = NodeManager::mkDummySkolem(
         "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
     orig.push_back(nqe_vars[i]);
     subs.push_back(k);
@@ -102,7 +101,7 @@ Node SygusQePreproc::preprocess(Node q)
     Node fv = sip.getFirstOrderVariableForFunction(f);
     Assert(!fi.isNull());
     orig.push_back(fi);
-    Node k = sm->mkDummySkolem(
+    Node k = NodeManager::mkDummySkolem(
         "k", fv.getType(), "qe for function in non-ground single invocation");
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;

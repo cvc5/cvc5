@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -421,9 +421,8 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
-    NodeManager* nm = NodeManager::currentNM();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && functionType.getRangeType() == nm->booleanType()))
+          && functionType.getRangeType() == nodeManager->booleanType()))
     {
       if (errOut)
       {
@@ -436,6 +435,99 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   return bagType;
+}
+
+TypeNode BagAllSomeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
+
+bool checkFunctionTypeFor(const Node& n,
+                          const TypeNode& functionType,
+                          const TypeNode& bagType,
+                          std::ostream* errOut)
+{
+  // get the element type of the second argument, if it exists
+  TypeNode elementType;
+  if (bagType.isBag())
+  {
+    elementType = bagType.getBagElementType();
+  }
+  if (!functionType.isMaybeKind(Kind::FUNCTION_TYPE))
+  {
+    if (errOut)
+    {
+      (*errOut) << "Operator " << n.getKind()
+                << " expects a function as a first argument. "
+                << "Found a term of type '" << functionType << "'.";
+    }
+    return false;
+  }
+  // note that if functionType is abstract, we don't check whether it
+  // matches the argument.
+  if (functionType.isFunction())
+  {
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 1
+          && (elementType.isNull() || argTypes[0].isComparableTo(elementType))))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function whose type is comparable to the "
+                     "type of elements in the set";
+        if (!elementType.isNull())
+        {
+          (*errOut) << " (" << elementType << ")";
+        }
+        (*errOut) << ". Found a function of type '" << functionType << "'.";
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+TypeNode BagAllSomeTypeRule::computeType(NodeManager* nodeManager,
+                                         TNode n,
+                                         bool check,
+                                         std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::BAG_ALL || n.getKind() == Kind::BAG_SOME);
+  std::string op = n.getKind() == Kind::BAG_ALL ? "bag.all" : "bag.some";
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode bagType = n[1].getTypeOrNull();
+  if (check)
+  {
+    if (!bagType.isMaybeKind(Kind::BAG_TYPE))
+    {
+      if (errOut)
+      {
+        (*errOut) << op
+                  << " operator expects a bag in the second "
+                     "argument, a non-bag is found";
+      }
+      return TypeNode::null();
+    }
+    if (!checkFunctionTypeFor(n, functionType, bagType, errOut))
+    {
+      return TypeNode::null();
+    }
+    if (functionType.isFunction())
+    {
+      TypeNode rangeType = functionType.getRangeType();
+      if (!rangeType.isBoolean() && !rangeType.isFullyAbstract())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Operator " << op
+                    << " expects a function returning Bool.";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
 }
 
 TypeNode BagFoldTypeRule::preComputeType(NodeManager* nm, TNode n)
@@ -517,7 +609,6 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == Kind::BAG_PARTITION);
   TypeNode functionType = n[0].getTypeOrNull();
   TypeNode bagType = n[1].getTypeOrNull();
-  NodeManager* nm = NodeManager::currentNM();
   if (check)
   {
     if (!bagType.isBag())
@@ -546,7 +637,8 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
     if (!(argTypes.size() == 2 && elementType == argTypes[0]
-          && elementType == argTypes[1] && rangeType == nm->booleanType()))
+          && elementType == argTypes[1]
+          && rangeType == nodeManager->booleanType()))
     {
       if (errOut)
       {
@@ -558,7 +650,7 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
   }
-  TypeNode retType = nm->mkBagType(bagType);
+  TypeNode retType = nodeManager->mkBagType(bagType);
   return retType;
 }
 
@@ -936,7 +1028,7 @@ bool BagsProperties::isWellFounded(TypeNode type)
 Node BagsProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.isBag());
-  return NodeManager::currentNM()->mkConst(EmptyBag(type));
+  return type.getNodeManager()->mkConst(EmptyBag(type));
 }
 }  // namespace bags
 }  // namespace theory

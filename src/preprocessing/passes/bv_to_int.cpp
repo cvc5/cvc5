@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Gereon Kremer, Mathias Preiner
+ *   Yoni Zohar, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,13 +58,8 @@ PreprocessingPassResult BVToInt::applyInternal(
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     // ensure bv rewritten
+    assertionsToPreprocess->ensureRewritten(i);
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node bvnr = rewrite(bvNode);
-    if (bvnr != bvNode)
-    {
-      assertionsToPreprocess->replace(i, bvnr);
-      bvNode = bvnr;
-    }
     TrustNode tr =
         d_intBlaster.trustedIntBlast(bvNode, additionalConstraints, skolems);
     if (tr.isNull())
@@ -76,12 +71,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     Trace("bv-to-int-debug") << "int node: " << tr.getProven()[1] << std::endl;
     assertionsToPreprocess->replaceTrusted(i, tr);
     // ensure integer rewritten
-    Node intNode = (*assertionsToPreprocess)[i];
-    Node inr = rewrite(intNode);
-    if (inr != intNode)
-    {
-      assertionsToPreprocess->replace(i, inr);
-    }
+    assertionsToPreprocess->ensureRewritten(i);
   }
   addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
   addSkolemDefinitions(skolems);

@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: unsat
-; DISABLE-TESTER: cpc
+
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((IntList 0)) (

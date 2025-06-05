@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,7 @@ class ProofNodeUpdaterCallback
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                             const std::vector<Node>& fa,
-                            bool& continueUpdate) = 0;
+                            bool& continueUpdate);
   /**
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
@@ -90,6 +90,8 @@ class ProofNodeUpdaterCallback
    * another proof, nor will its contents be replaced.
    */
   virtual bool canMerge(std::shared_ptr<ProofNode> pn);
+  /** Called when we are done processing pn */
+  virtual void finalize(std::shared_ptr<ProofNode> pn);
 };
 
 /**

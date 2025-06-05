@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2024  The cvc5 Project
+# Copyright (c) 2009-2025  The cvc5 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -52,7 +52,7 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2024';
+my $years = '2009-2025';
 
 my $standard_template = <<EOF;
  *
@@ -124,6 +124,7 @@ The directories in which to search for and change sources is:
   $pwd/CMakeLists.txt
   $pwd/cmake
   $pwd/src
+  $pwd/include
   $pwd/examples
   $pwd/test
   $pwd/doc
@@ -242,7 +243,7 @@ sub handleFile {
       }
     }
     if (!$found_header_end) {
-      die "error: did not find end of copyright header secion for file '$file'";
+      die "error: did not find end of copyright header section for file '$file'";
     }
   # No header found
   } else {

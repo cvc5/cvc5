@@ -14,14 +14,38 @@ jobs:
           - ${{ startsWith(github.ref, 'refs/tags/') }}
         build:
           - name: ubuntu:production
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             config: production --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             build-documentation: true
             check-examples: true
             package-name: cvc5-Linux-x86_64
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:safe-mode
+            os: ubuntu-22.04
+            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: production-safe
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:production-arm64
+            os: ubuntu-22.04-arm
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            package-name: cvc5-Linux-arm64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
@@ -30,7 +54,6 @@ jobs:
             config: production --auto-download --arm64
             cache-key: production-arm64-cross
             strip-bin: aarch64-linux-gnu-strip
-            package-name: cvc5-Linux-arm64
 
           - name: macos:production
             os: macos-13
@@ -38,6 +61,7 @@ jobs:
             cache-key: production
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             check-examples: true
             package-name: cvc5-macOS-x86_64
             macos-target: 10.13
@@ -50,6 +74,8 @@ jobs:
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
+            java-version: 11
             check-examples: true
             package-name: cvc5-macOS-arm64
             macos-target: 11.0
@@ -69,6 +95,7 @@ jobs:
             cache-key: production-win64-native
             strip-bin: strip
             python-bindings: true
+            java-bindings: true
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
@@ -84,7 +111,7 @@ jobs:
             windows-build: true
 
           - name: wasm:production
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             config: production --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE'
             cache-key: productionwasm
             wasm-build: true
@@ -92,7 +119,7 @@ jobs:
             build-static: true
 
           - name: ubuntu:production-clang
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             env: CC=clang CXX=clang++
             config: production --auto-download --no-poly
             cache-key: productionclang
@@ -101,15 +128,15 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:production-dbg
-            os: ubuntu-20.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl
+            os: ubuntu-22.04
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl -DBUILD_GMP=1
             cache-key: dbg
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
             python-bindings: true
 
           - name: ubuntu:production-dbg-clang
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             env: CC=clang CXX=clang++
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
@@ -118,11 +145,19 @@ jobs:
 
           # GPL versions
           - name: ubuntu:production-gpl
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
+            gpl-tag: -gpl
+
+          - name: ubuntu:production-arm64-gpl
+            os: ubuntu-22.04-arm
+            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: production-arm64-gpl
+            strip-bin: strip
+            package-name: cvc5-Linux-arm64
             gpl-tag: -gpl
 
           - name: macos:production-gpl
@@ -140,6 +175,7 @@ jobs:
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
+            java-version: 11
             macos-target: 11.0
             gpl-tag: -gpl
 
@@ -147,6 +183,9 @@ jobs:
           - has-tag: false
             build:
               name: ubuntu:production-gpl
+          - has-tag: false
+            build:
+              name: ubuntu:production-arm64-gpl
           - has-tag: false
             build:
               name: macos:production-gpl
@@ -166,6 +205,20 @@ jobs:
     steps:
 
     - uses: actions/checkout@v4
+
+    # Ensure that the Java bindings, Java API tests, and Java examples are compatible
+    # with the minimum required Java version (currently Java 8).
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ matrix.build.java-version || '8' }}
+
+    - name: Setup CMake
+      uses: ./.github/actions/setup-cmake
+      # Exclude Linux ARM64 runners, which are currently unsupported
+      if: runner.os == 'Linux' && ! contains(runner.arch, 'ARM')
+      with:
+        shell: ${{ matrix.build.shell }}
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
@@ -225,6 +278,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
     - name: Create and add shared package to latest and release
+      id: create-shared-package
       if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
@@ -236,12 +290,24 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Create and add static package to latest and release
+      id: create-static-package
       if: matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-package
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
         # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.build.shell }}
+
+    - name: Create and add JAR to latest and release
+      if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-jar
+      with:
+        install-path: ${{ steps.create-static-package.outputs.install-path }}
+        jar-libs-dir: cvc5-libs
+        jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}

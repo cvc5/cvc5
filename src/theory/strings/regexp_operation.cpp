@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -275,7 +275,6 @@ int RegExpOpr::derivativeS(Node r, cvc5::internal::String c, Node& retNode)
   int ret = 1;
   retNode = d_emptyRegexp;
   NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
 
   PairNodeStr dv = std::make_pair( r, c );
   if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
@@ -362,8 +361,8 @@ int RegExpOpr::derivativeS(Node r, cvc5::internal::String c, Node& retNode)
             }
           }
           if(ret == 0) {
-            Node sk =
-                sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
+            Node sk = NodeManager::mkDummySkolem(
+                "rsp", nm->stringType(), "Split RegExp");
             retNode = nm->mkNode(Kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
               retNode = rewrite(nm->mkNode(Kind::REGEXP_CONCAT, retNode, rest));

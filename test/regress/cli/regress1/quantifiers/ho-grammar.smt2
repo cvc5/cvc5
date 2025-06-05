@@ -1,4 +1,4 @@
-; COMMAND-LINE: --mbqi --mbqi-fast-sygus
+; COMMAND-LINE: --mbqi --mbqi-enum
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 (set-logic HO_ALL)

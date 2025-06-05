@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
+ *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,11 +19,11 @@
 #include <iomanip>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/array_store_all.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/nary_term_util.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -120,7 +120,8 @@ Node LfscNodeConverter::postConvert(Node n)
     // ignore internally generated symbols
     return n;
   }
-  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM)
+  else if (k == Kind::SKOLEM || k == Kind::DUMMY_SKOLEM
+           || k == Kind::DT_SYGUS_EVAL)
   {
     // constructors/selectors are represented by skolems, which are defined
     // symbols
@@ -290,7 +291,7 @@ Node LfscNodeConverter::postConvert(Node n)
       return charVec[0];
     }
     std::reverse(charVec.begin(), charVec.end());
-    Node ret = postConvert(getNullTerminator(Kind::STRING_CONCAT, tn));
+    Node ret = postConvert(getNullTerminator(d_nm, Kind::STRING_CONCAT, tn));
     for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
       ret = d_nm->mkNode(Kind::STRING_CONCAT, charVec[i], ret);
@@ -406,7 +407,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // (from_bools t1 ... tn) is
     // (from_bools t1 (from_bools t2 ... (from_bools tn emptybv)))
     // where notice that each from_bools has a different type
-    Node curr = getNullTerminator(Kind::BITVECTOR_CONCAT, tn);
+    Node curr = getNullTerminator(d_nm, Kind::BITVECTOR_CONCAT, tn);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
       TypeNode bvt = d_nm->mkBitVectorType(i + 1);
@@ -456,7 +457,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // This makes the AST above distinguishable from (or A B C D E),
     // which otherwise would both have representation:
     //   (or A (or B (or C (or D E))))
-    Node nullTerm = getNullTerminator(k, tn);
+    Node nullTerm = getNullTerminator(d_nm, k, tn);
     // Most operators simply get binarized
     Node ret;
     size_t istart = 0;
@@ -521,7 +522,7 @@ Node LfscNodeConverter::mkApplyUf(Node op, const std::vector<Node>& args) const
     options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
     options::ioutils::applyDagThresh(ss, 0);
     ss << op;
-    Node opv = d_nm->mkRawSymbol(ss.str(), op.getType());
+    Node opv = NodeManager::mkRawSymbol(ss.str(), op.getType());
     aargs.push_back(opv);
   }
   aargs.insert(aargs.end(), args.begin(), args.end());
@@ -838,8 +839,8 @@ Node LfscNodeConverter::mkInternalSymbol(const std::string& name,
                                          bool useRawSym)
 {
   // use raw symbol so that it is never quoted
-  Node sym =
-      useRawSym ? d_nm->mkRawSymbol(name, tn) : d_nm->mkBoundVar(name, tn);
+  Node sym = useRawSym ? NodeManager::mkRawSymbol(name, tn)
+                       : NodeManager::mkBoundVar(name, tn);
   d_symbols.insert(sym);
   return sym;
 }
@@ -905,7 +906,7 @@ Node LfscNodeConverter::convertBitVector(const BitVector& bv)
   return ret;
 }
 
-Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
+Node LfscNodeConverter::getNullTerminator(NodeManager* nm, Kind k, TypeNode tn)
 {
   Node nullTerm;
   switch (k)
@@ -933,7 +934,7 @@ Node LfscNodeConverter::getNullTerminator(Kind k, TypeNode tn)
     return nullTerm;
   }
   // otherwise, fall back to standard utility
-  return expr::getNullTerminator(k, tn);
+  return expr::getNullTerminator(nm, k, tn);
 }
 
 Kind LfscNodeConverter::getBuiltinKindForInternalSymbol(Node op) const
@@ -1027,6 +1028,10 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       else if (k == Kind::BITVECTOR_BIT)
       {
         opName << "bit";
+      }
+      else if (k==Kind::DIVISIBLE)
+      {
+        opName << "a.divisible";
       }
       else
       {
@@ -1158,7 +1163,6 @@ Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 
 size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(fv.isVar());
   std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
   if (it != d_fvarIndex.end())
   {

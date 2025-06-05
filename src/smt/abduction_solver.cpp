@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -66,7 +66,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   asserts.push_back(conjn);
   std::string name("__internal_abduct");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axiomsn, grammarType);
+      nodeManager(), name, asserts, axiomsn, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == Kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -85,7 +85,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver, ssi);
+  initializeSubsolver(nodeManager(), d_subsolver, ssi);
   // get the logic
   LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
@@ -197,7 +197,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> abdChecker;
-    initializeSubsolver(abdChecker, ssi);
+    initializeSubsolver(nodeManager(), abdChecker, ssi);
     Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)

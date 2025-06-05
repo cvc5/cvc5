@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,6 +81,11 @@ class CVC5_EXPORT Cmd
   virtual void invoke(cvc5::Solver* solver,
                       parser::SymManager* sm,
                       std::ostream& out);
+  /**
+   * Same as invoke, but prints the result to the output stream associated to the solver.
+   */
+  virtual void invokeAndPrintResult(cvc5::Solver* solver,
+                                    parser::SymManager* sm);
 
   /**
    * @return A string representation of this result.

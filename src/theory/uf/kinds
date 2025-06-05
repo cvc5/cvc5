@@ -67,7 +67,8 @@ typerule FUNCTION_ARRAY_CONST ::cvc5::internal::theory::uf::FunctionArrayConstTy
 
 
 ## conversion kinds
-operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
+operator BITVECTOR_UBV_TO_INT 1 "bit-vector conversion to integer; parameter is treated as an unsigned bit-vector"
+operator BITVECTOR_SBV_TO_INT 1 "bit-vector conversion to integer; parameter is treated as a signed bit-vector"
 
 constant INT_TO_BITVECTOR_OP \
   struct \
@@ -78,7 +79,8 @@ constant INT_TO_BITVECTOR_OP \
 parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
 
 ## conversion kinds
-typerule BITVECTOR_TO_NAT ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
+typerule BITVECTOR_UBV_TO_INT ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
+typerule BITVECTOR_SBV_TO_INT ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
 typerule INT_TO_BITVECTOR_OP ::cvc5::internal::theory::uf::IntToBitVectorOpTypeRule
 typerule INT_TO_BITVECTOR ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
 

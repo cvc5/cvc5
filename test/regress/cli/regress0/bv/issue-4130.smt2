@@ -5,5 +5,5 @@
 ; EXIT: 1
 (set-logic ALL)
 (declare-fun a () Int)
-(assert (and (= a (bv2nat ((_ int2bv 0) a)))))
+(assert (and (= a (ubv_to_int ((_ int_to_bv 0) a)))))
 (check-sat)

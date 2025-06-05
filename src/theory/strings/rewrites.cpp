@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,20 +39,19 @@ const char* toString(Rewrite r)
     case Rewrite::CTN_NCONST_CTN_CONCAT: return "CTN_NCONST_CTN_CONCAT";
     case Rewrite::CTN_REPL: return "CTN_REPL";
     case Rewrite::CTN_REPL_CHAR: return "CTN_REPL_CHAR";
-    case Rewrite::CTN_REPL_CNSTS_TO_CTN: return "CTN_REPL_CNSTS_TO_CTN";
     case Rewrite::CTN_REPL_EMPTY: return "CTN_REPL_EMPTY";
     case Rewrite::CTN_REPL_LEN_ONE_TO_CTN: return "CTN_REPL_LEN_ONE_TO_CTN";
-    case Rewrite::CTN_REPL_SELF: return "CTN_REPL_SELF";
-    case Rewrite::CTN_REPL_SIMP_REPL: return "CTN_REPL_SIMP_REPL";
     case Rewrite::CTN_REPL_TO_CTN: return "CTN_REPL_TO_CTN";
     case Rewrite::CTN_REPL_TO_CTN_DISJ: return "CTN_REPL_TO_CTN_DISJ";
     case Rewrite::CTN_RHS_EMPTYSTR: return "CTN_RHS_EMPTYSTR";
     case Rewrite::CTN_RPL_NON_CTN: return "CTN_RPL_NON_CTN";
+    case Rewrite::CTN_CONCAT_CTN_SUBSTR: return "CTN_CONCAT_CTN_SUBSTR";
     case Rewrite::CTN_SPLIT: return "CTN_SPLIT";
     case Rewrite::CTN_SPLIT_ONES: return "CTN_SPLIT_ONES";
     case Rewrite::CTN_STRIP_ENDPT: return "CTN_STRIP_ENDPT";
     case Rewrite::CTN_SUBSTR: return "CTN_SUBSTR";
-    case Rewrite::EQ_LEN_DEQ: return "EQ_LEN_DEQ";
+    case Rewrite::CTN_CONCAT_COM_NON_CTN: return "CTN_CONCAT_COM_NON_CTN";
+    case Rewrite::CTN_ITOS_NON_DIGIT: return "CTN_ITOS_NON_DIGIT";
     case Rewrite::EQ_NCTN: return "EQ_NCTN";
     case Rewrite::EQ_NFIX: return "EQ_NFIX";
     case Rewrite::FROM_CODE_EVAL: return "FROM_CODE_EVAL";
@@ -80,6 +79,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_ALL_ELIM: return "RE_ALL_ELIM";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
+    case Rewrite::RE_ANDOR_CONST_REMOVE: return "RE_ANDOR_CONST_REMOVE";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
     case Rewrite::RE_INTER_CONST_CONST_CONFLICT:
       return "RE_INTER_CONST_CONST_CONFLICT";
@@ -119,17 +119,14 @@ const char* toString(Rewrite r)
     case Rewrite::REPLALL_EMPTY_FIND: return "REPLALL_EMPTY_FIND";
     case Rewrite::RPL_CCTN: return "RPL_CCTN";
     case Rewrite::RPL_CCTN_RPL: return "RPL_CCTN_RPL";
-    case Rewrite::RPL_CNTS_SUBSTS: return "RPL_CNTS_SUBSTS";
     case Rewrite::RPL_CONST_FIND: return "RPL_CONST_FIND";
     case Rewrite::RPL_CONST_NFIND: return "RPL_CONST_NFIND";
-    case Rewrite::RPL_EMP_CNTS_SUBSTS: return "RPL_EMP_CNTS_SUBSTS";
     case Rewrite::RPL_ID: return "RPL_ID";
     case Rewrite::RPL_NCTN: return "RPL_NCTN";
     case Rewrite::RPL_PULL_ENDPT: return "RPL_PULL_ENDPT";
     case Rewrite::RPL_REPLACE: return "RPL_REPLACE";
     case Rewrite::RPL_RPL_EMPTY: return "RPL_RPL_EMPTY";
     case Rewrite::RPL_RPL_LEN_ID: return "RPL_RPL_LEN_ID";
-    case Rewrite::RPL_X_Y_X_SIMP: return "RPL_X_Y_X_SIMP";
     case Rewrite::REPLACE_RE_EVAL: return "REPLACE_RE_EVAL";
     case Rewrite::REPLACE_RE_NONE: return "REPLACE_RE_NONE";
     case Rewrite::REPLACE_RE_ALL_EVAL: return "REPLACE_RE_ALL_EVAL";
@@ -138,7 +135,9 @@ const char* toString(Rewrite r)
     case Rewrite::SPLIT_EQ: return "SPLIT_EQ";
     case Rewrite::SPLIT_EQ_STRIP_L: return "SPLIT_EQ_STRIP_L";
     case Rewrite::SPLIT_EQ_STRIP_R: return "SPLIT_EQ_STRIP_R";
-    case Rewrite::SS_COMBINE: return "SS_COMBINE";
+    case Rewrite::SS_COMBINE_EQ: return "SS_COMBINE_EQ";
+    case Rewrite::SS_COMBINE_GEQ_INNER: return "SS_COMBINE_GEQ_INNER";
+    case Rewrite::SS_COMBINE_GEQ_OUTER: return "SS_COMBINE_GEQ_OUTER";
     case Rewrite::SS_CONST_END_OOB: return "SS_CONST_END_OOB";
     case Rewrite::SS_CONST_LEN_MAX_OOB: return "SS_CONST_LEN_MAX_OOB";
     case Rewrite::SS_CONST_LEN_NON_POS: return "SS_CONST_LEN_NON_POS";
@@ -181,8 +180,6 @@ const char* toString(Rewrite r)
     case Rewrite::STR_EMP_SUBSTR_LEQ_LEN: return "STR_EMP_SUBSTR_LEQ_LEN";
     case Rewrite::STR_EMP_SUBSTR_LEQ_Z: return "STR_EMP_SUBSTR_LEQ_Z";
     case Rewrite::STR_EQ_CONJ_LEN_ENTAIL: return "STR_EQ_CONJ_LEN_ENTAIL";
-    case Rewrite::STR_EQ_CONST_NHOMOG: return "STR_EQ_CONST_NHOMOG";
-    case Rewrite::STR_EQ_HOMOG_CONST: return "STR_EQ_HOMOG_CONST";
     case Rewrite::STR_EQ_REPL_EMP: return "STR_EQ_REPL_EMP";
     case Rewrite::STR_EQ_REPL_NOT_CTN: return "STR_EQ_REPL_NOT_CTN";
     case Rewrite::STR_EQ_REPL_TO_DIS: return "STR_EQ_REPL_TO_DIS";
@@ -210,10 +207,6 @@ const char* toString(Rewrite r)
     case Rewrite::CONCAT_NORM: return "CONCAT_NORM";
     case Rewrite::IS_DIGIT_ELIM: return "IS_DIGIT_ELIM";
     case Rewrite::RE_CONCAT_EMPTY: return "RE_CONCAT_EMPTY";
-    case Rewrite::RE_CONSUME_CCONF: return "RE_CONSUME_CCONF";
-    case Rewrite::RE_CONSUME_S: return "RE_CONSUME_S";
-    case Rewrite::RE_CONSUME_S_CCONF: return "RE_CONSUME_S_CCONF";
-    case Rewrite::RE_CONSUME_S_FULL: return "RE_CONSUME_S_FULL";
     case Rewrite::RE_IN_EMPTY: return "RE_IN_EMPTY";
     case Rewrite::RE_IN_SIGMA: return "RE_IN_SIGMA";
     case Rewrite::RE_IN_EVAL: return "RE_IN_EVAL";

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -95,7 +95,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
       {
         // subtract the other side
         std::map<Node, Node> msum2;
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = lit.getNodeManager();
         if (getMonomialSum(lit[1], msum2))
         {
           for (std::map<Node, Node>::iterator it = msum2.begin();
@@ -129,9 +129,8 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(NodeManager* nm, const std::map<Node, Node>& msum)
 {
-  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (std::map<Node, Node>::const_iterator it = msum.begin(); it != msum.end();
        ++it)
@@ -161,7 +160,7 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = v.getNodeManager();
     std::vector<Node> children;
     Rational r =
         itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
@@ -220,7 +219,7 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = v.getNodeManager();
     Node vc = v;
     if (!veq_c.isNull())
     {
@@ -302,7 +301,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(msum);
+      rem = mkNode(n.getNodeManager(), msum);
       return true;
     }
   }

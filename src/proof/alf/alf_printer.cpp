@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Abdalrhman Mohamed, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,9 @@
 #include <ostream>
 #include <sstream>
 
+#include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/subs.h"
 #include "options/main_options.h"
 #include "options/strings_options.h"
@@ -32,7 +34,9 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/theory.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 namespace cvc5::internal {
 
@@ -48,7 +52,6 @@ AlfPrinter::AlfPrinter(Env& env,
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
       d_termLetPrefix("@t"),
-      d_ltproc(nodeManager(), atp),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders
       // due to the way we print global declare-var, since terms beneath
@@ -61,6 +64,7 @@ AlfPrinter::AlfPrinter(Env& env,
 {
   d_pfType = nodeManager()->mkSort("proofType");
   d_false = nodeManager()->mkConst(false);
+  d_absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
 }
 
 bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
@@ -138,6 +142,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
     case ProofRule::ARITH_MULT_TANGENT:
+    case ProofRule::ARITH_MULT_SIGN:
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
     case ProofRule::ARITH_TRANS_EXP_NEG:
     case ProofRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -158,13 +164,12 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
     case ProofRule::CONCAT_CPROP:
-    case ProofRule::CONCAT_CONFLICT:
-    case ProofRule::CONCAT_CONFLICT_DEQ:
     case ProofRule::CONCAT_SPLIT:
     case ProofRule::CONCAT_LPROP:
     case ProofRule::STRING_LENGTH_POS:
     case ProofRule::STRING_LENGTH_NON_EMPTY:
     case ProofRule::RE_INTER:
+    case ProofRule::RE_CONCAT:
     case ProofRule::RE_UNFOLD_POS:
     case ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED:
     case ProofRule::RE_UNFOLD_NEG:
@@ -172,6 +177,7 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::STRING_SEQ_UNIT_INJ:
     case ProofRule::STRING_DECOMPOSE:
     case ProofRule::STRING_EXT:
+    case ProofRule::DT_SPLIT:
     case ProofRule::ITE_EQ:
     case ProofRule::INSTANTIATE:
     case ProofRule::SKOLEMIZE:
@@ -179,8 +185,14 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
+    case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
+    case ProofRule::ABSORB:
+    case ProofRule::ARITH_POLY_NORM:
     case ProofRule::ARITH_POLY_NORM_REL:
+    case ProofRule::BV_POLY_NORM:
+    case ProofRule::BV_POLY_NORM_EQ:
+    case ProofRule::EXISTS_STRING_LENGTH:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -192,13 +204,6 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       ProofRewriteRule id;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(id, pfn->getArguments()[1]);
-    }
-    break;
-    case ProofRule::ARITH_POLY_NORM:
-    {
-      // we don't support bitvectors yet
-      Assert(pargs[0].getKind() == Kind::EQUAL);
-      return pargs[0][0].getType().isRealOrInt();
     }
     break;
     case ProofRule::ARITH_REDUCTION:
@@ -216,7 +221,29 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       // depends on the operator
       Assert(!pargs.empty());
       Kind k = pargs[0].getKind();
-      return k == Kind::STRING_SUBSTR || k == Kind::STRING_INDEXOF;
+      switch (k)
+      {
+        case Kind::STRING_CONTAINS:
+        case Kind::STRING_SUBSTR:
+        case Kind::STRING_INDEXOF:
+        case Kind::STRING_INDEXOF_RE:
+        case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
+        case Kind::STRING_REPLACE_RE:
+        case Kind::STRING_REPLACE_RE_ALL:
+        case Kind::STRING_STOI:
+        case Kind::STRING_ITOS:
+        case Kind::SEQ_NTH:
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ:
+        case Kind::STRING_REV:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER: return true;
+        default:
+          break;
+      }
+      Trace("alf-printer-debug") << "Cannot STRING_REDUCTION " << k << std::endl;
+      return false;
     }
     break;
     case ProofRule::STRING_EAGER_REDUCTION:
@@ -230,7 +257,8 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
         return opts.strings.stringsAlphaCard == String::num_codes();
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
-             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP;
+             || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP
+             || k == Kind::STRING_STOI;
     }
     break;
     //
@@ -239,6 +267,17 @@ bool AlfPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       if (canEvaluate(pargs[0]))
       {
         Trace("alf-printer-debug") << "Can evaluate " << pargs[0] << std::endl;
+        return true;
+      }
+    }
+    break;
+    case ProofRule::DISTINCT_VALUES:
+    {
+      if (isHandledDistinctValues(pargs[0])
+          && isHandledDistinctValues(pargs[1]))
+      {
+        Trace("alf-printer-debug") << "Can distinguish values " << pargs[0] << " "
+                                   << pargs[1] << std::endl;
         return true;
       }
     }
@@ -254,23 +293,54 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::DISTINCT_ELIM:
+    case ProofRewriteRule::DISTINCT_CARD_CONFLICT:
     case ProofRewriteRule::BETA_REDUCE:
     case ProofRewriteRule::LAMBDA_ELIM:
+    case ProofRewriteRule::UBV_TO_INT_ELIM:
+    case ProofRewriteRule::INT_TO_BV_ELIM:
+    case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARITH_STRING_PRED_ENTAIL:
     case ProofRewriteRule::ARITH_STRING_PRED_SAFE_APPROX:
     case ProofRewriteRule::EXISTS_ELIM:
     case ProofRewriteRule::QUANT_UNUSED_VARS:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
-    case ProofRewriteRule::QUANT_MINISCOPE_FV:
+    case ProofRewriteRule::DT_INST:
+    case ProofRewriteRule::DT_COLLAPSE_SELECTOR:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER:
+    case ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON:
+    case ProofRewriteRule::DT_CONS_EQ:
+    case ProofRewriteRule::DT_CONS_EQ_CLASH:
+    case ProofRewriteRule::DT_CYCLE:
+    case ProofRewriteRule::DT_COLLAPSE_UPDATER:
+    case ProofRewriteRule::DT_UPDATER_ELIM:
+    case ProofRewriteRule::QUANT_MERGE_PRENEX:
+    case ProofRewriteRule::QUANT_MINISCOPE_AND:
+    case ProofRewriteRule::QUANT_MINISCOPE_OR:
+    case ProofRewriteRule::QUANT_MINISCOPE_ITE:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
-    case ProofRewriteRule::SETS_IS_EMPTY_EVAL:
+    case ProofRewriteRule::SETS_EVAL_OP:
+    case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
     case ProofRewriteRule::STR_IN_RE_CONSUME:
-    case ProofRewriteRule::RE_INTER_UNION_INCLUSION:
-    case ProofRewriteRule::BV_BITWISE_SLICING: return true;
+    case ProofRewriteRule::STR_INDEXOF_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_EVAL:
+    case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
+    case ProofRewriteRule::RE_INTER_INCLUSION:
+    case ProofRewriteRule::RE_UNION_INCLUSION:
+    case ProofRewriteRule::BV_SMULO_ELIM:
+    case ProofRewriteRule::BV_UMULO_ELIM:
+    case ProofRewriteRule::BV_REPEAT_ELIM:
+    case ProofRewriteRule::BV_BITWISE_SLICING:
+    case ProofRewriteRule::STR_OVERLAP_SPLIT_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_CTN:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_INDEXOF:
+    case ProofRewriteRule::STR_OVERLAP_ENDPOINTS_REPLACE:
+    case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
+    case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
       return canEvaluateRegExp(n[0][1]);
@@ -279,10 +349,11 @@ bool AlfPrinter::isHandledTheoryRewrite(ProofRewriteRule id, const Node& n)
   return false;
 }
 
+
 bool AlfPrinter::isHandledBitblastStep(const Node& eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
-  if (eq[0].isVar())
+  if (theory::Theory::isLeafOf(eq[0], theory::THEORY_BV))
   {
     return true;
   }
@@ -291,7 +362,30 @@ bool AlfPrinter::isHandledBitblastStep(const Node& eq)
     case Kind::CONST_BITVECTOR:
     case Kind::BITVECTOR_EXTRACT:
     case Kind::BITVECTOR_CONCAT:
-    case Kind::EQUAL: return true;
+    case Kind::BITVECTOR_AND:
+    case Kind::BITVECTOR_OR:
+    case Kind::BITVECTOR_XOR:
+    case Kind::BITVECTOR_XNOR:
+    case Kind::BITVECTOR_NOT:
+    case Kind::BITVECTOR_ADD:
+    case Kind::BITVECTOR_SUB:
+    case Kind::BITVECTOR_NEG:
+    case Kind::BITVECTOR_MULT:
+    case Kind::BITVECTOR_SIGN_EXTEND:
+    case Kind::BITVECTOR_SHL:
+    case Kind::BITVECTOR_ASHR:
+    case Kind::BITVECTOR_LSHR:
+    case Kind::BITVECTOR_UDIV:
+    case Kind::BITVECTOR_UREM:
+    case Kind::EQUAL:
+    case Kind::BITVECTOR_SLT:
+    case Kind::BITVECTOR_SLE:
+    case Kind::BITVECTOR_ULT:
+    case Kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_ITE:
+    case Kind::BITVECTOR_COMP:
+    case Kind::BITVECTOR_ULTBV:
+    case Kind::BITVECTOR_SLTBV: return true;
     default:
       Trace("alf-printer-debug") << "Cannot bitblast  " << eq[0] << std::endl;
       break;
@@ -312,12 +406,18 @@ bool AlfPrinter::canEvaluate(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      switch (cur.getKind())
+      Kind k = cur.getKind();
+      if (k==Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        k = cur.getOperator().getConst<GenericOp>().getKind();
+      }
+      switch (k)
       {
         case Kind::ITE:
         case Kind::NOT:
         case Kind::AND:
         case Kind::OR:
+        case Kind::IMPLIES:
         case Kind::XOR:
         case Kind::CONST_BOOLEAN:
         case Kind::CONST_INTEGER:
@@ -341,17 +441,30 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::INTS_DIVISION_TOTAL:
         case Kind::INTS_ISPOW2:
         case Kind::INTS_LOG2:
+        case Kind::POW2:
         case Kind::TO_REAL:
         case Kind::TO_INTEGER:
         case Kind::IS_INTEGER:
+        case Kind::ABS:
         case Kind::STRING_CONCAT:
         case Kind::STRING_SUBSTR:
         case Kind::STRING_LENGTH:
         case Kind::STRING_CONTAINS:
         case Kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE_ALL:
         case Kind::STRING_INDEXOF:
         case Kind::STRING_TO_CODE:
         case Kind::STRING_FROM_CODE:
+        case Kind::STRING_PREFIX:
+        case Kind::STRING_SUFFIX:
+        case Kind::STRING_ITOS:
+        case Kind::STRING_STOI:
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        case Kind::STRING_REV:
+        case Kind::STRING_CHARAT:
+        case Kind::STRING_UPDATE:
+        case Kind::STRING_LEQ:
         case Kind::BITVECTOR_EXTRACT:
         case Kind::BITVECTOR_CONCAT:
         case Kind::BITVECTOR_ADD:
@@ -359,25 +472,84 @@ bool AlfPrinter::canEvaluate(Node n)
         case Kind::BITVECTOR_NEG:
         case Kind::BITVECTOR_NOT:
         case Kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_SHL:
+        case Kind::BITVECTOR_LSHR:
+        case Kind::BITVECTOR_ASHR:
         case Kind::BITVECTOR_AND:
         case Kind::BITVECTOR_OR:
-        case Kind::CONST_BITVECTOR_SYMBOLIC: break;
-        case Kind::EQUAL:
-        {
-          TypeNode tn = cur[0].getType();
-          if (!tn.isBoolean() && !tn.isReal() && !tn.isInteger()
-              && !tn.isString() && !tn.isBitVector())
-          {
-            return false;
-          }
-        }
-        break;
+        case Kind::BITVECTOR_XOR:
+        case Kind::BITVECTOR_ULT:
+        case Kind::BITVECTOR_ULE:
+        case Kind::BITVECTOR_UGT:
+        case Kind::BITVECTOR_UGE:
+        case Kind::BITVECTOR_SLT:
+        case Kind::BITVECTOR_SLE:
+        case Kind::BITVECTOR_SGT:
+        case Kind::BITVECTOR_SGE:
+        case Kind::BITVECTOR_REPEAT:
+        case Kind::BITVECTOR_SIGN_EXTEND:
+        case Kind::BITVECTOR_ZERO_EXTEND:
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
+        case Kind::BITVECTOR_UBV_TO_INT:
+        case Kind::BITVECTOR_SBV_TO_INT:
+        case Kind::INT_TO_BITVECTOR:
+        case Kind::EQUAL: break;  // note that equality falls through
         case Kind::BITVECTOR_SIZE:
           // special case, evaluates no matter what is inside
           continue;
         default:
           Trace("alf-printer-debug")
               << "Cannot evaluate " << cur.getKind() << std::endl;
+          return false;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return true;
+}
+
+bool AlfPrinter::isHandledDistinctValues(const Node& n)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      // Note we don't currently handle constants in expert theories
+      // or array constants.
+      switch (cur.getKind())
+      {
+        case Kind::CONST_BOOLEAN:
+        case Kind::CONST_INTEGER:
+        case Kind::CONST_RATIONAL:
+        case Kind::CONST_STRING:
+        case Kind::CONST_BITVECTOR:
+        case Kind::SET_SINGLETON:
+        case Kind::SET_UNION:
+        case Kind::SET_EMPTY:
+        case Kind::APPLY_CONSTRUCTOR:
+        case Kind::SEQ_UNIT: break;
+        case Kind::CONST_SEQUENCE:
+          if (!cur.getConst<Sequence>().empty())
+          {
+            // must traverse on component values
+            cur = theory::strings::utils::mkConcatForConstSequence(cur);
+          }
+          break;
+        default:
+          Trace("alf-printer-debug")
+              << "Cannot distinct values " << cur.getKind() << std::endl;
           return false;
       }
       for (const Node& cn : cur)
@@ -461,13 +633,42 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
     ss << id;
     return ss.str();
   }
-  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE)
+  else if (r == ProofRule::ENCODE_EQ_INTRO || r == ProofRule::HO_APP_ENCODE
+           || r == ProofRule::BV_EAGER_ATOM)
   {
     // ENCODE_EQ_INTRO proves (= t (convert t)) from argument t,
     // where (convert t) is indistinguishable from t according to the proof.
     // Similarly, HO_APP_ENCODE proves an equality between a term of kind
-    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in ALF.
+    // Kind::HO_APPLY and Kind::APPLY_UF, which denotes the same term in Eunoia.
+    // BV_EAGER_ATOM also is indistinguishable as the eager atom predicate is
+    // ignored in the printer.
     return "refl";
+  }
+  else if (r == ProofRule::ACI_NORM)
+  {
+    Node eq = pfn->getArguments()[0];
+    Assert(eq.getKind() == Kind::EQUAL);
+    // may have to use the "expert" version.
+    Kind k;
+    if (eq[0].getKind() == eq[1].getKind()
+        || expr::getACINormalForm(eq[0]) == eq[1])
+    {
+      k = eq[0].getKind();
+    }
+    else
+    {
+      k = eq[1].getKind();
+    }
+    std::stringstream ss;
+    ss << "aci_norm";
+    switch (k)
+    {
+      case Kind::SEP_STAR:
+      case Kind::FINITE_FIELD_ADD:
+      case Kind::FINITE_FIELD_MULT: ss << "_expert"; break;
+      default: break;
+    }
+    return ss.str();
   }
   std::string name = toString(r);
   std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) {
@@ -495,6 +696,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   std::stringstream ssExplicit;
   std::map<std::string, size_t> nameCount;
   std::vector<Node> uviList;
+  std::map<Node, Node> adtcConvMap;
   for (size_t i = 0, nvars = uvarList.size(); i < nvars; i++)
   {
     if (i > 0)
@@ -523,6 +725,7 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
     ssExplicit << "(" << sss.str() << " ";
     TypeNode uvt = uv.getType();
     Node uvtp = adtc.process(uvt);
+    adtcConvMap[uvi] = uvtp;
     ssExplicit << uvtp;
     if (expr::isListVar(uv))
     {
@@ -538,6 +741,9 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
   {
     out << "(" << p << " " << p.getType() << ") ";
   }
+  // carry the mapping from symbols to their types, which is used when
+  // eliminating internal-only operators for representing empty set and sequence
+  AlfListNodeConverter ltproc(nodeManager(), d_tproc, adtcConvMap);
   // now print variables of the proof rule
   out << ssExplicit.str();
   out << ")" << std::endl;
@@ -557,25 +763,44 @@ void AlfPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
       }
       // note we apply list conversion to premises as well.
       Node cc = d_tproc.convert(su.apply(c));
-      cc = d_ltproc.convert(cc);
+      cc = ltproc.convert(cc);
       out << cc;
     }
     out << ")" << std::endl;
   }
   out << "  :args (";
-  for (size_t i = 0, nvars = uviList.size(); i < nvars; i++)
+  bool printedArg = false;
+  for (const Node& v : uviList)
   {
-    if (i > 0)
-    {
-      out << " ";
-    }
-    out << uviList[i];
+    out << (printedArg ? " " : "");
+    printedArg = true;
+    out << v;
+  }
+  // Special case: must print explicit types.
+  // This is to handle rules where Kind::TYPE_OF appears in the conclusion
+  // or in the premises. Since RARE rules do not take types as arguments,
+  // we must add them here. The printer for proof steps will add them in
+  // a similar manner.
+  std::vector<Node> explictTypeOf = rpr.getExplicitTypeOfList();
+  std::map<Node, Node>::iterator itet;
+  for (const Node& et : explictTypeOf)
+  {
+    out << (printedArg ? " " : "");
+    printedArg = true;
+    Assert(et.getKind() == Kind::TYPE_OF);
+    Node v = su.apply(et[0]);
+    itet = adtcConvMap.find(v);
+    Assert(itet != adtcConvMap.end());
+    out << itet->second;
   }
   out << ")" << std::endl;
   Node sconc = d_tproc.convert(su.apply(conc));
-  sconc = d_ltproc.convert(sconc);
+  Node rhs = ltproc.convert(sconc[1]);
+  // do not apply singleton elimination to head
+  AlfListNodeConverter ltprocNse(nodeManager(), d_tproc, adtcConvMap, false);
+  Node lhs = ltprocNse.convert(sconc[0]);
   Assert(sconc.getKind() == Kind::EQUAL);
-  out << "  :conclusion (= " << sconc[0] << " " << sconc[1] << ")" << std::endl;
+  out << "  :conclusion (= " << lhs << " " << rhs << ")" << std::endl;
   out << ")" << std::endl;
 }
 
@@ -669,6 +894,7 @@ void AlfPrinter::print(AlfPrintChannelOut& aout,
         smt::PrintBenchmark pb(nodeManager(), &alfp, false, &d_tproc);
         std::stringstream outDecl;
         std::stringstream outDef;
+        options::ioutils::applyPrintArithLitToken(outDef, true);
         pb.printDeclarationsFrom(outDecl, outDef, definitions, assertions);
         out << outDecl.str();
         // [2] print the definitions
@@ -840,15 +1066,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
   ProofRule r = pn->getRule();
   switch (r)
   {
-    case ProofRule::CONG:
-    case ProofRule::NARY_CONG:
-    case ProofRule::ARITH_POLY_NORM_REL:
-    {
-      Node op = d_tproc.getOperatorOfTerm(res[0], true);
-      args.push_back(d_tproc.convert(op));
-      return;
-    }
-    break;
     case ProofRule::HO_CONG:
     {
       // argument is ignored
@@ -873,7 +1090,6 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
       std::vector<Node> ss(pargs.begin() + 1, pargs.end());
       std::vector<std::pair<Kind, std::vector<Node>>> witnessTerms;
       rpr.getConclusionFor(ss, witnessTerms);
-      TypeNode absType = nodeManager()->mkAbstractType(Kind::ABSTRACT_TYPE);
       // the arguments are the computed witness terms
       for (const std::pair<Kind, std::vector<Node>>& w : witnessTerms)
       {
@@ -892,7 +1108,28 @@ void AlfPrinter::getArgsFromProofRule(const ProofNode* pn,
           args.push_back(d_tproc.mkInternalApp(
               printer::smt2::Smt2Printer::smtKindString(w.first),
               wargs,
-              absType));
+              d_absType));
+        }
+      }
+      // special case: explicit type-of terms, which require explicit type
+      // arguments
+      std::map<ProofRewriteRule, std::vector<Node>>::iterator it =
+          d_explicitTypeOf.find(dr);
+      if (it == d_explicitTypeOf.end())
+      {
+        d_explicitTypeOf[dr] = rpr.getExplicitTypeOfList();
+        it = d_explicitTypeOf.find(dr);
+      }
+      if (!it->second.empty())
+      {
+        const std::vector<Node>& fvs = rpr.getVarList();
+        AlwaysAssert(fvs.size() == ss.size());
+        for (const Node& t : it->second)
+        {
+          Assert(t.getKind() == Kind::TYPE_OF);
+          Node tts =
+              t[0].substitute(fvs.begin(), fvs.end(), ss.begin(), ss.end());
+          args.push_back(d_tproc.typeAsNode(tts.getType()));
         }
       }
       return;

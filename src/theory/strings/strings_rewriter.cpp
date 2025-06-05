@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,10 +28,11 @@ namespace theory {
 namespace strings {
 
 StringsRewriter::StringsRewriter(NodeManager* nm,
-                                 Rewriter* r,
+                                 ArithEntail& ae,
+                                 StringsEntail& se,
                                  HistogramStat<Rewrite>* statistics,
                                  uint32_t alphaCard)
-    : SequencesRewriter(nm, r, statistics), d_alphaCard(alphaCard)
+    : SequencesRewriter(nm, ae, se, statistics), d_alphaCard(alphaCard)
 {
 }
 
@@ -188,7 +189,7 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == Kind::STRING_CONCAT)
   {
-    NodeBuilder concatBuilder(Kind::STRING_CONCAT);
+    NodeBuilder concatBuilder(nm, Kind::STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);

@@ -3,7 +3,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "ackermann"
-  category   = "regular"
+  category   = "expert"
   long       = "ackermann"
   type       = "bool"
   default    = "false"
@@ -47,6 +47,7 @@ name   = "SMT Layer"
   long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
+  no_support = ["proofs", "unsat-cores"]
   help       = "rewrite the input based on learned literals"
 
 [[option]]
@@ -68,7 +69,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "expert"
+  category   = "common"
   long       = "debug-check-models"
   type       = "bool"
   default    = "false"
@@ -150,7 +151,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "produceUnsatCores"
-  category   = "regular"
+  category   = "common"
   long       = "produce-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -192,7 +193,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkUnsatCores"
-  category   = "regular"
+  category   = "common"
   long       = "check-unsat-cores"
   type       = "bool"
   default    = "false"
@@ -234,7 +235,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkSynthSol"
-  category   = "regular"
+  category   = "common"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
@@ -275,7 +276,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "extRewPrep"
-  category   = "regular"
+  category   = "expert"
   long       = "ext-rew-prep=MODE"
   type       = "ExtRewPrepMode"
   default    = "OFF"
@@ -317,7 +318,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unconstrainedSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
@@ -333,7 +334,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "sortInference"
-  category   = "regular"
+  category   = "expert"
   long       = "sort-inference"
   type       = "bool"
   default    = "false"
@@ -361,6 +362,7 @@ name   = "SMT Layer"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "mode for translating BVAnd to integer"
   help_mode  = "solve-bv-as-int modes."
 [[option.mode.OFF]]
@@ -474,7 +476,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkInterpolants"
-  category   = "regular"
+  category   = "common"
   long       = "check-interpolants"
   type       = "bool"
   default    = "false"
@@ -482,7 +484,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "checkAbducts"
-  category   = "regular"
+  category   = "common"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"

@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,7 +22,7 @@ from cvc5 import Kind
 
 if __name__ == "__main__":
   tm = cvc5.TermManager()
-  slv = cvc5.Solver()
+  slv = cvc5.Solver(tm)
 
   # required options
   slv.setOption("sygus", "true")

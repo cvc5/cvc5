@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds, Gereon Kremer
+ *   Alex Ozdemir, Andrew Reynolds, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,6 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
-#include "util/bitvector.h"
 
 using namespace cvc5::internal::kind;
 
@@ -129,8 +128,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::ADD);
-      NodeBuilder rightSum(Kind::ADD);
+      NodeBuilder leftSum(nm, Kind::ADD);
+      NodeBuilder rightSum(nm, Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         // Adjust strictness
@@ -193,8 +192,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
 
       // Whether a strict inequality is in the sum.
       bool strict = false;
-      NodeBuilder leftSum(Kind::ADD);
-      NodeBuilder rightSum(Kind::ADD);
+      NodeBuilder leftSum(nm, Kind::ADD);
+      NodeBuilder rightSum(nm, Kind::ADD);
       for (size_t i = 0; i < children.size(); ++i)
       {
         Rational scalar = args[i].getConst<Rational>();
@@ -399,7 +398,8 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind() != Kind::EQUAL)
+      if (args[0].getKind() != Kind::EQUAL
+          || !args[0][0].getType().isRealOrInt())
       {
         return Node::null();
       }
@@ -413,10 +413,13 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(children.size() == 1);
       Assert(args.size() == 1);
-      Kind k;
-      if (!getKind(args[0], k)
-          || (k != Kind::LT && k != Kind::LEQ && k != Kind::EQUAL
-              && k != Kind::GT && k != Kind::GEQ))
+      if (args[0].getKind() != Kind::EQUAL)
+      {
+        return Node::null();
+      }
+      Kind k = args[0][0].getKind();
+      if (k != Kind::LT && k != Kind::LEQ && k != Kind::EQUAL && k != Kind::GT
+          && k != Kind::GEQ)
       {
         return Node::null();
       }
@@ -426,15 +429,15 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
       }
       Node l = children[0][0];
       Node r = children[0][1];
-      if ((l.getKind() != Kind::MULT && l.getKind() != Kind::BITVECTOR_MULT)
-          || (r.getKind() != Kind::MULT && r.getKind() != Kind::BITVECTOR_MULT))
+      if (l.getKind() != Kind::MULT || r.getKind() != Kind::MULT)
       {
         return Node::null();
       }
       Node lr = l[1];
+      lr = lr.getKind() == Kind::TO_REAL ? lr[0] : lr;
       Node rr = r[1];
-      if ((lr.getKind() != Kind::SUB && lr.getKind() != Kind::BITVECTOR_SUB)
-          || (rr.getKind() != Kind::SUB && rr.getKind() != Kind::BITVECTOR_SUB))
+      rr = rr.getKind() == Kind::TO_REAL ? rr[0] : rr;
+      if (lr.getKind() != Kind::SUB || rr.getKind() != Kind::SUB)
       {
         return Node::null();
       }
@@ -456,18 +459,12 @@ Node ArithProofRuleChecker::checkInternal(ProofRule id,
           return Node::null();
         }
       }
-      if (cx.getKind() == Kind::CONST_BITVECTOR
-          && cy.getKind() == Kind::CONST_BITVECTOR)
+      Node ret = nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
+      if (ret != args[0])
       {
-        BitVector c1 = cx.getConst<BitVector>();
-        BitVector c2 = cy.getConst<BitVector>();
-        BitVector one = BitVector::mkOne(c1.getSize());
-        if (c1 != one || c2 != one)
-        {
-          return Node::null();
-        }
+        return Node::null();
       }
-      return nm->mkNode(k, x1, x2).eqNode(nm->mkNode(k, y1, y2));
+      return ret;
     }
     default: return Node::null();
   }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +50,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_nonlinearExtension(nullptr),
       d_opElim(d_env),
       d_arithPreproc(env, d_im, d_opElim),
-      d_rewriter(nodeManager(), d_opElim),
+      d_rewriter(nodeManager(), d_opElim, options().arith.arithExp),
       d_arithModelCacheSet(false),
       d_checker(nodeManager())
 {
@@ -133,7 +133,7 @@ void TheoryArith::preRegisterTerm(TNode n)
       ss << "Support for arithmetic extensions (required for " << k
          << ") not available in this configuration, try "
             "--arith-exp.";
-      throw LogicException(ss.str());
+      throw SafeLogicException(ss.str());
     }
     if (d_nonlinearExtension == nullptr)
     {
@@ -212,8 +212,8 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
   return TrustNode::null();
 }
 
-Theory::PPAssertStatus TheoryArith::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryArith::ppAssert(TrustNode tin,
+                           TrustSubstitutionMap& outSubstitutions)
 {
   return d_internal.ppAssert(tin, outSubstitutions);
 }
@@ -247,18 +247,8 @@ void TheoryArith::postCheck(Effort level)
     d_im.clearPending();
     d_im.clearWaitingLemmas();
   }
-  // check with the non-linear solver at last call
-  if (level == Theory::EFFORT_LAST_CALL)
-  {
-    // If we computed lemmas in the last FULL_EFFORT check, send them now.
-    if (d_im.hasPendingLemma())
-    {
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
-      d_im.doPendingPhaseRequirements();
-    }
-    return;
-  }
+  // we don't check at last call
+  Assert (level != Theory::EFFORT_LAST_CALL);
   // otherwise, check with the linear solver
   if (d_internal.postCheck(level))
   {
@@ -332,7 +322,14 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->hasNlTerms();
+    // If we computed lemmas in the last FULL_EFFORT check, send them now.
+    if (d_im.hasPendingLemma())
+    {
+      Trace("arith-nl-buffer") << "Send buffered lemmas..." << std::endl; 
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
+    }
   }
   return false;
 }
@@ -356,12 +353,12 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
   // If we have a buffered lemma (from the non-linear extension), then we
   // do not assert model values, since those values are likely incorrect.
   // Moreover, the model does not need to satisfy the assertions, so
-  // arbitrary values can be used for arithmetic terms. Hence, we do
-  // nothing here. The buffered lemmas will be sent immediately
-  // at LAST_CALL effort (see postCheck).
+  // arbitrary values can be used for arithmetic terms. Hence, we just return
+  // false here. The buffered lemmas will be sent immediately when asking if
+  // a LAST_CALL effort should be performed (see needsCheckLastEffort).
   if (d_im.hasPendingLemma())
   {
-    return true;
+    return false;
   }
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
@@ -400,6 +397,15 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
+    }
+    else if (d_valuation.needCheck())
+    {
+      // If a theory solver has already sent a lemma in this context, we
+      // know that theory engine will be called to recheck, so we can safely
+      // return unsuccessfully here. Note that the arithmetic solver itself
+      // may be the one that sent the lemma, for instance if we had buffered
+      // lemmas during the call to needsCheckLastEffort.
+      return false;
     }
     Assert(false) << "A model equality could not be asserted: " << p.first
                   << " == " << p.second << std::endl;

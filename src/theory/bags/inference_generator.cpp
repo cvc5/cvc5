@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,11 +36,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
-    : d_state(state), d_im(im)
+InferenceGenerator::InferenceGenerator(NodeManager* nm,
+                                       SolverState* state,
+                                       InferenceManager* im)
+    : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
 {
-  d_nm = NodeManager::currentNM();
-  d_sm = d_nm->getSkolemManager();
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
@@ -134,27 +134,6 @@ InferInfo InferenceGenerator::bagMake(Node n, Node e)
   inferInfo.d_conclusion = ite;
   return inferInfo;
 }
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-/**
- * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
- * for axiomatizing the behavior of some term.
- */
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
 
 InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
 {
@@ -435,9 +414,10 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node totalSumEqualCountE = d_nm->mkNode(Kind::EQUAL, totalSum, countE);
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
-  Node j =
-      bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
+  Node i = bvm->mkBoundVar(
+      BoundVarId::BAGS_FIRST_INDEX, n, "i", d_nm->integerType());
+  Node j = bvm->mkBoundVar(
+      BoundVarId::BAGS_SECOND_INDEX, n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(Kind::BOUND_VAR_LIST, i);
   Node jList = d_nm->mkNode(Kind::BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(Kind::ADD, i, d_one);

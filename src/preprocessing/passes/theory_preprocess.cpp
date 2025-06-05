@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     if (!trn.isNull())
     {
       // process
-      assertions->replaceTrusted(i, trn);
+      assertions->replaceTrusted(i, trn, TrustId::THEORY_PREPROCESS);
       if (assertions->isInConflict())
       {
         return PreprocessingPassResult::CONFLICT;
@@ -58,7 +58,8 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     for (const SkolemLemma& lem : newAsserts)
     {
       imap[assertions->size()] = lem.d_skolem;
-      assertions->pushBackTrusted(lem.d_lemma);
+      assertions->pushBackTrusted(lem.d_lemma,
+                                  TrustId::THEORY_PREPROCESS_LEMMA);
     }
   }
 

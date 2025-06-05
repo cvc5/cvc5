@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +44,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustSubstitutionMap(Env& env,
                        context::Context* c,
                        std::string name = "TrustSubstitutionMap",
-                       TrustId trustId = TrustId::PREPROCESS_LEMMA,
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();

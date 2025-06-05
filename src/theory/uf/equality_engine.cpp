@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -1853,7 +1853,7 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 
 Node EqualityEngine::evaluateTerm(TNode node) {
   Trace("equality::evaluation") << d_name << "::eq::evaluateTerm(" << node << ")" << std::endl;
-  NodeBuilder builder;
+  NodeBuilder builder(nodeManager());
   builder << node.getKind();
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << node.getOperator();

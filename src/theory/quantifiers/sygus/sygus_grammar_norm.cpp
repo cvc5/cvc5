@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *   Haniel Barbosa, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +34,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-bool OpPosTrie::getOrMakeType(TypeNode tn,
+bool OpPosTrie::getOrMakeType(NodeManager* nm,
+                              TypeNode tn,
                               TypeNode& unres_tn,
                               const std::vector<unsigned>& op_pos,
                               unsigned ind,
@@ -61,7 +62,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
         ss << "_" << std::to_string(op_pos[i]);
       }
     }
-    d_unres_tn = NodeManager::currentNM()->mkUnresolvedDatatypeSort(ss.str());
+    d_unres_tn = nm->mkUnresolvedDatatypeSort(ss.str());
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
@@ -69,7 +70,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   }
   /* Go to next node */
   return d_children[op_pos[ind]].getOrMakeType(
-      tn, unres_tn, op_pos, ind + 1, useIndexedName);
+      nm, tn, unres_tn, op_pos, ind + 1, useIndexedName);
 }
 
 SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
@@ -147,8 +148,7 @@ void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
 bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
 {
   /* Checks whether operator occurs chainable for its type */
-  if (tn.isInteger()
-      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD)
+  if (tn.isInteger() && op.getNodeManager()->operatorToKind(op) == Kind::ADD)
   {
     return true;
   }
@@ -160,8 +160,7 @@ bool SygusGrammarNorm::TransfChain::isChainable(TypeNode tn, Node op)
    function should realize that it is chainable for integers */
 bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 {
-  if (tn.isInteger()
-      && NodeManager::currentNM()->operatorToKind(op) == Kind::ADD
+  if (tn.isInteger() && op.getNodeManager()->operatorToKind(op) == Kind::ADD
       && n == TermUtil::mkTypeValue(tn, 0))
   {
     return true;
@@ -174,7 +173,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                                               const DType& dt,
                                               std::vector<unsigned>& op_pos)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = sygus_norm->d_env.getNodeManager();
   std::vector<unsigned> claimed(d_elem_pos);
   claimed.push_back(d_chain_op_pos);
   unsigned nb_op_pos = op_pos.size();
@@ -208,7 +207,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     Trace("sygus-grammar-normalize-chain") << "\n";
   }
   /* Build identity operator and empty callback */
-  Node iden_op = SygusGrammarNorm::getIdOp(dt.getSygusType());
+  Node iden_op = SygusGrammarNorm::getIdOp(nm, dt.getSygusType());
   /* If all operators are claimed, create a monomial */
   if (nb_op_pos == d_elem_pos.size() + 1)
   {
@@ -282,7 +281,7 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
 std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     TypeNode tn, const DType& dt, const std::vector<unsigned>& op_pos)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TypeNode sygus_tn = dt.getSygusType();
   Trace("sygus-gnorm") << "Infer transf for " << dt.getName() << "..."
                        << std::endl;
@@ -398,8 +397,12 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   // only need to include indices if we are normalizing the grammar, otherwise
   // we will not get name clashes since the constructed datatypes are 1-1 with
   // the original.
-  if (d_tries[tn].getOrMakeType(
-          tn, unres_tn, op_pos, 0, options().quantifiers.sygusGrammarNorm))
+  if (d_tries[tn].getOrMakeType(nodeManager(),
+                                tn,
+                                unres_tn,
+                                op_pos,
+                                0,
+                                options().quantifiers.sygusGrammarNorm))
   {
     if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
@@ -450,7 +453,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       // add default constant constructors
       std::vector<Node> ops;
-      SygusGrammarCons::mkSygusConstantsForType(sygus_type, ops);
+      SygusGrammarCons::mkSygusConstantsForType(d_env, sygus_type, ops);
       for (const Node& op : ops)
       {
         std::stringstream ss;
@@ -536,8 +539,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     Trace("sygus-grammar-normalize-build") << "\n";
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
-  std::vector<TypeNode> types =
-      NodeManager::currentNM()->mkMutualDatatypeTypes(d_dt_all);
+  std::vector<TypeNode> types = nodeManager()->mkMutualDatatypeTypes(d_dt_all);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

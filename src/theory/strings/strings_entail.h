@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,8 +40,10 @@ class SequencesRewriter;
  */
 class StringsEntail
 {
+  friend class SequencesRewriter;
+
  public:
-  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter* rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -182,6 +184,16 @@ class StringsEntail
                         std::vector<Node>& ne,
                         bool computeRemainder = false,
                         int remainderDir = 0);
+  /**
+   * Same as above, but with more advanced reasoning, e.g. to infer prefixes
+   * and suffixes.
+   */
+  int componentContainsExt(std::vector<Node>& n1,
+                           std::vector<Node>& n2,
+                           std::vector<Node>& nb,
+                           std::vector<Node>& ne,
+                           bool computeRemainder = false,
+                           int remainderDir = 0);
   /** strip constant endpoints
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -226,12 +238,10 @@ class StringsEntail
    *
    * @param a The string that is checked whether it contains `b`
    * @param b The string that is checked whether it is contained in `a`
-   * @param fullRewriter Determines whether the function can use the full
-   * rewriter or only `rewriteContains()` (useful for avoiding loops)
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  Node checkContains(Node a, Node b, bool fullRewriter = true);
+  Node checkContains(Node a, Node b);
 
   /** entail non-empty
    *
@@ -337,6 +347,16 @@ class StringsEntail
                                            std::vector<Node>& ch2);
 
  private:
+  /**
+   * Helper method for componentContains / componentContainsExt.
+   */
+  int componentContainsInternal(bool isExt,
+                                std::vector<Node>& n1,
+                                std::vector<Node>& n2,
+                                std::vector<Node>& nb,
+                                std::vector<Node>& ne,
+                                bool computeRemainder = false,
+                                int remainderDir = 0);
   /** component contains base
    *
    * This function is a helper for the above function.
@@ -389,8 +409,13 @@ class StringsEntail
    * Since we do not wish to introduce new (symbolic) terms, we
    * instead return false, indicating that we cannot compute the remainder.
    */
-  bool componentContainsBase(
-      Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
+  bool componentContainsBase(bool isExt,
+                             Node n1,
+                             Node n2,
+                             Node& n1rb,
+                             Node& n1re,
+                             int dir,
+                             bool computeRemainder);
   /**
    * Simplifies a given node `a` s.t. the result is a concatenation of string
    * terms that can be interpreted as a multiset and which contains all

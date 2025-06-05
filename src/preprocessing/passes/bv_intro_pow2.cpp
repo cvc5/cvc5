@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,8 +45,9 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     Node res = pow2Rewrite(cur, cache);
     if (res != cur)
     {
-      res = rewrite(res);
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_BV_INTRO_POW2);
+      assertionsToPreprocess->ensureRewritten(i);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
@@ -87,9 +88,9 @@ Node BvIntroPow2::rewritePowerOfTwo(TNode node)
   uint32_t size = bv::utils::getSize(term);
   Node diff = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, a, b));
   Assert(diff.isConst());
-  Node one = bv::utils::mkOne(size);
+  Node one = bv::utils::mkOne(nm, size);
   TNode x = diff == one ? a : b;
-  Node sk = bv::utils::mkVar(size);
+  Node sk = bv::utils::mkVar(nm, size);
   Node sh = nm->mkNode(Kind::BITVECTOR_SHL, one, sk);
   Node x_eq_sh = nm->mkNode(Kind::EQUAL, x, sh);
   return x_eq_sh;

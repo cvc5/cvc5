@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andrew V. Teylu
+#   Gereon Kremer, Mathias Preiner, Daniel Larraz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -107,7 +107,14 @@ macro(check_system_version name)
     if (${name}_FIND_VERSION)
         if(${name}_VERSION VERSION_LESS ${name}_FIND_VERSION)
             message(STATUS "System version for ${name} has incompatible \
-version: required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
+version: minimum required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
+            set(${name}_FOUND_SYSTEM FALSE)
+        endif()
+    endif()
+    if (${name}_FIND_VERSION_MAX)
+        if(${name}_VERSION VERSION_GREATER ${name}_FIND_VERSION_MAX)
+            message(STATUS "System version for ${name} has incompatible \
+version: maximum required ${${name}_FIND_VERSION_MAX} but found ${${name}_VERSION}")
             set(${name}_FOUND_SYSTEM FALSE)
         endif()
     endif()

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
+ *   Haniel Barbosa, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -107,7 +107,8 @@ namespace proof {
  * @return The resulting node of transforming MACRO_RESOLUTION into
  * CHAIN_RESOLUTION according to the above idea.
  */
-Node eliminateCrowdingLits(bool reorderPremises,
+Node eliminateCrowdingLits(NodeManager* nm,
+                           bool reorderPremises,
                            const std::vector<Node>& clauseLits,
                            const std::vector<Node>& targetClauseLits,
                            const std::vector<Node>& children,

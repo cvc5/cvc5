@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -230,10 +230,14 @@ libcvc5_add_sources(
   proof/trust_id.h
   proof/trust_node.cpp
   proof/trust_node.h
+  proof/trust_proof_generator.cpp
+  proof/trust_proof_generator.h
   proof/theory_proof_step_buffer.cpp
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/valid_witness_proof_generator.cpp
+  proof/valid_witness_proof_generator.h
   proof/alethe/alethe_let_binding.cpp
   proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
@@ -323,6 +327,8 @@ libcvc5_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
+  smt/illegal_checker.cpp
+  smt/illegal_checker.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/model.cpp
@@ -345,6 +351,8 @@ libcvc5_add_sources(
   smt/proof_manager.h
   smt/proof_final_callback.cpp
   smt/proof_final_callback.h
+  smt/proof_logger.cpp
+  smt/proof_logger.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/proof_post_processor_dsl.cpp
@@ -385,6 +393,8 @@ libcvc5_add_sources(
   theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
+  theory/arith/arith_proof_rcons.cpp
+  theory/arith/arith_proof_rcons.h
   theory/arith/arith_proof_utilities.cpp
   theory/arith/arith_proof_utilities.h
   theory/arith/arith_rewriter.cpp
@@ -475,6 +485,8 @@ libcvc5_add_sources(
   theory/arith/nl/coverings/variable_ordering.h
   theory/arith/nl/equality_substitution.cpp
   theory/arith/nl/equality_substitution.h
+  theory/arith/nl/ext/arith_nl_compare_proof_gen.cpp
+  theory/arith/nl/ext/arith_nl_compare_proof_gen.h
   theory/arith/nl/ext/constraint.cpp
   theory/arith/nl/ext/constraint.h
   theory/arith/nl/ext/factoring_check.cpp
@@ -639,6 +651,8 @@ libcvc5_add_sources(
   theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
+  theory/bv/bv_pp_assert.cpp
+  theory/bv/bv_pp_assert.h
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
@@ -646,6 +660,8 @@ libcvc5_add_sources(
   theory/bv/bv_solver_bitblast_internal.h
   theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
+  theory/bv/macro_rewrite_elaborator.cpp
+  theory/bv/macro_rewrite_elaborator.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/theory_bv.cpp
@@ -905,8 +921,8 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
-  theory/quantifiers/mbqi_fast_sygus.cpp
-  theory/quantifiers/mbqi_fast_sygus.h
+  theory/quantifiers/mbqi_enum.cpp
+  theory/quantifiers/mbqi_enum.h
   theory/quantifiers/oracle_checker.cpp
   theory/quantifiers/oracle_checker.h
   theory/quantifiers/oracle_engine.cpp
@@ -1259,6 +1275,8 @@ libcvc5_add_sources(
   theory/uf/cardinality_extension.h
   theory/uf/conversions_solver.cpp
   theory/uf/conversions_solver.h
+  theory/uf/diamonds_proof_generator.cpp
+  theory/uf/diamonds_proof_generator.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_iterator.cpp
@@ -1419,6 +1437,21 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
+  set(KINDS_TOML_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds.toml
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds.toml)
 #-----------------------------------------------------------------------------#
 
 set(REWRITES_FILES
@@ -1433,6 +1466,12 @@ set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites-regexp-membership
   ${PROJECT_SOURCE_DIR}/src/theory/uf/rewrites
+)
+# these files should only be enabled in expert builds and should
+# be partitioned into their own proof signature
+set(REWRITES_FILES_EXPERT
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites-transcendentals
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/rewrites-card
 )
 
 #-----------------------------------------------------------------------------#

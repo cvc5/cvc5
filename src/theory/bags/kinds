@@ -69,6 +69,14 @@ operator BAG_MAP           2  "bag map function"
 # and returns the same bag excluding those elements that do not satisfy the predicate
 operator BAG_FILTER        2  "bag filter operator"
 
+# bag.all operator is a predicate that holds iff all elements in a given bag satisfy the the given predicate.
+# (bag.all p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+operator BAG_ALL           2  "bag all operator"
+
+# bag.some operator is a predicate that holds iff at least one element in a given bag satisfies the the given predicate.
+# (bag.some p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+operator BAG_SOME           2  "bag some operator"
+
 # bag.fold operator combines elements of a bag into a single value.
 # (bag.fold f t B) folds the elements of bag B starting with term t and using
 # the combining function f.
@@ -96,6 +104,8 @@ typerule BAG_CARD                ::cvc5::internal::theory::bags::CardTypeRule
 typerule BAG_CHOOSE              ::cvc5::internal::theory::bags::ChooseTypeRule
 typerule BAG_MAP                 ::cvc5::internal::theory::bags::BagMapTypeRule
 typerule BAG_FILTER              ::cvc5::internal::theory::bags::BagFilterTypeRule
+typerule BAG_ALL                 ::cvc5::internal::theory::bags::BagAllSomeTypeRule
+typerule BAG_SOME                ::cvc5::internal::theory::bags::BagAllSomeTypeRule
 typerule BAG_FOLD                ::cvc5::internal::theory::bags::BagFoldTypeRule
 typerule BAG_PARTITION           ::cvc5::internal::theory::bags::BagPartitionTypeRule
 

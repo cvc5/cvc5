@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -182,8 +182,6 @@ class TheoryArrays : public Theory {
   bool ppDisequal(TNode a, TNode b);
   Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
 
-  /** An eager proof generator for the rewriter, if proof are enabled */
-  std::unique_ptr<EagerProofGenerator> d_rrEpg;
   /** The theory rewriter for this theory. */
   TheoryArraysRewriter d_rewriter;
   /** A (default) theory state object */
@@ -192,8 +190,7 @@ class TheoryArrays : public Theory {
   InferenceManager d_im;
 
  public:
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
 
   /////////////////////////////////////////////////////////////////////////////

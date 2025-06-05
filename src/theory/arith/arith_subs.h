@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/subs.h"
+#include "expr/term_context.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -47,6 +48,35 @@ class ArithSubs : public Subs
    * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
    */
   Node applyArith(const Node& n, bool traverseNlMult = true) const;
+  /**
+   * Should traverse, returns true if the above method traverses n.
+   */
+  static bool shouldTraverse(const Node& n, bool traverseNlMult = true);
+};
+
+/**
+ * Arithmetic substitution term context.
+ */
+class ArithSubsTermContext : public TermContext
+{
+ public:
+  ArithSubsTermContext() {}
+  /** The initial value: valid. */
+  uint32_t initialValue() const override { return 0; }
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
+  {
+    if (tval == 0)
+    {
+      // if we should not traverse, return 1
+      if (!ArithSubs::shouldTraverse(t))
+      {
+        return 1;
+      }
+      return 0;
+    }
+    return tval;
+  }
 };
 
 }  // namespace arith

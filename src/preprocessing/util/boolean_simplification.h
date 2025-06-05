@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,7 +84,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(Kind::AND);
+    NodeBuilder nb(andNode.getNodeManager(), Kind::AND);
     nb.append(buffer);
     return nb;
   }
@@ -111,7 +111,7 @@ class BooleanSimplification
       return buffer[0];
     }
 
-    NodeBuilder nb(Kind::OR);
+    NodeBuilder nb(orNode.getNodeManager(), Kind::OR);
     nb.append(buffer);
     return nb;
   }
@@ -131,7 +131,8 @@ class BooleanSimplification
     TNode right = implication[1];
 
     Node notLeft = negate(left);
-    Node clause = NodeBuilder(Kind::OR) << notLeft << right;
+    Node clause = NodeBuilder(implication.getNodeManager(), Kind::OR)
+                  << notLeft << right;
 
     return simplifyClause(clause);
   }
@@ -177,7 +178,7 @@ class BooleanSimplification
     {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
       buffer.push_back(
-          NodeManager::currentNM()->mkConst(k == Kind::AND ? true : false));
+          n.getNodeManager()->mkConst(k == Kind::AND ? true : false));
     }
   } /* push_back_associative_commute() */
 
@@ -200,7 +201,7 @@ class BooleanSimplification
     }
     if (n.isConst())
     {
-      return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
+      return n.getNodeManager()->mkConst(!n.getConst<bool>());
     }
     if (polarity)
     {

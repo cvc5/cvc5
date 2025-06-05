@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,7 +88,8 @@ class SygusDatatype
    * the arguments argTypes should correspond to sygus datatypes that encode
    * the types of the arguments of the kind.
    */
-  void addConstructor(Kind k,
+  void addConstructor(NodeManager* nm,
+                      Kind k,
                       const std::vector<TypeNode>& argTypes,
                       int weight = -1);
   /**

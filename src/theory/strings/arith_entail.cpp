@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,10 +33,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
+ArithEntail::ArithEntail(NodeManager* nm, Rewriter* r, bool recApprox)
+    : d_rr(r), d_recApprox(recApprox)
 {
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
 }
 
 Node ArithEntail::rewritePredViaEntailment(const Node& n, bool isSimple)
@@ -49,7 +50,7 @@ Node ArithEntail::rewritePredViaEntailment(const Node& n,
                                            Node& exp,
                                            bool isSimple)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (n.getKind() == Kind::EQUAL && n[0].getType().isInteger())
   {
     exp = nm->mkNode(Kind::SUB, nm->mkNode(Kind::SUB, n[0], n[1]), d_one);
@@ -94,6 +95,10 @@ Node ArithEntail::rewriteArith(Node a)
   {
     return d_rr->rewrite(a);
   }
+  else
+  {
+    a = rewriteLengthIntro(a);
+  }
   // Otherwise, use the poly norm utility. This is important since the rewrite
   // must be justified by ARITH_POLY_NORM when in proof mode (when d_rr is
   // null).
@@ -103,7 +108,7 @@ Node ArithEntail::rewriteArith(Node a)
 
 Node ArithEntail::normalizeGeq(const Node& n) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (n.getNumChildren() != 2 || !n[0].getType().isInteger()
       || !n[1].getType().isInteger())
   {
@@ -131,7 +136,7 @@ Node ArithEntail::normalizeGeq(const Node& n) const
 Node ArithEntail::rewriteLengthIntro(const Node& n,
                                      TConvProofGenerator* pg) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
@@ -182,7 +187,7 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
         std::vector<Node> sum;
         for (const Node& c : cc)
         {
-          if (c.isConst() && c.getType().isString())
+          if (c.isConst())
           {
             sum.push_back(nm->mkConstInt(Rational(Word::getLength(c))));
           }
@@ -228,7 +233,7 @@ bool ArithEntail::check(Node a, Node b, bool strict, bool isSimple)
   {
     return !strict;
   }
-  Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
+  Node diff = NodeManager::mkNode(Kind::SUB, a, b);
   return check(diff, strict, isSimple);
 }
 
@@ -238,12 +243,17 @@ bool ArithEntail::check(Node a, bool strict, bool isSimple)
   {
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
-  Node ar = strict ? NodeManager::currentNM()->mkNode(Kind::SUB, a, d_one) : a;
-  ar = rewriteArith(ar);
-  // if simple, just call the checkSimple routine.
+  Node ar = strict ? NodeManager::mkNode(Kind::SUB, a, d_one) : a;
   if (isSimple)
   {
+    ar = arith::PolyNorm::getPolyNorm(ar);
+    // if simple, just call the checkSimple routine.
     return checkSimple(ar);
+  }
+  else
+  {
+    // otherwise rewrite arith and find approximation
+    ar = rewriteArith(ar);
   }
   Node ara = findApprox(ar, isSimple);
   return !ara.isNull();
@@ -273,9 +283,12 @@ Node ArithEntail::findApprox(Node ar, bool isSimple)
 
 Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
 {
-  Assert(rewriteArith(ar) == ar)
-      << "Not rewritten " << ar << ", got " << rewriteArith(ar);
-  NodeManager* nm = NodeManager::currentNM();
+  // if not using recursive approximations, we always set isSimple to true
+  if (!d_recApprox)
+  {
+    isSimple = true;
+  }
+  NodeManager* nm = ar.getNodeManager();
   std::map<Node, Node> msum;
   Trace("strings-ent-approx-debug")
       << "Setup arithmetic approximations for " << ar << std::endl;
@@ -322,7 +335,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       {
         Node curr = toProcess.back();
         Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
-        curr = rewriteArith(curr);
+        curr = arith::PolyNorm::getPolyNorm(curr);
         toProcess.pop_back();
         if (visited.find(curr) == visited.end())
         {
@@ -371,9 +384,11 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
         {
           if (approxMsums.find(aa) == approxMsums.end())
           {
+            // ensure rewritten, which makes a difference if isSimple is true
+            Node aar = arith::PolyNorm::getPolyNorm(aa);
             CVC5_UNUSED bool ret =
-                ArithMSum::getMonomialSum(aa, approxMsums[aa]);
-            Assert(ret);
+                ArithMSum::getMonomialSum(aar, approxMsums[aa]);
+            Assert(ret) << "Could not find sum " << aa;
           }
         }
         changed = true;
@@ -391,7 +406,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       aarSum.empty()
           ? d_zero
           : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(Kind::ADD, aarSum));
-  aar = rewriteArith(aar);
+  aar = arith::PolyNorm::getPolyNorm(aar);
   Trace("strings-ent-approx-debug")
       << "...processed fixed sum " << aar << " with " << mApprox.size()
       << " approximated monomials." << std::endl;
@@ -463,7 +478,8 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
             if (!cr.isNull())
             {
               ci = ci.isNull() ? cr
-                               : rewriteArith(nm->mkNode(Kind::MULT, ci, cr));
+                               : nm->mkConstInt(cr.getConst<Rational>()
+                                                * ci.getConst<Rational>());
             }
             Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
             int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
@@ -521,7 +537,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       aar = nm->mkNode(Kind::ADD, aar, mn);
       approxMap.add(v, vapprox);
       // update the msumAar map
-      aar = rewriteArith(aar);
+      aar = arith::PolyNorm::getPolyNorm(aar);
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
@@ -574,7 +590,7 @@ void ArithEntail::getArithApproximations(Node a,
                                          bool isOverApprox,
                                          bool isSimple)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = a.getNodeManager();
   // We do not handle ADD here since this leads to exponential behavior.
   // Instead, this is managed, e.g. during checkApprox, where
   // ADD terms are expanded "on-demand" during the reasoning.
@@ -842,7 +858,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
                                       Node b,
                                       bool strict)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = assumption.getNodeManager();
 
   if (!assumption.isConst() && assumption.getKind() != Kind::EQUAL)
   {
@@ -864,7 +880,7 @@ bool ArithEntail::checkWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("slackVal", nm->stringType());
+    Node s = NodeManager::mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(Kind::STRING_LENGTH, s);
     Node sleny = nm->mkNode(Kind::ADD, y, slen);
     Node rr = rewriteArith(nm->mkNode(Kind::SUB, x, sleny));
@@ -1038,7 +1054,7 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
       }
       else
       {
-        ret = NodeManager::currentNM()->mkNode(a.getKind(), children);
+        ret = a.getNodeManager()->mkNode(a.getKind(), children);
         ret = rewriteArith(ret);
       }
     }
@@ -1065,7 +1081,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   {
     return ret;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = s.getNodeManager();
   Kind sk = s.getKind();
   if (s.isConst())
   {
@@ -1144,7 +1160,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
 {
   Assert(zeroYs.empty());
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = x.getNodeManager();
 
   // Check if we can show that y1 + ... + yn >= x
   Node sum = (ys.size() > 1) ? nm->mkNode(Kind::ADD, ys) : ys[0];

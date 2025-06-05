@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,6 +47,7 @@ class TypeNode;
 class ProofNode;
 
 class Env;
+class NodeManager;
 class UnsatCore;
 class StatisticsRegistry;
 class Plugin;
@@ -99,7 +100,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(const Options* optr = nullptr);
+  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -186,7 +187,7 @@ class CVC5_EXPORT SolverEngine
    * @param key The option to set
    * @param value The value to set
    * @param fromUser Whether this option was set by the user. This impacts
-   * whether we enable checks e.g. when --safe-options is enabled.
+   * whether we enable checks e.g. when safe mode is enabled.
    * @throw OptionException, ModalException
    */
   void setOption(const std::string& key,
@@ -1126,11 +1127,11 @@ class CVC5_EXPORT SolverEngine
   /** Has the above logic been initialized? */
   bool d_userLogicSet;
 
-  /** Have we set a regular option yet? (for --safe-options) */
+  /** Have we set a regular option yet? (for --safe-mode) */
   bool d_safeOptsSetRegularOption;
-  /** The regular option we set (for --safe-options) */
+  /** The regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOption;
-  /** The value of the regular option we set (for --safe-options) */
+  /** The value of the regular option we set (for --safe-mode) */
   std::string d_safeOptsRegularOptionValue;
   /** Was the option already the default setting */
   bool d_safeOptsSetRegularOptionToDefault;

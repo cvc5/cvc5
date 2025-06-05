@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,6 @@
 #include "expr/node.h"
 
 namespace cvc5::internal {
-
-class Options;
-
 namespace theory {
 
 class Rewriter;
@@ -56,7 +53,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter(const Options& opts, Rewriter* r = nullptr);
+  BvInverter(Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -74,14 +71,14 @@ class BvInverter
                    Node pv,
                    Node sv,
                    Node pvs,
-                   std::vector<unsigned>& path,
+                   std::vector<uint32_t>& path,
                    bool projectNl);
 
   /**
    * Same as above, but does not linearize lit for pv.
    * Use this version if we know lit is linear wrt pv.
    */
-  Node getPathToPv(Node lit, Node pv, std::vector<unsigned>& path)
+  Node getPathToPv(Node lit, Node pv, std::vector<uint32_t>& path)
   {
     return getPathToPv(lit, pv, pv, Node::null(), path, false);
   }
@@ -98,7 +95,7 @@ class BvInverter
    */
   Node solveBvLit(Node sv,
                   Node lit,
-                  std::vector<unsigned>& path,
+                  std::vector<uint32_t>& path,
                   BvInverterQuery* m);
 
  private:
@@ -106,7 +103,7 @@ class BvInverter
   Node getPathToPv(Node lit,
                    Node pv,
                    Node sv,
-                   std::vector<unsigned>& path,
+                   std::vector<uint32_t>& path,
                    std::unordered_set<TNode>& visited);
 
   /** Helper function for getInv.
@@ -128,8 +125,6 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
-  /** Reference to options */
-  const Options& d_opts;
   /** (Optional) rewriter used as helper in getInversionNode */
   Rewriter* d_rewriter;
   /** Dummy variables for each type */

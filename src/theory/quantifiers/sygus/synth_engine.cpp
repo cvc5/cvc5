@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -191,6 +191,9 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
 bool SynthEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
+  // Note that d_conjs should be size one. If it has not been assigned,
+  // by convention we return true for this method, which may correspond to
+  // a case where all functions-to-synthesize were unconstrained.
   bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {

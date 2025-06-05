@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,11 +98,18 @@ class AlfPrinter : protected EnvObj
   static bool isHandledBitblastStep(const Node& eq);
   /**
    * Return true if it is possible to evaluate n using the evaluation side
-   * condition in the ALF signature. Notice this requires that all subterms of n
+   * condition in the CPC signature. Notice this requires that all subterms of n
    * are handled. This method is used for determining if an application of
    * ProofRule::EVALUATE can be applied.
    */
   static bool canEvaluate(Node n);
+  /**
+   * Return true if it is possible to evaluate n using the distinct values side
+   * condition in the CPC signature. Notice this requires that all subterms of n
+   * are handled. This method is used for determining if an application of
+   * ProofRule::DISTINCT_VALUES can be applied.
+   */
+  static bool isHandledDistinctValues(const Node& n);
   /**
    * Whether we support evaluating (str.in_re s r) for any constant string s.
    */
@@ -186,8 +193,8 @@ class AlfPrinter : protected EnvObj
   std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
-  /** List node converter */
-  AlfListNodeConverter d_ltproc;
+  /** */
+  TypeNode d_absType;
   /** Pointer to the rewrite database */
   rewriter::RewriteDb* d_rdb;
   /** The empty vector */
@@ -198,6 +205,8 @@ class AlfPrinter : protected EnvObj
   LetBinding* d_lbindUse;
   /** The letification channel. */
   AlfPrintChannelPre d_aletify;
+  /** A cache for explicit type-of variables, for printing DSL_REWRITE steps */
+  std::map<ProofRewriteRule, std::vector<Node>> d_explicitTypeOf;
 };
 
 }  // namespace proof

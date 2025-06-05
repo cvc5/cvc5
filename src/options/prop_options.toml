@@ -96,7 +96,7 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "preRegisterMode"
-  category   = "expert"
+  category   = "regular"
   long       = "preregister-mode=MODE"
   type       = "PreRegisterMode"
   default    = "EAGER"

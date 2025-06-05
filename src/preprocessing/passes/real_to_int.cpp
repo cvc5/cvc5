@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -228,7 +228,9 @@ PreprocessingPassResult RealToInt::applyInternal(
       // this pass is refutation unsound, "unsat" will be "unknown"
       assertionsToPreprocess->markRefutationUnsound();
       Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
-      assertionsToPreprocess->replace(i, rewrite(ac));
+      assertionsToPreprocess->replace(
+          i, ac, nullptr, TrustId::PREPROCESS_REAL_TO_INT);
+      assertionsToPreprocess->ensureRewritten(i);
       if (assertionsToPreprocess->isInConflict())
       {
         return PreprocessingPassResult::CONFLICT;

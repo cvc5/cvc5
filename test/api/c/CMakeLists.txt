@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -53,8 +53,11 @@ endmacro()
 cvc5_add_capi_test(boilerplate "")
 cvc5_add_capi_test(ouroborous "")
 cvc5_add_capi_test(reset_assertions "")
-cvc5_add_capi_test(sep_log_api "")
 cvc5_add_capi_test(smt2_compliance "")
 cvc5_add_capi_test(two_solvers "")
+
+if (NOT ENABLE_SAFE_MODE)
+  cvc5_add_capi_test(sep_log_api "")
+endif()
 
 add_subdirectory(issues)

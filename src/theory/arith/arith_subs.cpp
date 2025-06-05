@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,11 @@ void ArithSubs::addArith(const Node& v, const Node& s)
 
 Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  if (d_vars.empty())
+  {
+    return n;
+  }
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, Node> visited;
   std::vector<TNode> visit;
   visit.push_back(n);
@@ -44,7 +48,6 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      Kind ck = cur.getKind();
       auto s = find(cur);
       if (s)
       {
@@ -56,12 +59,7 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
       }
       else
       {
-        TheoryId ctid = theory::kindToTheoryId(ck);
-        if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL
-             && ctid != THEORY_BUILTIN)
-            || isTranscendentalKind(ck)
-            || (!traverseNlMult
-                && (ck == Kind::NONLINEAR_MULT || ck == Kind::IAND)))
+        if (!shouldTraverse(cur))
         {
           // Do not traverse beneath applications that belong to another theory
           // besides (core) arithmetic. Notice that transcendental function
@@ -105,6 +103,19 @@ Node ArithSubs::applyArith(const Node& n, bool traverseNlMult) const
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
+{
+  Kind k = n.getKind();
+  TheoryId ctid = theory::kindToTheoryId(k);
+  if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
+      || isTranscendentalKind(k)
+      || (!traverseNlMult && (k == Kind::NONLINEAR_MULT || k == Kind::IAND)))
+  {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace arith

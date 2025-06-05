@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +29,8 @@
 
 namespace cvc5::internal {
 
-class EagerProofGenerator;
 class Env;
+class TConvProofGenerator;
 
 namespace theory {
 
@@ -41,12 +41,10 @@ uint64_t getMostFrequentValueCount(TNode store);
 void setMostFrequentValue(TNode store, TNode value);
 void setMostFrequentValueCount(TNode store, uint64_t count);
 
-static inline Node mkEqNode(Node a, Node b) { return a.eqNode(b); }
-
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(NodeManager* nm, Rewriter* r, EagerProofGenerator* epg);
+  TheoryArraysRewriter(NodeManager* nm, Rewriter* r);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(NodeManager* nm,
@@ -72,7 +70,7 @@ class TheoryArraysRewriter : public TheoryRewriter
    */
   Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
 
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
 
   /**
    * Puts array constant node into normal form. This is so that array constants
@@ -83,14 +81,29 @@ class TheoryArraysRewriter : public TheoryRewriter
    */
   static Node normalizeConstant(NodeManager* nm, TNode node);
 
+  /**
+   * @param n The term to rewrite, expected to be a store or select whose
+   * index can be "pushed" beneath indices on the first argument.
+   * @param pg If provided, stores a set of small step rewrites that suffice
+   * to show that n rewrites to the returned term.
+   * @return the result of rewriting n.
+   */
+  Node computeNormalizeOp(const Node& n,
+                          TConvProofGenerator* pg = nullptr) const;
+
  private:
   /**
    * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
    * be removed.
    */
   Rewriter* d_rewriter;
-  /** Pointer to an eager proof generator, if proof are enabled */
-  EagerProofGenerator* d_epg;
+  /**
+   * Make rewritten equality.
+   * @param a The first term.
+   * @param b The second term.
+   * @return the rewritten form of the equality between a and b.
+   */
+  Node mkEqNode(const Node& a, const Node& b) const;
 }; /* class TheoryArraysRewriter */
 
 }  // namespace arrays

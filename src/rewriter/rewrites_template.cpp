@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Leni Aniva
+ *   Andrew Reynolds, Abdalrhman Mohamed, Leni Aniva
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,17 +31,16 @@ ${decl_individual_rewrites}$
     // clang-format on
 
     void
-    addRules(RewriteDb& db){
+    addRules(NodeManager* nm, RewriteDb& db){
         // Calls to individual rewrites
         // clang-format off
   ${call_individual_rewrites}$
         // clang-format on
     }
 
-Node mkRewriteRuleNode(ProofRewriteRule rule)
+Node mkRewriteRuleNode(NodeManager* nm, ProofRewriteRule rule)
 {
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(rule)));
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(rule)));
 }
 
 bool getRewriteRule(TNode n, ProofRewriteRule& rule)

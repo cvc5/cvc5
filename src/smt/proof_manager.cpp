@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,6 +33,7 @@
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
+#include "smt/proof_logger.h"
 #include "smt/proof_post_processor.h"
 #include "smt/smt_solver.h"
 
@@ -46,7 +47,9 @@ PfManager::PfManager(Env& env)
       d_pchecker(nullptr),
       d_pnm(nullptr),
       d_pfpp(nullptr),
-      d_pppg(nullptr)
+      d_pppg(nullptr),
+      d_finalCb(env),
+      d_finalizer(env, d_finalCb)
 {
   // construct the rewrite db only if DSL rewrites are enabled
   if (options().proof.proofGranularityMode
@@ -54,26 +57,38 @@ PfManager::PfManager(Env& env)
       || options().proof.proofGranularityMode
              == options::ProofGranularityMode::DSL_REWRITE_STRICT)
   {
-    d_rewriteDb.reset(new RewriteDb);
-    if (isOutputOn(OutputTag::RARE_DB))
+    d_rewriteDb.reset(new RewriteDb(nodeManager()));
+    // maybe output rare rules?
+    bool isNormalOut = isOutputOn(OutputTag::RARE_DB);
+    bool isExpertOut = isOutputOn(OutputTag::RARE_DB_EXPERT);
+    if (isNormalOut || isExpertOut)
     {
       if (options().proof.proofFormatMode != options::ProofFormatMode::CPC)
       {
         Warning()
             << "WARNING: Assuming --proof-format=cpc when printing the RARE "
-               "database with -o rare-db"
+               "database with -o rare-db(-expert)"
             << std::endl;
       }
       proof::AlfNodeConverter atp(nodeManager());
       proof::AlfPrinter alfp(d_env, atp, d_rewriteDb.get());
       const std::map<ProofRewriteRule, RewriteProofRule>& rules =
           d_rewriteDb->getAllRules();
-      std::stringstream ss;
       for (const std::pair<const ProofRewriteRule, RewriteProofRule>& r : rules)
       {
-        alfp.printDslRule(ss, r.first);
+        // only output if the signature level is what we want
+        Level l = r.second.getSignatureLevel();
+        if (l == Level::NORMAL && isNormalOut)
+        {
+          std::ostream& os = output(OutputTag::RARE_DB);
+          alfp.printDslRule(os, r.first);
+        }
+        else if (l == Level::EXPERT && isExpertOut)
+        {
+          std::ostream& os = output(OutputTag::RARE_DB_EXPERT);
+          alfp.printDslRule(os, r.first);
+        }
       }
-      output(OutputTag::RARE_DB) << ss.str();
     }
   }
 
@@ -83,8 +98,10 @@ PfManager::PfManager(Env& env)
                        options().proof.proofCheck,
                        static_cast<uint32_t>(options().proof.proofPedantic),
                        d_rewriteDb.get()));
-  d_pnm.reset(new ProofNodeManager(
-      env.getOptions(), env.getRewriter(), d_pchecker.get()));
+  d_pnm.reset(new ProofNodeManager(env.getNodeManager(),
+                                   env.getOptions(),
+                                   env.getRewriter(),
+                                   d_pchecker.get()));
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
@@ -159,6 +176,12 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
   typename std::vector<T, Alloc>::size_type r = std::distance(it, c.end());
   c.erase(it, c.end());
   return r;
+}
+
+void PfManager::startProofLogging(std::ostream& out, Assertions& as)
+{
+  // by default, CPC proof logger
+  d_plog.reset(new ProofLoggerCpc(d_env, out, this, as, d_pfpp.get()));
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
@@ -264,6 +287,22 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
           minDefinitions);
     }
     default: Unreachable();
+  }
+}
+
+void PfManager::checkFinalProof(std::shared_ptr<ProofNode> pfn)
+{
+  // take stats and check pedantic
+  d_finalCb.initializeUpdate();
+  d_finalizer.process(pfn);
+
+  std::stringstream serr;
+  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
+  if (wasPedanticFailure)
+  {
+    AlwaysAssert(!wasPedanticFailure)
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
+        << serr.str();
   }
 }
 
@@ -397,13 +436,15 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     dpnu.process(c);
   }
   // get the accumulated difficulty map from the callback
-  dpc.getDifficultyMap(dmap);
+  dpc.getDifficultyMap(nodeManager(), dmap);
   Trace("difficulty-proc") << "Translate difficulty end" << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
+
+ProofLogger* PfManager::getProofLogger() const { return d_plog.get(); }
 
 rewriter::RewriteDb* PfManager::getRewriteDatabase() const
 {

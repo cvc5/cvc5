@@ -1,0 +1,25 @@
+(include "../../theories/Sets.eo")
+
+; NOTE: this signature does not enforce that the operators take into account the declared heap types.
+
+; disclaimer: All of the functions in this file are not in SMT-LIB.
+
+; The distinguished nil element.
+(declare-parameterized-const sep.nil ((T Type :implicit)) T)
+
+; The empty heap constraint.
+(declare-const sep.emp Bool)
+
+; Separating conjunction.
+(declare-const sep (-> Bool Bool Bool) :right-assoc-nil true)
+
+; Magic wand.
+(declare-const wand (-> Bool Bool Bool))
+
+; The points-to predicate.
+(declare-parameterized-const pto ((U Type :implicit) (T Type :implicit))
+  (-> U T Bool))
+
+; Internal functions.
+(declare-parameterized-const @sep_label ((U Type :implicit) (T Type :implicit))
+  (-> U (Set T) Bool))

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -3340,6 +3340,8 @@ struct CVC5_EXPORT OptionInfo
   std::string name;
   /** The option name aliases */
   std::vector<std::string> aliases;
+  /** The features not supported with this */
+  std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
   /** Whether this is an expert option */
@@ -4565,7 +4567,7 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  internal::NodeManager* d_nm;
+  std::unique_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */
@@ -6405,8 +6407,10 @@ class CVC5_EXPORT Solver
   /**
    * Get an interpolant.
    *
-   * This determines a term @f$I@f$ such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
@@ -6433,10 +6437,15 @@ class CVC5_EXPORT Solver
   /**
    * Get an interpolant.
    *
-   * This determines a term @f$I@f$, with respect to a given grammar, such
-   * that @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a
-   * term exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
-   * conjecture, given as `conj`.
+   *
+   *
+   * Given that @f$A\rightarrow B@f$ is valid, this function
+   * determines a term @f$I@f$ over the shared variables of
+   * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
+   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I@f$ is constructed from the given grammar.
+   * @f$A@f$ is the
+   * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
    *
    * SMT-LIB:
    *

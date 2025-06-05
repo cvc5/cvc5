@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -561,9 +561,15 @@ class Constraint {
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
-  static Node externalExplainByAssertions(const ConstraintCPVec& b);
-  static Node externalExplainByAssertions(ConstraintCP a, ConstraintCP b);
-  static Node externalExplainByAssertions(ConstraintCP a, ConstraintCP b, ConstraintCP c);
+  static Node externalExplainByAssertions(NodeManager* nm,
+                                          const ConstraintCPVec& b);
+  static Node externalExplainByAssertions(NodeManager* nm,
+                                          ConstraintCP a,
+                                          ConstraintCP b);
+  static Node externalExplainByAssertions(NodeManager* nm,
+                                          ConstraintCP a,
+                                          ConstraintCP b,
+                                          ConstraintCP c);
 
   /**
    * This is the minimum fringe of the implication tree s.t. every constraint is
@@ -664,7 +670,7 @@ class Constraint {
    * After calling impliedByUnate(), the caller should either raise a conflict
    * or try call tryToPropagate().
    */
-  void impliedByUnate(ConstraintCP a, bool inConflict);
+  void impliedByUnate(NodeManager* nm, ConstraintCP a, bool inConflict);
 
   /**
    * Marks a the constraint c as being entailed by a.
@@ -719,14 +725,17 @@ class Constraint {
    * After calling impliedByFarkas(), the caller should either raise a conflict
    * or try call tryToPropagate().
    */
-  void impliedByFarkas(const ConstraintCPVec& b, RationalVectorCP coeffs, bool inConflict);
+  void impliedByFarkas(NodeManager* nm,
+                       const ConstraintCPVec& b,
+                       RationalVectorCP coeffs,
+                       bool inConflict);
 
   /**
    * Generates an implication node, B => getLiteral(),
    * where B is the result of externalExplainByAssertions(b).
    * Does not guarantee b is the explanation of the constraint.
    */
-  Node externalImplication(const ConstraintCPVec& b) const;
+  Node externalImplication(NodeManager* nm, const ConstraintCPVec& b) const;
 
   /**
    * Returns true if the variable is assigned the value dr,
@@ -862,7 +871,9 @@ class Constraint {
   std::shared_ptr<ProofNode> externalExplain(NodeBuilder& nb,
                                              AssertionOrder order) const;
 
-  static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
+  static Node externalExplain(NodeManager* nm,
+                              const ConstraintCPVec& b,
+                              AssertionOrder order);
 
   inline ArithProofType getProofType() const {
     return getConstraintRule().d_proofType;
@@ -895,7 +906,7 @@ class Constraint {
    * a contradiction.
    */
 
-  bool wellFormedFarkasProof() const;
+  bool wellFormedFarkasProof(NodeManager* nm) const;
 
   /** The ArithVar associated with the constraint. */
   const ArithVar d_variable;

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -167,16 +167,6 @@ class String
   String prefix(std::size_t i) const { return substr(0, i); }
   /** Return the suffix of this string of size at most i */
   String suffix(std::size_t i) const { return substr(size() - i, i); }
-
-  /**
-   * Checks if there is any overlap between this string and another string. This
-   * corresponds to checking whether one string contains the other and whether a
-   * substring of one is a prefix of the other and vice-versa.
-   *
-   * @param y The other string
-   * @return True if there is an overlap, false otherwise
-   */
-  bool noOverlapWith(const String& y) const;
 
   /** string overlap
   *
