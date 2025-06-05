@@ -26,8 +26,8 @@
 
 ; program: $seq_element_of_unit
 ; args:
-; - s U: a string term.
-; return: true if s is the empty string or sequence.
+; - s U: a string term, expected to be a sequence unit.
+; return: the element of sequence unit s.
 (program $seq_element_of_unit ((U Type) (x U))
   :signature ((Seq U)) U
   (
