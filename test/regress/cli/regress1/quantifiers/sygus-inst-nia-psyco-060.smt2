@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --sygus-inst
+; DISABLE-TESTER: unsat-cores
 (set-info :smt-lib-version 2.6)
 (set-logic NIA)
 (set-info
