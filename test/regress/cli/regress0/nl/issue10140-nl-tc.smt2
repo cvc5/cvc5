@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --nl-cov
 ; EXPECT: sat
+; REQUIRES: poly
 (set-logic ALL)
 (declare-fun a () Int)
 (declare-fun b () Int)
