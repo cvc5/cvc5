@@ -926,6 +926,9 @@
     (($seq_eval (seq.suffixof t s))       (seq.suffixof t s))
     (($seq_eval (seq.at t n))             (seq.at t n))
     (($seq_eval (seq.rev t))              (seq.rev t))
+    (($seq_eval (= t s))                  (eo::ite (eo::eq ($seq_eval t) ($seq_eval s))
+                                            true
+                                            (eo::not ($are_distinct_terms t s))))
   )
 )
 
