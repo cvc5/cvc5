@@ -139,7 +139,7 @@
 ; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
 ; - x @List: The list of variables of the quantified formula.
 ; - F Bool: The body of the quantified formula.
-; return: The quantified formula (Q x F), or just F is x is the empty list.
+; return: The quantified formula (Q x F), or just F if x is the empty list.
 (program $mk_quant ((Q (-> @List Bool Bool)) (x @List) (F Bool))
   :signature ((-> @List Bool Bool) @List Bool) Bool
   (
@@ -167,6 +167,7 @@
 ; args:
 ; - Q (-> @List Bool Bool): The binding operator (forall or exists).
 ; - F Bool: The formula for which we are merging prenexes.
+; - y @List: The list of variables we have accumulated so far.
 ; return: the result of merging all bound variables bound by Q in F.
 (program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (y @List) (F Bool))
   :signature ((-> @List Bool Bool) Bool @List) Bool
