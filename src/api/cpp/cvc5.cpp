@@ -7929,8 +7929,6 @@ std::vector<Term> Solver::getUnsatCoreLemmas(void) const
 std::vector<Term> Solver::getPartitions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
-      << "cannot get partitions unless in unsat mode.";
   //////// all checks before this line
   std::vector<internal::Node> partitions = d_slv->getPartitions();
   /* Can not use

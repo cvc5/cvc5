@@ -1710,12 +1710,6 @@ std::vector<Node> SolverEngine::getPartitions()
 {
   Trace("smt") << "SMT getPartitions()" << std::endl;
   finishInit();
-  if (d_state->getMode() != SmtMode::UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot get partitions unless immediately preceded by "
-        "UNSAT response.");
-  }
   return d_smtSolver->getTheoryEngine()->getPartitions();
 }
 

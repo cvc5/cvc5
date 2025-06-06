@@ -916,6 +916,31 @@ TEST_F(TestApiBlackSolver, getUnsatCoreLemmas2)
   ASSERT_NO_THROW(d_solver->getUnsatCoreLemmas());
 }
 
+TEST_F(TestApiBlackSolver, getPartitions)
+{
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("compute-partitions", "2");
+  d_solver->setOption("partition-strategy", "decision-cube");
+  d_solver->setOption("checks-before-partition", "1");
+  d_solver->setOption("partition-when", "climit");
+  d_solver->setOption("write-partitions-to", "/dev/null");
+
+  Sort real = d_tm.getRealSort();
+
+  Term x = d_tm.mkConst(real, "x");
+  Term y = d_tm.mkConst(real, "y");
+
+  Term c1 = d_tm.mkTerm(Kind::OR,
+                        {d_tm.mkTerm(Kind::LEQ, {x, y}),
+                         d_tm.mkTerm(Kind::LEQ, {x, d_tm.mkReal(5)})});
+  d_solver->assertFormula(c1);
+
+  d_solver->checkSat();
+
+  auto partitions = d_solver->getPartitions();
+  ASSERT_TRUE(partitions.size() > 0);
+}
+
 TEST_F(TestApiBlackSolver, getAbduct)
 {
   d_solver->setLogic("QF_LIA");
