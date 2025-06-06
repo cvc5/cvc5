@@ -167,6 +167,7 @@
 ; args:
 ; - Q (-> @List Bool Bool): The binding operator (forall or exists).
 ; - F Bool: The formula for which we are merging prenexes.
+; - y @List: The list of variables we have accumulated so far.
 ; return: the result of merging all bound variables bound by Q in F.
 (program $mk_quant_merge_prenex ((Q (-> @List Bool Bool)) (x @List) (y @List) (F Bool))
   :signature ((-> @List Bool Bool) Bool @List) Bool
