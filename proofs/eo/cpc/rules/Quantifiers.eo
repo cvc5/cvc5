@@ -139,7 +139,7 @@
 ; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
 ; - x @List: The list of variables of the quantified formula.
 ; - F Bool: The body of the quantified formula.
-; return: The quantified formula (Q x F), or just F is x is the empty list.
+; return: The quantified formula (Q x F), or just F if x is the empty list.
 (program $mk_quant ((Q (-> @List Bool Bool)) (x @List) (F Bool))
   :signature ((-> @List Bool Bool) @List Bool) Bool
   (
