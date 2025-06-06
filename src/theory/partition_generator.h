@@ -64,7 +64,7 @@ class PartitionGenerator : public TheoryEngineModule
                    const std::vector<Node>& sks) override;
 
   /**
-   * Returns the d_allPartitions, the partitioning formulas that have been
+   * Returns d_partitions, the partitioning formulas that have been
    * created for partitioning the original problem.
    */
 
