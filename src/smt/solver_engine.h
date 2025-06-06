@@ -715,6 +715,8 @@ class CVC5_EXPORT SolverEngine
    * unsat cores support and produce-unsat-core-lemmas is on. */
   std::vector<Node> getUnsatCoreLemmas();
 
+  std::vector<Node> getPartitions();
+
   /**
    * Get a refutation proof (only if immediately preceded by an UNSAT query).
    * Only permitted if cvc5 was built with proof support and the proof option
