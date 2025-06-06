@@ -844,6 +844,7 @@ set(regress_0_tests
   regress0/ff/as.smt2
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
+  regress0/ff/bitsum_eval.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
@@ -860,6 +861,7 @@ set(regress_0_tests
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
   regress0/ff/issue11932.smt2
+  regress0/ff/issue11969.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2

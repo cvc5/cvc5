@@ -198,7 +198,7 @@ Node TheoryFiniteFieldsRewriter::postRewriteFfBitsum(TNode t)
   {
     if (child.isConst())
     {
-      acc = acc + child.getConst<FiniteFieldValue>();
+      acc = acc + multiplier * child.getConst<FiniteFieldValue>();
     }
     else
     {
