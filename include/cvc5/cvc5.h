@@ -35,6 +35,24 @@
 #include <variant>
 #include <vector>
 
+#if defined(__GNUC__) || defined(__clang__)
+#define CVC5_SUPPRESS_DEPRECATED_PUSH \
+    _Pragma("GCC diagnostic push") \
+    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define CVC5_SUPPRESS_DEPRECATED_POP \
+    _Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+#define CVC5_SUPPRESS_DEPRECATED_PUSH \
+    __pragma(warning(push)) \
+    __pragma(warning(disable: 4996))
+#define CVC5_SUPPRESS_DEPRECATED_POP \
+    __pragma(warning(pop))
+#else
+// For unknown compilers, do nothing
+#define CVC5_SUPPRESS_DEPRECATED_PUSH
+#define CVC5_SUPPRESS_DEPRECATED_POP
+#endif
+
 namespace cvc5 {
 
 namespace main {
@@ -3295,6 +3313,7 @@ class CVC5_EXPORT DriverOptions
  * be accessed using :cpp:func:`Solver::getDriverOptions()
  * <cvc5::Solver::getDriverOptions()>`. \endverbatim
  */
+CVC5_SUPPRESS_DEPRECATED_PUSH
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information. */
@@ -3402,6 +3421,7 @@ struct CVC5_EXPORT OptionInfo
    */
   std::string toString() const;
 };
+CVC5_SUPPRESS_DEPRECATED_POP
 
 /**
  * Print an `OptionInfo` object to an output stream.
