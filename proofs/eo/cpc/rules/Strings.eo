@@ -897,10 +897,15 @@
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - s (Seq T): The term to process, which is expected to be a seq.++ list.
 ; reutrn: true if s is a prefix of t.
-(program $seq_is_prefix ((T Type) (t (Seq T)) (s (Seq T)))
+(program $seq_is_prefix ((T Type) (t (Seq T)) (et T) (es T) (ts (Seq T) :list) (ss (Seq T) :list))
   :signature ((Seq T) (Seq T)) Bool
   (
-  (($seq_is_prefix t t)                        true)
+  (($seq_is_prefix t t)                                               true)
+  (($seq_is_prefix (seq.++ t ts) (seq.++ t ss))                       ($seq_is_prefix ts ss))
+  (($seq_is_prefix (seq.++ (seq.unit et) ts) (seq.++ (seq.unit es) ss))
+    (eo::requires ($are_distinct_terms et es) true false))
+  (($seq_is_prefix (as seq.empty (Seq T)) t)                          true)
+  (($seq_is_prefix (seq.++ (seq.unit et) ts) (as seq.empty (Seq T)))  false)
   )
 )
 
@@ -984,21 +989,8 @@
     ; handle sequence-specific operators here
     (($seq_eval (seq.nth t n))            (eo::define ((res (eo::list_nth seq.++ ($str_to_nary_form t false) n)))
                                             ($seq_element_of_unit res)))
-    ; otherwise, we rely on the strings evaluator
-    (($seq_eval t)
-      (eo::define ((res ($seq_to_string_op_rec t @list.nil @list.nil))) ; convert to string
-      (eo::define ((u ($tuple_nth res 0)))
-      (eo::define ((units ($tuple_nth res 1)))
-      (eo::define ((chars ($tuple_nth res 2)))
-      (eo::define ((ue ($evaluate u)))            ; evaluate on string
-        (eo::ite (eo::eq (eo::typeof ue) String)
-          ($singleton_elim
-            ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
-              (eo::cons @list "" chars)
-              (eo::cons @list (as seq.empty (eo::typeof t)) units)))
-          ue))))))) ; otherwise just return self
     (($seq_eval (seq.len t))              ($str_value_len ($str_nary_intro t)))
-    ; case for seq.++ not necessary (is no-op)?
+    (($seq_eval (seq.++ t ts))            ($str_nary_elim (eo::list_concat seq.++ ($str_nary_intro t) ($str_nary_intro ($seq_eval ts)))))
     (($seq_eval (seq.extract t n m))      (eo::define ((tn ($str_nary_intro t)))
                                             ($str_nary_elim ($seq_subsequence n (eo::add n m) tn))))
     (($seq_eval (seq.contains t s))       (eo::define ((tn ($str_nary_intro t)))
@@ -1009,17 +1001,16 @@
                                           (eo::define ((i ($seq_find tn sn 0)))
                                             (eo::ite (eo::is_neg i)
                                               t
-                                              (eo::list_concat seq.++
+                                              ($str_nary_elim (eo::list_concat seq.++
                                                 ($seq_subsequence 0 i tn)
-                                                sn
-                                                ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn))
-                                            )))))
+                                                ($str_nary_intro r)
+                                                ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn))))))))
     (($seq_eval (seq.replace_all t s r))  (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((rn ($str_nary_intro r)))
                                           (eo::ite (eo::eq ($str_value_len s) 0)
                                             t
-                                            ($str_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn)))))))
+                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn))))))))
     (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((tl ($str_value_len tn)))
@@ -1028,6 +1019,7 @@
     (($seq_eval (seq.suffixof t s))       ($seq_is_prefix ($str_to_nary_form t true) ($str_to_nary_form s true)))
     (($seq_eval (seq.at t n))             ($seq_eval (seq.extract t n 1)))
     (($seq_eval (seq.rev t))              ($str_nary_elim ($str_to_nary_form t true)))
+    (($seq_eval t)                        t)
   )
 )
 
