@@ -2,8 +2,8 @@
 (include "../theories/Quantifiers.eo")
 
 (include "../programs/Quantifiers.eo")
-(include "../programs/SeqToString.eo")
 (include "../programs/Strings.eo")
+(include "../programs/DistinctValues.eo")
 
 ;;-------------------- Core
 
