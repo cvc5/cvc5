@@ -715,6 +715,10 @@ class CVC5_EXPORT SolverEngine
    * unsat cores support and produce-unsat-core-lemmas is on. */
   std::vector<Node> getUnsatCoreLemmas();
 
+  /**
+   * Get the partitioning formulas for this problem if compute-partitions was
+   * set.
+   */
   std::vector<Node> getPartitions();
 
   /**

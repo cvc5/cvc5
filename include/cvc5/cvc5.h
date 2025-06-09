@@ -5997,6 +5997,14 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getUnsatCoreLemmas() const;
 
+  /**
+   * Get the partitioning formulas for this problem, if compute-parttions was
+   * set.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return A set of terms representing the partitioning formulas.
+   */
   std::vector<Term> getPartitions() const;
 
   /**
