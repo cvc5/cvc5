@@ -204,7 +204,6 @@
     (
         (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
         (($mk_ho_cong t1 t2 true)                 (= t1 t2))
-        (($mk_ho_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
     )
 )
 
