@@ -942,15 +942,35 @@
 ; - u Int: The end index, inclusive, of elements of t to extract.
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; return: >
-;   The subsequent of t between indices l and u inclusive.
+;   The subsequent of t between indices l up to (and not including) u.
 (program $seq_subsequence ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
   :signature (Int Int (Seq T)) (Seq T)
   (
     (($seq_subsequence l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
-    (($seq_subsequence 0 u t)
-      ($seq_prefix (eo::add u 1) t))
+    (($seq_subsequence 0 u t)                           ($seq_prefix u t))
     (($seq_subsequence l u (seq.++ (seq.unit e) ts))
       ($seq_subsequence (eo::add l -1) (eo::add u -1) ts))
+  )
+)
+
+; program: $seq_eval_replace_all_rec
+; args:
+; - s (Seq T): A sequence.
+; - t (Seq T): A sequence to find.
+; - u (Seq T): A sequence to replace with.
+; - n Int: The result of finding t in s.
+; - lent Int: The length of t.
+; return: >
+;   The result of evaluating (seq.replace_all s t u).
+(program $seq_eval_replace_all_rec ((s String) (t String) (u String) (n Int) (lent Int))
+  :signature (String String String Int Int) String
+  (
+  (($seq_eval_replace_all_rec s t u -1 lent)  s)
+  (($seq_eval_replace_all_rec s t u n lent)   (eo::define ((snext ($seq_subsequence (eo::add n lent) ($str_value_len s) s)))
+                                              (eo::list_concat seq.++
+                                                ($seq_subsequence 0 n s)
+                                                u
+                                                ($seq_eval_replace_all_rec snext t u (eo::find snext t) lent))))
   )
 )
 
@@ -977,10 +997,10 @@
               (eo::cons @list "" chars)
               (eo::cons @list (as seq.empty (eo::typeof t)) units)))
           ue))))))) ; otherwise just return self
-    (($seq_eval (seq.len t))              (eo::list_len seq.++ ($str_nary_intro t)))
+    (($seq_eval (seq.len t))              ($str_value_len ($str_nary_intro t)))
     ; case for seq.++ not necessary (is no-op)?
     (($seq_eval (seq.extract t n m))      (eo::define ((tn ($str_nary_intro t)))
-                                            ($seq_subsequence n (eo::add n m) tn)))
+                                            ($str_nary_elim ($seq_subsequence n (eo::add n m) tn))))
     (($seq_eval (seq.contains t s))       (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                             (eo::not (eo::is_neg ($seq_find tn sn 0))))))
@@ -990,22 +1010,24 @@
                                             (eo::ite (eo::is_neg i)
                                               t
                                               (eo::list_concat seq.++
-                                                ($seq_subsequence 0 (eo::add i -1) tn)
+                                                ($seq_subsequence 0 i tn)
                                                 sn
-                                                ($seq_subsequence (eo::add i (eo::list_len seq.++ sn)) (eo::list_len seq.++ tn) tn))
+                                                ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn))
                                             )))))
-    ;(($seq_eval (seq.replace_all t s r))  (seq.replace_all t s r))
+    (($seq_eval (seq.replace_all t s r))  (eo::define ((tn ($str_nary_intro t)))
+                                          (eo::define ((sn ($str_nary_intro s)))
+                                          (eo::define ((rn ($str_nary_intro r)))
+                                          (eo::ite (eo::eq ($str_value_len s) 0)
+                                            t
+                                            ($str_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn)))))))
     (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
-                                          (eo::define ((tl (eo::list_len seq.++ tn)))
+                                          (eo::define ((tl ($str_value_len tn)))
                                             ($seq_find ($seq_subsequence n tl tn) sn n)))))
     (($seq_eval (seq.prefixof t s))       ($seq_is_prefix ($str_nary_intro t) ($str_nary_intro s)))
     (($seq_eval (seq.suffixof t s))       ($seq_is_prefix ($str_to_nary_form t true) ($str_to_nary_form s true)))
     (($seq_eval (seq.at t n))             ($seq_eval (seq.extract t n 1)))
-    (($seq_eval (seq.rev t))              (eo::list_rev seq.++ ($str_nary_intro t)))
-    (($seq_eval (= t s))                  (eo::ite (eo::eq ($seq_eval t) ($seq_eval s))
-                                            true
-                                            (eo::not ($are_distinct_terms t s))))
+    (($seq_eval (seq.rev t))              ($str_nary_elim ($str_to_nary_form t true)))
   )
 )
 
