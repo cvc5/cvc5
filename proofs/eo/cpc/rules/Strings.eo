@@ -953,8 +953,8 @@
 ; - lent Int: The length of t.
 ; return: >
 ;   The result of evaluating (seq.replace_all s t u).
-(program $seq_eval_replace_all_rec ((s String) (t String) (u String) (n Int) (lent Int))
-  :signature (String String String Int Int) String
+(program $seq_eval_replace_all_rec ((T Type) (s (Seq T)) (t (Seq T)) (u (Seq T)) (n Int) (lent Int))
+  :signature ((Seq T) (Seq T) (Seq T) Int Int) (Seq T)
   (
   (($seq_eval_replace_all_rec s t u -1 lent)  s)
   (($seq_eval_replace_all_rec s t u n lent)   (eo::define ((snext ($seq_subsequence (eo::add n lent) ($str_value_len s) s)))
