@@ -892,18 +892,32 @@
 
 ;;;;; ProofRewriteRule::SEQ_EVAL_OP
 
+; program: $seq_is_prefix
+; args:
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; - s (Seq T): The term to process, which is expected to be a seq.++ list.
+; reutrn: true if s is a prefix of t.
+(program $seq_is_prefix ((T Type) (t (Seq T)) (s (Seq T)))
+  :signature ((Seq T) (Seq T)) Bool
+  (
+  (($seq_is_prefix t t)                        true)
+  )
+)
+
 ; program: $seq_find
 ; args:
 ; - t (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - s (Seq T): The term to process, which is expected to be a seq.++ list.
 ; - n Int: The current index.
 ; reutrn: the index of the first occurrence of s in t.
-(program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int))
+(program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int) (ts (Seq T) :list))
   :signature ((Seq T) (Seq T) Int) Int
   (
   (($seq_find t t n)                        n)
   (($seq_find (as seq.empty (Seq T)) s n)   -1)
-  ; TODO
+  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix (seq.++ t ts) s)
+                                              n
+                                              ($seq_find ts s (eo::add n 1))))
   )
 )
 
@@ -985,10 +999,8 @@
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((tl (eo::list_len seq.++ tn)))
                                             ($seq_find ($seq_subsequence n tl tn) sn n)))))
-    (($seq_eval (seq.prefixof t s))       (eo::define ((tn ($str_nary_intro t)))
-                                            (eo::eq ($seq_prefix ($str_value_len tn) ($str_nary_intro s)) tn)))
-    (($seq_eval (seq.suffixof t s))       (eo::define ((tn ($str_to_nary_form t true)))
-                                            (eo::eq ($seq_prefix ($str_value_len tn) ($str_to_nary_form s true)) tn)))
+    (($seq_eval (seq.prefixof t s))       ($seq_is_prefix ($str_nary_intro t) ($str_nary_intro s)))
+    (($seq_eval (seq.suffixof t s))       ($seq_is_prefix ($str_to_nary_form t true) ($str_to_nary_form s true)))
     (($seq_eval (seq.at t n))             ($seq_eval (seq.extract t n 1)))
     (($seq_eval (seq.rev t))              (eo::list_rev seq.++ ($str_nary_intro t)))
     (($seq_eval (= t s))                  (eo::ite (eo::eq ($seq_eval t) ($seq_eval s))
