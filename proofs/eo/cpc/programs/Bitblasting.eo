@@ -80,7 +80,7 @@
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
 ; - u Int: The end index, inclusive, of elements of t to extract.
-; - t L: The term to process, which is expected to be a cons-list.
+; - t L: The term to process, which is expected to be a @from_bools list.
 ; return: >
 ;   The subsequent of t between indices l and u inclusive.
 (program $bv_bitblast_subsequence ((n Int) (t (BitVec n)) (b Bool) (a (BitVec n) :list) (u Int) (l Int))
