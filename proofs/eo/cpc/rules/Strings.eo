@@ -926,21 +926,6 @@
   )
 )
 
-; program: $seq_prefix
-; args:
-; - l Int: The number of elements in the prefix left to extract.
-; - t L: The term to process, which is expected to be a seq.++ list.
-; return: the prefix of t consisting of at most l children.
-(program $seq_prefix ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (l Int))
-  :signature (Int (Seq T)) (Seq T)
-  (
-    (($seq_prefix 0 t)                      (as seq.empty (eo::typeof t)))
-    (($seq_prefix l (as seq.empty (Seq T))) (as seq.empty (Seq T)))
-    (($seq_prefix l (seq.++ (seq.unit e) ts))
-      (eo::cons seq.++ (seq.unit e) ($seq_prefix (eo::add l -1) ts)))
-  )
-)
-
 ; program: $seq_subsequence
 ; args:
 ; - l Int: The starting index, inclusive, of elements of t to extract.
@@ -952,7 +937,8 @@
   :signature (Int Int (Seq T)) (Seq T)
   (
     (($seq_subsequence l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
-    (($seq_subsequence 0 u t)                           ($seq_prefix u t))
+    (($seq_subsequence l 0 t)                           (as seq.empty (eo::typeof t)))
+    (($seq_subsequence 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence 0 (eo::add u -1) ts)))
     (($seq_subsequence l u (seq.++ (seq.unit e) ts))
       ($seq_subsequence (eo::add l -1) (eo::add u -1) ts))
   )
@@ -975,7 +961,7 @@
                                               (eo::list_concat seq.++
                                                 ($seq_subsequence 0 n s)
                                                 u
-                                                ($seq_eval_replace_all_rec snext t u (eo::find snext t) lent))))
+                                                ($seq_eval_replace_all_rec snext t u ($seq_find snext t 0) lent))))
   )
 )
 
