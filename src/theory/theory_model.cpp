@@ -782,8 +782,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     {
       continue;
     }
-    // should not have been solved for in a substitution
-    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
+    // Note that d_env.getTopLevelSubstitutions().apply(n) may not be n
+    // if we are in incremenal mode.
     if (hasAssignedFunctionDefinition(n))
     {
       continue;

@@ -24,6 +24,17 @@
   )
 )
 
+; program: $seq_element_of_unit
+; args:
+; - s U: a string term, expected to be a sequence unit.
+; return: the element of sequence unit s.
+(program $seq_element_of_unit ((U Type) (x U))
+  :signature ((Seq U)) U
+  (
+  (($seq_element_of_unit (seq.unit x)) x)
+  )
+)
+
 ; define: $str_value_len
 ; args:
 ; - s (Seq T): The sequence term.
@@ -61,23 +72,6 @@
 ; - x (Seq T): The string, expected to be a non-empty concatentation.
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
-
-; define: $str_mk_nth
-; args:
-; - x (Seq T): The string-like term
-; - n Int: The index
-; return: >
-;   A term corresponding to extracting the n^th position of x, which as a
-;   special case is a string of length one if x is a string. This is used
-;   by ProofRule::STRING_EXT.
-(define $str_mk_nth ((T Type :implicit) (x (Seq T)) (n Int))
-  (eo::match ((U Type))
-  (eo::typeof x)
-  (
-    (String   (str.substr x n 1))
-    ((Seq U)  (seq.nth x n))
-  ))
-)
 
 ; define: $str_cons
 ; args:

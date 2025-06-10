@@ -844,6 +844,7 @@ set(regress_0_tests
   regress0/ff/as.smt2
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
+  regress0/ff/bitsum_eval.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
@@ -860,6 +861,7 @@ set(regress_0_tests
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
   regress0/ff/issue11932.smt2
+  regress0/ff/issue11969.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
@@ -985,6 +987,8 @@ set(regress_0_tests
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
   regress0/ho/issue11734-nested-lambda.smt2
+  regress0/ho/issue11923-2-finite-ho-deq.smt2
+  regress0/ho/issue11923-finite-ho-deq.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
@@ -1297,6 +1301,8 @@ set(regress_0_tests
   regress0/parser/to_fp.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
+  regress0/parser/version2.7.smt2
+  regress0/parser/version2.7-sort-param.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
@@ -1521,6 +1527,7 @@ set(regress_0_tests
   regress0/push-pop/inc-define.smt2
   regress0/push-pop/inc-double-u.smt2
   regress0/push-pop/incremental-subst-bug.cvc.smt2
+  regress0/push-pop/issue11934-ho-uf.smt2
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
