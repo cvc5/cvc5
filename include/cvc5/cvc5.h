@@ -35,6 +35,24 @@
 #include <variant>
 #include <vector>
 
+#if defined(__GNUC__) || defined(__clang__)
+#define CVC5_SUPPRESS_DEPRECATED_PUSH \
+    _Pragma("GCC diagnostic push") \
+    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+#define CVC5_SUPPRESS_DEPRECATED_POP \
+    _Pragma("GCC diagnostic pop")
+#elif defined(_MSC_VER)
+#define CVC5_SUPPRESS_DEPRECATED_PUSH \
+    __pragma(warning(push)) \
+    __pragma(warning(disable: 4996))
+#define CVC5_SUPPRESS_DEPRECATED_POP \
+    __pragma(warning(pop))
+#else
+// For unknown compilers, do nothing
+#define CVC5_SUPPRESS_DEPRECATED_PUSH
+#define CVC5_SUPPRESS_DEPRECATED_POP
+#endif
+
 namespace cvc5 {
 
 namespace main {
@@ -3295,6 +3313,7 @@ class CVC5_EXPORT DriverOptions
  * be accessed using :cpp:func:`Solver::getDriverOptions()
  * <cvc5::Solver::getDriverOptions()>`. \endverbatim
  */
+CVC5_SUPPRESS_DEPRECATED_PUSH
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information. */
@@ -3344,10 +3363,18 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** Whether this is an expert option */
-  bool isExpert;
-  /** Whether this is a regular option */
-  bool isRegular;
+  /** 
+   * True if the option is an expert option 
+   * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
+   */
+  [[deprecated("Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool is_expert = false;
+  /** 
+   * True if the option is a regular option 
+   * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
+   */
+  [[deprecated("Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool isRegular = false;
+  /** The category of this option. */
+  modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -3394,6 +3421,7 @@ struct CVC5_EXPORT OptionInfo
    */
   std::string toString() const;
 };
+CVC5_SUPPRESS_DEPRECATED_POP
 
 /**
  * Print an `OptionInfo` object to an output stream.
@@ -6442,7 +6470,7 @@ class CVC5_EXPORT Solver
    * Given that @f$A\rightarrow B@f$ is valid, this function
    * determines a term @f$I@f$ over the shared variables of
    * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I \rightarrow B@f$ are valid.
    * @f$I@f$ is constructed from the given grammar.
    * @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
