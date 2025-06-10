@@ -1648,7 +1648,13 @@
 ; args:
 ; - c1 L: The first term, assumed to be a str.++ list.
 ; - c2 L: The second term, assumed to be a str.++ list.
-; return: true if c1 is a prefix of c2, or c2 is a prefix of c1.
+; return: >
+;   true if c1 is a prefix of c2, or c2 is a prefix of c1. Note this method only
+;   returns false if it can be shown via $are_distinct_terms that the
+;   characters in question are distinct.
+; note: >
+;   This method can be used for both str.++ lists that have either string
+;   or sequence (seq.unit) values.
 (program $str_is_compatible
     ((T Type) (c1 (Seq T)) (c2 (Seq T)) (xs1 (Seq T) :list) (xs2 (Seq T) :list))
     :signature ((Seq T) (Seq T)) Bool
