@@ -902,7 +902,7 @@
   (($seq_is_prefix t t)                                               true)
   (($seq_is_prefix (seq.++ t ts) (seq.++ t ss))                       ($seq_is_prefix ts ss))
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (seq.++ (seq.unit es) ss))
-    (eo::requires ($are_distinct_terms et es) true false))
+    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the chracters are truly disequal to return false
   (($seq_is_prefix (as seq.empty (Seq T)) t)                          true)
   (($seq_is_prefix (seq.++ (seq.unit et) ts) (as seq.empty (Seq T)))  false)
   )
