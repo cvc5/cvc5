@@ -2578,6 +2578,7 @@ set(regress_1_tests
   regress1/bv/bv2nat-types.smt2
   regress1/bv/cmu-rdk-3.smt2
   regress1/bv/dd.iand-wrong-0513.smt2
+  regress1/bv/dd_bug787_dsl_fixed_pt.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
   regress1/bv/fuzz18.smtv1.smt2
