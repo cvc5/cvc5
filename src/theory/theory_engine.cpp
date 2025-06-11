@@ -1186,6 +1186,14 @@ void TheoryEngine::assertFact(TNode literal)
                                << "): sending requested " << toAssert << endl;
         assertToTheory(
             toAssert, literal, request.d_toTheory, THEORY_SAT_SOLVER);
+        if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
+        {
+          // Also send to THEORY_BUILTIN, similar to above
+          assertToTheory(toAssert,
+                        literal,
+                        /* to */ THEORY_BUILTIN,
+                        /* from */ THEORY_SAT_SOLVER);
+        }
         it.next();
       }
     }
