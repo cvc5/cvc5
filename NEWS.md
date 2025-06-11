@@ -12,7 +12,8 @@ This file contains a summary of important user-visible changes.
   Calculus (CPC) proof format. In particular, we expect that CPC proofs are
   complete for *all* theories and features allowed in safe mode. These proofs
   may be obtained by the `(get-proof)` SMT-LIB command, or via the API using
-  the method `Solver::getProof`.
+  the method `Solver::getProof`, and are checkable by Ethos
+  (`./contrib/get-ethos-checker`).
 - We now support the SMT-LIB version 2.7 standard syntax for arithmetic
   bit-vector conversion functions whose smt2 syntax is `int_to_bv`, `ubv_to_int`
   and `sbv_to_int`. The first maps to the existing kind `Kind::INT_TO_BITVECTOR`.
