@@ -2,9 +2,10 @@
 (include "../theories/Builtin.eo")
 (include "../theories/Quantifiers.eo")
 (include "../theories/Strings.eo")
+
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
-(include "../programs/SeqToString.eo")
+(include "../programs/DistinctValues.eo")
 
 
 ; This signature is used for both strings and sequences, where we often
@@ -21,6 +22,17 @@
     (($str_is_empty (as seq.empty (Seq U)))  true)
     (($str_is_empty "")                      true)
     (($str_is_empty x)                       false)
+  )
+)
+
+; program: $seq_element_of_unit
+; args:
+; - s U: a string term, expected to be a sequence unit.
+; return: the element of sequence unit s.
+(program $seq_element_of_unit ((U Type) (x U))
+  :signature ((Seq U)) U
+  (
+  (($seq_element_of_unit (seq.unit x)) x)
   )
 )
 
@@ -61,23 +73,6 @@
 ; - x (Seq T): The string, expected to be a non-empty concatentation.
 ; return: the head (first child) of x.
 (define $str_head ((T Type :implicit) (x (Seq T))) (eo::list_nth str.++ x 0))
-
-; define: $str_mk_nth
-; args:
-; - x (Seq T): The string-like term
-; - n Int: The index
-; return: >
-;   A term corresponding to extracting the n^th position of x, which as a
-;   special case is a string of length one if x is a string. This is used
-;   by ProofRule::STRING_EXT.
-(define $str_mk_nth ((T Type :implicit) (x (Seq T)) (n Int))
-  (eo::match ((U Type))
-  (eo::typeof x)
-  (
-    (String   (str.substr x n 1))
-    ((Seq U)  (seq.nth x n))
-  ))
-)
 
 ; define: $str_cons
 ; args:
@@ -1649,6 +1644,27 @@
 
 ;;;;; overlap utils
 
+; program: $str_is_compatible
+; args:
+; - c1 L: The first term, assumed to be a str.++ list.
+; - c2 L: The second term, assumed to be a str.++ list.
+; return: >
+;   true if c1 is a prefix of c2, or c2 is a prefix of c1. Note this method only
+;   returns false if it can be shown via $are_distinct_terms that the
+;   characters in question are distinct.
+; note: >
+;   This method can be used for both str.++ lists that have either string
+;   or sequence (seq.unit) values.
+(program $str_is_compatible
+    ((T Type) (c1 (Seq T)) (c2 (Seq T)) (xs1 (Seq T) :list) (xs2 (Seq T) :list))
+    :signature ((Seq T) (Seq T)) Bool
+    (
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c1 xs2)) ($str_is_compatible xs1 xs2))
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms c1 c2) true false))
+    (($str_is_compatible c1 c2)                           (eo::or ($str_is_empty c1) ($str_is_empty c2)))
+    )
+)
+
 ; program: $str_overlap_rec
 ; args:
 ; - s (Seq U): The first string, expected to be in flattened form.
@@ -1659,7 +1675,7 @@
 (program $str_overlap_rec ((s String) (s1 String :list) (t String))
   :signature (String String) Int
   (
-  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ "" (str.++ s s1) t)
+  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($str_is_compatible (str.++ s s1) t)
                                         0
                                         (eo::add 1 ($str_overlap_rec s1 t))))
   (($str_overlap_rec s t)             0)
@@ -1679,13 +1695,7 @@
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::match ((ss String) (ts String))
-    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
-    (((@pair ss ts) (eo::requires (eo::is_str ss) true
-                    (eo::requires (eo::is_str ts) true
-                      ($str_overlap_rec
-                        ($str_rev rev ($str_flatten_word ss))
-                        ($str_rev rev ($str_flatten_word ts)))))))))
+  ($str_overlap_rec ($str_to_flat_form s rev) ($str_to_flat_form t rev)))
 
 
 ; program: $str_has_overlap
