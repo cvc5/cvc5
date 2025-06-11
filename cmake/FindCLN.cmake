@@ -112,6 +112,8 @@ if(NOT CLN_FOUND_SYSTEM)
         env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
     endif()
+  else()
+    set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
 
   set(CLN_WITH_GMP)

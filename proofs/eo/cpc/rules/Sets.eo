@@ -36,10 +36,10 @@
 ; return: >
 ;   A list of elements, whose union is equal to s.
 (program $set_union_to_list ((T Type) (t (Set T)) (e T))
-  ((Set T)) @List
+  :signature ((Set T)) @List
   (
     (($set_union_to_list (set.union (set.singleton e) t)) (eo::cons @list e ($set_union_to_list t)))
-    (($set_union_to_list (set.empty (Set T)))             @list.nil)
+    (($set_union_to_list (as set.empty (Set T)))          @list.nil)
     (($set_union_to_list (set.singleton e))               (eo::cons @list e @list.nil))
   )
 )
@@ -51,7 +51,7 @@
 ; return: >
 ;   The elements in the set resulting in the set intersection of the arguments.
 (program $eval_sets_inter ((T Type) (a T) (as @List :list) (bs @List))
-  (@List @List) @List
+  :signature (@List @List) @List
   (
     (($eval_sets_inter (@list a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
                                          (eo::ite (eo::is_neg (eo::list_find @list bs a))
@@ -68,7 +68,7 @@
 ; return: >
 ;   The elements in the set resulting in the set difference of the arguments.
 (program $eval_sets_minus ((T Type) (a T) (as @List :list) (bs @List))
-  (@List @List) @List
+  :signature (@List @List) @List
   (
     (($eval_sets_minus (@list a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
                                          (eo::ite (eo::is_neg (eo::list_find @list bs a))
@@ -85,7 +85,7 @@
 ; return: >
 ;   The result of evaluating the operator.
 (program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)) (r (Set T)))
-  ((Set T)) @List
+  :signature ((Set T)) @List
   (
     (($eval_sets_op (set.union s t)) (eo::list_concat @list ($set_union_to_list s) ($set_union_to_list t)))
     (($eval_sets_op (set.inter s t)) ($eval_sets_inter ($set_union_to_list s) ($set_union_to_list t)))
@@ -102,9 +102,9 @@
 ; conclusion: The given equality.
 (declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
   :args ((= a b))
-  :requires ((($nary_is_eq_set @list @list.nil
-                ($eval_sets_op a)
-                ($set_union_to_list b)) true))
+  :requires (((eo::list_meq @list
+              (eo::list_setof @list ($eval_sets_op a))
+              ($set_union_to_list b)) true))    ; b is already assumed to have no duplicates
   :conclusion (= a b)
 )
 
@@ -117,7 +117,7 @@
 ; return: >
 ;   The union of elements in es with t.
 (program $set_eval_insert ((T Type) (x T) (xs @List :list) (t (Set T)))
-  (@List (Set T)) (Set T)
+  :signature (@List (Set T)) (Set T)
   (
     (($set_eval_insert (@list x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
     (($set_eval_insert @list.nil t)    t)
