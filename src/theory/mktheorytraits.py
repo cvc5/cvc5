@@ -13,34 +13,36 @@ try:
 except ImportError:
     import tomli as tomllib
 
-class CodeGenerator:
-    def __init__(self, theory_traits_template, theory_traits_template_output, input_command):
-        self.template_data                          = ""
-        self.input_command                          = input_command
-        self.theory_includes                        = "\n"
-        self.theory_traits                          = ""
-        self.theory_constructors                    = ""
-        self.type_enumerator_includes               = "\n"
-        self.type_kinds                             = ""
-        self.type_constants                         = ""
-        self.mk_type_enumerator_type_constant_cases = ""
-        self.mk_type_enumerator_cases               = ""
-        
-        current_year   = date.today().year
-        self.copyright = f"2010-{current_year}"
-        
-        self.copyright_replacement_pattern                              = b'${copyright}'
-        self.generation_command_replacement_pattern                     = b'${generation_command}'
-        self.template_file_path_replacement_pattern                     = b'${template_file_path}'
-        self.theory_includes_replacement_pattern                        = b'${theory_includes}'
-        self.theory_traits_replacement_pattern                          = b'${theory_traits}'
-        self.theory_constructors_replacement_pattern                    = b'${theory_constructors}'
-        self.type_enumerator_includes_replacement_pattern               = b'${type_enumerator_includes}'
-        self.mk_type_enumerator_type_constant_cases_replacement_pattern = b'${mk_type_enumerator_type_constant_cases}'
-        self.mk_type_enumerator_cases_replacement_pattern               = b'${mk_type_enumerator_cases}'       
 
-        
-        self.file_header                  = f"""/******************************************************************************
+class CodeGenerator:
+
+    def __init__(self, theory_traits_template, theory_traits_template_output,
+                 input_command):
+        self.template_data = ""
+        self.input_command = input_command
+        self.theory_includes = "\n"
+        self.theory_traits = ""
+        self.theory_constructors = ""
+        self.type_enumerator_includes = "\n"
+        self.type_kinds = ""
+        self.type_constants = ""
+        self.mk_type_enumerator_type_constant_cases = ""
+        self.mk_type_enumerator_cases = ""
+
+        current_year = date.today().year
+        self.copyright = f"2010-{current_year}"
+
+        self.copyright_replacement_pattern = b'${copyright}'
+        self.generation_command_replacement_pattern = b'${generation_command}'
+        self.template_file_path_replacement_pattern = b'${template_file_path}'
+        self.theory_includes_replacement_pattern = b'${theory_includes}'
+        self.theory_traits_replacement_pattern = b'${theory_traits}'
+        self.theory_constructors_replacement_pattern = b'${theory_constructors}'
+        self.type_enumerator_includes_replacement_pattern = b'${type_enumerator_includes}'
+        self.mk_type_enumerator_type_constant_cases_replacement_pattern = b'${mk_type_enumerator_type_constant_cases}'
+        self.mk_type_enumerator_cases_replacement_pattern = b'${mk_type_enumerator_cases}'
+
+        self.file_header = f"""/******************************************************************************
  * This file is part of the cvc5 project.
  *
  * Copyright (c) {self.copyright} by the authors listed in the file AUTHORS
@@ -73,28 +75,31 @@ class CodeGenerator:
 /* Edit the template file instead:                     */
 /* {theory_traits_template} */\n
 """.encode('ascii')
-        self.theory_traits_template        = theory_traits_template
-        self.theory_traits_template_output = theory_traits_template_output      
-    
+        self.theory_traits_template = theory_traits_template
+        self.theory_traits_template_output = theory_traits_template_output
+
     def read_template_data(self):
         with open(self.theory_traits_template, "rb") as f:
             self.template_data = f.read()
-    
+
     def generate_file_header(self):
-        self.fill_template(self.template_file_path_replacement_pattern, self.theory_traits_template)
+        self.fill_template(self.template_file_path_replacement_pattern,
+                           self.theory_traits_template)
 
     def register_enumerator(self, enumerator, kind_name, theory_id, filename):
         header = enumerator["header"]
         enumerator_class = enumerator["class"]
-        
+
         self.type_enumerator_includes += f"#include \"{header}\"\n"
 
-        if re.search(rf"\b{re.escape(kind_name)}\b", self.type_constants): 
+        if re.search(rf"\b{re.escape(kind_name)}\b", self.type_constants):
             self.mk_type_enumerator_type_constant_cases += f"        case {kind_name}:\n          return new {enumerator_class}(type, tep);\n\n"
-        elif re.search(rf"\b{re.escape(kind_name)}\b", self.type_kinds): 
+        elif re.search(rf"\b{re.escape(kind_name)}\b", self.type_kinds):
             self.mk_type_enumerator_cases += f"      case Kind::{kind_name}:\n        return new {enumerator_class}(type, tep);\n\n"
-        else: 
-            print(f"{filename}:{theory_id}: error: don't know anything about {kind_name}; enumerator must appear after definition")
+        else:
+            print(
+                f"{filename}:{theory_id}: error: don't know anything about {kind_name}; enumerator must appear after definition"
+            )
             print(f"type_constants: {self.type_constants}")
             print(f"type_kinds : {self.type_kinds}")
             sys.exit(1)
@@ -102,8 +107,11 @@ class CodeGenerator:
     def register_kinds(self, kinds, theory_id, filename):
         if not kinds:
             return
-        
-        target_kinds_types = ["variable", "operator", "parameterized", "constant", "nullaryoperator"]
+
+        target_kinds_types = [
+            "variable", "operator", "parameterized", "constant",
+            "nullaryoperator"
+        ]
         target_constant_types = ["sort"]
 
         for kind in kinds:
@@ -115,14 +123,15 @@ class CodeGenerator:
                 self.type_kinds += f"{kind_name} "
             elif kind_type in target_constant_types:
                 self.type_constants += f"{kind_name} "
-            
+
             if "enumerator" in kind:
-                self.register_enumerator(kind["enumerator"], kind_name, theory_id, kind)
+                self.register_enumerator(kind["enumerator"], kind_name,
+                                         theory_id, kind)
 
     def generate_code_for_theory(self, theory, rewriter):
         self.generate_code_for_theory_includes(theory["base_class_header"])
         self.generate_code_for_rewriter(rewriter)
-        
+
         rewriter_class = rewriter["class"]
 
         theory_id = theory["id"]
@@ -169,27 +178,43 @@ struct TheoryTraits<{theory_id}> {{
 
     def generate_code_for_theory_includes(self, theory_include):
         self.theory_includes += f"#include \"{theory_include}\"\n"
-    
+
     def fill_template_data(self):
-        self.fill_template(self.theory_includes_replacement_pattern, self.theory_includes)
-        self.fill_template(self.theory_traits_replacement_pattern, self.theory_traits)
-        self.fill_template(self.theory_constructors_replacement_pattern, self.theory_constructors)
-        self.fill_template(self.type_enumerator_includes_replacement_pattern, self.type_enumerator_includes)
-        self.fill_template(self.mk_type_enumerator_type_constant_cases_replacement_pattern, self.mk_type_enumerator_type_constant_cases)
-        self.fill_template(self.mk_type_enumerator_cases_replacement_pattern, self.mk_type_enumerator_cases)
-    
+        self.fill_template(self.theory_includes_replacement_pattern,
+                           self.theory_includes)
+        self.fill_template(self.theory_traits_replacement_pattern,
+                           self.theory_traits)
+        self.fill_template(self.theory_constructors_replacement_pattern,
+                           self.theory_constructors)
+        self.fill_template(self.type_enumerator_includes_replacement_pattern,
+                           self.type_enumerator_includes)
+        self.fill_template(
+            self.mk_type_enumerator_type_constant_cases_replacement_pattern,
+            self.mk_type_enumerator_type_constant_cases)
+        self.fill_template(self.mk_type_enumerator_cases_replacement_pattern,
+                           self.mk_type_enumerator_cases)
+
     def fill_template(self, target_pattern, replacement_string):
-        self.template_data = self.template_data.replace(target_pattern, str.encode(replacement_string))
-    
+        self.template_data = self.template_data.replace(
+            target_pattern, str.encode(replacement_string))
+
     def write_output_data(self):
         with open(self.theory_traits_template_output, 'wb') as f:
             f.write(self.file_header)
             f.write(self.template_data)
 
+
 def mktheorytraits_main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--kinds', nargs='+', help='List of input TOML files', required=True, type=str)
-    parser.add_argument('--template', help='Path to the template', required=True, type=str)
+    parser.add_argument('--kinds',
+                        nargs='+',
+                        help='List of input TOML files',
+                        required=True,
+                        type=str)
+    parser.add_argument('--template',
+                        help='Path to the template',
+                        required=True,
+                        type=str)
     parser.add_argument('--output', help='Output path', required=True)
 
     args = parser.parse_args()
@@ -216,7 +241,7 @@ def mktheorytraits_main():
             with open(filename, "rb") as f:
                 kinds_data = tomllib.load(f)
                 tv.validate_theory(filename, kinds_data)
-                
+
                 theory = kinds_data["theory"]
                 rewriter = kinds_data["rewriter"]
                 kinds = kinds_data["kinds"]
@@ -230,6 +255,7 @@ def mktheorytraits_main():
 
     cg.fill_template_data()
     cg.write_output_data()
+
 
 if __name__ == "__main__":
     mktheorytraits_main()

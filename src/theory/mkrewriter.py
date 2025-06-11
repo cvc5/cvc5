@@ -12,30 +12,32 @@ try:
 except ImportError:
     import tomli as tomllib
 
-class CodeGenerator:
-    def __init__(self, rewriter_tables_template, rewriter_tables_template_output, input_command):
-        self.template_data           = ""
-        self.input_command           = input_command
-        self.rewriter_includes       = "\n"
-        self.pre_rewrite_get_cache   = ""
-        self.post_rewrite_get_cache  = ""
-        self.pre_rewrite_set_cache   = ""
-        self.post_rewrite_set_cache  = ""
-        
-        current_year                = date.today().year
-        self.copyright              = f"2010-{current_year}"
-        
-        self.copyright_replacement_pattern               = b'${copyright}'
-        self.generation_command_replacement_pattern      = b'${generation_command}'
-        self.template_file_path_replacement_pattern      = b'${template_file_path}'
-        self.rewriter_includes_replacement_pattern       = b'${rewriter_includes}'
-        self.pre_rewrite_get_cache_replacement_pattern   = b'${pre_rewrite_get_cache}'
-        self.post_rewrite_get_cache_replacement_pattern  = b'${post_rewrite_get_cache}'
-        self.pre_rewrite_set_cache_replacement_pattern   = b'${pre_rewrite_set_cache}'
-        self.post_rewrite_set_cache_replacement_pattern  = b'${post_rewrite_set_cache}'
 
-        
-        self.file_header                  = f"""/******************************************************************************
+class CodeGenerator:
+
+    def __init__(self, rewriter_tables_template,
+                 rewriter_tables_template_output, input_command):
+        self.template_data = ""
+        self.input_command = input_command
+        self.rewriter_includes = "\n"
+        self.pre_rewrite_get_cache = ""
+        self.post_rewrite_get_cache = ""
+        self.pre_rewrite_set_cache = ""
+        self.post_rewrite_set_cache = ""
+
+        current_year = date.today().year
+        self.copyright = f"2010-{current_year}"
+
+        self.copyright_replacement_pattern = b'${copyright}'
+        self.generation_command_replacement_pattern = b'${generation_command}'
+        self.template_file_path_replacement_pattern = b'${template_file_path}'
+        self.rewriter_includes_replacement_pattern = b'${rewriter_includes}'
+        self.pre_rewrite_get_cache_replacement_pattern = b'${pre_rewrite_get_cache}'
+        self.post_rewrite_get_cache_replacement_pattern = b'${post_rewrite_get_cache}'
+        self.pre_rewrite_set_cache_replacement_pattern = b'${pre_rewrite_set_cache}'
+        self.post_rewrite_set_cache_replacement_pattern = b'${post_rewrite_set_cache}'
+
+        self.file_header = f"""/******************************************************************************
  * This file is part of the cvc5 project.
  *
  * Copyright (c) {self.copyright} by the authors listed in the file AUTHORS
@@ -68,15 +70,16 @@ class CodeGenerator:
 /* Edit the template file instead:                     */
 /* {rewriter_tables_template} */\n
 """.encode('ascii')
-        self.rewriter_tables_template        = rewriter_tables_template
-        self.rewriter_tables_template_output = rewriter_tables_template_output      
-    
+        self.rewriter_tables_template = rewriter_tables_template
+        self.rewriter_tables_template_output = rewriter_tables_template_output
+
     def read_template_data(self):
         with open(self.rewriter_tables_template, "rb") as f:
             self.template_data = f.read()
-    
+
     def generate_file_header(self):
-        self.fill_template(self.template_file_path_replacement_pattern, self.rewriter_tables_template)
+        self.fill_template(self.template_file_path_replacement_pattern,
+                           self.rewriter_tables_template)
 
     def generate_code_for_rewriter(self, rewriter, theory_id):
         self.generate_code_for_rewriter_includes(rewriter["header"])
@@ -88,26 +91,40 @@ class CodeGenerator:
 
     def generate_code_for_rewriter_includes(self, rewriter_include):
         self.rewriter_includes += f"#include \"{rewriter_include}\"\n"
-    
+
     def fill_rewriter_template_data(self):
-        self.fill_template(self.rewriter_includes_replacement_pattern, self.rewriter_includes)
-        self.fill_template(self.pre_rewrite_get_cache_replacement_pattern, self.pre_rewrite_get_cache)
-        self.fill_template(self.pre_rewrite_set_cache_replacement_pattern, self.pre_rewrite_set_cache)
-        self.fill_template(self.post_rewrite_get_cache_replacement_pattern, self.post_rewrite_get_cache)
-        self.fill_template(self.post_rewrite_set_cache_replacement_pattern, self.post_rewrite_set_cache)
-    
+        self.fill_template(self.rewriter_includes_replacement_pattern,
+                           self.rewriter_includes)
+        self.fill_template(self.pre_rewrite_get_cache_replacement_pattern,
+                           self.pre_rewrite_get_cache)
+        self.fill_template(self.pre_rewrite_set_cache_replacement_pattern,
+                           self.pre_rewrite_set_cache)
+        self.fill_template(self.post_rewrite_get_cache_replacement_pattern,
+                           self.post_rewrite_get_cache)
+        self.fill_template(self.post_rewrite_set_cache_replacement_pattern,
+                           self.post_rewrite_set_cache)
+
     def fill_template(self, target_pattern, replacement_string):
-        self.template_data = self.template_data.replace(target_pattern, str.encode(replacement_string))
-    
+        self.template_data = self.template_data.replace(
+            target_pattern, str.encode(replacement_string))
+
     def write_output_data(self):
         with open(self.rewriter_tables_template_output, 'wb') as f:
             f.write(self.file_header)
             f.write(self.template_data)
 
+
 def mkrewriter_main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--kinds', nargs='+', help='List of input TOML files', required=True, type=str)
-    parser.add_argument('--template', help='Path to the template', required=True, type=str)
+    parser.add_argument('--kinds',
+                        nargs='+',
+                        help='List of input TOML files',
+                        required=True,
+                        type=str)
+    parser.add_argument('--template',
+                        help='Path to the template',
+                        required=True,
+                        type=str)
     parser.add_argument('--output', help='Output path', required=True)
 
     args = parser.parse_args()
@@ -117,7 +134,8 @@ def mkrewriter_main():
 
     input_command = ' '.join(sys.argv)
 
-    cg = CodeGenerator(rewriter_tables_template_path, output_path, input_command)
+    cg = CodeGenerator(rewriter_tables_template_path, output_path,
+                       input_command)
     cg.read_template_data()
     cg.generate_file_header()
 
@@ -134,9 +152,10 @@ def mkrewriter_main():
             with open(filename, "rb") as f:
                 kinds_data = tomllib.load(f)
                 tv.validate_theory(filename, kinds_data)
-                
+
                 theory_id = kinds_data["theory"]["id"]
-                cg.generate_code_for_rewriter(kinds_data["rewriter"], theory_id)
+                cg.generate_code_for_rewriter(kinds_data["rewriter"],
+                                              theory_id)
         except Exception as e:
             print(f"Could not parse file {filename}")
             print(e)
@@ -144,6 +163,7 @@ def mkrewriter_main():
 
     cg.fill_rewriter_template_data()
     cg.write_output_data()
+
 
 if __name__ == "__main__":
     mkrewriter_main()
