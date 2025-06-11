@@ -316,9 +316,11 @@ class Pipe
 
 void printPortfolioConfig(Solver& solver, PortfolioConfig& config)
 {
-  if (solver.isOutputOn("portfolio"))
+  bool dry_run = solver.getOption("portfolio-dry-run") == "true";
+  if (dry_run || solver.isOutputOn("portfolio"))
   {
-    std::ostream& out = solver.getOutput("portfolio");
+    std::ostream& out = (dry_run) ? solver.getDriverOptions().out()
+                                  : solver.getOutput("portfolio");
     out << "(portfolio \"" << config.toOptionString() << "\"";
     out << " :timeout " << config.d_timeout;
     out << ")" << std::endl;
@@ -581,6 +583,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     return ctx.solveContinuous(d_parser, false);
   }
 
+  bool dry_run = solver.getOption("portfolio-dry-run") == "true";
+
   bool incremental_solving = solver.getOption("incremental") == "true";
   PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
   Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
@@ -588,6 +592,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   {
     PortfolioConfig& config = strategy.d_strategies.front();
     printPortfolioConfig(ctx.solver(), config);
+    if (dry_run) return true;
     config.applyOptions(solver);
     return ctx.solveContinuous(d_parser, false);
   }
@@ -596,6 +601,15 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   if (total_timeout == 0)
   {
     total_timeout = 1'200'000; // miliseconds
+  }
+
+  if (dry_run)
+  {
+    for (PortfolioConfig& config : strategy.d_strategies)
+    {
+      printPortfolioConfig(ctx.solver(), config);
+    }
+    return true;
   }
 
   bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
