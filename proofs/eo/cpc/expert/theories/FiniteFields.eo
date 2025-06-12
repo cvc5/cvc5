@@ -5,12 +5,16 @@
 ;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const FiniteField (-> Int Type))
 
-; define: $bv_bitwidth
+; program: $ff_size
 ; args:
 ; - T Type: The finite field type.
 ; return: The (integer value) size for a given finite field type.
-(define $ff_size ((T Type))
-  (eo::match ((n Int)) T (((FiniteField n) n))))
+(program $ff_size ((n Int))
+  :signature (Type) Int
+  (
+  (($ff_size (FiniteField n)) n)
+  )
+)
 
 ; A finite field constant is a term having 2 integer children.
 ; note: we do not support the native syntax for finite field values.
