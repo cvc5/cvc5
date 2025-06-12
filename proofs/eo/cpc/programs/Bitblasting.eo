@@ -2,6 +2,11 @@
 
 ;;; utils
 
+; program: $bv_bitblast_concat
+; args:
+; - b1 (BitVec n): The first bit list.
+; - b2 (BitVec m): The second bit list.
+; return: the result of concatenating b1 and b2.
 (program $bv_bitblast_concat ((n Int) (m Int) (k Int) (x Bool) (y (BitVec k) :list) (z (BitVec m)))
   :signature ((BitVec n) (BitVec m)) (BitVec (eo::add n m))
   (
@@ -56,7 +61,7 @@
 
 ; program: $bv_bitblast_head
 ; args:
-; - t (BitVec n) The term to process, which is expected to be a bitlist.
+; - t (BitVec n): The term to process, which is expected to be a bitlist.
 ; return: the first Boolean in the list t.
 (program $bv_bitblast_head ((n Int) (b Bool) (a (BitVec n) :list))
   :signature ((BitVec n)) Bool
@@ -67,8 +72,8 @@
 
 ; program: $bv_bitblast_tail
 ; args:
-; - t (BitVec n) The term to process, which is expected to be a bitlist.
-; return: the first Boolean in the list t.
+; - t (BitVec n): The term to process, which is expected to be a bitlist.
+; return: the last Boolean in the list t.
 (program $bv_bitblast_tail ((n Int) (b Bool) (a (BitVec n) :list))
   :signature ((BitVec n)) (BitVec (eo::add n -1))
   (
