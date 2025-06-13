@@ -1030,9 +1030,11 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   }
   // non-well-typed equalities cannot be proven
   // also, variables cannot be rewritten
-  if (eqi.getTypeOrNull().isNull())
+  if (eqi.getTypeOrNull().isNull()
+      || (eqi[0].isVar() && !eqi[0].getTypeOrNull().isBoolean()))
   {
-    Trace("rpc-debug2") << "...fail (ill-typed)"
+    Trace("rpc-debug2") << "...fail ("
+                        << (eqi[0].isVar() ? "variable" : "ill-typed") << ")"
                         << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
     idb = RewriteProofStatus::FAIL;
