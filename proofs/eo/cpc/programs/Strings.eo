@@ -784,14 +784,17 @@
     (($re_unfold_pos_concat_rec t (re.++ (str.to_re s) r2) ro i)
       (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
       (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
         ; a constant regular expression, append s
-        (@pair (eo::cons str.++ s ($pair_first res)) ($pair_second res)))))
+        (@pair (eo::cons str.++ s c) M)))))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
       (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
       (eo::define ((k (@re_unfold_pos_component t ro i)))
         ; otherwise, make the skolem and append with constraint
-        (@pair (eo::cons str.++ k ($pair_first res))
-               (eo::cons and (str.in_re k r1) ($pair_second res))))))
+        (@pair (eo::cons str.++ k c)
+               (eo::cons and (str.in_re k r1) M)))))))
   )
 )
 
