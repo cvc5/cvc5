@@ -518,8 +518,7 @@ enum ENUM(Kind)
    *
    * .. code:: smtlib
    *
-   *     ((_ iand k) i_1 i_2)
-   *     (sbv_to_int (bvand ((_ int_to_bv k) i_1) ((_ int_to_bv k) i_2)))
+   *     (ubv_to_int (bvand ((_ int_to_bv k) i_1) ((_ int_to_bv k) i_2)))
    *
    * for all integers ``i_1``, ``i_2``.
    *
