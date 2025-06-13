@@ -6,7 +6,7 @@ This file contains a summary of important user-visible changes.
   which guards all cvc5 features that are either not robust or do not have
   full proof and model support. It is also possible to guard against these
   features using the command line option `--safe-mode=safe`. The definition
-  of what is allowable in safe mode cooincides with our fuzzing guidelines,
+  of what is allowable in safe mode coincides with our fuzzing guidelines,
   see https://github.com/cvc5/cvc5/wiki/Fuzzing-cvc5.
 - We have significantly increased coverage of proofs in the Cooperating Proof
   Calculus (CPC) proof format. In particular, we expect that CPC proofs are
