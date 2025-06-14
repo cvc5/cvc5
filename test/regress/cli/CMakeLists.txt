@@ -1406,12 +1406,14 @@ set(regress_0_tests
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
+  regress0/proofs/dd_check_cc_bvxor_xsimp.smt2
   regress0/proofs/dd_fv-bvl.smt2
   regress0/proofs/dd_ic_macro-elim-shadow.smt2
   regress0/proofs/dd_ic_pf_764.smt2
   regress0/proofs/dd_int_check_bvnot_lam_value_norm.smt2
   regress0/proofs/dd_int_check_rec_elim_shadow.smt2
   regress0/proofs/dd_issue3481_beta_red.smt2
+  regress0/proofs/dd_BitsTricks-scala-9-xsimp.smt2
   regress0/proofs/dd_M301_array_norm_op.smt2
   regress0/proofs/dd_N627_fun_const.smt2
   regress0/proofs/dd_pf_739.smt2
