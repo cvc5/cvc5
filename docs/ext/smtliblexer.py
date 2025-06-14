@@ -76,6 +76,7 @@ class SmtLibLexer(RegexLexer):
         # int / real
         '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/', 'div', 'mod', 'abs',
         'divisible', 'to_real', 'to_int', 'is_int', 'iand', 'int2bv',
+        'int_to_bv', 'ubv_to_int', 'sbv_to_int',
         # separation logic
         'sep\.emp', 'pto', 'sep', 'wand', 'sep\.nil',
         # sets / relations

@@ -162,9 +162,9 @@ CVC5_EXPORT void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
 /**
  * Invoke a given command on the solver and symbol manager sm and return any
  * resulting output as a string.
- * @param cmd        The command to invoke.
- * @param solver     The solver to invoke the command on.
- * @param sm         The symbol manager to invoke the command on.
+ * @param cmd  The command to invoke.
+ * @param cvc5 The solver to invoke the command on.
+ * @param sm   The symbol manager to invoke the command on.
  * @return The output of invoking the command.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -175,6 +175,7 @@ CVC5_EXPORT const char* cvc5_cmd_invoke(Cvc5Command cmd,
 
 /**
  * Get a string representation of this command.
+ * @param cmd  The command to invoke.
  * @return The string representation.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -183,6 +184,7 @@ CVC5_EXPORT const char* cvc5_cmd_to_string(const Cvc5Command cmd);
 
 /**
  * Get the name for a given command, e.g., "assert".
+ * @param cmd  The command to invoke.
  * @return The name of the command.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.
@@ -243,7 +245,7 @@ CVC5_EXPORT Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser);
 /**
  * Configure given file as input to a given input parser.
  * @param parser The input parser instance.
- * @param lang the input language (e.g., #CVC5_INPUT_LANGUAGESMT_LIB_2_6)
+ * @param lang the input language (e.g., #CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
  * @param filename The name of the file to configure.
  */
 CVC5_EXPORT void cvc5_parser_set_file_input(Cvc5InputParser* parser,

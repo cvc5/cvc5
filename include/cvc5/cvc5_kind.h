@@ -84,8 +84,10 @@ enum ENUM(Kind)
    * The kind of a null term (Term::Term()).
    *
    * \rst
-   * .. note:: May not be explicitly created via API functions other than
-   *           :cpp:func:`Term::Term()`.
+   * .. note::
+   *
+   *     May not be explicitly created via API functions other than
+   *     :cpp:func:`Term::Term()`.
    * \endrst
    */
   EVALUE(NULL_TERM),
@@ -96,9 +98,11 @@ enum ENUM(Kind)
    * The value of an uninterpreted constant.
    *
    * \rst
-   * .. note:: May be returned as the result of an API call, but terms of this
-   *           kind may not be created explicitly via the API and may not
-   *           appear in assertions.
+   * .. note::
+   *
+   *     May be returned as the result of an API call, but terms of this kind
+   *     may not be created explicitly via the API and may not appear in
+   *     assertions.
    * \endrst
    */
   EVALUE(UNINTERPRETED_SORT_VALUE),
@@ -145,8 +149,10 @@ enum ENUM(Kind)
    *   - Solver::mkConst(const Sort&) const
    *
    * \rst
-   * .. note:: Not permitted in bindings (e.g., :cpp:enumerator:`FORALL`,
-   *           :cpp:enumerator:`EXISTS`).
+   * .. note::
+   *
+   *     Not permitted in bindings (e.g., :cpp:enumerator:`FORALL`,
+   *     :cpp:enumerator:`EXISTS`).
    * \endrst
    */
   EVALUE(CONSTANT),
@@ -166,9 +172,11 @@ enum ENUM(Kind)
    * A Skolem.
    *
    * \rst
-   * .. note:: Represents an internally generated term. Information on the
-   * skolem is available via the calls `Solver::getSkolemId` and
-   * `Solver::getSkolemIndices`.
+   * .. note::
+   *
+   *     Represents an internally generated term. Information on the skolem is
+   *     available via the calls `Solver::getSkolemId` and
+   *     `Solver::getSkolemIndices`.
    * \endrst
    */
   EVALUE(SKOLEM),
@@ -189,8 +197,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEXPR),
@@ -430,8 +440,10 @@ enum ENUM(Kind)
    *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning:
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(CARDINALITY_CONSTRAINT),
@@ -506,8 +518,7 @@ enum ENUM(Kind)
    *
    * .. code:: smtlib
    *
-   *     ((_ iand k) i_1 i_2)
-   *     (bv2int (bvand ((_ int2bv k) i_1) ((_ int2bv k) i_2)))
+   *     (ubv_to_int (bvand ((_ int_to_bv k) i_1) ((_ int_to_bv k) i_2)))
    *
    * for all integers ``i_1``, ``i_2``.
    *
@@ -616,8 +627,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(DIVISION_TOTAL),
@@ -655,8 +668,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(INTS_DIVISION_TOTAL),
@@ -696,8 +711,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(INTS_MODULUS_TOTAL),
@@ -1144,9 +1161,11 @@ enum ENUM(Kind)
    *   - Solver::mkPi() const
    *
    * \rst
-   * .. note:: :cpp:enumerator:`PI` is considered a special symbol of Sort
-   *            Real, but is not a Real value, i.e.,
-   *            :cpp:func:`Term::isRealValue()` will return ``false``.
+   * .. note::
+   *
+   *     :cpp:enumerator:`PI` is considered a special symbol of Sort Real, but
+   *     is not a Real value, i.e., :cpp:func:`Term::isRealValue()` will return
+   *     ``false``.
    * \endrst
    */
   EVALUE(PI),
@@ -2100,9 +2119,11 @@ enum ENUM(Kind)
    *   - ``1..n:`` Terms of Sort Bool
    *
    * \rst
-   * .. note:: May be returned as the result of an API call, but terms of this
-   *           kind may not be created explicitly via the API and may not
-   *           appear in assertions.
+   * .. note::
+   *
+   *     May be returned as the result of an API call, but terms of this kind
+   *     may not be created explicitly via the API and may not appear in
+   *     assertions.
    * \endrst
    */
   EVALUE(BITVECTOR_FROM_BOOLS),
@@ -2118,9 +2139,11 @@ enum ENUM(Kind)
    *   - ``1:`` The bit index
    *
    * \rst
-   * .. note:: May be returned as the result of an API call, but terms of this
-   *           kind may not be created explicitly via the API and may not
-   *           appear in assertions.
+   * .. note::
+   *
+   *     May be returned as the result of an API call, but terms of this kind
+   *     may not be created explicitly via the API and may not appear in
+   *     assertions.
    * \endrst
    */
   EVALUE(BITVECTOR_BIT),
@@ -2908,13 +2931,16 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
    *
-   * .. note:: We currently support the creation of array equalities over index
-   *           Sorts bit-vector, floating-point, Int and Real.
-   *           Requires to enable option
-   *           :ref:`arrays-exp<lbl-option-arrays-exp>`.
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
+   *
+   * .. note::
+   *
+   *     We currently support the creation of array equalities over index Sorts
+   *     bit-vector, floating-point, Int and Real. Requires to enable option
+   *     :ref:`arrays-exp<lbl-option-arrays-exp>`.
    * \endrst
    */
   EVALUE(EQ_RANGE),
@@ -3160,8 +3186,10 @@ enum ENUM(Kind)
    *   - Solver::mkSepNil(const Sort&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEP_NIL),
@@ -3173,8 +3201,10 @@ enum ENUM(Kind)
    *   - Solver::mkSepEmp() const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEP_EMP),
@@ -3196,8 +3226,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEP_PTO),
@@ -3219,8 +3251,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEP_STAR),
@@ -3244,8 +3278,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SEP_WAND),
@@ -3432,9 +3468,11 @@ enum ENUM(Kind)
    *   - Solver::mkUniverseSet(const Sort&) const
    *
    * \rst
-   * .. note:: :cpp:enumerator:`SET_UNIVERSE` is considered a special symbol of
-   *           the theory of sets and is not considered as a set value, i.e.,
-   *           Term::isSetValue() will return ``false``.
+   * .. note::
+   *
+   *     :cpp:enumerator:`SET_UNIVERSE` is considered a special symbol of the
+   *     theory of sets and is not considered as a set value, i.e.,
+   *     Term::isSetValue() will return ``false``.
    * \endrst
    */
   EVALUE(SET_UNIVERSE),
@@ -3473,8 +3511,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SET_COMPREHENSION),
@@ -3502,8 +3542,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SET_CHOOSE),
@@ -3524,8 +3566,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SET_IS_EMPTY),
@@ -3546,8 +3590,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SET_IS_SINGLETON),
@@ -3576,8 +3622,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
    EVALUE(SET_MAP),
@@ -3604,8 +3652,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
    EVALUE(SET_FILTER),
@@ -3684,8 +3734,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(SET_FOLD),
@@ -3736,8 +3788,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning:
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_TABLE_JOIN),
@@ -3809,8 +3863,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_JOIN_IMAGE),
@@ -3831,8 +3887,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_IDEN),
@@ -3862,8 +3920,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_GROUP),
@@ -3899,8 +3959,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_AGGREGATE),
@@ -3919,8 +3981,10 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(RELATION_PROJECT),
@@ -4091,8 +4155,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_SETOF),
@@ -4133,8 +4199,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_CARD),
@@ -4164,8 +4232,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_CHOOSE),
@@ -4194,8 +4264,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_MAP),
@@ -4222,8 +4294,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
    EVALUE(BAG_FILTER),
@@ -4302,8 +4376,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_FOLD),
@@ -4329,8 +4405,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(BAG_PARTITION),
@@ -4351,8 +4429,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(TABLE_PRODUCT),
@@ -4371,8 +4451,10 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(TABLE_PROJECT),
@@ -4408,8 +4490,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(TABLE_AGGREGATE),
@@ -4440,8 +4524,10 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(TABLE_JOIN),
@@ -4471,8 +4557,10 @@ enum ENUM(Kind)
    *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
    * \endrst
    */
   EVALUE(TABLE_GROUP),
@@ -5694,8 +5782,9 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(INST_PATTERN),
@@ -5719,8 +5808,9 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(INST_NO_PATTERN),
@@ -5776,11 +5866,14 @@ enum ENUM(Kind)
    *
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
    *
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
+   *
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(INST_POOL),
@@ -5819,11 +5912,14 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
    *
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
+   *
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(INST_ADD_TO_POOL),
@@ -5862,11 +5958,14 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. warning:: This kind is experimental and may be changed or removed in
-   *              future versions.
+   * .. warning::
    *
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
+   *
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(SKOLEM_ADD_TO_POOL),
@@ -5891,8 +5990,9 @@ enum ENUM(Kind)
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
-   * .. note:: Should only be used as a child of
-   *           :cpp:enumerator:`INST_PATTERN_LIST`.
+   * .. note::
+   *
+   *     Should only be used as a child of :cpp:enumerator:`INST_PATTERN_LIST`.
    * \endrst
    */
   EVALUE(INST_ATTRIBUTE),
@@ -6047,8 +6147,10 @@ enum ENUM(SortKind)
    * The kind of a null sort (Sort::Sort()).
    *
    * \rst
-   * .. note:: May not be explicitly created via API functions other than
-   *           :cpp:func:`Sort::Sort()`.
+   * .. note::
+   *
+   *     May not be explicitly created via API functions other than
+   *     :cpp:func:`Sort::Sort()`.
    * \endrst
    */
   EVALUE(NULL_SORT),

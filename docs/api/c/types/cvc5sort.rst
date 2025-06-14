@@ -2,7 +2,7 @@ Cvc5Sort
 ========
 
 The :cpp:type:`Cvc5Sort` struct represents the sort of a :cpp:type:`Cvc5Term`.
-Its kind is represented as enum :cpp:enum:`Cvc5SortKind`.
+The kind of a sort is represented as enum :cpp:enum:`Cvc5SortKind`.
 
 A :cpp:type:`Cvc5Sort` can be hashed (using :cpp:func:`cvc5_sort_hash()`)
 represented as a string (via :cpp:func:`cvc5_sort_to_string()`).
