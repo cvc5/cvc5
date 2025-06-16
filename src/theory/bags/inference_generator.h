@@ -269,7 +269,7 @@ class InferenceGenerator
    * (Bag E)
    * @param y is a node of Type T
    * @return an inference that represents the following conjunction
-   * (=> (>= y 1)
+   * (=> (>= (bag.count y skolem) 1)
    *   (and
    *     (= (f x) y)
    *     (= (bag.count x A) (bag.count y skolem))
