@@ -2527,6 +2527,8 @@ set(regress_1_tests
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
   regress1/bags/fuzzy6.smt2
+  regress1/bags/injective_bug_sat.smt2
+  regress1/bags/injective_bug_unsat.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
