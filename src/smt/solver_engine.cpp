@@ -1259,7 +1259,7 @@ Node SolverEngine::getValue(const Node& t) const
       SetDefaults::disableChecking(getValueChecker->getOptions());
       getValueChecker->assertFormula(checkQuery);
       Result r = getValueChecker->checkSat();
-      if (r==Result::SAT)
+      if (r == Result::SAT)
       {
         resultNode = getValueChecker->getValue(resultNode);
         subSuccess = m->isValue(resultNode);
@@ -1267,9 +1267,9 @@ Node SolverEngine::getValue(const Node& t) const
     }
     if (!subSuccess)
     {
-      d_env->warning() << "Could not evaluate " << resultNode
-                      << " in getValue." << std::endl;
-  }
+      d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
+                       << std::endl;
+    }
 
   if (d_env->getOptions().smt.abstractValues)
   {
