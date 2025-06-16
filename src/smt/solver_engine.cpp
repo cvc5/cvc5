@@ -1183,6 +1183,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
 
 Node SolverEngine::getValue(const Node& t) const
 {
+  beginCall(true);
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
@@ -1230,8 +1231,44 @@ Node SolverEngine::getValue(const Node& t) const
   // holds for models that do not have approximate values.
   if (!m->isValue(resultNode))
   {
-    d_env->warning() << "Could not evaluate " << resultNode
-                     << " in getValue." << std::endl;
+    bool subSuccess = false;
+    if (d_env->getOptions().smt.getValueSubsolver)
+    {
+      // invoke satisfiability check
+      // ensure symbols have been substituted
+      std::unordered_set<Node> syms;
+      expr::getSymbols(resultNode, syms);
+      if (!syms.empty())
+      {
+        Subs subs;
+        for (const Node& s : syms)
+        {
+          subs.add(s, m->getValue(s));
+        }
+        resultNode = d_env->getRewriter()->rewrite(subs.apply(resultNode));
+      }
+      TypeNode rtn = resultNode.getType();
+      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
+      Node k = skm->mkInternalSkolemFunction(
+          InternalSkolemId::GET_VALUE, rtn, {resultNode});
+      Node checkQuery = resultNode.eqNode(k);
+      // initialize the core checker
+      std::unique_ptr<SolverEngine> getValueChecker;
+      initializeSubsolver(getValueChecker, *d_env.get());
+      // disable all checking options
+      SetDefaults::disableChecking(getValueChecker->getOptions());
+      getValueChecker->assertFormula(checkQuery);
+      Result r = getValueChecker->checkSat();
+      if (r==Result::SAT)
+      {
+        resultNode = getValueChecker->getValue(resultNode);
+        subSuccess = m->isValue(resultNode);
+      }
+    }
+    if (!subSuccess)
+    {
+      d_env->warning() << "Could not evaluate " << resultNode
+                      << " in getValue." << std::endl;
   }
 
   if (d_env->getOptions().smt.abstractValues)
@@ -1253,7 +1290,7 @@ Node SolverEngine::getValue(const Node& t) const
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
   }
-
+  endCall();
   return resultNode;
 }
 
