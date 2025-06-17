@@ -2735,6 +2735,7 @@ set(regress_1_tests
   regress1/issue10042.smt2
   regress1/issue10750-zll-repeat.smt2
   regress1/issue10788-refresh-a-interp.smt2
+  regress1/issue11966-get-value-ss.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2

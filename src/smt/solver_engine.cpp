@@ -1247,7 +1247,9 @@ Node SolverEngine::getValue(const Node& t)
       Options subOptions;
       subOptions.copyValues(d_env->getOptions());
       smt::SetDefaults::disableChecking(subOptions);
+      // ensure no infinite loop
       subOptions.write_smt().getValueSubsolver = false;
+      subOptions.write_smt().modelVarElimUneval = false;
       subOptions.write_smt().simplificationMode =
           options::SimplificationMode::NONE;
       // initialize the subsolver
