@@ -1181,8 +1181,9 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   return ret;
 }
 
-Node SolverEngine::getValue(const Node& t) const
+Node SolverEngine::getValue(const Node& t)
 {
+  // can invoke satisfiability check below
   beginCall(true);
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
@@ -1236,32 +1237,31 @@ Node SolverEngine::getValue(const Node& t) const
     {
       // invoke satisfiability check
       // ensure symbols have been substituted
-      std::unordered_set<Node> syms;
-      expr::getSymbols(resultNode, syms);
-      if (!syms.empty())
-      {
-        Subs subs;
-        for (const Node& s : syms)
-        {
-          subs.add(s, m->getValue(s));
-        }
-        resultNode = d_env->getRewriter()->rewrite(subs.apply(resultNode));
-      }
+      resultNode = m->simplify(resultNode);
       TypeNode rtn = resultNode.getType();
       SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
       Node k = skm->mkInternalSkolemFunction(
-          InternalSkolemId::GET_VALUE, rtn, {resultNode});
+          InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
+      // the query is (k = resultNode)
       Node checkQuery = resultNode.eqNode(k);
-      // initialize the core checker
+      Options subOptions;
+      subOptions.copyValues(d_env->getOptions());
+      smt::SetDefaults::disableChecking(subOptions);
+      subOptions.write_smt().getValueSubsolver = false;
+      subOptions.write_smt().simplificationMode =
+          options::SimplificationMode::NONE;
+      // initialize the subsolver
+      SubsolverSetupInfo ssi(*d_env.get(), subOptions);
       std::unique_ptr<SolverEngine> getValueChecker;
-      initializeSubsolver(getValueChecker, *d_env.get());
+      initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
       // disable all checking options
       SetDefaults::disableChecking(getValueChecker->getOptions());
       getValueChecker->assertFormula(checkQuery);
       Result r = getValueChecker->checkSat();
       if (r == Result::SAT)
       {
-        resultNode = getValueChecker->getValue(resultNode);
+        // value is the result of getting the value of k
+        resultNode = getValueChecker->getValue(k);
         subSuccess = m->isValue(resultNode);
       }
     }
@@ -1270,6 +1270,7 @@ Node SolverEngine::getValue(const Node& t) const
       d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
                        << std::endl;
     }
+  }
 
   if (d_env->getOptions().smt.abstractValues)
   {
@@ -1294,7 +1295,7 @@ Node SolverEngine::getValue(const Node& t) const
   return resultNode;
 }
 
-std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
+std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs)
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
