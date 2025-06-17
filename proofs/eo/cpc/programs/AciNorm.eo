@@ -21,6 +21,33 @@
   )
 )
 
+; program: $get_ai_norm_rec
+; args:
+; - f (-> S S S): The function we are considering, which is assumed to be associative+idempotent and has the given identity.
+; - id S: The nil terminator of f.
+; - s S: The term to process.
+; return: the result of normalizing s based on associative+idempotent+identity reasoning.
+(program $get_ai_norm_rec ((T Type) (S Type) (f (-> S S S)) (id T) (x T) (x1 T) (x2 T))
+  :signature ((-> S S S) T T) T
+  (
+    (($get_ai_norm_rec f id (f x1 x2))  (eo::list_setof f (eo::list_concat f ($get_ai_norm_rec f id x1) ($get_ai_norm_rec f id x2))))
+    (($get_ai_norm_rec f id id)         id)
+    (($get_ai_norm_rec f id x)          (eo::cons f x id))
+  )
+)
+
+; program: $get_ai_norm
+; args:
+; - t U: The term to process.
+; return: the result of normalizing t based on associative+idempotent+identity reasoning.
+(program $get_ai_norm ((S Type) (U Type) (f (-> S S S)) (x U) (y U))
+  :signature (U) U
+  (
+    (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
+                              ($singleton_elim_aci f id ($get_ai_norm_rec f id (f x y)))))
+  )
+)
+
 ; program: $get_a_norm_rec
 ; args:
 ; - f (-> S S S): The function we are considering, which is assumed to be associative and has the given identity.
@@ -33,18 +60,6 @@
     (($get_a_norm_rec f id (f x1 x2))  (eo::list_concat f ($get_a_norm_rec f id x1) ($get_a_norm_rec f id x2)))
     (($get_a_norm_rec f id id)         id)
     (($get_a_norm_rec f id x)          (eo::cons f x id))
-  )
-)
-
-; program: $get_ai_norm
-; args:
-; - t U: The term to process.
-; return: the result of normalizing t based on associative+identity+idempotent reasoning.
-(program $get_ai_norm ((S Type) (U Type) (f (-> S S S)) (x U) (y U))
-  :signature (U) U
-  (
-    (($get_ai_norm (f x y)) (eo::define ((id (eo::nil f (eo::typeof (f x y)))))
-                              ($singleton_elim_aci f id (eo::list_setof f ($get_a_norm_rec f id (f x y))))))
   )
 )
 
