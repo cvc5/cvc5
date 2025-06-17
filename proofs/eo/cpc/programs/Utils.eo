@@ -218,4 +218,3 @@
   (($extract_pairwise_args f op (f a b))        (@list a b)) ; binary case, trivial
   )
 )
-
