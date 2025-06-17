@@ -55,14 +55,14 @@ type     = "operator"
 name     = "DIVISION"
 children = 2
 comment  = "real division, division by 0 undefined (user symbol)"
-typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+typerule = "SimpleTypeRule<RReal, AReal, AReal>" 
 
 [[kinds]]
 type     = "operator"
 name     = "DIVISION_TOTAL"
 children = 2
 comment  = "real division with interpreted division by 0 (internal symbol)"
-typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule" 
+typerule = "SimpleTypeRule<RReal, AReal, AReal>" 
 
 [[kinds]]
 type     = "operator"

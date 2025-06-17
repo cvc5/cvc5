@@ -4,8 +4,7 @@
 ; interchangable. This is because Int and Real are not comparable in our
 ; type system.
 
-(define-rule arith-div-total-zero-real ((t ?)) (/_total t 0/1) 0/1)
-(define-rule arith-div-total-zero-int ((t ?)) (/_total t 0) 0/1)
+(define-rule arith-div-total-zero-real ((t Real)) (/_total t 0/1) 0/1)
 
 (define-cond-rule arith-int-div-total ((t Int) (s Int)) (not (= s 0)) (div t s) (div_total t s))
 (define-rule arith-int-div-total-one ((t Int)) (div_total t 1) t)
@@ -38,8 +37,6 @@
 
 (define-rule arith-to-int-elim ((x Int)) (to_int x) x)
 (define-rule arith-to-int-elim-to-real ((x ?)) (to_int (to_real x)) (to_int x))
-(define-rule arith-div-elim-to-real1 ((x ?) (y ?)) (/ (to_real x) y) (/ x y))
-(define-rule arith-div-elim-to-real2 ((x ?) (y ?)) (/ x (to_real y)) (/ x y))
 
 (define-cond-rule arith-mod-over-mod ((c Int) (ts Int :list) (r Int) (ss Int :list))
   (not (= c 0))
