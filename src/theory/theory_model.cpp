@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -25,7 +26,6 @@
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "util/rational.h"
-#include "expr/subs.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

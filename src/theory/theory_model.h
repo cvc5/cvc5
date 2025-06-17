@@ -263,7 +263,7 @@ class TheoryModel : protected EnvObj
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
 
-  /** 
+  /**
    * Get value function.
    * This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
@@ -281,7 +281,7 @@ class TheoryModel : protected EnvObj
    * @return The simplified form of n.
    */
   Node simplify(TNode n) const;
-  
+
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
