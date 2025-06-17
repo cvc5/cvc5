@@ -1334,7 +1334,8 @@ void CadicalSolver::init()
   }
 }
 
-CadicalSolver::~CadicalSolver() {
+CadicalSolver::~CadicalSolver()
+{
   if (d_proof_tracer != nullptr)
   {
     d_solver->disconnect_proof_tracer(d_proof_tracer.get());
