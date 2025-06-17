@@ -25,22 +25,35 @@
 
 ; program: $get_lambda_type
 ; args:
-; - L List: The list of variables of the lambda to process.
+; - V @List: On the initial call to this method, this is a singleton list that
+;            is the expected type of the first argument.
+; - L @List: The list of variables of the lambda to process.
 ; - B Type: The type of the body of the lambda.
 ; return: >
 ;   The type of a lambda having the list of variables L and
 ;   body type B.
-(program $get_lambda_type ((x @List) (xs @List :list) (B Type))
-  :signature (@List Type) Type
+; note: This is a helper for the type of lambda below.
+(program $get_lambda_type ((x @List) (xs @List :list) (B Type) (T Type))
+  :signature (@List @List Type) Type
   (
-    (($get_lambda_type (@list x xs) B) (-> (eo::typeof x) ($get_lambda_type xs B)))
-    (($get_lambda_type @list.nil B)    B)
+  (($get_lambda_type (@list T) (@list x xs) B)
+     (eo::requires (eo::typeof x) T ($get_lambda_type @list.nil xs B)))
+  (($get_lambda_type @list.nil (@list x xs) B)
+     (-> (eo::typeof x) ($get_lambda_type @list.nil xs B)))
+  (($get_lambda_type @list.nil @list.nil B) B)
   )
 )
 
 ; disclaimer: this function is not in SMT-LIB.
-(declare-parameterized-const lambda ((B Type :implicit) (L @List))
-  (-> B ($get_lambda_type L B)) :binder @list)
+; note: >
+;   The type rule here expects an explicit list L, then an argument B that is
+;   the body of the lambda. The return type is a function (-> T ...) where
+;   T is the type of the first argument of L. Additional function argument
+;   types are based on the remainder of the list L based on the side condition
+;   $get_lambda_type above. Note this type rule implies that lambdas must have
+;   a non-empty list to be well typed.
+(declare-parameterized-const lambda ((B Type :implicit) (T Type :implicit) (L @List))
+  (-> B (-> T ($get_lambda_type (@list T) L B))) :binder @list)
 
 (declare-parameterized-const distinct ((A Type :implicit)) (-> A A Bool) :pairwise and)
 
