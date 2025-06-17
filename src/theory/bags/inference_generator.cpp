@@ -490,6 +490,8 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
   Node y_equals_f_x = y.eqNode(f_x);
+  Node member = d_nm->mkNode(Kind::GEQ, countY, d_one);
+  inferInfo.d_premises.push_back(member);
 
   Node count_x_equals_count_y = countX.eqNode(countY);
   Node conclusion = y_equals_f_x.andNode(count_x_equals_count_y);
