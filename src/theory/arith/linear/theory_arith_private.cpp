@@ -3432,20 +3432,58 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
 
     if(!emmittedConflictOrSplit) {
-      std::vector<TrustNode> possibleLemmas = roundRobinBranch();
-      if (!possibleLemmas.empty())
+      bool tryNew;
+      Trace("arith-round-robin") << "Round robin branch..." << std::endl;
+      // This loop tries the lemmas returned by roundRobinBranch until
+      // either one of them is successfully sent on the output channel,
+      // or until the next lemma suggested by this method has already been
+      // tried in this call. We cache the lemmas tried using the set
+      // lemmas below. We know this loop terminates since there are only
+      // finitely many lemmas returned by roundRobinBranch.
+      std::unordered_set<Node> lemmas;
+      do
       {
+        tryNew = false;
+        std::vector<TrustNode> possibleLemmas = roundRobinBranch();
+        Trace("arith-round-robin") << "...consider " << possibleLemmas.size()
+                                   << " lemmas" << std::endl;
+        // this is non-empty since we know !hasIntegerModel()
+        Assert (!possibleLemmas.empty());
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
         for (const TrustNode& possibleLemma : possibleLemmas)
         {
+          Node lem = possibleLemma.getProven();
+          if (lemmas.find(lem) != lemmas.end())
+          {
+            Trace("arith-round-robin") << "..already failed lemma" << std::endl;
+            continue;
+          }
+          lemmas.insert(lem);
+          tryNew = true;
           Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
           if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
           {
             emmittedConflictOrSplit = true;
+            Trace("arith-round-robin") << "..success lemma" << std::endl;
+          }
+          else
+          {
+            Trace("arith-round-robin") << "..failed lemma" << std::endl;
           }
         }
-      }
+        if (!emmittedConflictOrSplit)
+        {
+          // increment the next variable we are looking at
+          ArithVar numVars = d_partialModel.getNumberOfVariables();
+          Assert(numVars > 0);
+          d_nextIntegerCheckVar++;
+          if (d_nextIntegerCheckVar == numVars)
+          {
+            d_nextIntegerCheckVar = 0;
+          }
+        }
+      } while (!emmittedConflictOrSplit && tryNew);
     }
 
     if (options().arith.maxCutsInContext <= d_cutCount)

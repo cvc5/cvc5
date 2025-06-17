@@ -8,8 +8,8 @@
 ; - arg3 U: The term to process.
 ; return: the result of replacing all occurrences of arg1 with arg2 in arg3.
 (program $substitute
-  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U) (w T))
-  (S S U) U
+  ((T Type) (U Type) (S Type) (x S) (y S) (f (-> T U)) (a T) (z U))
+  :signature (S S U) U
   (
   (($substitute x y (f a))         (_ ($substitute x y f) ($substitute x y a)))
   (($substitute x y x)             y)
@@ -24,7 +24,7 @@
 ; return: The result is true if arg2 is a subterm of arg1.
 (program $contains_subterm
   ((T Type) (U Type) (S Type) (x U) (y S) (f (-> T S)) (a T))
-  (S U) Bool
+  :signature (S U) Bool
   (
   (($contains_subterm x x)      true)
   (($contains_subterm (f a) x)  (eo::ite ($contains_subterm f x) true ($contains_subterm a x)))
@@ -38,7 +38,7 @@
 ; - arg2 @List: The list of terms to find.
 ; return: true if any term in arg2 is a subterm of arg1.
 (program $contains_subterm_list ((T Type) (U Type) (t T) (x U) (xs @List :list))
-  (T @List) Bool
+  :signature (T @List) Bool
   (
     (($contains_subterm_list t (@list x xs)) (eo::ite ($contains_subterm t x) true ($contains_subterm_list t xs)))
     (($contains_subterm_list t @list.nil)    false)
@@ -51,7 +51,7 @@
 ; - xs @List: The list of terms to find.
 ; return: true if any atomic (0-ary) subterm of t is in xs.
 (program $contains_aterm_list ((T Type) (U Type) (S Type) (x U) (f (-> T S)) (a T) (xs @List))
-  (T @List) Bool
+  :signature (T @List) Bool
   (
     (($contains_aterm_list (f a) xs)  (eo::ite ($contains_aterm_list f xs) true ($contains_aterm_list a xs)))
     (($contains_aterm_list x xs)      (eo::not (eo::is_neg (eo::list_find @list xs x))))
@@ -66,11 +66,25 @@
 ; return: the result of simultaneously substituting xs to ss in t.
 (program $substitute_simul
   ((T Type) (S Type) (x S) (f (-> T S)) (a T) (xs @List :list) (ss @List :list) (s S) (y S))
-  (S @List @List) S
+  :signature (S @List @List) S
   (
   (($substitute_simul (f a) xs ss)                  (_ ($substitute_simul f xs ss) ($substitute_simul a xs ss)))
   (($substitute_simul x xs ss)                      (eo::define ((i (eo::list_find @list xs x)))
-                                                      (eo::ite (eo::is_neg i) x (eo::list_nth @list ss i))))
+                                                      (eo::ite (eo::is_neg i) x ($assoc_nil_nth @list ss i))))
+  )
+)
+
+; program: $beta_reduce_type
+; args:
+; - T Type: A type.
+; - xs @List: A list of arguments to give to a function of that type.
+; return: The return type of the application.
+; note: A helper to define the type of the $beta_reduce program below.
+(program $beta_reduce_type ((T Type) (U Type) (x T) (xs @List :list))
+  (Type @List) Type
+  (
+  (($beta_reduce_type (-> T U) (@list x xs)) ($beta_reduce_type U xs))
+  (($beta_reduce_type T @list.nil)           T)
   )
 )
 
@@ -81,13 +95,14 @@
 ;   whose arguments have been partially accumulated into ss.
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
-(program $beta_reduce ((U Type) (T Type) (S Type) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list))
-  (U @List) U
+(program $beta_reduce
+  ((U Type) (T Type) (S Type) (u U) (f (-> T U)) (a T) (t S) (x T) (xs @List :list) (ss @List :list) (X Type))
+  :signature ((eo::quote u) (eo::quote ss)) ($beta_reduce_type (eo::typeof u) ss)
   (
   ; handle higher-order case: if lambda is applied to one argument, it may be a partial application
   (($beta_reduce (_ (lambda (@list x xs) t) a) @list.nil)
                                     (eo::define ((st ($substitute x a t)))
-                                      (eo::ite (eo::is_eq xs @list.nil) st (lambda xs st))))
+                                      (eo::ite (eo::eq xs @list.nil) st (lambda xs st))))
   (($beta_reduce (lambda xs t) ss)  ($substitute_simul t xs ss))
   (($beta_reduce (f a) ss)          ($beta_reduce f (@list a ss)))
   )

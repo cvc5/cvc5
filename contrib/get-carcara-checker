@@ -50,8 +50,8 @@ chmod +x $BASE_DIR/bin/cvc5-carcara-check.sh
 
 cat << EOF > $BASE_DIR/bin/cvc5-alethe-proof.sh
 #!/usr/bin/env bash
-# call cvc5 and remove the first line of the output (should be "unsat")
-\$@ --dump-proofs --proof-format=alethe | tail -n +2
+# call cvc5 and remove the first line of the output (should be "unsat", "(", ")")
+\$@ --dump-proofs --proof-format=alethe | tail -n +3 | head -n -1
 EOF
 chmod +x $BASE_DIR/bin/cvc5-alethe-proof.sh
 
