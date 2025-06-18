@@ -32,7 +32,6 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <uchar.h>
 
 /* -------------------------------------------------------------------------- */
 
