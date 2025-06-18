@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -387,13 +388,18 @@ bool DTypeConstructor::computeWellFounded(
 {
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
-    TypeNode t = getArgType(i);
-    if (t.isDatatype())
+    TypeNode t = getArgType(i);     
+    std::unordered_set<TypeNode> ctypes;
+    expr::getComponentTypes(t, ctypes);
+    for (const TypeNode& ct : ctypes)
     {
-      const DType& dt = t.getDType();
-      if (!dt.computeWellFounded(processing))
+      if (ct.isDatatype())
       {
-        return false;
+        const DType& dt = ct.getDType();
+        if (!dt.computeWellFounded(processing))
+        {
+          return false;
+        }
       }
     }
   }
