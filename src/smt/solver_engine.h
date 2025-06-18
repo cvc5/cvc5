@@ -511,12 +511,14 @@ class CVC5_EXPORT SolverEngine
    *
    * @throw ModalException, TypeCheckingException, LogicException
    */
-  Node getValue(const Node& e);
+  Node getValue(const Node& e,
+                 bool fromUser = false);
 
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& exprs);
+  std::vector<Node> getValues(const std::vector<Node>& exprs,
+                 bool fromUser = false);
 
   /**
    * @return the domain elements for uninterpreted sort tn.

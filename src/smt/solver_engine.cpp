@@ -1181,10 +1181,11 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   return ret;
 }
 
-Node SolverEngine::getValue(const Node& t)
+Node SolverEngine::getValue(const Node& t,
+                 bool fromUser)
 {
   // can invoke satisfiability check below
-  beginCall(true);
+  //beginCall(true);
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
@@ -1233,7 +1234,7 @@ Node SolverEngine::getValue(const Node& t)
   if (!m->isValue(resultNode))
   {
     bool subSuccess = false;
-    if (d_env->getOptions().smt.getValueSubsolver)
+    if (fromUser && d_env->getOptions().smt.getValueSubsolver)
     {
       // invoke satisfiability check
       // ensure symbols have been substituted
@@ -1293,16 +1294,17 @@ Node SolverEngine::getValue(const Node& t)
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
   }
-  endCall();
+  //endCall();
   return resultNode;
 }
 
-std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs)
+std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
+                 bool fromUser)
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
   {
-    result.push_back(getValue(e));
+    result.push_back(getValue(e, fromUser));
   }
   return result;
 }

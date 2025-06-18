@@ -8060,7 +8060,7 @@ Term Solver::getValueHelper(const Term& term) const
       << "cannot get value of term containing "
       << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
-  internal::Node value = d_slv->getValue(*term.d_node);
+  internal::Node value = d_slv->getValue(*term.d_node, true);
   Term res = Term(&d_tm, value);
   Assert(res.getSort() == term.getSort());
   return res;
