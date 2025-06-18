@@ -388,7 +388,9 @@ bool DTypeConstructor::computeWellFounded(
 {
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
-    TypeNode t = getArgType(i);     
+    TypeNode t = getArgType(i);
+    // must look at all types that occur as subterms of t, as we could have
+    // nested recursion.
     std::unordered_set<TypeNode> ctypes;
     expr::getComponentTypes(t, ctypes);
     for (const TypeNode& ct : ctypes)
