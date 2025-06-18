@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Paul Meng, Mathias Preiner
+ *   Gereon Kremer, Paul Meng, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *

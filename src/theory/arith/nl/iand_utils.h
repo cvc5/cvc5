@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Andrew Reynolds
+ *   Yoni Zohar, Makai Mann, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
