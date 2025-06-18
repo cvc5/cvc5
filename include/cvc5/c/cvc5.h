@@ -32,7 +32,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#if defined(__linux__)
+#if defined(__APPLE__)
+  typedef uint32_t char32_t;
+#else
   #include <uchar.h>
 #endif
 
