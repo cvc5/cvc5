@@ -45,7 +45,7 @@ class ProofNodeUpdaterCallback
    * @param pn the proof node that maybe should be updated
    * @param fa the assumptions in scope
    * @param continueUpdate if this is set to false within this method, then we
-   * do not recursive update pn.
+   * do not recursively update pn.
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
