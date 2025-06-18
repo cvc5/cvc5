@@ -353,8 +353,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     d_env->getStatisticsRegistry().registerValue<std::string>(
         "driver::filename", value);
   }
-  else if (key == "smt-lib-version"
-           && !getOptions().base.inputLanguageWasSetByUser)
+  else if (key == "smt-lib-version")
   {
     if (value != "2" && value != "2.6")
     {

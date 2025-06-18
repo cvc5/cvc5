@@ -844,6 +844,7 @@ set(regress_0_tests
   regress0/ff/as.smt2
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
+  regress0/ff/bitsum_eval.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
   regress0/ff/combination.smt2
@@ -860,6 +861,7 @@ set(regress_0_tests
   regress0/ff/issue10937.smt2
   regress0/ff/issue11107.smt2
   regress0/ff/issue11932.smt2
+  regress0/ff/issue11969.smt2
   regress0/ff/proj-issue705.smt2
   regress0/ff/proj-issue748-safe.smt2
   regress0/ff/randcompile-sound-3i-5t-circ.smt2
@@ -985,6 +987,8 @@ set(regress_0_tests
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
   regress0/ho/issue11734-nested-lambda.smt2
+  regress0/ho/issue11923-2-finite-ho-deq.smt2
+  regress0/ho/issue11923-finite-ho-deq.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
   regress0/ho/issue4990-care-graph.smt2
@@ -1297,6 +1301,8 @@ set(regress_0_tests
   regress0/parser/to_fp.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
+  regress0/parser/version2.7.smt2
+  regress0/parser/version2.7-sort-param.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
@@ -1400,12 +1406,14 @@ set(regress_0_tests
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
+  regress0/proofs/dd_check_cc_bvxor_xsimp.smt2
   regress0/proofs/dd_fv-bvl.smt2
   regress0/proofs/dd_ic_macro-elim-shadow.smt2
   regress0/proofs/dd_ic_pf_764.smt2
   regress0/proofs/dd_int_check_bvnot_lam_value_norm.smt2
   regress0/proofs/dd_int_check_rec_elim_shadow.smt2
   regress0/proofs/dd_issue3481_beta_red.smt2
+  regress0/proofs/dd_BitsTricks-scala-9-xsimp.smt2
   regress0/proofs/dd_M301_array_norm_op.smt2
   regress0/proofs/dd_N627_fun_const.smt2
   regress0/proofs/dd_pf_739.smt2
@@ -1521,6 +1529,7 @@ set(regress_0_tests
   regress0/push-pop/inc-define.smt2
   regress0/push-pop/inc-double-u.smt2
   regress0/push-pop/incremental-subst-bug.cvc.smt2
+  regress0/push-pop/issue11934-ho-uf.smt2
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
@@ -1589,6 +1598,7 @@ set(regress_0_tests
   regress0/quantifiers/issue11066-fresh-binders-err.smt2
   regress0/quantifiers/issue11751-prenex-norm.smt2
   regress0/quantifiers/issue11752-prenex-norm.smt2
+  regress0/quantifiers/issue11968-rd-typed.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -2484,8 +2494,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
-  regress1/bags/all1.smt2
-  regress1/bags/all2.smt2
+  regress1/bags/all1.smt2  
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -2518,6 +2527,8 @@ set(regress_1_tests
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
   regress1/bags/fuzzy6.smt2
+  regress1/bags/injective_bug_sat.smt2
+  regress1/bags/injective_bug_unsat.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
@@ -2571,6 +2582,7 @@ set(regress_1_tests
   regress1/bv/bv2nat-types.smt2
   regress1/bv/cmu-rdk-3.smt2
   regress1/bv/dd.iand-wrong-0513.smt2
+  regress1/bv/dd_bug787_dsl_fixed_pt.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
   regress1/bv/fuzz18.smtv1.smt2
@@ -4089,6 +4101,7 @@ set(regression_disabled_tests
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
   ###
+  regress1/bags/all2.smt2
   regress1/bags/card3.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/murxla6.smt2

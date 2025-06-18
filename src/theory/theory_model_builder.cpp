@@ -1392,6 +1392,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
   Assert(logicInfo().isHigherOrder());
+  Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;

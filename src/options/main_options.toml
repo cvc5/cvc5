@@ -186,6 +186,14 @@ name   = "Driver"
   help       = "Use internal portfolio mode based on the logic"
 
 [[option]]
+  name       = "portfolioDryRun"
+  category   = "expert"
+  long       = "portfolio-dry-run"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the strategies that would be run with --use-portfolio, without executing them"
+
+[[option]]
   name       = "portfolioJobs"
   category   = "expert"
   long       = "portfolio-jobs=n"

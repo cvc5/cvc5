@@ -316,9 +316,11 @@ class Pipe
 
 void printPortfolioConfig(Solver& solver, PortfolioConfig& config)
 {
-  if (solver.isOutputOn("portfolio"))
+  bool dry_run = solver.getOption("portfolio-dry-run") == "true";
+  if (dry_run || solver.isOutputOn("portfolio"))
   {
-    std::ostream& out = solver.getOutput("portfolio");
+    std::ostream& out = (dry_run) ? solver.getDriverOptions().out()
+                                  : solver.getOutput("portfolio");
     out << "(portfolio \"" << config.toOptionString() << "\"";
     out << " :timeout " << config.d_timeout;
     out << ")" << std::endl;
@@ -581,6 +583,8 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
     return ctx.solveContinuous(d_parser, false);
   }
 
+  bool dry_run = solver.getOption("portfolio-dry-run") == "true";
+
   bool incremental_solving = solver.getOption("incremental") == "true";
   PortfolioStrategy strategy = getStrategy(incremental_solving, *ctx.d_logic);
   Assert(!strategy.d_strategies.empty()) << "The portfolio strategy should never be empty.";
@@ -588,6 +592,7 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   {
     PortfolioConfig& config = strategy.d_strategies.front();
     printPortfolioConfig(ctx.solver(), config);
+    if (dry_run) return true;
     config.applyOptions(solver);
     return ctx.solveContinuous(d_parser, false);
   }
@@ -596,6 +601,15 @@ bool PortfolioDriver::solve(std::unique_ptr<CommandExecutor>& executor)
   if (total_timeout == 0)
   {
     total_timeout = 1'200'000; // miliseconds
+  }
+
+  if (dry_run)
+  {
+    for (PortfolioConfig& config : strategy.d_strategies)
+    {
+      printPortfolioConfig(ctx.solver(), config);
+    }
+    return true;
   }
 
   bool uninterrupted = ctx.solveContinuous(d_parser, false, true);
@@ -716,16 +730,17 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
         .set("replay-reject-cut", "512")
         .set("unconstrained-simp")
         .set("use-soi");
-    s.add()
+    s.add(0.583333333)
         .unset("restrict-pivots")
         .set("use-soi")
         .set("new-prop")
         .set("unconstrained-simp");
+    s.add();
   }
   else if (isOneOf(logic, "QF_LIA"))
   {
     // same as QF_LRA but add --pb-rewrites
-    s.add()
+    s.add(0.95)
         .set("miplib-trick")
         .set("miplib-trick-subs", "4")
         .set("use-approx")
@@ -738,6 +753,7 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
         .set("pb-rewrites")
         .set("ite-simp")
         .set("simp-ite-compress");
+    s.add();
   }
   else if (isOneOf(logic, "QF_NIA"))
   {
@@ -885,7 +901,6 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   }
   else if (isOneOf(logic, "ABV", "BV"))
   {
-    s.add(0.066666667).set("enum-inst");
     s.add(0.066666667).set("sygus-inst");
     s.add(0.066666667).set("mbqi").unset("cegqi").unset("sygus-inst");
     s.add(0.25)
@@ -900,7 +915,8 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
     s.add(0.025)
         .set("enum-inst")
         .set("cegqi-bv-ineq", "eq-slack");
-    s.add().set("enum-inst").unset("cegqi-innermost").set("global-negate");
+    s.add(0.066666667).set("enum-inst").unset("cegqi-innermost").set("global-negate");
+    s.add().set("enum-inst");
   }
   else if (isOneOf(logic, "ABVFP", "ABVFPLRA", "BVFP", "FP", "NIA", "NRA", "BVFPLRA"))
   {
@@ -933,19 +949,20 @@ PortfolioStrategy PortfolioDriver::getNonIncrementalStrategy(
   }
   else if (isOneOf(logic, "QF_ABV"))
   {
-    s.add(0.041666667)
+    s.add(0.41666667)
         .set("ite-simp")
         .set("simp-with-care")
         .set("repeat-simp");
-    s.add(0.416666667);
-    s.add()
-        .set("ite-simp")
-        .set("simp-with-care")
-        .set("repeat-simp");
+    s.add();
   }
-  else if (isOneOf(logic, "QF_BV", "QF_UFBV"))
+  else if (isOneOf(logic, "QF_BV"))
   {
     s.add().set("bitblast", "eager").set("bv-assert-input");
+  }
+  else if (isOneOf(logic, "QF_UFBV"))
+  {
+    s.add(0.75).set("bitblast", "eager").set("bv-assert-input");
+    s.add();
   }
   else if (isOneOf(logic, "QF_AUFLIA"))
   {
