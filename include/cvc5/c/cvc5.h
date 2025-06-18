@@ -33,7 +33,9 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #if defined(__APPLE__)
+#ifndef __cplusplus
   typedef uint32_t char32_t;
+#endif
 #else
   #include <uchar.h>
 #endif
