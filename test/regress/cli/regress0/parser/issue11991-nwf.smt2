@@ -5,8 +5,3 @@
 (set-logic ALL)
 
 (declare-datatype Foo ((Bar (x (Array Foo Int)))))
-
-(declare-fun j () Foo)
-
-(assert (= j j))
-(check-sat)
