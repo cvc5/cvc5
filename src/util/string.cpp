@@ -36,7 +36,11 @@ String::String(const std::wstring& s)
   d_str.resize(s.size());
   for (size_t i = 0, n = s.size(); i < n; ++i)
   {
-    d_str[i] = static_cast<unsigned>(s[i]);
+    unsigned u = static_cast<unsigned>(s[i]);
+#ifdef CVC5_ASSERTIONS
+    Assert(u < num_codes());
+#endif
+    d_str[i] = u;
   }
 }
 
