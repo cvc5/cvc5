@@ -32,6 +32,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#if defined(__linux__)
+  #include <uchar.h>
+#endif
 
 /* -------------------------------------------------------------------------- */
 
