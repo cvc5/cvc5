@@ -235,7 +235,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
 
 void ProofNodeUpdater::preSimplify(std::shared_ptr<ProofNode> cur)
 {
-  if (d_mergeSubproofs)
+  if (!d_mergeSubproofs)
   {
     return;
   }
