@@ -16,6 +16,7 @@ runs:
         PACKAGE: ${{ inputs.asset-filename }}
       run: |
         import os
+        import re
         from github import Github
 
         refname = os.getenv('GITHUB_REF_NAME')
@@ -29,6 +30,7 @@ runs:
           commit = repo.get_git_commit(ref.object.sha)
           relmsg = commit.message
           # extract news for release message
+          content = repo.get_contents('NEWS.md').decoded_content.decode()
           pattern = re.compile(r'cvc5 [1-9]\.[0-9]+\.[0-9]+\n[=]+\s*\n')
           m = pattern.search(content)
           if m:
