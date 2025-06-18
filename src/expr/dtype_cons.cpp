@@ -16,10 +16,10 @@
 
 #include "expr/ascription_type.h"
 #include "expr/dtype.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
