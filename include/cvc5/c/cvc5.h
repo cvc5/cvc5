@@ -32,13 +32,22 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#if defined(__APPLE__)
+
 #ifndef __cplusplus
-  typedef uint32_t char32_t;
+  #if defined(__APPLE__)
+    // char32_t is part of C11, but the uchar.h header is missing in Apple Clang
+    // See:
+    //   https://en.cppreference.com/w/c/header/uchar.html
+    //   https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/uchar.h.html
+    //   https://www.gnu.org/software/gnulib/manual/html_node/uchar_002eh.html
+    #ifndef char32_t
+      typedef uint_least32_t char32_t;
+    #endif
+  #else
+    #include <uchar.h>
+  #endif
 #endif
-#else
-  #include <uchar.h>
-#endif
+
 
 /* -------------------------------------------------------------------------- */
 
