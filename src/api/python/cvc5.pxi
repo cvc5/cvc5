@@ -5,7 +5,7 @@ import traceback
 
 cimport cpython.ref as cpy_ref
 from cython.operator cimport dereference, preincrement
-from cpython.unicode cimport PyUnicode_FromKindAndData, PyUnicode_4BYTE_KIND
+from cpython.unicode cimport PyUnicode_DATA, PyUnicode_KIND, PyUnicode_READ, PyUnicode_FromKindAndData, PyUnicode_4BYTE_KIND
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 
@@ -1819,9 +1819,17 @@ cdef class TermManager:
                 self,
                 self.ctm.mkString(s.encode(), <bint> useEscSequences))
 
+        cdef Py_ssize_t n = len(s)
+        cdef int kind = PyUnicode_KIND(s)
+        cdef void* data = PyUnicode_DATA(s)
+        cdef Py_ssize_t i
+
         cdef c_u32string result
-        for ch in s:
-            result.push_back(<Py_UCS4>ord(ch))
+        result.resize(n)
+
+        for i in range(n):
+            result[i] = <Py_UCS4>PyUnicode_READ(kind, data, i)
+
         return _term(self, self.ctm.mkString(result))
 
     def mkEmptySequence(self, Sort sort):

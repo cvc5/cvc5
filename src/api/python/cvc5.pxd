@@ -40,8 +40,8 @@ cdef extern from "<functional>" namespace "std" nogil:
 cdef extern from "<string>" namespace "std":
     cdef cppclass u32string:
         u32string() except +
-        void push_back(Py_UCS4)
-        const Py_UCS4& operator[](size_t) const
+        void resize (size_t n) except +
+        Py_UCS4& operator[](size_t)
         size_t size() except +
 
 cdef extern from "<tuple>" namespace "std" nogil:
