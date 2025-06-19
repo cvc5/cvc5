@@ -261,7 +261,7 @@
 ;   coincide with the arguments of its body, and its body is an application of
 ;   the right hand side of the equality.
 ; conclusion: The given equality.
-(declare-rule lambda-elim ((T Type) (U Type) (x @List) (t T) (f U))
+(declare-rule lambda-elim ((T Type) (U Type) (V Type) (x @List) (t T) (f (-> U V)))
   :args ((= (lambda x t) f))
   :requires ((($get_arg_list t) x) (($is_app f t) true))
   :conclusion (= (lambda x t) f)

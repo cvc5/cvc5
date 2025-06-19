@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz, Yoni Zohar
+ *   Andres Noetzli, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *

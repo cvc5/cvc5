@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Daniel Larraz
+ *   Liana Hadarean, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *

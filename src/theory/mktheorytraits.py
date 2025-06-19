@@ -1,3 +1,18 @@
+###############################################################################
+# Top contributors (to current version):
+#   José Neto, Aina Niemetz
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Generate theory_traits.h and type_enumerator.cpp implementations.
+#
+##
 import argparse
 import re
 import sys
