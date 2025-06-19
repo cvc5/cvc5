@@ -1,5 +1,8 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.3.0
+==========
+
 ## New Features
 
 - A build configuration `safe-mode` is available via our configure script
