@@ -290,8 +290,8 @@ void ProofNodeUpdater::preSimplify(std::shared_ptr<ProofNode> cur)
       default: break;
     }
     // Generic search, which checks if there is a descendent of this proof node
-    // (up to a default bound, set to 2), which proves the same conclusion as this
-    // node. If this is the case, then we immediately take that subproof.
+    // (up to a default bound, set to 2), which proves the same conclusion as
+    // this node. If this is the case, then we immediately take that subproof.
     // This heuristic makes a big difference for proofs e.g. of the form
     // F1 ......... Fn
     // ---------------- AND_INTRO
@@ -300,12 +300,12 @@ void ProofNodeUpdater::preSimplify(std::shared_ptr<ProofNode> cur)
     // false
     // where one of Fi is false. In this case, we *only* want to post-process
     // the proof of Fi.
-    // The case above occurs often in practice when a single assertion in the rewrite
-    // rewrites to false. This optimization saves the internal work of post-processing
-    // F1 ... F{i-1} F{i+1} ... Fn.
-    // The depth is configurable by --proof-pre-simp-lookahead=N, default 2.
+    // The case above occurs often in practice when a single assertion in the
+    // rewrite rewrites to false. This optimization saves the internal work of
+    // post-processing F1 ... F{i-1} F{i+1} ... Fn. The depth is configurable by
+    // --proof-pre-simp-lookahead=N, default 2.
     uint64_t depthLimit = options().proof.proofPreSimpLookahead;
-    if (toMerge == nullptr && depthLimit>0)
+    if (toMerge == nullptr && depthLimit > 0)
     {
       Node res = cur->getResult();
       std::vector<std::pair<size_t, std::shared_ptr<ProofNode>>> toProcess;
