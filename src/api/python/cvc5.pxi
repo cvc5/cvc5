@@ -5,6 +5,7 @@ import traceback
 
 cimport cpython.ref as cpy_ref
 from cython.operator cimport dereference, preincrement
+from cpython.unicode cimport PyUnicode_FromKindAndData, PyUnicode_4BYTE_KIND
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 
@@ -5678,11 +5679,13 @@ cdef class Term:
             :return: The string term as a native string value.
         """
         cdef c_u32string s = self.cterm.getStringValue()
-        cdef Py_ssize_t i, n = s.size()
-        cdef list chars = []
-        for i in range(n):
-          chars.append(chr(<Py_UCS4>s[i]))
-        return u"".join(chars)
+        cdef Py_ssize_t n = s.size()
+
+        if n == 0:
+            return u""
+
+        return PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, <const void*>&s[0], n)
+
 
     def getRealOrIntegerValueSign(self):
         """
