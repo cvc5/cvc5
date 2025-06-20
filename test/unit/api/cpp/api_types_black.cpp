@@ -33,7 +33,10 @@ TEST_F(TestApiBlackTypes, printEnum)
   std::string expected =
       "LT ARRAY_SORT RTZ UNKNOWN_REASON literals preprocess full "
       "enum "
-      "smt_lib_2_6 lfsc regular";
+      "smt_lib_2_6 lfsc regular"
+      "smt_lib_2_6 lfsc "
+      "OBJECTIVE_MAX "
+      "STRATEGY_BINARY";
   {
     std::stringstream ss;
     ss << cvc5::Kind::LT << " ";
@@ -47,6 +50,8 @@ TEST_F(TestApiBlackTypes, printEnum)
     ss << cvc5::modes::InputLanguage::SMT_LIB_2_6 << " ";
     ss << cvc5::modes::ProofFormat::LFSC << " ";
     ss << cvc5::modes::OptionCategory::REGULAR;
+    ss << cvc5::modes::ObjectiveKind::OBJECTIVE_MAX << " ";
+    ss << cvc5::modes::OMTStrategyKind::STRATEGY_BINARY;
     ASSERT_EQ(ss.str(), expected);
   }
   {
@@ -62,6 +67,8 @@ TEST_F(TestApiBlackTypes, printEnum)
     ss << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6) << " ";
     ss << std::to_string(cvc5::modes::ProofFormat::LFSC) << " ";
     ss << std::to_string(cvc5::modes::OptionCategory::REGULAR);
+    ss << std::to_string(cvc5::modes::ObjectiveKind::OBJECTIVE_MAX) << " ";
+    ss << std::to_string(cvc5::modes::OMTStrategyKind::STRATEGY_BINARY);
     ASSERT_EQ(ss.str(), expected);
   }
 }

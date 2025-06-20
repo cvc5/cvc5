@@ -726,11 +726,12 @@ namespace std {
 CVC5_EXPORT std::string to_string(cvc5::modes::InputLanguage lang);
 }
 
-namespace cvc5 {
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Objective kinds                                                            */ 
+/* Objective kinds                                                            */
+/* This enumeration is experimental and may be subject to change              */
 /* -------------------------------------------------------------------------- */
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -750,7 +751,9 @@ enum ENUM(ObjectiveKind)
   EVALUE(OBJECTIVE_LEX),
   /** Pareto multi-objective. */
   EVALUE(OBJECTIVE_PARETO),
-  /** MINMAX multi-objective. */
+  /** Box multi-objective. */
+  EVALUE(OBJECTIVE_BOX),
+  /** MINMAX multi-objective. */  
   EVALUE(OBJECTIVE_MINMAX),
   /** MAXMIN multi-objective. */
   EVALUE(OBJECTIVE_MAXMIN),
@@ -772,7 +775,8 @@ typedef enum ENUM(ObjectiveKind) ENUM(ObjectiveKind);
  * @param ok The objective kind.
  * @return The string representation.
  */
-const char* cvc5_objective_kind_to_string(Cvc5ObjectiveKind ok);
+CVC5_EXPORT const char* cvc5_objective_kind_to_string(
+    Cvc5ObjectiveKind ok);
 #else
 /**
  * Serialize an ObjectiveKind to given stream.
@@ -781,17 +785,18 @@ const char* cvc5_objective_kind_to_string(Cvc5ObjectiveKind ok);
  * @return The output stream
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ObjectiveKind ok);
-}  // namespace cvc5
+}  // namespace cvc5::modes
 
 namespace std {
-std::string to_string(cvc5::ObjectiveKind ok);
+std::string to_string(cvc5::modes::ObjectiveKind ok);
 }
 
-namespace cvc5 {
+namespace cvc5::modes {
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Strategy kinds                                                             */ 
+/* Strategy kinds                                                             */
+/* This enumeration is experimental and may be subject to change              */
 /* -------------------------------------------------------------------------- */
 
 #ifdef CVC5_API_USE_C_ENUMS
@@ -825,7 +830,8 @@ typedef enum ENUM(OMTStrategyKind) ENUM(OMTStrategyKind);
  * @param osk The optimization strategy kind.
  * @return The string representation.
  */
-const char* cvc5_omt_strategy_kind_to_string(Cvc5OMTStrategyKind osk);
+CVC5_EXPORT const char* cvc5_omt_strategy_kind_to_string(
+    Cvc5OMTStrategyKind osk);
 #else
 /**
  * Serialize an OMTStrategyKind to given stream.
@@ -835,10 +841,10 @@ const char* cvc5_omt_strategy_kind_to_string(Cvc5OMTStrategyKind osk);
  * @return The output stream
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, OMTStrategyKind osk);
-}  // namespace cvc5
+}  // namespace cvc5::modes
 
 namespace std {
-std::string to_string(cvc5::OMTStrategyKind osk);
+std::string to_string(cvc5::modes::OMTStrategyKind osk);
 }
 #endif
 
