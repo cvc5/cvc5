@@ -35,24 +35,6 @@
 #include <variant>
 #include <vector>
 
-#if defined(__GNUC__) || defined(__clang__)
-#define CVC5_SUPPRESS_DEPRECATED_PUSH \
-    _Pragma("GCC diagnostic push") \
-    _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
-#define CVC5_SUPPRESS_DEPRECATED_POP \
-    _Pragma("GCC diagnostic pop")
-#elif defined(_MSC_VER)
-#define CVC5_SUPPRESS_DEPRECATED_PUSH \
-    __pragma(warning(push)) \
-    __pragma(warning(disable: 4996))
-#define CVC5_SUPPRESS_DEPRECATED_POP \
-    __pragma(warning(pop))
-#else
-// For unknown compilers, do nothing
-#define CVC5_SUPPRESS_DEPRECATED_PUSH
-#define CVC5_SUPPRESS_DEPRECATED_POP
-#endif
-
 namespace cvc5 {
 
 namespace main {
@@ -3313,7 +3295,6 @@ class CVC5_EXPORT DriverOptions
  * be accessed using :cpp:func:`Solver::getDriverOptions()
  * <cvc5::Solver::getDriverOptions()>`. \endverbatim
  */
-CVC5_SUPPRESS_DEPRECATED_PUSH
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information. */
@@ -3367,12 +3348,12 @@ struct CVC5_EXPORT OptionInfo
    * True if the option is an expert option 
    * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
    */
-  [[deprecated("Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool is_expert = false;
+  [[deprecated("Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool is_expert;
   /** 
    * True if the option is a regular option 
    * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
    */
-  [[deprecated("Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool isRegular = false;
+  [[deprecated("Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool isRegular;
   /** The category of this option. */
   modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
@@ -3421,7 +3402,6 @@ struct CVC5_EXPORT OptionInfo
    */
   std::string toString() const;
 };
-CVC5_SUPPRESS_DEPRECATED_POP
 
 /**
  * Print an `OptionInfo` object to an output stream.
