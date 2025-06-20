@@ -276,12 +276,13 @@ Node SkolemCache::mkLengthVar(NodeManager* nm, Node t)
       BoundVarId::STRINGS_LENGTH, t, "@var.str_length", intType);
 }
 
-Node mkRegExpEqVar(NodeManager* nm, Node eq)
+Node SkolemCache::mkRegExpEqVar(NodeManager* nm, Node eq)
 {
+  Assert (eq.getKind()==Kind::EQUAL);
   TypeNode stringType = nm->stringType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar(
-      BoundVarId::STRINGS_REG_EXP_EQ, t, "@var.re_eq", stringType);
+      BoundVarId::STRINGS_REG_EXP_EQ, eq, "@var.re_eq", stringType);
 }
   
 Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)

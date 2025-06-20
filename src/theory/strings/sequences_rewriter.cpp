@@ -1425,8 +1425,8 @@ Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
   }
   NodeManager * nm = nodeManager();
   Node v = SkolemCache::mkRegExpEqVar(nm, n);
-  Node mem1 = nm->mkNode(Kind::STRING_IN_REG, v, n[0]);
-  Node mem2 = nm->mkNode(Kind::STRING_IN_REG, v, n[1]);
+  Node mem1 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[0]);
+  Node mem2 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[1]);
   return nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v),
                         mem1.eqNode(mem2));
 }
