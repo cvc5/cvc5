@@ -15,6 +15,8 @@
 
 #include "smt/solver_engine.h"
 
+
+#include "expr/non_closed_node_converter.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -1241,33 +1243,38 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       // invoke satisfiability check
       // ensure symbols have been substituted
       resultNode = m->simplify(resultNode);
-      TypeNode rtn = resultNode.getType();
-      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
-      Node k = skm->mkInternalSkolemFunction(
-          InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
-      // the query is (k = resultNode)
-      Node checkQuery = resultNode.eqNode(k);
-      Options subOptions;
-      subOptions.copyValues(d_env->getOptions());
-      smt::SetDefaults::disableChecking(subOptions);
-      // ensure no infinite loop
-      subOptions.write_smt().checkModelSubsolver = false;
-      subOptions.write_smt().modelVarElimUneval = false;
-      subOptions.write_smt().simplificationMode =
-          options::SimplificationMode::NONE;
-      // initialize the subsolver
-      SubsolverSetupInfo ssi(*d_env.get(), subOptions);
-      std::unique_ptr<SolverEngine> getValueChecker;
-      initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
-      // disable all checking options
-      SetDefaults::disableChecking(getValueChecker->getOptions());
-      getValueChecker->assertFormula(checkQuery);
-      Result r = getValueChecker->checkSat();
-      if (r == Result::SAT)
+      // Note that we must be a "closed" term, i.e. one that can be
+      // given in an assertion.
+      if (NonClosedNodeConverter::isClosed(*d_env.get(), resultNode))
       {
-        // value is the result of getting the value of k
-        resultNode = getValueChecker->getValue(k);
-        subSuccess = m->isValue(resultNode);
+        TypeNode rtn = resultNode.getType();
+        SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
+        Node k = skm->mkInternalSkolemFunction(
+            InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
+        // the query is (k = resultNode)
+        Node checkQuery = resultNode.eqNode(k);
+        Options subOptions;
+        subOptions.copyValues(d_env->getOptions());
+        smt::SetDefaults::disableChecking(subOptions);
+        // ensure no infinite loop
+        subOptions.write_smt().checkModelSubsolver = false;
+        subOptions.write_smt().modelVarElimUneval = false;
+        subOptions.write_smt().simplificationMode =
+            options::SimplificationMode::NONE;
+        // initialize the subsolver
+        SubsolverSetupInfo ssi(*d_env.get(), subOptions);
+        std::unique_ptr<SolverEngine> getValueChecker;
+        initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
+        // disable all checking options
+        SetDefaults::disableChecking(getValueChecker->getOptions());
+        getValueChecker->assertFormula(checkQuery);
+        Result r = getValueChecker->checkSat();
+        if (r == Result::SAT)
+        {
+          // value is the result of getting the value of k
+          resultNode = getValueChecker->getValue(k);
+          subSuccess = m->isValue(resultNode);
+        }
       }
     }
     if (!subSuccess)
