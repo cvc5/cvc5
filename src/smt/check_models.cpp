@@ -16,6 +16,7 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "expr/non_closed_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
@@ -27,7 +28,6 @@
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
-#include "expr/non_closed_node_converter.h"
 
 using namespace cvc5::internal::theory;
 
@@ -171,7 +171,8 @@ void CheckModels::checkModel(TheoryModel* m,
         {
           // Note that we must be a "closed" term, i.e. one that can be
           // given in an assertion.
-          if (options().smt.checkModelSubsolver && NonClosedNodeConverter::isClosed(d_env, nval))
+          if (options().smt.checkModelSubsolver
+              && NonClosedNodeConverter::isClosed(d_env, nval))
           {
             // satisfiability call
             Options subOptions;

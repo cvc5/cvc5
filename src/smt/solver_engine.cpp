@@ -15,8 +15,6 @@
 
 #include "smt/solver_engine.h"
 
-
-#include "expr/non_closed_node_converter.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -25,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
 #include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
