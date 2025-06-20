@@ -131,9 +131,6 @@ void CheckModels::checkModel(TheoryModel* m,
       verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
                  << std::endl;
 
-      // We look up the value before simplifying. If n contains quantifiers,
-      // this may increases the chance of finding its value before the node is
-      // altered by simplification below.
       nval = m->getValue(n);
       verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
                  << std::endl;
