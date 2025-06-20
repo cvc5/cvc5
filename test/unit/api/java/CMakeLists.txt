@@ -27,6 +27,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/FiniteFieldTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/OmtResultTest.java  
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
@@ -75,6 +76,7 @@ cvc5_add_java_api_test(CommandTest)
 cvc5_add_java_api_test(DatatypeTest)
 cvc5_add_java_api_test(GrammarTest)
 cvc5_add_java_api_test(InputParserTest)
+cvc5_add_java_api_test(OmtResultTest)
 cvc5_add_java_api_test(OpTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)

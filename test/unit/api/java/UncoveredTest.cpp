@@ -243,6 +243,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
+  ss << cvc5::OmtResult();
   ss << cvc5::Grammar();
 
   Sort intsort = d_tm.getIntegerSort();
@@ -369,6 +370,12 @@ TEST_F(TestApiBlackUncovered, SkolemId)
 TEST_F(TestApiBlackUncovered, SynthResult)
 {
   cvc5::SynthResult r;
+  ASSERT_FALSE(r != r);
+}
+
+TEST_F(TestApiBlackUncovered, OmtResult)
+{
+  cvc5::OmtResult r;
   ASSERT_FALSE(r != r);
 }
 

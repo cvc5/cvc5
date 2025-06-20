@@ -124,6 +124,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/InputParser.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IOracle.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OmtResult.java  
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
@@ -155,6 +156,7 @@ set(JNI_HEADERS
   ${JNI_DIR}/io_github_cvc5_DatatypeSelector.h
   ${JNI_DIR}/io_github_cvc5_Grammar.h
   ${JNI_DIR}/io_github_cvc5_InputParser.h
+  ${JNI_DIR}/io_github_cvc5_OmtResult.h  
   ${JNI_DIR}/io_github_cvc5_Op.h
   ${JNI_DIR}/io_github_cvc5_OptionInfo.h
   ${JNI_DIR}/io_github_cvc5_Proof.h
@@ -281,6 +283,7 @@ set(jni_files
   jni/datatype_selector.cpp
   jni/grammar.cpp
   jni/input_parser.cpp
+  jni/omt_result.cpp  
   jni/op.cpp
   jni/option_info.cpp
   jni/proof.cpp

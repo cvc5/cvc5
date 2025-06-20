@@ -28,6 +28,7 @@ from cvc5 cimport Result as c_Result
 from cvc5 cimport InputParser as c_InputParser
 from cvc5 cimport SymbolManager as c_SymbolManager
 from cvc5 cimport SynthResult as c_SynthResult
+from cvc5 cimport OmtResult as c_OmtResult
 from cvc5 cimport Op as c_Op
 from cvc5 cimport OptionInfo as c_OptionInfo
 from cvc5 cimport holds as c_holds
@@ -1146,6 +1147,80 @@ cdef class SynthResult:
 
     def __repr__(self):
         return self.cr.toString().decode()
+
+cdef class OmtResult:
+    """
+      Encapsulation of a solver OMT result.
+
+      This is the return value of the API methods:
+
+        - :py:meth:`Solver.optimizeSat()`
+        - :py:meth:`Solver.optimizeSatNext()`
+
+      which we call optimization queries.  This class indicates whether the
+      optimization query returned an optimal solution, a limit-optimal solution, 
+      a non-optimal (approximate) solution, is unbounded,
+      has no solution, or is unknown.
+    """
+    cdef c_OmtResult cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_OmtResult()
+
+    def __eq__(self, OmtResult other):
+        return self.cr == other.cr
+
+    def __ne__(self, OmtResult other):
+        return self.cr != other.cr        
+
+    def isNull(self):
+        """
+            :return: True if OmtResult is null, i.e., not an OmtResult
+                     returned from an optimization query.
+        """
+        return self.cr.isNull()
+
+    def isOptimal(self):
+        """
+        :return: True if the optimization query has an optimal solution.
+        """
+        return self.cr.isOptimal()
+
+    def isLimitOptimal(self):
+        """
+        :return: True if the query has a limit-optimal solution.
+        """
+        return self.cr.isLimitOptimal()
+
+    def isNonOptimal(self):
+        """
+        :return: True if the query returned a non-optimal (approximate) result.
+        """
+        return self.cr.isNonOptimal()
+
+    def isUnbounded(self):
+        """
+        :return: True if the query is unbounded.
+        """
+        return self.cr.isUnbounded()
+
+    def isUnsat(self):
+        """
+        :return: True if the query is unsatisfiable.
+        """
+        return self.cr.isUnsat()
+
+    def isUnknown(self):
+        """
+        :return: True if the outcome is unknown.
+        """
+        return self.cr.isUnknown()
+
+    def __str__(self):
+        return self.cr.toString().decode()
+        
+    def __repr__(self):
+        return self.cr.toString().decode()        
 
 # ----------------------------------------------------------------------------
 # TermManager

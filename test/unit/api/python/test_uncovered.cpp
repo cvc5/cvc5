@@ -256,6 +256,7 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
+  ss << cvc5::OmtResult();
   ss << cvc5::Grammar();
 
   Sort intsort = d_tm.getIntegerSort();
@@ -463,6 +464,16 @@ TEST_F(TestApiBlackUncovered, SynthResult)
   cvc5::SynthResult res2 = d_solver->checkSynth();
   ASSERT_EQ(std::hash<cvc5::SynthResult>{}(res1),
             std::hash<cvc5::SynthResult>{}(res1));
+}
+
+TEST_F(TestApiBlackUncovered, OmtResult)
+{
+  cvc5::OmtResult res1 = cvc5::OmtResult();
+  cvc5::OmtResult res2 = cvc5::OmtResult();
+  ASSERT_EQ(std::hash<cvc5::OmtResult>{}(res1),
+            std::hash<cvc5::OmtResult>{}(res1));
+  ASSERT_EQ(std::hash<cvc5::OmtResult>{}(res1),
+            std::hash<cvc5::OmtResult>{}(res2));
 }
 
 // Copied from api/cpp/solver_black.cpp

@@ -385,6 +385,34 @@ cvc5_synth_result_t* Cvc5::copy(cvc5_synth_result_t* result)
   return result;
 }
 
+Cvc5OmtResult Cvc5::export_omt_result(const cvc5::OmtResult& result)
+{
+  Assert(!result.isNull());
+  auto [it, inserted] = d_alloc_omt_results.try_emplace(result, this, result);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5::release(cvc5_omt_result_t* result)
+{
+  result->d_refs -= 1;
+  if (result->d_refs == 0)
+  {
+    Assert(d_alloc_omt_results.find(result->d_result)
+           != d_alloc_omt_results.end());
+    d_alloc_omt_results.erase(result->d_result);
+  }
+}
+
+cvc5_omt_result_t* Cvc5::copy(cvc5_omt_result_t* result)
+{
+  result->d_refs += 1;
+  return result;
+}
+
 Cvc5Proof Cvc5::export_proof(const cvc5::Proof& proof)
 {
   auto [it, inserted] = d_alloc_proofs.try_emplace(proof, this, proof);
