@@ -174,6 +174,7 @@ void CheckModels::checkModel(TheoryModel* m,
           if (options().smt.checkModelSubsolver
               && NonClosedNodeConverter::isClosed(d_env, nval))
           {
+            Trace("check-model-subsolver") << "Query is " << nval << std::endl;
             // satisfiability call
             Options subOptions;
             subOptions.copyValues(options());
@@ -184,6 +185,7 @@ void CheckModels::checkModel(TheoryModel* m,
             initializeSubsolver(nodeManager(), checkModelChecker, ssi);
             checkModelChecker->assertFormula(nval);
             Result r = checkModelChecker->checkSat();
+            Trace("check-model-subsolver") << "..result is " << r << std::endl;
             if (r == Result::SAT)
             {
               processed = true;
