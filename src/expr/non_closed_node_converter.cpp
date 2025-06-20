@@ -87,6 +87,7 @@ bool NonClosedNodeConverter::isClosed(Env& env, const Node& n)
 {
   std::unordered_set<Kind, kind::KindHashFunction> ncks;
   getNonClosedKinds(env, ncks);
+  // additional kinds that *might* be non-closed
   ncks.insert(Kind::STORE_ALL);
   ncks.insert(Kind::CONST_SEQUENCE);
   ncks.insert(Kind::FUNCTION_ARRAY_CONST);
