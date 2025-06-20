@@ -56,6 +56,7 @@ class NodeManager;
 class SolverEngine;
 class TypeNode;
 class ProofNode;
+class OmtResult;
 class Options;
 class Random;
 class Rational;
@@ -403,6 +404,136 @@ template <>
 struct CVC5_EXPORT hash<cvc5::SynthResult>
 {
   size_t operator()(const cvc5::SynthResult& result) const;
+};
+}  // namespace std
+
+namespace cvc5 {
+
+/* -------------------------------------------------------------------------- */
+/* OMTResult                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Encapsulation of a solver OMT result.
+ *
+ * This is the return value of the API methods:
+ *   - Solver::optimizeSat()
+ *   - Solver::optimizeSatNext()
+ *
+ * which we call optimization queries.  This class indicates whether the
+ * optimization query returned an optimal solution, a non-optimal (approximate) solution, 
+ * has no solution, or is unknown.
+ */
+class CVC5_EXPORT OmtResult
+{
+  friend class Solver;
+
+ public:
+  /** Constructor. */
+  OmtResult();
+
+  /**
+   * Return true if Result is empty, i.e., a nullary Result, and not an actual
+   * result returned from a optimizeSat() (and friends) query.
+   */
+  bool isNull() const;
+
+  /**
+   * Return true if query was an optimial solution for optimizeSat() or
+   * optimizeSatNext() query.
+   */
+  bool isOptimal() const;
+
+  /**
+   * Return true if query was to return a finite assymptotically optimal solution 
+   * for optimizeSat() or optimizeSatNext() query.
+   */
+  bool isLimitOptimal() const;
+
+  /**
+   * Return true if query was to return an approximation to an optimal solution 
+   * for optimizeSat() or optimizeSatNext() query, i.e.
+   * return a solution but not an optimal solution.
+   * In this case the solver was not able to determine the query to be in
+   * either the limit-optimal or unbounded categories.
+   */
+  bool isNonOptimal() const;
+
+  /**
+   * Return true if query was an unbounded optimizeSat() or
+   * optimizeSatNext() query.
+   */
+  bool isUnbounded() const;
+
+  /**
+   * Return true if query was an unsatisfiable optimizeSat() or
+   * optimizeSatNext() query.
+   */
+  bool isUnsat() const;
+
+  /**
+   * Return true if query was a optimizeSat() or optimizeSatNext() query and
+   * cvc5 was not able to determine (un)satisfiability.
+   */
+  
+  bool isUnknown() const;
+  /**
+   * @return A string representation of this OMT result.
+   */
+
+  /**
+   * Operator overloading for equality of two OMT results.
+   * @param r The OMT result to compare to for equality.
+   * @return True if the OMT results are equal.
+   */
+  bool operator==(const OmtResult& r) const;
+
+  /**
+   * Operator overloading for disequality of two OMT results.
+   * @param r The OMT result to compare to for disequality.
+   * @return True if the OMT results are disequal.
+   */
+  bool operator!=(const OmtResult& r) const;
+
+  /**
+   * @return A string representation of this OMT result.
+   */
+  std::string toString() const;  
+
+ private:
+  /**
+   * Constructor.
+   * @param r The internal OMT result that is to be wrapped by this OMT
+   *          result
+   * @return The OmtResult.
+   */
+  OmtResult(const internal::OmtResult& r);
+  /**
+   * The internal result wrapped by this result.
+   *
+   * @note This is a `std::shared_ptr` rather than a `std::unique_ptr`
+   *       since `internal::OmtResult` is not ref counted.
+   */
+  std::shared_ptr<internal::OmtResult> d_result;
+};
+
+/**
+ * Serialize an OmtResult to given stream.
+ * @param out The output stream.
+ * @param r The result to be serialized to the given output stream.
+ * @return The output stream.
+ */
+std::ostream& operator<<(std::ostream& out, const OmtResult& r) CVC5_EXPORT;
+}  // namespace cvc5
+
+namespace std {
+/**
+ * Hash function for OMT results.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::OmtResult>
+{
+  size_t operator()(const cvc5::OmtResult& result) const;
 };
 }  // namespace std
 

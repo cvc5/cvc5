@@ -79,6 +79,7 @@
 #include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
+#include "util/omt_result.h"
 #include "util/random.h"
 #include "util/regexp.h"
 #include "util/result.h"
@@ -1284,6 +1285,78 @@ namespace std {
 
 size_t hash<cvc5::SynthResult>::operator()(
     const cvc5::SynthResult& result) const
+{
+  return std::hash<std::string>{}(result.toString());
+}
+}  // namespace std
+
+namespace cvc5 {
+
+/* -------------------------------------------------------------------------- */
+/* OmtResult                                                                  */
+/* -------------------------------------------------------------------------- */
+
+OmtResult::OmtResult() : d_result(new internal::OmtResult()) {}
+
+bool OmtResult::isNull() const
+{
+  return d_result->getStatus() == internal::OmtResult::NONE;
+}
+
+bool OmtResult::isOptimal() const
+{
+  return d_result->getStatus() == internal::OmtResult::OPTIMAL;
+}
+
+bool OmtResult::isLimitOptimal() const
+{
+  return d_result->getStatus() == internal::OmtResult::LIMIT_OPTIMAL;
+}
+
+bool OmtResult::isNonOptimal() const
+{
+  return d_result->getStatus() == internal::OmtResult::NON_OPTIMAL;
+}
+
+bool OmtResult::isUnbounded() const
+{
+  return d_result->getStatus() == internal::OmtResult::UNBOUNDED;
+}
+
+bool OmtResult::isUnsat() const
+{
+  return d_result->getStatus() == internal::OmtResult::UNSAT;
+}
+
+bool OmtResult::isUnknown() const
+{
+  return d_result->getStatus() == internal::OmtResult::UNKNOWN;
+}
+
+bool OmtResult::operator==(const OmtResult& r) const
+{
+  return *d_result == *r.d_result;
+}
+
+bool OmtResult::operator!=(const OmtResult& r) const
+{
+  return *d_result != *r.d_result;
+}
+
+std::string OmtResult::toString(void) const { return d_result->toString(); }
+
+std::ostream& operator<<(std::ostream& out, const OmtResult& sr)
+{
+  out << sr.toString();
+  return out;
+}
+
+}  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::OmtResult>::operator()(
+    const cvc5::OmtResult& result) const
 {
   return std::hash<std::string>{}(result.toString());
 }

@@ -422,6 +422,26 @@ struct cvc5_synth_result_t
   Cvc5* d_cvc5 = nullptr;
 };
 
+/** Wrapper for cvc5 C++ OMT results. */
+struct cvc5_omt_result_t
+{
+  /**
+   * Constructor.
+   * @param cvc5   The associated solver instance.
+   * @param result The wrapped C++ OMT result.
+   */
+  cvc5_omt_result_t(Cvc5* cvc5, const cvc5::OmtResult& result)
+      : d_result(result), d_cvc5(cvc5)
+  {
+  }
+  /** The wrapped C++ result. */
+  cvc5::OmtResult d_result;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated solver instance. */
+  Cvc5* d_cvc5 = nullptr;
+};
+
 /** Wrapper for cvc5 C++ proofs. */
 struct cvc5_proof_t
 {
@@ -511,6 +531,24 @@ struct Cvc5
   cvc5_synth_result_t* copy(cvc5_synth_result_t* result);
 
   /**
+   * Export C++ OMT result to C API.
+   * @param result The OMT  result to export.
+   */
+  Cvc5OmtResult export_omt_result(const cvc5::OmtResult& result);
+  /**
+   * Decrement the external ref count of an OMT result. If the ref count
+   * reaches zero, the result is released (freed).
+   * @param result The result to release.
+   */
+  void release(cvc5_omt_result_t* result);
+  /**
+   * Increment the external ref count of an OMT result.
+   * @param result The synthesis result to copy.
+   * @return The copied synthesis result.
+   */
+  cvc5_omt_result_t* copy(cvc5_omt_result_t* result);
+
+  /**
    * Export C++ proof to C API.
    * @param proof The proof to export.
    */
@@ -555,7 +593,10 @@ struct Cvc5
   std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
   /** Cache of allocated syntheis results. */
   std::unordered_map<cvc5::SynthResult, cvc5_synth_result_t>
-      d_alloc_synth_results;
+      d_alloc_synth_results;    
+  /** Cache of allocated OMT results. */
+  std::unordered_map<cvc5::OmtResult, cvc5_omt_result_t>
+      d_alloc_omt_results;      
   /** Cache of allocated proofs. */
   std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /** Cache of allocated grammars. */

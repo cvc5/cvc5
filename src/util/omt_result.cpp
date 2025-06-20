@@ -40,6 +40,18 @@ UnknownExplanation OmtResult::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
+bool OmtResult::operator==(const OmtResult& r) const
+{
+  return d_status == r.d_status
+         && (d_status != UNKNOWN
+             || d_unknownExplanation == r.d_unknownExplanation);
+}
+
+bool OmtResult::operator!=(const OmtResult& r) const
+{
+  return !(*this == r);
+}
+
 std::string OmtResult::toString() const
 {
   std::stringstream ss;

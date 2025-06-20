@@ -53,6 +53,19 @@ typedef struct cvc5_result_t* Cvc5Result;
 typedef struct cvc5_synth_result_t* Cvc5SynthResult;
 
 /**
+ * Encapsulation of a solver OMT result.
+ *
+ * This is the return value of the API functions (to be added):
+ *   - cvc5_optimize_sat()
+ *   - cvc5_optimize_sat_next()
+ *
+ * which we call "optimization queries".  This class indicates whether the
+ * OMT query has an optimal/limit-optimal/non-optimal solution, or if it is
+ * unbounded, unsatisfiable, or unknown.
+ */
+typedef struct cvc5_omt_result_t* Cvc5OmtResult;
+
+/**
  * The sort of a cvc5 term.
  */
 typedef struct cvc5_sort_t* Cvc5Sort;
@@ -338,6 +351,126 @@ CVC5_EXPORT Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
  *       that is owned by the callee of the function and thus, can be released.
  */
 CVC5_EXPORT void cvc5_synth_result_release(Cvc5SynthResult result);
+
+
+/** @} */
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5OmtResult                                                              */
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5omtresult
+ *  @{
+ */
+
+/**
+ * Make copy of OMT result, increases reference counter of `result`.
+ *
+ * @param result The OMT  result to copy.
+ * @return The same result with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5OmtResult cvc5_omt_result_copy(Cvc5OmtResult result);
+
+/**
+ * Release copy of OMT result, decrements reference counter of `result`.
+ *
+ * @param result The result to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_omt_result_release(Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is empty (a nullary result) and not an
+ * actual result returned from an OMT query.
+ * @param result The result.
+ * @return True if the given result is a nullary result.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_null(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is optimal.
+ * @param result The result.
+ * @return True if the given optimiziation query has an optimal solution.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_optimal(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is limit-optimal.
+ * @param result The result.
+ * @return True if the given optimal query has a finite assymptotically 
+ * optimal solution.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_limit_optimal(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is non-optimal.
+ * @param result The result.
+ * @return True if the solver returned a solution but not an optimal solution.
+ * In this case the solver was not able to determine the query to be in
+ * either the limit-optimal or unbounded categories.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_non_optimal(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is unbounded.
+ * @param result The result.
+ * @return True if the given result is an unbounded result.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_unbounded(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is unsat.
+ * @param result The result.
+ * @return True if the given optimization query is unsatisfiable.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_unsat(const Cvc5OmtResult result);
+
+/**
+ * Determine if a given OMT result is unknown.
+ * @param result The result.
+ * @return True if the result of a given optimization query could not be determined.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_unknown(const Cvc5OmtResult result);
+
+/**
+ * Determine equality of two OMT results.
+ * @param a The first OMT result to compare to for equality.
+ * @param b The second OMT result to compare to for equality.
+ * @return True if the OMT results are equal.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_equal(const Cvc5OmtResult a,
+                                            const Cvc5OmtResult b);
+
+/**
+ * Operator overloading for disequality of two OMT results.
+ * @param a The first OMT result to compare to for disequality.
+ * @param b The second OMT result to compare to for disequality.
+ * @return True if the OMT results are disequal.
+ */
+CVC5_EXPORT bool cvc5_omt_result_is_disequal(const Cvc5OmtResult a,
+                                               const Cvc5OmtResult b);
+
+/**
+ * Get the string representation of a given result.
+ * @param result The result.
+ * @return A string representation of the given OMT result.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_omt_result_to_string(const Cvc5OmtResult result);
+
+/**
+ * Compute the hash value of an OMT result.
+ * @param result The OMT result.
+ * @return The hash value of the OMT result.
+ */
+CVC5_EXPORT size_t cvc5_omt_result_hash(Cvc5OmtResult result);
 
 /** @} */
 

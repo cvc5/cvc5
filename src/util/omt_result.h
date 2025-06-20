@@ -58,7 +58,7 @@ class OmtResult
   OmtResult();
 
   /** Constructor for all outcomes, with optional explanation when 
-   * solution is not optimal */
+   * solution is not successful */
   OmtResult(Status s,
             UnknownExplanation unknownExplanation =
                 UnknownExplanation::UNKNOWN_REASON);
@@ -68,6 +68,19 @@ class OmtResult
 
   /** Get the unknown explanation */
   UnknownExplanation getUnknownExplanation() const;
+
+  /**
+   * Operator overloading for equality of two OMT results.
+   * @param r The OMT result to compare to for equality.
+   * @return True if the OMT results are equal.
+   */
+  bool operator==(const OmtResult& r) const;
+  /**
+   * Operator overloading for disequality of two OMT results.
+   * @param r The OMT result to compare to for disequality.
+   * @return True if the OMT results are disequal.
+   */
+  bool operator!=(const OmtResult& r) const;
 
   /** Get the string representation */
   std::string toString() const;

@@ -197,6 +197,8 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   ss << d_solver->mkGrammar({}, {d_tm.mkVar(d_bool)});
   ss << d_solver->checkSat();
 
+  ss << cvc5::OmtResult();
+
   DatatypeDecl decl = d_tm.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_int);
@@ -221,6 +223,7 @@ TEST_F(TestCApiBlackUncovered, default_constructors)
   (void)cvc5::DatatypeConstructor();
   (void)cvc5::DatatypeSelector();
   (void)cvc5::SynthResult();
+  (void)cvc5::OmtResult();
   (void)cvc5::Grammar();
   (void)cvc5::Result();
   (void)cvc5::Proof();
@@ -422,6 +425,33 @@ TEST_F(TestCApiBlackUncovered, driver_options)
   dopts.err();
   dopts.in();
   dopts.out();
+}
+
+// NOTE: The test below is temporarily added for coverage testing.
+// To be moved to the unit C API tests once optimize-sat is added
+// to enable OmtResult construction.
+
+TEST_F(TestCApiBlackUncovered, omt_result_api)
+{
+  cvc5::OmtResult res1;
+  cvc5::OmtResult res2;  
+  ASSERT_TRUE(res1.isNull());
+  ASSERT_FALSE(res1.isOptimal());
+  ASSERT_FALSE(res1.isLimitOptimal());
+  ASSERT_FALSE(res1.isNonOptimal());
+  ASSERT_FALSE(res1.isUnbounded());
+  ASSERT_FALSE(res1.isUnsat()); 
+  ASSERT_FALSE(res1.isUnknown()); 
+  std::stringstream ss;
+  ss << res1;
+  ASSERT_EQ(res1.toString(), ss.str()); 
+
+  ASSERT_TRUE(res1 == res2);
+  ASSERT_FALSE(res1 != res2);
+  ASSERT_EQ(std::hash<cvc5::OmtResult>{}(res1),
+            std::hash<cvc5::OmtResult>{}(res1));
+  ASSERT_EQ(std::hash<cvc5::OmtResult>{}(res1),
+            std::hash<cvc5::OmtResult>{}(res2));
 }
 
 }  // namespace cvc5::internal::test
