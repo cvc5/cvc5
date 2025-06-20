@@ -1181,8 +1181,7 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   return ret;
 }
 
-Node SolverEngine::getValue(const Node& t,
-                 bool fromUser)
+Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
   // can invoke satisfiability check below
   if (fromUser)
@@ -1305,7 +1304,7 @@ Node SolverEngine::getValue(const Node& t,
 }
 
 std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
-                 bool fromUser)
+                                          bool fromUser)
 {
   std::vector<Node> result;
   for (const Node& e : exprs)

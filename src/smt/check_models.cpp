@@ -123,18 +123,18 @@ void CheckModels::checkModel(TheoryModel* m,
     {
       checkAgain = false;
       verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
-                << std::endl;
+                 << std::endl;
 
       n = rewrite(n);
       verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
-                << std::endl;
+                 << std::endl;
 
       // We look up the value before simplifying. If n contains quantifiers,
       // this may increases the chance of finding its value before the node is
       // altered by simplification below.
       nval = m->getValue(n);
       verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
-                << std::endl;
+                 << std::endl;
 
       if (nval.isConst() && nval.getConst<bool>())
       {
@@ -144,24 +144,23 @@ void CheckModels::checkModel(TheoryModel* m,
       }
 
       // Otherwise, we did not succeed in showing the current assertion to be
-      // true. This may either indicate that our model is wrong, or that we cannot
-      // check it. The latter may be the case for several reasons.
-      // One example is the occurrence of partial operators. Another example
-      // are quantified formulas, which are not checkable, although we assign
-      // them to true/false based on the satisfying assignment. However,
-      // quantified formulas can be modified during preprocess, so they may not
-      // correspond to those in the satisfying assignment. Hence we throw
-      // warnings for assertions that do not simplify to either true or false.
-      // Other theories such as non-linear arithmetic (in particular,
-      // transcendental functions) also have the property of not being able to
-      // be checked precisely here.
+      // true. This may either indicate that our model is wrong, or that we
+      // cannot check it. The latter may be the case for several reasons. One
+      // example is the occurrence of partial operators. Another example are
+      // quantified formulas, which are not checkable, although we assign them
+      // to true/false based on the satisfying assignment. However, quantified
+      // formulas can be modified during preprocess, so they may not correspond
+      // to those in the satisfying assignment. Hence we throw warnings for
+      // assertions that do not simplify to either true or false. Other theories
+      // such as non-linear arithmetic (in particular, transcendental functions)
+      // also have the property of not being able to be checked precisely here.
       // Note that warnings like these can be avoided for quantified formulas
       // by making preprocessing passes explicitly record how they
       // rewrite quantified formulas (see cvc4-wishues#43).
       if (!nval.isConst())
       {
         n = expDef.expandDefinitions(nval, cache);
-        if (n!=nval)
+        if (n != nval)
         {
           // It could be that we can expand again after simplifying. This is
           // the case e.g. if a quantified formula with division is simplified
@@ -171,16 +170,16 @@ void CheckModels::checkModel(TheoryModel* m,
         else
         {
           // Not constant, print a less severe warning message here.
-          warning()
-              << "Warning : SolverEngine::checkModel(): cannot check simplified "
-                "assertion : "
-              << nval << std::endl;
+          warning() << "Warning : SolverEngine::checkModel(): cannot check "
+                       "simplified "
+                       "assertion : "
+                    << nval << std::endl;
           noCheckList.push_back(nval);
           processed = true;
           break;
         }
       }
-    }while (checkAgain);
+    } while (checkAgain);
     // If processed in the loop above, we go to the next term
     if (processed)
     {
