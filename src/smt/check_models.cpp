@@ -182,6 +182,7 @@ void CheckModels::checkModel(TheoryModel* m,
             Result r = checkModelChecker->checkSat();
             if (r == Result::SAT)
             {
+              processed = true;
               break;
             }
           }
