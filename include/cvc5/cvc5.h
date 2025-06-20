@@ -3336,6 +3336,11 @@ struct CVC5_EXPORT OptionInfo
     std::vector<std::string> modes;
   };
 
+  /** Move assignment operator. */
+  // Note: this is only required to surpress deprecation warnings for deprecated
+  //       members of this struct. Can be removed after the deprecated members
+  //       have been removed.
+  OptionInfo& operator=(OptionInfo&& info);
   /** The option name */
   std::string name;
   /** The option name aliases */

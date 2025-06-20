@@ -7625,6 +7625,17 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
+OptionInfo& OptionInfo::operator=(OptionInfo&& info)
+{
+  name = std::move(info.name);
+  aliases = std::move(info.aliases);
+  noSupports = std::move(info.noSupports);
+  setByUser = std::move(info.setByUser);
+  category = std::move(info.category);
+  valueInfo = std::move(info.valueInfo);
+  return *this;
+}
+
 bool OptionInfo::boolValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
