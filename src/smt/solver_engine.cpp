@@ -1185,7 +1185,10 @@ Node SolverEngine::getValue(const Node& t,
                  bool fromUser)
 {
   // can invoke satisfiability check below
-  //beginCall(true);
+  if (fromUser)
+  {
+    beginCall(true);
+  }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
@@ -1294,7 +1297,10 @@ Node SolverEngine::getValue(const Node& t,
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
   }
-  //endCall();
+  if (fromUser)
+  {
+    endCall();
+  }
   return resultNode;
 }
 
