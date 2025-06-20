@@ -25,6 +25,8 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "smt/set_defaults.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::internal::theory;
 
@@ -169,10 +171,27 @@ void CheckModels::checkModel(TheoryModel* m,
         }
         else
         {
+          if (options().smt.checkModelSubsolver)
+          {
+            // satisfiability call
+            Options subOptions;
+            subOptions.copyValues(options());
+            smt::SetDefaults::disableChecking(subOptions);
+            // initialize the subsolver
+            SubsolverSetupInfo ssi(d_env, subOptions);
+            std::unique_ptr<SolverEngine> checkModelChecker;
+            initializeSubsolver(nodeManager(), checkModelChecker, ssi);
+            checkModelChecker->assertFormula(nval);
+            Result r = checkModelChecker->checkSat();
+            if (r==Result::SAT)
+            {
+              break;
+            }
+          }
           // Not constant, print a less severe warning message here.
           warning() << "Warning : SolverEngine::checkModel(): cannot check "
-                       "simplified "
-                       "assertion : "
+                      "simplified "
+                      "assertion : "
                     << nval << std::endl;
           noCheckList.push_back(nval);
           processed = true;

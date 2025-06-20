@@ -509,12 +509,24 @@ class CVC5_EXPORT SolverEngine
    * query). Only permitted if the SolverEngine is set to operate interactively
    * and produce-models is on.
    *
+   * Note that this method may make a subcall to another copy of the SMT solver
+   * (if --check-model-subsolver is enabled). We do this only if the call
+   * originated from the user (fromUser is true), in which case we insist
+   * that we find a concrete value. This means if e is a quantified formula,
+   * we must call a subsolver. Other uses of internal subsolvers (e.g. MBQI)
+   * do not generally insist that the returned value is concrete.
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    * @throw ModalException, TypeCheckingException, LogicException
    */
   Node getValue(const Node& e, bool fromUser = false);
 
   /**
    * Same as getValue but for a vector of expressions
+   *
+   * @param e The term to get the value of.
+   * @param fromUser Whether the call originated from an external user.
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs,
                               bool fromUser = false);

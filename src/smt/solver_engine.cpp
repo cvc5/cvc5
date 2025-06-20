@@ -1236,7 +1236,7 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   if (!m->isValue(resultNode))
   {
     bool subSuccess = false;
-    if (fromUser && d_env->getOptions().smt.getValueSubsolver)
+    if (fromUser && d_env->getOptions().smt.checkModelSubsolver)
     {
       // invoke satisfiability check
       // ensure symbols have been substituted
@@ -1251,7 +1251,7 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       subOptions.copyValues(d_env->getOptions());
       smt::SetDefaults::disableChecking(subOptions);
       // ensure no infinite loop
-      subOptions.write_smt().getValueSubsolver = false;
+      subOptions.write_smt().checkModelSubsolver = false;
       subOptions.write_smt().modelVarElimUneval = false;
       subOptions.write_smt().simplificationMode =
           options::SimplificationMode::NONE;
