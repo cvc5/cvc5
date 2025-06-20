@@ -119,3 +119,8 @@ cvc5 can be optionally configured to link against glpk-cut-log, a modified
 version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log
+
+cvc5 can be optionally configured to link against CoCoALib, a C++ library for
+doing Computations in Commutative Algebra, available here:
+
+  https://cocoa.altervista.org/cocoalib/index.shtml

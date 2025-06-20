@@ -1243,6 +1243,7 @@ set(regress_0_tests
   regress0/parser/issue10813-1.smt2
   regress0/parser/issue10813-2.smt2
   regress0/parser/issue10889-sexpr-eof.smt2
+  regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1406,12 +1407,14 @@ set(regress_0_tests
   regress0/proofs/dd_ada_open.smt2
   regress0/proofs/dd_alpha_eq_qpattern.smt2
   regress0/proofs/dd_bug787_beta_reduce.smt2
+  regress0/proofs/dd_check_cc_bvxor_xsimp.smt2
   regress0/proofs/dd_fv-bvl.smt2
   regress0/proofs/dd_ic_macro-elim-shadow.smt2
   regress0/proofs/dd_ic_pf_764.smt2
   regress0/proofs/dd_int_check_bvnot_lam_value_norm.smt2
   regress0/proofs/dd_int_check_rec_elim_shadow.smt2
   regress0/proofs/dd_issue3481_beta_red.smt2
+  regress0/proofs/dd_BitsTricks-scala-9-xsimp.smt2
   regress0/proofs/dd_M301_array_norm_op.smt2
   regress0/proofs/dd_N627_fun_const.smt2
   regress0/proofs/dd_pf_739.smt2
@@ -1596,6 +1599,7 @@ set(regress_0_tests
   regress0/quantifiers/issue11066-fresh-binders-err.smt2
   regress0/quantifiers/issue11751-prenex-norm.smt2
   regress0/quantifiers/issue11752-prenex-norm.smt2
+  regress0/quantifiers/issue11968-rd-typed.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -2491,8 +2495,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
-  regress1/bags/all1.smt2
-  regress1/bags/all2.smt2
+  regress1/bags/all1.smt2  
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -2525,6 +2528,8 @@ set(regress_1_tests
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
   regress1/bags/fuzzy6.smt2
+  regress1/bags/injective_bug_sat.smt2
+  regress1/bags/injective_bug_unsat.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
@@ -2578,6 +2583,7 @@ set(regress_1_tests
   regress1/bv/bv2nat-types.smt2
   regress1/bv/cmu-rdk-3.smt2
   regress1/bv/dd.iand-wrong-0513.smt2
+  regress1/bv/dd_bug787_dsl_fixed_pt.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
   regress1/bv/fuzz18.smtv1.smt2
@@ -4096,6 +4102,7 @@ set(regression_disabled_tests
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
   ###
+  regress1/bags/all2.smt2
   regress1/bags/card3.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/murxla6.smt2

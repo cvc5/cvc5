@@ -2,9 +2,10 @@
 (include "../theories/Builtin.eo")
 (include "../theories/Quantifiers.eo")
 (include "../theories/Strings.eo")
+
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
-(include "../programs/SeqToString.eo")
+(include "../programs/DistinctValues.eo")
 
 
 ; This signature is used for both strings and sequences, where we often
@@ -51,12 +52,15 @@
   )
 )
 
-; define: $char_type_of
+; program: $char_type_of
 ; args:
 ; - T Type: The string-like type to check.
 ; return: the character type of the string-like type T
-(define $char_type_of ((T Type)) 
-  (eo::match ((U Type)) T (((Seq U) U)))
+(program $char_type_of ((U Type))
+  :signature (Type) Type
+  (
+  (($char_type_of (Seq U)) U)
+  )
 )
 
 ; define: $str_concat
@@ -436,8 +440,7 @@
 ;   The result of ensuring that the input t is not a singleton str.++
 ;   application. In particular, if t is of the form (str.++ t1 empty) where
 ;   empty is the empty string for the type of t, we return t1.
-(program $str_nary_elim
-    ((T Type) (t (Seq T)) (ss (Seq T) :list))
+(program $str_nary_elim ((T Type) (t (Seq T)) (ss (Seq T) :list))
     :signature ((Seq T)) (Seq T)
     (
         (($str_nary_elim (str.++ t ss)) (eo::define ((nil ($seq_empty (eo::typeof t))))
@@ -774,29 +777,24 @@
 ;   We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
 ;   application of the unfolding skolem program @re_unfold_pos_component.
 ; note: A helper method for computing the conclusion of ProofRule::RE_UNFOLD_POS.
-(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int))
+(program $re_unfold_pos_concat_rec ((t String) (r1 RegLan) (r2 RegLan :list) (ro RegLan) (i Int) (s String))
   :signature (String RegLan RegLan Int) (@Pair String Bool)
   (
     (($re_unfold_pos_concat_rec t @re.empty ro i)       (@pair "" true))
+    (($re_unfold_pos_concat_rec t (re.++ (str.to_re s) r2) ro i)
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
+        ; a constant regular expression, append s
+        (@pair (eo::cons str.++ s c) M)))))
     (($re_unfold_pos_concat_rec t (re.++ r1 r2) ro i)
-      ; match recursive call
-      (eo::match ((c String :list) (M Bool :list))
-        ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))
-        (((@pair c M)
-          ; match on what r1 is
-          (eo::match ((s String) (r RegLan))
-            r1
-            (
-              ; a constant regular expression, append s
-              ((str.to_re s) (@pair (str.++ s c) M))
-              ; otherwise, make the skolem and append with constraint
-              (r            (eo::define ((k (@re_unfold_pos_component t ro i)))
-                            (@pair (str.++ k c) (and (str.in_re k r) M))))
-            )
-          )
-        ))
-      )
-    )
+      (eo::define ((res ($re_unfold_pos_concat_rec t r2 ro (eo::add i 1))))
+      (eo::define ((c ($pair_first res)))
+      (eo::define ((M ($pair_second res)))
+      (eo::define ((k (@re_unfold_pos_component t ro i)))
+        ; otherwise, make the skolem and append with constraint
+        (@pair (eo::cons str.++ k c)
+               (eo::cons and (str.in_re k r1) M)))))))
   )
 )
 
@@ -898,13 +896,12 @@
     ; Check if t is a word constant
     (($str_collect_acc (str.++ t tail))
       (eo::ite ($str_check_length_one t)
-        (eo::match ((s1 (Seq U)) (s2 (Seq U))) 
-          ($str_collect_acc tail)
-          (
-            ((@pair "" s2)  (@pair t s2))
-            ((@pair s1 s2)  (@pair (eo::concat t s1) s2))    ; concatenate the constant
-          )
-        )
+        (eo::define ((res ($str_collect_acc tail)))
+        (eo::define ((s1 ($pair_first res)))
+        (eo::define ((s2 ($pair_second res)))
+          (eo::ite (eo::eq s1 "")
+            (@pair t s2)
+            (@pair (eo::concat t s1) s2)))))    ; concatenate the constant
         (@pair "" (str.++ t tail))))
     (($str_collect_acc "")            (@pair "" ""))
   )
@@ -925,16 +922,14 @@
   :signature ((Seq U)) (Seq U)
   (
     (($str_collect (str.++ t s))
-      (eo::match ((s1 (Seq U)) (s2 (Seq U)))
-        ($str_collect_acc (str.++ t s))
-        (
+      (eo::define ((res ($str_collect_acc (str.++ t s))))
+      (eo::define ((s1 ($pair_first res)))
+      (eo::define ((s2 ($pair_second res)))
+        (eo::ite (eo::eq s1 "")
           ; did not strip a constant prefix, just append t to the result of processing s
-          ((@pair "" s2)  ($str_cons t ($str_collect s)))
+          ($str_cons t ($str_collect s))
           ; stripped a constant prefix, append it to second term in the pair
-          ((@pair s1 s2)  ($str_cons s1 ($str_collect s2)))
-        )
-      )
-    )
+          ($str_cons s1 ($str_collect s2)))))))
     (($str_collect t)       ($str_self_if_empty t))
   )
 )
@@ -1218,6 +1213,18 @@
   )
 )
 
+; program $str_maybe_get_star_body
+; args:
+; - r RegLan: The regular expression
+; return: The body of r if it is a star, or r itself otherwise.
+(program $str_maybe_get_star_body ((r RegLan))
+  :signature (RegLan) RegLan
+  (
+    (($str_maybe_get_star_body (re.* r)) r)
+    (($str_maybe_get_star_body r)        r)
+  )
+)
+
 ; Helper for `$str_re_includes`.
 ; program: $str_re_includes_lhs_star
 ; args:
@@ -1232,13 +1239,7 @@
   (
   (($str_re_includes_lhs_star (re.* r1) r2) (eo::ite (eo::eq r1 re.allchar)
                                               true
-                                              ($str_re_includes r1
-                                                (eo::match ((r3 RegLan))
-                                                  r2
-                                                  (
-                                                    ((re.* r3) r3) ; use the body if a star
-                                                    (r3 r3)        ; otherwise use self
-                                                  )))))
+                                              ($str_re_includes r1 ($str_maybe_get_star_body r2)))) ; use body if a star
   (($str_re_includes_lhs_star r1 r2)        false)
   )
 )
@@ -1643,6 +1644,27 @@
 
 ;;;;; overlap utils
 
+; program: $str_is_compatible
+; args:
+; - c1 L: The first term, assumed to be a str.++ list.
+; - c2 L: The second term, assumed to be a str.++ list.
+; return: >
+;   true if c1 is a prefix of c2, or c2 is a prefix of c1. Note this method only
+;   returns false if it can be shown via $are_distinct_terms that the
+;   characters in question are distinct.
+; note: >
+;   This method can be used for both str.++ lists that have either string
+;   or sequence (seq.unit) values.
+(program $str_is_compatible
+    ((T Type) (c1 (Seq T)) (c2 (Seq T)) (xs1 (Seq T) :list) (xs2 (Seq T) :list))
+    :signature ((Seq T) (Seq T)) Bool
+    (
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c1 xs2)) ($str_is_compatible xs1 xs2))
+    (($str_is_compatible (str.++ c1 xs1) (str.++ c2 xs2)) (eo::requires ($are_distinct_terms c1 c2) true false))
+    (($str_is_compatible c1 c2)                           (eo::or ($str_is_empty c1) ($str_is_empty c2)))
+    )
+)
+
 ; program: $str_overlap_rec
 ; args:
 ; - s (Seq U): The first string, expected to be in flattened form.
@@ -1653,7 +1675,7 @@
 (program $str_overlap_rec ((s String) (s1 String :list) (t String))
   :signature (String String) Int
   (
-  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($nary_is_compatible str.++ "" (str.++ s s1) t)
+  (($str_overlap_rec (str.++ s s1) t) (eo::ite ($str_is_compatible (str.++ s s1) t)
                                         0
                                         (eo::add 1 ($str_overlap_rec s1 t))))
   (($str_overlap_rec s t)             0)
@@ -1673,13 +1695,7 @@
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "A" "") = 3
 ;   $str_overlap (str.++ "A" "B" "C" "") (str.++ "A" "") = 0
 (define $str_overlap ((U Type :implicit) (s (Seq U)) (t (Seq U)) (rev Bool))
-  (eo::match ((ss String) (ts String))
-    ($seq_to_string_pair s t)   ; ensure we have converted to strings at this point
-    (((@pair ss ts) (eo::requires (eo::is_str ss) true
-                    (eo::requires (eo::is_str ts) true
-                      ($str_overlap_rec
-                        ($str_rev rev ($str_flatten_word ss))
-                        ($str_rev rev ($str_flatten_word ts)))))))))
+  ($str_overlap_rec ($str_to_flat_form s rev) ($str_to_flat_form t rev)))
 
 
 ; program: $str_has_overlap
@@ -1707,7 +1723,7 @@
 ; returns: >
 ;   The result of evaluating `(str.from_int n)` given the current accumulated return value.
 (program $str_from_int_eval_rec ((s String) (n Int))
-  :signature (Int String) Bool
+  :signature (Int String) String
   (
   (($str_from_int_eval_rec n s) (eo::ite (eo::eq n 0)
                                   (eo::ite (eo::eq s "") "0" s)
