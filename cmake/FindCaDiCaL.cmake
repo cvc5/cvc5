@@ -18,7 +18,7 @@
 
 include(deps-helper)
 
-find_path(CaDiCaL_INCLUDE_DIR NAMES cadical.hpp)
+find_path(CaDiCaL_INCLUDE_DIR NAMES cadical/cadical.hpp cadical/tracer.hpp)
 find_library(CaDiCaL_LIBRARIES NAMES cadical)
 
 set(CaDiCaL_FOUND_SYSTEM FALSE)
@@ -28,7 +28,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   set(CaDiCaL_version_src "${CMAKE_BINARY_DIR}/CaDiCaL_version.cpp")
   file(WRITE ${CaDiCaL_version_src}
     "
-    #include <cadical.hpp>
+    #include <cadical/cadical.hpp>
     #include <iostream>
 
     int main(void)
@@ -148,7 +148,9 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
-            <INSTALL_DIR>/include/cadical.hpp
+            <INSTALL_DIR>/include/cadical/cadical.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/tracer.hpp
+            <INSTALL_DIR>/include/cadical/tracer.hpp
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 
