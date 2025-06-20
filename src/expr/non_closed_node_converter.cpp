@@ -15,13 +15,13 @@
 
 #include "expr/non_closed_node_converter.h"
 
+#include "expr/array_store_all.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/arrays_options.h"
 #include "smt/env.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/function_const.h"
-#include "expr/array_store_all.h"
 
 namespace cvc5::internal {
 
@@ -47,7 +47,7 @@ Node NonClosedNodeConverter::postConvert(Node n)
     // term must be purified.
     Node nval = n.getConst<ArrayStoreAll>().getValue();
     Node nvalc = convert(nval);
-    if (nvalc!=nval)
+    if (nvalc != nval)
     {
       purify = true;
     }
@@ -68,7 +68,7 @@ Node NonClosedNodeConverter::postConvert(Node n)
     if (!nc.isNull())
     {
       Node nnc = convert(nc);
-      if (nnc!=nc)
+      if (nnc != nc)
       {
         return nnc;
       }
@@ -98,7 +98,7 @@ bool NonClosedNodeConverter::isClosed(Env& env, const Node& n)
   // otherwise see if it converts, if it doesn't then it is closed
   NonClosedNodeConverter ncnc(env);
   Node nc = ncnc.convert(n);
-  return nc==n;
+  return nc == n;
 }
 
 void NonClosedNodeConverter::getNonClosedKinds(
