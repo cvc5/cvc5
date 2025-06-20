@@ -19,6 +19,7 @@ extern "C" {
 
 #include <cmath>
 #include <fstream>
+#include <cvc5/c/cvc5.h>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -1205,8 +1206,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   cvc5_get_option_info(d_solver, "verbose", &info);
   ASSERT_EQ(info.name, std::string("verbose"));
   ASSERT_EQ(info.num_aliases, 0);
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_COMMON);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_VOID);
   ASSERT_EQ(cvc5_option_info_to_string(&info),
@@ -1217,8 +1217,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   ASSERT_EQ(info.name, std::string("print-success"));
   ASSERT_EQ(info.num_aliases, 0);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_BOOL);
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_COMMON);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.info_bool.dflt, false);
   ASSERT_EQ(info.info_bool.cur, false);
@@ -1230,8 +1229,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   cvc5_get_option_info(d_solver, "verbosity", &info);
   ASSERT_EQ(info.name, std::string("verbosity"));
   ASSERT_EQ(info.num_aliases, 0);
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_COMMON);
   ASSERT_TRUE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_INT64);
   ASSERT_EQ(info.info_int.dflt, 0);
@@ -1246,8 +1244,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   cvc5_get_option_info(d_solver, "rlimit", &info);
   ASSERT_EQ(info.name, std::string("rlimit"));
   ASSERT_EQ(info.num_aliases, 0);
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_COMMON);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_UINT64);
   ASSERT_EQ(info.info_uint.dflt, 0);
@@ -1261,8 +1258,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   ASSERT_EQ(info.name, std::string("random-freq"));
   ASSERT_EQ(info.num_aliases, 1);
   ASSERT_EQ(info.aliases[0], std::string("random-frequency"));
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_TRUE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_EXPERT);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_DOUBLE);
   ASSERT_EQ(info.info_double.dflt, 0.0);
@@ -1278,8 +1274,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   cvc5_get_option_info(d_solver, "force-logic", &info);
   ASSERT_EQ(info.name, std::string("force-logic"));
   ASSERT_EQ(info.num_aliases, 0);
-  ASSERT_FALSE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_COMMON);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_STR);
   ASSERT_EQ(info.info_str.dflt, std::string(""));
@@ -1293,8 +1288,7 @@ TEST_F(TestCApiBlackSolver, get_option_info)
   ASSERT_EQ(info.name, std::string("simplification"));
   ASSERT_EQ(info.num_aliases, 1);
   ASSERT_EQ(info.aliases[0], std::string("simplification-mode"));
-  ASSERT_TRUE(info.is_regular);
-  ASSERT_FALSE(info.is_expert);
+  ASSERT_EQ(info.category, CVC5_OPTION_CATEGORY_REGULAR);
   ASSERT_FALSE(info.is_set_by_user);
   ASSERT_EQ(info.kind, CVC5_OPTION_INFO_MODES);
   ASSERT_EQ(info.info_mode.dflt, std::string("batch"));
