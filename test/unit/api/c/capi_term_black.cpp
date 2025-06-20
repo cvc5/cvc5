@@ -538,7 +538,7 @@ TEST_F(TestCApiBlackTerm, get_string)
                "unexpected NULL argument");
   Cvc5Term s1 = cvc5_mk_string(d_tm, "abcde", false);
   ASSERT_TRUE(cvc5_term_is_string_value(s1));
-  ASSERT_EQ(cvc5_term_get_string_value(s1), std::wstring(L"abcde"));
+  ASSERT_EQ(cvc5_term_get_string_value(s1), std::u32string(U"abcde"));
 }
 
 TEST_F(TestCApiBlackTerm, get_real)

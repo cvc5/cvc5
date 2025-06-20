@@ -5120,7 +5120,7 @@ enum ENUM(Kind)
    * - Create Term of this Kind with:
    *
    *   - Solver::mkString(const std::string&, bool) const
-   *   - Solver::mkString(const std::wstring&) const
+   *   - Solver::mkString(const std::u32string&) const
    */
   EVALUE(CONST_STRING),
   /**
