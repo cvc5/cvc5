@@ -244,6 +244,10 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
   ss << cvc5::Grammar();
+  ss << cvc5::modes::ObjectiveKind::OBJECTIVE_MAX
+     << std::to_string(cvc5::modes::ObjectiveKind::OBJECTIVE_MAX);
+  ss << cvc5::modes::OMTStrategyKind::STRATEGY_BINARY
+     << std::to_string(cvc5::modes::OMTStrategyKind::STRATEGY_BINARY);  
 
   Sort intsort = d_tm.getIntegerSort();
   Term x = d_tm.mkConst(intsort, "x");

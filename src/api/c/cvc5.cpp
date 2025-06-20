@@ -5795,3 +5795,31 @@ Cvc5Term cvc5_find_synth_next(Cvc5* cvc5)
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5ObjectiveKind                                                          */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_objective_kind_to_string(Cvc5ObjectiveKind ok)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OBJECTIVE_KIND(ok);
+  str = std::to_string(static_cast<cvc5::modes::ObjectiveKind>(ok));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5OMTStrategyKind                                                          */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_omt_strategy_kind_to_string(Cvc5OMTStrategyKind osk)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OMT_STRATEGY_KIND(osk);
+  str = std::to_string(static_cast<cvc5::modes::OMTStrategyKind>(osk));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}

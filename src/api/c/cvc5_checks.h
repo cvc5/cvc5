@@ -212,4 +212,14 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK(cmd != nullptr) << "invalid command"
 
 /* -------------------------------------------------------------------------- */
+
+#define CVC5_CAPI_CHECK_OBJECTIVE_KIND(ok) \
+  CVC5_API_CHECK((ok) >= 0 && (ok) < CVC5_OBJECTIVE_KIND_LAST) \
+      << "invalid objective kind" 
+
+#define CVC5_CAPI_CHECK_OMT_STRATEGY_KIND(osk) \
+  CVC5_API_CHECK((osk) >= 0 && (osk) < CVC5_OMT_STRATEGY_KIND_LAST)\
+      << "invalid OMT strategy kind"  
+  
+/* -------------------------------------------------------------------------- */    
 }
