@@ -17,9 +17,10 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 }
 
+#include <cvc5/c/cvc5.h>
+
 #include <cmath>
 #include <fstream>
-#include <cvc5/c/cvc5.h>
 
 #include "base/check.h"
 #include "base/output.h"

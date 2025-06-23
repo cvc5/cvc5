@@ -13,11 +13,11 @@
  * Black box testing of the Solver class of the  C++ API.
  */
 
+#include <cvc5/cvc5_types.h>
 #include <gtest/gtest.h>
 
 #include <algorithm>
 #include <cmath>
-#include <cvc5/cvc5_types.h>
 
 #include "base/output.h"
 #include "test_api.h"

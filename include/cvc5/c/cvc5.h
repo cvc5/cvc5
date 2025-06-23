@@ -3505,14 +3505,20 @@ struct Cvc5OptionInfo
   bool is_set_by_user;
   /**
    * True if the option is an expert option
-   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
    */
-  bool is_expert __attribute__((deprecated("Set Cvc5OptionCategory category to CVC5_OPTION_CATEGORY_EXPERT instead")));
+  bool is_expert
+      __attribute__((deprecated("Set Cvc5OptionCategory category to "
+                                "CVC5_OPTION_CATEGORY_EXPERT instead")));
   /**
    * True if the option is a regular option
-   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
    */
-  bool is_regular __attribute__((deprecated("Set Cvc5OptionCategory category to CVC5_OPTION_CATEGORY_REGULAR instead")));
+  bool is_regular
+      __attribute__((deprecated("Set Cvc5OptionCategory category to "
+                                "CVC5_OPTION_CATEGORY_REGULAR instead")));
   /** The category of this option. */
   Cvc5OptionCategory category;
 

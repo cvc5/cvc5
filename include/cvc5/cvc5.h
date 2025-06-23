@@ -3349,16 +3349,22 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** 
-   * True if the option is an expert option 
-   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
+  /**
+   * True if the option is an expert option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
    */
-  [[deprecated("Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool is_expert;
-  /** 
-   * True if the option is a regular option 
-   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
+  [[deprecated(
+      "Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool
+      is_expert;
+  /**
+   * True if the option is a regular option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
    */
-  [[deprecated("Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool isRegular;
+  [[deprecated(
+      "Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool
+      isRegular;
   /** The category of this option. */
   modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
