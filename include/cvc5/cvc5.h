@@ -3351,12 +3351,12 @@ struct CVC5_EXPORT OptionInfo
   bool setByUser;
   /** 
    * True if the option is an expert option 
-   * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
+   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
    */
   [[deprecated("Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool is_expert;
   /** 
    * True if the option is a regular option 
-   * @warning This field is deprecated and replaced by cvc5::modes::OptionCategory. It will be removed in a future release.
+   * @warning This field is deprecated and replaced by `category`. It will be removed in a future release.
    */
   [[deprecated("Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool isRegular;
   /** The category of this option. */
