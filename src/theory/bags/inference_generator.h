@@ -20,6 +20,7 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
+#include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,7 +36,10 @@ class SolverState;
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
+  InferenceGenerator(NodeManager* nm,
+                     SolverState* state,
+                     InferenceManager* im,
+                     Rewriter* r);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -279,6 +283,18 @@ class InferenceGenerator
    * and x is a fresh variable unique per n, y.
    */
   InferInfo mapDownInjective(Node n, Node y);
+
+  /**
+   * @param n is (bag.map f A) where f is an injective function (-> E T),
+   * A a bag of type (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUpInjective(Node n, Node x);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -553,6 +569,7 @@ class InferenceGenerator
   SolverState* d_state;
   /** Pointer to the inference manager */
   InferenceManager* d_im;
+  Rewriter* d_rewriter;
   /** Commonly used constants */
   Node d_true;
   Node d_zero;
