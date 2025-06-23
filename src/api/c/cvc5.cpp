@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -4864,6 +4864,15 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
     c_aliases.push_back(a.c_str());
   }
   info->aliases = c_aliases.data();
+
+  info->num_no_supports = cpp_info.noSupports.size();
+  static thread_local std::vector<const char*> c_no_supports;
+  c_no_supports.clear();
+  for (const auto& a : cpp_info.noSupports)
+  {
+    c_no_supports.push_back(a.c_str());
+  }
+  info->no_supports = c_no_supports.data();
 
   info->is_set_by_user = cpp_info.setByUser;
   info->is_expert = cpp_info.isExpert;

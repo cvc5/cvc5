@@ -70,10 +70,10 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bitwiseEq"
-  category   = "regular"
+  category   = "expert"
   long       = "bitwise-eq"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
 
 [[option]]
@@ -98,6 +98,7 @@ name   = "Bitvector Theory"
   long       = "bv-solver=MODE"
   type       = "BVSolver"
   default    = "BITBLAST"
+  no_support = ["proofs"]
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
 [[option.mode.BITBLAST]]

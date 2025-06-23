@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Hans-Joerg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
@@ -36,7 +36,6 @@ PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(env, d_ctx, "PreprocessHelper"),
       d_inputPf(env, c, "InputProof"),
       d_trustPf(env, c, "PreprocessTrustProof"),
       d_name(name)
@@ -171,7 +170,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       std::shared_ptr<ProofNode> pfr = (*it).second.toProofNode();
       if (pfr != nullptr)
       {
-        Trace("smt-pppg-debug") << "...add provided " << *pfr << std::endl;
+        Trace("smt-pppg-debug")
+            << "...add provided " << *pfr << " from "
+            << (*it).second.getGenerator()->identify() << std::endl;
         Assert(pfr->getResult() == proven);
         cdp.addProof(pfr);
         proofStepProcessed = true;
@@ -242,11 +243,6 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // Note F_1 may have been given a proof if it was not an input assumption.
 
   return cdp.getProofFor(f);
-}
-
-LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
-{
-  return d_helperProofs.allocateProof(nullptr, d_ctx);
 }
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }

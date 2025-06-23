@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner
+ *   Gereon Kremer, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -72,6 +72,7 @@ struct CVC5_EXPORT OptionInfo
 
   std::string name;
   std::vector<std::string> aliases;
+  std::vector<std::string> noSupports;
   bool setByUser;
   Category category;
 
