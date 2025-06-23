@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -4875,8 +4875,21 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   info->no_supports = c_no_supports.data();
 
   info->is_set_by_user = cpp_info.setByUser;
-  info->is_expert = cpp_info.isExpert;
-  info->is_regular = cpp_info.isRegular;
+  switch (cpp_info.category)
+  {
+    case cvc5::modes::OptionCategory::REGULAR:
+      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      break;
+    case cvc5::modes::OptionCategory::EXPERT:
+      info->category = CVC5_OPTION_CATEGORY_EXPERT;
+      break;
+    case cvc5::modes::OptionCategory::COMMON:
+      info->category = CVC5_OPTION_CATEGORY_COMMON;
+      break;
+    default:
+      Assert(cpp_info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
+      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
+  }
 
   std::visit(
       overloaded{

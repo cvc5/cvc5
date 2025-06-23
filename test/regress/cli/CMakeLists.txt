@@ -1243,6 +1243,7 @@ set(regress_0_tests
   regress0/parser/issue10813-1.smt2
   regress0/parser/issue10813-2.smt2
   regress0/parser/issue10889-sexpr-eof.smt2
+  regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
@@ -1502,6 +1503,7 @@ set(regress_0_tests
   regress0/prop/cadical_bug5.smt2
   regress0/prop/cadical_bug6.smt2
   regress0/prop/cadical_bug7.smt2
+  regress0/prop/issue11867.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
