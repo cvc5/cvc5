@@ -3356,7 +3356,7 @@ struct CVC5_EXPORT OptionInfo
    */
   [[deprecated(
       "Query cvc5::modes::OptionCategory category for EXPERT instead")]] bool
-      is_expert;
+      isExpert;
   /**
    * True if the option is a regular option
    * @warning This field is deprecated and replaced by `category`. It will be
