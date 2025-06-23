@@ -3355,7 +3355,7 @@ struct CVC5_EXPORT OptionInfo
    *          removed in a future release.
    */
   [[deprecated(
-      "Set cvc5::modes::OptionCategory category to EXPERT instead")]] bool
+      "Query cvc5::modes::OptionCategory category for EXPERT instead")]] bool
       is_expert;
   /**
    * True if the option is a regular option
@@ -3363,7 +3363,7 @@ struct CVC5_EXPORT OptionInfo
    *          removed in a future release.
    */
   [[deprecated(
-      "Set cvc5::modes::OptionCategory category to REGULAR instead")]] bool
+      "Query cvc5::modes::OptionCategory category for REGULAR instead")]] bool
       isRegular;
   /** The category of this option. */
   modes::OptionCategory category;

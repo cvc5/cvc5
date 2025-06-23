@@ -3509,7 +3509,7 @@ struct Cvc5OptionInfo
    *          removed in a future release.
    */
   bool is_expert
-      __attribute__((deprecated("Set Cvc5OptionCategory category to "
+      __attribute__((deprecated("Query Cvc5OptionCategory category for "
                                 "CVC5_OPTION_CATEGORY_EXPERT instead")));
   /**
    * True if the option is a regular option
@@ -3517,7 +3517,7 @@ struct Cvc5OptionInfo
    *          removed in a future release.
    */
   bool is_regular
-      __attribute__((deprecated("Set Cvc5OptionCategory category to "
+      __attribute__((deprecated("Query Cvc5OptionCategory category for "
                                 "CVC5_OPTION_CATEGORY_REGULAR instead")));
   /** The category of this option. */
   Cvc5OptionCategory category;
