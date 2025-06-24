@@ -62,6 +62,7 @@ TEST_F(TestApiBlackTypes, printEnum)
     ss << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6) << " ";
     ss << std::to_string(cvc5::modes::ProofFormat::LFSC) << " ";
     ss << std::to_string(cvc5::modes::OptionCategory::REGULAR);
+    ASSERT_EQ(ss.str(), expected);
   }
 }
 
