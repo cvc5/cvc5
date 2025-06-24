@@ -3147,7 +3147,7 @@ bool Term::isStringValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::wstring Term::getStringValue() const
+std::u32string Term::getStringValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -3155,7 +3155,7 @@ std::wstring Term::getStringValue() const
                               *d_node)
       << "Term to be a string value when calling getStringValue()";
   //////// all checks before this line
-  return d_node->getConst<internal::String>().toWString();
+  return d_node->getConst<internal::String>().toU32String();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6364,7 +6364,7 @@ Term TermManager::mkString(const std::string& s, bool useEscSequences)
   CVC5_API_TRY_CATCH_END;
 }
 
-Term TermManager::mkString(const std::wstring& s)
+Term TermManager::mkString(const std::u32string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -7074,7 +7074,7 @@ Term Solver::mkString(const std::string& s, bool useEscSequences) const
   return d_tm.mkString(s, useEscSequences);
 }
 
-Term Solver::mkString(const std::wstring& s) const { return d_tm.mkString(s); }
+Term Solver::mkString(const std::u32string& s) const { return d_tm.mkString(s); }
 
 Term Solver::mkEmptySequence(const Sort& sort) const
 {

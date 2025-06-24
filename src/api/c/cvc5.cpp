@@ -2044,9 +2044,9 @@ bool cvc5_term_is_string_value(Cvc5Term term)
   return res;
 }
 
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
+const char32_t* cvc5_term_get_string_value(Cvc5Term term)
 {
-  static thread_local std::wstring res;
+  static thread_local std::u32string res;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_TERM(term);
   res = term->d_term.getStringValue();
@@ -3451,7 +3451,7 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
   return res;
 }
 
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
+Cvc5Term cvc5_mk_string_from_char32(Cvc5TermManager* tm, const char32_t* s)
 {
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;

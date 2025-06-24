@@ -33,6 +33,22 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef __cplusplus
+  #if defined(__APPLE__)
+    // char32_t is part of C11, but the uchar.h header is missing in Apple Clang
+    // See:
+    //   https://en.cppreference.com/w/c/header/uchar.html
+    //   https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/uchar.h.html
+    //   https://www.gnu.org/software/gnulib/manual/html_node/uchar_002eh.html
+    #ifndef char32_t
+      typedef uint_least32_t char32_t;
+    #endif
+  #else
+    #include <uchar.h>
+  #endif
+#endif
+
+
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -1351,7 +1367,7 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  * @param term The term.
  * @return The string term as a native string value.
  */
-CVC5_EXPORT const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT const char32_t* cvc5_term_get_string_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a rational value whose numerator fits into an
@@ -3146,8 +3162,8 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
  * @param s The string this constant represents.
  * @return The String constant.
  */
-CVC5_EXPORT Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
-                                               const wchar_t* s);
+CVC5_EXPORT Cvc5Term cvc5_mk_string_from_char32(Cvc5TermManager* tm,
+                                                const char32_t* s);
 
 /**
  * Create an empty sequence of the given element sort.

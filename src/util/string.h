@@ -75,7 +75,7 @@ class String
       : d_str(toInternal(s, useEscSequences))
   {
   }
-  explicit String(const std::wstring& s);
+  explicit String(const std::u32string& s);
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences))
   {
@@ -123,13 +123,13 @@ class String
    *    cvc5::internal::String( s ).toString() = s.
    */
   std::string toString(bool useEscSequences = false) const;
-  /* toWString
-   * Converts this string to a std::wstring.
+  /* toU32String
+   * Converts this string to a std::u32string.
    *
    * Unlike toString(), this method uses no escape sequences as both this class
-   * and std::wstring use 32bit characters.
+   * and std::u32string use 32bit characters.
    */
-  std::wstring toWString() const;
+  std::u32string toU32String() const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
   /** is less than or equal to string y */

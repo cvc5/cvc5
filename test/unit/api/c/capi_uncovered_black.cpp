@@ -129,7 +129,7 @@ TEST_F(TestCApiBlackUncovered, deprecated)
   (void)slv.mkSepEmp();
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
-  std::wstring s;
+  std::u32string s;
   (void)slv.mkString(s);
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());

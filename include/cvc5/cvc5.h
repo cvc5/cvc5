@@ -1608,7 +1608,7 @@ class CVC5_EXPORT Term
    *       some string representation of the term, whatever data it may hold.
    * @return The string term as a native string value.
    */
-  std::wstring getStringValue() const;
+  std::u32string getStringValue() const;
 
   /**
    * Determine if this term is a rational value whose numerator fits into an
@@ -4194,15 +4194,15 @@ class CVC5_EXPORT TermManager
    */
   Term mkString(const std::string& s, bool useEscSequences = false);
   /**
-   * Create a String constant from a `std::wstring`.
+   * Create a String constant from a `std::u32string`.
    *
-   * This function does not support escape sequences as `std::wstring` already
+   * This function does not support escape sequences as `std::u32string` already
    * supports unicode characters.
    *
    * @param s The string this constant represents.
    * @return The String constant.
    */
-  Term mkString(const std::wstring& s);
+  Term mkString(const std::u32string& s);
   /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
@@ -5317,8 +5317,8 @@ class CVC5_EXPORT Solver
       const std::string& s, bool useEscSequences = false) const;
 
   /**
-   * Create a String constant from a `std::wstring`.
-   * This function does not support escape sequences as `std::wstring` already
+   * Create a String constant from a `std::u32string`.
+   * This function does not support escape sequences as `std::u32string` already
    * supports unicode characters.
    * @param s The string this constant represents.
    * @return The String constant.
@@ -5326,7 +5326,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkString()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkString() instead")]] Term mkString(
-      const std::wstring& s) const;
+      const std::u32string& s) const;
 
   /**
    * Create an empty sequence of the given element sort.
