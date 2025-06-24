@@ -36,6 +36,7 @@ const char* toString(InternalSkolemId id)
     case InternalSkolemId::QE_CLOSED_INPUT: return "QE_CLOSED_INPUT";
     case InternalSkolemId::QUANTIFIERS_ATTRIBUTE_INTERNAL:
       return "QUANTIFIERS_ATTRIBUTE_INTERNAL";
+    case InternalSkolemId::GET_VALUE_PURIFY: return "GET_VALUE_PURIFY";
     default: return "?";
   }
 }

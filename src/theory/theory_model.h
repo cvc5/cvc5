@@ -263,11 +263,24 @@ class TheoryModel : protected EnvObj
   eq::EqualityEngine* getEqualityEngine() { return d_equalityEngine; }
   // ------------------- end general equality queries
 
-  /** Get value function.
-   * This should be called only after a ModelBuilder
-   * has called buildModel(...) on this model.
+  /**
+   * Get value function.
+   * This should be called only after a ModelBuilder has called buildModel(...)
+   * on this model.
+   * @param n The term to get the value of.
+   * @return The value of n.
    */
   Node getValue(TNode n) const;
+
+  /**
+   * Simplify n based on the values in this class. This applies a substitution
+   * over the free symbols on n and rewrites.
+   * This should be called only after a ModelBuilder has called buildModel(...)
+   * on this model.
+   * @param n The term to simplify.
+   * @return The simplified form of n.
+   */
+  Node simplify(TNode n) const;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
