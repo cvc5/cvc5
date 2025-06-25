@@ -228,6 +228,15 @@ std::ostream& operator<<(std::ostream& out, OptionCategory cat)
 }
 }  // namespace cvc5::modes
 
+namespace std {
+std::string to_string(cvc5::modes::OptionCategory category)
+{
+  std::stringstream ss;
+  ss << category;
+  return ss.str();
+}
+}  // namespace std
+
 namespace cvc5::modes {
 std::ostream& operator<<(std::ostream& out, InputLanguage lang)
 {

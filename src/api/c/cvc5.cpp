@@ -203,6 +203,20 @@ const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5OptionCategory                                                         */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_modes_option_category_to_string(Cvc5OptionCategory category)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OPTION_CATEGORY(category);
+  str = std::to_string(static_cast<cvc5::modes::OptionCategory>(category));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5InputLanguage                                                          */
 /* -------------------------------------------------------------------------- */
 
