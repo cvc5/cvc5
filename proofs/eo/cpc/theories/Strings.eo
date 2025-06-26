@@ -29,7 +29,7 @@
 (declare-const RegLan Type)
 
 ; String literals are strings.
-(declare-consts <string> (Seq Char))
+(declare-consts <string> String)
 
 ; Empty sequence
 ; note: >
