@@ -38,7 +38,7 @@ BagSolver::BagSolver(Env& env,
                      TermRegistry& tr)
     : EnvObj(env),
       d_state(s),
-      d_ig(env.getNodeManager(), &s, &im),
+      d_ig(env.getNodeManager(), &s, &im, env.getRewriter()),
       d_im(im),
       d_termReg(tr),
       d_mapCache(userContext())
@@ -289,12 +289,6 @@ void BagSolver::checkMap(Node n)
   Assert(n.getKind() == Kind::BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& x : upwards)
-  {
-    InferInfo upInference = d_ig.mapUp1(n, x);
-    d_im.lemmaTheoryInference(&upInference);
-  }
-
   if (d_state.isInjective(n[0]))
   {
     for (const Node& z : downwards)
@@ -302,9 +296,20 @@ void BagSolver::checkMap(Node n)
       InferInfo upInference = d_ig.mapDownInjective(n, z);
       d_im.lemmaTheoryInference(&upInference);
     }
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUpInjective(n, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
   }
   else
   {
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUp1(n, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+
     for (const Node& z : downwards)
     {
       Node y = d_state.getRepresentative(z);
