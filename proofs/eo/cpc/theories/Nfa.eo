@@ -1,0 +1,17 @@
+(include "../theories/Strings.eo")
+
+; Nfa operators
+(define nfa.char () String)
+(declare-const nfa.allchar nfa.char)
+(declare-const nfa.range (-> Int Int nfa.char))
+
+; Nfa actions
+(declare-const nfa.push nfa.char)
+(declare-const nfa.pop nfa.char)
+(declare-const nfa.none nfa.char)
+
+; Nfa structure
+(declare-type Nfa ())
+(declare-const nfa.end Nfa)
+(declare-const nfa.list (-> Nfa Nfa Nfa) :right-assoc-nil nfa.end)
+(declare-const nfa.node (-> nfa.char Nfa Nfa))

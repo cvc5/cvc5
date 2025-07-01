@@ -1,0 +1,111 @@
+(include "../theories/Nfa.eo")
+
+; program: $get_trans_rec
+; args:
+; - r RegLan: The regular expression to inspect.
+; - t Nfa: The tail of the nfa.
+; return: The nfa that was built from the regex.
+(program $get_trans_rec ((tail Nfa) (s String) (r1 RegLan) (rr RegLan :list) (c0 String) (c1 String))
+  (RegLan Nfa) Nfa
+  (
+    (($get_trans_rec (re.* r1) tail) (eo::cons nfa.list (nfa.node nfa.push ($get_trans_rec r1 (nfa.list (nfa.node nfa.pop tail)))) tail))
+    (($get_trans_rec re.allchar tail) (nfa.list (nfa.node nfa.allchar tail)))
+    (($get_trans_rec re.none tail) (nfa.list (nfa.node nfa.none tail)))
+    (($get_trans_rec (re.union r1 rr) tail) (eo::list_concat nfa.list ($get_trans_rec r1 tail) ($get_trans_rec rr tail)))
+    (($get_trans_rec (re.++ r1 rr) tail) ($get_trans_rec r1 ($get_trans_rec rr tail)))
+    (($get_trans_rec @re.empty tail) tail)
+    (($get_trans_rec (re.range c0 c1) tail) (nfa.list (nfa.node (nfa.range (eo::to_z c0) (eo::to_z c1)) tail)))
+    (($get_trans_rec (str.to_re s) tail)  (nfa.list (nfa.node (eo::extract s 0 0) ($get_trans_rec (str.to_re (eo::extract s 1 (eo::len s))) tail))))
+    (($get_trans_rec re.all tail) ($get_trans_rec (re.* re.allchar) tail))
+  )
+)
+
+; program: $add_to_nexts
+; args:
+; - states Nfa: The states to add.
+; - stack Nfa: The stack of the states.
+; - nexts Nfa: Current next states..
+; return: next states.
+(program $add_to_nexts ((t Nfa) (st Nfa) (tt Nfa :list) (stt Nfa :list) (nexts Nfa))
+  (Nfa Nfa Nfa) Nfa
+  (
+    (($add_to_nexts nfa.end st nexts) nexts)
+    (($add_to_nexts (nfa.list (nfa.node nfa.push t) tt) st nexts) 
+      ($add_to_nexts tt st ($add_to_nexts t (eo::cons nfa.list t st) nexts))
+    )
+    (($add_to_nexts (nfa.list (nfa.node nfa.pop t) tt) (nfa.list st stt) nexts)
+      (eo::ite (eo::is_neg (eo::list_find nfa.list nexts (nfa.list (nfa.node nfa.pop t) (nfa.list st stt))))
+        ($add_to_nexts (eo::list_concat nfa.list st tt) (nfa.list st stt) (eo::cons nfa.list (nfa.list (nfa.node nfa.pop t) (nfa.list st stt)) ($add_to_nexts t stt nexts)))
+        ($add_to_nexts tt (nfa.list st stt) nexts)
+      )
+    )
+    (($add_to_nexts (nfa.list t tt) st nexts)
+      (eo::ite (eo::is_neg (eo::list_find nfa.list nexts (nfa.list t st)))
+        ($add_to_nexts tt st (eo::cons nfa.list (nfa.list t st) nexts))
+        ($add_to_nexts tt st nexts)
+      )
+    )
+  )
+)
+
+; program: $match
+; args:
+; - c String: Current char.
+; - s String: Remaining of the string.
+; - current_states String: Current states of the nfa.
+; - next_states String: Next states of the nfa.
+; return: true if s is in regular expression r.
+(program $match ((c String) (s String) (nexts Nfa) (tt Nfa :list) (t Nfa)
+                (st Nfa) (z0 Int) (z1 Int))
+  (nfa.char String Nfa Nfa) Bool ; current_char rest_string current_states next_states transitions -> end_states
+  (
+    (($match c s nfa.end nfa.end) false)
+    (($match c "" nfa.end nexts) (eo::not (eo::is_neg (eo::list_find nfa.list nexts (nfa.list nfa.end nfa.end)))))
+    (($match "" s t nfa.end) ($match "" s nfa.end ($add_to_nexts t nfa.end nfa.end)))
+    (($match c s nfa.end nexts) ($match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts nfa.end))
+    (($match c s (nfa.list (nfa.list (nfa.node c t) st) tt) nexts)  ($match c s tt ($add_to_nexts t st nexts)))
+    (($match c s (nfa.list (nfa.list (nfa.node nfa.allchar t) st) tt) nexts)  ($match c s tt ($add_to_nexts t st nexts)))
+    (($match c s (nfa.list (nfa.list (nfa.node (nfa.range z0 z1) t) st) tt) nexts)
+      (eo::ite (eo::and ($compare_geq (eo::to_z c) z0) ($compare_geq z1 (eo::to_z c)))  
+        ($match c s tt ($add_to_nexts t st nexts))
+        ($match c s tt nexts))
+    )
+    (($match c s (nfa.list t tt) nexts)  ($match c s tt nexts))
+  )
+)
+
+; program: $is_extended
+; args:
+; - r RegLan: The regex to inspect.
+; return: true if r is an extended regex.
+(program $is_extended ((r RegLan) (rr RegLan :list))
+  (RegLan) Bool
+  (
+    (($is_extended (re.union r rr)) (eo::or ($is_extended r) ($is_extended rr)))
+    (($is_extended (re.++ r rr)) (eo::or ($is_extended r) ($is_extended rr)))
+    (($is_extended (re.* r)) ($is_extended r))
+    (($is_extended (re.comp r)) true)
+    (($is_extended (re.inter r rr)) true)
+    (($is_extended (re.+ r)) ($is_extended r))
+    (($is_extended r) false)
+  )
+)
+
+; program: $str_eval_str_in_re_nfa
+; args:
+; - s String: The string to inspect.
+; - r RegLan: The regular expression to inspect.
+; return: >
+;   true if s is in regular expression r, if r is not an extended regex nfa-based algorithm will be used.
+(program $str_eval_str_in_re_nfa ((r RegLan) (s String))
+  (String RegLan) Bool
+  (
+    (($str_eval_str_in_re_nfa s r)  
+                                    (eo::ite ($is_extended r)
+                                    ($str_eval_str_in_re s r)
+                                    ($match "" s ($get_trans_rec r (nfa.list nfa.end)) nfa.end))
+                                    
+    )
+  )
+)
+

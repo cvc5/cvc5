@@ -3775,6 +3775,20 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_EVAL),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression membership evaluation with NFA**
+   *
+   * .. math::
+   *
+   *   \mathit{str.in\_re}(s, R) = c
+   *
+   * where :math:`s` is a constant string, :math:`R` is a constant regular
+   * expression and :math:`c` is true or false.
+   *
+   * \endverbatim
+   */
+  EVALUE(STR_IN_RE_EVAL_NFA),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression membership consume**
    *
    * .. math::
