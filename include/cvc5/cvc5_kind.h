@@ -115,12 +115,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(EQUAL),
   /**
@@ -132,12 +132,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(DISTINCT),
   /**
@@ -145,8 +145,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkConst(const Sort&, const std::string&) const
-   *   - Solver::mkConst(const Sort&) const
+   *   - TermManager::mkConst(const Sort&, const std::string&) const
+   *   - TermManager::mkConst(const Sort&) const
    *
    * \rst
    * .. note::
@@ -161,7 +161,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkVar(const Sort&, const std::string&) const
+   *   - TermManager::mkVar(const Sort&, const std::string&) const
    *
    * \rst
    * .. note:: Only permitted in bindings and in lambda and quantifier bodies.
@@ -175,8 +175,8 @@ enum ENUM(Kind)
    * .. note::
    *
    *     Represents an internally generated term. Information on the skolem is
-   *     available via the calls `Solver::getSkolemId` and
-   *     `Solver::getSkolemIndices`.
+   *     available via the calls `Term::getSkolemId` and
+   *     `Term::getSkolemIndices`.
    * \endrst
    */
   EVALUE(SKOLEM),
@@ -189,12 +189,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -214,12 +214,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(LAMBDA),
   /**
@@ -265,12 +265,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note::
@@ -297,9 +297,9 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTrue() const
-   *   - Solver::mkFalse() const
-   *   - Solver::mkBoolean(bool) const
+   *   - TermManager::mkTrue() const
+   *   - TermManager::mkFalse() const
+   *   - TermManager::mkBoolean(bool) const
    */
   EVALUE(CONST_BOOLEAN),
   /**
@@ -311,12 +311,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(NOT),
   /**
@@ -328,12 +328,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(AND),
   /**
@@ -345,12 +345,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(IMPLIES),
   /**
@@ -362,12 +362,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(OR),
   /**
@@ -379,12 +379,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(XOR),
   /**
@@ -398,12 +398,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ITE),
 
@@ -419,12 +419,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(APPLY_UF),
   /**
@@ -437,7 +437,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkCardinalityConstraint(const Sort&, uint32_t) const
+   *   - TermManager::mkCardinalityConstraint(const Sort&, uint32_t) const
    *
    * \rst
    * .. warning:
@@ -458,12 +458,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(HO_APPLY),
 
@@ -478,12 +478,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ADD),
   /**
@@ -495,12 +495,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(MULT),
   /**
@@ -533,11 +533,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(IAND),
   /**
@@ -551,12 +551,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(POW2),
   /**
@@ -568,12 +568,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SUB),
   /**
@@ -585,12 +585,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(NEG),
   /**
@@ -602,12 +602,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(DIVISION),
   /**
@@ -619,12 +619,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -643,12 +643,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_DIVISION),
   /**
@@ -660,12 +660,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -685,12 +685,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INTS_MODULUS),
   /**
@@ -703,12 +703,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -727,12 +727,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ABS),
   /**
@@ -744,12 +744,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(POW),
   /**
@@ -761,12 +761,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(EXPONENTIAL),
   /**
@@ -778,12 +778,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SINE),
   /**
@@ -795,12 +795,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(COSINE),
   /**
@@ -812,12 +812,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TANGENT),
   /**
@@ -829,12 +829,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(COSECANT),
   /**
@@ -846,12 +846,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SECANT),
   /**
@@ -863,12 +863,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(COTANGENT),
   /**
@@ -880,12 +880,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCSINE),
   /**
@@ -897,12 +897,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCCOSINE),
   /**
@@ -914,12 +914,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCTANGENT),
   /**
@@ -931,12 +931,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCCOSECANT),
   /**
@@ -948,12 +948,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCSECANT),
   /**
@@ -965,12 +965,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(ARCCOTANGENT),
   /**
@@ -985,12 +985,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SQRT),
   /**
@@ -1008,11 +1008,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(DIVISIBLE),
   /**
@@ -1020,9 +1020,9 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkReal(const std::string&) const
-   *   - Solver::mkReal(int64_t) const
-   *   - Solver::mkReal(int64_t, int64_t) const
+   *   - TermManager::mkReal(const std::string&) const
+   *   - TermManager::mkReal(int64_t) const
+   *   - TermManager::mkReal(int64_t, int64_t) const
    */
   EVALUE(CONST_RATIONAL),
   /**
@@ -1030,8 +1030,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkInteger(const std::string&) const
-   *   - Solver::mkInteger(int64_t) const
+   *   - TermManager::mkInteger(const std::string&) const
+   *   - TermManager::mkInteger(int64_t) const
    */
   EVALUE(CONST_INTEGER),
   /**
@@ -1043,12 +1043,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(LT),
   /**
@@ -1060,12 +1060,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(LEQ),
   /**
@@ -1077,12 +1077,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(GT),
   /**
@@ -1094,12 +1094,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(GEQ),
   /**
@@ -1111,12 +1111,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(IS_INTEGER),
   /**
@@ -1128,12 +1128,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TO_INTEGER),
   /**
@@ -1145,12 +1145,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TO_REAL),
   /**
@@ -1158,7 +1158,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkPi() const
+   *   - TermManager::mkPi() const
    *
    * \rst
    * .. note::
@@ -1177,8 +1177,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkBitVector(uint32_t, uint64_t) const
-   *   - Solver::mkBitVector(uint32_t, const std::string&, uint32_t) const
+   *   - TermManager::mkBitVector(uint32_t, uint64_t) const
+   *   - TermManager::mkBitVector(uint32_t, const std::string&, uint32_t) const
    */
   EVALUE(CONST_BITVECTOR),
   /**
@@ -1190,12 +1190,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_CONCAT),
   /**
@@ -1207,12 +1207,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_AND),
   /**
@@ -1224,12 +1224,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_OR),
   /**
@@ -1241,12 +1241,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_XOR),
   /**
@@ -1258,12 +1258,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_NOT),
   /**
@@ -1275,12 +1275,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_NAND),
   /**
@@ -1292,12 +1292,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_NOR),
   /**
@@ -1309,12 +1309,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_XNOR),
   /**
@@ -1326,12 +1326,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_COMP),
   /**
@@ -1343,12 +1343,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_MULT),
   /**
@@ -1360,12 +1360,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ADD),
   /**
@@ -1377,12 +1377,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SUB),
   /**
@@ -1394,12 +1394,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_NEG),
   /**
@@ -1413,12 +1413,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UDIV),
   /**
@@ -1433,12 +1433,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UREM),
   /**
@@ -1454,12 +1454,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SDIV),
   /**
@@ -1474,12 +1474,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SREM),
   /**
@@ -1494,12 +1494,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SMOD),
   /**
@@ -1511,12 +1511,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SHL),
   /**
@@ -1528,12 +1528,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_LSHR),
   /**
@@ -1545,12 +1545,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ASHR),
   /**
@@ -1562,12 +1562,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ULT),
   /**
@@ -1579,12 +1579,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ULE),
   /**
@@ -1596,12 +1596,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UGT),
   /**
@@ -1613,12 +1613,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UGE),
   /**
@@ -1630,12 +1630,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SLT),
   /**
@@ -1647,12 +1647,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SLE),
   /**
@@ -1664,12 +1664,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SGT),
   /**
@@ -1681,12 +1681,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SGE),
   /**
@@ -1698,12 +1698,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ULTBV),
   /**
@@ -1715,12 +1715,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SLTBV),
   /**
@@ -1735,12 +1735,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ITE),
   /**
@@ -1752,12 +1752,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_REDOR),
   /**
@@ -1769,12 +1769,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_REDAND),
   /**
@@ -1786,12 +1786,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_NEGO),
   /**
@@ -1803,12 +1803,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UADDO),
   /**
@@ -1820,12 +1820,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SADDO),
   /**
@@ -1837,12 +1837,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UMULO),
   /**
@@ -1854,12 +1854,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SMULO),
   /**
@@ -1871,12 +1871,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_USUBO),
   /**
@@ -1888,12 +1888,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SSUBO),
   /**
@@ -1905,12 +1905,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SDIVO),
   /**
@@ -1927,11 +1927,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_EXTRACT),
   /**
@@ -1947,11 +1947,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_REPEAT),
   /**
@@ -1967,11 +1967,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ZERO_EXTEND),
   /**
@@ -1987,11 +1987,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SIGN_EXTEND),
   /**
@@ -2007,11 +2007,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ROTATE_LEFT),
   /**
@@ -2027,11 +2027,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_ROTATE_RIGHT),
   /**
@@ -2047,11 +2047,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INT_TO_BITVECTOR),
   /**
@@ -2063,12 +2063,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note::  This kind is deprecated and replaced by
@@ -2086,12 +2086,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_UBV_TO_INT),
   /**
@@ -2103,12 +2103,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BITVECTOR_SBV_TO_INT),
   /**
@@ -2155,7 +2155,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&, uint32_t base) const
+   *   - TermManager::mkFiniteFieldElem(const std::string&, const Sort&, uint32_t base) const
    */
   EVALUE(CONST_FINITE_FIELD),
   /**
@@ -2167,12 +2167,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FINITE_FIELD_NEG),
   /**
@@ -2184,12 +2184,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FINITE_FIELD_ADD),
   /**
@@ -2201,8 +2201,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    */
   EVALUE(FINITE_FIELD_BITSUM),
   /**
@@ -2214,12 +2214,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FINITE_FIELD_MULT),
 
@@ -2231,7 +2231,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkFloatingPoint(uint32_t, uint32_t, Term) const
+   *   - TermManager::mkFloatingPoint(uint32_t, uint32_t, Term) const
    */
   EVALUE(CONST_FLOATINGPOINT),
   /**
@@ -2239,7 +2239,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkRoundingMode(RoundingMode) const
+   *   - TermManager::mkRoundingMode(RoundingMode) const
    */
   EVALUE(CONST_ROUNDINGMODE),
   /**
@@ -2254,12 +2254,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_FP),
   /**
@@ -2271,12 +2271,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_EQ),
   /**
@@ -2288,12 +2288,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_ABS),
   /**
@@ -2305,12 +2305,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_NEG),
   /**
@@ -2323,12 +2323,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_ADD),
   /**
@@ -2341,12 +2341,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_SUB),
   /**
@@ -2359,12 +2359,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_MULT),
   /**
@@ -2377,12 +2377,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_DIV),
   /**
@@ -2395,12 +2395,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_FMA),
   /**
@@ -2413,12 +2413,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_SQRT),
   /**
@@ -2430,12 +2430,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_REM),
   /**
@@ -2447,12 +2447,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_RTI),
   /**
@@ -2465,12 +2465,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_MIN),
   /**
@@ -2482,12 +2482,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_MAX),
   /**
@@ -2499,12 +2499,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_LEQ),
   /**
@@ -2516,12 +2516,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_LT),
   /**
@@ -2533,12 +2533,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_GEQ),
   /**
@@ -2550,12 +2550,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_GT),
   /**
@@ -2567,12 +2567,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_NORMAL),
   /**
@@ -2584,12 +2584,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_SUBNORMAL),
   /**
@@ -2601,12 +2601,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_ZERO),
   /**
@@ -2618,12 +2618,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_INF),
   /**
@@ -2635,12 +2635,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_NAN),
   /**
@@ -2652,12 +2652,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_NEG),
   /**
@@ -2669,12 +2669,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_IS_POS),
   /**
@@ -2691,11 +2691,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_FP_FROM_IEEE_BV),
   /**
@@ -2713,11 +2713,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_FP_FROM_FP),
   /**
@@ -2735,11 +2735,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_FP_FROM_REAL),
   /**
@@ -2757,11 +2757,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_FP_FROM_SBV),
   /**
@@ -2779,11 +2779,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_FP_FROM_UBV),
   /**
@@ -2800,11 +2800,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_UBV),
   /**
@@ -2821,11 +2821,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_SBV),
   /**
@@ -2837,12 +2837,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FLOATINGPOINT_TO_REAL),
 
@@ -2858,12 +2858,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SELECT),
   /**
@@ -2877,12 +2877,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STORE),
   /**
@@ -2895,12 +2895,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(CONST_ARRAY),
   /**
@@ -2923,12 +2923,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -2957,12 +2957,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(APPLY_CONSTRUCTOR),
   /**
@@ -2975,12 +2975,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note:: Undefined if misapplied.
@@ -2997,12 +2997,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(APPLY_TESTER),
   /**
@@ -3016,12 +3016,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note:: Does not change the datatype argument if misapplied.
@@ -3061,12 +3061,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(MATCH),
   /**
@@ -3084,12 +3084,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(MATCH_CASE),
   /**
@@ -3116,12 +3116,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(MATCH_BIND_CASE),
   /**
@@ -3153,11 +3153,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(TUPLE_PROJECT),
   /**
@@ -3172,8 +3172,8 @@ enum ENUM(Kind)
    * - ``1..n:`` Terms of nullable sort
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkNullableLift(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkNullableLift(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
   */
   EVALUE(NULLABLE_LIFT),
   /* Separation Logic ------------------------------------------------------ */
@@ -3183,7 +3183,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkSepNil(const Sort&) const
+   *   - TermManager::mkSepNil(const Sort&) const
    *
    * \rst
    * .. warning::
@@ -3198,7 +3198,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkSepEmp() const
+   *   - TermManager::mkSepEmp() const
    *
    * \rst
    * .. warning::
@@ -3218,12 +3218,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3243,12 +3243,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3270,12 +3270,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3293,7 +3293,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkEmptySet(const Sort&) const
+   *   - TermManager::mkEmptySet(const Sort&) const
    */
   EVALUE(SET_EMPTY),
   /**
@@ -3305,12 +3305,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_UNION),
   /**
@@ -3322,12 +3322,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_INTER),
   /**
@@ -3339,12 +3339,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_MINUS),
   /**
@@ -3358,12 +3358,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_SUBSET),
   /**
@@ -3378,12 +3378,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_MEMBER),
   /**
@@ -3398,12 +3398,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_SINGLETON),
   /**
@@ -3416,12 +3416,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_INSERT),
   /**
@@ -3433,12 +3433,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_CARD),
   /**
@@ -3450,12 +3450,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SET_COMPLEMENT),
   /**
@@ -3465,7 +3465,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkUniverseSet(const Sort&) const
+   *   - TermManager::mkUniverseSet(const Sort&) const
    *
    * \rst
    * .. note::
@@ -3503,12 +3503,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3534,12 +3534,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3558,12 +3558,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3582,12 +3582,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3614,12 +3614,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3648,8 +3648,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -3677,8 +3677,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
@@ -3704,8 +3704,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
@@ -3730,8 +3730,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -3753,12 +3753,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_JOIN),
    /**
@@ -3782,10 +3782,10 @@ enum ENUM(Kind)
    *
    * \endrst
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning:
@@ -3804,12 +3804,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_PRODUCT),
   /**
@@ -3821,12 +3821,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_TRANSPOSE),
   /**
@@ -3838,12 +3838,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(RELATION_TCLOSURE),
   /**
@@ -3855,12 +3855,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3879,12 +3879,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3916,8 +3916,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -3953,10 +3953,10 @@ enum ENUM(Kind)
    *   - ``1..n:`` Indices of the projection
    * \endrst
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -3976,10 +3976,10 @@ enum ENUM(Kind)
    *   - ``1..n:`` Indices of the projection
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    * \rst
    * .. warning::
    *
@@ -3996,7 +3996,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkEmptyBag(const Sort&) const
+   *   - TermManager::mkEmptyBag(const Sort&) const
    */
   EVALUE(BAG_EMPTY),
   /**
@@ -4008,12 +4008,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_UNION_MAX),
   /**
@@ -4025,12 +4025,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_UNION_DISJOINT),
   /**
@@ -4042,12 +4042,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_INTER_MIN),
   /**
@@ -4061,12 +4061,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_DIFFERENCE_SUBTRACT),
   /**
@@ -4080,12 +4080,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_DIFFERENCE_REMOVE),
   /**
@@ -4100,12 +4100,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_SUBBAG),
   /**
@@ -4113,8 +4113,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const Term&, const Term&) const
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const Term&, const Term&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
    */
   EVALUE(BAG_COUNT),
   /**
@@ -4127,12 +4127,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_MEMBER),
   /**
@@ -4147,12 +4147,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4174,12 +4174,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(BAG_MAKE),
   /**
@@ -4191,12 +4191,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4224,12 +4224,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4256,12 +4256,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4290,8 +4290,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -4319,8 +4319,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning:: This kind is experimental and may be changed or removed in
@@ -4346,8 +4346,8 @@ enum ENUM(Kind)
   *
   * - Create Term of this Kind with:
   *
-  *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-  *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+  *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+  *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
   *
   * \rst
   * .. warning:: This kind is experimental and may be changed or removed in
@@ -4372,8 +4372,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -4401,8 +4401,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -4421,12 +4421,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4446,10 +4446,10 @@ enum ENUM(Kind)
    *   - ``1..n:`` Indices of the projection
    *
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    * \rst
    * .. warning::
    *
@@ -4484,10 +4484,10 @@ enum ENUM(Kind)
    *   - ``1..n:`` Indices of the projection
    * \endrst
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4518,10 +4518,10 @@ enum ENUM(Kind)
    *
    * \endrst
    * - Create Term of this Kind with:
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -4553,8 +4553,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * \rst
    * .. warning::
@@ -4576,12 +4576,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_CONCAT),
   /**
@@ -4594,12 +4594,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_IN_REGEXP),
   /**
@@ -4611,12 +4611,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_LENGTH),
   /**
@@ -4637,12 +4637,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_SUBSTR),
   /**
@@ -4663,12 +4663,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_UPDATE),
   /**
@@ -4688,12 +4688,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_CHARAT),
   /**
@@ -4711,12 +4711,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_CONTAINS),
   /**
@@ -4737,12 +4737,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_INDEXOF),
   /**
@@ -4763,12 +4763,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_INDEXOF_RE),
   /**
@@ -4788,12 +4788,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_REPLACE),
   /**
@@ -4813,12 +4813,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_REPLACE_ALL),
   /**
@@ -4838,12 +4838,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_REPLACE_RE),
   /**
@@ -4863,12 +4863,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_REPLACE_RE_ALL),
   /**
@@ -4880,12 +4880,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_TO_LOWER),
   /**
@@ -4897,12 +4897,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_TO_UPPER),
   /**
@@ -4914,12 +4914,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_REV),
   /**
@@ -4934,12 +4934,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_TO_CODE),
   /**
@@ -4955,12 +4955,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_FROM_CODE),
   /**
@@ -4978,12 +4978,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_LT),
   /**
@@ -5001,12 +5001,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_LEQ),
   /**
@@ -5024,12 +5024,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_PREFIX),
   /**
@@ -5047,12 +5047,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_SUFFIX),
   /**
@@ -5067,12 +5067,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_IS_DIGIT),
   /**
@@ -5086,12 +5086,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_FROM_INT),
   /**
@@ -5106,12 +5106,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_TO_INT),
   /**
@@ -5119,8 +5119,8 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkString(const std::string&, bool) const
-   *   - Solver::mkString(const std::wstring&) const
+   *   - TermManager::mkString(const std::string&, bool) const
+   *   - TermManager::mkString(const std::wstring&) const
    */
   EVALUE(CONST_STRING),
   /**
@@ -5132,12 +5132,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(STRING_TO_REGEXP),
   /**
@@ -5149,12 +5149,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_CONCAT),
   /**
@@ -5166,12 +5166,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_UNION),
   /**
@@ -5183,12 +5183,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_INTER),
   /**
@@ -5200,12 +5200,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_DIFF),
   /**
@@ -5217,12 +5217,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_STAR),
   /**
@@ -5234,12 +5234,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_PLUS),
   /**
@@ -5251,12 +5251,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_OPT),
   /**
@@ -5269,12 +5269,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_RANGE),
   /**
@@ -5290,11 +5290,11 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_REPEAT),
   /**
@@ -5314,12 +5314,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_LOOP),
   /**
@@ -5327,7 +5327,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkRegexpNone() const
+   *   - TermManager::mkRegexpNone() const
    */
   EVALUE(REGEXP_NONE),
   /**
@@ -5335,7 +5335,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkRegexpAll() const
+   *   - TermManager::mkRegexpAll() const
    */
   EVALUE(REGEXP_ALL),
   /**
@@ -5343,7 +5343,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkRegexpAllchar() const
+   *   - TermManager::mkRegexpAllchar() const
    */
   EVALUE(REGEXP_ALLCHAR),
   /**
@@ -5355,12 +5355,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(REGEXP_COMPLEMENT),
 
@@ -5373,12 +5373,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_CONCAT),
   /**
@@ -5390,12 +5390,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_LENGTH),
   /**
@@ -5416,12 +5416,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_EXTRACT),
   /**
@@ -5442,12 +5442,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_UPDATE),
   /**
@@ -5467,12 +5467,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_AT),
   /**
@@ -5490,12 +5490,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_CONTAINS),
   /**
@@ -5516,12 +5516,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_INDEXOF),
   /**
@@ -5541,12 +5541,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_REPLACE),
   /**
@@ -5566,12 +5566,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_REPLACE_ALL),
   /**
@@ -5583,12 +5583,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_REV),
   /**
@@ -5606,12 +5606,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_PREFIX),
   /**
@@ -5629,12 +5629,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_SUFFIX),
   /**
@@ -5652,7 +5652,7 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkEmptySequence(const Sort&) const
+   *   - TermManager::mkEmptySequence(const Sort&) const
    */
   EVALUE(CONST_SEQUENCE),
   /**
@@ -5666,12 +5666,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_UNIT),
   /**
@@ -5688,12 +5688,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(SEQ_NTH),
 
@@ -5712,12 +5712,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(FORALL),
   /**
@@ -5733,12 +5733,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(EXISTS),
   /**
@@ -5754,12 +5754,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(VARIABLE_LIST),
   /**
@@ -5774,12 +5774,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note::
@@ -5800,12 +5800,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note::
@@ -5859,12 +5859,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * .. warning::
    *
@@ -5904,12 +5904,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -5950,12 +5950,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. warning::
@@ -5982,12 +5982,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    *
    * \rst
    * .. note::
@@ -6007,12 +6007,12 @@ enum ENUM(Kind)
    *
    * - Create Term of this Kind with:
    *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&) const
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&) const
    *
    * - Create Op of this kind with:
    *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   EVALUE(INST_PATTERN_LIST),
 
@@ -6166,7 +6166,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkAbstractSort(SortKind) const
+   *   - TermManager::mkAbstractSort(SortKind) const
    */
   EVALUE(ABSTRACT_SORT),
   /**
@@ -6175,7 +6175,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkArraySort(Sort, Sort) const
+   *   - TermManager::mkArraySort(Sort, Sort) const
    */
   EVALUE(ARRAY_SORT),
   /**
@@ -6183,7 +6183,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkBagSort(Sort) const
+   *   - TermManager::mkBagSort(Sort) const
    */
   EVALUE(BAG_SORT),
   /**
@@ -6191,7 +6191,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getBooleanSort() const
+   *   - TermManager::getBooleanSort() const
    */
   EVALUE(BOOLEAN_SORT),
   /**
@@ -6199,7 +6199,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkBitVectorSort(uint32_t) const
+   *   - TermManager::mkBitVectorSort(uint32_t) const
    */
   EVALUE(BITVECTOR_SORT),
   /**
@@ -6207,8 +6207,8 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkDatatypeSort(DatatypeDecl)
-   *   - Solver::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
+   *   - TermManager::mkDatatypeSort(DatatypeDecl)
+   *   - TermManager::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
    */
   EVALUE(DATATYPE_SORT),
   /**
@@ -6216,7 +6216,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkFiniteFieldSort(const std::string&, uint32_t base) const
+   *   - TermManager::mkFiniteFieldSort(const std::string&, uint32_t base) const
    */
   EVALUE(FINITE_FIELD_SORT),
   /**
@@ -6225,7 +6225,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkFloatingPointSort(uint32_t, uint32_t) const
+   *   - TermManager::mkFloatingPointSort(uint32_t, uint32_t) const
    */
   EVALUE(FLOATINGPOINT_SORT),
   /**
@@ -6233,7 +6233,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkFunctionSort(const std::vector<Sort>&, Sort) const
+   *   - TermManager::mkFunctionSort(const std::vector<Sort>&, Sort) const
    */
   EVALUE(FUNCTION_SORT),
   /**
@@ -6241,7 +6241,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getIntegerSort() const
+   *   - TermManager::getIntegerSort() const
    */
   EVALUE(INTEGER_SORT),
   /**
@@ -6249,7 +6249,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getRealSort() const
+   *   - TermManager::getRealSort() const
    */
   EVALUE(REAL_SORT),
   /**
@@ -6257,7 +6257,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getRegExpSort() const
+   *   - TermManager::getRegExpSort() const
    */
   EVALUE(REGLAN_SORT),
   /**
@@ -6265,7 +6265,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getRoundingModeSort() const
+   *   - TermManager::getRoundingModeSort() const
    */
   EVALUE(ROUNDINGMODE_SORT),
   /**
@@ -6273,7 +6273,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkSequenceSort(Sort) const
+   *   - TermManager::mkSequenceSort(Sort) const
    */
   EVALUE(SEQUENCE_SORT),
   /**
@@ -6281,7 +6281,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkSetSort(Sort) const
+   *   - TermManager::mkSetSort(Sort) const
    */
   EVALUE(SET_SORT),
   /**
@@ -6289,7 +6289,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::getStringSort() const
+   *   - TermManager::getStringSort() const
    */
   EVALUE(STRING_SORT),
   /**
@@ -6298,7 +6298,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkTupleSort(const std::vector<Sort>&) const
+   *   - TermManager::mkTupleSort(const std::vector<Sort>&) const
    */
   EVALUE(TUPLE_SORT),
   /**
@@ -6307,7 +6307,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkNullableSort(const Sort&) const
+   *   - TermManager::mkNullableSort(const Sort&) const
    */
   EVALUE(NULLABLE_SORT),
   /**
@@ -6315,7 +6315,7 @@ enum ENUM(SortKind)
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
+   *   - TermManager::mkUninterpretedSort(const std::optional<std::string>&) const
    */
   EVALUE(UNINTERPRETED_SORT),
   /* ----------------------------------------------------------------------- */

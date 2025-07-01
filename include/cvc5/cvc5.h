@@ -510,9 +510,8 @@ class CVC5_EXPORT Sort
    *
    * The symbol of this sort is the string that was
    * provided when constructing it via
-   * Solver::mkUninterpretedSort(const std::string&) const,
-   * Solver::mkUnresolvedSort(const std::string&, size_t) const, or
-   * Solver::mkUninterpretedSortConstructorSort(const std::string&, size_t).
+   * TermManager::mkUninterpretedSort(const std::string&) const, or
+   * TermManager::mkUninterpretedSortConstructorSort(const std::string&, size_t).
    *
    * @return The raw symbol of the sort.
    */
@@ -719,7 +718,7 @@ class CVC5_EXPORT Sort
    * Instantiate a parameterized datatype sort or uninterpreted sort
    * constructor sort.
    *
-   * Create sort parameters with Solver::mkParamSort().
+   * Create sort parameters with TermManager::mkParamSort().
    *
    * @param params The list of sort parameters to instantiate with.
    * @return The instantiated sort.
@@ -2273,7 +2272,7 @@ class CVC5_EXPORT DatatypeDecl
 
   /**
    * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   * Create sorts parameter with TermManager::mkParamSort().
    * @param tm   The associated term manager.
    * @param name The name of the datatype.
    * @param params A list of sort parameters.
@@ -2479,7 +2478,7 @@ class CVC5_EXPORT DatatypeConstructor
    * constructors, including nullary ones, should be used as the
    * first argument to Terms whose kind is #APPLY_CONSTRUCTOR. For example,
    * the nil list can be constructed by
-   * `Solver::mkTerm(Kind::APPLY_CONSTRUCTOR, {t})`, where `t` is the term
+   * `TermManager::mkTerm(Kind::APPLY_CONSTRUCTOR, {t})`, where `t` is the term
    * returned by this function.
    *
    * @note This function should not be used for parametric datatypes. Instead,
@@ -2522,7 +2521,7 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * @note The returned constructor term `t` is used to construct the above
    *       (nullary) application of `nil` with
-   *       `Solver::mkTerm(Kind::APPLY_CONSTRUCTOR, {t})`.
+   *       `TermManager::mkTerm(Kind::APPLY_CONSTRUCTOR, {t})`.
    *
    * @warning This function is experimental and may change in future versions.
    *
@@ -4050,7 +4049,7 @@ class CVC5_EXPORT TermManager
    * @param args The arguments (indices) of the operator.
    *
    * @note If ``args`` is empty, the Op simply wraps the cvc5::Kind.  The
-   * Kind can be used in Solver::mkTerm directly without creating an Op
+   * Kind can be used in TermManager::mkTerm directly without creating an Op
    * first.
    */
   Op mkOp(Kind kind, const std::vector<uint32_t>& args = {});
@@ -4446,7 +4445,7 @@ class CVC5_EXPORT TermManager
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with Solver::mkParamSort().
+   * Create sorts parameter with TermManager::mkParamSort().
    *
    * @param name         The name of the datatype.
    * @param params       A list of sort parameters.
@@ -5106,7 +5105,7 @@ class CVC5_EXPORT Solver
    * @param args The arguments (indices) of the operator.
    *
    * @note If ``args`` is empty, the Op simply wraps the cvc5::Kind.  The
-   * Kind can be used in Solver::mkTerm directly without creating an Op
+   * Kind can be used in TermManager::mkTerm directly without creating an Op
    * first.
    * @warning This function is deprecated and replaced by `TermManager::mkOp()`.
    *          It will be removed in a future release.
@@ -5611,7 +5610,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Create a datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
+   * Create sorts parameter with TermManager::mkParamSort().
    *
    * @warning This function is experimental and may change in future versions.
    *
