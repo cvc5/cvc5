@@ -3336,6 +3336,11 @@ struct CVC5_EXPORT OptionInfo
     std::vector<std::string> modes;
   };
 
+  /** Move assignment operator. */
+  // Note: this is only required to surpress deprecation warnings for deprecated
+  //       members of this struct. Can be removed after the deprecated members
+  //       have been removed.
+  OptionInfo& operator=(OptionInfo&& info);
   /** The option name */
   std::string name;
   /** The option name aliases */
@@ -3344,10 +3349,24 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** Whether this is an expert option */
-  bool isExpert;
-  /** Whether this is a regular option */
-  bool isRegular;
+  /**
+   * True if the option is an expert option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  [[deprecated(
+      "Query cvc5::modes::OptionCategory category for EXPERT instead")]] bool
+      isExpert;
+  /**
+   * True if the option is a regular option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  [[deprecated(
+      "Query cvc5::modes::OptionCategory category for REGULAR instead")]] bool
+      isRegular;
+  /** The category of this option. */
+  modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -6443,7 +6462,7 @@ class CVC5_EXPORT Solver
    * Given that @f$A\rightarrow B@f$ is valid, this function
    * determines a term @f$I@f$ over the shared variables of
    * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I \rightarrow B@f$ are valid.
    * @f$I@f$ is constructed from the given grammar.
    * @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.

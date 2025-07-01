@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Martin Brain, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *

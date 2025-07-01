@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Daniel Larraz, Alex Ozdemir
+#   Daniel Larraz, Andres Noetzli, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
