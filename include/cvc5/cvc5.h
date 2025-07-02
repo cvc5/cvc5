@@ -3336,16 +3336,37 @@ struct CVC5_EXPORT OptionInfo
     std::vector<std::string> modes;
   };
 
+  /** Move assignment operator. */
+  // Note: this is only required to surpress deprecation warnings for deprecated
+  //       members of this struct. Can be removed after the deprecated members
+  //       have been removed.
+  OptionInfo& operator=(OptionInfo&& info);
   /** The option name */
   std::string name;
   /** The option name aliases */
   std::vector<std::string> aliases;
+  /** The features not supported with this */
+  std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /** Whether this is an expert option */
-  bool isExpert;
-  /** Whether this is a regular option */
-  bool isRegular;
+  /**
+   * True if the option is an expert option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  [[deprecated(
+      "Query cvc5::modes::OptionCategory category for EXPERT instead")]] bool
+      isExpert;
+  /**
+   * True if the option is a regular option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  [[deprecated(
+      "Query cvc5::modes::OptionCategory category for REGULAR instead")]] bool
+      isRegular;
+  /** The category of this option. */
+  modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
   using OptionInfoVariant = std::variant<VoidInfo,
                                          ValueInfo<bool>,
@@ -3409,11 +3430,12 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const OptionInfo& oi);
  * \verbatim embed:rst:leading-asterisk
  * Represents a snapshot of a single statistic value. See :doc:`/statistics` for
  * how statistics can be used.
+ *
  * A value can be of type ``int64_t``, ``double``, ``std::string`` or a
- * histogram
- * (``std::map<std::string, uint64_t>``).
+ * histogram (``std::map<std::string, uint64_t>``).
  * The value type can be queried (using ``isInt()``, ``isDouble()``, etc.) and
  * the stored value can be accessed (using ``getInt()``, ``getDouble()``, etc.).
+ *
  * It is possible to query whether this statistic is an internal statistic by
  * :cpp:func:`isInternal() <cvc5::Stat::isInternal()>` and whether its value is
  * the default value by :cpp:func:`isDefault() <cvc5::Stat::isDefault()>`.
@@ -3429,9 +3451,11 @@ class CVC5_EXPORT Stat
   /** Representation of a histogram: maps names to frequencies. */
   using HistogramData = std::map<std::string, uint64_t>;
   /**
-   * Create an empty statistics object. On such an object all ``isX()`` return
-   * false and all ``getX()`` throw an API exception. It solely exists because
-   * it makes implementing bindings for other languages much easier.
+   * Create an empty statistics object.
+   *
+   * On such an object all `isX()` return false and all `getX()` throw an API
+   * exception. It solely exists because it makes implementing bindings for
+   * other languages much easier.
    */
   Stat();
   /** Copy constructor */
@@ -3509,7 +3533,7 @@ class CVC5_EXPORT Stat
 };
 
 /**
- * Print a `Stat` object to an ``std::ostream``.
+ * Print a `Stat` object to an `std::ostream`.
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
 
@@ -3519,20 +3543,19 @@ CVC5_EXPORT std::ostream& operator<<(std::ostream& os, const Stat& stat);
  * how statistics can be used.
  *
  * Statistics can be queried from the Solver via
- * :cpp:func:`Solver::getStatistics() <cvc5::Solver::getStatistics()>`, and
- * from the TermManager via :cpp:func:`TermManager::getStatistics()
- * <cvc5::TermManager::getStatistics()>`. An statistics instance obtained from
- * either call is independent of the :cpp:class:`Solver <cvc5::Solver>` (and
- * its associated :cpp:class:`TermManager <cvc5::TermManager>`object: it will
- * not change when new terms are created or the solver's internal statistics
- * do. It will also not be invalidated if the solver/term manageris destroyed.
+ * :cpp:func:`Solver::getStatistics()`, and from the TermManager via
+ * :cpp:func:`TermManager::getStatistics()`. A statistics instance obtained
+ * from either call is independent of the :cpp:class:`Solver` (and its
+ * associated :cpp:class:`TermManager` object: it will not change when new
+ * terms are created or the solver's internal statistics do. It will also not
+ * be invalidated if the solver/term manageris destroyed.
  *
- * Iterating over this class (via :cpp:func:`begin()
- * <cvc5::Statistics::begin()>` and :cpp:func:`end() <cvc5::Statistics::end()>`)
- * shows only public statistics that have been changed. By passing appropriate
- * flags to :cpp:func:`begin() <cvc5::Statistics::begin()>`, statistics that are
- * internal, defaulted, or both, can be included as well. A single statistic
- * value is represented as :cpp:class:`Stat <cvc5::Stat>`. \endverbatim
+ * Iterating over this class (via :cpp:func:`Statistics::begin()` and
+ * :cpp:func:`Statistics::end()`) shows only public statistics that have been
+ * changed. By passing appropriate flags to :cpp:func:`Statistics::begin()`,
+ * statistics that are internal, defaulted, or both, can be included as well.
+ * A single statistic value is represented as :cpp:class:`Stat`.
+ * \endverbatim
  */
 class CVC5_EXPORT Statistics
 {
@@ -4603,7 +4626,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @return The Solver.
    * @warning This constructor is deprecated and replaced by
    *          `Solver::Solver(TermManager&)`. It will be removed in a future
    *          release.
@@ -4614,7 +4636,6 @@ class CVC5_EXPORT Solver
    *
    * Constructs solver instance from a given term manager instance.
    * @param tm The associated term manager.
-   * @return The Solver.
    */
   Solver(TermManager& tm);
 
@@ -5886,6 +5907,7 @@ class CVC5_EXPORT Solver
    *     (get-info <info_flag>)
    * \endverbatim
    *
+   * @param flag The info flag.
    * @return The info.
    */
   std::string getInfo(const std::string& flag) const;
@@ -6362,7 +6384,7 @@ class CVC5_EXPORT Solver
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+   *     (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
    * \endverbatim
    *
    * In particular, the above command is implemented by constructing a
@@ -6440,7 +6462,7 @@ class CVC5_EXPORT Solver
    * Given that @f$A\rightarrow B@f$ is valid, this function
    * determines a term @f$I@f$ over the shared variables of
    * @f$A@f$ and @f$B@f$, such that @f$A \rightarrow I@f$ and
-   * @f$I \rightarrow B@f$ are valid. 
+   * @f$I \rightarrow B@f$ are valid.
    * @f$I@f$ is constructed from the given grammar.
    * @f$A@f$ is the
    * current set of assertions and @f$B@f$ is the conjecture, given as `conj`.
@@ -6985,7 +7007,7 @@ class CVC5_EXPORT Solver
    * enabled with the `output` option (and `-o <tag>` on the command line).
    *
    * Requires that a valid tag is given.
-   *
+   * @param tag The output tag.
    * @return True if the given tag is enabled.
    */
   bool isOutputOn(const std::string& tag) const;

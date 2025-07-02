@@ -219,7 +219,7 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly >= v0.1.13 (Optional polynomial library)
+LibPoly >= v0.2.0 (Optional polynomial library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
@@ -274,10 +274,13 @@ cvc5's license is more permissive; see above discussion.)
 Editline library (Improved Interactive Experience)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `Editline Library <https://thrysoee.dk/editline/>`_ library is optionally
+The `Editline Library <https://thrysoee.dk/editline/>`_ is optionally
 used to provide command editing, tab completion, and history functionality at
 the cvc5 prompt (when running in interactive mode).  Check your distribution for
-a package named "libedit-dev" or "libedit-devel" or similar.
+a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
+``configure.sh --editline`` to build with this dependency.  Additionally,
+to run tests related to interactive mode with this dependency, you will need
+the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 
 
 Google Test Unit Testing Framework (Unit Tests)

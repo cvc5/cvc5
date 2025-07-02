@@ -265,15 +265,22 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     if (m.first.isNull())
     {
       sum.push_back(coeff);
+      continue;
     }
-    else if (coeff == one)
+    Node t = m.first;
+    if (t.getKind() == Kind::SEXPR)
     {
-      sum.push_back(m.first);
+      std::vector<Node> vars(t.begin(), t.end());
+      t = nm->mkNode(multKind, vars);
+    }
+    if (coeff == one)
+    {
+      sum.push_back(t);
     }
     else
     {
-      Assert(m.first.getType().isComparableTo(tn));
-      sum.push_back(nm->mkNode(multKind, {coeff, m.first}));
+      Assert(t.getType().isComparableTo(tn));
+      sum.push_back(nm->mkNode(multKind, {coeff, t}));
     }
   }
   if (sum.size() == 1)
@@ -313,7 +320,8 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
-  return m2.getNodeManager()->mkNode(Kind::NONLINEAR_MULT, vars);
+  // we use SEXPR instead of multiplication, which is agnostic to types
+  return m2.getNodeManager()->mkNode(Kind::SEXPR, vars);
 }
 
 std::vector<TNode> PolyNorm::getMonoVars(TNode m)
@@ -324,7 +332,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   {
     Kind k = m.getKind();
     Assert(k != Kind::CONST_RATIONAL && k != Kind::CONST_INTEGER);
-    if (k == Kind::MULT || k == Kind::NONLINEAR_MULT)
+    if (k == Kind::SEXPR)
     {
       vars.insert(vars.end(), m.begin(), m.end());
     }
@@ -661,11 +669,19 @@ Node PolyNorm::getPolyNorm(Node a)
   {
     PolyNorm pa = arith::PolyNorm::mkPolyNorm(a);
     an = pa.toNode(a.getType());
-    a.setAttribute(apna, an);
-    // as an optimization, assume idempotent
-    if (a != an)
+    if (an.isNull())
     {
-      an.setAttribute(apna, an);
+      a.setAttribute(apna, a);
+      return a;
+    }
+    else
+    {
+      a.setAttribute(apna, an);
+      if (a != an)
+      {
+        // as an optimization, assume idempotent
+        an.setAttribute(apna, an);
+      }
     }
   }
   return an;

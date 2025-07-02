@@ -325,6 +325,8 @@ libcvc5_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
+  smt/illegal_checker.cpp
+  smt/illegal_checker.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/model.cpp
@@ -1313,6 +1315,9 @@ libcvc5_add_sources(
 set_source_files_properties(api/cpp/cvc5.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
+set_source_files_properties(api/c/cvc5.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 set_source_files_properties(api/cpp/cvc5_parser.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
@@ -1416,22 +1421,6 @@ add_custom_target(gen-options DEPENDS options/options.stamp)
 
 
 #-----------------------------------------------------------------------------#
-
-set(KINDS_FILES
-  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/bags/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
   set(KINDS_TOML_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds.toml

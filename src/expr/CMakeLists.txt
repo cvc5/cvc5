@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+#   Andrew Reynolds, José Neto, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
@@ -121,6 +121,8 @@ libcvc5_add_sources(
   sygus_term_enumerator.h
   variadic_trie.cpp
   variadic_trie.h
+  non_closed_node_converter.cpp
+  non_closed_node_converter.h
 )
 
 libcvc5_add_sources(GENERATED
@@ -139,88 +141,96 @@ libcvc5_add_sources(GENERATED
 # Generate code for kinds.
 #
 
-set(mkkind_script ${CMAKE_CURRENT_LIST_DIR}/mkkind)
-set(mkmetakind_script ${CMAKE_CURRENT_LIST_DIR}/mkmetakind)
+set(mkkind_script ${CMAKE_CURRENT_LIST_DIR}/mkkind.py)
+set(mkmetakind_script ${CMAKE_CURRENT_LIST_DIR}/mkmetakind.py)
 set(mkexpr_script ${CMAKE_CURRENT_LIST_DIR}/mkexpr.py)
 
 add_custom_command(
   OUTPUT kind.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkkind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/kind_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/kind.h
-  DEPENDS mkkind kind_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/kind_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/kind.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkkind.py kind_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT kind.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkkind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/kind_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/kind.cpp
-  DEPENDS mkkind kind_template.cpp kind.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/kind_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/kind.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkkind.py kind_template.cpp kind.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT type_properties.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkkind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/type_properties.h
-  DEPENDS mkkind type_properties_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/type_properties.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkkind.py type_properties_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT type_properties.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkkind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/type_properties.cpp
-  DEPENDS mkkind type_properties_template.cpp type_properties.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/type_properties.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkkind.py type_properties_template.cpp type_properties.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT metakind.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkmetakind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/metakind_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/metakind.h
-  DEPENDS mkmetakind metakind_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/metakind_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/metakind.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkmetakind.py metakind_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT metakind.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkmetakind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/metakind_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/metakind.cpp
-  DEPENDS mkmetakind metakind_template.cpp metakind.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/metakind_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/metakind.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkmetakind.py metakind_template.cpp metakind.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT node_manager.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkmetakind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/node_manager_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/node_manager.h
-  DEPENDS mkmetakind node_manager_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/node_manager_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/node_manager.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkmetakind.py node_manager_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT node_manager.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkmetakind_script}
-    ${CMAKE_CURRENT_LIST_DIR}/node_manager_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/node_manager.cpp
-  DEPENDS mkmetakind node_manager_template.cpp node_manager.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/node_manager_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/node_manager.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkmetakind.py node_manager_template.cpp node_manager.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(

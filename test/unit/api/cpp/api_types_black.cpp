@@ -24,16 +24,16 @@ namespace cvc5::internal {
 
 namespace test {
 
-class TestApiTypes : public ::testing::Test
+class TestApiBlackTypes : public ::testing::Test
 {
 };
 
-TEST_F(TestApiTypes, printEnum)
+TEST_F(TestApiBlackTypes, printEnum)
 {
   std::string expected =
       "LT ARRAY_SORT RTZ UNKNOWN_REASON literals preprocess full "
       "enum "
-      "smt_lib_2_6 lfsc";
+      "smt_lib_2_6 lfsc regular";
   {
     std::stringstream ss;
     ss << cvc5::Kind::LT << " ";
@@ -45,7 +45,8 @@ TEST_F(TestApiTypes, printEnum)
     ss << cvc5::modes::ProofComponent::FULL << " ";
     ss << cvc5::modes::FindSynthTarget::ENUM << " ";
     ss << cvc5::modes::InputLanguage::SMT_LIB_2_6 << " ";
-    ss << cvc5::modes::ProofFormat::LFSC;
+    ss << cvc5::modes::ProofFormat::LFSC << " ";
+    ss << cvc5::modes::OptionCategory::REGULAR;
     ASSERT_EQ(ss.str(), expected);
   }
   {
@@ -59,7 +60,8 @@ TEST_F(TestApiTypes, printEnum)
     ss << std::to_string(cvc5::modes::ProofComponent::FULL) << " ";
     ss << std::to_string(cvc5::modes::FindSynthTarget::ENUM) << " ";
     ss << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6) << " ";
-    ss << std::to_string(cvc5::modes::ProofFormat::LFSC);
+    ss << std::to_string(cvc5::modes::ProofFormat::LFSC) << " ";
+    ss << std::to_string(cvc5::modes::OptionCategory::REGULAR);
     ASSERT_EQ(ss.str(), expected);
   }
 }

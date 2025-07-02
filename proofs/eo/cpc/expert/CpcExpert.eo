@@ -17,12 +17,12 @@
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
 (include "./theories/SepLogic.eo")
+(include "./rules/ArraysExt.eo")
 (include "./rules/Transcendentals.eo")
 (include "./rules/SetsExt.eo")
 (include "./rules/RewritesExpert.eo")
 
 (include "../programs/AciNorm.eo")
-(include "../theories/Arrays.eo")
 
 ; disclaimer: this function is not in SMT-LIB.
 (declare-const fmf.card (-> Type Int Bool))
@@ -33,15 +33,11 @@
 (declare-type @ho-elim-sort (Type))
 (declare-parameterized-const @fmf-fun-sort ((T Type :implicit)) (-> T Type))
 
-; The arrays equal-range predicate.
-; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const eqrange ((U Type :implicit) (T Type :implicit) (I Type :implicit)) (-> (Array U T) (Array U T) I I Bool))
-
 ; Dataypes shared selector
 (declare-parameterized-const @shared_selector ((D Type :opaque) (T Type :opaque) (n Int :opaque)) (-> D T))
 
 
-; define: $get_aci_normal_form_expert
+; program: $get_aci_normal_form_expert
 ; args:
 ; - t S: The term to compute the normal form for.
 ; return: >
@@ -49,14 +45,12 @@
 ;   particular, if t is an application of a known (expert) operator that has the property
 ;   of being either associative and commutative (resp. associative) we call
 ;   the method $get_aci_norm (resp. $get_a_norm).
-(define $get_aci_normal_form_expert ((S Type :implicit) (t S))
-  (eo::match ((x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
-    t
-    (
-      ((sep x1 x2)       ($get_aci_norm t true))
-      ((ff.add xf1 xf2)  ($get_aci_norm t true))
-      ((ff.mul xf1 xf2)  ($get_aci_norm t true))
-    )
+(program $get_aci_normal_form_expert ((T Type) (x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
+  :signature (T) T
+  (
+    (($get_aci_normal_form_expert (sep x1 x2))       (@aci_sorted sep ($get_a_norm (sep x1 x2))))
+    (($get_aci_normal_form_expert (ff.add xf1 xf2))  (@aci_sorted ff.add ($get_a_norm (ff.add xf1 xf2))))
+    (($get_aci_normal_form_expert (ff.mul xf1 xf2))  (@aci_sorted ff.mul ($get_a_norm (ff.mul xf1 xf2))))
   )
 )
 
@@ -75,9 +69,8 @@
 ;   not its own dedicated rule.
 (declare-rule aci_norm_expert ((U Type) (a U) (b U))
   :args ((= a b))
-  :requires (((eo::define ((an ($get_aci_normal_form_expert a)) (bn ($get_aci_normal_form_expert b)))
-              (eo::ite (eo::is_eq an b) true
-              (eo::ite (eo::is_eq a bn) true
-                (eo::is_eq an bn)))) true))
+  :requires (((eo::define ((an ($get_aci_normal_form_expert a)) 
+                           (bn ($get_aci_normal_form_expert b)))
+              ($is_aci_norm a b an bn)) true))
   :conclusion (= a b)
 )

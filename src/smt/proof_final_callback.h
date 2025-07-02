@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
+ *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -43,10 +43,8 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
+  /** Finalize the proof node, which checks assertions and adds to stats. */
+  void finalize(std::shared_ptr<ProofNode> pn) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
 
@@ -96,6 +94,11 @@ class ProofFinalCallback : protected EnvObj, public ProofNodeUpdaterCallback
   IntStat d_numFinalProofs;
   /** Was there a pedantic failure? */
   bool d_pedanticFailure;
+  /**
+   * Should we check for proof holes? True if statistics are enabled or if
+   * check-proofs-complete is true.
+   */
+  bool d_checkProofHoles;
   /** The pedantic failure string for debugging */
   std::stringstream d_pedanticFailureOut;
 };

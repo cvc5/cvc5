@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -198,6 +198,20 @@ const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_FIND_SYNTH_TARGET(target);
   str = std::to_string(static_cast<cvc5::modes::FindSynthTarget>(target));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cvc5OptionCategory                                                         */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_modes_option_category_to_string(Cvc5OptionCategory category)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OPTION_CATEGORY(category);
+  str = std::to_string(static_cast<cvc5::modes::OptionCategory>(category));
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
 }
@@ -4865,9 +4879,31 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   }
   info->aliases = c_aliases.data();
 
+  info->num_no_supports = cpp_info.noSupports.size();
+  static thread_local std::vector<const char*> c_no_supports;
+  c_no_supports.clear();
+  for (const auto& a : cpp_info.noSupports)
+  {
+    c_no_supports.push_back(a.c_str());
+  }
+  info->no_supports = c_no_supports.data();
+
   info->is_set_by_user = cpp_info.setByUser;
-  info->is_expert = cpp_info.isExpert;
-  info->is_regular = cpp_info.isRegular;
+  switch (cpp_info.category)
+  {
+    case cvc5::modes::OptionCategory::REGULAR:
+      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      break;
+    case cvc5::modes::OptionCategory::EXPERT:
+      info->category = CVC5_OPTION_CATEGORY_EXPERT;
+      break;
+    case cvc5::modes::OptionCategory::COMMON:
+      info->category = CVC5_OPTION_CATEGORY_COMMON;
+      break;
+    default:
+      Assert(cpp_info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
+      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
+  }
 
   std::visit(
       overloaded{

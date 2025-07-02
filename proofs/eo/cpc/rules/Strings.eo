@@ -2,8 +2,8 @@
 (include "../theories/Quantifiers.eo")
 
 (include "../programs/Quantifiers.eo")
-(include "../programs/SeqToString.eo")
 (include "../programs/Strings.eo")
+(include "../programs/DistinctValues.eo")
 
 ;;-------------------- Core
 
@@ -17,7 +17,7 @@
 (declare-rule string_length_pos ((U Type) (s U))
   :args (s)
   :conclusion
-    (or (and (= (str.len s) 0) (= s ($mk_emptystr (eo::typeof s)))) (> (str.len s) 0))
+    (or (and (= (str.len s) 0) (= s ($seq_empty (eo::typeof s)))) (> (str.len s) 0))
 )
 
 ; rule: string_length_non_empty
@@ -41,18 +41,14 @@
 ; conclusion: >
 ;   An equality between the components of s and t beyond their equal components.
 ;   For example, from (= (str.++ x y) (str.++ x z)), we conclude (= y z).
-(declare-rule concat_eq ((U Type) (s U) (t U) (rev Bool))
+(declare-rule concat_eq ((U Type) (s (Seq U)) (t (Seq U)) (rev Bool))
   :premises ((= s t))
   :args (rev)
   :conclusion
-    (eo::match ((ss U) (ts U))
-      ($str_strip_prefix
-           ($str_to_nary_form s rev)
-           ($str_to_nary_form t rev))
-      (((@pair ss ts)
+    (eo::define ((res ($str_strip_prefix ($str_to_nary_form s rev) ($str_to_nary_form t rev))))
         (= 
-          ($str_from_nary_form ss rev)
-          ($str_from_nary_form ts rev)))))
+          ($str_from_nary_form ($pair_first res) rev)
+          ($str_from_nary_form ($pair_second res) rev)))
 )
 
 ; rule: concat_unify
@@ -127,7 +123,7 @@
               (eo::ite rev
                 (str.++ k t1)
                 (str.++ t1 k))))
-            (not (= k ($mk_emptystr (eo::typeof k))))
+            (not (= k ($seq_empty (eo::typeof k))))
             (> (str.len k) 0)
         ))))))
 )
@@ -156,7 +152,7 @@
               (eo::ite rev
                 (str.++ k s1)
                 (str.++ s1 k)))
-            (not (= k ($mk_emptystr (eo::typeof k))))
+            (not (= k ($seq_empty (eo::typeof k))))
             (> (str.len k) 0)))))))
 )
 
@@ -271,16 +267,14 @@
 ; program: $mk_re_concat
 ; args:
 ; - E: A conjunction of regular expression memberships.
+; - C: The current conclusion.
 ; return: >
-;   The concatenation of the strings in E is in the concatenation of the regular
-;   expressions in E.
-(program $mk_re_concat ((Es Bool :list) (s String) (r RegLan))
-  (Bool) Bool
+;   A regular expression membership corresponding to the conclusion of ProofRule::RE_CONCAT.
+(program $mk_re_concat ((Es Bool :list) (s String) (r RegLan) (s1 String) (r1 RegLan))
+  :signature (Bool Bool) Bool
   (
-  (($mk_re_concat (and (str.in_re s r) Es)) (eo::match ((s1 String) (r1 RegLan))
-                                              ($mk_re_concat Es)
-                                              (((str.in_re s1 r1) (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))))
-  (($mk_re_concat true)                     (str.in_re "" @re.empty))
+  (($mk_re_concat (and (str.in_re s r) Es) (str.in_re s1 r1)) ($mk_re_concat Es (str.in_re (eo::cons str.++ s s1) (eo::cons re.++ r r1))))
+  (($mk_re_concat true (str.in_re s1 r1))                     (str.in_re s1 r1))
   )
 )
 
@@ -293,10 +287,49 @@
 ;   expressions in E.
 (declare-rule re_concat ((E Bool))
   :premise-list E and
-  :conclusion ($mk_re_concat E)
+  :conclusion ($mk_re_concat (eo::list_rev and E) (str.in_re "" @re.empty))
 )
 
 ;;;;; ProofRule::RE_UNFOLD_POS
+
+; program: $mk_re_unfold_pos_star
+; args:
+; - t String: The string.
+; - r RegLan: The body of the regular expression star.
+; - p (@Pair String Bool): The result of $re_unfold_pos_concat based on the body
+;                           of r.
+; return: The conclusion for rule RE_UNFOLD_POS in the case of RE star.
+(program $mk_re_unfold_pos_star ((t String) (r RegLan) (k1 String) (k2 String) (k3 String) (M Bool :list))
+  :signature (String RegLan (@Pair String Bool)) Bool
+  (
+  (($mk_re_unfold_pos_star t r (@pair (str.++ k1 k2 k3) M))
+      (or
+        (= t "")
+        (str.in_re t r)
+        (and
+            (and (= t (str.++ k1 k2 k3)) M)
+            (not (= k1 ""))
+            (not (= k3 "")))))
+  )
+)
+
+; program: $mk_re_unfold_pos
+; args:
+; - t String: The string.
+; - r RegLan: The regular expression.
+; return: The conclusion for rule RE_UNFOLD_POS.
+(program $mk_re_unfold_pos ((t String) (r1 RegLan) (r2 RegLan :list))
+  :signature (String RegLan) Bool
+  (
+    (($mk_re_unfold_pos t (re.* r1))
+       ($mk_re_unfold_pos_star t r1 ($re_unfold_pos_concat t (re.++ r1 (re.* r1) r1))))
+    (($mk_re_unfold_pos t (re.++ r1 r2))
+        (eo::define ((res ($re_unfold_pos_concat t (re.++ r1 r2))))
+        (eo::define ((teq (= t ($pair_first res))))
+        (eo::define ((M ($pair_second res)))
+          (eo::ite (eo::eq M true) teq (eo::cons and teq M))))))
+  )
+)
 
 ; rule: re_unfold_pos
 ; implements: ProofRule::RE_UNFOLD_POS
@@ -308,30 +341,29 @@
 ;   r if the latter is a regular expression concatenation.
 (declare-rule re_unfold_pos ((t String) (r RegLan))
   :premises ((str.in_re t r))
-  :conclusion
-    (eo::match ((r1 RegLan) (r2 RegLan :list))
-      r
-      (
-        ((re.* r1)
-            (eo::match ((k1 String) (k2 String) (k3 String) (M Bool :list))
-            ($re_unfold_pos_concat t (re.++ r1 r r1))
-            (((@pair (str.++ k1 k2 k3) M)
-                (or 
-                (= t "") 
-                (str.in_re t r1)
-                (and
-                    (eo::cons and (= t (str.++ k1 k2 k3)) M)
-                    (not (= k1 ""))
-                    (not (= k3 ""))))))))
-        ((re.++ r1 r2)
-            (eo::match ((tk String) (M Bool :list))
-            ($re_unfold_pos_concat t r)
-            (((@pair tk M)
-                (eo::define ((teq (= t tk))) (eo::ite (eo::is_eq M true) teq (and teq M)))))))
-    ))
+  :conclusion ($mk_re_unfold_pos t r)
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
+
+; program: $mk_re_unfold_neg_concat_fixed
+; args:
+; - s String: The string.
+; - r RegLan: The regular expression.
+; - rev Bool: Whether we are in the reverse direction.
+; return: The conclusion for rule RE_UNFOLD_NEG_CONCAT_FIXED.
+(program $mk_re_unfold_neg_concat_fixed ((s String) (r1 RegLan) (r2 RegLan :list) (rev Bool))
+  :signature (String RegLan Bool) Bool
+  (
+    (($mk_re_unfold_neg_concat_fixed s (re.++ r1 r2) rev)
+        (eo::define ((n ($str_fixed_len_re r1)))
+          (eo::ite rev
+          (or (not (str.in_re ($str_suffix s n) r1))
+              (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_re_rev rev r2)))))
+          (or (not (str.in_re ($str_prefix s n) r1))
+              (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
+  )
+)
 
 ; rule: re_unfold_neg_concat_fixed
 ; implements: ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED
@@ -347,20 +379,36 @@
 (declare-rule re_unfold_neg_concat_fixed ((s String) (r RegLan) (rev Bool))
   :premises ((not (str.in_re s r)))
   :args (rev)
-  :conclusion
-    (eo::match ((r1 RegLan) (r2 RegLan :list))
-      ($str_rev rev r)
-      (
-        ((re.++ r1 r2) (eo::define ((n ($str_fixed_len_re r1)))
-                       (eo::ite rev
-                       (or (not (str.in_re ($str_suffix s n) r1))
-                           (not (str.in_re ($str_prefix s (- (str.len s) n)) ($singleton_elim ($str_rev rev r2)))))
-                       (or (not (str.in_re ($str_prefix s n) r1))
-                           (not (str.in_re ($str_suffix_rem s n) ($singleton_elim r2)))))))
-    ))
+  :conclusion ($mk_re_unfold_neg_concat_fixed s ($str_re_rev rev r) rev)
 )
 
 ;;;;; ProofRule::RE_UNFOLD_NEG
+
+
+; program: $mk_re_unfold_neg
+; args:
+; - s String: The string.
+; - r RegLan: The regular expression.
+; return: The conclusion for rule RE_UNFOLD_NEG.
+(program $mk_re_unfold_neg ((t String) (r1 RegLan) (r2 RegLan :list))
+  :signature (String RegLan) Bool
+  (
+    (($mk_re_unfold_neg t (re.* r1))
+      (and
+        (not (= t ""))
+        (forall ((@var.str_index Int))
+          (or (<= @var.str_index 0)
+              (< (str.len t) @var.str_index)
+              (not (str.in_re ($str_prefix t @var.str_index) r1))
+              (not (str.in_re ($str_suffix_rem t @var.str_index) (re.* r1)))))))
+    (($mk_re_unfold_neg t (re.++ r1 r2))
+      (forall ((@var.str_index Int))
+        (or (< @var.str_index 0)
+            (< (str.len t) @var.str_index)
+            (not (str.in_re ($str_prefix t @var.str_index) r1))
+            (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
+  )
+)
 
 ; rule: re_unfold_neg
 ; implements: ProofRule::RE_UNFOLD_NEG
@@ -372,39 +420,40 @@
 ;   corresponding decomposition of r.
 (declare-rule re_unfold_neg ((t String) (r RegLan))
   :premises ((not (str.in_re t r)))
-  :conclusion
-    (eo::match ((r1 RegLan) (r2 RegLan :list))
-      r
-      (
-        ((re.* r1)
-          (and
-            (not (= t ""))
-            (forall ((@var.str_index Int))
-              (or (<= @var.str_index 0)
-                  (< (str.len t) @var.str_index)
-                  (not (str.in_re ($str_prefix t @var.str_index) r1))
-                  (not (str.in_re ($str_suffix_rem t @var.str_index) r))))))
-        ((re.++ r1 r2)
-          (forall ((@var.str_index Int))
-            (or (< @var.str_index 0)
-                (< (str.len t) @var.str_index)
-                (not (str.in_re ($str_prefix t @var.str_index) r1))
-                (not (str.in_re ($str_suffix_rem t @var.str_index) ($singleton_elim r2))))))
-    ))
+  :conclusion ($mk_re_unfold_neg t r)
 )
 
 ;;;;; ProofRule::STRING_EXT
+
+
+; program: $str_mk_ext_deq
+; args:
+; - s (Seq T): The first string-like term
+; - t (Seq T): The second string-like term
+; - n Int: The index
+; - U Type: The type of s and t.
+; return: >
+;   A term corresponding to a disequality on the n^th position of s and t, which as a
+;   special case is a string of length one if s and t are strings. This is used
+;   by ProofRule::STRING_EXT.
+(program $str_mk_ext_deq ((T Type) (s (Seq T)) (t (Seq T)) (k Int))
+  :signature ((Seq T) (Seq T) Int Type) Bool
+  (
+  (($str_mk_ext_deq s t k String)  (not (= (str.substr s k 1) (str.substr t k 1))))
+  (($str_mk_ext_deq s t k (Seq T)) (not (= (seq.nth s k) (seq.nth t k))))
+  )
+)
 
 ; rule: string_ext
 ; implements: ProofRule::STRING_EXT
 ; premises:
 ; - deq: A disequality between strings or sequences.
 ; conclusion: The strings have different length or are disequal for a witness index, as given by the skolem (@strings_deq_diff s t).
-(declare-rule string_ext ((T Type)  (s (Seq T)) (t (Seq T)))
+(declare-rule string_ext ((T Type) (s (Seq T)) (t (Seq T)))
   :premises ((not (= s t)))
   :conclusion (eo::define ((k (@strings_deq_diff s t)))
               (or (not (= (str.len s) (str.len t))) 
-                  (and (not (= ($str_mk_nth s k) ($str_mk_nth t k)))
+                  (and ($str_mk_ext_deq s t k (eo::typeof s))
                        (<= 0 k)
                        (< k (str.len s)))))
 )
@@ -586,7 +635,7 @@
 ;   In particular, note that all string literals are broken up into string
 ;   literals of size one.
 (program $str_multiset_overapprox ((T Type) (s (Seq T)) (ss (Seq T) :list) (t (Seq T)) (r (Seq T)) (n Int) (m Int))
-    ((Seq T)) @List
+    :signature ((Seq T)) @List
     (
       (($str_multiset_overapprox (str.++ s ss))        (eo::list_concat @list ($str_multiset_overapprox s) ($str_multiset_overapprox ss)))
       (($str_multiset_overapprox (str.substr s n m))   ($str_multiset_overapprox s))
@@ -612,10 +661,10 @@
 ;   approximated by t. We compute this by iteratively removing the components of
 ;   s from t, and then checking if a term in nr is provably distinct from the final xs.
 (program $str_is_multiset_subset_strict ((T Type) (emp (Seq T)) (s (Seq T)) (ss (Seq T) :list) (xs @List) (nr @List :list))
-    ((Seq T) @List @List) Bool
+    :signature ((Seq T) @List @List) Bool
     (
-      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr ($nary_remove @list @list.nil s xs)))
-                                                            (eo::define ((nrem (eo::is_eq xs xsr)))
+      (($str_is_multiset_subset_strict (str.++ s ss) xs nr) (eo::define ((xsr (eo::list_erase @list xs s)))
+                                                            (eo::define ((nrem (eo::eq xs xsr)))
                                                               ($str_is_multiset_subset_strict ss xsr
                                                                 ; we add s to the accumulated list if it was not removed from xs
                                                                 (eo::ite nrem (@list s nr) nr)))))
@@ -742,13 +791,9 @@
 (define $str_eval_indexof_re ((s String) (r RegLan) (n Int))
   (eo::ite (eo::or (eo::gt n (eo::len s)) (eo::is_neg n))
     -1
-    (eo::match ((sp Int) (ep Int))
-      ($str_first_match (eo::extract s n (eo::len s)) r)
-      (
-      ((@pair -1 -1) -1)
-      ((@pair sp ep) (eo::add n sp))
-      ))))
-
+    (eo::define ((res ($str_first_match (eo::extract s n (eo::len s)) r)))
+    (eo::define ((sp ($pair_first res)))
+      (eo::ite (eo::eq sp -1) -1 (eo::add n sp))))))
 
 ; rule: str-indexof-re-eval
 ; implements: ProofRewriteRule::STR_INDEXOF_RE_EVAL
@@ -765,23 +810,25 @@
 
 ;;;;; ProofRewriteRule::STR_REPLACE_RE_EVAL
 
-; define: $str_eval_indexof_re
+; program: $str_eval_indexof_re
 ; args:
 ; - s String: A string.
 ; - r RegLan: A regular expression.
 ; - t String: A string to replace with.
+; - res (@Pair Int Int): The result of finding the first match of s in r.
 ; return: >
 ;   The result of evaluating (str.replace_re s r t), which is either s or a
 ;   concatenation of the prefix of s before the match, t and the suffix of s
 ;   after the match.
-(define $str_eval_replace_re ((s String) (r RegLan) (t String))
-  (eo::match ((sp Int) (ep Int))
-    ($str_first_match s r)
-    (
-    ((@pair -1 -1) s)
-    ; note that t does not need to be a constant, so the returned term is a concat term
-    ((@pair sp ep) (str.++ (eo::extract s 0 (eo::add sp -1)) t (eo::extract s ep (eo::len s))))
-    )))
+(program $str_eval_replace_re ((s String) (r RegLan) (t String) (sp Int) (ep Int))
+  :signature (String RegLan String (@Pair Int Int)) String
+  (
+  (($str_eval_replace_re s r t (@pair -1 -1)) s)
+  ; note that t does not need to be a constant, so the returned term is a concat term
+  (($str_eval_replace_re s r t (@pair sp ep))
+    (str.++ (eo::extract s 0 (eo::add sp -1)) t (eo::extract s ep (eo::len s))))
+  )
+)
 
 ; rule: str-replace-re-eval
 ; implements: ProofRewriteRule::STR_REPLACE_RE_EVAL
@@ -792,7 +839,7 @@
 ; conclusion: The given equality.
 (declare-rule str-replace-re-eval ((s String) (r RegLan) (t String) (u String))
   :args ((= (str.replace_re s r t) u))
-  :requires ((($str_eval_replace_re s r t) u))
+  :requires ((($str_eval_replace_re s r t ($str_first_match s r)) u))
   :conclusion (= (str.replace_re s r t) u)
 )
 
@@ -807,7 +854,7 @@
 ; return: >
 ;   The result of evaluating (str.replace_re_all s r t), which is a concatenation.
 (program $str_eval_replace_re_all_rec ((s String) (r RegLan) (t String) (sp Int) (ep Int))
-  (String RegLan String (@Pair Int Int)) String
+  :signature (String RegLan String (@Pair Int Int)) String
   (
   (($str_eval_replace_re_all_rec "" r t (@pair -1 -1))  "")
   (($str_eval_replace_re_all_rec s r t (@pair -1 -1))   (eo::cons str.++ s ""))
@@ -842,30 +889,124 @@
   :conclusion (= (str.replace_re_all s r t) u)
 )
 
-
 ;;;;; ProofRewriteRule::SEQ_EVAL_OP
+
+; program: $seq_is_prefix
+; args:
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; - s (Seq T): The term to process, which is expected to be a seq.++ list.
+; reutrn: true if s is a prefix of t.
+(program $seq_is_prefix ((T Type) (t (Seq T)) (et T) (es T) (ts (Seq T) :list) (ss (Seq T) :list))
+  :signature ((Seq T) (Seq T)) Bool
+  (
+  (($seq_is_prefix t t)                                               true)
+  (($seq_is_prefix (seq.++ t ts) (seq.++ t ss))                       ($seq_is_prefix ts ss))
+  (($seq_is_prefix (seq.++ (seq.unit et) ts) (seq.++ (seq.unit es) ss))
+    (eo::requires ($are_distinct_terms et es) true false))  ; we require showing the chracters are truly disequal to return false
+  (($seq_is_prefix (as seq.empty (Seq T)) t)                          true)
+  (($seq_is_prefix (seq.++ (seq.unit et) ts) (as seq.empty (Seq T)))  false)
+  )
+)
+
+; program: $seq_find
+; args:
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; - s (Seq T): The term to process, which is expected to be a seq.++ list.
+; - n Int: The current index.
+; reutrn: the index of the first occurrence of s in t.
+(program $seq_find ((T Type) (t (Seq T)) (s (Seq T)) (n Int) (ts (Seq T) :list))
+  :signature ((Seq T) (Seq T) Int) Int
+  (
+  (($seq_find t t n)                        n)
+  (($seq_find (as seq.empty (Seq T)) s n)   -1)
+  (($seq_find (seq.++ t ts) s n)            (eo::ite ($seq_is_prefix (seq.++ t ts) s)
+                                              n
+                                              ($seq_find ts s (eo::add n 1))))
+  )
+)
+
+; program: $seq_subsequence
+; args:
+; - l Int: The starting index, inclusive, of elements of t to extract.
+; - u Int: The end index, inclusive, of elements of t to extract.
+; - t (Seq T): The term to process, which is expected to be a seq.++ list.
+; return: >
+;   The subsequent of t between indices l up to (and not including) u.
+(program $seq_subsequence ((T Type) (t (Seq T)) (e T) (ts (Seq T) :list) (u Int) (l Int))
+  :signature (Int Int (Seq T)) (Seq T)
+  (
+    (($seq_subsequence l u (as seq.empty (Seq T)))      (as seq.empty (Seq T)))
+    (($seq_subsequence l 0 t)                           (as seq.empty (eo::typeof t)))
+    (($seq_subsequence 0 u (seq.++ (seq.unit e) ts))    (eo::cons seq.++ (seq.unit e) ($seq_subsequence 0 (eo::add u -1) ts)))
+    (($seq_subsequence l u (seq.++ (seq.unit e) ts))
+      ($seq_subsequence (eo::add l -1) (eo::add u -1) ts))
+  )
+)
+
+; program: $seq_eval_replace_all_rec
+; args:
+; - s (Seq T): A sequence.
+; - t (Seq T): A sequence to find.
+; - u (Seq T): A sequence to replace with.
+; - n Int: The result of finding t in s.
+; - lent Int: The length of t.
+; return: >
+;   The result of evaluating (seq.replace_all s t u).
+(program $seq_eval_replace_all_rec ((T Type) (s (Seq T)) (t (Seq T)) (u (Seq T)) (n Int) (lent Int))
+  :signature ((Seq T) (Seq T) (Seq T) Int Int) (Seq T)
+  (
+  (($seq_eval_replace_all_rec s t u -1 lent)  s)
+  (($seq_eval_replace_all_rec s t u n lent)   (eo::define ((snext ($seq_subsequence (eo::add n lent) ($str_value_len s) s)))
+                                              (eo::list_concat seq.++
+                                                ($seq_subsequence 0 n s)
+                                                (eo::list_concat seq.++
+                                                  u
+                                                  ($seq_eval_replace_all_rec snext t u ($seq_find snext t 0) lent)))))
+  )
+)
 
 ; program: $seq_eval
 ; args:
 ; - t T: the term to evaluate, expected to be an operator applied to values, including at least one sequence value.
 ; return: The result of evaluating t.
-(program $seq_eval ((T Type) (t T) (n Int))
-  (T) T
+(program $seq_eval ((T Type) (t (Seq T)) (n Int) (m Int) (ts (Seq T) :list) (s (Seq T)) (r (Seq T)))
+  :signature (T) T
   (
     ; handle sequence-specific operators here
-    (($seq_eval (seq.nth t n))  (eo::match ((e T))
-                                  (eo::list_nth str.++ ($str_to_nary_form t false) n)
-                                  (((seq.unit e) e))))
-    ; otherwise, we rely on the strings evaluator
-    (($seq_eval t)              (eo::match ((S Type) (u S) (units @List) (chars @List))
-                                ($seq_to_string_op_rec t @list.nil @list.nil)                       ; convert to string
-                                (((tuple u units chars) (eo::define ((ue ($evaluate u)))            ; evaluate on string
-                                                        (eo::ite (eo::is_eq (eo::typeof ue) String)
-                                                          ($singleton_elim
-                                                          ($substitute_simul ($str_flatten_word ue)   ; convert back to sequence
-                                                            (eo::cons @list "" chars)
-                                                            (eo::cons @list (@seq.empty (eo::typeof t)) units)))
-                                                          ue)))))) ; otherwise just return self
+    (($seq_eval (seq.nth t n))            (eo::define ((res (eo::list_nth seq.++ ($str_to_nary_form t false) n)))
+                                            ($seq_element_of_unit res)))
+    (($seq_eval (seq.len t))              ($str_value_len ($str_nary_intro t)))
+    (($seq_eval (seq.++ t ts))            ($str_nary_elim (eo::list_concat seq.++ ($str_nary_intro t) ($str_nary_intro ($seq_eval ts)))))
+    (($seq_eval (seq.extract t n m))      (eo::define ((tn ($str_nary_intro t)))
+                                            ($str_nary_elim ($seq_subsequence n (eo::add n m) tn))))
+    (($seq_eval (seq.contains t s))       (eo::define ((tn ($str_nary_intro t)))
+                                          (eo::define ((sn ($str_nary_intro s)))
+                                            (eo::not (eo::is_neg ($seq_find tn sn 0))))))
+    (($seq_eval (seq.replace t s r))      (eo::define ((tn ($str_nary_intro t)))
+                                          (eo::define ((sn ($str_nary_intro s)))
+                                          (eo::define ((i ($seq_find tn sn 0)))
+                                            (eo::ite (eo::is_neg i)
+                                              t
+                                              ($str_nary_elim (eo::list_concat seq.++
+                                                ($seq_subsequence 0 i tn)
+                                                (eo::list_concat seq.++
+                                                  ($str_nary_intro r)
+                                                  ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn)))))))))
+    (($seq_eval (seq.replace_all t s r))  (eo::define ((tn ($str_nary_intro t)))
+                                          (eo::define ((sn ($str_nary_intro s)))
+                                          (eo::define ((rn ($str_nary_intro r)))
+                                          (eo::ite (eo::eq ($str_value_len s) 0)
+                                            t
+                                            ($str_nary_elim ($seq_eval_replace_all_rec tn sn rn ($seq_find sn tn 0) ($str_value_len tn))))))))
+    (($seq_eval (seq.indexof t s n))      (eo::define ((tn ($str_nary_intro t)))
+                                          (eo::define ((sn ($str_nary_intro s)))
+                                          (eo::define ((tl ($str_value_len tn)))
+                                            ($seq_find ($seq_subsequence n tl tn) sn n)))))
+    (($seq_eval (seq.prefixof t s))       ($seq_is_prefix ($str_nary_intro t) ($str_nary_intro s)))
+    (($seq_eval (seq.suffixof t s))       ($seq_is_prefix ($str_to_nary_form t true) ($str_to_nary_form s true)))
+    (($seq_eval (seq.at t n))             ($seq_eval (seq.extract t n 1)))
+    (($seq_eval (seq.rev t))              ($str_nary_elim ($str_to_nary_form t true)))
+    (($seq_eval t)                        t)
   )
 )
 

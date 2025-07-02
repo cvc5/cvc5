@@ -27,7 +27,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPrintConclusion"
-  category   = "expert"
+  category   = "common"
   long       = "proof-print-conclusion"
   type       = "bool"
   default    = "false"
@@ -60,7 +60,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofCheck"
-  category   = "expert"
+  category   = "common"
   long       = "proof-check=MODE"
   type       = "ProofCheckMode"
   default    = "NONE"
@@ -78,6 +78,14 @@ name   = "Proof"
 [[option.mode.NONE]]
   name       = "none"
   help       = "do not check rule applications"
+
+[[option]]
+  name       = "checkProofsComplete"
+  category   = "expert"
+  long       = "check-proofs-complete"
+  type       = "bool"
+  default    = "false"
+  help       = "treat an incomplete proof as a failure (enabled by default in safe builds)"
 
 [[option]]
   name       = "proofPpMerge"
@@ -201,7 +209,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofPrintReference"
-  category   = "expert"
+  category   = "common"
   long       = "proof-print-reference"
   type       = "bool"
   default    = "false"
@@ -253,3 +261,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Proof logging mode"
+
+[[option]]
+  name       = "proofPreSimpLookahead"
+  category   = "expert"
+  long       = "proof-pre-simp-lookahead=N"
+  type       = "uint64_t"
+  default    = "2"
+  help       = "the lookahead depth for merging proofs at previsit"

@@ -26,6 +26,17 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
+          - name: ubuntu:safe-mode
+            os: ubuntu-22.04
+            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: production-safe
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
+
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
             config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
@@ -64,6 +75,7 @@ jobs:
             strip-bin: strip
             python-bindings: true
             java-bindings: true
+            java-version: 11
             check-examples: true
             package-name: cvc5-macOS-arm64
             macos-target: 11.0
@@ -163,6 +175,7 @@ jobs:
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
+            java-version: 11
             macos-target: 11.0
             gpl-tag: -gpl
 
@@ -192,6 +205,13 @@ jobs:
     steps:
 
     - uses: actions/checkout@v4
+
+    # Ensure that the Java bindings, Java API tests, and Java examples are compatible
+    # with the minimum required Java version (currently Java 8).
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ matrix.build.java-version || '8' }}
 
     - name: Setup CMake
       uses: ./.github/actions/setup-cmake

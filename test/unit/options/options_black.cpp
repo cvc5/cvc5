@@ -13,6 +13,8 @@
  * Black box testing of the Solver class of the  C++ API.
  */
 
+#include <cvc5/cvc5_types.h>
+
 #include <algorithm>
 #include <limits>
 
@@ -220,9 +222,9 @@ TEST_F(TestBlackOptions, set)
                                     "version"};
   for (const auto& name : options::getNames())
   {
-    if (name == "safe-options")
+    if (name == "safe-mode")
     {
-      // don't test safe-options here, since it will restrict the set of options
+      // don't test safe-mode here, since it will restrict the set of options
       // that can be set afterwards.
       continue;
     }
@@ -247,17 +249,18 @@ TEST_F(TestBlackOptions, setSafe)
                                     "show-trace-tags",
                                     "version"};
   // set safe options to true
-  d_solver->setOption("safe-options", "true");
+  d_solver->setOption("safe-mode", "safe");
   bool alreadySetRegular = false;
   for (const auto& name : options::getNames())
   {
     auto info = d_solver->getOptionInfo(name);
-    // skip if an expert option
-    if (info.isExpert)
+    // skip if an expert option or has an supported feature
+    if (info.category == cvc5::modes::OptionCategory::EXPERT
+        || !info.noSupports.empty())
     {
       continue;
     }
-    if (info.isRegular)
+    if (info.category == cvc5::modes::OptionCategory::REGULAR)
     {
       if (alreadySetRegular)
       {
