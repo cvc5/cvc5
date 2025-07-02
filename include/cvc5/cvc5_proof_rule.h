@@ -2827,6 +2827,7 @@ enum ENUM(ProofRewriteRule)
    * **Quantifiers -- Unused variables**
    *
    * .. math::
+   *
    *   Q X.\> F = Q X_1.\> F
    *
    * where Q is either \forall or \exists and :math:`X_1` is the subset of :math:`X`
