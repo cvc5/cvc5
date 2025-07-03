@@ -471,7 +471,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Instantiate a parameterized datatype sort or uninterpreted sort
    * constructor sort.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}).
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}).
    *
    * @api.note This method is experimental and may change in future versions.
    *

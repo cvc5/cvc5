@@ -1727,7 +1727,7 @@ cdef class TermManager:
 
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            string is forwarded to :cpp:func:`cvc5::TermManager::mkReal()` and should
             thus represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
@@ -2870,7 +2870,7 @@ cdef class Solver:
 
             First converts the arguments to a temporary string, either
             ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to :cpp:func:`cvc5::Solver::mkReal()` and should
+            string is forwarded to :cpp:func:`cvc5::TermManager::mkReal()` and should
             thus represent an integer, a decimal number or a fraction.
 
             :param numerator: The numerator.
@@ -3677,9 +3677,9 @@ cdef class Solver:
 
             .. note::
 
-                This corresponds to :py:meth:`Solver.mkUninterpretedSort()` if
+                This corresponds to :py:meth:`TermManager.mkUninterpretedSort()` if
                 arity = 0, and to
-                :py:meth:`Solver.mkUninterpretedSortConstructorSort()` if
+                :py:meth:`TermManager.mkUninterpretedSortConstructorSort()` if
                 arity > 0.
 
             :param symbol: The name of the sort.
