@@ -510,8 +510,8 @@ class CVC5_EXPORT Sort
    *
    * The symbol of this sort is the string that was
    * provided when constructing it via
-   * TermManager::mkUninterpretedSort(const std::string&) const, or
-   * TermManager::mkUninterpretedSortConstructorSort(const std::string&, size_t).
+   * TermManager::mkUninterpretedSort(const std::optional<std::string>&), or
+   * TermManager::mkUninterpretedSortConstructorSort(size_t, const std::optional<std::string>&).
    *
    * @return The raw symbol of the sort.
    */
