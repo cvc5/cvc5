@@ -175,8 +175,8 @@ enum ENUM(Kind)
    * .. note::
    *
    *     Represents an internally generated term. Information on the skolem is
-   *     available via the calls `Term::getSkolemId` and
-   *     `Term::getSkolemIndices`.
+   *     available via the calls :cpp:func:`Term::getSkolemId` and
+   *     :cpp:func:`Term::getSkolemIndices`.
    * \endrst
    */
   EVALUE(SKOLEM),
