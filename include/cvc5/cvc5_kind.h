@@ -5119,7 +5119,7 @@ enum ENUM(Kind)
    * - Create Term of this Kind with:
    *
    *   - TermManager::mkString(const std::string&, bool)
-   *   - TermManager::mkString(const std::wstring&)
+   *   - TermManager::mkString(const std::u32string&)
    */
   EVALUE(CONST_STRING),
   /**
