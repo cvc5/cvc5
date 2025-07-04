@@ -452,6 +452,18 @@ class TheoryEngine : protected EnvObj
   /** Called externally that we are unsound (user-context). */
   void setRefutationUnsound(theory::IncompleteId id);
 
+  std::vector<Node> getPartitions()
+  {
+    if (d_partitionGen)
+    {
+      return d_partitionGen->getPartitions();
+    }
+    else
+    {
+      return {};
+    }
+  }
+
  private:
   typedef context::
       CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction>
