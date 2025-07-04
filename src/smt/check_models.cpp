@@ -16,13 +16,16 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "expr/non_closed_node_converter.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/expand_definitions.h"
 #include "smt/preprocessor.h"
+#include "smt/set_defaults.h"
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
@@ -116,49 +119,93 @@ void CheckModels::checkModel(TheoryModel* m,
     // that expand involving skolems during preprocessing. Not doing this will
     // increase the spurious warnings raised by this class.
     n = expDef.expandDefinitions(n, cache);
-    verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
-               << std::endl;
-
-    n = rewrite(n);
-    verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
-               << std::endl;
-
-    // We look up the value before simplifying. If n contains quantifiers,
-    // this may increases the chance of finding its value before the node is
-    // altered by simplification below.
-    Node nval = m->getValue(n);
-    verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
-               << std::endl;
-
-    if (nval.isConst() && nval.getConst<bool>())
+    bool checkAgain = false;
+    bool processed = false;
+    Node nval;
+    do
     {
-      // assertion is true, everything is fine
-      continue;
-    }
+      checkAgain = false;
+      verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
+                 << std::endl;
 
-    // Otherwise, we did not succeed in showing the current assertion to be
-    // true. This may either indicate that our model is wrong, or that we cannot
-    // check it. The latter may be the case for several reasons.
-    // One example is the occurrence of partial operators. Another example
-    // are quantified formulas, which are not checkable, although we assign
-    // them to true/false based on the satisfying assignment. However,
-    // quantified formulas can be modified during preprocess, so they may not
-    // correspond to those in the satisfying assignment. Hence we throw
-    // warnings for assertions that do not simplify to either true or false.
-    // Other theories such as non-linear arithmetic (in particular,
-    // transcendental functions) also have the property of not being able to
-    // be checked precisely here.
-    // Note that warnings like these can be avoided for quantified formulas
-    // by making preprocessing passes explicitly record how they
-    // rewrite quantified formulas (see cvc4-wishues#43).
-    if (!nval.isConst())
+      n = rewrite(n);
+      verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
+                 << std::endl;
+
+      nval = m->getValue(n);
+      verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
+                 << std::endl;
+
+      if (nval.isConst() && nval.getConst<bool>())
+      {
+        // assertion is true, everything is fine
+        processed = true;
+        break;
+      }
+
+      // Otherwise, we did not succeed in showing the current assertion to be
+      // true. This may either indicate that our model is wrong, or that we
+      // cannot check it. The latter may be the case for several reasons. One
+      // example is the occurrence of partial operators. Another example are
+      // quantified formulas, which are not checkable, although we assign them
+      // to true/false based on the satisfying assignment. However, quantified
+      // formulas can be modified during preprocess, so they may not correspond
+      // to those in the satisfying assignment. Hence we throw warnings for
+      // assertions that do not simplify to either true or false. Other theories
+      // such as non-linear arithmetic (in particular, transcendental functions)
+      // also have the property of not being able to be checked precisely here.
+      // Note that warnings like these can be avoided for quantified formulas
+      // by making preprocessing passes explicitly record how they
+      // rewrite quantified formulas (see cvc4-wishues#43).
+      if (!nval.isConst())
+      {
+        n = expDef.expandDefinitions(nval, cache);
+        if (n != nval)
+        {
+          // It could be that we can expand again after simplifying. This is
+          // the case e.g. if a quantified formula with division is simplified
+          // to a quantifier-free formula.
+          checkAgain = true;
+        }
+        else
+        {
+          // Note that we must be a "closed" term, i.e. one that can be
+          // given in an assertion.
+          if (options().smt.checkModelSubsolver
+              && NonClosedNodeConverter::isClosed(d_env, nval))
+          {
+            Trace("check-model-subsolver") << "Query is " << nval << std::endl;
+            // satisfiability call
+            Options subOptions;
+            subOptions.copyValues(options());
+            smt::SetDefaults::disableChecking(subOptions);
+            // initialize the subsolver
+            SubsolverSetupInfo ssi(d_env, subOptions);
+            std::unique_ptr<SolverEngine> checkModelChecker;
+            initializeSubsolver(nodeManager(), checkModelChecker, ssi);
+            checkModelChecker->assertFormula(nval);
+            Result r = checkModelChecker->checkSat();
+            Trace("check-model-subsolver") << "..result is " << r << std::endl;
+            if (r == Result::SAT)
+            {
+              processed = true;
+              break;
+            }
+          }
+          // Not constant, print a less severe warning message here.
+          warning() << "Warning : SolverEngine::checkModel(): cannot check "
+                       "simplified "
+                       "assertion : "
+                    << nval << std::endl;
+          noCheckList.push_back(nval);
+          processed = true;
+          break;
+        }
+      }
+    } while (checkAgain);
+    // If processed in the loop above, we go to the next term
+    if (processed)
     {
-      // Not constant, print a less severe warning message here.
-      warning()
-          << "Warning : SolverEngine::checkModel(): cannot check simplified "
-             "assertion : "
-          << nval << std::endl;
-      noCheckList.push_back(nval);
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
