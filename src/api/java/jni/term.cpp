@@ -546,10 +546,10 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
-  std::wstring termString = current->getStringValue();
+  std::u32string termString = current->getU32StringValue();
 
   std::u16string utf16String;
-  for (wchar_t wc : termString)
+  for (char32_t wc : termString)
   {
     if (wc <= 0xFFFF)
     {
@@ -559,7 +559,7 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Term_getStringValue(JNIEnv* env,
     else
     {
       // Convert to surrogate pair
-      wchar_t codepoint = wc - 0x10000;
+      char32_t codepoint = wc - 0x10000;
       char16_t highSurrogate =
           static_cast<char16_t>((codepoint >> 10) + 0xD800);
       char16_t lowSurrogate =

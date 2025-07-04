@@ -238,7 +238,7 @@ def format_comment(comment):
             i = i + 1
     comment = """  /**\n{}\n   */""".format(
             textwrap.indent(comment, '   * ', lambda line: True))
-    comment = comment.replace("- {@link TermManager#mkString(std.wstring)}", "")
+    comment = comment.replace("- {@link TermManager#mkString(std.u32string)}", "")
     comment = format_list(comment)
     return comment
 

@@ -1606,8 +1606,20 @@ class CVC5_EXPORT Term
    * @note This is not to be confused with toString(), which returns
    *       some string representation of the term, whatever data it may hold.
    * @return The string term as a native string value.
+   * @warning This function is deprecated and replaced by
+   *          Term::getU32StringValue(). It will be removed in a future
+   *          release.
    */
-  std::wstring getStringValue() const;
+  [[deprecated("Use Term::getU32StringValue() instead")]] std::wstring
+  getStringValue() const;
+  /**
+   * Get the native UTF-32 string representation of a string value.
+   * @note Requires that this term is a string value (see isStringValue()).
+   * @note This is not to be confused with toString(), which returns
+   *       some string representation of the term, whatever data it may hold.
+   * @return The string term as a native UTF-32 string value.
+   */
+  std::u32string getU32StringValue() const;
 
   /**
    * Determine if this term is a rational value whose numerator fits into an
@@ -4200,8 +4212,22 @@ class CVC5_EXPORT TermManager
    *
    * @param s The string this constant represents.
    * @return The String constant.
+   * @warning This function is deprecated and replaced by
+   *          \ref TermManager::mkString(const std::u32string& s) "TermManager::mkString(const std::u32string& s)".
+   *          It will be removed in a future release.
    */
-  Term mkString(const std::wstring& s);
+  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  mkString(const std::wstring& s);
+  /**
+   * Create a String constant from a `std::u32string`.
+   *
+   * This function does not support escape sequences as `std::u32string` already
+   * supports unicode characters.
+   *
+   * @param s The string this constant represents.
+   * @return The String constant.
+   */
+  Term mkString(const std::u32string& s);
   /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
@@ -5322,9 +5348,9 @@ class CVC5_EXPORT Solver
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString()`. It will be removed in a future release.
+   *          `TermManager::mkString(const std::u32string& s)`. It will be removed in a future release.
    */
-  [[deprecated("Use TermManager::mkString() instead")]] Term mkString(
+  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term mkString(
       const std::wstring& s) const;
 
   /**

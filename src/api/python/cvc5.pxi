@@ -5,9 +5,9 @@ import traceback
 
 cimport cpython.ref as cpy_ref
 from cython.operator cimport dereference, preincrement
+from cpython.unicode cimport PyUnicode_DATA, PyUnicode_KIND, PyUnicode_READ, PyUnicode_FromKindAndData, PyUnicode_4BYTE_KIND
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
-from libc.stddef cimport wchar_t
 
 from libcpp cimport bool as c_bool
 from libcpp.pair cimport pair
@@ -43,7 +43,7 @@ from cvc5 cimport Proof as c_Proof
 from cvc5 cimport Sort as c_Sort
 from cvc5 cimport Term as c_Term
 from cvc5 cimport hash as c_hash
-from cvc5 cimport wstring as c_wstring
+from cvc5 cimport u32string as c_u32string
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
@@ -55,11 +55,6 @@ from cvc5types cimport InputLanguage as c_InputLanguage
 from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
-
-cdef extern from "Python.h":
-    wchar_t* PyUnicode_AsWideCharString(object, Py_ssize_t *) except NULL
-    object PyUnicode_FromWideChar(const wchar_t*, Py_ssize_t)
-    void PyMem_Free(void*)
 
 # Style Guidelines
 ### Using PEP-8 spacing recommendations
@@ -1819,15 +1814,23 @@ cdef class TermManager:
                                     unicode character
             :return: The String constant.
         """
-        cdef Py_ssize_t size
         if isinstance(useEscSequences, bool):
             return _term(
                 self,
                 self.ctm.mkString(s.encode(), <bint> useEscSequences))
-        cdef wchar_t* tmp = PyUnicode_AsWideCharString(s, &size)
-        cdef Term res = _term(self, self.ctm.mkString(c_wstring(tmp, size)))
-        PyMem_Free(tmp)
-        return res
+
+        cdef Py_ssize_t n = len(s)
+        cdef int kind = PyUnicode_KIND(s)
+        cdef void* data = PyUnicode_DATA(s)
+        cdef Py_ssize_t i
+
+        cdef c_u32string result
+        result.resize(n)
+
+        for i in range(n):
+            result[i] = <Py_UCS4>PyUnicode_READ(kind, data, i)
+
+        return _term(self, self.ctm.mkString(result))
 
     def mkEmptySequence(self, Sort sort):
         """
@@ -5683,9 +5686,14 @@ cdef class Term:
 
             :return: The string term as a native string value.
         """
-        cdef Py_ssize_t size
-        cdef c_wstring s = self.cterm.getStringValue()
-        return PyUnicode_FromWideChar(s.data(), s.size())
+        cdef c_u32string s = self.cterm.getU32StringValue()
+        cdef Py_ssize_t n = s.size()
+
+        if n == 0:
+            return u""
+
+        return PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, <const void*>&s[0], n)
+
 
     def getRealOrIntegerValueSign(self):
         """

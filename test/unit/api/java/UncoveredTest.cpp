@@ -120,7 +120,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
   std::wstring s;
-  (void)slv.mkString(s);
+  (void)slv.mkString(s).getStringValue();
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());
   (void)slv.mkBitVector(32, 2);
@@ -257,9 +257,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 
 TEST_F(TestApiBlackUncovered, mkString)
 {
-  std::wstring s;
-  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
-  ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
+  std::u32string s;
+  ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
 }
 
 TEST_F(TestApiBlackUncovered, isOutputOn)

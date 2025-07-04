@@ -1053,9 +1053,9 @@ TEST_F(TestCApiBlackTermManager, mk_string)
   ASSERT_EQ(
       cvc5_term_to_string(cvc5_mk_string(d_tm, "asdf\\u{005c}nasdf", true)),
       std::string("\"asdf\\u{5c}nasdf\""));
-  const wchar_t* s = L"";
-  ASSERT_EQ(cvc5_term_get_string_value(cvc5_mk_string_from_wchar(d_tm, s)),
-            std::wstring(s));
+  const char32_t* s = U"";
+  ASSERT_EQ(cvc5_term_get_u32string_value(cvc5_mk_string_from_char32(d_tm, s)),
+            std::u32string(s));
 }
 
 TEST_F(TestCApiBlackTermManager, mk_term)
