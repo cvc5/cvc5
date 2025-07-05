@@ -271,9 +271,9 @@ name   = "Proof"
   help       = "the lookahead depth for merging proofs at previsit"
 
 [[option]]
-  name       = "proofStrInReNfa"
+  name       = "proofCpcStrInReNfa"
   category   = "expert"
-  long       = "proof-str-in-re-nfa"
+  long       = "proof-cpc-str-in-re-nfa"
   type       = "bool"
   default    = "false"
   help       = "Enable proof steps that use NFA-based regular expression matching when possible"

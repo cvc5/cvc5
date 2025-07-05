@@ -24,7 +24,7 @@
 ; args:
 ; - states Nfa: The states to add.
 ; - stack Nfa: The stack of the states.
-; - nexts Nfa: Current next states..
+; - nexts Nfa: Current next states.
 ; return: next states.
 (program $add_to_nexts ((t Nfa) (st Nfa) (tt Nfa :list) (stt Nfa :list) (nexts Nfa))
   (Nfa Nfa Nfa) Nfa
@@ -52,9 +52,9 @@
 ; args:
 ; - c String: Current char.
 ; - s String: Remaining of the string.
-; - current_states String: Current states of the nfa.
-; - next_states String: Next states of the nfa.
-; return: true if s is in regular expression r.
+; - current_states Nfa: Current states of the nfa.
+; - next_states Nfa: Next states of the nfa.
+; return: true if s is macthed by the nfa.
 (program $match ((c String) (s String) (nexts Nfa) (tt Nfa :list) (t Nfa)
                 (st Nfa) (z0 Int) (z1 Int))
   (nfa.char String Nfa Nfa) Bool ; current_char rest_string current_states next_states transitions -> end_states
@@ -108,4 +108,3 @@
     )
   )
 )
-
