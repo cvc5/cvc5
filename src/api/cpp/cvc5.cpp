@@ -3160,6 +3160,19 @@ std::wstring Term::getStringValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::u32string Term::getU32StringValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == internal::Kind::CONST_STRING,
+                              *d_node)
+      << "Term to be a string value when calling getU32StringValue()";
+  //////// all checks before this line
+  return d_node->getConst<internal::String>().toU32String();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::vector<internal::Node> Term::termVectorToNodes(
     const std::vector<Term>& terms)
 {
@@ -6367,6 +6380,27 @@ Term TermManager::mkString(const std::string& s, bool useEscSequences)
 Term TermManager::mkString(const std::wstring& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
+  //////// all checks before this line
+  return mkValHelper(internal::String(s));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term TermManager::mkString(const std::u32string& s)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
   //////// all checks before this line
   return mkValHelper(internal::String(s));
   ////////

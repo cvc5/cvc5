@@ -93,9 +93,10 @@ Class hierarchy
 
     * enum class for :cpp:enum:`cvc5::modes::BlockModelsMode`
     * enum class for :cpp:enum:`cvc5::modes::LearnedLitType`
+    * enum class for :cpp:enum:`cvc5::modes::FindSynthTarget`
+    * enum class for :cpp:enum:`cvc5::modes::OptionCategory`
     * enum class for :cpp:enum:`cvc5::modes::ProofComponent`
     * enum class for :cpp:enum:`cvc5::modes::ProofFormat`
-    * enum class for :cpp:enum:`cvc5::modes::FindSynthTarget`
 
 ``}``
 
