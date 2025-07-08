@@ -355,6 +355,18 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceProofs)
   {
+    // determine the prop proof mode, based on which SAT solver we are using
+    if (!opts.proof.propProofModeWasSetByUser)
+    {
+      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+      {
+        // use SAT_EXTERNAL_PROVE for cadical by default
+        SET_AND_NOTIFY(proof,
+                       propProofMode,
+                       options::PropProofMode::SAT_EXTERNAL_PROVE,
+                       "cadical");
+      }
+    }
     // upgrade to full strict if safe options
     if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
@@ -382,18 +394,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // if we require disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)
   {
-    // determine the prop proof mode, based on which SAT solver we are using
-    if (!opts.proof.propProofModeWasSetByUser)
-    {
-      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(proof,
-                       propProofMode,
-                       options::PropProofMode::SAT_EXTERNAL_PROVE,
-                       "cadical");
-      }
-    }
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
