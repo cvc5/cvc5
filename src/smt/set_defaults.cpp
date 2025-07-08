@@ -382,6 +382,18 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // if we require disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)
   {
+    // determine the prop proof mode, based on which SAT solver we are using
+    if (!opts.proof.propProofModeWasSetByUser)
+    {
+      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+      {
+        // use SAT_EXTERNAL_PROVE for cadical by default
+        SET_AND_NOTIFY(proof,
+                       propProofMode,
+                       options::PropProofMode::SAT_EXTERNAL_PROVE,
+                       "cadical");
+      }
+    }
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
@@ -1127,7 +1139,20 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     return true;
   }
   // specific to SAT solver
-  if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+  {
+    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
+    {
+      reason << "(resolution) proofs in CaDiCaL";
+      return true;
+    }
+    if (opts.smt.proofMode != options::ProofMode::PP_ONLY)
+    {
+      reason << "CaDiCaL";
+      return true;
+    }
+  }
+  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
     // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
     // not supported by Minisat.

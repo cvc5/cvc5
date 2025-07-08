@@ -1050,7 +1050,19 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   } d_stats;
 };
 
-/** Proof tracer implementation for computing unsat cores from CaDiCaL. */
+/**
+ * Proof tracer implementation for computing unsat cores from CaDiCaL.
+ *
+ * This tracer keeps track of the original clauses sent to CaDiCaL (input
+ * clauses and theory lemmas) as well as the antecedents of each derived clause.
+ * Derived clauses are not stored since they are not needed for unsat cores.
+ *
+ * When the empty clause (ProofTracer::conclude_unsat) is derived we store
+ * the final clause ids that were used to derive the empty clause in
+ * d_final_clauses. The original clauses that are reachable from the
+ * final clause ids through the stored antecedents correspond to the unsat core,
+ * which is computed in ProofTracer::compute_unsat_core.
+ */
 class ProofTracer : public CaDiCaL::Tracer
 {
  public:
