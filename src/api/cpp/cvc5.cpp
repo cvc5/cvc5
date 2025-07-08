@@ -6380,6 +6380,12 @@ Term TermManager::mkString(const std::string& s, bool useEscSequences)
 Term TermManager::mkString(const std::wstring& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
   //////// all checks before this line
   return mkValHelper(internal::String(s));
   ////////
@@ -6389,6 +6395,12 @@ Term TermManager::mkString(const std::wstring& s)
 Term TermManager::mkString(const std::u32string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  for (size_t i = 0, n = s.size(); i < n; ++i)
+  {
+    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+        << "Expected unicode string whose characters are less than code point "
+        << internal::String::num_codes();
+  }
   //////// all checks before this line
   return mkValHelper(internal::String(s));
   ////////
