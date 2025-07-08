@@ -1243,6 +1243,7 @@ set(regress_0_tests
   regress0/parser/issue10813-1.smt2
   regress0/parser/issue10813-2.smt2
   regress0/parser/issue10889-sexpr-eof.smt2
+  regress0/parser/issue11935-err-code-point.smt2
   regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
@@ -3903,6 +3904,7 @@ set(regress_2_tests
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/nl/issue8693-flatten-to-real.smt2
+  regress2/large-datatypes-cycle.smt2 
   regress2/ooo.rf6.smt2
   regress2/ooo.tag10.smt2
   regress2/piVC_5581bd.smt2
