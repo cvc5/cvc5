@@ -131,7 +131,7 @@ class String
    * and std::wstring use 32bit characters.
    */
   std::wstring toWString() const;
-  /* toU32String
+  /**
    * Converts this string to a std::u32string.
    *
    * Unlike toString(), this method uses no escape sequences as both this class
