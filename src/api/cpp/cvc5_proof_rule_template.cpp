@@ -53,6 +53,7 @@ const char* toString(ProofRule rule)
     case ProofRule::REORDERING: return "REORDERING";
     case ProofRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case ProofRule::MACRO_RESOLUTION_TRUST: return "MACRO_RESOLUTION_TRUST";
+    case ProofRule::CHAIN_M_RESOLUTION: return "CHAIN_M_RESOLUTION";
     case ProofRule::SPLIT: return "SPLIT";
     case ProofRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case ProofRule::MODUS_PONENS: return "MODUS_PONENS";
