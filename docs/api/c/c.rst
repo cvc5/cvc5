@@ -146,6 +146,7 @@ Enums
 
   - enum :cpp:enum:`Cvc5BlockModelsMode`
   - enum :cpp:enum:`Cvc5LearnedLitType`
+  - enum :cpp:enum:`Cvc5FindSynthTarget`
+  - enum :cpp:enum:`Cvc5OptionCategory`
   - enum :cpp:enum:`Cvc5ProofComponent`
   - enum :cpp:enum:`Cvc5ProofFormat`
-  - enum :cpp:enum:`Cvc5FindSynthTarget`
