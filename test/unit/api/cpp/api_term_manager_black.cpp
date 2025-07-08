@@ -778,8 +778,8 @@ TEST_F(TestApiBlackTermManager, mkString)
   ASSERT_EQ(d_tm.mkString("asdf\\nasdf").toString(), "\"asdf\\u{5c}nasdf\"");
   ASSERT_EQ(d_tm.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
-  std::wstring s;
-  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
+  std::u32string s;
+  ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
 }
 
 TEST_F(TestApiBlackTermManager, mkTerm)

@@ -33,6 +33,25 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>. See:
+//   https://en.cppreference.com/w/cpp/keyword/char32_t.html
+//   https://en.cppreference.com/w/c/header/uchar.html
+// However, the uchar.h header is missing in Apple Clang. See:
+//   https://github.com/llvm/llvm-project/issues/41443
+// This workaround defines char32_t when uchar.h is not available (in C mode)
+#ifndef __cplusplus
+  #ifdef __has_include
+    #if __has_include(<uchar.h>)
+      #include <uchar.h>
+    #else
+      typedef uint_least32_t char32_t;
+    #endif
+  #else
+    // Fallback if __has_include is not supported
+    typedef uint_least32_t char32_t;
+  #endif
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -1350,8 +1369,24 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  *       some string representation of the term, whatever data it may hold.
  * @param term The term.
  * @return The string term as a native string value.
+ *
+ * @warning This function is deprecated and replaced by
+ *          cvc5_term_get_u32string_value(). It will be removed in a future
+ *          release.
  */
-CVC5_EXPORT const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT __attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
+const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+
+/**
+ * Get the native UTF-32 string representation of a string value.
+ * @note Requires that the term is a string value (see
+ *       cvc5_term_is_string_value()).
+ * @note This is not to be confused with cvc5_term_to_string(), which returns
+ *       some string representation of the term, whatever data it may hold.
+ * @param term The term.
+ * @return The string term as a native UTF-32 string value.
+ */
+CVC5_EXPORT const char32_t* cvc5_term_get_u32string_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a rational value whose numerator fits into an
@@ -3145,9 +3180,25 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
  * @param tm The term manager instance.
  * @param s The string this constant represents.
  * @return The String constant.
+ *
+ * @warning This function is deprecated and replaced by
+ *          cvc5_mk_string_from_char32(). It will be removed in a future
+ *          release.
  */
-CVC5_EXPORT Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
-                                               const wchar_t* s);
+CVC5_EXPORT __attribute__((deprecated("Use cvc5_mk_string_from_char32 instead")))
+Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
+                                   const wchar_t* s);
+
+/**
+ * Create a String constant from a UTF-32 string.
+ * This function does not support escape sequences as wide character already
+ * supports unicode characters.
+ * @param tm The term manager instance.
+ * @param s The UTF-32 string this constant represents.
+ * @return The String constant.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_string_from_char32(Cvc5TermManager* tm,
+                                                const char32_t* s);
 
 /**
  * Create an empty sequence of the given element sort.
