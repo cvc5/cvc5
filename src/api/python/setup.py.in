@@ -67,7 +67,12 @@ else:
         'binding': False,
     }
 
-    extra_compile_args = ["-std=c++17", "-fno-var-tracking"]
+    extra_compile_args = [
+        "-std=c++17",
+        "-fno-var-tracking",
+        # Suppress deprecation warnings for deprecated members of OptionInfo
+        "-Wno-deprecated-declarations"
+    ]
 
     if sys.platform == 'win32':
         # Compile argument '-DMS_WIN64' fixes a division by zero error

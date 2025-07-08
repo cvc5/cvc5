@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Yoni Zohar, Leni Aniva
+ *   Liana Hadarean, Yoni Zohar, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -62,7 +62,7 @@ class TheoryBVRewriter : public TheoryRewriter
    * or disabled, because their elimination
    * produces simple equalities.
    */
-  Node eliminateOverflows(Node node);
+  static Node eliminateOverflows(Node node);
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
@@ -117,6 +117,12 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSize(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteConstBvSym(TNode node, bool prerewrite = false);
+  /**
+   * Rewrite overflow, used for all bitvector kinds that are eliminated at
+   * preprocessing. This applies the elimination if node is applied to all
+   * constants.
+   */
+  static RewriteResponse RewriteOverflow(TNode node, bool prerewrite = false);
 
   void initializeRewrites();
 

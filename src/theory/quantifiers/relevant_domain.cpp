@@ -140,6 +140,7 @@ void RelevantDomain::compute(){
       unsigned sz = db->getNumGroundTerms( op );
       for( unsigned i=0; i<sz; i++ ){
         Node n = db->getGroundTerm(op, i);
+        Trace("rel-dom-debug") << "Consider " << n << std::endl;
         //if it is a non-redundant term
         if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
@@ -419,7 +420,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             }
           }
         }
-        else if (!hasNonVar)
+        else if (!hasNonVar && var.getType()==var2.getType())
         {
           Assert(var2.hasAttribute(InstVarNumAttribute()));
           // merge the domains
