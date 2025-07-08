@@ -6,19 +6,19 @@ Unreleased
 ## Changes
 
 - **API**
-  The C++ methods `Term TermManager::mkString(const std::wstring& s)` and
-  `std::wstring Term::getStringValue()` are now deprecated in favor of
-  the new methods `Term TermManager::mkString(const std::u32string& s)` and
-  `std::u32string Term::getU32StringValue()` which use `std::u32string`
-  to represent Unicode strings instead of `std::wstring`.
-  Unlike `std::wstring`, whose character type `wchar_t` is 16 bits on
-  Windows and 32 bits on Linux and macOS, the character type of
-  `std::u32string` is `char32_t`, which is guaranteed to be at least
-  32 bits on all platforms.
-  Similarly, the C API functions `cvc5_mk_string_from_wchar` and
-  `cvc5_term_get_string_value` are now deprecated in favor of
-  the new functions `cvc5_mk_string_from_char32` and
-  `cvc5_term_get_u32string_value`.
+  * The C++ methods `Term TermManager::mkString(const std::wstring& s)` and
+    `std::wstring Term::getStringValue()` are now deprecated in favor of
+    the new methods `Term TermManager::mkString(const std::u32string& s)` and
+    `std::u32string Term::getU32StringValue()` which use `std::u32string`
+    to represent Unicode strings instead of `std::wstring`.
+    Unlike `std::wstring`, whose character type `wchar_t` is 16 bits on
+    Windows and 32 bits on Linux and macOS, the character type of
+    `std::u32string`, `char32_t`, is guaranteed to be at least 32 bits on
+    all platforms.
+    Similarly, the C API functions `cvc5_mk_string_from_wchar` and
+    `cvc5_term_get_string_value` are now deprecated in favor of
+    the new functions `cvc5_mk_string_from_char32` and
+    `cvc5_term_get_u32string_value`.
 
 cvc5 1.3.0
 ==========
