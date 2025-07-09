@@ -41,7 +41,7 @@ macro(get_repairwheel_version)
   endif()
 endmacro()
 
-set(INSTALL_REQUIREWHEEL FALSE)
+set(INSTALL_REPAIRWHEEL FALSE)
 
 get_repairwheel_version()
 
@@ -51,21 +51,21 @@ if (Repairwheel_VERSION_CHECK_RESULT EQUAL 0)
   if (DEFINED Repairwheel_FIND_VERSION)
     if (Repairwheel_FIND_VERSION_EXACT)
       if (NOT (Repairwheel_VERSION VERSION_EQUAL ${Repairwheel_FIND_VERSION}))
-        set(INSTALL_REQUIREWHEEL TRUE)
-        set(INSTALL_REQUIREWHEEL_OPTION "==${Repairwheel_FIND_VERSION}")
-        set(INSTALL_REQUIREWHEEL_MESSAGE "==${Repairwheel_FIND_VERSION}")
+        set(INSTALL_REPAIRWHEEL TRUE)
+        set(INSTALL_REPAIRWHEEL_OPTION "==${Repairwheel_FIND_VERSION}")
+        set(INSTALL_REPAIRWHEEL_MESSAGE "==${Repairwheel_FIND_VERSION}")
       endif()
     else()
       if (Repairwheel_VERSION VERSION_LESS ${Repairwheel_FIND_VERSION})
-        set(INSTALL_REQUIREWHEEL TRUE)
-        set(INSTALL_REQUIREWHEEL_OPTION ";-U")
-        set(INSTALL_REQUIREWHEEL_MESSAGE ">=${Repairwheel_FIND_VERSION}")
+        set(INSTALL_REPAIRWHEEL TRUE)
+        set(INSTALL_REPAIRWHEEL_OPTION ";-U")
+        set(INSTALL_REPAIRWHEEL_MESSAGE ">=${Repairwheel_FIND_VERSION}")
       endif()
     endif()
-    if (INSTALL_REQUIREWHEEL AND NOT ENABLE_AUTO_DOWNLOAD)
-      set(INSTALL_REQUIREWHEEL FALSE)
+    if (INSTALL_REPAIRWHEEL AND NOT ENABLE_AUTO_DOWNLOAD)
+      set(INSTALL_REPAIRWHEEL FALSE)
       message(${Repairwheel_FIND_MODE}
-        "Repairwheel version${INSTALL_REQUIREWHEEL_MESSAGE} is required, "
+        "Repairwheel version${INSTALL_REPAIRWHEEL_MESSAGE} is required, "
         "but found version ${Repairwheel_VERSION}.\n"
         "Use --auto-download to let us install it for you."
       )
@@ -78,22 +78,22 @@ else()
       "Could NOT find repairwheel executable. "
       "Use --auto-download to let us install it for you.")
   else()
-    set(INSTALL_REQUIREWHEEL TRUE)
-    set(INSTALL_REQUIREWHEEL_OPTION ";-U")
-    set(INSTALL_REQUIREWHEEL_MESSAGE "")
+    set(INSTALL_REPAIRWHEEL TRUE)
+    set(INSTALL_REPAIRWHEEL_OPTION ";-U")
+    set(INSTALL_REPAIRWHEEL_MESSAGE "")
   endif()
 endif()
 
-if(INSTALL_REQUIREWHEEL)
-  message(STATUS "Installing repairwheel${INSTALL_REQUIREWHEEL_MESSAGE}")
+if(INSTALL_REPAIRWHEEL)
+  message(STATUS "Installing repairwheel${INSTALL_REPAIRWHEEL_MESSAGE}")
   execute_process(
     COMMAND
-    ${Python_EXECUTABLE} -m pip install repairwheel${INSTALL_REQUIREWHEEL_OPTION}
+    ${Python_EXECUTABLE} -m pip install repairwheel${INSTALL_REPAIRWHEEL_OPTION}
     RESULT_VARIABLE REPAIRWHEEL_INSTALL_CMD_EXIT_CODE
   )
   if(REPAIRWHEEL_INSTALL_CMD_EXIT_CODE)
     message(${Repairwheel_FIND_MODE}
-      "Could NOT install repairwheel${INSTALL_REQUIREWHEEL_MESSAGE}"
+      "Could NOT install repairwheel${INSTALL_REPAIRWHEEL_MESSAGE}"
     )
   else()
     set(Repairwheel_FOUND TRUE)
