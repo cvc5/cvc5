@@ -16,31 +16,10 @@
 # Repairwheel_VERSION - repairwheel version
 ##
 
-set(Python_SCRIPTS_Paths "")
-
-macro(add_scripts_path python_bin scheme)
-  execute_process(
-    COMMAND "${python_bin}" -c 
-      "import sysconfig; print(sysconfig.get_paths('${scheme}')['scripts'])"
-    RESULT_VARIABLE Python_SCRIPTS_RESULT
-    OUTPUT_VARIABLE Python_SCRIPTS
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if (NOT Python_SCRIPTS_RESULT AND Python_SCRIPTS)
-    list(APPEND Python_SCRIPTS_Paths ${Python_SCRIPTS})
-  endif()
-endmacro()
-
-# Look for repairwheel executable in Python "Scripts" directories
-add_scripts_path("${Python_EXECUTABLE}" "posix_prefix")
-add_scripts_path("${Python_BASE_EXECUTABLE}" "posix_user")
-add_scripts_path("${Python_BASE_EXECUTABLE}" "posix_prefix")
-if(WIN32)
-  add_scripts_path("${Python_EXECUTABLE}" "nt")
-  add_scripts_path("${Python_BASE_EXECUTABLE}" "nt_user")
-  add_scripts_path("${Python_BASE_EXECUTABLE}" "nt")
-endif()
+include(python-scripts-paths)
+# Defines the Python_SCRIPTS_Paths variable with
+# a list of Python "Scripts" directories
+collect_python_scripts_paths()
 
 if (Repairwheel_FIND_REQUIRED)
   set(Repairwheel_FIND_MODE FATAL_ERROR)
