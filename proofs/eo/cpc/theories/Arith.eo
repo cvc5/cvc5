@@ -1,7 +1,7 @@
 (include "../theories/Builtin.eo")
 
-(declare-type Int ())
-(declare-type Real ())
+(declare-const Int Type)
+(declare-const Real Type)
 
 (declare-consts <numeral> Int)
 (declare-consts <rational> Real)

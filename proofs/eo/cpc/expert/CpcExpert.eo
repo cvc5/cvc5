@@ -16,6 +16,7 @@
 (include "./theories/Bags.eo")
 (include "./theories/FloatingPoints.eo")
 (include "./theories/FiniteFields.eo")
+(include "./theories/Nullables.eo")
 (include "./theories/SepLogic.eo")
 (include "./rules/ArraysExt.eo")
 (include "./rules/Transcendentals.eo")
