@@ -1,5 +1,6 @@
 ; COMMAND-LINE:
 ; COMMAND-LINE: --re-elim=agg
+; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun a () String)

@@ -1,5 +1,6 @@
 ; COMMAND-LINE: 
 ; COMMAND-LINE: --strings-re-derive-conf
+; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic QF_S)
 (set-info :status unsat)
 (declare-fun a () String)

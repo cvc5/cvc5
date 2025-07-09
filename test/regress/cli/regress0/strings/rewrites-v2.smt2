@@ -1,5 +1,6 @@
 ; COMMAND-LINE:
 ; COMMAND-LINE: --ext-rew-pre=use
+; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic SLIA)

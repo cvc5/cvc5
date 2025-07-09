@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --re-elim=on
+; COMMAND-LINE: --re-elim=on --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const a String)

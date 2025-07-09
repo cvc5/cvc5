@@ -1,4 +1,5 @@
 ; COMMAND-LINE:
+; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic QF_SLIA)
 (declare-fun a () String)
 (assert (= (str.len a) 2))

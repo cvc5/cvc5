@@ -1,3 +1,5 @@
+; COMMAND-LINE:
+; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun x () String)
