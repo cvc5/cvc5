@@ -3120,7 +3120,6 @@ class CVC5_EXPORT Grammar
   friend class parser::Cmd;
   friend class Solver;
   friend struct std::hash<Grammar>;
-  friend std::ostream& operator<<(std::ostream& out, const Grammar& grammar);
 
  public:
   /**
