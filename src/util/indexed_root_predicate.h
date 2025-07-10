@@ -14,6 +14,7 @@
  */
 
 #include <cstdint>
+#include <ostream>
 
 #include "cvc5_public.h"
 

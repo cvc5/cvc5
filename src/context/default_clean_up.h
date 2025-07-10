@@ -18,6 +18,8 @@
 #ifndef CVC5__CONTEXT__DEFAULT_CLEAN_UP_H
 #define CVC5__CONTEXT__DEFAULT_CLEAN_UP_H
 
+#include <vector>
+
 namespace cvc5::context {
 
 template <class T>

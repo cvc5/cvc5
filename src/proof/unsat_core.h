@@ -24,12 +24,9 @@
 #include <string>
 #include <vector>
 
-namespace cvc5::internal {
+#include "expr/node.h"
 
-template <bool ref_count>
-class NodeTemplate;
-typedef NodeTemplate<true> Node;
-typedef NodeTemplate<false> TNode;
+namespace cvc5::internal {
 
 /**
  * An unsat core, which can optionally be initialized as a list of names
