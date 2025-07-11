@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -163,6 +164,25 @@ Node TheoryModel::getValue(TNode n) const
                           << "[model-getvalue] returning " << nn << std::endl;
   Assert(nn.getType() == n.getType());
   return nn;
+}
+
+Node TheoryModel::simplify(TNode n) const
+{
+  std::unordered_set<Node> syms;
+  expr::getSymbols(n, syms);
+  // if there are free symbols
+  if (!syms.empty())
+  {
+    // apply a substitution mapping those symbols to their model values
+    Subs subs;
+    for (const Node& s : syms)
+    {
+      subs.add(s, getValue(s));
+    }
+    // rewrite the result
+    return rewrite(subs.apply(n));
+  }
+  return n;
 }
 
 bool TheoryModel::isModelCoreSymbol(Node s) const
