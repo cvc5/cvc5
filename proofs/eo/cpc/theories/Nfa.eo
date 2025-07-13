@@ -1,17 +1,39 @@
-(include "../theories/Strings.eo")
+; Declares a new sort which will be used to represent the states and transitions
+; of the automaton.
+(declare-type Nfa ())
 
-; Nfa operators
+; Declares a sort which represents a single character or a set of characters
+; for an NFA transition.
 (define nfa.char () String)
+
+; Declares the non-accepting trap state (also known as a sink state).
+(declare-const nfa.decline Nfa)
+
+; This represents the terminal or final state of the NFA.
+; A path in the NFA is accepting if it reaches this state.
+(declare-const nfa.accept Nfa)
+
+; Declares a right-associative function to hold a list of states.
+(declare-const nfa.list (-> Nfa Nfa Nfa) :right-assoc-nil nfa.decline)
+
+; Declares a function which takes a character condition and a
+; Nfa arguments. This is the core construct for a state
+; in the NFA. The first char argument specifies the character(s) for a transition
+; from this state. The second Nfa argument is the next state upon a match.
+(declare-const nfa.trans (-> nfa.char Nfa Nfa))
+
+; Declares a transition that can be taken on any character.
 (declare-const nfa.allchar nfa.char)
+
+; Creates a character set for a transition from a given range.
+; The two Int arguments represent Unicode code points, allowing for ranges
+; like 'a' to 'z' or any other character block.
 (declare-const nfa.range (-> Int Int nfa.char))
 
-; Nfa actions
-(declare-const nfa.push nfa.char)
-(declare-const nfa.pop nfa.char)
-(declare-const nfa.none nfa.char)
+; Represents a special epsilon transition that pushes the current state onto the stack.
+; This is used to save the current position, for example, before entering a loop.
+(declare-const nfa.push (-> Nfa Nfa))
 
-; Nfa structure
-(declare-type Nfa ())
-(declare-const nfa.end Nfa)
-(declare-const nfa.list (-> Nfa Nfa Nfa) :right-assoc-nil nfa.end)
-(declare-const nfa.node (-> nfa.char Nfa Nfa))
+; Represents a special epsilon transition that pops a state from the stack.
+; This is used to restore a saved state, for example, upon exiting a loop.
+(declare-const nfa.pop (-> Nfa Nfa))

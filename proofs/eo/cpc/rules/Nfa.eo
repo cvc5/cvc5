@@ -1,6 +1,3 @@
-(include "../theories/Nfa.eo")
-(include "../theories/Strings.eo")
-
 (include "../programs/Nfa.eo")
 
 ; rule: str-in-re-eval-nfa

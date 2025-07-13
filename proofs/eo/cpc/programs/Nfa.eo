@@ -1,41 +1,57 @@
 (include "../theories/Nfa.eo")
 
-; program: $get_trans_rec
+; This program recursively translates a regular expression (RegLan) into its
+; corresponding Nondeterministic Finite Automaton (Nfa) representation.
+;
+; program: $build_nfa
 ; args:
-; - r RegLan: The regular expression to inspect.
-; - t Nfa: The tail of the nfa.
-; return: The nfa that was built from the regex.
-(program $get_trans_rec ((tail Nfa) (s String) (r1 RegLan) (rr RegLan :list) (c0 String) (c1 String))
+; - regex RegLan: The regular expression to translate.
+; - tail Nfa: >
+; The tail represents the "rest of the automaton" that should be
+; connected to the end of the NFA fragment currently being built. For example,
+; when building the NFA for the regex "ab", the function first builds the NFA for "b"
+; with the final accepting state as its tail. Then, it builds the NFA for "a", using 
+; the just created NFA for "b" as its tail. This elegantly links the automaton parts together.
+; return: The Nfa that was built from the regex.
+(program $build_nfa ((tail Nfa) (s String) (r1 RegLan) (rr RegLan :list) (c0 String) (c1 String))
   (RegLan Nfa) Nfa
   (
-    (($get_trans_rec (re.* r1) tail) (eo::cons nfa.list (nfa.node nfa.push ($get_trans_rec r1 (nfa.list (nfa.node nfa.pop tail)))) tail))
-    (($get_trans_rec re.allchar tail) (nfa.list (nfa.node nfa.allchar tail)))
-    (($get_trans_rec re.none tail) (nfa.list (nfa.node nfa.none tail)))
-    (($get_trans_rec (re.union r1 rr) tail) (eo::list_concat nfa.list ($get_trans_rec r1 tail) ($get_trans_rec rr tail)))
-    (($get_trans_rec (re.++ r1 rr) tail) ($get_trans_rec r1 ($get_trans_rec rr tail)))
-    (($get_trans_rec @re.empty tail) tail)
-    (($get_trans_rec (re.range c0 c1) tail) (nfa.list (nfa.node (nfa.range (eo::to_z c0) (eo::to_z c1)) tail)))
-    (($get_trans_rec (str.to_re s) tail)  (nfa.list (nfa.node (eo::extract s 0 0) ($get_trans_rec (str.to_re (eo::extract s 1 (eo::len s))) tail))))
-    (($get_trans_rec re.all tail) ($get_trans_rec (re.* re.allchar) tail))
+    (($build_nfa (re.* r1) tail) (eo::cons nfa.list (nfa.push ($build_nfa r1 (nfa.list (nfa.pop tail)))) tail))
+    (($build_nfa re.allchar tail) (nfa.list (nfa.trans nfa.allchar tail)))
+    (($build_nfa re.none tail) (nfa.list))
+    (($build_nfa (re.union r1 rr) tail) (eo::list_concat nfa.list ($build_nfa r1 tail) ($build_nfa rr tail)))
+    (($build_nfa (re.++ r1 rr) tail) ($build_nfa r1 ($build_nfa rr tail)))
+    (($build_nfa @re.empty tail) tail)
+    (($build_nfa (re.range c0 c1) tail) (nfa.list (nfa.trans (nfa.range (eo::to_z c0) (eo::to_z c1)) tail)))
+    (($build_nfa (str.to_re s) tail)  (nfa.list (nfa.trans (eo::extract s 0 0) ($build_nfa (str.to_re (eo::extract s 1 (eo::len s))) tail))))
+    (($build_nfa re.all tail) ($build_nfa (re.* re.allchar) tail))
   )
 )
 
+; A helper function that computes the epsilon closure for a set of states.
+;
+; This implementation extends the standard concept to handle special actions:
+;  - It recursively follows all reachable states from the input states list.
+;  - It manages the nfa.push and nfa.pop actions by modifying the stack.
+;  - It avoids infinite loops by adding each unique state configuration to the
+;    nexts set only once.
+;
 ; program: $add_to_nexts
 ; args:
-; - states Nfa: The states to add.
-; - stack Nfa: The stack of the states.
-; - nexts Nfa: Current next states.
-; return: next states.
+; - states Nfa:    The list of states to explore for epsilon transitions.
+; - stack Nfa:     The current context stack, used for push and pop actions.
+; - nexts Nfa:     The accumulating set of reachable states (the closure).
+; return: The reachable states from the input states.
 (program $add_to_nexts ((t Nfa) (st Nfa) (tt Nfa :list) (stt Nfa :list) (nexts Nfa))
   (Nfa Nfa Nfa) Nfa
   (
-    (($add_to_nexts nfa.end st nexts) nexts)
-    (($add_to_nexts (nfa.list (nfa.node nfa.push t) tt) st nexts) 
+    (($add_to_nexts nfa.decline st nexts) nexts)
+    (($add_to_nexts (nfa.list (nfa.push t) tt) st nexts) 
       ($add_to_nexts tt st ($add_to_nexts t (eo::cons nfa.list t st) nexts))
     )
-    (($add_to_nexts (nfa.list (nfa.node nfa.pop t) tt) (nfa.list st stt) nexts)
-      (eo::ite (eo::is_neg (eo::list_find nfa.list nexts (nfa.list (nfa.node nfa.pop t) (nfa.list st stt))))
-        ($add_to_nexts (eo::list_concat nfa.list st tt) (nfa.list st stt) (eo::cons nfa.list (nfa.list (nfa.node nfa.pop t) (nfa.list st stt)) ($add_to_nexts t stt nexts)))
+    (($add_to_nexts (nfa.list (nfa.pop t) tt) (nfa.list st stt) nexts)
+      (eo::ite (eo::is_neg (eo::list_find nfa.list nexts (nfa.list (nfa.pop t) (nfa.list st stt))))
+        ($add_to_nexts (eo::list_concat nfa.list st tt) (nfa.list st stt) (eo::cons nfa.list (nfa.list (nfa.pop t) (nfa.list st stt)) ($add_to_nexts t stt nexts)))
         ($add_to_nexts tt (nfa.list st stt) nexts)
       )
     )
@@ -48,46 +64,35 @@
   )
 )
 
-; program: $match
+; Simulates the NFA to determine if it accepts an input string.
+;
+; The simulation moves character by character, with each step's next_states
+; becoming the next step's current_states. The match is successful if an
+; accepting state is reached at the end of the string.
+; program: $nfa_match
 ; args:
-; - c String: Current char.
-; - s String: Remaining of the string.
-; - current_states Nfa: Current states of the nfa.
-; - next_states Nfa: Next states of the nfa.
-; return: true if s is macthed by the nfa.
-(program $match ((c String) (s String) (nexts Nfa) (tt Nfa :list) (t Nfa)
+; - c String:              The character being evaluated in the current step.
+; - s String:              The remaining part of the input string.
+; - current_states Nfa:    The states the NFA is currently in. For each of these,
+;                          the function checks for valid transitions based on the current character.
+; - next_states Nfa:       An accumulating list of states the NFA will be in after the current character is processed.
+; return: True if the NFA accepts the string, false otherwise.
+(program $nfa_match ((c String) (s String) (nexts Nfa) (tt Nfa :list) (t Nfa)
                 (st Nfa) (z0 Int) (z1 Int))
   (nfa.char String Nfa Nfa) Bool ; current_char rest_string current_states next_states transitions -> end_states
   (
-    (($match c s nfa.end nfa.end) false)
-    (($match c "" nfa.end nexts) (eo::not (eo::is_neg (eo::list_find nfa.list nexts (nfa.list nfa.end nfa.end)))))
-    (($match "" s t nfa.end) ($match "" s nfa.end ($add_to_nexts t nfa.end nfa.end)))
-    (($match c s nfa.end nexts) ($match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts nfa.end))
-    (($match c s (nfa.list (nfa.list (nfa.node c t) st) tt) nexts)  ($match c s tt ($add_to_nexts t st nexts)))
-    (($match c s (nfa.list (nfa.list (nfa.node nfa.allchar t) st) tt) nexts)  ($match c s tt ($add_to_nexts t st nexts)))
-    (($match c s (nfa.list (nfa.list (nfa.node (nfa.range z0 z1) t) st) tt) nexts)
+    (($nfa_match c s nfa.decline nfa.decline) false)
+    (($nfa_match c "" nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find nfa.list nexts (nfa.list nfa.accept nfa.decline)))))
+    (($nfa_match "" s t nfa.decline) ($nfa_match "" s nfa.decline ($add_to_nexts t nfa.decline nfa.decline)))
+    (($nfa_match c s nfa.decline nexts) ($nfa_match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts nfa.decline))
+    (($nfa_match c s (nfa.list (nfa.list (nfa.trans c t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (nfa.list (nfa.list (nfa.trans nfa.allchar t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (nfa.list (nfa.list (nfa.trans (nfa.range z0 z1) t) st) tt) nexts)
       (eo::ite (eo::and ($compare_geq (eo::to_z c) z0) ($compare_geq z1 (eo::to_z c)))  
-        ($match c s tt ($add_to_nexts t st nexts))
-        ($match c s tt nexts))
+        ($nfa_match c s tt ($add_to_nexts t st nexts))
+        ($nfa_match c s tt nexts))
     )
-    (($match c s (nfa.list t tt) nexts)  ($match c s tt nexts))
-  )
-)
-
-; program: $is_extended
-; args:
-; - r RegLan: The regex to inspect.
-; return: true if r is an extended regex.
-(program $is_extended ((r RegLan) (rr RegLan :list))
-  (RegLan) Bool
-  (
-    (($is_extended (re.union r rr)) (eo::or ($is_extended r) ($is_extended rr)))
-    (($is_extended (re.++ r rr)) (eo::or ($is_extended r) ($is_extended rr)))
-    (($is_extended (re.* r)) ($is_extended r))
-    (($is_extended (re.comp r)) true)
-    (($is_extended (re.inter r rr)) true)
-    (($is_extended (re.+ r)) ($is_extended r))
-    (($is_extended r) false)
+    (($nfa_match c s (nfa.list t tt) nexts)  ($nfa_match c s tt nexts))
   )
 )
 
@@ -101,10 +106,12 @@
   (String RegLan) Bool
   (
     (($str_eval_str_in_re_nfa s r)  
-                                    (eo::ite ($is_extended r)
-                                    ($str_eval_str_in_re s r)
-                                    ($match "" s ($get_trans_rec r (nfa.list nfa.end)) nfa.end))
-                                    
+      (eo::define ((nfa ($build_nfa r (nfa.list nfa.accept))))
+        (eo::ite (eo::is_ok nfa)
+          ($nfa_match "" s nfa nfa.decline)
+          ($str_eval_str_in_re s r)
+        )
+      )
     )
   )
 )
