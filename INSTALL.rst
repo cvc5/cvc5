@@ -347,6 +347,10 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-programoutput <https://sphinxcontrib-programoutput.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
+If ``--auto-download`` is given, Sphinx, the Sphinx extensions, and Breathe will be installed
+automatically in a virtual Python environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
+
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
 run ``make docs`` from within the build directory.
 
