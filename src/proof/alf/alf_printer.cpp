@@ -629,7 +629,8 @@ std::string AlfPrinter::getRuleName(const ProofNode* pfn) const
   {
     ProofRewriteRule id;
     rewriter::getRewriteRule(pfn->getArguments()[0], id);
-    if (id == ProofRewriteRule::STR_IN_RE_EVAL && options().proof.proofCpcStrInReNfa)
+    if (id == ProofRewriteRule::STR_IN_RE_EVAL
+        && options().proof.proofCpcStrInReNfa)
     {
       id = ProofRewriteRule::STR_IN_RE_EVAL_NFA;
     }
