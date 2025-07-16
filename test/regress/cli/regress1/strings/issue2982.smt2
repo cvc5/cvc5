@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --re-elim=agg
-; COMMAND-LINE: --re-elim=agg --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 

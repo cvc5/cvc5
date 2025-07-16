@@ -343,7 +343,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";
     case ProofRewriteRule::RE_UNION_INCLUSION: return "re-union-inclusion";
     case ProofRewriteRule::STR_IN_RE_EVAL: return "str-in-re-eval";
-    case ProofRewriteRule::STR_IN_RE_EVAL_NFA: return "str-in-re-eval-nfa";
     case ProofRewriteRule::STR_IN_RE_CONSUME: return "str-in-re-consume";
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
       return "str-in-re-concat-star-char";

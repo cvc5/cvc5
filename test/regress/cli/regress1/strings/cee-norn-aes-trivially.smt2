@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --arith-eq-solver --ee-mode=distributed
 ; COMMAND-LINE: --arith-eq-solver --ee-mode=central
-; COMMAND-LINE: --arith-eq-solver --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun v () String)

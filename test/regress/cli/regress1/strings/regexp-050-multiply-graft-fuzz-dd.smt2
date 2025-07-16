@@ -1,5 +1,4 @@
 ; COMMAND-LINE:
-; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

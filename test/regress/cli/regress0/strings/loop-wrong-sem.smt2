@@ -1,5 +1,3 @@
-; COMMAND-LINE:
-; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic ALL)
 (set-info :status unsat)
 (assert (str.in_re "" ((_ re.loop 1 0) (str.to_re ""))))

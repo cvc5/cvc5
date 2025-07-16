@@ -1,5 +1,4 @@
 ; COMMAND-LINE:
-; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic QF_SLIA)
 (declare-const x String)
 (assert (or

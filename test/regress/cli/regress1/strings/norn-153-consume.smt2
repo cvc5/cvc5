@@ -1,5 +1,3 @@
-; COMMAND-LINE:
-; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 (declare-fun var_4 () String)

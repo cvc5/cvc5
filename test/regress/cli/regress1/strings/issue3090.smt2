@@ -1,5 +1,3 @@
-; COMMAND-LINE:
-; COMMAND-LINE: --proof-cpc-str-in-re-nfa
 (set-logic ALL)
 
 (set-info :status unsat)

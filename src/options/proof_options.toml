@@ -269,11 +269,3 @@ name   = "Proof"
   type       = "uint64_t"
   default    = "2"
   help       = "the lookahead depth for merging proofs at previsit"
-
-[[option]]
-  name       = "proofCpcStrInReNfa"
-  category   = "expert"
-  long       = "proof-cpc-str-in-re-nfa"
-  type       = "bool"
-  default    = "false"
-  help       = "Enable proof steps that use NFA-based regular expression matching when possible"
