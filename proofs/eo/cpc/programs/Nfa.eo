@@ -1,3 +1,5 @@
+(include "../programs/Strings.eo")
+
 ; Declares a new sort which will be used to represent the states and transitions
 ; of the automaton.
 (declare-type @Nfa ())
