@@ -47,9 +47,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
-      d_arithEntail(env.getNodeManager(),
-                    d_env.getRewriter(),
-                    options().strings.stringRecArithApprox),
+      d_arithEntail(
+          env.getNodeManager(),
+          options().strings.stringRecArithApprox ? env.getRewriter() : nullptr,
+          options().strings.stringRecArithApprox),
       d_strEntail(d_env.getRewriter(), d_arithEntail),
       d_rewriter(env.getNodeManager(),
                  d_arithEntail,
@@ -96,9 +97,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_absModelCounter(0),
       d_strGapModelCounter(0),
       d_cpacb(*this),
-      d_psrewPg(env.isTheoryProofProducing() ? new TrustProofGenerator(
-                    env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
-                                             : nullptr)
+      d_psrewPg(env.isTheoryProofProducing()
+                    ? new TrustProofGenerator(
+                          env, TrustId::STRINGS_PP_STATIC_REWRITE, {})
+                    : nullptr)
 {
   d_termReg.finishInit(&d_im);
 
@@ -317,7 +319,7 @@ bool TheoryStrings::collectModelInfoType(
   std::vector<std::vector<Node>> col;
   std::vector<Node> lts;
   const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
-  mc->separateByLength(repVec, col, lts);
+  mc->separateByLength(m, repVec, col, lts);
   Assert(col.size() == lts.size());
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;

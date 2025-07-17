@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Daniel Larraz, Andrew Reynolds, Aina Niemetz
+#   Daniel Larraz, Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
@@ -18,7 +18,7 @@ import cvc5
 
 if __name__ == "__main__":
     tm = cvc5.TermManager()
-    slv = cvc5.Solver()
+    slv = cvc5.Solver(tm)
 
     # set that we should print success after each successful command
     slv.setOption("print-success", "true")

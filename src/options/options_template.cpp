@@ -35,7 +35,7 @@ ${holder_ref_inits}$
         d_handler(std::make_unique<options::OptionsHandler>(this))
   {
 #ifdef CVC5_SAFE_MODE
-    d_base->safeOptions = true;
+    d_base->safeMode = options::SafeMode::SAFE;
 #endif
   }
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -29,7 +29,7 @@ int main(void)
   Term val = tm.mkBitVector(32, "10000000110010111010111011000101", 2);
   Term t1 = tm.mkFloatingPoint(8, 24, val);
   Term t2 = tm.mkConst(s1);
-  Term t4 = tm.mkTerm(Kind::BITVECTOR_TO_NAT, {t2});
+  Term t4 = tm.mkTerm(Kind::BITVECTOR_UBV_TO_INT, {t2});
   Term t5 = tm.mkTerm(Kind::STRING_FROM_CODE, {t4});
   Term t6 = slv.simplify(t5);
   Term t7 = tm.mkTerm(Kind::STRING_LEQ, {t5, t6});

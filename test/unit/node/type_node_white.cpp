@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -35,7 +35,7 @@ class TestNodeWhiteTypeNode : public TestNode
   void SetUp() override
   {
     TestNode::SetUp();
-    d_slvEngine.reset(new SolverEngine);
+    d_slvEngine.reset(new SolverEngine(d_nodeManager.get()));
   }
   std::unique_ptr<SolverEngine> d_slvEngine;
 };

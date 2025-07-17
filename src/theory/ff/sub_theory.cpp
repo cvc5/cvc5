@@ -63,6 +63,9 @@ Result SubTheory::postCheck(Theory::Effort e)
 {
   d_conflict.clear();
   d_model.clear();
+  // on some branches, we'll overwrite this result
+  Result result = {
+      Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON, "internal"};
   if (e == Theory::EFFORT_FULL)
   {
     try
@@ -72,11 +75,11 @@ Result SubTheory::postCheck(Theory::Effort e)
       {
         std::vector<Node> facts{};
         std::copy(d_facts.begin(), d_facts.end(), std::back_inserter(facts));
-        auto result = split(facts, size(), d_env);
-        if (result.has_value())
+        const auto optModel = split(facts, size(), d_env);
+        if (optModel.has_value())
         {
           const auto nm = nodeManager();
-          for (const auto& [var, val] : result.value())
+          for (const auto& [var, val] : optModel.value())
           {
             d_model.insert({var, nm->mkConst<FiniteFieldValue>(val)});
           }
@@ -113,7 +116,7 @@ Result SubTheory::postCheck(Theory::Effort e)
           for (const auto& var : CoCoA::indets(enc.polyRing()))
           {
             CoCoA::BigInt characteristic = CoCoA::characteristic(coeffRing());
-            long power = CoCoA::LogCardinality(coeffRing());
+            const long power = CoCoA::LogCardinality(coeffRing());
             CoCoA::BigInt size = CoCoA::power(characteristic, power);
             generators.push_back(CoCoA::power(var, size) - var);
           }
@@ -129,6 +132,7 @@ Result SubTheory::postCheck(Theory::Effort e)
         if (is_trivial)
         {
           Trace("ff::gb") << "Trivial GB" << std::endl;
+          result = Result::UNSAT;
           if (options().ff.ffTraceGb)
           {
             std::vector<size_t> coreIndices = tracer.trace(basis.front());
@@ -163,12 +167,13 @@ Result SubTheory::postCheck(Theory::Effort e)
 
           if (root.empty())
           {
-            // UNSAT
+            result = Result::UNSAT;
             setTrivialConflict();
           }
           else
           {
-            // SAT: populate d_model from the root
+            result = Result::SAT;
+            // populate d_model from the root
             Assert(d_model.empty());
             const auto nm = nodeManager();
             Trace("ff::model") << "Model GF(" << size() << "):" << std::endl;
@@ -189,9 +194,8 @@ Result SubTheory::postCheck(Theory::Effort e)
       {
         Unreachable() << options().ff.ffSolver << std::endl;
       }
-      AlwaysAssert((!d_conflict.empty() ^ !d_model.empty()) || d_facts.empty());
-      return d_facts.empty() || d_conflict.empty() ? Result::SAT
-                                                   : Result::UNSAT;
+      AlwaysAssert(result.getStatus() != Result::UNKNOWN);
+      return result;
     }
     catch (FfTimeoutException& exc)
     {

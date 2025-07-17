@@ -156,8 +156,9 @@ class Op(Enum):
     BOUND_VARS = (None, 'BOUND_VAR_LIST')
     DISTINCT = ('distinct', 'DISTINCT')
 
-    BV_TO_NAT = ('bv2nat', 'BITVECTOR_TO_NAT')
-    INT_TO_BV = ('int2bv', 'INT_TO_BITVECTOR')
+    UBV_TO_INT = ('ubv_to_int', 'BITVECTOR_UBV_TO_INT')
+    SBV_TO_INT = ('sbv_to_int', 'BITVECTOR_SBV_TO_INT')
+    INT_TO_BV = ('int_to_bv', 'INT_TO_BITVECTOR')
     
     TYPE_OF = ('@type_of', 'TYPE_OF')
 

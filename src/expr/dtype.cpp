@@ -565,11 +565,17 @@ CardinalityClass DType::getCardinalityClass(TypeNode t) const
   // if we have one constructor and FINITE otherwise.
   CardinalityClass c = d_constructors.size() == 1 ? CardinalityClass::ONE
                                                   : CardinalityClass::FINITE;
+  Trace("datatypes-card-class")
+      << "Compute cardinality class of " << t << "..." << std::endl;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     CardinalityClass cc = ctor->getCardinalityClass(t);
+    Trace("datatypes-card-class")
+        << "- constructor " << ctor->getName() << " is " << cc << std::endl;
     c = maxCardinalityClass(c, cc);
   }
+  Trace("datatypes-card-class")
+      << "Cardinality class of " << t << " is " << c << std::endl;
   d_cardClass[t] = c;
   return c;
 }
@@ -921,7 +927,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   }
   // make the shared selector
   Node s;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = dtt.getNodeManager();
   std::stringstream ss;
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();

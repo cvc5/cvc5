@@ -8,5 +8,5 @@
 (declare-fun o () (_ BitVec 1))
 (declare-fun o1 () (_ BitVec 1))
 (declare-fun o2 () gs)
-(assert (= (g o2) (ite (< 0 (+ (bv2nat o1) (bv2nat o))) (+ (bv2nat o1) (bv2nat o1)) 0)))
+(assert (= (g o2) (ite (< 0 (+ (ubv_to_int o1) (ubv_to_int o))) (+ (ubv_to_int o1) (ubv_to_int o1)) 0)))
 (check-sat)

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -36,7 +36,7 @@ TEST_F(TestNodeWhiteNode, copy_ctor) { Node e(Node::s_null); }
 
 TEST_F(TestNodeWhiteNode, builder)
 {
-  NodeBuilder b(d_nodeManager);
+  NodeBuilder b(d_nodeManager.get());
   ASSERT_TRUE(b.d_nv->getId() == 0);
   ASSERT_TRUE(b.d_nv->getKind() == Kind::UNDEFINED_KIND);
   ASSERT_EQ(b.d_nv->d_nchildren, 0u);

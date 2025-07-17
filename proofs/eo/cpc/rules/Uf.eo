@@ -15,6 +15,18 @@
 
 ;;;;; ProofRule::SYMM
 
+; program: $mk_symm
+; args:
+; - E Bool: An equality or disequality.
+; return: The result of flipping the equality or disequality.
+(program $mk_symm ((T Type) (t1 T) (t2 T))
+  :signature (Bool) Bool
+  (
+    (($mk_symm (= t1 t2))       (= t2 t1))
+    (($mk_symm (not (= t1 t2))) (not (= t2 t1)))
+  )
+)
+
 ; rule: symm
 ; implements: ProofRule::SYMM
 ; args:
@@ -22,13 +34,7 @@
 ; conclusion: The inverted version of the (dis)equality F.
 (declare-rule symm ((F Bool))
     :premises (F)
-    :conclusion
-        (eo::match ((T Type) (t1 T) (t2 T))
-            F
-            (
-                ((= t1 t2)       (= t2 t1))
-                ((not (= t1 t2)) (not (= t2 t1)))
-            ))
+    :conclusion ($mk_symm F)
 )
 
 ;;;;; ProofRule::TRANS
@@ -43,7 +49,7 @@
 ;   hand side. Each additional equality checks that its left hand side matches
 ;   the current right hand side.
 (program $mk_trans ((U Type) (t1 U) (t2 U) (t3 U) (t4 U) (tail Bool :list))
-    (U U Bool) Bool
+    :signature (U U Bool) Bool
     (
         (($mk_trans t1 t2 (and (= t3 t4) tail))
             (eo::requires t2 t3 ($mk_trans t1 t4 tail)))
@@ -59,12 +65,9 @@
 ;   An equality between the left hand side of the first equality
 ;   and the right hand side of the last equality, assuming that the right hand
 ;   side of each equality matches the left hand side of the one that follows it.
-(declare-rule trans ((T Type) (U Type) (E Bool) (f (-> T U)))
-    :premise-list E and
-    :conclusion
-        (eo::match ((t1 U) (t2 U) (tail Bool :list))
-        E
-        (((and (= t1 t2) tail) ($mk_trans t1 t2 tail))))
+(declare-rule trans ((T Type) (t1 T) (t2 T) (tail Bool :list))
+    :premise-list (and (= t1 t2) tail) and
+    :conclusion ($mk_trans t1 t2 tail)
 )
 
 ;;;;; ProofRule::CONG
@@ -76,7 +79,7 @@
 ; return: >
 ;   The right hand side of the equality.
 (program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (t3 U) (tail Bool :list))
-    (U Bool) U
+    :signature (U Bool) U
     (
         (($mk_cong_rhs (f t1) (and (= t1 t2) tail))  (_ ($mk_cong_rhs f tail) t2))
         (($mk_cong_rhs f true)                       f)
@@ -99,7 +102,7 @@
 (declare-rule cong ((U Type) (E Bool) (t U))
     :premise-list E and
     :args (t)
-    :conclusion (= t ($mk_cong_rhs t ($nary_reverse E)))
+    :conclusion (= t ($mk_cong_rhs t (eo::list_rev and E)))
 )
 
 ;;;;; ProofRule::NARY_CONG
@@ -112,7 +115,7 @@
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
 (program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
-    (U Bool) U
+    :signature (U Bool) U
     (
         (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (eo::cons f s2 ($mk_nary_cong_rhs t tail)))
         (($mk_nary_cong_rhs nil true)                       nil)
@@ -197,11 +200,10 @@
 ;   An equality where the original terms are applied to the left and
 ;   right hand sides of the equalities given by E.
 (program $mk_ho_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
-    (U U Bool) Bool
+    :signature (U U Bool) Bool
     (
         (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
         (($mk_ho_cong t1 t2 true)                 (= t1 t2))
-        (($mk_ho_cong f1 f2 (= t1 t2))            (= (f1 t1) (f2 t2)))
     )
 )
 
@@ -214,13 +216,10 @@
 ;   the premises E. Note that the first equality in E should be an equality
 ;   between the functions that are respectively applied to the arguments given by
 ;   the remaining equalities.
-(declare-rule ho_cong ((T Type) (U Type) (E Bool) (f (-> T U)))
-    :premise-list E and
+(declare-rule ho_cong ((T Type) (t1 T) (t2 T) (tail Bool :list))
+    :premise-list (and (= t1 t2) tail) and
     :args ()
-    :conclusion
-        (eo::match ((t1 U) (t2 U) (tail Bool :list))
-        E
-        (((and (= t1 t2) tail) ($mk_ho_cong t1 t2 tail))))
+    :conclusion ($mk_ho_cong t1 t2 tail)
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
@@ -233,7 +232,7 @@
 ;   The distinct function is already treated as pairwise, thus we only need to convert from
 ;   binary distinct to disequalities.
 (program $mk_distinct-elim ((T Type) (x T) (y T) (b Bool :list))
-  (Bool) Bool
+  :signature (Bool) Bool
   (
   (($mk_distinct-elim (and (distinct x y) b))   (eo::cons and (not (= x y)) ($mk_distinct-elim b)))
   (($mk_distinct-elim true)                     true)
@@ -262,7 +261,7 @@
 ;   coincide with the arguments of its body, and its body is an application of
 ;   the right hand side of the equality.
 ; conclusion: The given equality.
-(declare-rule lambda-elim ((T Type) (U Type) (x @List) (t T) (f U))
+(declare-rule lambda-elim ((T Type) (U Type) (V Type) (x @List) (t T) (f (-> U V)))
   :args ((= (lambda x t) f))
   :requires ((($get_arg_list t) x) (($is_app f t) true))
   :conclusion (= (lambda x t) f)

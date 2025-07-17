@@ -45,6 +45,7 @@ const char* toString(Rewrite r)
     case Rewrite::CTN_REPL_TO_CTN_DISJ: return "CTN_REPL_TO_CTN_DISJ";
     case Rewrite::CTN_RHS_EMPTYSTR: return "CTN_RHS_EMPTYSTR";
     case Rewrite::CTN_RPL_NON_CTN: return "CTN_RPL_NON_CTN";
+    case Rewrite::CTN_CONCAT_CTN_SUBSTR: return "CTN_CONCAT_CTN_SUBSTR";
     case Rewrite::CTN_SPLIT: return "CTN_SPLIT";
     case Rewrite::CTN_SPLIT_ONES: return "CTN_SPLIT_ONES";
     case Rewrite::CTN_STRIP_ENDPT: return "CTN_STRIP_ENDPT";

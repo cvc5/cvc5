@@ -450,7 +450,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 Node DatatypesRewriter::expandMatch(Node in)
 {
   Assert(in.getKind() == Kind::MATCH);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = in.getNodeManager();
   // ensure we've type checked
   TypeNode tin = in.getType();
   Node h = in[0];
@@ -903,7 +903,7 @@ Node DatatypesRewriter::normalizeConstant(Node n)
       }
       if (childrenChanged)
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return n.getNodeManager()->mkNode(n.getKind(), children);
       }
     }
   }
@@ -952,8 +952,7 @@ Node DatatypesRewriter::collectRef(Node n,
         sk.pop_back();
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR,
-                                                 children);
+          ret = n.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
           if (!rf_pending.back().isNull())
           {
             rf[rf_pending.back()] = ret;
@@ -984,7 +983,7 @@ Node DatatypesRewriter::collectRef(Node n,
         Node r = rf_pending[rf_pending.size() - 1 - index];
         if (r.isNull())
         {
-          r = NodeManager::currentNM()->mkBoundVar(tns);
+          r = n.getNodeManager()->mkBoundVar(tns);
           rf_pending[rf_pending.size() - 1 - index] = r;
         }
         return r;
@@ -1014,7 +1013,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     if (it != eqc_stack.end())
     {
       int debruijn = depth - it->second - 1;
-      return NodeManager::currentNM()->mkConst(
+      return n.getNodeManager()->mkConst(
           CodatatypeBoundVariable(n.getType(), debruijn));
     }
     std::vector<Node> children;
@@ -1031,7 +1030,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
       children.insert(children.begin(), n.getOperator());
-      return NodeManager::currentNM()->mkNode(n.getKind(), children);
+      return n.getNodeManager()->mkNode(n.getKind(), children);
     }
   }
   return n;

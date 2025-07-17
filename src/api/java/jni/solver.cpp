@@ -17,6 +17,7 @@
 
 #include "api/java/jni/api_utilities.h"
 #include "api_plugin.h"
+#include "api_solver.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
 
@@ -33,7 +34,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   TermManager* tm = reinterpret_cast<TermManager*>(tmPointer);
-  Solver* solver = new Solver(*tm);
+  ApiSolver* solver = new ApiSolver(*tm);
   return reinterpret_cast<jlong>(solver);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -47,8 +48,9 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
-  ApiManager::currentAM()->deletePointer(env, pointer);
-  delete (reinterpret_cast<Solver*>(pointer));
+  ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
+  api_solver->deletePointers(env);
+  delete api_solver;
 }
 
 /*
@@ -1024,9 +1026,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  ApiManager* am = ApiManager::currentAM();
-  jobject oracleReference = am->addGlobalReference(env, pointer, oracle);
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
+  jobject oracleReference = api_solver->addGlobalReference(env, oracle);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
@@ -1037,7 +1038,7 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
         return term;
       };
   Term* retPointer =
-      new Term(solver->declareOracleFun(cSymbol, sorts, *sort, fn));
+      new Term(api_solver->declareOracleFun(cSymbol, sorts, *sort, fn));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1055,13 +1056,12 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
                                      jobject plugin)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
-  ApiManager* am = ApiManager::currentAM();
-  jobject pluginReference = am->addGlobalReference(env, pointer, plugin);
+  ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
+  TermManager* tm = reinterpret_cast<TermManager*>(termManagerPointer);
+  jobject pluginReference = api_solver->addGlobalReference(env, plugin);
   ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
-  am->addPluginPointer(pointer, reinterpret_cast<jlong>(p));
-  solver->addPlugin(*p);
+  api_solver->addPluginPointer(reinterpret_cast<jlong>(p));
+  api_solver->addPlugin(*p);
 
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
+ *   Andrew Reynolds, Lydia Kondylidou, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -313,7 +313,9 @@ bool MbqiEnum::constructInstantiation(
       }
     } while (!success);
   }
-  return true;
+  // try the instantiation
+  return d_parent.tryInstantiation(
+      q, mvs, InferenceId::QUANTIFIERS_INST_MBQI_ENUM, mvFreshVar);
 }
 }  // namespace quantifiers
 }  // namespace theory

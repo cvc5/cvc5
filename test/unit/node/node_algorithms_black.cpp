@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Daniel Larraz
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -38,10 +38,12 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::MULT), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD, Kind::MULT), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::MULT), n);
+    EXPECT_EQ(
+        expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD, Kind::MULT),
+        n);
 
     {
       std::vector<TNode> children;
@@ -79,10 +81,12 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
     EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
-    EXPECT_NE(expr::algorithm::flatten(d_nodeManager, n), n);
-    EXPECT_NE(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::MULT), n);
-    EXPECT_NE(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD, Kind::MULT), n);
+    EXPECT_NE(expr::algorithm::flatten(d_nodeManager.get(), n), n);
+    EXPECT_NE(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::MULT), n);
+    EXPECT_NE(
+        expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD, Kind::MULT),
+        n);
 
     {
       std::vector<TNode> children;
@@ -123,10 +127,12 @@ TEST_F(TestNodeBlackNodeAlgorithms, flatten)
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::ADD));
     EXPECT_FALSE(expr::algorithm::canFlatten(n, Kind::MULT));
     EXPECT_TRUE(expr::algorithm::canFlatten(n, Kind::ADD, Kind::MULT));
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD), n);
-    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager, n, Kind::MULT), n);
-    EXPECT_NE(expr::algorithm::flatten(d_nodeManager, n, Kind::ADD, Kind::MULT), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD), n);
+    EXPECT_EQ(expr::algorithm::flatten(d_nodeManager.get(), n, Kind::MULT), n);
+    EXPECT_NE(
+        expr::algorithm::flatten(d_nodeManager.get(), n, Kind::ADD, Kind::MULT),
+        n);
 
     {
       std::vector<TNode> children;

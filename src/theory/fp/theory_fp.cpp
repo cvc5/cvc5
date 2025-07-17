@@ -42,7 +42,7 @@ namespace fp {
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
-      d_wordBlaster(new FpWordBlaster(userContext())),
+      d_wordBlaster(new FpWordBlaster(nodeManager(), userContext())),
       d_registeredTerms(userContext()),
       d_abstractionMap(userContext()),
       d_rewriter(nodeManager(), userContext(), options().fp.fpExp),
@@ -590,7 +590,7 @@ void TheoryFp::preRegisterTerm(TNode node)
     std::stringstream ss;
     ss << "Floating points not available in this configuration, try "
           "--fp.";
-    throw LogicException(ss.str());
+    throw SafeLogicException(ss.str());
   }
   if (!options().fp.fpExp)
   {

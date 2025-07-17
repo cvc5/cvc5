@@ -178,7 +178,7 @@ class BooleanSimplification
     {
       // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
       buffer.push_back(
-          NodeManager::currentNM()->mkConst(k == Kind::AND ? true : false));
+          n.getNodeManager()->mkConst(k == Kind::AND ? true : false));
     }
   } /* push_back_associative_commute() */
 
@@ -201,7 +201,7 @@ class BooleanSimplification
     }
     if (n.isConst())
     {
-      return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
+      return n.getNodeManager()->mkConst(!n.getConst<bool>());
     }
     if (polarity)
     {

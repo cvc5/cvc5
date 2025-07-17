@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
+ *   Mudathir Mohamed, Aina Niemetz, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -37,7 +37,7 @@ namespace bags {
 Node BagsUtils::computeDisjointUnion(TypeNode bagType,
                                      const std::vector<Node>& bags)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = bagType.getNodeManager();
   if (bags.empty())
   {
     return nm->mkConst(EmptyBag(bagType));
@@ -229,7 +229,7 @@ Node BagsUtils::constructConstantBagFromElements(
     TypeNode t, const std::map<Node, Rational>& elements)
 {
   Assert(t.isBag());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   if (elements.empty())
   {
     return nm->mkConst(EmptyBag(t));
@@ -249,7 +249,7 @@ Node BagsUtils::constructBagFromElements(TypeNode t,
                                          const std::map<Node, Node>& elements)
 {
   Assert(t.isBag());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   if (elements.empty())
   {
     return nm->mkConst(EmptyBag(t));
@@ -271,7 +271,7 @@ Node BagsUtils::evaluateMakeBag(TNode n)
   // here we handle the case where the multiplicity is zero or negative
   Assert(n.getKind() == Kind::BAG_MAKE && !n.isConst()
          && n[1].getConst<Rational>().sgn() < 1);
-  Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
+  Node emptybag = n.getNodeManager()->mkConst(EmptyBag(n.getType()));
   return emptybag;
 }
 
@@ -289,7 +289,7 @@ Node BagsUtils::evaluateBagCount(TNode n)
   std::map<Node, Rational> elements = getBagElements(n[1]);
   std::map<Node, Rational>::iterator it = elements.find(n[0]);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (it != elements.end())
   {
     Node count = nm->mkConstInt(it->second);
@@ -622,7 +622,7 @@ Node BagsUtils::evaluateCard(TNode n)
     sum += element.second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node sumNode = nm->mkConstInt(sum);
   return sumNode;
 }
@@ -643,7 +643,7 @@ Node BagsUtils::evaluateBagMap(TNode n)
   std::map<Node, Rational> elements = BagsUtils::getBagElements(n[1]);
   std::map<Node, Rational> mappedElements;
   std::map<Node, Rational>::iterator it = elements.begin();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   while (it != elements.end())
   {
     Node mappedElement = nm->mkNode(Kind::APPLY_UF, n[0], it->first);
@@ -668,7 +668,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
   Node P = n[0];
   Node A = n[1];
   TypeNode bagType = A.getType();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node empty = nm->mkConst(EmptyBag(bagType));
 
   std::map<Node, Rational> elements = getBagElements(n[1]);
@@ -723,7 +723,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
 Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 {
   Assert(n.getKind() == Kind::BAG_PARTITION);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
 
   // Examples
   // --------
@@ -911,7 +911,7 @@ Node BagsUtils::evaluateGroup(TNode n)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
 
   Node A = n[0];
   TypeNode bagType = A.getType();

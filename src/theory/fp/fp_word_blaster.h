@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Mathias Preiner
+ *   Martin Brain, Daniel Larraz, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -84,6 +84,33 @@ class traits
 
 // Use the same type names as symfpu.
 typedef traits::bwt bwt;
+
+/**
+ * Utility class to work around the fact that SymFPU does not maintain state
+ * but needs access to the current NodeManager
+ */
+class SymFpuNM
+{
+ public:
+  static thread_local NodeManager* s_nm;
+
+  SymFpuNM(NodeManager* nm)
+  {
+    d_prev_nm = s_nm;
+    s_nm = nm;
+  }
+
+  ~SymFpuNM() { s_nm = d_prev_nm; }
+
+  static NodeManager* get()
+  {
+    assert(s_nm != nullptr);
+    return s_nm;
+  }
+
+ private:
+  NodeManager* d_prev_nm = nullptr;
+};
 
 /**
  * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
@@ -255,7 +282,7 @@ class floatingPointTypeInfo : public FloatingPointSize
   floatingPointTypeInfo(unsigned exp, unsigned sig);
   floatingPointTypeInfo(const floatingPointTypeInfo& old);
 
-  TypeNode getTypeNode(void) const;
+  TypeNode getTypeNode(NodeManager* nm) const;
 };
 }  // namespace symfpuSymbolic
 
@@ -274,7 +301,7 @@ class FpWordBlaster
 {
  public:
   /** Constructor. */
-  FpWordBlaster(context::UserContext*);
+  FpWordBlaster(NodeManager* nm, context::UserContext*);
   /** Destructor. */
   ~FpWordBlaster();
 
@@ -304,6 +331,7 @@ class FpWordBlaster
   typedef context::CDHashMap<Node, ubv> ubvMap;
   typedef context::CDHashMap<Node, sbv> sbvMap;
 
+  NodeManager* d_nm;
   fpMap d_fpMap;
   rmMap d_rmMap;
   boolMap d_boolMap;

@@ -202,7 +202,7 @@ Node SortProperties::mkGroundTerm(TypeNode type)
 {
   // we typically use this method for sorts, although there are other types
   // where it is used as well, e.g. arrays that are not closed enumerable.
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = type.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals;
   cacheVals.push_back(nm->mkConst(SortToTerm(type)));

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Leni Aniva, Haniel Barbosa
+ *   Andrew Reynolds, Leni Aniva, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -27,11 +27,9 @@ namespace cvc5::internal {
 namespace rewriter {
 
 // clang-format off
-void ${rewrite_name}$(RewriteDb& db)
+void ${rewrite_name}$(NodeManager* nm, RewriteDb& db)
 // clang-format on
 {
-  NodeManager* nm = NodeManager::currentNM();
-
   // Variables
   // clang-format off
 ${decls}$

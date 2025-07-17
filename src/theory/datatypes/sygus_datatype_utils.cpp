@@ -151,7 +151,7 @@ Node mkSygusTerm(const Node& op,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = op.getNodeManager();
   Assert(op.getInternalSkolemId() != InternalSkolemId::SYGUS_ANY_CONSTANT);
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
@@ -424,7 +424,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                                           const std::vector<Node>& syms,
                                           const std::vector<Node>& vars)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = sdt.getNodeManager();
   const DType& sdtd = sdt.getDType();
   // compute the new formal argument list
   std::vector<Node> formalVars;

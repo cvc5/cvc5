@@ -52,6 +52,8 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }
   // note that EQUAL is strictly typed so we don't need to handle it here
+  // also TO_REAL applied to reals is always rewritten, so it doesn't need to
+  // be handled.
   if (convertToRealChildren)
   {
     std::vector<Node> children;

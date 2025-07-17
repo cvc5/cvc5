@@ -35,7 +35,7 @@ class TestTheoryWhiteSetsRewriter : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_rewriter.reset(new TheorySetsRewriter(d_nodeManager));
+    d_rewriter.reset(new TheorySetsRewriter(d_nodeManager.get()));
   }
   std::unique_ptr<TheorySetsRewriter> d_rewriter;
 };

@@ -793,7 +793,7 @@ TEST_F(TestApiBlackTerm, getString)
 {
   Term s1 = d_tm.mkString("abcde");
   ASSERT_TRUE(s1.isStringValue());
-  ASSERT_EQ(s1.getStringValue(), L"abcde");
+  ASSERT_EQ(s1.getU32StringValue(), U"abcde");
 }
 
 TEST_F(TestApiBlackTerm, getReal)

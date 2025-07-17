@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -91,7 +91,7 @@ void ConversionsSolver::checkReduction(Node n)
 
   Node lem;
   Kind k = n.getKind();
-  if (k == Kind::BITVECTOR_TO_NAT)
+  if (k == Kind::BITVECTOR_UBV_TO_INT)
   {
     lem = arith::eliminateBv2Nat(n);
   }

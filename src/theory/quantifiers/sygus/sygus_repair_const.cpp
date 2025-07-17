@@ -216,7 +216,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   SubsolverSetupInfo ssi(
       d_env.getOptions(), lall, d_env.getSepLocType(), d_env.getSepDataType());
   // initialize the subsolver using the standard method
-  initializeSubsolver(repcChecker,
+  initializeSubsolver(nodeManager(),
+                      repcChecker,
                       ssi,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -28,7 +28,7 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
+    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env), d_illegalChecker(env)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -53,6 +53,10 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     // then, initialize the assertions
     as.setAssumptions(assumptions);
+
+    // the assertions are now finalized, we call the illegal checker to
+    // verify that any new assertions are legal
+    d_illegalChecker.checkAssertions(as);
 
     // make the check, where notice smt engine should be fully inited by now
 
@@ -158,6 +162,12 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
   // preprocess
   d_smt.preprocess(ap);
+
+  if (options().base.preprocessOnly)
+  {
+    return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
+  }
+
   // assert to internal
   d_smt.assertToInternal(ap);
   // get result

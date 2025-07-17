@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
@@ -133,7 +133,7 @@ Node narySubstitute(Node src,
                     std::unordered_map<TNode, Node>& visited)
 {
   // assumes all variables are list variables
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = src.getNodeManager();
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   std::vector<Node>::const_iterator itv;
@@ -208,7 +208,7 @@ Node narySubstitute(Node src,
           Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
           if (children.empty())
           {
-            ret = getNullTerminator(cur.getKind(), cur.getType());
+            ret = getNullTerminator(nm, cur.getKind(), cur.getType());
             // if we don't know the null terminator, just return null now
             if (ret.isNull())
             {

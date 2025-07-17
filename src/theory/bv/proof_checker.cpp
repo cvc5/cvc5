@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -29,7 +29,7 @@ BVProofRuleChecker::BVProofRuleChecker(NodeManager* nm) : ProofRuleChecker(nm)
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerTrustedChecker(ProofRule::MACRO_BV_BITBLAST, this, 2);
-  pc->registerTrustedChecker(ProofRule::BV_BITBLAST_STEP, this, 2);
+  pc->registerChecker(ProofRule::BV_BITBLAST_STEP, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM, this);
   pc->registerChecker(ProofRule::BV_POLY_NORM_EQ, this);
   pc->registerChecker(ProofRule::BV_EAGER_ATOM, this);

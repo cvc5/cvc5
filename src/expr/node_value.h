@@ -309,7 +309,6 @@ class CVC5_EXPORT NodeValue
 
   void dec()
   {
-    // FIXME multithreading
     if (__builtin_expect((d_rc < MAX_RC), true))
     {
       --d_rc;

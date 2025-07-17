@@ -284,7 +284,7 @@ bool CDProof::addTheoryRewriteStep(Node expected,
     return false;
   }
   std::vector<Node> sargs;
-  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   sargs.push_back(expected);
   return addStep(
       expected, ProofRule::THEORY_REWRITE, {}, sargs, ensureChildren, opolicy);

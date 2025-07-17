@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Daniel Larraz
+ *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -187,6 +187,17 @@ void addToSum(Sum& sum, TNode n, bool negate)
   }
   addToProduct(monomial, multiplicity, n);
   addToSum(sum, mkNonlinearMult(n.getNodeManager(), monomial), multiplicity);
+}
+
+void addMonomialToSum(Sum& sum,
+                      TNode product,
+                      RealAlgebraicNumber& multiplicity)
+{
+  Assert(product.getKind() != Kind::ADD);
+  std::vector<Node> monomial;
+  addToProduct(monomial, multiplicity, product);
+  addToSum(
+      sum, mkNonlinearMult(product.getNodeManager(), monomial), multiplicity);
 }
 
 Node collectSum(NodeManager* nm, const Sum& sum)

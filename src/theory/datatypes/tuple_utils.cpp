@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
+ *   Mudathir Mohamed, Andrew Reynolds, Daniel Larraz
  *
  * This file is part of the cvc5 project.
  *
@@ -55,7 +55,7 @@ TypeNode TupleUtils::concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2)
       concatTupleTypes.end(), tuple1Types.begin(), tuple1Types.end());
   concatTupleTypes.insert(
       concatTupleTypes.end(), tuple2Types.begin(), tuple2Types.end());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tupleType1.getNodeManager();
   TypeNode ret = nm->mkTupleType(concatTupleTypes);
   return ret;
 }
@@ -70,7 +70,7 @@ Node TupleUtils::nthElementOfTuple(Node tuple, int n_th)
   const DType& dt = tn.getDType();
   // note that shared selectors are irrelevant for datatypes with one
   // constructor, hence we pass false here
-  return NodeManager::currentNM()->mkNode(
+  return tuple.getNodeManager()->mkNode(
       Kind::APPLY_SELECTOR, utils::getSelector(tn, dt[0], n_th, false), tuple);
 }
 
@@ -85,7 +85,7 @@ Node TupleUtils::getTupleProjection(const std::vector<uint32_t>& indices,
     TypeNode type = tupleTypes[index];
     types.push_back(type);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tuple.getNodeManager();
   TypeNode projectType = nm->mkTupleType(types);
   const DType& dt = projectType.getDType();
   elements.push_back(dt[0].getConstructor());
@@ -111,7 +111,7 @@ TypeNode TupleUtils::getTupleProjectionType(
   {
     types.push_back(constructor.getArgType(index));
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tupleType.getNodeManager();
   TypeNode retTupleType = nm->mkTupleType(types);
   return retTupleType;
 }
@@ -177,7 +177,7 @@ Node TupleUtils::constructTupleFromElements(TypeNode tupleType,
   {
     tupleElements.push_back(elements[i]);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tupleType.getNodeManager();
   Node tuple = nm->mkNode(Kind::APPLY_CONSTRUCTOR, tupleElements);
   return tuple;
 }
@@ -194,7 +194,7 @@ Node TupleUtils::concatTuples(TypeNode tupleType, Node tuple1, Node tuple2)
   tupleElements.insert(tupleElements.end(), elements.begin(), elements.end());
 
   // construct the returned tuple
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tupleType.getNodeManager();
   Node tuple = nm->mkNode(Kind::APPLY_CONSTRUCTOR, tupleElements);
   return tuple;
 }
@@ -205,14 +205,14 @@ Node TupleUtils::reverseTuple(Node tuple)
   std::vector<Node> elements;
   std::vector<TypeNode> tuple_types = tuple.getType().getTupleTypes();
   std::reverse(tuple_types.begin(), tuple_types.end());
-  TypeNode tn = NodeManager::currentNM()->mkTupleType(tuple_types);
+  TypeNode tn = tuple.getNodeManager()->mkTupleType(tuple_types);
   const DType& dt = tn.getDType();
   elements.push_back(dt[0].getConstructor());
   for (int i = tuple_types.size() - 1; i >= 0; --i)
   {
     elements.push_back(nthElementOfTuple(tuple, i));
   }
-  return NodeManager::currentNM()->mkNode(Kind::APPLY_CONSTRUCTOR, elements);
+  return tuple.getNodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, elements);
 }
 
 }  // namespace datatypes

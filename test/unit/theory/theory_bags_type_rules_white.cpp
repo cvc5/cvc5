@@ -81,9 +81,9 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
       Kind::BAG_MAKE, elements[0], d_nodeManager->mkConstInt(Rational(1)));
 
   // only positive multiplicity are constants
-  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, negative));
-  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, zero));
-  ASSERT_TRUE(BagMakeTypeRule::computeIsConst(d_nodeManager, positive));
+  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager.get(), negative));
+  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager.get(), zero));
+  ASSERT_TRUE(BagMakeTypeRule::computeIsConst(d_nodeManager.get(), positive));
 }
 
 TEST_F(TestTheoryWhiteBagsTypeRule, map_operator)

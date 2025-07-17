@@ -9,20 +9,31 @@
 (declare-type Set (Type))
 
 ; Constants for the theory of sets.
-; note: type rule does not check the type is set.
-(declare-const set.empty (-> (! Type :var T) T))
+(declare-parameterized-const set.empty ((T Type :implicit)) (Set T))
 
 ; Operators for the theory of sets.
-(declare-const set.singleton (-> (! Type :var T :implicit) T (Set T)))
-(declare-const set.union (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
-(declare-const set.inter (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
-(declare-const set.minus (-> (! Type :var T :implicit) (Set T) (Set T) (Set T)))
-(declare-const set.member (-> (! Type :var T :implicit) T (Set T) Bool))
-(declare-const set.subset (-> (! Type :var T :implicit) (Set T) (Set T) Bool))
-(declare-const set.choose (-> (! Type :var T :implicit) (Set T) T))
-(declare-const set.is_empty (-> (! Type :var T :implicit) (Set T) Bool))
-(declare-const set.is_singleton (-> (! Type :var T :implicit) (Set T) Bool))
-(declare-const set.insert (-> (! Type :var T :implicit) @List (Set T) (Set T)))
+(declare-parameterized-const set.singleton ((T Type :implicit))
+  (-> T (Set T)))
+(declare-parameterized-const set.union ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+(declare-parameterized-const set.inter ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+(declare-parameterized-const set.minus ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+(declare-parameterized-const set.member ((T Type :implicit))
+  (-> T (Set T) Bool))
+(declare-parameterized-const set.subset ((T Type :implicit))
+  (-> (Set T) (Set T) Bool))
+(declare-parameterized-const set.choose ((T Type :implicit))
+  (-> (Set T) T))
+(declare-parameterized-const set.is_empty ((T Type :implicit))
+  (-> (Set T) Bool))
+(declare-parameterized-const set.is_singleton ((T Type :implicit))
+  (-> (Set T) Bool))
+(declare-parameterized-const set.insert ((T Type :implicit))
+  (-> @List (Set T) (Set T)))
 
 ; Skolems for the theory of sets.
-(declare-const @sets_deq_diff (-> (! Type :var T :implicit) (! (Set T) :opaque) (! (Set T) :opaque) T))
+(declare-parameterized-const @sets_deq_diff
+  ((T Type :implicit) (s (Set T) :opaque) (t (Set T) :opaque))
+  T)

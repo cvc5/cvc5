@@ -60,7 +60,7 @@ name   = "Theory Layer"
 
 [[option]]
   name       = "eeMode"
-  category   = "expert"
+  category   = "regular"
   long       = "ee-mode=MODE"
   type       = "EqEngineMode"
   default    = "DISTRIBUTED"
