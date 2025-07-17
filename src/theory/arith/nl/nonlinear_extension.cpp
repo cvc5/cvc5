@@ -439,7 +439,8 @@ Result::Status NonlinearExtension::modelBasedRefinement(
   return Result::SAT;
 }
 
-void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertions)
+void NonlinearExtension::checkFlattenMonomials(
+    const std::vector<Node>& assertions)
 {
   std::vector<Node>& mvec = d_extState.d_ms_vars;
   Trace("nl-ff") << "=== Compute flatten eq" << std::endl;
@@ -450,7 +451,7 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
   std::map<Node, Node>::iterator itr;
   std::map<Node, Node> ffMap;
   eq::EqualityEngine* ee = d_astate.getEqualityEngine();
-  eq::EqClassesIterator eqcsi= eq::EqClassesIterator(ee);
+  eq::EqClassesIterator eqcsi = eq::EqClassesIterator(ee);
   while (!eqcsi.isFinished())
   {
     Node vr = (*eqcsi);
@@ -469,17 +470,17 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
     while (!eqci.isFinished())
     {
       Node n = (*eqci);
-      if (n.getKind()==Kind::NONLINEAR_MULT)
+      if (n.getKind() == Kind::NONLINEAR_MULT)
       {
         nlTerms.push_back(n);
         Trace("nl-ff") << "  - mult: " << n << std::endl;
       }
       else if (n.isConst())
       {
-        Assert (cr.isNull());
+        Assert(cr.isNull());
         cr = n;
       }
-      else if (mvs.find(n)!=mvs.end())
+      else if (mvs.find(n) != mvs.end())
       {
         baseTerms.insert(n);
         if (firstBaseTerm.isNull())
@@ -509,8 +510,8 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
     {
       Node ns = rewrite(as.apply(n));
       std::map<Node, size_t> ff;
-      Assert (ns.getKind()!=Kind::MULT);
-      if (ns.getKind()==Kind::NONLINEAR_MULT)
+      Assert(ns.getKind() != Kind::MULT);
+      if (ns.getKind() == Kind::NONLINEAR_MULT)
       {
         for (const Node& nsc : ns)
         {
@@ -524,9 +525,11 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
       bool cyclic = false;
       for (std::pair<const Node, size_t>& f : ff)
       {
-        if (baseTerms.find(f.first)!=baseTerms.end())
+        if (baseTerms.find(f.first) != baseTerms.end())
         {
-          Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns << ", in equivalence class of " << f.first << std::endl;
+          Trace("nl-ff") << "*** Cyclic: " << n << " == " << ns
+                         << ", in equivalence class of " << f.first
+                         << std::endl;
           explainFlattenMonomialsCyclic(f.first, n, repsProcessed);
           cyclic = true;
         }
@@ -536,9 +539,10 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
         rep = ns;
       }
       itr = ffMap.find(ns);
-      if (itr!=ffMap.end())
+      if (itr != ffMap.end())
       {
-        Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second << ", both equal to " << ns << std::endl;
+        Trace("nl-ff") << "*** Equal: " << n << " == " << itr->second
+                       << ", both equal to " << ns << std::endl;
         explainFlattenMonomials(itr->second, n, repsProcessed);
       }
       ffMap[ns] = n;
@@ -552,9 +556,11 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
     }
     if (rep.isNull())
     {
-      if (baseTerms.size()==1)
+      if (baseTerms.size() == 1)
       {
-        Trace("nl-ff") << "...only one base term, no (acyclic) nl term, continue." << std::endl;
+        Trace("nl-ff")
+            << "...only one base term, no (acyclic) nl term, continue."
+            << std::endl;
         // don't care
         repsProcessed[vr] = vr;
         continue;
@@ -562,12 +568,12 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
       rep = firstBaseTerm;
     }
     Trace("nl-ff") << "...choose rep: " << rep << std::endl;
-    Assert (!rep.isNull());
+    Assert(!rep.isNull());
     // map all base terms to representative
     ArithSubs asTmp;
     for (const Node& b : baseTerms)
     {
-      if (b!=rep)
+      if (b != rep)
       {
         asTmp.add(b, rep);
       }
@@ -584,7 +590,7 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
     for (std::pair<const Node, Node>& ff : ffMap)
     {
       Node fnew = asTmp.apply(ff.first);
-      if (fnew!=ff.first)
+      if (fnew != ff.first)
       {
         fnew = rewrite(fnew);
         ffMapNew[fnew] = ff.second;
@@ -599,20 +605,19 @@ void NonlinearExtension::checkFlattenMonomials(const std::vector<Node>& assertio
     {
       ffMap[ff.first] = ff.second;
     }
-    
   }
 }
 
-void NonlinearExtension::explainFlattenMonomials(const Node& a, const Node& b, const std::map<Node, Node>& repEq)
+void NonlinearExtension::explainFlattenMonomials(
+    const Node& a, const Node& b, const std::map<Node, Node>& repEq)
 {
-  
 }
 
-void NonlinearExtension::explainFlattenMonomialsCyclic(const Node& a, const Node& b, const std::map<Node, Node>& repEq)
+void NonlinearExtension::explainFlattenMonomialsCyclic(
+    const Node& a, const Node& b, const std::map<Node, Node>& repEq)
 {
-  
 }
-  
+
 void NonlinearExtension::runStrategy(Theory::Effort effort,
                                      const std::vector<Node>& assertions,
                                      const std::vector<Node>& false_asserts,
@@ -666,9 +671,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_monomialBoundsSlv.init();
         d_monomialSlv.init(xts);
         break;
-      case InferStep::NL_FLATTEN_MON:
-        checkFlattenMonomials(assertions);
-        break;
+      case InferStep::NL_FLATTEN_MON: checkFlattenMonomials(assertions); break;
       case InferStep::NL_MONOMIAL_INFER_BOUNDS:
         d_monomialBoundsSlv.checkBounds(assertions, false_asserts);
         break;
