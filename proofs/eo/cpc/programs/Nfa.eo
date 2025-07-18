@@ -1,8 +1,8 @@
-(include "../programs/Strings.eo")
+(include "../theories/Strings.eo")
 
 ; Declares a new sort which will be used to represent the states and transitions
 ; of the automaton.
-(declare-type @Nfa ())
+(declare-const @Nfa Type)
 
 ; Declares a sort which represents a single character or a set of characters
 ; for an NFA transition.
@@ -133,25 +133,5 @@
         ($nfa_match c s tt nexts))
     )
     (($nfa_match c s (@nfa.list t tt) nexts)  ($nfa_match c s tt nexts))
-  )
-)
-
-; program: $str_eval_str_in_re_nfa
-; args:
-; - s String: The string to inspect.
-; - r RegLan: The regular expression to inspect.
-; return: >
-;   true if s is in regular expression r, if r is not an extended regex nfa-based algorithm will be used.
-(program $str_eval_str_in_re_nfa ((r RegLan) (s String))
-  :signature (String RegLan) Bool
-  (
-    (($str_eval_str_in_re_nfa s r)  
-      (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
-        (eo::ite (eo::is_ok nfa)
-          ($nfa_match "" s nfa @nfa.decline)
-          ($str_eval_str_in_re s r)
-        )
-      )
-    )
   )
 )
