@@ -1,7 +1,42 @@
 This file contains a summary of important user-visible changes.
 
+Unreleased
+==========
+
+## Changes
+
+- **API**
+  * The C++ methods `Term TermManager::mkString(const std::wstring& s)` and
+    `std::wstring Term::getStringValue()` are now deprecated in favor of
+    the new methods `Term TermManager::mkString(const std::u32string& s)` and
+    `std::u32string Term::getU32StringValue()` which use `std::u32string`
+    to represent Unicode strings instead of `std::wstring`.
+    Unlike `std::wstring`, whose character type `wchar_t` is 16 bits on
+    Windows and 32 bits on Linux and macOS, the character type of
+    `std::u32string`, `char32_t`, is guaranteed to be at least 32 bits on
+    all platforms.
+    Similarly, the C API functions `cvc5_mk_string_from_wchar` and
+    `cvc5_term_get_string_value` are now deprecated in favor of
+    the new functions `cvc5_mk_string_from_char32` and
+    `cvc5_term_get_u32string_value`.
+
+cvc5 1.3.0
+==========
+
 ## New Features
 
+- A build configuration `safe-mode` is available via our configure script
+  which guards all cvc5 features that are either not robust or do not have
+  full proof and model support. It is also possible to guard against these
+  features using the command line option `--safe-mode=safe`. The definition
+  of what is allowable in safe mode coincides with our fuzzing guidelines,
+  see https://github.com/cvc5/cvc5/wiki/Fuzzing-cvc5.
+- We have significantly increased coverage of proofs in the Cooperating Proof
+  Calculus (CPC) proof format. In particular, we expect that CPC proofs are
+  complete for *all* theories and features allowed in safe mode. These proofs
+  may be obtained by the `(get-proof)` SMT-LIB command, or via the API using
+  the method `Solver::getProof`, and are checkable by Ethos 0.2.0
+  (`./contrib/get-ethos-checker`).
 - We now support the SMT-LIB version 2.7 standard syntax for arithmetic
   bit-vector conversion functions whose smt2 syntax is `int_to_bv`, `ubv_to_int`
   and `sbv_to_int`. The first maps to the existing kind `Kind::INT_TO_BITVECTOR`.
@@ -20,7 +55,8 @@ This file contains a summary of important user-visible changes.
 - The option `--safe-options` is renamed to `--safe-mode=safe`. We additionally
   support the option `--safe-mode=stable`, which disables experimental
   features but does not insist on complete proofs or models.
-
+- The quantifier instatiation strategy `--mbqi-fast-sygus` has been renamed to
+  `--mbqi-enum`.
 
 
 cvc5 1.2.1

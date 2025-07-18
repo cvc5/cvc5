@@ -57,8 +57,8 @@
 ;   (tuple (tuple.select 0 x) (tuple (tuple.select 1 x) tuple.unit)), whereas
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
-(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type) (Any Type))
-  :signature (Type D Int) Any
+(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type))
+  :signature ((eo::quote U) D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -108,7 +108,7 @@
 ; conclusion: The given equality.
 ; note: The type of the selector s in this rule is typically (-> D T), although
 ;       this is not the case for tuple selectors.
-(declare-rule dt-collapse-selector ((D Type) (T Type) (S Type) (s S) (t D) (ti T))
+(declare-rule dt-collapse-selector ((D Type) (T Type) (S1 Type) (S2 Type) (s (-> S1 S2)) (t D) (ti T))
   :args ((= (s t) ti))
   :requires (((eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
               ; note that s must be a selector of the constructor of t, or else index will not evaluate
@@ -154,15 +154,16 @@
 
 ; define: $mk_dt_cons_eq
 ; args:
-; - ts @List: The list of arguments to the left hand side of the equality.
-; - ss @List: The list of arguments to the right hand side of the equality.
+; - t T: The left hand side of the equality.
+; - s T: The right hand side of the equality.
 ; return: >
-;   The conjunction of equalities between the arguments of ts and ss.
-(program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
-  :signature (@List @List) Bool
+;   The conjunction of equalities between the arguments of t and s.
+(program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
+  :signature (T T) Bool
   (
-  (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
-  (($mk_dt_cons_eq @list.nil @list.nil)       true)
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (eo::cons and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
+  (($mk_dt_cons_eq c c)                       true)
   )
 )
 
@@ -177,14 +178,13 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires ((($dt_eq_cons t s) true)   ; application of same constructor
-             (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
+  :requires ((($singleton_elim ($mk_dt_cons_eq t s)) B))
   :conclusion (= (= t s) B)
 )
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
 
-; rule: dt-cons-eq
+; rule: dt-cons-eq-clash
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
 ; args:
 ; - eq Bool: The equality to prove.
@@ -411,8 +411,11 @@
 ;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
 ; conclusion: The given equality.
 ; note: The parameter u is expected to be an updater (either update or tuple.update). Its
-;       given type is U here (which is unconstrained).
-(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (U Type) (s S) (t D) (a T) (u U) (tu D) (c C))
+;       given type is U here (which is unconstrained). The parameter s is either
+;       a selector or an integer.
+(declare-rule dt-updater-elim
+  ((D Type) (T Type) (C Type) (U1 Type) (U2 Type) (U3 Type) (U4 Type)
+   (S Type) (s S) (t D) (a T) (u (-> U1 U2 U3 U4)) (tu D) (c C))
   :args ((= (u s t a) (ite (is c t) tu t)))
   :requires ((($mk_dt_updater_elim_rhs (u s t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
   :conclusion (= (u s t a) (ite (is c t) tu t))

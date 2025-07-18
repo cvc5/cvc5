@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner
+#   José Neto, Aina Niemetz, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
@@ -19,37 +19,40 @@ libcvc5_add_sources(GENERATED
   type_enumerator.cpp
 )
 
-set(mktheorytraits_script ${CMAKE_CURRENT_LIST_DIR}/mktheorytraits)
-set(mkrewriter_script ${CMAKE_CURRENT_LIST_DIR}/mkrewriter)
+set(mktheorytraits_script ${CMAKE_CURRENT_LIST_DIR}/mktheorytraits.py)
+set(mkrewriter_script ${CMAKE_CURRENT_LIST_DIR}/mkrewriter.py)
 
 add_custom_command(
   OUTPUT rewriter_tables.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mkrewriter_script}
-    ${CMAKE_CURRENT_LIST_DIR}/rewriter_tables_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/rewriter_tables.h
-  DEPENDS mkrewriter rewriter_tables_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/rewriter_tables_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/rewriter_tables.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mkrewriter.py rewriter_tables_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT theory_traits.h
   COMMAND
+    ${Python_EXECUTABLE}
     ${mktheorytraits_script}
-    ${CMAKE_CURRENT_LIST_DIR}/theory_traits_template.h
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/theory_traits.h
-  DEPENDS mktheorytraits theory_traits_template.h ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/theory_traits_template.h
+    --output ${CMAKE_CURRENT_BINARY_DIR}/theory_traits.h
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mktheorytraits.py theory_traits_template.h ${KINDS_TOML_FILES}
 )
 
 add_custom_command(
   OUTPUT type_enumerator.cpp
   COMMAND
+    ${Python_EXECUTABLE}
     ${mktheorytraits_script}
-    ${CMAKE_CURRENT_LIST_DIR}/type_enumerator_template.cpp
-    ${KINDS_FILES}
-    > ${CMAKE_CURRENT_BINARY_DIR}/type_enumerator.cpp
-  DEPENDS mktheorytraits type_enumerator_template.cpp ${KINDS_FILES}
+    --template ${CMAKE_CURRENT_LIST_DIR}/type_enumerator_template.cpp
+    --output ${CMAKE_CURRENT_BINARY_DIR}/type_enumerator.cpp
+    --kinds ${KINDS_TOML_FILES}
+  DEPENDS mktheorytraits.py type_enumerator_template.cpp ${KINDS_TOML_FILES}
 )
 
 add_custom_target(gen-theory
