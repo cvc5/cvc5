@@ -86,8 +86,6 @@
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const str.rev ((T Type :implicit)) (-> (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const str.unit (-> Int String))
-; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const str.update ((T Type :implicit))
   (-> (Seq T) Int (Seq T) (Seq T)))
 ; disclaimer: This function is not in SMT-LIB.
