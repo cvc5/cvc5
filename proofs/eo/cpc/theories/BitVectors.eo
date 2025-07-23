@@ -155,10 +155,6 @@
 ; disclaimer: This function is not a function in SMT-LIB.
 (declare-parameterized-const bvite ((T Type :implicit)) (-> (BitVec 1) T T T))
 
-; disclaimer: This function is not a function in SMT-LIB.
-(declare-parameterized-const bv1ult ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) (BitVec 1)))
-
 (declare-parameterized-const bvuaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
