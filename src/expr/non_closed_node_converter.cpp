@@ -35,6 +35,7 @@ NonClosedNodeConverter::~NonClosedNodeConverter() {}
 
 Node NonClosedNodeConverter::postConvert(Node n)
 {
+  Trace("non-closed-debug") << "postConvert: " << n << std::endl;
   Kind k = n.getKind();
   bool purify = false;
   if (d_nonClosedKinds.find(k) != d_nonClosedKinds.end())
@@ -65,7 +66,7 @@ Node NonClosedNodeConverter::postConvert(Node n)
     {
       nc = theory::uf::FunctionConst::toLambda(n);
     }
-    if (!nc.isNull())
+    if (!nc.isNull() && nc!=n)
     {
       Node nnc = convert(nc);
       if (nnc != nc)
