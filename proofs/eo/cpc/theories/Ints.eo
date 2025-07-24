@@ -26,7 +26,9 @@
 (declare-const mod_total (-> Int Int Int))
 
 ; Skolem terms for integer division by zero and integer modulus by zero.
-; note: equivalent to (lambda ((x Int)) (div x 0)).
-(declare-const @int_div_by_zero (-> Int Int))
-; note: equivalent to (lambda ((x Int)) (mod x 0)).
-(declare-const @mod_by_zero (-> Int Int))
+(declare-parameterized-const @int_div_by_zero ((x Int))
+  Int
+  :semantics (div x 0))
+(declare-parameterized-const @mod_by_zero ((x Int))
+  Int
+  :semantics (mod x 0))
