@@ -4358,8 +4358,6 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MINUS_MEMBER),
   /** Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
-  /** Auto-generated from RARE rule sets-choose-singleton */
-  EVALUE(SETS_CHOOSE_SINGLETON),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
@@ -4734,6 +4732,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CARD_MINUS),
   /** Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
+  /** Auto-generated from RARE rule sets-choose-singleton */
+  EVALUE(SETS_CHOOSE_SINGLETON),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
   // must be last entry

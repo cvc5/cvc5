@@ -60,10 +60,6 @@
   (set.member x (set.union y z))
   (or (set.member x y) (set.member x z)))
 
-(define-rule sets-choose-singleton ((x ?))
-  (set.choose (set.singleton x))
-  x)
-
 (define-rule sets-minus-self ((x ?Set))
   (set.minus x x)
   (@set.empty_of_type (@type_of x)))

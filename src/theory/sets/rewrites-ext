@@ -18,3 +18,7 @@
   0)
 
 ; (set.complement S) ---> (set.minus (as set.universe (Set Int)) S)
+
+(define-rule sets-choose-singleton ((x ?))
+  (set.choose (set.singleton x))
+  x)

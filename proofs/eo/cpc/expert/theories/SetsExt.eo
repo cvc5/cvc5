@@ -24,6 +24,8 @@
   (-> (-> T U) (Set T) (Set U)))
 (declare-parameterized-const set.fold ((T Type :implicit) (U Type :implicit))
   (-> (-> T U U) U (Set T) U))
+(declare-parameterized-const set.choose ((T Type :implicit))
+  (-> (Set T) T))
 
 ; Experimental sets operators.
 (declare-parameterized-const set.comprehension ((T Type :implicit))
