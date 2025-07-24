@@ -15,6 +15,7 @@
 
 package io.github.cvc5;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
