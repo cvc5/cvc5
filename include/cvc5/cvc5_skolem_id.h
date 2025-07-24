@@ -87,6 +87,8 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` The term t that this skolem purifies.
    * - Sort: The sort of t.
+   * 
+   * The term `(@purify t)` is equivalent to `t`.
    */
   EVALUE(PURIFY),
   /**
@@ -95,6 +97,8 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` A term that represents the sort of the term.
    * - Sort: The sort given by the index.
+   * 
+   * The term `(@
    */
   EVALUE(GROUND_TERM),
   /**
@@ -120,6 +124,8 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Real Real)``
+   *
+   * The term `@div_by_zero` is equivalent to `(lambda ((x Real)) (/ x 0.0))`.
    */
   EVALUE(DIV_BY_ZERO),
   /**
@@ -128,6 +134,8 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
+   *
+   * The term `@int_div_by_zero` is equivalent to `(lambda ((x Int)) (div x 0))`.
    */
   EVALUE(INT_DIV_BY_ZERO),
   /**
@@ -136,6 +144,8 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
+   * 
+   * The term `@int_mod_by_zero` iquivalent to `(lambda ((x Int)) (mod x 0))`.
    */
   EVALUE(MOD_BY_ZERO),
   /**
