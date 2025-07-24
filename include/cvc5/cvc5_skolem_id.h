@@ -98,7 +98,7 @@ enum ENUM(SkolemId)
    *   - ``1:`` A term that represents the sort of the term.
    * - Sort: The sort given by the index.
    * 
-   * The term `(@
+   * The term `(@ground_term T)` is totally unconstrained.
    */
   EVALUE(GROUND_TERM),
   /**
@@ -116,6 +116,8 @@ enum ENUM(SkolemId)
    *
    * - Number of skolem indices: ``0``
    * - Type: ``(_ BitVec 0)``
+   * 
+   * The term `@bv_empty` is equivalent to the empty bit-vector.
    */
   EVALUE(BV_EMPTY),
   /**
@@ -145,7 +147,7 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
    * 
-   * The term `@int_mod_by_zero` iquivalent to `(lambda ((x Int)) (mod x 0))`.
+   * The term `@int_mod_by_zero` is equivalent to `(lambda ((x Int)) (mod x 0))`.
    */
   EVALUE(MOD_BY_ZERO),
   /**
@@ -158,6 +160,8 @@ enum ENUM(SkolemId)
    *   - ``1:`` A lambda corresponding to the function, e.g.,
    *   `(lambda ((x Real)) (sqrt x))`.
    * - Sort: ``(-> Real Real)``
+   * 
+   * The term `(@trancendental_purify f)` is equivalent to `f`.
    */
   EVALUE(TRANSCENDENTAL_PURIFY),
   /**
@@ -367,6 +371,9 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.from_int.
    * - Sort: ``(-> Int Int)``
+   *
+   * The term `(@strings_itos_result n)` is equivalent to
+   * `(lambda ((x Int)) (str.from_int (mod n (^ 10 x)))`.
    */
   EVALUE(STRINGS_ITOS_RESULT),
   /**
@@ -377,16 +384,22 @@ enum ENUM(SkolemId)
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.to_int.
    * - Sort: ``(-> Int String)``
+   *
+   * The term `(@strings_stoi_result n)` is equivalent to
+   * `(lambda ((x Int)) (str.to_int (mod n (^ 10 x)))`.
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
    * A position containing a non-digit in a string, used when ``(str.to_int a)``
    * is equal to -1. This is an integer that returns a position for which the
-   * argument string is not a digit if one exists, or is unconstrained otherwise.
+   * argument string is not a digit if one exists, or -1 otherwise.
    *
    * - Number of skolem indices: ``1``
    *   - ``1:`` The argument to str.to_int.
    * - Sort: ``Int``
+   *
+   * The term `(@strings_stoi_non_digit s)` is equivalent to
+   * `(str.indexof_re s (re.comp (re.range "0" "9")) 0)`.
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
   /**
