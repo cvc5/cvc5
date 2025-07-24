@@ -15,19 +15,29 @@
 
 package io.github.cvc5;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.lang.Long;
 
 public class Context
 {
   // store pointers for terms, sorts, etc
-  private static List<AbstractPointer> abstractPointers = new ArrayList<>();
+
+  private static Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
 
   static void addAbstractPointer(AbstractPointer pointer)
   {
-    if (!abstractPointers.contains(pointer))
-    {
-      abstractPointers.add(pointer);
+    abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
+  }
+
+  /**
+   * Remove our record of a cpp pointer when it is deleted.
+   */
+  static void removeAbstractPointer(AbstractPointer pointer) {
+    if (pointer.getPointer() != 0) {
+      abstractPointers.remove(Long.valueOf(pointer.getPointer()));
     }
   }
 
@@ -36,10 +46,12 @@ public class Context
    */
   public static void deletePointers()
   {
-    for (int i = abstractPointers.size() - 1; i >= 0; i--)
-    {
-      abstractPointers.get(i).deletePointer();
+    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
+    Iterator<AbstractPointer> i = values.descendingIterator();
+    while (i.hasNext()) {
+      i.next().deletePointer();
     }
+
     abstractPointers.clear();
   }
 }
