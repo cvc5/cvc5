@@ -137,7 +137,8 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
-      || nk == Kind::RELATION_JOIN_IMAGE || nk == Kind::SET_COMPREHENSION || nk==Kind::SET_CHOOSE)
+      || nk == Kind::RELATION_JOIN_IMAGE || nk == Kind::SET_COMPREHENSION
+      || nk == Kind::SET_CHOOSE)
   {
     if (!options().sets.setsExp)
     {
