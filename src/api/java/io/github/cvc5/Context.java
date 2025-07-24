@@ -45,8 +45,8 @@ public class Context
    */
   public static void deletePointers()
   {
-    var values = new LinkedList<AbstractPointer>(abstractPointers.values());
-    var i = values.descendingIterator();
+    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
+    Iterator<AbstractPointer> i = values.descendingIterator();
     while (i.hasNext()) {
       i.next().deletePointer();
     }
