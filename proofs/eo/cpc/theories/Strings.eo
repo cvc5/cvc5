@@ -177,11 +177,11 @@
 (declare-parameterized-const @strings_deq_diff
   ((T Type :implicit) (s (Seq T) :opaque) (t (Seq T) :opaque))
   Int)
-(declare-parameterized-const @strings_stoi_result ((s String :opaque))
-  (-> Int Int))
+(declare-parameterized-const @strings_stoi_result ((s String :opaque) (x Int))
+  Int :semantics (str.to_int (str.substr s 0 x)))
 (declare-parameterized-const @strings_stoi_non_digit ((s String :opaque)) Int)
-(declare-parameterized-const @strings_itos_result ((n Int :opaque))
-  (-> Int Int))
+(declare-parameterized-const @strings_itos_result ((n Int :opaque) (x Int))
+  Int :semantics (str.from_int (mod n (^ 10 x))))
 (declare-parameterized-const @strings_num_occur
   ((T Type :implicit) (s (Seq T)) (t (Seq T)))
   Int)
