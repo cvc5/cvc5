@@ -385,8 +385,8 @@ enum ENUM(SkolemId)
    *   - ``1:`` The argument to str.to_int.
    * - Sort: ``(-> Int String)``
    *
-   * The term `(@strings_stoi_result n)` is equivalent to
-   * `(lambda ((x Int)) (str.to_int (mod n (^ 10 x)))`.
+   * The term `(@strings_stoi_result s)` is equivalent to
+   * `(lambda ((x Int)) (str.to_int (str.substr s 0 x)))`.
    */
   EVALUE(STRINGS_STOI_RESULT),
   /**
