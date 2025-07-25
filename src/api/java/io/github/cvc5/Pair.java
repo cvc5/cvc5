@@ -34,7 +34,7 @@ public class Pair<K, V>
   public V second;
 
   /**
-   * Constructs a new Pair with the given values.
+   * Construct a new Pair with the given values.
    *
    * @param first  the first element of the pair
    * @param second the second element of the pair
@@ -46,8 +46,9 @@ public class Pair<K, V>
   }
 
   /**
-   * Compares this Pair to the specified object for equality.
-   * Returns {@code true} if the given object is also a Pair and
+   * Compare this Pair to the specified object for equality.
+   *
+   * It returns {@code true} if the given object is also a Pair and
    * both the first and second elements are equal (using their equals method).
    *
    * @param pair the object to compare with this pair

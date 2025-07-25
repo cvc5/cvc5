@@ -39,8 +39,9 @@ import java.util.Locale;
 public final class Utils
 {
   /**
-   * Represents the operating system types supported by cvc5.
-   * Includes logic to detect the current operating system at runtime.
+   * Represent the operating system types supported by cvc5.
+   *
+   * It includes logic to detect the current operating system at runtime.
    */
   public enum OS {
     /**
@@ -66,7 +67,7 @@ public final class Utils
     public static final OS CURRENT = detectOS();
 
     /**
-     * Detects the current operating system by examining the {@code os.name} system property.
+     * Detect the current operating system by examining the {@code os.name} system property.
      *
      * @return the {@link OS} enum constant that matches the current operating system,
      *         or {@link #UNKNOWN} if it cannot be determined.
@@ -105,7 +106,7 @@ public final class Utils
   private Utils() {}
 
   /**
-   * Transfers all bytes from the provided {@link InputStream} to the specified
+   * Transfer all bytes from the provided {@link InputStream} to the specified
    * {@link FileOutputStream}.
    *
    * <p>Note: This method replicates the functionality of InputStream#transferTo(OutputStream),
@@ -127,7 +128,7 @@ public final class Utils
   }
 
   /**
-   * Loads a native library from a specified path within a JAR file and loads it into the JVM.
+   * Load a native library from a specified path within a JAR file and loads it into the JVM.
    *
    * @param tempDir The temporary directory where the extracted native library will be written.
    * @param path The path inside the JAR where the library is located (e.g., "/cvc5-libs").
@@ -209,7 +210,7 @@ public final class Utils
   }
 
   /**
-   * Constructs an array of {@link Sort} objects from an array of native pointers.
+   * Construct an array of {@link Sort} objects from an array of native pointers.
    *
    * @return Sorts array from array of Sort pointers.
    * @param pointers The array of pointers.
@@ -225,7 +226,7 @@ public final class Utils
   }
 
   /**
-   * Constructs an array of {@link Term} objects from an array of native pointers.
+   * Construct an array of {@link Term} objects from an array of native pointers.
    *
    * @return Terms array from array of Term pointers.
    * @param pointers The array of pointers.
@@ -241,7 +242,7 @@ public final class Utils
   }
 
   /**
-   * Constructs an array of {@link Proof} objects from an array of native pointers.
+   * Construct an array of {@link Proof} objects from an array of native pointers.
    *
    * @return proofs array from array of Proof pointers
    * @param pointers The array of pointers.
@@ -257,7 +258,7 @@ public final class Utils
   }
 
   /**
-   * Extracts native pointer values from a one-dimensional array of {@link IPointer} objects.
+   * Extract native pointer values from a one-dimensional array of {@link IPointer} objects.
    *
    * @return Pointers from one dimensional array.
    * @param objects The one dimensional array of pointers.
@@ -273,7 +274,7 @@ public final class Utils
   }
 
   /**
-   * Extracts native pointer values from a two-dimensional matrix of {@link IPointer} objects.
+   * Extract native pointer values from a two-dimensional matrix of {@link IPointer} objects.
    *
    * @return Pointers from two dimensional matrix.
    * @param objects The two dimensional array of pointers.
@@ -293,7 +294,7 @@ public final class Utils
   }
 
   /**
-   * Validates that the specified integer is non-negative (unsigned).
+   * Validate that the specified integer is non-negative (unsigned).
    *
    * @param integer The integer value to validate
    * @param name A name to use in the exception message for identification
@@ -308,7 +309,7 @@ public final class Utils
   }
 
   /**
-   * Validates that the specified long integer is non-negative (unsigned).
+   * Validate that the specified long integer is non-negative (unsigned).
    *
    * @param integer The long value to validate
    * @param name A name to use in the exception message for identification
@@ -323,7 +324,7 @@ public final class Utils
   }
 
   /**
-   * Validates that all elements in the given array are non-negative (unsigned).
+   * Validate that all elements in the given array are non-negative (unsigned).
    *
    * @param integers The array of integers to validate
    * @param name A name to use in the exception message for identification
@@ -342,7 +343,7 @@ public final class Utils
   }
 
   /**
-   * Validates that all elements in the given array are non-negative (unsigned).
+   * Validate that all elements in the given array are non-negative (unsigned).
    *
    * @param integers The array of long integers to validate
    * @param name A name to use in the exception message for identification
@@ -361,7 +362,7 @@ public final class Utils
   }
 
   /**
-   * Converts an array of {@code Pair} objects, where the second element extends {@link
+   * Convert an array of {@code Pair} objects, where the second element extends {@link
    * AbstractPointer}, into an array of {@code Pair} objects with the second element as a {@code
    * Long} representing the native pointer.
    *
