@@ -76,11 +76,11 @@
 )
 
 ; A placeholder that indicates that the given list can be sorted with respect
-; to operator f. For example, ($aci_sorted f t) indicates that t is an application
+; to operator f. For example, (@aci.sorted f t) indicates that t is an application
 ; of a commutative operator f. We show the equivalence of two applications marked
 ; in this way using the operator for multiset equality below.
 (declare-parameterized-const @@aci_sorted ((U Type :implicit) (T Type :implicit)) (-> U T T))
-(define $aci_sorted () @@aci_sorted)
+(define @aci.sorted () @@aci_sorted)
 
 ; program: $aci_norm_eq
 ; args:
@@ -91,8 +91,8 @@
   :signature (U U) Bool
   (
   (($aci_norm_eq t t) true)
-  (($aci_norm_eq ($aci_sorted f t) t) true)
-  (($aci_norm_eq ($aci_sorted f t) ($aci_sorted f s)) (eo::list_meq f t s))
+  (($aci_norm_eq (@aci.sorted f t) t) true)
+  (($aci_norm_eq (@aci.sorted f t) (@aci.sorted f s)) (eo::list_meq f t s))
   (($aci_norm_eq t s) false)
   )
 )

@@ -49,9 +49,9 @@
 (program $get_aci_normal_form_expert ((T Type) (x1 Bool) (x2 Bool :list) (m Int) (xf1 (FiniteField m)) (xf2 (FiniteField m) :list))
   :signature (T) T
   (
-    (($get_aci_normal_form_expert (sep x1 x2))       ($aci_sorted sep ($get_a_norm (sep x1 x2))))
-    (($get_aci_normal_form_expert (ff.add xf1 xf2))  ($aci_sorted ff.add ($get_a_norm (ff.add xf1 xf2))))
-    (($get_aci_normal_form_expert (ff.mul xf1 xf2))  ($aci_sorted ff.mul ($get_a_norm (ff.mul xf1 xf2))))
+    (($get_aci_normal_form_expert (sep x1 x2))       (@aci.sorted sep ($get_a_norm (sep x1 x2))))
+    (($get_aci_normal_form_expert (ff.add xf1 xf2))  (@aci.sorted ff.add ($get_a_norm (ff.add xf1 xf2))))
+    (($get_aci_normal_form_expert (ff.mul xf1 xf2))  (@aci.sorted ff.mul ($get_a_norm (ff.mul xf1 xf2))))
   )
 )
 

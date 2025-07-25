@@ -143,8 +143,10 @@
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define @result.null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define @result.invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:
