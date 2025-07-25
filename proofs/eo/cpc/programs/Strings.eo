@@ -167,7 +167,8 @@
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
-(declare-const @re.null RegLan)
+(declare-const @@re.null RegLan)
+(define $re_null () @@re.null)
 
 ; program: $str_eval_str_in_re_rec
 ; args:
@@ -176,7 +177,7 @@
 ; - r1 RegLan: The regular expression to inspect.
 ; - r2 RegLan: The remaining regular expression to be processed after r1, if it exists.
 ; return: >
-;   The call ($str_eval_str_in_re_rec s 0 r1 @re.null) returns true if s is in r1.
+;   The call ($str_eval_str_in_re_rec s 0 r1 $re_null) returns true if s is in r1.
 ;   The call ($str_eval_str_in_re_rec s n r1 r2) returns true if s = s1 ++ s2 for some s1, s2 such that:
 ;   - s1 in r1
 ;   - s2 in r2
@@ -187,33 +188,33 @@
 (program $str_eval_str_in_re_rec ((s String) (s1 String) (s2 String) (n Int) (r1 RegLan) (rr RegLan :list) (r2 RegLan) (sr String))
   :signature (String Int RegLan RegLan) Bool
   (
-  (($str_eval_str_in_re_rec s 0 (re.++ r1 rr) @re.null)     ($str_eval_str_in_re_rec s 0 r1 rr))
-  (($str_eval_str_in_re_rec s 0 (re.inter r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
-                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)
+  (($str_eval_str_in_re_rec s 0 (re.++ r1 rr) $re_null)     ($str_eval_str_in_re_rec s 0 r1 rr))
+  (($str_eval_str_in_re_rec s 0 (re.inter r1 rr) $re_null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 $re_null)
+                                                              ($str_eval_str_in_re_rec s 0 rr $re_null)
                                                               false))
-  (($str_eval_str_in_re_rec s 0 (re.union r1 rr) @re.null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 @re.null)
+  (($str_eval_str_in_re_rec s 0 (re.union r1 rr) $re_null)  (eo::ite ($str_eval_str_in_re_rec s 0 r1 $re_null)
                                                               true
-                                                              ($str_eval_str_in_re_rec s 0 rr @re.null)))
-  (($str_eval_str_in_re_rec s 0 (re.* r1) @re.null)         (eo::ite (eo::eq s "")
+                                                              ($str_eval_str_in_re_rec s 0 rr $re_null)))
+  (($str_eval_str_in_re_rec s 0 (re.* r1) $re_null)         (eo::ite (eo::eq s "")
                                                               true
                                                               ; to make progress, first component must be non-empty
                                                               ($str_eval_str_in_re_rec s 1 r1 (re.* r1))))
-  (($str_eval_str_in_re_rec s 0 (str.to_re sr) @re.null)    (eo::eq s sr))
-  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) @re.null)  (eo::define ((cs (eo::to_z s)))
+  (($str_eval_str_in_re_rec s 0 (str.to_re sr) $re_null)    (eo::eq s sr))
+  (($str_eval_str_in_re_rec s 0 (re.range s1 s2) $re_null)  (eo::define ((cs (eo::to_z s)))
                                                             (eo::requires ($str_is_char_range s1 s2) true
                                                             (eo::ite (eo::eq (eo::len s) 1)
                                                                 (eo::and ($compare_geq cs (eo::to_z s1))
                                                                          ($compare_geq (eo::to_z s2) cs))
                                                                 false))))
-  (($str_eval_str_in_re_rec s 0 re.allchar @re.null)        (eo::eq (eo::len s) 1))
-  (($str_eval_str_in_re_rec s 0 re.all @re.null)            true)
-  (($str_eval_str_in_re_rec s 0 re.none @re.null)           false)
-  (($str_eval_str_in_re_rec s 0 (re.comp r1) @re.null)      (eo::not ($str_eval_str_in_re_rec s 0 r1 @re.null)))
+  (($str_eval_str_in_re_rec s 0 re.allchar $re_null)        (eo::eq (eo::len s) 1))
+  (($str_eval_str_in_re_rec s 0 re.all $re_null)            true)
+  (($str_eval_str_in_re_rec s 0 re.none $re_null)           false)
+  (($str_eval_str_in_re_rec s 0 (re.comp r1) $re_null)      (eo::not ($str_eval_str_in_re_rec s 0 r1 $re_null)))
   (($str_eval_str_in_re_rec s n r1 r2)                      (eo::define ((ls (eo::len s)))
                                                             (eo::define ((ss1 (eo::extract s 0 (eo::add n -1))))
                                                             (eo::define ((ss2 (eo::extract s n ls)))
-                                                            (eo::define ((res (eo::ite ($str_eval_str_in_re_rec ss1 0 r1 @re.null)
-                                                                       (eo::ite ($str_eval_str_in_re_rec ss2 0 r2 @re.null)
+                                                            (eo::define ((res (eo::ite ($str_eval_str_in_re_rec ss1 0 r1 $re_null)
+                                                                       (eo::ite ($str_eval_str_in_re_rec ss2 0 r2 $re_null)
                                                                          true false)
                                                                        false)))
                                                             (eo::ite res true
@@ -237,7 +238,7 @@
       ; if this is supported by the NFA signature, use the faster test
       ($nfa_match "" s nfa $nfa_decline)
       ; otherwise, must use the backtracking method above.
-      ($str_eval_str_in_re_rec s 0 r @re.null)))
+      ($str_eval_str_in_re_rec s 0 r $re_null)))
     ; otherwise if s is not constant, we are unevaluated
     (str.in_re s r)))
 

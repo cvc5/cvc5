@@ -141,8 +141,10 @@
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define $result_null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define $result_invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:
@@ -150,16 +152,16 @@
 ; - b2 Bool: The second Boolean result to combine.
 ; return: >
 ;   The result of combining the two results if they agree, where @result.null
-;   is treated as no result and @result.invalid is treated as an invalid result.
+;   is treated as no result and $result_invalid is treated as an invalid result.
 ; note: >
 ;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
-;   b1 if b1...bn are the same or @result.invalid otherwise.
+;   b1 if b1...bn are the same or $result_invalid otherwise.
 (program $result_combine ((b1 Bool) (b2 Bool))
   :signature (Bool Bool) Bool
   (
-    (($result_combine b1 @result.null) b1)
+    (($result_combine b1 $result_null) b1)
     (($result_combine b1 b1)           b1)
-    (($result_combine b1 b2)           @result.invalid)
+    (($result_combine b1 b2)           $result_invalid)
   )
 )
 ;; =============== for pairwise
