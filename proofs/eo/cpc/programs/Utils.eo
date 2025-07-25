@@ -13,8 +13,10 @@
 (define $sgn ((T Type :implicit) (x T))
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
-(declare-type @Pair (Type Type))
-(declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(declare-const @@Pair (-> Type Type Type))
+(define @Pair () @@Pair)
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(define @pair () @@pair)
 
 ; program: $pair_first
 ; args:
@@ -151,11 +153,11 @@
 ; - b1 Bool: The first Boolean result to combine.
 ; - b2 Bool: The second Boolean result to combine.
 ; return: >
-;   The result of combining the two results if they agree, where @result.null
-;   is treated as no result and $result_invalid is treated as an invalid result.
+;   The result of combining the two results if they agree, where $result_null
+;   is treated as no result and @result.invalid is treated as an invalid result.
 ; note: >
-;   In summary, ($result_combine b1 ... ($result_combine bn @result.null)) returns
-;   b1 if b1...bn are the same or $result_invalid otherwise.
+;   In summary, ($result_combine b1 ... ($result_combine bn $result_null)) returns
+;   b1 if b1...bn are the same or @result.invalid otherwise.
 (program $result_combine ((b1 Bool) (b2 Bool))
   :signature (Bool Bool) Bool
   (
