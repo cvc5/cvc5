@@ -26,6 +26,8 @@
   (-> (-> T U U) U (Set T) U))
 (declare-parameterized-const set.choose ((T Type :implicit))
   (-> (Set T) T))
+(declare-parameterized-const set.is_singleton ((T Type :implicit))
+  (-> (Set T) Bool))
 
 ; Experimental sets operators.
 (declare-parameterized-const set.comprehension ((T Type :implicit))

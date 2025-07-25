@@ -56,3 +56,7 @@
   :args (x1)
   :conclusion (= (set.choose (set.singleton x1)) x1)
 )
+(declare-rule sets-is-singleton-elim ((@T0 Type) (x1 (Set @T0)))
+  :args (x1)
+  :conclusion (= (set.is_singleton x1) (= x1 (set.singleton (set.choose x1))))
+)

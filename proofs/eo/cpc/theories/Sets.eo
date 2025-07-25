@@ -26,8 +26,6 @@
   (-> (Set T) (Set T) Bool))
 (declare-parameterized-const set.is_empty ((T Type :implicit))
   (-> (Set T) Bool))
-(declare-parameterized-const set.is_singleton ((T Type :implicit))
-  (-> (Set T) Bool))
 (declare-parameterized-const set.insert ((T Type :implicit))
   (-> @List (Set T) (Set T)))
 

@@ -22,3 +22,7 @@
 (define-rule sets-choose-singleton ((x ?))
   (set.choose (set.singleton x))
   x)
+
+(define-rule sets-is-singleton-elim ((x ?Set))
+  (set.is_singleton x)
+  (= x (set.singleton (set.choose x))))
