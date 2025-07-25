@@ -105,31 +105,42 @@
 (declare-parameterized-const bvsmod ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
 
-(declare-parameterized-const bvult ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool)
-  :chainable and)
-
-(declare-parameterized-const bvule ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool))
-
 (declare-parameterized-const bvugt ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
-(declare-parameterized-const bvuge ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool))
+(declare-parameterized-const bvuge
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (or (bvugt x1 x2) (= x1 x2)))
+  
+(declare-parameterized-const bvult
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (bvugt x2 x1))
 
-(declare-parameterized-const bvslt ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool))
-
-(declare-parameterized-const bvsle ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool))
+(declare-parameterized-const bvule
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (bvuge x2 x1))
 
 (declare-parameterized-const bvsgt ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
   
-(declare-parameterized-const bvsge ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) Bool))
+(declare-parameterized-const bvsge
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (or (bvsgt x1 x2) (= x1 x2)))
 
+(declare-parameterized-const bvslt
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (bvsgt x2 x1))
+
+(declare-parameterized-const bvsle
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  Bool
+  :semantics (bvsge x2 x1))
+  
 (declare-parameterized-const bvshl ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
  

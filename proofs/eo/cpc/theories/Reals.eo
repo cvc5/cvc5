@@ -20,5 +20,5 @@
 ; skolems
 (declare-parameterized-const @div_by_zero ((x Real))
   Real
-  ; :semantics (/ x 0.0)
+  :semantics (/ x 0.0)
 )

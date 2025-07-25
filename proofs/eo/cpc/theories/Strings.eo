@@ -179,16 +179,13 @@
   Int)
 (declare-parameterized-const @strings_stoi_result ((s String :opaque) (x Int))
   Int
-  ; :semantics (str.to_int (str.substr s 0 x))
-)
+  :semantics (str.to_int (str.substr s 0 x)))
 (declare-parameterized-const @strings_stoi_non_digit ((s String :opaque))
   Int
-  ; :semantics (str.indexof_re s (re.comp (re.range "0" "9")) 0)
-)
+  :semantics (str.indexof_re s (re.comp (re.range "0" "9")) 0))
 (declare-parameterized-const @strings_itos_result ((n Int :opaque) (x Int))
   Int
-  ; :semantics (str.from_int (mod n (^ 10 x)))
-)
+  :semantics (str.from_int (mod n (^ 10 x))))
 (declare-parameterized-const @strings_num_occur
   ((T Type :implicit) (s (Seq T)) (t (Seq T)))
   Int)

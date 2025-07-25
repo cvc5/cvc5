@@ -22,8 +22,11 @@
   (-> (Set T) (Set T) (Set T)))
 (declare-parameterized-const set.member ((T Type :implicit))
   (-> T (Set T) Bool))
-(declare-parameterized-const set.subset ((T Type :implicit))
-  (-> (Set T) (Set T) Bool))
+(declare-parameterized-const set.subset
+  ((T Type :implicit) (x1 (Set T)) (x2 (Set T)))
+  Bool
+  :semantics (= (set.inter x1 x2) x1)
+)
 (declare-parameterized-const set.choose ((T Type :implicit))
   (-> (Set T) T))
 (declare-parameterized-const set.is_empty ((T Type :implicit))
