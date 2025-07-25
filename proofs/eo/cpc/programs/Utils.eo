@@ -13,8 +13,10 @@
 (define $sgn ((T Type :implicit) (x T))
   (eo::ite (eo::is_neg x) -1 (eo::ite (eo::is_neg (eo::neg x)) 1 0)))
 
-(declare-type @Pair (Type Type))
-(declare-parameterized-const @pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(declare-const @@Pair (-> Type Type Type))
+(define @Pair () @@Pair)
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit)) (-> U T (@Pair U T)))
+(define @pair () @@pair)
 
 ; program: $pair_first
 ; args:
@@ -141,8 +143,10 @@
 ;; =============== for results
 
 ; Used for representing partial results of the method below.
-(declare-const @result.null Bool)
-(declare-const @result.invalid Bool)
+(declare-const @@result.null Bool)
+(define @result.null () @@result.null)
+(declare-const @@result.invalid Bool)
+(define @result.invalid () @@result.invalid)
 
 ; program: $result_combine
 ; args:

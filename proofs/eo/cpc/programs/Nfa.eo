@@ -2,43 +2,52 @@
 
 ; Declares a new sort which will be used to represent the states and transitions
 ; of the automaton.
-(declare-const @Nfa Type)
+(declare-const @@Nfa Type)
+(define @Nfa () @@Nfa)
 
 ; Declares a sort which represents a single character or a set of characters
 ; for an NFA transition.
 (define @nfa.char () String)
 
 ; Declares the non-accepting trap state (also known as a sink state).
-(declare-const @nfa.decline @Nfa)
+(declare-const @@nfa_decline @Nfa)
+(define @nfa.decline () @@nfa_decline)
 
 ; This represents the terminal or final state of the NFA.
 ; A path in the NFA is accepting if it reaches this state.
-(declare-const @nfa.accept @Nfa)
+(declare-const @@nfa_accept @Nfa)
+(define @nfa.accept () @@nfa_accept)
 
 ; Declares a right-associative function to hold a list of states.
-(declare-const @nfa.list (-> @Nfa @Nfa @Nfa) :right-assoc-nil @nfa.decline)
+(declare-const @@nfa_list (-> @Nfa @Nfa @Nfa) :right-assoc-nil @nfa.decline)
+(define @nfa.list () @@nfa_list)
 
 ; Declares a function which takes a character condition and
 ; an NFA. This is the core construct for a state
 ; in the NFA. The first char argument specifies the character(s) for a transition
 ; from this state. The second @Nfa argument is the next state upon a match.
-(declare-const @nfa.trans (-> @nfa.char @Nfa @Nfa))
+(declare-const @@nfa_trans (-> @nfa.char @Nfa @Nfa))
+(define @nfa.trans () @@nfa_trans)
 
 ; Declares a transition that can be taken on any character.
-(declare-const @nfa.allchar @nfa.char)
+(declare-const @@nfa_allchar @nfa.char)
+(define @nfa.allchar () @@nfa_allchar)
 
 ; Creates a character set for a transition from a given range.
 ; The two Int arguments represent Unicode code points, allowing for ranges
 ; like 'a' to 'z' or any other character block.
-(declare-const @nfa.range (-> Int Int @nfa.char))
+(declare-const @@nfa_range (-> Int Int @nfa.char))
+(define @nfa.range () @@nfa_range)
 
 ; Represents a special epsilon transition that pushes the current state onto the stack.
 ; This is used to save the current position, for example, before entering a loop.
-(declare-const @nfa.push (-> @Nfa @Nfa))
+(declare-const @@nfa_push (-> @Nfa @Nfa))
+(define @nfa.push () @@nfa_push)
 
 ; Represents a special epsilon transition that pops a state from the stack.
 ; This is used to restore a saved state, for example, upon exiting a loop.
-(declare-const @nfa.pop (-> @Nfa @Nfa))
+(declare-const @@nfa_pop (-> @Nfa @Nfa))
+(define @nfa.pop () @@nfa_pop)
 
 ; This program recursively translates a regular expression (RegLan) into its
 ; corresponding Nondeterministic Finite Automaton (@Nfa) representation.
@@ -109,7 +118,7 @@
 ; The simulation moves character by character, with each step's next_states
 ; becoming the next step's current_states. The match is successful if an
 ; accepting state is reached at the end of the string.
-; program: $nfa_match
+; program: @nfa.match
 ; args:
 ; - c String:              The character being evaluated in the current step.
 ; - s String:              The remaining part of the input string.
@@ -117,21 +126,21 @@
 ;                          the function checks for valid transitions based on the current character.
 ; - next_states @Nfa:       An accumulating list of states the NFA will be in after the current character is processed.
 ; return: True if the NFA accepts the string, false otherwise.
-(program $nfa_match ((c String) (s String) (nexts @Nfa) (tt @Nfa :list) (t @Nfa)
+(program @nfa.match ((c String) (s String) (nexts @Nfa) (tt @Nfa :list) (t @Nfa)
                 (st @Nfa) (z0 Int) (z1 Int))
   :signature (@nfa.char String @Nfa @Nfa) Bool
   (
-    (($nfa_match c s @nfa.decline @nfa.decline) false)
-    (($nfa_match c "" @nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list @nfa.accept @nfa.decline)))))
-    (($nfa_match "" s t @nfa.decline) ($nfa_match "" s @nfa.decline ($add_to_nexts t @nfa.decline @nfa.decline)))
-    (($nfa_match c s @nfa.decline nexts) ($nfa_match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts @nfa.decline))
-    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans c t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
-    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans @nfa.allchar t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
-    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans (@nfa.range z0 z1) t) st) tt) nexts)
+    ((@nfa.match c s @nfa.decline @nfa.decline) false)
+    ((@nfa.match c "" @nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list @nfa.accept @nfa.decline)))))
+    ((@nfa.match "" s t @nfa.decline) (@nfa.match "" s @nfa.decline ($add_to_nexts t @nfa.decline @nfa.decline)))
+    ((@nfa.match c s @nfa.decline nexts) (@nfa.match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts @nfa.decline))
+    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans c t) st) tt) nexts)  (@nfa.match c s tt ($add_to_nexts t st nexts)))
+    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans @nfa.allchar t) st) tt) nexts)  (@nfa.match c s tt ($add_to_nexts t st nexts)))
+    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans (@nfa.range z0 z1) t) st) tt) nexts)
       (eo::ite (eo::and ($compare_geq (eo::to_z c) z0) ($compare_geq z1 (eo::to_z c)))  
-        ($nfa_match c s tt ($add_to_nexts t st nexts))
-        ($nfa_match c s tt nexts))
+        (@nfa.match c s tt ($add_to_nexts t st nexts))
+        (@nfa.match c s tt nexts))
     )
-    (($nfa_match c s (@nfa.list t tt) nexts)  ($nfa_match c s tt nexts))
+    ((@nfa.match c s (@nfa.list t tt) nexts)  (@nfa.match c s tt nexts))
   )
 )
