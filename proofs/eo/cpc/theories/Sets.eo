@@ -6,7 +6,7 @@
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further
 ;   function symbols over this sort are also not part of the SMT-LIB standard.
-(declare-type Set (Type))
+(declare-const Set (-> Type Type))
 
 ; Constants for the theory of sets.
 (declare-parameterized-const set.empty ((T Type :implicit)) (Set T))
