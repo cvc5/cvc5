@@ -28,7 +28,9 @@
 ; Skolem terms for integer division by zero and integer modulus by zero.
 (declare-parameterized-const @int_div_by_zero ((x Int))
   Int
-  :semantics (div x 0))
+  ; :semantics (div x 0)
+)
 (declare-parameterized-const @mod_by_zero ((x Int))
   Int
-  :semantics (mod x 0))
+  ; :semantics (mod x 0)
+)

@@ -232,10 +232,10 @@
 ; note: This method attempts to use the NFA test whenever possible.
 (define $str_eval_str_in_re ((s String) (r RegLan))
   (eo::ite (eo::is_str s)
-    (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
+    (eo::define ((nfa ($build_nfa r ($nfa_list $nfa_accept))))
     (eo::ite (eo::is_ok nfa)
       ; if this is supported by the NFA signature, use the faster test
-      ($nfa_match "" s nfa @nfa.decline)
+      ($nfa_match "" s nfa $nfa_decline)
       ; otherwise, must use the backtracking method above.
       ($str_eval_str_in_re_rec s 0 r @re.null)))
     ; otherwise if s is not constant, we are unevaluated
