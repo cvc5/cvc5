@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
 #include "expr/plugin.h"
 #include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
@@ -1181,8 +1182,13 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   return ret;
 }
 
-Node SolverEngine::getValue(const Node& t) const
+Node SolverEngine::getValue(const Node& t, bool fromUser)
 {
+  // can invoke satisfiability check below
+  if (fromUser)
+  {
+    beginCall(true);
+  }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
@@ -1230,8 +1236,51 @@ Node SolverEngine::getValue(const Node& t) const
   // holds for models that do not have approximate values.
   if (!m->isValue(resultNode))
   {
-    d_env->warning() << "Could not evaluate " << resultNode
-                     << " in getValue." << std::endl;
+    bool subSuccess = false;
+    if (fromUser && d_env->getOptions().smt.checkModelSubsolver)
+    {
+      // invoke satisfiability check
+      // ensure symbols have been substituted
+      resultNode = m->simplify(resultNode);
+      // Note that we must be a "closed" term, i.e. one that can be
+      // given in an assertion.
+      if (NonClosedNodeConverter::isClosed(*d_env.get(), resultNode))
+      {
+        TypeNode rtn = resultNode.getType();
+        SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
+        Node k = skm->mkInternalSkolemFunction(
+            InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
+        // the query is (k = resultNode)
+        Node checkQuery = resultNode.eqNode(k);
+        Options subOptions;
+        subOptions.copyValues(d_env->getOptions());
+        smt::SetDefaults::disableChecking(subOptions);
+        // ensure no infinite loop
+        subOptions.write_smt().checkModelSubsolver = false;
+        subOptions.write_smt().modelVarElimUneval = false;
+        subOptions.write_smt().simplificationMode =
+            options::SimplificationMode::NONE;
+        // initialize the subsolver
+        SubsolverSetupInfo ssi(*d_env.get(), subOptions);
+        std::unique_ptr<SolverEngine> getValueChecker;
+        initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
+        // disable all checking options
+        SetDefaults::disableChecking(getValueChecker->getOptions());
+        getValueChecker->assertFormula(checkQuery);
+        Result r = getValueChecker->checkSat();
+        if (r == Result::SAT)
+        {
+          // value is the result of getting the value of k
+          resultNode = getValueChecker->getValue(k);
+          subSuccess = m->isValue(resultNode);
+        }
+      }
+    }
+    if (!subSuccess)
+    {
+      d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
+                       << std::endl;
+    }
   }
 
   if (d_env->getOptions().smt.abstractValues)
@@ -1253,16 +1302,20 @@ Node SolverEngine::getValue(const Node& t) const
       Trace("smt") << "--- abstract value >> " << resultNode << endl;
     }
   }
-
+  if (fromUser)
+  {
+    endCall();
+  }
   return resultNode;
 }
 
-std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
+std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
+                                          bool fromUser)
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
   {
-    result.push_back(getValue(e));
+    result.push_back(getValue(e, fromUser));
   }
   return result;
 }
