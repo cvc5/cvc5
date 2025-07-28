@@ -83,6 +83,8 @@ IllegalChecker::IllegalChecker(Env& e)
       && !options().datatypes.datatypesExp)
   {
     d_illegalKinds.insert(Kind::MATCH);
+    // catches all occurrences of nullables
+    d_illegalKinds.insert(Kind::NULLABLE_TYPE);
   }
   if (logicInfo().hasCardinalityConstraints() && !options().uf.ufCardExp)
   {

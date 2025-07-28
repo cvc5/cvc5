@@ -133,7 +133,7 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.bz2
+    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}

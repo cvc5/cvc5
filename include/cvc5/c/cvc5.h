@@ -33,6 +33,25 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+// char32_t is a built-in keyword in C++11 and defined in C11 via <uchar.h>. See:
+//   https://en.cppreference.com/w/cpp/keyword/char32_t.html
+//   https://en.cppreference.com/w/c/header/uchar.html
+// However, the uchar.h header is missing in Apple Clang. See:
+//   https://github.com/llvm/llvm-project/issues/41443
+// This workaround defines char32_t when uchar.h is not available (in C mode)
+#ifndef __cplusplus
+  #ifdef __has_include
+    #if __has_include(<uchar.h>)
+      #include <uchar.h>
+    #else
+      typedef uint_least32_t char32_t;
+    #endif
+  #else
+    // Fallback if __has_include is not supported
+    typedef uint_least32_t char32_t;
+  #endif
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -407,7 +426,7 @@ CVC5_EXPORT int64_t cvc5_sort_compare(Cvc5Sort a, Cvc5Sort b);
 CVC5_EXPORT Cvc5SortKind cvc5_sort_get_kind(Cvc5Sort sort);
 
 /**
-   * Determine if the given sort has a symbol (a name).
+ * Determine if the given sort has a symbol (a name).
  *
  * For example, uninterpreted sorts and uninterpreted sort constructors have
  * symbols.
@@ -1350,8 +1369,24 @@ CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
  *       some string representation of the term, whatever data it may hold.
  * @param term The term.
  * @return The string term as a native string value.
+ *
+ * @warning This function is deprecated and replaced by
+ *          cvc5_term_get_u32string_value(). It will be removed in a future
+ *          release.
  */
-CVC5_EXPORT const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+CVC5_EXPORT __attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
+const wchar_t* cvc5_term_get_string_value(Cvc5Term term);
+
+/**
+ * Get the native UTF-32 string representation of a string value.
+ * @note Requires that the term is a string value (see
+ *       cvc5_term_is_string_value()).
+ * @note This is not to be confused with cvc5_term_to_string(), which returns
+ *       some string representation of the term, whatever data it may hold.
+ * @param term The term.
+ * @return The string term as a native UTF-32 string value.
+ */
+CVC5_EXPORT const char32_t* cvc5_term_get_u32string_value(Cvc5Term term);
 
 /**
  * Determine if a given term is a rational value whose numerator fits into an
@@ -3145,9 +3180,25 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
  * @param tm The term manager instance.
  * @param s The string this constant represents.
  * @return The String constant.
+ *
+ * @warning This function is deprecated and replaced by
+ *          cvc5_mk_string_from_char32(). It will be removed in a future
+ *          release.
  */
-CVC5_EXPORT Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
-                                               const wchar_t* s);
+CVC5_EXPORT __attribute__((deprecated("Use cvc5_mk_string_from_char32 instead")))
+Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm,
+                                   const wchar_t* s);
+
+/**
+ * Create a String constant from a UTF-32 string.
+ * This function does not support escape sequences as wide character already
+ * supports unicode characters.
+ * @param tm The term manager instance.
+ * @param s The UTF-32 string this constant represents.
+ * @return The String constant.
+ */
+CVC5_EXPORT Cvc5Term cvc5_mk_string_from_char32(Cvc5TermManager* tm,
+                                                const char32_t* s);
 
 /**
  * Create an empty sequence of the given element sort.
@@ -3503,10 +3554,24 @@ struct Cvc5OptionInfo
   const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
-  /** True if the option is an expert option */
-  bool is_expert;
-  /** True if the option is a regular option */
-  bool is_regular;
+  /**
+   * True if the option is an expert option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  bool is_expert
+      __attribute__((deprecated("Query Cvc5OptionCategory category for "
+                                "CVC5_OPTION_CATEGORY_EXPERT instead")));
+  /**
+   * True if the option is a regular option
+   * @warning This field is deprecated and replaced by `category`. It will be
+   *          removed in a future release.
+   */
+  bool is_regular
+      __attribute__((deprecated("Query Cvc5OptionCategory category for "
+                                "CVC5_OPTION_CATEGORY_REGULAR instead")));
+  /** The category of this option. */
+  Cvc5OptionCategory category;
 
   /** Information for boolean option values. */
   struct BoolInfo
@@ -4846,7 +4911,7 @@ CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
  * Get an interpolant.
  *
  * Given that @f$A \rightarrow B@f$ is valid,
- * this function determines a term @f$I@f$ 
+ * this function determines a term @f$I@f$
  * over the shared variables of @f$A@f$ and @f$B@f$,
  * such that @f$A \rightarrow I@f$ and
  * @f$I \rightarrow B@f$ are valid, if such a term exits. @f$A@f$ is the
@@ -4878,8 +4943,8 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  * Get an interpolant
  *
  * Given that @f$A \rightarrow B@f$ is valid,
- * this function determines a term @f$I@f$ 
- * over the shared variables of @f$A@f$ and @f$B@f$, 
+ * this function determines a term @f$I@f$
+ * over the shared variables of @f$A@f$ and @f$B@f$,
  * with respect to a given grammar, such that
  * @f$A \rightarrow I@f$ and @f$I \rightarrow B@f$ are valid, if such a term
  * exits. @f$A@f$ is the current set of assertions and @f$B@f$ is the
