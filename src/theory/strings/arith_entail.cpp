@@ -1022,7 +1022,7 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
         {
           if (a.getKind() == Kind::MULT)
           {
-            ret = ac;
+            ret = Node::null();
             success = false;
             break;
           }
