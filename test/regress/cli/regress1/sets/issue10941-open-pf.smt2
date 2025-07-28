@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q --produce-proofs
+; COMMAND-LINE: -q --produce-proofs --sets-exp
 ; EXPECT: sat
 (set-logic ALL)
 (assert (= 1.0 (* 1.0 (set.choose (set.insert (arcsin 0.0) (set.singleton 1.0))))))

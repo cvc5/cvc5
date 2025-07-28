@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun st3 () (Set String))

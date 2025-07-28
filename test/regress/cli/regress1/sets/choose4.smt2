@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quiet
+; COMMAND-LINE: -q --sets-exp
 (set-logic ALL)
 (set-info :status sat)
 (set-option :produce-models true)
