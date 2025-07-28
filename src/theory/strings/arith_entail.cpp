@@ -1012,7 +1012,6 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
       Node ac = getConstantBound(a[i], isLower);
       if (ac.isNull())
       {
-        ret = ac;
         success = false;
         break;
       }
@@ -1022,7 +1021,6 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
         {
           if (a.getKind() == Kind::MULT)
           {
-            ret = Node::null();
             success = false;
             break;
           }
@@ -1033,7 +1031,6 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
           {
             if ((ac.getConst<Rational>().sgn() > 0) != isLower)
             {
-              ret = Node::null();
               success = false;
               break;
             }
