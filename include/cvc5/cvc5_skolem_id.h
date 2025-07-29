@@ -252,7 +252,7 @@ enum ENUM(SkolemId)
    * The n^th skolem for the negation of universally quantified formula Q.
    *
    * - Number of skolem indices: ``2``
-   *   - ``1:`` The quantified formula Q.
+   *   - ``1:`` The universally quantified formula Q.
    *   - ``2:`` The index of the variable in the binder of Q to skolemize.
    * - Sort: The type of the variable referenced by the second index.
    */
