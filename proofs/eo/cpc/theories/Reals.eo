@@ -18,7 +18,4 @@
       Real))) :left-assoc)
 
 ; skolems
-(declare-parameterized-const @div_by_zero ((x Real))
-  Real
-  :semantics (/ x 0.0)
-)
+(declare-const @div_by_zero (-> Real Real))
