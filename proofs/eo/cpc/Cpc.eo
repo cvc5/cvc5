@@ -60,6 +60,19 @@
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
 ; that are not supported by cvc5 when safe mode is enabled.
 ; 
+; Typically, we use $ as the prefix of symbols introduced by define and
+; program.  For clarity, we sometimes use @ as the prefix of symbols introduced
+; by simple define commands.
+;
+; All symbols introduced by declare-const and declare-parameterized-const that
+; are prefixed by @ are not part of the SMT-LIB standard and are used to model
+; cvc5's internal symbols, including its skolems, other internally introduced
+; terms, and extensions.
+;
+; Furthermote, all symbols prefixed by @@ are furthermore used only internally
+; to define this signature and will never appear in a formula that a proof
+; rule concludes, nor will it appear in a proof script.
+;
 ; =============================================================================
 
 (include "./rules/Builtin.eo")
@@ -86,6 +99,7 @@
 ; note: >
 ;   @const corresponds to generic abstract constants, which correspond to internally
 ;   introduced terms that do not have a formal definition in the signature.
+;   This symbol is intentionally unused in this signature.
 (declare-parameterized-const @const ((id Int :opaque) (T Type :opaque)) T)
 
 ; note: >

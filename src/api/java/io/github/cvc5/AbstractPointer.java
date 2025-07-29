@@ -30,6 +30,7 @@ abstract class AbstractPointer implements IPointer
   {
     if (pointer != 0)
     {
+      Context.removeAbstractPointer(this);
       deletePointer(pointer);
     }
     pointer = 0;

@@ -25,12 +25,6 @@
 (declare-parameterized-const tuple ((T Type :implicit) (U Type :implicit)) (-> T U (eo::cons Tuple T U)) :right-assoc-nil tuple.unit)
 (declare-parameterized-const tuple.select ((T Type :implicit) (i Int)) (-> T (eo::list_nth Tuple T i)))
 
-
-(program $get_tuple_update_type ((i Int) (T Type))
-  :signature (Int Type) Type
-  (
-  (($get_tuple_update_type i T) (-> (eo::list_nth Tuple T i) T))
-  )
-)
 ; disclaimer: This function is not in the SMT-LIB standard.
-(declare-parameterized-const tuple.update ((i Int) (T Type)) ($get_tuple_update_type i T))
+(declare-parameterized-const tuple.update ((T Type :implicit) (U Type :implicit) (i Int))
+  (-> T U (eo::requires U (eo::list_nth Tuple T i) T)))
