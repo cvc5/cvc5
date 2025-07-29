@@ -7,17 +7,23 @@
 (declare-const mod (-> Int Int Int))
 
 ; Divisible predicate.
-(declare-const divisible (-> Int Int Bool))
+(declare-parameterized-const divisible ((x1 Int) (x2 Int))
+  Bool
+  :semantics (= (mod x2 x1) 0))
 
 ; The "integer power of 2" operator.
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const int.pow2 (-> Int Int))
 ; The "integer log 2" operator
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const int.log2 (-> Int Int))
+(declare-parameterized-const int.log2 ((x1 Int))
+  Int
+  :semantics (div x1 (int.pow2 x1)))
 ; The "is integer log 2" operator
 ; disclaimer: This function is not in SMT-LIB.
-(declare-const int.ispow2 (-> Int Bool))
+(declare-parameterized-const int.ispow2 ((x1 Int))
+  Bool
+  :semantics (= x1 (int.pow2 (int.log2 x1))))
 
 ; Internally generated terms.
 ; disclaimer: This function is not in SMT-LIB.
@@ -28,9 +34,7 @@
 ; Skolem terms for integer division by zero and integer modulus by zero.
 (declare-parameterized-const @int_div_by_zero ((x Int))
   Int
-  :semantics (div x 0)
-)
+  :semantics (div x 0))
 (declare-parameterized-const @mod_by_zero ((x Int))
   Int
-  :semantics (mod x 0)
-)
+  :semantics (mod x 0))

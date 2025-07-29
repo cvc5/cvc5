@@ -67,9 +67,6 @@
 (declare-parameterized-const bvxnor ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
 
-(declare-parameterized-const bvcomp ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) (BitVec 1)))
-
 (declare-parameterized-const bvneg ((m Int :implicit))
   (-> (BitVec m) (BitVec m)))
 
@@ -93,8 +90,10 @@
 (declare-parameterized-const bvurem ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
 
-(declare-parameterized-const bvsub ((m Int :implicit))
-  (-> (BitVec m) (BitVec m) (BitVec m)))
+(declare-parameterized-const bvsub
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  (BitVec m)
+  :semantics (bvadd x1 (bvneg x2)))
 
 (declare-parameterized-const bvsdiv ((m Int :implicit))
   (-> (BitVec m) (BitVec m) (BitVec m)))
@@ -162,10 +161,6 @@
 (declare-parameterized-const rotate_right ((m Int :implicit))
   (-> Int (BitVec m) (BitVec m)))
 
-; NOTE: does not require branches to be bitvector
-; disclaimer: This function is not a function in SMT-LIB.
-(declare-parameterized-const bvite ((T Type :implicit)) (-> (BitVec 1) T T T))
-
 (declare-parameterized-const bvuaddo ((m Int :implicit))
   (-> (BitVec m) (BitVec m) Bool))
 
@@ -215,3 +210,15 @@
 
 ; symbolic constant
 (declare-parameterized-const @bv ((value Int) (w Int)) (BitVec w))
+
+(declare-parameterized-const bvcomp
+  ((m Int :implicit) (x1 (BitVec m)) (x2 (BitVec m)))
+  (BitVec 1)
+  :semantics (ite (= x1 x2) (@bv 1 1) (@bv 0 1)))
+
+; NOTE: does not require branches to be bitvector
+; disclaimer: This function is not a function in SMT-LIB.
+(declare-parameterized-const bvite
+  ((T Type :implicit) (x1 (BitVec 1)) (x2 T) (x3 T))
+  T
+  :semantics (ite (= x1 (@bv 1 1)) x2 x3))
