@@ -1,3 +1,4 @@
+; COMMAND-LINE: --produce-models
 ; EXPECT: sat
 ; EXPECT: ((A true))
 (set-logic ALL)
