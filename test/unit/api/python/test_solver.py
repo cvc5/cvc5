@@ -2199,6 +2199,29 @@ def test_get_unsat_core_lemmas2(tm, solver):
   assert solver.checkSat().isUnsat()
   solver.getUnsatCoreLemmas()
 
+def test_get_partitions(solver):
+  solver.setOption("incremental", "false")
+  solver.setOption("compute-partitions", "2")
+  solver.setOption("partition-strategy", "decision-cube")
+  solver.setOption("checks-before-partition", "1")
+  solver.setOption("partition-when", "climit")
+  solver.setOption("write-partitions-to", "/dev/null")
+
+  real = solver.getRealSort()
+  
+  x = solver.mkConst(real, "x")
+  y = solver.mkConst(real, "y")
+  
+  c1 = solver.mkTerm(Kind.OR, solver.mkTerm(Kind.LEQ, x, y), 
+                  solver.mkTerm(Kind.LEQ, x, solver.mkReal(5)))
+  solver.assertFormula(c1)
+
+  solver.checkSat()
+
+  partitions = solver.getPartitions()
+  assert len(partitions) > 0
+
+
 def test_get_difficulty(solver):
   solver.setOption("produce-difficulty", "true")
   # cannot ask before a check sat
