@@ -113,6 +113,8 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
+  // TODO: check if any datatypes have syntactic constraints??
+
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
   {
