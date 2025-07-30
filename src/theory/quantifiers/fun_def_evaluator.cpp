@@ -326,6 +326,16 @@ Node FunDefEvaluator::getDefinitionFor(Node f) const
   }
   return Node::null();
 }
+Node FunDefEvaluator::getLambdaFor(Node f) const
+{
+  std::map<Node, FunDefInfo>::const_iterator it = d_funDefMap.find(f);
+  if (it != d_funDefMap.end())
+  {
+    NodeManager * nm = nodeManager();
+    return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, it->second.d_args), it->second.d_body);
+  }
+  return Node::null();
+}
 
 }  // namespace quantifiers
 }  // namespace theory

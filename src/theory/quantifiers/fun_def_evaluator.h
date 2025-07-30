@@ -62,6 +62,8 @@ class FunDefEvaluator : protected EnvObj
   const std::vector<Node>& getDefinitions() const;
   /** Get definition for function symbol f, if it is cached by this class */
   Node getDefinitionFor(Node f) const;
+  /** Get lambda for function symbol f, if it is cached by this class */
+  Node getLambdaFor(Node f) const;
 
  private:
   /** If returns true, updates index to the child index of the equality that is the head */

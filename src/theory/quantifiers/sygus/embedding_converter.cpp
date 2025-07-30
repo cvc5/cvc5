@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/rational.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
@@ -447,9 +448,131 @@ void EmbeddingConverter::inferDtGrammars(const Node& q)
   for (const Node& d : disj)
   {
     Node dd = d.negate();
-    Trace("infer-dt-grammar") << "Check disjunction: " << dd << std::endl;
-    
+    std::map<Node, Node> nts;
+    std::map<Node, std::vector<Node>> cases;
+    if (isSyntacticConstraint(dtVars, dd, nts, cases))
+    {
+      
+    }
   }
+}
+
+bool EmbeddingConverter::isSyntacticConstraint(const std::unordered_set<Node> dtVars,
+                                               const Node& n, 
+                                               std::map<Node, Node>& nts, 
+                                               std::map<Node, std::vector<Node>>& rules)
+{
+  return false;
+  Trace("infer-dt-grammar") << "isSyntacticConstraint: " << n << std::endl;
+  if (n.getKind()!=Kind::APPLY_UF || n.getNumChildren()!=1)
+  {
+    Trace("infer-dt-grammar") << "...not unary predicate" << std::endl;
+    return false;
+  }
+  if (dtVars.find(n[0])==dtVars.end())
+  {
+    Trace("infer-dt-grammar") << "...not unary predicate to relevant variable" << std::endl;
+    return false;
+  }
+  FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+  Node f = n.getOperator();
+  if (nts.find(f)!=nts.end())
+  {
+    // already computed, true
+    return true;
+  }
+  Node def = fde->getLambdaFor(f);
+  if (def.isNull())
+  {
+    Trace("infer-dt-grammar") << "...not unary predicate to relevant variable" << std::endl;
+    return false;
+  }
+  //Node v = nm->mkBoundVar(n[0].getType());
+  std::vector<Node>& curRules = rules[f];
+  NodeManager * nm = nodeManager();
+  Node predInit = nm->mkNode(Kind::APPLY_UF, def, n[0]);
+  predInit = rewrite(predInit);
+  Trace("infer-dt-grammar") << "Definition is: " << predInit << std::endl;
+  std::vector<std::tuple<Node, Node, std::vector<Node>>> toVisit;
+  std::tuple<Node, Node, std::vector<Node>> cur;
+  toVisit.emplace_back(predInit, n[0], std::vector<Node>{n[0]});
+  size_t iter = 0;
+  Node truen = nm->mkConst(true);
+  do
+  {
+    iter++;
+    cur = toVisit.back();
+    toVisit.pop_back();
+    Node pred = std::get<0>(cur);
+    Node t = std::get<1>(cur);
+    std::vector<Node> vars = std::get<2>(cur);
+    Trace("infer-dt-grammar") << "Process:" << std::endl;
+    Trace("infer-dt-grammar") << "- predicate " << pred << std::endl;
+    Trace("infer-dt-grammar") << "- term " << t << std::endl;
+    Trace("infer-dt-grammar") << "- variables " << vars << std::endl;
+    if (pred.isConst())
+    {
+      if (!pred.getConst<bool>())
+      {
+        // predicate is infeasible, continue
+        continue;
+      }
+      Trace("infer-dt-grammar") << "*** Predicate true, add " << t << std::endl;
+      continue;
+    }
+    if (vars.empty())
+    {
+      Trace("infer-dt-grammar") << "Done instantiating?, add " << t << std::endl;
+      // TODO?
+      continue;
+    }
+    TNode curVar = vars.back();
+    vars.pop_back();
+    if (curVar.getType().isDatatype())
+    {
+      // close recursive
+      Subs s;
+      for (std::pair<const Node, std::vector<Node>>& r : rules)
+      {
+        Node recPred = nm->mkNode(Kind::APPLY_UF, r.first, curVar);
+        s.add(recPred, truen);
+      }
+      pred = s.apply(pred);
+      pred = rewrite(pred);
+      if (expr::hasSubterm(pred, curVar))
+      {
+        const DType& dt = curVar.getType().getDType();
+        for (size_t i = 0, ndt = dt.getNumConstructors(); i < ndt; ++i)
+        {
+          Node ic = datatypes::utils::getInstCons(curVar, dt, i, false);
+          Trace("infer-dt-grammar") << "  Expand: " << ic << std::endl;
+          TNode tic = ic;
+          Node tExpand = t.substitute(curVar, tic);
+          Node predExpand = pred.substitute(curVar, tic);
+          predExpand = rewrite(predExpand);
+          Trace("infer-dt-grammar") << "  ...predicate is " << predExpand << std::endl;
+          std::vector<Node> newVars = vars;
+          if (ic.getNumChildren()>0)
+          {
+            newVars.insert(newVars.end(), ic.begin(), ic.end());
+          }
+          toVisit.emplace_back(predExpand, tExpand, newVars);
+        }
+      }
+      else
+      {
+        toVisit.emplace_back(pred, t, vars);
+      }
+      continue;
+    }
+    else
+    {
+      Trace("infer-dt-grammar") << "Close non-datatype " << curVar << std::endl;
+      toVisit.emplace_back(pred, t, vars);
+    }
+  }while (!toVisit.empty());
+  
+  return false;
 }
 
 }  // namespace quantifiers
