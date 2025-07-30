@@ -91,6 +91,8 @@ class EmbeddingConverter : protected EnvObj
   static bool hasSyntaxRestrictions(Node q);
 
  private:
+  /** Infer datatype grammar */
+  void inferDtGrammars(const Node& q);
   /** The sygus term database we are using */
   TermDbSygus* d_tds;
   /** parent conjecture

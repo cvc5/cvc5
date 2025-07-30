@@ -1180,6 +1180,14 @@ name   = "Quantifiers"
   help       = "statically add constants appearing in conjecture to grammars"
 
 [[option]]
+  name       = "sygusDtInferGrammar"
+  category   = "expert"
+  long       = "sygus-dt-infer-grammar"
+  type       = "bool"
+  default    = "false"
+  help       = "attempt to infer datatype grammars based on (recursive) syntactic constraints"
+
+[[option]]
   name       = "sygusGrammarNorm"
   category   = "expert"
   long       = "sygus-grammar-norm"
@@ -1335,7 +1343,7 @@ name   = "Quantifiers"
   long       = "sygus-rec-fun"
   type       = "bool"
   default    = "true"
-  help       = "enable efficient support for recursive functions in sygus grammars"
+  help       = "enable efficient support for recursive functions in sygus"
 
 [[option]]
   name       = "sygusRecFunEvalLimit"
@@ -1344,6 +1352,14 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
+
+[[option]]
+  name       = "sygusRecFunInfer"
+  category   = "expert"
+  long       = "sygus-rec-fun-infer"
+  type       = "bool"
+  default    = "true"
+  help       = "automatically infer recursive definitions for sygus"
 
 [[option]]
   name       = "sygusVerifyInstMaxRounds"

@@ -141,33 +141,33 @@ void SynthEngine::checkOwnership(Node q)
   if (qa.isSygus(q))
   {
     d_qreg.setOwner(q, this, 2);
+    return;
   }
   if (options().quantifiers.sygusRecFun)
   {
-    FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
-    // if it can be inferred as a recursive function definition, we take ownership
-    if (fde->isDefinition(q))
+    // see if we should try to infer that it is a recursive function
+    if (qa.isFunDef(q) || options().quantifiers.sygusRecFunInfer)
     {
-      d_qreg.setOwner(q, this, 2);
-      return;
+      FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
+      // if it can be inferred as a recursive function definition, we take ownership
+      if (fde->isDefinition(q))
+      {
+        d_qreg.setOwner(q, this, 2);
+        return;
+      }
     }
   }
+  Trace("sygus-quant") << "Free quantified formula: " << q << std::endl;
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
-  if (options().quantifiers.sygusRecFun)
+  // if we did not take ownership above, ignore
+  if (d_qreg.getOwner(q) != this)
   {
-    // If it is a recursive function definition, add it to the function
-    // definition evaluator class.
-    Trace("cegqi") << "Registering function definition : " << q << "\n";
-    FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
-    if (fde->assertDefinition(q))
-    {
-      return;
-    }
+    return;
   }
   QuantAttributes& qa = d_qreg.getQuantAttributes();
   if (qa.isSygus(q))
@@ -175,7 +175,15 @@ void SynthEngine::registerQuantifier(Node q)
     Trace("cegqi") << "Register conjecture : " << q << std::endl;
     // assign it now
     assignConjecture(q);
+    return;
   }
+  // otherwise it should be a recursive function definition
+  Assert (options().quantifiers.sygusRecFun);
+  // If it is a recursive function definition, add it to the function
+  // definition evaluator class.
+  Trace("cegqi") << "Registering function definition : " << q << "\n";
+  FunDefEvaluator* fde = d_treg.getTermDatabaseSygus()->getFunDefEvaluator();
+  fde->assertDefinition(q);
 }
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)

@@ -98,6 +98,7 @@ Node EmbeddingConverter::process(Node q,
                                  const std::map<Node, Node>& templates,
                                  const std::map<Node, Node>& templates_arg)
 {
+  Assert (q.getKind()==Kind::FORALL);
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
@@ -113,7 +114,10 @@ Node EmbeddingConverter::process(Node q,
   std::map<TypeNode, std::unordered_set<Node>> exc_cons;
   std::map<TypeNode, std::unordered_set<Node>> inc_cons;
 
-  // TODO: check if any datatypes have syntactic constraints??
+  if (options().quantifiers.sygusDtInferGrammar)
+  {
+    inferDtGrammars(q);
+  }
 
   std::vector<Node> ebvl;
   for (unsigned i = 0; i < q[0].getNumChildren(); i++)
@@ -407,6 +411,45 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+void EmbeddingConverter::inferDtGrammars(const Node& q)
+{
+  Trace("infer-dt-grammar") << "Infer datatype grammars " << q << std::endl;
+  std::unordered_set<Node> dtVars;
+  for (const Node& sf : q[0])
+  {
+    // if non-null, v encodes the syntactic restrictions (via an inductive
+    // datatype) on sf from the input.
+    TypeNode preGrammarType = SygusUtils::getSygusType(sf);
+    if (preGrammarType.isNull() && sf.getType().isDatatype())
+    {
+      Trace("infer-dt-grammar") << "...target " << sf << std::endl;
+      dtVars.insert(sf);
+    }
+  }
+  if (dtVars.empty())
+  {
+    Trace("infer-dt-grammar") << "...no targets" << std::endl;
+    return;
+  }
+
+  // TODO: check if any datatypes have syntactic constraints??
+  std::vector<Node> disj;
+  if (q[1].getKind()==Kind::OR)
+  {
+    disj.insert(disj.end(), q[1].begin(), q[1].end());
+  }
+  else
+  {
+    disj.push_back(q[1]);
+  }
+  for (const Node& d : disj)
+  {
+    Node dd = d.negate();
+    Trace("infer-dt-grammar") << "Check disjunction: " << dd << std::endl;
+    
+  }
 }
 
 }  // namespace quantifiers
