@@ -283,14 +283,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         d_state.checkLogicAllowsFunctions();
       }
       // we allow overloading for function declarations
-      if (d_state.sygus())
-      {
-        d_lex.parseError("declare-fun are not allowed in sygus version 2.0");
-      }
-      else
-      {
-        cmd.reset(new DeclareFunctionCommand(name, sorts, t));
-      }
+      cmd.reset(new DeclareFunctionCommand(name, sorts, t));
     }
     break;
     // (declare-heap (<sort> <sort>))

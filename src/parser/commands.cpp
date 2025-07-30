@@ -1355,7 +1355,7 @@ void SimplifyCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    d_result = solver->simplify(d_term);
+    d_result = solver->simplify(d_term, true);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

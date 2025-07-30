@@ -40,7 +40,11 @@ class FunDefEvaluator : protected EnvObj
    * Assert definition of a (recursive) function definition given by quantified
    * formula q.
    */
-  void assertDefinition(Node q);
+  bool assertDefinition(Node q);
+  /**
+   * Same as above, without asserting
+   */
+  bool isDefinition(const Node& q) const;
   /**
    * Simplify node based on the (recursive) function definitions known by this
    * class. If n cannot be simplified to a constant, then this method returns
@@ -60,6 +64,10 @@ class FunDefEvaluator : protected EnvObj
   Node getDefinitionFor(Node f) const;
 
  private:
+  /** If returns true, updates index to the child index of the equality that is the head */
+  bool getDefinitionIndex(const Node& q, size_t& index) const;
+  /** Add definition head = body, from quantified formula q */
+  void addDefinition(const Node& head, const Node& body, const Node& q);
   /** information cached per function definition */
   class FunDefInfo
   {
