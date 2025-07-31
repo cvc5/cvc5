@@ -463,6 +463,7 @@ bool EmbeddingConverter::isSyntacticConstraint(const std::unordered_set<Node> dt
                                                std::map<Node, std::vector<Node>>& rules)
 {
   return false;
+#if 0
   Trace("infer-dt-grammar") << "isSyntacticConstraint: " << n << std::endl;
   if (n.getKind()!=Kind::APPLY_UF || n.getNumChildren()!=1)
   {
@@ -573,6 +574,7 @@ bool EmbeddingConverter::isSyntacticConstraint(const std::unordered_set<Node> dt
   }while (!toVisit.empty());
   
   return false;
+#endif
 }
 
 }  // namespace quantifiers
