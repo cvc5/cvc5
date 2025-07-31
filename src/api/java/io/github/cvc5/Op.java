@@ -63,6 +63,8 @@ public class Op extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
+   * Get the kind of this operator.
+   *
    * @return The kind of this operator.
    */
   public Kind getKind()
@@ -82,6 +84,8 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
+   * Determine if this operator is a null term.
+   *
    * @return True if this operator is a null term.
    */
   public boolean isNull()
@@ -92,6 +96,8 @@ public class Op extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if this operator is indexed.
+   * 
    * @return True iff this operator is indexed.
    */
   public boolean isIndexed()
@@ -102,6 +108,8 @@ public class Op extends AbstractPointer
   private native boolean isIndexed(long pointer);
 
   /**
+   * Get the number of indices of this op.
+   *
    * @return The number of indices of this op.
    */
   public int getNumIndices()
