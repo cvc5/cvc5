@@ -558,11 +558,10 @@
 ; args:
 ; - eq Bool: The equality to prove whose left hand side is an equality between regular expressions.
 ; conclusion: The given equality.
-(declare-rule re-eq-elim ((r1 RegLan) (r2 RegLan))
-  :args ((= (= r1 r2) 
-            (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2)))))
-  :conclusion (= (= r1 r2) 
-                 (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2))))
+(declare-rule re-eq-elim ((r1 RegLan) (r2 RegLan) (Q Bool))
+  :args ((= (= r1 r2) Q))
+  :requires ((Q (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2)))))
+  :conclusion (= (= r1 r2) Q)
 )
 
 ; rule: re-inter-inclusion
