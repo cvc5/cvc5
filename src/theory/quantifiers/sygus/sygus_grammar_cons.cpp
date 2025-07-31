@@ -540,7 +540,7 @@ void SygusGrammarCons::addDefaultRulesTo(
           Trace("sygus-grammar-def") << "...for " << dt[l][j].getName()
                                      << ", args = " << tn << std::endl;
           Node sel = dt[l][j].getSelector();
-          //addRuleTo(nm, g, typeToNtSym, Kind::APPLY_SELECTOR, sel, cargsSel);
+          addRuleTo(nm, g, typeToNtSym, Kind::APPLY_SELECTOR, sel, cargsSel);
         }
         addRuleTo(nm, g, typeToNtSym, Kind::APPLY_CONSTRUCTOR, cop, cargsCons);
       }
