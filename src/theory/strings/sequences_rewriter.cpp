@@ -51,6 +51,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
   d_false = nm->mkConst(false);
   registerProofRewriteRule(ProofRewriteRule::RE_LOOP_ELIM,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::RE_EQ_ELIM,
+                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_IN_RE_EVAL,
@@ -102,6 +104,7 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   switch (id)
   {
     case ProofRewriteRule::RE_LOOP_ELIM: return rewriteViaReLoopElim(n);
+    case ProofRewriteRule::RE_EQ_ELIM: return rewriteViaReEqElim(n);
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return rewriteViaMacroReInterUnionInclusion(n);
     case ProofRewriteRule::RE_INTER_INCLUSION:
@@ -1412,6 +1415,20 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
                       << std::endl;
   Assert(retNode != node);
   return retNode;
+}
+
+Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
+{
+  if (n.getKind()!=Kind::EQUAL || !n[0].getType().isRegExp())
+  {
+    return Node::null();
+  }
+  NodeManager * nm = nodeManager();
+  Node v = SkolemCache::mkRegExpEqVar(nm, n);
+  Node mem1 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[0]);
+  Node mem2 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[1]);
+  return nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v),
+                        mem1.eqNode(mem2));
 }
 
 Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)

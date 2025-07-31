@@ -1123,7 +1123,8 @@ void TheoryStrings::notifySharedTerm(TNode n)
   {
     d_termReg.registerSubterms(n);
   }
-  if (n.getType().isRegExp())
+  TypeNode tn = n.getType();
+  if (tn.isRegExp() && !tn.isFirstClass())
   {
     std::stringstream ss;
     ss << "Regular expression terms are not supported in theory combination";
@@ -1234,9 +1235,9 @@ TrustNode TheoryStrings::ppStaticRewrite(TNode atom)
   {
     if (atom[0].getType().isRegExp())
     {
-      std::stringstream ss;
-      ss << "Equality between regular expressions is not supported";
-      throw LogicException(ss.str());
+      Node res = d_rewriter.rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, atom);
+      Assert (!res.isNull());
+      return TrustNode::mkTrustRewrite(atom, res, d_psrewPg.get());
     }
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
