@@ -98,6 +98,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
   private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
+   * Determine if this DatatypeConstructorDecl is a null declaration.
+   *
    * @return True If this DatatypeConstructorDecl is a null declaration.
    */
   public boolean isNull()
