@@ -66,7 +66,8 @@ class FunDefEvaluator : protected EnvObj
   Node getLambdaFor(Node f) const;
 
  private:
-  /** If returns true, updates index to the child index of the equality that is the head */
+  /** If returns true, updates index to the child index of the equality that is
+   * the head */
   bool getDefinitionIndex(const Node& q, size_t& index) const;
   /** Add definition head = body, from quantified formula q */
   void addDefinition(const Node& head, const Node& body, const Node& q);
