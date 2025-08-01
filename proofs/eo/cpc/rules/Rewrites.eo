@@ -1410,7 +1410,7 @@
   :conclusion (= (seq.indexof t1 emp1 n1) n1)
 )
 (declare-rule str-indexof-eq-irr ((@T0 Type) (@T1 Type) (@T2 Type) (t1 (Seq @T0)) (s1 (Seq @T1)) (r1 (Seq @T2)) (n1 Int))
-  :premises ((= (seq.extract t1 n1 (seq.len t1)) (seq.extract r1 n1 (seq.len r1))))
+  :premises ((= (<= n1 (seq.len t1)) true) (= (<= n1 (seq.len r1)) true) (= (seq.extract t1 n1 (seq.len t1)) (seq.extract r1 n1 (seq.len r1))))
   :args (t1 s1 r1 n1)
   :conclusion (= (= (seq.indexof t1 s1 n1) (seq.indexof r1 s1 n1)) true)
 )
