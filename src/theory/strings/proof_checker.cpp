@@ -255,11 +255,12 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     Node geq = children[0];
     Node atom = children[1];
     Node zero = nm->mkConstInt(Rational(0));
-    if (geq.getKind() != Kind::GEQ || geq[1]!=zero)
+    if (geq.getKind() != Kind::GEQ || geq[1] != zero)
     {
       return Node::null();
     }
-    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH || geq[1]!=atom[1])
+    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH
+        || geq[1] != atom[1])
     {
       return Node::null();
     }
