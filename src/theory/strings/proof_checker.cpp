@@ -260,7 +260,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH
-        || geq[1] != atom[1])
+        || geq[0] != atom[1])
     {
       return Node::null();
     }
