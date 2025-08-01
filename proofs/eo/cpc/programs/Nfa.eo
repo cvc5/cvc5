@@ -118,7 +118,7 @@
 ; The simulation moves character by character, with each step's next_states
 ; becoming the next step's current_states. The match is successful if an
 ; accepting state is reached at the end of the string.
-; program: @nfa.match
+; program: $nfa_match
 ; args:
 ; - c String:              The character being evaluated in the current step.
 ; - s String:              The remaining part of the input string.
@@ -126,21 +126,21 @@
 ;                          the function checks for valid transitions based on the current character.
 ; - next_states @Nfa:       An accumulating list of states the NFA will be in after the current character is processed.
 ; return: True if the NFA accepts the string, false otherwise.
-(program @nfa.match ((c String) (s String) (nexts @Nfa) (tt @Nfa :list) (t @Nfa)
+(program $nfa_match ((c String) (s String) (nexts @Nfa) (tt @Nfa :list) (t @Nfa)
                 (st @Nfa) (z0 Int) (z1 Int))
   :signature (@nfa.char String @Nfa @Nfa) Bool
   (
-    ((@nfa.match c s @nfa.decline @nfa.decline) false)
-    ((@nfa.match c "" @nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list @nfa.accept @nfa.decline)))))
-    ((@nfa.match "" s t @nfa.decline) (@nfa.match "" s @nfa.decline ($add_to_nexts t @nfa.decline @nfa.decline)))
-    ((@nfa.match c s @nfa.decline nexts) (@nfa.match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts @nfa.decline))
-    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans c t) st) tt) nexts)  (@nfa.match c s tt ($add_to_nexts t st nexts)))
-    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans @nfa.allchar t) st) tt) nexts)  (@nfa.match c s tt ($add_to_nexts t st nexts)))
-    ((@nfa.match c s (@nfa.list (@nfa.list (@nfa.trans (@nfa.range z0 z1) t) st) tt) nexts)
+    (($nfa_match c s @nfa.decline @nfa.decline) false)
+    (($nfa_match c "" @nfa.decline nexts) (eo::not (eo::is_neg (eo::list_find @nfa.list nexts (@nfa.list @nfa.accept @nfa.decline)))))
+    (($nfa_match "" s t @nfa.decline) ($nfa_match "" s @nfa.decline ($add_to_nexts t @nfa.decline @nfa.decline)))
+    (($nfa_match c s @nfa.decline nexts) ($nfa_match (eo::extract s 0 0) (eo::extract s 1 (eo::len s)) nexts @nfa.decline))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans c t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans @nfa.allchar t) st) tt) nexts)  ($nfa_match c s tt ($add_to_nexts t st nexts)))
+    (($nfa_match c s (@nfa.list (@nfa.list (@nfa.trans (@nfa.range z0 z1) t) st) tt) nexts)
       (eo::ite (eo::and ($compare_geq (eo::to_z c) z0) ($compare_geq z1 (eo::to_z c)))  
-        (@nfa.match c s tt ($add_to_nexts t st nexts))
-        (@nfa.match c s tt nexts))
+        ($nfa_match c s tt ($add_to_nexts t st nexts))
+        ($nfa_match c s tt nexts))
     )
-    ((@nfa.match c s (@nfa.list t tt) nexts)  (@nfa.match c s tt nexts))
+    (($nfa_match c s (@nfa.list t tt) nexts)  ($nfa_match c s tt nexts))
   )
 )
