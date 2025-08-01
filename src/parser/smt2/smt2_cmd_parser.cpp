@@ -283,9 +283,6 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         d_state.checkLogicAllowsFunctions();
       }
       // Note that we previously disallowed declare-fun in sygus here.
-      // There is not a strong reason to disallow them, apart from
-      // making it clear that their semantics does not insist that we
-      // find a model for them.
       // we allow overloading for function declarations
       cmd.reset(new DeclareFunctionCommand(name, sorts, t));
     }
