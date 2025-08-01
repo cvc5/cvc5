@@ -236,7 +236,7 @@
     (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
     (eo::ite (eo::is_ok nfa)
       ; if this is supported by the NFA signature, use the faster test
-      (@nfa.match "" s nfa @nfa.decline)
+      ($nfa_match "" s nfa @nfa.decline)
       ; otherwise, must use the backtracking method above.
       ($str_eval_str_in_re_rec s 0 r @re.null)))
     ; otherwise if s is not constant, we are unevaluated
