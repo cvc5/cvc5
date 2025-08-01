@@ -389,6 +389,24 @@
 (define $str_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_suffix_rem s (+ (str.len (@purify ($str_first_ctn_pre s t))) (str.len t))))
 
+(define $re_first_match_pre ((s String) (r RegLan))
+  (@re_first_match_pre s r))
+; ($str_prefix s (str.indexof_re s r 0))
+
+(define $re_first_match ((s String) (r RegLan))
+  (@re_first_match s r))
+; (eo::define ((n (str.indexof_re s r 0)))
+;   (str.substr s n (- (@strings_occur_index_re s r 1) n)))
+
+(define $re_first_match_post ((s String) (r RegLan))
+  (@re_first_match_post s r))
+; ($str_suffix_rem s (@strings_occur_index_re s r 1))
+
+(define $strings_occur_len_re ((s String) (r RegLan) (n Int))
+  (@strings_occur_len_re s r n))
+;  (- (@strings_occur_index_re s r n)
+;     (str.indexof_re s r (@strings_occur_index_re s r (- n 1)))))
+
 ;;-------------------- Utilities
 
 ; define: $str_rev
@@ -632,9 +650,9 @@
                            (= (occIndex (+ @var.str_index 1)) (+ ii (str.len y)))))))))))))))
     (($str_reduction_pred (str.replace_re s r t))
         (eo::define ((k (@purify (str.replace_re s r t))))
-        (eo::define ((k1 (@re_first_match_pre s r)))
-        (eo::define ((k2 (@re_first_match s r)))
-        (eo::define ((k3 (@re_first_match_post s r)))
+        (eo::define ((k1 ($re_first_match_pre s r)))
+        (eo::define ((k2 ($re_first_match s r)))
+        (eo::define ((k3 ($re_first_match_post s r)))
         (ite (= (str.indexof_re s r 0) -1)
           (= k s)
           (and (= s (str.++ k1 k2 k3))
@@ -651,7 +669,6 @@
         (eo::define ((numOcc (@strings_num_occur_re s r)))
         (eo::define ((result (@strings_replace_all_result (str.replace_re_all s r t))))
         (eo::define ((occIndex (@strings_occur_index_re s r)))
-        (eo::define ((occLen (@strings_occur_len_re s r)))
         (eo::define ((rnemp (re.diff r (str.to_re ""))))
         (eo::define ((ssl (str.substr s (occIndex numOcc) (str.len s))))
         (ite (= (str.indexof_re s rnemp 0) -1)
@@ -666,7 +683,7 @@
                   (or
                     (not (>= @var.str_index 0))
                     (not (< @var.str_index numOcc))
-                    (eo::define ((olen1 (occLen ip1)))
+                    (eo::define ((olen1 ($strings_occur_len_re s r ip1)))
                     (eo::define ((oindex1 (occIndex ip1)))
                     (eo::define ((oindex (occIndex @var.str_index)))
                     (eo::define ((ii (- oindex1 olen1)))
@@ -680,7 +697,7 @@
                                (not (str.in_re (str.substr s ii @var.str_length) r))))
                            (= (result @var.str_index)
                               (str.++ (str.substr s oindex (- ii oindex)) t (result (+ @var.str_index 1))))
-                      ))))))))))))))))))
+                      )))))))))))))))))
     (($str_reduction_pred (str.indexof_re s r n))
         (eo::define ((k (@purify (str.indexof_re s r n))))
         (ite (or (> n (str.len s)) (> 0 n))
@@ -1890,7 +1907,7 @@
   )
 )
 
-; program: $str_eval_replace_all_rec
+; program: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.
