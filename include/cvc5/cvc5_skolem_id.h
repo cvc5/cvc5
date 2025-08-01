@@ -327,18 +327,6 @@ enum ENUM(SkolemId)
    */
   EVALUE(STRINGS_OCCUR_INDEX_RE),
   /**
-   * A function k where for x = 0...n, ``(k x)`` is the length of
-   * the x^th occurrence of R in a (excluding matches of empty strings) where R
-   * is a regular expression, n is the number of occurrences of R in a, and
-   * ``(= (k 0) 0)``.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string to match.
-   *   - ``2:`` The regular expression to find.
-   * - Sort: ``(-> Int Int)``
-   */
-  EVALUE(STRINGS_OCCUR_LEN_RE),
-  /**
    * Difference index for string disequalities, such that k is the witness for
    * the inference
    *  ``(=> (not (= a b)) (not (= (substr a k 1) (substr b k 1))))``
@@ -402,48 +390,6 @@ enum ENUM(SkolemId)
    * `(str.indexof_re s (re.comp (re.range "0" "9")) 0)`.
    */
   EVALUE(STRINGS_STOI_NON_DIGIT),
-  /**
-   * The next three skolems are used to decompose the match of a regular
-   * expression in string.
-   *
-   * For string a and regular expression R, this skolem is the prefix of
-   * string a before the first, shortest match of R in a. Formally, if
-   * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
-   * there exists strings k_pre, k_match, k_post such that:
-   *       ``(= a (str.++ k_pre k_match k_post))`` and
-   *       ``(= (len k_pre) (indexof_re a R 0))`` and
-   *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
-   *         (not (str.in_re (substr k_match 0 l) R))))`` and
-   *       ``(str.in_re k_match R)``
-   * This skolem is k_pre, and the proceeding two skolems are k_match and
-   * k_post.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH_PRE),
-  /**
-   * For string a and regular expression R, this skolem is the string that
-   * the first, shortest match of R was matched to in a.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH),
-  /**
-   * For string a and regular expression ``R``, this skolem is the remainder
-   * of a after the first, shortest match of ``R`` in a.
-   *
-   * - Number of skolem indices: ``2``
-   *   - ``1:`` The string.
-   *   - ``2:`` The regular expression to match.
-   * - Sort: ``String``
-   */
-  EVALUE(RE_FIRST_MATCH_POST),
   /**
    * Regular expression unfold component: if ``(str.in_re a R)``, where R is
    * ``(re.++ R0 ... Rn)``, then the ``RE_UNFOLD_POS_COMPONENT`` for indices
