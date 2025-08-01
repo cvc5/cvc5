@@ -245,15 +245,21 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::STRING_DECOMPOSE)
   {
-    Assert(children.size() == 1);
+    Assert(children.size() == 2);
     Assert(args.size() == 1);
     bool isRev;
     if (!getBool(args[0], isRev))
     {
       return Node::null();
     }
-    Node atom = children[0];
-    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH)
+    Node geq = children[0];
+    Node atom = children[1];
+    Node zero = nm->mkConstInt(Rational(0));
+    if (geq.getKind() != Kind::GEQ || geq[1]!=zero)
+    {
+      return Node::null();
+    }
+    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH || geq[1]!=atom[1])
     {
       return Node::null();
     }
