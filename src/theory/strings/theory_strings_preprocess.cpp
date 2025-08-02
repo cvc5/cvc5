@@ -638,6 +638,7 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node rpaw = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
 
+
     Node numOcc = sc->mkSkolemFun(nm, SkolemId::STRINGS_NUM_OCCUR, x, y);
     Node us = sc->mkSkolemFun(nm, SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
     Node uf = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_INDEX, x, y);
@@ -720,9 +721,9 @@ Node StringsPreprocess::reduce(Node t,
     // k = z ++ x
     Node res1 = k.eqNode(nm->mkNode(Kind::STRING_CONCAT, z, x));
 
-    Node k1 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH_PRE, x, y);
-    Node k2 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH, x, y);
-    Node k3 = sc->mkSkolemFun(nm, SkolemId::RE_FIRST_MATCH_POST, x, y);
+    Node k1 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH_PRE, "kmatch_pre");
+    Node k2 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH, "kmatch");
+    Node k3 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH_POST, "kmatch_post");
     Node k2Len = nm->mkNode(Kind::STRING_LENGTH, k2);
     // x = k1 ++ k2 ++ k3
     Node split = x.eqNode(nm->mkNode(Kind::STRING_CONCAT, k1, k2, k3));
@@ -770,7 +771,6 @@ Node StringsPreprocess::reduce(Node t,
     Node numOcc = sc->mkSkolemFun(nm, SkolemId::STRINGS_NUM_OCCUR_RE, x, y);
     Node us = sc->mkSkolemFun(nm, SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
     Node uf = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_INDEX_RE, x, y);
-    Node ul = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_LEN_RE, x, y);
 
     Node emp = Word::mkEmptyWord(t.getType());
 
@@ -803,16 +803,12 @@ Node StringsPreprocess::reduce(Node t,
     Node ip1 = nm->mkNode(Kind::ADD, i, one);
     Node ufi = nm->mkNode(Kind::APPLY_UF, uf, i);
     Node ufip1 = nm->mkNode(Kind::APPLY_UF, uf, ip1);
-    Node ulip1 = nm->mkNode(Kind::APPLY_UF, ul, ip1);
-    // ii = Uf(i + 1) - Ul(i + 1)
-    Node ii = nm->mkNode(Kind::SUB, ufip1, ulip1);
+    Node ii = nm->mkNode(Kind::STRING_INDEXOF_RE, x, yp, ufi);
+    Node ulip1 = nm->mkNode(Kind::SUB, ufip1, ii);
 
     std::vector<Node> flem;
     // Ul(i + 1) > 0
     flem.push_back(nm->mkNode(Kind::GT, ulip1, zero));
-    // Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1)
-    flem.push_back(ufip1.eqNode(nm->mkNode(
-        Kind::ADD, nm->mkNode(Kind::STRING_INDEXOF_RE, x, yp, ufi), ulip1)));
     // in_re(substr(x, ii, Ul(i + 1)), y')
     flem.push_back(nm->mkNode(Kind::STRING_IN_REGEXP,
                               nm->mkNode(Kind::STRING_SUBSTR, x, ii, ulip1),
@@ -854,13 +850,12 @@ Node StringsPreprocess::reduce(Node t,
     //   Uf(0) = 0 ^ indexof_re(substr(x, Uf(numOcc)), y', 0) = -1 ^
     //   forall i. 0 <= i < nummOcc =>
     //     Ul(i + 1) > 0 ^
-    //     Uf(i + 1) = indexof_re(x, yp, Uf(i)) + Ul(i + 1) ^
     //     in_re(substr(x, ii, Ul(i + 1)), y') ^
     //     forall l. 0 < l < Ul(i + 1) =>
     //       ~in_re(substr(x, ii, l), y')
     //     Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
-    //     where ii = Uf(i + 1) - Ul(i + 1)
-    // where y' = re.diff(y, "")
+    // where ii = indexof_re(x, yp, Uf(i)), Ul(i + 1) = Uf(i + 1) - ii,
+    // and y' = re.diff(y, "").
     //
     // Conceptually, y' is the regex y but excluding the empty string (because
     // we do not want to match empty strings), numOcc is the number of shortest
