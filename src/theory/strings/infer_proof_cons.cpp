@@ -717,8 +717,16 @@ bool InferProofCons::convert(Env& env,
         if (convertLengthPf(lenReq, ps.d_children, psb))
         {
           Trace("strings-ipc-deq") << "...success length" << std::endl;
+          Node nPos =
+              nm->mkNode(Kind::GEQ, conc[1][1], nm->mkConstInt(Rational(0)));
+          psb.applyPredIntro(nPos,
+                             {},
+                             MethodId::SB_DEFAULT,
+                             MethodId::SBA_SEQUENTIAL,
+                             MethodId::RW_EXT_REWRITE);
           // make the proof
           std::vector<Node> childrenMain;
+          childrenMain.push_back(nPos);
           childrenMain.push_back(lenReq);
           std::vector<Node> argsMain;
           argsMain.push_back(nodeIsRev);

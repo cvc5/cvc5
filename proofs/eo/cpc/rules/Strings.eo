@@ -198,7 +198,7 @@
 ;   corresponding to decomposing s at position n, and that the decomposed term
 ;   has length n.
 (declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
-  :premises ((>= (str.len s) n))
+  :premises ((>= n 0) (>= (str.len s) n))
   :args (b)
   :conclusion (eo::ite b
                 (eo::define ((kp (@purify ($str_prefix_rem s n)))
