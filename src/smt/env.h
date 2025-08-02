@@ -249,6 +249,10 @@ class Env
    * based on the assertions.
    */
   bool isFiniteType(TypeNode tn) const;
+  /**
+   * Is first class type.
+   */
+  bool isFirstClassType(TypeNode tn) const;
 
   /**
    * Set the owner of the uninterpreted sort.
