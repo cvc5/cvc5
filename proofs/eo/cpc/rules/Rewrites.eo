@@ -1531,7 +1531,7 @@
   :conclusion (= (seq.extract x1 n1 n1) ($seq_empty (Seq @T0)))
 )
 (declare-rule str-contains-repl-char ((@T0 Type) (@T1 Type) (@T2 Type) (@T3 Type) (x1 (Seq @T0)) (y1 (Seq @T1)) (z1 (Seq @T2)) (w1 (Seq @T3)))
-  :premises ((= (seq.len w1) 1) (= (seq.contains w1 y1) false))
+  :premises ((= (seq.len w1) 1) (= (seq.contains y1 w1) false))
   :args (x1 y1 z1 w1)
   :conclusion (= (seq.contains (seq.replace x1 y1 z1) w1) (or (seq.contains x1 w1) (and (seq.contains x1 y1) (seq.contains z1 w1))))
 )
