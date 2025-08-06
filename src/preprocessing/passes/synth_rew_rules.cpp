@@ -176,7 +176,7 @@ std::map<TypeNode, TypeNode> SynthRewRulesPass::constructTopLevelGrammar(
     TypeNode tn = tfp.first;
     // we do not allocate variables for non-first class types, e.g. regular
     // expressions
-    if (!tn.isFirstClass())
+    if (!env.isFirstClassType(tn))
     {
       continue;
     }

@@ -3710,6 +3710,17 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_LOOP_ELIM),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- regular expression equality elimination**
+   *
+   * .. math::
+   *
+   *   (R1 = R2) = \forall s.\> (\mathit{str.in_re}(s, R1) = \mathit{str.in_re}(s, R2))
+   *
+   * \endverbatim
+   */
+  EVALUE(RE_EQ_ELIM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Strings -- regular expression intersection/union inclusion**
    *
    * .. math::

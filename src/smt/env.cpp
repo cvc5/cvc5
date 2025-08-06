@@ -261,6 +261,15 @@ bool Env::isFiniteType(TypeNode tn) const
                                   d_options.quantifiers.finiteModelFind);
 }
 
+bool Env::isFirstClassType(TypeNode tn) const
+{
+  if (tn.isRegExp())
+  {
+    return d_options.strings.regExpFirstClass;
+  }
+  return tn.isFirstClass();
+}
+
 void Env::setUninterpretedSortOwner(theory::TheoryId theory)
 {
   d_uninterpretedSortOwner = theory;
