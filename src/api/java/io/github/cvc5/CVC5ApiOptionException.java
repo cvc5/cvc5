@@ -15,8 +15,17 @@
 
 package io.github.cvc5;
 
+/**
+ * An option-related API exception.
+ * If thrown, API objects can still be used.
+ */
 public class CVC5ApiOptionException extends CVC5ApiRecoverableException
 {
+  /**
+   * Construct with message from a string.
+   *
+   * @param message The error message.
+   */
   public CVC5ApiOptionException(String message)
   {
     super(message);

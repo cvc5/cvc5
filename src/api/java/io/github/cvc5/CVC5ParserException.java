@@ -15,8 +15,16 @@
 
 package io.github.cvc5;
 
+/**
+ * A parser-related API exception.
+ */
 public class CVC5ParserException extends Exception
 {
+  /**
+   * Construct with message from a string.
+   *
+   * @param message The error message.
+   */
   public CVC5ParserException(String message)
   {
     super(message);

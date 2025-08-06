@@ -14,6 +14,12 @@
  */
 package io.github.cvc5;
 
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
 public class Command extends AbstractPointer
 {
   /**
@@ -61,6 +67,7 @@ public class Command extends AbstractPointer
   private native String getCommandName(long pointer);
 
   /**
+   * Determine if this command is null.
    * @return True if this command is null.
    */
   public boolean isNull()

@@ -118,6 +118,8 @@ option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
+option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
+
 # Optional dependencies
 #
 # >> 2-valued: ON OFF

@@ -20,6 +20,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+/**
+ * Represents a snapshot of the solver statistics.
+ */
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
   // region construction and destruction
@@ -72,14 +75,29 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
 
   private native void deleteIteratorPointer(long iteratorPointer);
 
+  /**
+   * An iterator over the statistics entries maintained by the {@code Statistics} class.
+   * This is a constant (read-only) iterator that returns immutable key-value pairs,
+   * where the key is a {@code String} and the value is a {@code Stat}.
+   */
   public class ConstIterator implements Iterator<Map.Entry<String, Stat>>
   {
     private long iteratorPointer = 0;
 
+    /**
+     * Constructs a new iterator over the statistics with specific filtering options.
+     *
+     * @param internal If {@code true}, internal statistics are included in the iteration.
+     * @param defaulted If {@code true}, statistics that have default values are included.
+     */
     public ConstIterator(boolean internal, boolean defaulted)
     {
       iteratorPointer = getIteratorOpts(pointer, internal, defaulted);
     }
+    /**
+     * Constructs a new iterator over the statistics using default visibility options.
+     * By default, only public (non-internal) and explicitly set statistics are shown.
+     */
     public ConstIterator()
     {
       iteratorPointer = getIterator(pointer);
@@ -108,6 +126,15 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
     }
   }
 
+  /**
+   * Begin iteration over the statistics values.
+   * By default, only entries that are public (non-internal) and have been set
+   * are visible while the others are skipped.
+   *
+   * @param internal If set to {@code true}, internal statistics are shown as well.
+   * @param defaulted If set to {@code true}, defaulted statistics are shown as well.
+   * @return A {@code ConstIterator} over the matching statistics entries.
+   */
   public ConstIterator iterator(boolean internal, boolean defaulted)
   {
     return new ConstIterator(internal, defaulted);

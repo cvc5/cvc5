@@ -41,6 +41,9 @@ public class Result extends AbstractPointer
   protected native void deletePointer(long pointer);
 
   /**
+   * Determine if Result is empty, i.e., a nullary Result, and not an actual
+   * result returned from a checkSat() (and friends) query.
+   *
    * @return True if Result is empty, i.e., a nullary Result, and not an actual
    * result returned from a checkSat() (and friends) query.
    */
@@ -52,6 +55,9 @@ public class Result extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if query was a satisfiable checkSat() or checkSatAssuming()
+   * query.
+   *
    * @return True if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */
@@ -63,6 +69,9 @@ public class Result extends AbstractPointer
   private native boolean isSat(long pointer);
 
   /**
+   * Determine if if query was an unsatisfiable checkSat() or
+   * checkSatAssuming() query.
+   *
    * @return True if query was an unsatisfiable checkSat() or
    * checkSatAssuming() query.
    */
@@ -74,6 +83,9 @@ public class Result extends AbstractPointer
   private native boolean isUnsat(long pointer);
 
   /**
+   * Determine if query was a checkSat() or checkSatAssuming() query and
+   * cvc5 was not able to determine (un)satisfiability.
+   *
    * @return True if query was a checkSat() or checkSatAssuming() query and
    * cvc5 was not able to determine (un)satisfiability.
    */

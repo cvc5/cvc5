@@ -119,7 +119,7 @@ public class TermManager extends AbstractPointer
     return new Sort(sortPointer);
   }
 
-  public native long getIntegerSort(long pointer);
+  private native long getIntegerSort(long pointer);
   /**
    * Get the real sort.
    * @return Sort Real.
