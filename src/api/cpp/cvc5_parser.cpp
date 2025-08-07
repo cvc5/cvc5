@@ -63,9 +63,9 @@ class CVC5ParserApiExceptionStream
 /* SymbolManager                                                              */
 /* -------------------------------------------------------------------------- */
 
-SymbolManager::SymbolManager(cvc5::TermManager& tm)
+SymbolManager::SymbolManager(cvc5::TermManager tm)
 {
-  d_sm.reset(new SymManager(tm));
+  d_sm.reset(new SymManager(std::move(tm)));
 }
 SymbolManager::SymbolManager(cvc5::Solver* slv)
 {

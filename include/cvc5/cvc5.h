@@ -953,7 +953,8 @@ class CVC5_EXPORT Sort
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
   std::vector<Sort> static typeNodeVectorToSorts(
-      TermManager* tm, const std::vector<internal::TypeNode>& types);
+      std::shared_ptr<internal::NodeManager> nm,
+      const std::vector<internal::TypeNode>& types);
 
   /**
    * Constructor.
@@ -961,7 +962,7 @@ class CVC5_EXPORT Sort
    * @param t  The internal type that is to be wrapped by this sort.
    * @return The Sort.
    */
-  Sort(TermManager* tm, const internal::TypeNode& t);
+  Sort(std::shared_ptr<internal::NodeManager> nm, const internal::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -970,9 +971,9 @@ class CVC5_EXPORT Sort
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal type wrapped by this sort.
@@ -1095,7 +1096,7 @@ class CVC5_EXPORT Op
    * @param tm The associated term manager.
    * @param k  The kind of this Op.
    */
-  Op(TermManager* tm, const Kind k);
+  Op(std::shared_ptr<internal::NodeManager> nm, const Kind k);
 
   /**
    * Constructor.
@@ -1104,7 +1105,7 @@ class CVC5_EXPORT Op
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Op(TermManager* tm, const Kind k, const internal::Node& n);
+  Op(std::shared_ptr<internal::NodeManager> nm, const Kind k, const internal::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1137,9 +1138,9 @@ class CVC5_EXPORT Op
   Term getIndexHelper(size_t index);
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /** The kind of this operator. */
   Kind d_kind;
@@ -1454,7 +1455,7 @@ class CVC5_EXPORT Term
      * @param e  A `std::shared pointer` to the node that we're iterating over.
      * @param p  The position of the iterator (e.g. which child it's on).
      */
-    const_iterator(TermManager* tm,
+    const_iterator(std::shared_ptr<internal::NodeManager> nm,
                    const std::shared_ptr<internal::Node>& e,
                    uint32_t p);
 
@@ -1504,9 +1505,9 @@ class CVC5_EXPORT Term
 
    private:
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    std::shared_ptr<internal::NodeManager> d_nm = nullptr;
     /** The original node to be iterated over. */
     std::shared_ptr<internal::Node> d_origNode;
     /** Keeps track of the iteration position. */
@@ -1942,19 +1943,15 @@ class CVC5_EXPORT Term
 
  protected:
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
  private:
   /** Helper function to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
                          const internal::Node& node,
-                         TermManager* tm);
-  /** Helper function to collect all elements of a sequence. */
-  static void collectSequence(std::vector<Term>& seq,
-                              const internal::Node& node,
-                              TermManager* tm);
+                         std::shared_ptr<internal::NodeManager> nm);
 
   /**
    * Constructor.
@@ -1962,7 +1959,7 @@ class CVC5_EXPORT Term
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Term(TermManager* tm, const internal::Node& n);
+  Term(std::shared_ptr<internal::NodeManager> nm, const internal::Node& n);
 
   /** @return The internal wrapped Node of this term. */
   const internal::Node& getNode(void) const;
@@ -1972,7 +1969,8 @@ class CVC5_EXPORT Term
       const std::vector<Term>& terms);
   /** Helper to convert a vector of internal Nodes to Terms. */
   std::vector<Term> static nodeVectorToTerms(
-      TermManager* tm, const std::vector<internal::Node>& nodes);
+      std::shared_ptr<internal::NodeManager> nm,
+      const std::vector<internal::Node>& nodes);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2146,7 +2144,7 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
-  DatatypeConstructorDecl(TermManager* tm, const std::string& name);
+  DatatypeConstructorDecl(std::shared_ptr<internal::NodeManager> nm, const std::string& name);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2161,9 +2159,9 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isResolved() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal (intermediate) datatype constructor wrapped by this
@@ -2278,7 +2276,7 @@ class CVC5_EXPORT DatatypeDecl
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
-  DatatypeDecl(TermManager* tm,
+  DatatypeDecl(std::shared_ptr<internal::NodeManager> nm,
                const std::string& name,
                bool isCoDatatype = false);
 
@@ -2290,7 +2288,7 @@ class CVC5_EXPORT DatatypeDecl
    * @param params A list of sort parameters.
    * @param isCoDatatype True if a codatatype is to be constructed.
    */
-  DatatypeDecl(TermManager* tm,
+  DatatypeDecl(std::shared_ptr<internal::NodeManager> nm,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
@@ -2305,9 +2303,9 @@ class CVC5_EXPORT DatatypeDecl
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal (intermediate) datatype wrapped by this datatype
@@ -2413,7 +2411,7 @@ class CVC5_EXPORT DatatypeSelector
    * @param stor The internal datatype selector to be wrapped.
    * @return The DatatypeSelector.
    */
-  DatatypeSelector(TermManager* tm, const internal::DTypeSelector& stor);
+  DatatypeSelector(std::shared_ptr<internal::NodeManager> nm, const internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2422,9 +2420,9 @@ class CVC5_EXPORT DatatypeSelector
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
@@ -2670,14 +2668,14 @@ class CVC5_EXPORT DatatypeConstructor
      * @param ctor The internal datatype constructor to iterate over.
      * @param begin True if this is a `begin()` iterator.
      */
-    const_iterator(TermManager* tm,
+    const_iterator(std::shared_ptr<internal::NodeManager> nm,
                    const internal::DTypeConstructor& ctor,
                    bool begin);
 
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
     /**
      * A pointer to the list of selectors of the internal datatype
@@ -2710,7 +2708,7 @@ class CVC5_EXPORT DatatypeConstructor
    * @param ctor The internal datatype constructor to be wrapped.
    * @return The DatatypeConstructor.
    */
-  DatatypeConstructor(TermManager* tm, const internal::DTypeConstructor& ctor);
+  DatatypeConstructor(std::shared_ptr<internal::NodeManager> nm, const internal::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
@@ -2726,9 +2724,9 @@ class CVC5_EXPORT DatatypeConstructor
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
@@ -2962,12 +2960,12 @@ class CVC5_EXPORT Datatype
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
-    const_iterator(TermManager* tm, const internal::DType& dtype, bool begin);
+    const_iterator(std::shared_ptr<internal::NodeManager> nm, const internal::DType& dtype, bool begin);
 
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
     /**
      * A pointer to the list of constructors of the internal datatype
@@ -3000,7 +2998,7 @@ class CVC5_EXPORT Datatype
    * @param dtype The internal datatype to be wrapped.
    * @return The Datatype.
    */
-  Datatype(TermManager* tm, const internal::DType& dtype);
+  Datatype(std::shared_ptr<internal::NodeManager> nm, const internal::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -3023,9 +3021,9 @@ class CVC5_EXPORT Datatype
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  std::shared_ptr<internal::NodeManager> d_nm = nullptr;
 
   /**
    * The internal datatype wrapped by this datatype.
@@ -3191,7 +3189,7 @@ class CVC5_EXPORT Grammar
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
-  Grammar(TermManager* tm,
+  Grammar(std::shared_ptr<internal::NodeManager> nm,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
@@ -3201,11 +3199,11 @@ class CVC5_EXPORT Grammar
   Sort resolve();
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    * @note This is only needed temporarily until deprecated term/sort handling
    * functions are removed.
    */
-  TermManager* d_tm;
+  std::shared_ptr<internal::NodeManager> d_nm;
   /** The internal representation of this grammar. */
   std::shared_ptr<internal::SygusGrammar> d_grammar;
 };
@@ -3755,16 +3753,16 @@ class CVC5_EXPORT Proof
 
  private:
   /** Construct a proof by wrapping a ProofNode. */
-  Proof(TermManager* tm, const std::shared_ptr<internal::ProofNode> p);
+  Proof(std::shared_ptr<internal::NodeManager> nm, const std::shared_ptr<internal::ProofNode> p);
 
   /** The internal proof node wrapped by this proof object. */
   std::shared_ptr<internal::ProofNode> d_proofNode;
   /**
-   * The associated term manager.
+   * The associated node manager.
    * @note This is only needed temporarily until deprecated term/sort handling
    * functions are removed.
    */
-  TermManager* d_tm;
+  std::shared_ptr<internal::NodeManager> d_nm;
 };
 
 }  // namespace cvc5
@@ -4535,7 +4533,7 @@ class CVC5_EXPORT TermManager
    * @return The value term.
    */
   template <typename T>
-  Term mkValHelper(const T& t);
+  Term static mkValHelper(std::shared_ptr<internal::NodeManager> nm, const T& t);
   /** Helper for creating operators. */
   template <typename T>
   Op mkOpHelper(Kind kind, const T& t);
@@ -4545,7 +4543,9 @@ class CVC5_EXPORT TermManager
    * @param    isInt True to create an integer value.
    * @return The rational value term.
    */
-  Term mkRationalValHelper(const internal::Rational& r, bool isInt);
+  Term static mkRationalValHelper(std::shared_ptr<internal::NodeManager> nm,
+                                  const internal::Rational& r,
+                                  bool isInt);
   /**
    * Helper for mkReal functions that take a string as argument.
    * @param s     The string representation of the real/int value.
@@ -4612,11 +4612,11 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  std::unique_ptr<internal::NodeManager> d_nm;
+  std::shared_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
-  std::unique_ptr<APIStatistics> d_stats;
+  std::shared_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */
-  std::unique_ptr<internal::StatisticsRegistry> d_statsReg;
+  std::shared_ptr<internal::StatisticsRegistry> d_statsReg;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -4651,17 +4651,17 @@ class CVC5_EXPORT Solver
   /**
    * Constructor.
    * @warning This constructor is deprecated and replaced by
-   *          `Solver::Solver(TermManager&)`. It will be removed in a future
+   *          `Solver::Solver(TermManager)`. It will be removed in a future
    *          release.
    */
-  [[deprecated("Use Solver::Solver(TermManager&) instead")]] Solver();
+  [[deprecated("Use Solver::Solver(TermManager) instead")]] Solver();
   /**
    * Constructor.
    *
    * Constructs solver instance from a given term manager instance.
    * @param tm The associated term manager.
    */
-  Solver(TermManager& tm);
+  Solver(TermManager tm);
 
   /**
    * Destructor.
@@ -4686,7 +4686,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::getBooleanSort() instead")]] Sort
-  getBooleanSort() const;
+  getBooleanSort();
 
   /**
    * Get the Integer sort.
@@ -4696,7 +4696,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::getInteger() instead")]] Sort getIntegerSort()
-      const;
+      ;
 
   /**
    * Get the Real sort.
@@ -4706,7 +4706,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::getRealSort() instead")]] Sort getRealSort()
-      const;
+      ;
 
   /**
    * Get the regular expression sort.
@@ -4716,7 +4716,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::getRegExpSort() instead")]] Sort
-  getRegExpSort() const;
+  getRegExpSort() ;
 
   /**
    * Get the rounding mode sort.
@@ -4726,7 +4726,7 @@ class CVC5_EXPORT Solver
    * future release.
    */
   [[deprecated("Use TermManager::getRoundingModeSort() instead")]] Sort
-  getRoundingModeSort() const;
+  getRoundingModeSort() ;
 
   /**
    * Get the string sort.
@@ -4736,7 +4736,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::getStringSort() instead")]] Sort
-  getStringSort() const;
+  getStringSort() ;
 
   /**
    * Create an array sort.
@@ -4748,7 +4748,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkArraySort() instead")]] Sort mkArraySort(
-      const Sort& indexSort, const Sort& elemSort) const;
+      const Sort& indexSort, const Sort& elemSort) ;
 
   /**
    * Create a bit-vector sort.
@@ -4759,7 +4759,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkBitVectorSort() instead")]] Sort
-  mkBitVectorSort(uint32_t size) const;
+  mkBitVectorSort(uint32_t size) ;
 
   /**
    * Create a floating-point sort.
@@ -4770,7 +4770,7 @@ class CVC5_EXPORT Solver
    * future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointSort() instead")]] Sort
-  mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointSort(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a finite-field sort from a given string of
@@ -4784,7 +4784,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkFiniteFieldSort() instead")]] Sort
-  mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
+  mkFiniteFieldSort(const std::string& size, uint32_t base = 10) ;
 
   /**
    * Create a datatype sort.
@@ -4795,7 +4795,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkDatatypeSort() instead")]] Sort
-  mkDatatypeSort(const DatatypeDecl& dtypedecl) const;
+  mkDatatypeSort(const DatatypeDecl& dtypedecl) ;
 
   /**
    * Create a vector of datatype sorts.
@@ -4807,7 +4807,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkDatatypeSorts() instead")]] std::vector<Sort>
-  mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls) const;
+  mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls) ;
 
   /**
    * Create function sort.
@@ -4819,7 +4819,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkFunctionSort() instead")]] Sort
-  mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain) const;
+  mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain) ;
 
   /**
    * Create a sort parameter.
@@ -4833,7 +4833,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkParamSort() instead")]] Sort mkParamSort(
-      const std::optional<std::string>& symbol = std::nullopt) const;
+      const std::optional<std::string>& symbol = std::nullopt) ;
 
   /**
    * Create a predicate sort.
@@ -4847,7 +4847,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkParamSort() instead")]] Sort mkPredicateSort(
-      const std::vector<Sort>& sorts) const;
+      const std::vector<Sort>& sorts) ;
 
   /**
    * Create a record sort
@@ -4861,7 +4861,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkRecordSort() instead")]] Sort mkRecordSort(
-      const std::vector<std::pair<std::string, Sort>>& fields) const;
+      const std::vector<std::pair<std::string, Sort>>& fields) ;
 
   /**
    * Create a set sort.
@@ -4872,7 +4872,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkSetSort() instead")]] Sort mkSetSort(
-      const Sort& elemSort) const;
+      const Sort& elemSort) ;
 
   /**
    * Create a bag sort.
@@ -4883,7 +4883,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkBagSort() instead")]] Sort mkBagSort(
-      const Sort& elemSort) const;
+      const Sort& elemSort) ;
 
   /**
    * Create a sequence sort.
@@ -4894,7 +4894,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkSequenceSort() instead")]] Sort
-  mkSequenceSort(const Sort& elemSort) const;
+  mkSequenceSort(const Sort& elemSort) ;
 
   /**
    * Create an abstract sort. An abstract sort represents a sort for a given
@@ -4923,7 +4923,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkAbstractSort() instead")]] Sort
-  mkAbstractSort(SortKind k) const;
+  mkAbstractSort(SortKind k) ;
 
   /**
    * Create an uninterpreted sort.
@@ -4935,7 +4935,7 @@ class CVC5_EXPORT Solver
    */
   [[deprecated("Use TermManager::mkUninterpretedSort() instead")]] Sort
   mkUninterpretedSort(
-      const std::optional<std::string>& symbol = std::nullopt) const;
+      const std::optional<std::string>& symbol = std::nullopt) ;
 
   /**
    * Create an unresolved datatype sort.
@@ -4953,7 +4953,7 @@ class CVC5_EXPORT Solver
    *          a future release.
    */
   [[deprecated("Use TermManager::mkUnresolvedDatatypeSort() instead")]] Sort
-  mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity = 0) const;
+  mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity = 0) ;
 
   /**
    * Create an uninterpreted sort constructor sort.
@@ -4971,7 +4971,7 @@ class CVC5_EXPORT Solver
       "Use TermManager::mkUninterpretedConstructorSort() instead")]] Sort
   mkUninterpretedSortConstructorSort(
       size_t arity,
-      const std::optional<std::string>& symbol = std::nullopt) const;
+      const std::optional<std::string>& symbol = std::nullopt) ;
 
   /**
    * Create a tuple sort.
@@ -4982,7 +4982,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkTupleSort() instead")]] Sort mkTupleSort(
-      const std::vector<Sort>& sorts) const;
+      const std::vector<Sort>& sorts) ;
 
   /**
    * Create a nullable sort.
@@ -4993,7 +4993,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableSort() instead")]] Sort
-  mkNullableSort(const Sort& sort) const;
+  mkNullableSort(const Sort& sort) ;
 
   /* .................................................................... */
   /* Create Terms                                                         */
@@ -5008,7 +5008,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkTerm()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkTerm() instead")]] Term mkTerm(
-      Kind kind, const std::vector<Term>& children = {}) const;
+      Kind kind, const std::vector<Term>& children = {}) ;
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -5020,7 +5020,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkTerm()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkTerm() instead")]] Term mkTerm(
-      const Op& op, const std::vector<Term>& children = {}) const;
+      const Op& op, const std::vector<Term>& children = {}) ;
 
   /**
    * Create a tuple term.
@@ -5030,7 +5030,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkTuple()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkTuple() instead")]] Term mkTuple(
-      const std::vector<Term>& terms) const;
+      const std::vector<Term>& terms) ;
   /**
    * Create a nullable some term.
    * @param term The element value.
@@ -5040,7 +5040,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableSome() instead")]] Term
-  mkNullableSome(const Term& term) const;
+  mkNullableSome(const Term& term) ;
   /**
    * Create a selector for nullable term.
    * @param term A nullable term.
@@ -5050,7 +5050,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableVal() instead")]] Term mkNullableVal(
-      const Term& term) const;
+      const Term& term) ;
   /**
    * Create a null tester for a nullable term.
    * @param term A nullable term.
@@ -5060,7 +5060,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableisNull() instead")]] Term
-  mkNullableIsNull(const Term& term) const;
+  mkNullableIsNull(const Term& term) ;
   /**
    * Create a some tester for a nullable term.
    * @param term A nullable term.
@@ -5070,7 +5070,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableisSome() instead")]] Term
-  mkNullableIsSome(const Term& term) const;
+  mkNullableIsSome(const Term& term) ;
 
   /**
    * Create a constant representing an null of the given sort.
@@ -5081,7 +5081,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableNull() instead")]] Term
-  mkNullableNull(const Sort& sort) const;
+  mkNullableNull(const Sort& sort) ;
   /**
    * Create a term that lifts kind to nullable terms.
    * Example:
@@ -5100,7 +5100,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkNullableLift() instead")]] Term
-  mkNullableLift(Kind kind, const std::vector<Term>& args) const;
+  mkNullableLift(Kind kind, const std::vector<Term>& args) ;
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -5136,13 +5136,13 @@ class CVC5_EXPORT Solver
    *          It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::vector<uint32_t>& args = {}) const;
+      Kind kind, const std::vector<uint32_t>& args = {}) ;
 
 #ifndef DOXYGEN_SKIP
   // Overload is only used to disambiguate the std::vector and std::string
   // overloads.
   [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::initializer_list<uint32_t>& args) const;
+      Kind kind, const std::initializer_list<uint32_t>& args) ;
 #endif
 
   /**
@@ -5155,7 +5155,7 @@ class CVC5_EXPORT Solver
    *          It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::string& arg) const;
+      Kind kind, const std::string& arg) ;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -5167,7 +5167,7 @@ class CVC5_EXPORT Solver
    * @warning This function is deprecated and replaced by
    *          `TermManager::mkTrue()`. It will be removed in a future release.
    */
-  [[deprecated("Use TermManager::mkTrue() instead")]] Term mkTrue() const;
+  [[deprecated("Use TermManager::mkTrue() instead")]] Term mkTrue() ;
 
   /**
    * Create a Boolean false constant.
@@ -5175,7 +5175,7 @@ class CVC5_EXPORT Solver
    * @warning This function is deprecated and replaced by
    *          `TermManager::mkFalse()`. It will be removed in a future release.
    */
-  [[deprecated("Use TermManager::mkFalse() instead")]] Term mkFalse() const;
+  [[deprecated("Use TermManager::mkFalse() instead")]] Term mkFalse() ;
 
   /**
    * Create a Boolean constant.
@@ -5186,7 +5186,7 @@ class CVC5_EXPORT Solver
    * release.
    */
   [[deprecated("Use TermManager::mkBoolean() instead")]] Term mkBoolean(
-      bool val) const;
+      bool val) ;
 
   /**
    * Create a constant representing the number Pi.
@@ -5196,7 +5196,7 @@ class CVC5_EXPORT Solver
    * @warning This function is deprecated and replaced by
    *          `TermManager::mkPi()`. It will be removed in a future release.
    */
-  [[deprecated("Use TermManager::mkPi() instead")]] Term mkPi() const;
+  [[deprecated("Use TermManager::mkPi() instead")]] Term mkPi() ;
   /**
    * Create an integer constant from a string.
    * @param s The string representation of the constant, may represent an
@@ -5207,7 +5207,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkInteger() instead")]] Term mkInteger(
-      const std::string& s) const;
+      const std::string& s) ;
 
   /**
    * Create an integer constant from a c++ int.
@@ -5218,7 +5218,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkInteger() instead")]] Term mkInteger(
-      int64_t val) const;
+      int64_t val) ;
 
   /**
    * Create a real constant from a string.
@@ -5230,7 +5230,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      const std::string& s) const;
+      const std::string& s) ;
 
   /**
    * Create a real constant from an integer.
@@ -5241,7 +5241,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      int64_t val) const;
+      int64_t val) ;
 
   /**
    * Create a real constant from a rational.
@@ -5253,7 +5253,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      int64_t num, int64_t den) const;
+      int64_t num, int64_t den) ;
 
   /**
    * Create a regular expression all (re.all) term.
@@ -5263,7 +5263,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkRegExpAll() instead")]] Term mkRegexpAll()
-      const;
+      ;
 
   /**
    * Create a regular expression allchar (re.allchar) term.
@@ -5273,7 +5273,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkRegExpAllChar() instead")]] Term
-  mkRegexpAllchar() const;
+  mkRegexpAllchar() ;
 
   /**
    * Create a regular expression none (re.none) term.
@@ -5283,7 +5283,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkRegExpNone() instead")]] Term mkRegexpNone()
-      const;
+      ;
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -5294,7 +5294,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkEmptySet() instead")]] Term mkEmptySet(
-      const Sort& sort) const;
+      const Sort& sort) ;
 
   /**
    * Create a constant representing an empty bag of the given sort.
@@ -5305,7 +5305,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkEmptyBag() instead")]] Term mkEmptyBag(
-      const Sort& sort) const;
+      const Sort& sort) ;
 
   /**
    * Create a separation logic empty term.
@@ -5314,7 +5314,7 @@ class CVC5_EXPORT Solver
    * @warning This function is deprecated and replaced by
    *          `TermManager::mkSepEmp()`. It will be removed in a future release.
    */
-  [[deprecated("Use TermManager::mkSepEmp() instead")]] Term mkSepEmp() const;
+  [[deprecated("Use TermManager::mkSepEmp() instead")]] Term mkSepEmp() ;
 
   /**
    * Create a separation logic nil term.
@@ -5325,7 +5325,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkSepNil()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkSepNil() instead")]] Term mkSepNil(
-      const Sort& sort) const;
+      const Sort& sort) ;
 
   /**
    * Create a String constant from a `std::string` which may contain SMT-LIB
@@ -5338,7 +5338,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkString()`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkString() instead")]] Term mkString(
-      const std::string& s, bool useEscSequences = false) const;
+      const std::string& s, bool useEscSequences = false) ;
 
   /**
    * Create a String constant from a `std::wstring`.
@@ -5350,7 +5350,7 @@ class CVC5_EXPORT Solver
    *          `TermManager::mkString(const std::u32string& s)`. It will be removed in a future release.
    */
   [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term mkString(
-      const std::wstring& s) const;
+      const std::wstring& s) ;
 
   /**
    * Create an empty sequence of the given element sort.
@@ -5361,7 +5361,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkEmptySequence() instead")]] Term
-  mkEmptySequence(const Sort& sort) const;
+  mkEmptySequence(const Sort& sort) ;
 
   /**
    * Create a universe set of the given sort.
@@ -5372,7 +5372,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkUniverseSet() instead")]] Term mkUniverseSet(
-      const Sort& sort) const;
+      const Sort& sort) ;
 
   /**
    * Create a bit-vector constant of given size and value.
@@ -5387,7 +5387,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkBitVector() instead")]] Term mkBitVector(
-      uint32_t size, uint64_t val = 0) const;
+      uint32_t size, uint64_t val = 0) ;
 
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
@@ -5405,7 +5405,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkBitVector() instead")]] Term mkBitVector(
-      uint32_t size, const std::string& s, uint32_t base) const;
+      uint32_t size, const std::string& s, uint32_t base) ;
 
   /**
    * Create a finite field constant in a given field from a given string
@@ -5425,7 +5425,7 @@ class CVC5_EXPORT Solver
   [[deprecated("Use TermManager::mkFiniteFieldElem() instead")]] Term
   mkFiniteFieldElem(const std::string& value,
                     const Sort& sort,
-                    uint32_t base = 10) const;
+                    uint32_t base = 10) ;
 
   /**
    * Create a constant array with the provided constant value stored at every
@@ -5439,7 +5439,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkConstArray() instead")]] Term mkConstArray(
-      const Sort& sort, const Term& val) const;
+      const Sort& sort, const Term& val) ;
 
   /**
    * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
@@ -5451,7 +5451,7 @@ class CVC5_EXPORT Solver
    *          future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointPosInf() instead")]] Term
-  mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointPosInf(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
@@ -5463,7 +5463,7 @@ class CVC5_EXPORT Solver
    *          future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointNegInf() instead")]] Term
-  mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointNegInf(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a not-a-number floating-point constant (SMT-LIB: `NaN`).
@@ -5475,7 +5475,7 @@ class CVC5_EXPORT Solver
    *          future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointNaN() instead")]] Term
-  mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointNaN(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a positive zero floating-point constant (SMT-LIB: +zero).
@@ -5487,7 +5487,7 @@ class CVC5_EXPORT Solver
    *          future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointPosZero() instead")]] Term
-  mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointPosZero(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a negative zero floating-point constant (SMT-LIB: -zero).
@@ -5499,7 +5499,7 @@ class CVC5_EXPORT Solver
    *          future release.
    */
   [[deprecated("Use TermManager::mkFloatingPointNegZero() instead")]] Term
-  mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
+  mkFloatingPointNegZero(uint32_t exp, uint32_t sig) ;
 
   /**
    * Create a rounding mode value.
@@ -5510,7 +5510,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkRoundingMode() instead")]] Term
-  mkRoundingMode(RoundingMode rm) const;
+  mkRoundingMode(RoundingMode rm) ;
 
   /**
    * Create a floating-point value from a bit-vector given in IEEE-754
@@ -5524,7 +5524,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkFloatingPoint() instead")]] Term
-  mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const;
+  mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) ;
   /**
    * Create a floating-point value from its three IEEE-754 bit-vector
    * value components (sign bit, exponent, significand).
@@ -5537,7 +5537,7 @@ class CVC5_EXPORT Solver
    *          release.
    */
   [[deprecated("Use TermManager::mkFloatingPoint() instead")]] Term
-  mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig) const;
+  mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig) ;
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -5552,7 +5552,7 @@ class CVC5_EXPORT Solver
    * future release.
    */
   [[deprecated("Use TermManager::mkCardinalityConstraint() instead")]] Term
-  mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
+  mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) ;
 
   /* .................................................................... */
   /* Create Variables                                                     */
@@ -5581,7 +5581,7 @@ class CVC5_EXPORT Solver
    */
   [[deprecated("Use TermManager::mkConst() instead")]] Term mkConst(
       const Sort& sort,
-      const std::optional<std::string>& symbol = std::nullopt) const;
+      const std::optional<std::string>& symbol = std::nullopt) ;
 
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -5598,7 +5598,7 @@ class CVC5_EXPORT Solver
    */
   [[deprecated("Use TermManager::mkVar() instead")]] Term mkVar(
       const Sort& sort,
-      const std::optional<std::string>& symbol = std::nullopt) const;
+      const std::optional<std::string>& symbol = std::nullopt) ;
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -5684,7 +5684,7 @@ class CVC5_EXPORT Solver
    *
    * @param term The formula to assert.
    */
-  void assertFormula(const Term& term) const;
+  void assertFormula(const Term& term) ;
 
   /**
    * Check satisfiability.
@@ -5715,7 +5715,7 @@ class CVC5_EXPORT Solver
    * @param assumption The formula to assume.
    * @return The result of the satisfiability check.
    */
-  Result checkSatAssuming(const Term& assumption) const;
+  Result checkSatAssuming(const Term& assumption);
 
   /**
    * Check satisfiability assuming the given formulas.
@@ -5731,7 +5731,7 @@ class CVC5_EXPORT Solver
    * @param assumptions The formulas to assume.
    * @return The result of the satisfiability check.
    */
-  Result checkSatAssuming(const std::vector<Term>& assumptions) const;
+  Result checkSatAssuming(const std::vector<Term>& assumptions);
 
   /**
    * Create datatype sort.
@@ -5773,7 +5773,7 @@ class CVC5_EXPORT Solver
   Term declareFun(const std::string& symbol,
                   const std::vector<Sort>& sorts,
                   const Sort& sort,
-                  bool fresh = true) const;
+                  bool fresh = true);
 
   /**
    * Declare uninterpreted sort.
@@ -5826,7 +5826,7 @@ class CVC5_EXPORT Solver
                  const std::vector<Term>& bound_vars,
                  const Sort& sort,
                  const Term& term,
-                 bool global = false) const;
+                 bool global = false);
 
   /**
    * Define recursive function.
@@ -5851,7 +5851,7 @@ class CVC5_EXPORT Solver
                     const std::vector<Term>& bound_vars,
                     const Sort& sort,
                     const Term& term,
-                    bool global = false) const;
+                    bool global = false);
 
   /**
    * Define recursive function.
@@ -5876,7 +5876,7 @@ class CVC5_EXPORT Solver
   Term defineFunRec(const Term& fun,
                     const std::vector<Term>& bound_vars,
                     const Term& term,
-                    bool global = false) const;
+                    bool global = false);
 
   /**
    * Define recursive functions.
@@ -5903,7 +5903,7 @@ class CVC5_EXPORT Solver
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,
                      const std::vector<Term>& terms,
-                     bool global = false) const;
+                     bool global = false);
 
   /**
    * Get the list of asserted formulas.
@@ -6395,7 +6395,7 @@ class CVC5_EXPORT Solver
    */
   Term declarePool(const std::string& symbol,
                    const Sort& sort,
-                   const std::vector<Term>& initValue) const;
+                   const std::vector<Term>& initValue);
   /**
    * Declare an oracle function with reference to an implementation.
    *
@@ -6425,7 +6425,7 @@ class CVC5_EXPORT Solver
   Term declareOracleFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
                         const Sort& sort,
-                        std::function<Term(const std::vector<Term>&)> fn) const;
+                        std::function<Term(const std::vector<Term>&)> fn);
   /**
    * Add plugin to this solver. Its callbacks will be called throughout the
    * lifetime of this solver.
@@ -6773,7 +6773,7 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the universal variable.
    * @return The universal variable.
    */
-  Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
+  Term declareSygusVar(const std::string& symbol, const Sort& sort);
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting
@@ -6804,7 +6804,7 @@ class CVC5_EXPORT Solver
    */
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                const Sort& sort) const;
+                const Sort& sort);
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
@@ -6826,7 +6826,7 @@ class CVC5_EXPORT Solver
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar& grammar) const;
+                Grammar& grammar);
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -7059,7 +7059,7 @@ class CVC5_EXPORT Solver
    * Get the associated term manager instance.
    * @return The term manager.
    */
-  TermManager& getTermManager() const;
+  TermManager& getTermManager();
 
  private:
   /**
@@ -7068,7 +7068,7 @@ class CVC5_EXPORT Solver
    * @param tm       The associated term manager.
    * @param original The original set of configuration options.
    */
-  Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
+  Solver(TermManager tm, std::unique_ptr<internal::Options>&& original);
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
@@ -7092,7 +7092,7 @@ class CVC5_EXPORT Solver
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
                       bool isInv = false,
-                      Grammar* grammar = nullptr) const;
+                      Grammar* grammar = nullptr);
 
   /** Helper for getting timeout cores */
   std::pair<Result, std::vector<Term>> getTimeoutCoreHelper(
@@ -7122,7 +7122,7 @@ class CVC5_EXPORT Solver
   std::unique_ptr<internal::Random> d_rng;
 
   /** The associated term manager. */
-  TermManager& d_tm;
+  TermManager d_tm;
 };
 
 }  // namespace cvc5
