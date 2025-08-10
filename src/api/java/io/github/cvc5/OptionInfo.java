@@ -97,8 +97,8 @@ public class OptionInfo extends AbstractPointer
     /**
      * Construct a new {@code ValueInfo} instance with the given default and current values.
      *
-     * @param defaultValue the default value
-     * @param currentValue the current value
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
      */
     public ValueInfo(T defaultValue, T currentValue)
     {
@@ -108,7 +108,7 @@ public class OptionInfo extends AbstractPointer
     /**
      * Get the default value.
      *
-     * @return the default value
+     * @return The default value.
      */
     public T getDefaultValue()
     {
@@ -117,7 +117,7 @@ public class OptionInfo extends AbstractPointer
     /**
      * Get the current value.
      *
-     * @return the current value
+     * @return The current value.
      */
     public T getCurrentValue()
     {
@@ -136,9 +136,9 @@ public class OptionInfo extends AbstractPointer
      * Constructs a {@code ModeInfo} instance with the specified default value,
      * current value, and available mode options.
      *
-     * @param defaultValue The default value
-     * @param currentValue The current value
-     * @param modes The possible mode values
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
+     * @param modes The possible mode values.
      */
     public ModeInfo(String defaultValue, String currentValue, String[] modes)
     {
@@ -149,7 +149,7 @@ public class OptionInfo extends AbstractPointer
     /**
      * Get the list of valid mode values.
      *
-     * @return an array of available mode options
+     * @return An array of available mode options.
      */
     public String[] getModes()
     {
@@ -180,10 +180,10 @@ public class OptionInfo extends AbstractPointer
      * Construct a {@code NumberInfo} instance with specified default value,
      * current value, minimum, and maximum.
      *
-     * @param defaultValue the default value
-     * @param currentValue the current value
-     * @param minimum the minimum value
-     * @param maximum the maximum value
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
+     * @param minimum The minimum value.
+     * @param maximum The maximum value.
      */
     public NumberInfo(T defaultValue, T currentValue, T minimum, T maximum)
     {
@@ -195,7 +195,7 @@ public class OptionInfo extends AbstractPointer
     /**
      * Get the minimum value.
      *
-     * @return the minimum value
+     * @return The minimum value.
      */
     public T getMinimum()
     {
@@ -205,7 +205,7 @@ public class OptionInfo extends AbstractPointer
     /**
      * Get the maximum value.
      *
-     * @return the maximum value
+     * @return The maximum value.
      */
     public T getMaximum()
     {
@@ -227,7 +227,7 @@ public class OptionInfo extends AbstractPointer
   /**
    * Get the name of the option.
    *
-   * @return the option name
+   * @return The option name.
    */
   public String getName()
   {
@@ -239,7 +239,7 @@ public class OptionInfo extends AbstractPointer
   /**
    * Get the option name aliases.
    *
-   * @return an array of alias strings associated with the option
+   * @return An array of alias strings associated with the option.
    */
   public String[] getAliases()
   {

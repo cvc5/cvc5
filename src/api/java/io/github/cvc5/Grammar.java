@@ -34,7 +34,7 @@ public class Grammar extends AbstractPointer
    * Constructs a new {@code Grammar} instance by creating a deep copy of
    * the specified {@code Grammar}.
    *
-   * @param grammar the {@code Grammar} instance to copy
+   * @param grammar The {@code Grammar} instance to copy.
    */
   public Grammar(Grammar grammar)
   {
