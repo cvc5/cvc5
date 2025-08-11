@@ -1417,7 +1417,7 @@ Node RewriteDbProofCons::doEvaluate(const Node& n)
   // Only possible to evaluate if we rewrite to a constant. This is worthwhile
   // to check since the rewrite of n has likely already been computed, whereas
   // the evaluator below is not (globally) cached.
-  Node nr = rewriteConcrete(n);
+  Node nr = rewrite(n);
   if (!nr.isConst())
   {
     return Node::null();
