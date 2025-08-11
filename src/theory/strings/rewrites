@@ -344,7 +344,7 @@
   n)
 
 (define-cond-rule str-indexof-eq-irr ((t ?Seq) (s ?Seq) (r ?Seq) (n Int))
-  (= (str.substr t n (str.len t)) (str.substr r n (str.len r)))
+  (and (<= n (str.len t)) (<= n (str.len r)) (= (str.substr t n (str.len t)) (str.substr r n (str.len r))))
   (= (str.indexof t s n) (str.indexof r s n))
   true)
 
@@ -468,7 +468,7 @@
   (@seq.empty_of_type (@type_of x)))
 
 (define-cond-rule str-contains-repl-char ((x ?Seq) (y ?Seq) (z ?Seq) (w ?Seq))
-  (and (= (str.len w) 1) (not (str.contains w y)))
+  (and (= (str.len w) 1) (not (str.contains y w)))
   (str.contains (str.replace x y z) w)
   (or (str.contains x w) (and (str.contains x y) (str.contains z w))))
 

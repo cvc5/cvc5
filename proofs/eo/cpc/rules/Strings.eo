@@ -198,7 +198,7 @@
 ;   corresponding to decomposing s at position n, and that the decomposed term
 ;   has length n.
 (declare-rule string_decompose ((U Type) (s (Seq U)) (n Int) (b Bool))
-  :premises ((>= (str.len s) n))
+  :premises ((>= n 0) (>= (str.len s) n))
   :args (b)
   :conclusion (eo::ite b
                 (eo::define ((kp (@purify ($str_prefix_rem s n)))
@@ -959,8 +959,9 @@
   (($seq_eval_replace_all_rec s t u n lent)   (eo::define ((snext ($seq_subsequence (eo::add n lent) ($str_value_len s) s)))
                                               (eo::list_concat seq.++
                                                 ($seq_subsequence 0 n s)
-                                                u
-                                                ($seq_eval_replace_all_rec snext t u ($seq_find snext t 0) lent))))
+                                                (eo::list_concat seq.++
+                                                  u
+                                                  ($seq_eval_replace_all_rec snext t u ($seq_find snext t 0) lent)))))
   )
 )
 
@@ -988,8 +989,9 @@
                                               t
                                               ($str_nary_elim (eo::list_concat seq.++
                                                 ($seq_subsequence 0 i tn)
-                                                ($str_nary_intro r)
-                                                ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn))))))))
+                                                (eo::list_concat seq.++
+                                                  ($str_nary_intro r)
+                                                  ($seq_subsequence (eo::add i ($str_value_len sn)) ($str_value_len tn) tn)))))))))
     (($seq_eval (seq.replace_all t s r))  (eo::define ((tn ($str_nary_intro t)))
                                           (eo::define ((sn ($str_nary_intro s)))
                                           (eo::define ((rn ($str_nary_intro r)))

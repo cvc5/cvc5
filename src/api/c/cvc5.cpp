@@ -203,6 +203,20 @@ const char* cvc5_modes_find_synth_target_to_string(Cvc5FindSynthTarget target)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5OptionCategory                                                         */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_modes_option_category_to_string(Cvc5OptionCategory category)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_OPTION_CATEGORY(category);
+  str = std::to_string(static_cast<cvc5::modes::OptionCategory>(category));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5InputLanguage                                                          */
 /* -------------------------------------------------------------------------- */
 
@@ -2054,6 +2068,16 @@ const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
   return res.c_str();
 }
 
+const char32_t* cvc5_term_get_u32string_value(Cvc5Term term)
+{
+  static thread_local std::u32string res;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_TERM(term);
+  res = term->d_term.getU32StringValue();
+  CVC5_CAPI_TRY_CATCH_END;
+  return res.c_str();
+}
+
 bool cvc5_term_is_real32_value(Cvc5Term term)
 {
   bool res = false;
@@ -3452,6 +3476,17 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
 }
 
 Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
+{
+  Cvc5Term res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(s);
+  res = tm->export_term(tm->d_tm.mkString(s));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5Term cvc5_mk_string_from_char32(Cvc5TermManager* tm, const char32_t* s)
 {
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
@@ -4875,8 +4910,21 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   info->no_supports = c_no_supports.data();
 
   info->is_set_by_user = cpp_info.setByUser;
-  info->is_expert = cpp_info.isExpert;
-  info->is_regular = cpp_info.isRegular;
+  switch (cpp_info.category)
+  {
+    case cvc5::modes::OptionCategory::REGULAR:
+      info->category = CVC5_OPTION_CATEGORY_REGULAR;
+      break;
+    case cvc5::modes::OptionCategory::EXPERT:
+      info->category = CVC5_OPTION_CATEGORY_EXPERT;
+      break;
+    case cvc5::modes::OptionCategory::COMMON:
+      info->category = CVC5_OPTION_CATEGORY_COMMON;
+      break;
+    default:
+      Assert(cpp_info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
+      info->category = CVC5_OPTION_CATEGORY_UNDOCUMENTED;
+  }
 
   std::visit(
       overloaded{
