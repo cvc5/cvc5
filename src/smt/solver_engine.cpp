@@ -1175,21 +1175,23 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   }
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
-  quantifiers::FunDefEvaluator fdef(*d_env.get());
-  const context::CDList<Node>& assertions =
-      d_smtSolver->getPreprocessedAssertions();
-  for (const Node& def : assertions)
+  if (options().smt.simplifyInferRecFun)
   {
-    Trace("ajr-temp") << "Check definition: " << def << std::endl;
-    if (def.getKind()==Kind::FORALL && def[1].getKind()==Kind::EQUAL)
+    quantifiers::FunDefEvaluator fdef(*d_env.get());
+    const context::CDList<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
+    for (const Node& def : assertions)
     {
-      fdef.assertDefinition(def);
+      if (def.getKind()==Kind::FORALL && def[1].getKind()==Kind::EQUAL)
+      {
+        fdef.assertDefinition(def);
+      }
     }
-  }
-  Node rete = fdef.evaluateDefinitions(ret);
-  if (!rete.isNull())
-  {
-    ret = rete;
+    Node rete = fdef.evaluateDefinitions(ret);
+    if (!rete.isNull())
+    {
+      ret = rete;
+    }
   }
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc(d_env->getNodeManager());
