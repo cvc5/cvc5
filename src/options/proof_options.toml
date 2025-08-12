@@ -128,6 +128,14 @@ name   = "Proof"
   help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
 
 [[option]]
+  name       = "proofChainMRes"
+  category   = "expert"
+  long       = "proof-chain-m-res"
+  type       = "bool"
+  default    = "false"
+  help       = "Use chain multiset resolution"
+
+[[option]]
   name       = "proofRewriteRconsStepLimit"
   category   = "regular"
   long       = "proof-rewrite-rcons-step-limit=N"
