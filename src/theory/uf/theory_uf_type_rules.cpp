@@ -55,7 +55,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     // otherwise, application of abstract function is always abstract
     return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
-  if (fType.getNumChildren()<=n.getNumChildren())
+  if (fType.getNumChildren() <= n.getNumChildren())
   {
     if (errOut)
     {
