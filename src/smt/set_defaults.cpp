@@ -167,6 +167,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
+      // introduces set.choose, which is not supported for proofs
+      SET_AND_NOTIFY(quantifiers, fmfBoundSets, false, "safe options");
       // if we check proofs, we require that they are checked for completeness,
       // unless the granularity is intentionally set to lower.
       if (opts.smt.checkProofs
@@ -1518,6 +1520,10 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   {
     // Allows to answer sat more often by default.
     SET_AND_NOTIFY_IF_NOT_USER(quantifiers, fmfBound, true, "arrays-exp");
+  }
+  if (opts.quantifiers.fmfBoundSets && opts.quantifiers.fmfBoundSetsWasSetByUser)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(quantifiers, fmfBound, true, "fmf-bound-sets");
   }
   if (logic.hasCardinalityConstraints())
   {
