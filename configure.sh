@@ -17,7 +17,7 @@ Build types:
   competition
     Maximally optimized, assertions and tracing disabled, muzzled
   safe-mode
-    Like production except --safe-options is set to true
+    Like production except --safe-mode is set to safe
 
 
 General options;
@@ -362,6 +362,7 @@ done
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
+  cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
 [ $buildtype != default ] \

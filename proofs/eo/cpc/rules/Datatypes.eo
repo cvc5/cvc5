@@ -9,7 +9,7 @@
 ; - x D: The datatype term we are splitting on.
 ; return: A disjunction of testers for the constructors in L, applied to x.
 (program $mk_dt_split ((D Type) (x D) (T Type) (c T) (xs eo::List :list))
-  (eo::List D) Bool
+  :signature (eo::List D) Bool
   (
     (($mk_dt_split eo::List::nil x)          false)
     (($mk_dt_split (eo::List::cons c xs) x)  (eo::cons or (is c x) ($mk_dt_split xs x)))
@@ -37,10 +37,10 @@
 ; - x D: The datatype term we applying dt-inst to.
 ; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
-(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (t T) (S Type) (s S) (xs eo::List :list))
-  (eo::List D T) Bool
+(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (tb D) (s (-> D T)) (xs eo::List :list))
+  :signature (eo::List D T) D
   (
-    (($mk_dt_inst_rec eo::List::nil x t)          t)
+    (($mk_dt_inst_rec eo::List::nil x tb)         tb)
     (($mk_dt_inst_rec (eo::List::cons s xs) x t)  ($mk_dt_inst_rec xs x (t (s x))))
   )
 )
@@ -57,8 +57,8 @@
 ;   (tuple (tuple.select 0 x) (tuple (tuple.select 1 x) tuple.unit)), whereas
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
-(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int))
-  (Type D Int) Bool
+(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T Type) (t T) (T1 Type) (T2 Type :list) (n Int) (U Type))
+  :signature ((eo::quote U) D Int) U
   (
     (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
     (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (eo::cons tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
@@ -71,13 +71,13 @@
 ; - c C: The (unannotated) constructor of datatype D.
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
-(program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)))
-  (Type C D) Bool
+(program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (DC (-> Type Type)) (xt (Tuple T1 T2)) (xu UnitTuple))
+  :signature (Type C D) D
   (
-    (($mk_dt_inst (Tuple T1 T2) tuple x)  ($mk_dt_inst_tuple_rec (Tuple T1 T2) x 0))
-    (($mk_dt_inst UnitTuple tuple.unit x) tuple.unit)
+    (($mk_dt_inst (Tuple T1 T2) tuple xt)   ($mk_dt_inst_tuple_rec (Tuple T1 T2) xt 0))
+    (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
     ; user-defined datatypes, note that if c needs an annotation, we get it via $dt_inst_cons_of
-    (($mk_dt_inst D c x)                  ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
+    (($mk_dt_inst D c x)                    ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
   )
 )
 
@@ -89,7 +89,7 @@
 ;   We require that $mk_dt_inst applied to the left hand side returns
 ;   the right hand side.
 ; conclusion: The given equality.
-(declare-rule dt-inst ((D Type) (T Type) (c T) (x D) (t T))
+(declare-rule dt-inst ((D Type) (T Type) (c T) (x D) (t D))
   :args ((= (is c x) (= x t)))
   :requires ((($mk_dt_inst (eo::typeof x) c x) t))
   :conclusion (= (is c x) (= x t))
@@ -106,13 +106,14 @@
 ;   is the right hand side of the equality, where index is the index of the
 ;   selector in the constructor of t.
 ; conclusion: The given equality.
-(declare-rule dt-collapse-selector ((D Type) (T Type) (s (-> D T)) (t D) (ti T))
+; note: The type of the selector s in this rule is typically (-> D T), although
+;       this is not the case for tuple selectors.
+(declare-rule dt-collapse-selector ((D Type) (T Type) (S1 Type) (S2 Type) (s (-> S1 S2)) (t D) (ti T))
   :args ((= (s t) ti))
-  :requires (((eo::define ((c ($get_fun t)))
-              (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+  :requires (((eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
               ; note that s must be a selector of the constructor of t, or else index will not evaluate
               (eo::define ((index (eo::list_find eo::List::cons ss s)))
-                ($dt_arg_nth t index)))) ti))
+                ($dt_arg_nth t index))) ti))
   :conclusion (= (s t) ti)
 )
 
@@ -130,10 +131,7 @@
 ; conclusion: The given equality.
 (declare-rule dt-collapse-tester ((D Type) (T Type) (c T) (t D) (b Bool))
   :args ((= (is c t) b))
-  :requires (((eo::define ((f ($get_fun t)))
-              (eo::ite b
-                (eo::is_eq f c)
-                (eo::and ($dt_is_cons f) (eo::not (eo::is_eq f c))))) true))
+  :requires ((($dt_eq_cons c t) b))
   :conclusion (= (is c t) b)
 )
 
@@ -156,15 +154,16 @@
 
 ; define: $mk_dt_cons_eq
 ; args:
-; - ts @List: The list of arguments to the left hand side of the equality.
-; - ss @List: The list of arguments to the right hand side of the equality.
+; - t T: The left hand side of the equality.
+; - s T: The right hand side of the equality.
 ; return: >
-;   The conjunction of equalities between the arguments of ts and ss.
-(program $mk_dt_cons_eq ((T Type) (t T) (s T) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
+;   The conjunction of equalities between the arguments of t and s.
+(program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
+  :signature (T T) Bool
   (
-  (($mk_dt_cons_eq (@list t ts) (@list s ss)) (eo::cons and (= t s) ($mk_dt_cons_eq ts ss)))
-  (($mk_dt_cons_eq @list.nil @list.nil)       true)
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (eo::cons and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
+  (($mk_dt_cons_eq c c)                       true)
   )
 )
 
@@ -179,54 +178,13 @@
 ; conclusion: The given equality.
 (declare-rule dt-cons-eq ((D Type) (t D) (s D) (B Bool))
   :args ((= (= t s) B))
-  :requires (((eo::define ((c ($get_fun t))) 
-              (eo::and ($dt_is_cons c) (eo::is_eq c ($get_fun s)))) true)
-             (($singleton_elim ($mk_dt_cons_eq ($dt_arg_list t) ($dt_arg_list s))) B))
+  :requires ((($singleton_elim ($mk_dt_cons_eq t s)) B))
   :conclusion (= (= t s) B)
 )
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
 
-; note: This is a forward declaration of $dt_cons_eq_find_clash_list below.
-(program $dt_cons_eq_find_clash_list () (@List @List) Bool)
-
-; define: $dt_cons_eq_find_clash
-; args:
-; - t T: The left hand side of the equality.
-; - s T: The right hand side of the equality.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(define $dt_cons_eq_find_clash ((T Type :implicit) (t T) (s T))
-  (eo::define ((ct ($get_fun t)))
-  (eo::define ((cs ($get_fun s)))
-  (eo::ite ($dt_is_cons ct)
-    (eo::ite (eo::is_eq ct cs)
-      ; recurse on each argument
-      ($dt_cons_eq_find_clash_list ($dt_arg_list t) ($dt_arg_list s))
-      ; otherwise conflicting only if cs is also a constructor
-      ($dt_is_cons cs))
-    false)))
-)
-
-; program: $dt_cons_eq_find_clash_list
-; args:
-; - ts @List: The list of arguments to the left hand side of the equality left to process.
-; - ss @List: The list of arguments to the right hand side of the equality left to process.
-; return: >
-;   True if we can derive a conflict based on finding subterms (beneath
-;   constructor applications) that have distinct constructor symbols.
-(program $dt_cons_eq_find_clash_list ((U Type) (t U) (s U) (ts @List :list) (ss @List :list))
-  (@List @List) Bool
-  (
-  (($dt_cons_eq_find_clash_list (@list t ts) (@list s ss))  (eo::ite ($dt_cons_eq_find_clash t s)
-                                                              true
-                                                              ($dt_cons_eq_find_clash_list ts ss)))
-  (($dt_cons_eq_find_clash_list @list.nil @list.nil)        false)
-  )
-)
-
-; rule: dt-cons-eq
+; rule: dt-cons-eq-clash
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
 ; args:
 ; - eq Bool: The equality to prove.
@@ -235,9 +193,21 @@
 ;   subterms (beneath constructor applications) that have distinct constructor
 ;   symbols on either side.
 ; conclusion: The given equality.
+; note: >
+;   We reuse the side condition $are_distinct_terms to check this rule, which
+;   is sound and suffices to check this rule. Internally in cvc5, the rules
+;   DISTINCT_VALUES and DT_CONS_EQ_CLASH are incomparable, as the former
+;   insists that t and s are values, but is more powerful since it considers
+;   values of any type, whereas DT_CONS_EQ_CLASH does not insist on values but
+;   only considers datatype constructors. This means that $are_distinct_terms
+;   could in theory find a conflict for a different reason than
+;   DT_CONS_EQ_CLASH, for example (cons 0 (cons a b)) = (cons 1 nil),
+;   where $are_distinct_terms succeds since 0 != 1, whereas DT_CONS_EQ_CLASH
+;   was applied since (cons a b) != nil. However, both are valid reasons
+;   why the equality is conflicting.
 (declare-rule dt-cons-eq-clash ((D Type) (t D) (s D))
   :args ((= (= t s) false))
-  :requires ((($dt_cons_eq_find_clash t s) true))
+  :requires ((($are_distinct_terms t s) true))
   :conclusion (= (= t s) false)
 )
 
@@ -247,7 +217,28 @@
 ; note: >
 ;   Since forward declarations must have a ground type signature, we wrap
 ;   the term to find (the s argument of dt-cycle) in a list.
-(program $dt_find_cycle_list () (@List @List) Bool)
+(program $dt_find_cycle_list () :signature (@List @List) Bool)
+
+
+; define: $dt_find_cycle_rec
+; args:
+; - t T: The term.
+; - s @List: A list containing the term to find.
+; - l @List: The list of arguments to t we have seen so far.
+; return: >
+;   True iff t contains s as a strict subterm beneath constructor applications.
+; note: This is a helper for $dt_find_cycle below.
+(program $dt_find_cycle_rec ((T Type) (U Type) (W Type) (c T) (f (-> U W)) (a U) (s @List) (l @List))
+  :signature (T @List @List) Bool
+  (
+    (($dt_find_cycle_rec (f a) s l) ($dt_find_cycle_rec f s (eo::cons @list a l)))
+    (($dt_find_cycle_rec c s l)
+      (eo::ite ($dt_is_cons c)
+        ; only if the head is a constructor, we recurse on each argument
+        ($dt_find_cycle_list l s)
+        false))
+  )
+)
 
 ; define: $dt_find_cycle
 ; args:
@@ -256,12 +247,7 @@
 ; return: >
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 (define $dt_find_cycle ((T Type :implicit) (t T) (s @List))
-  (eo::define ((ct ($get_fun t)))
-  (eo::ite ($dt_is_cons ct)
-    ; recurse on each argument
-    ($dt_find_cycle_list ($dt_arg_list t) s)
-    false))
-)
+  ($dt_find_cycle_rec t s @list.nil))
 
 ; program: $dt_find_cycle_list
 ; args:
@@ -271,7 +257,7 @@
 ;   True iff a term in ts is s, or contains s as a strict subterm beneath
 ;   constructor applications.
 (program $dt_find_cycle_list ((U Type) (t U) (s U) (ts @List :list) (ss @List))
-  (@List @List) Bool
+  :signature (@List @List) Bool
   (
   (($dt_find_cycle_list (@list s ts) (@list s)) true)
   (($dt_find_cycle_list (@list t ts) ss)        (eo::ite ($dt_find_cycle t ss)
@@ -306,7 +292,7 @@
 ; return: >
 ;   The result of updating the n^th argument from the end in t.
 (program $dt_collapse_updater_rhs ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
-  (U T Int) U
+  :signature (U T Int) U
   (
     (($dt_collapse_updater_rhs (f x) a 0)  (f a))
     (($dt_collapse_updater_rhs (f x) a n)  (_ ($dt_collapse_updater_rhs f a (eo::add n -1)) x))
@@ -321,7 +307,7 @@
 ; return: >
 ;   The result of updating the n^th argument in t.
 (program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (f (-> T U)) (x T) (a T) (b T) (n Int) (ts W :list))
-  (U T Int) U
+  :signature (U T Int) U
   (
   (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
   (($tuple_collapse_updater_rhs (tuple b ts) a n)   (eo::cons tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
@@ -333,16 +319,15 @@
 ; args:
 ; - c U: The update term to process, expected to be an updater applied to a constructor application.
 ; return: >
-;   The result of collasping the update term.
-(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (s (-> D T)) (t D) (a T) (tr D) (n Int))
-  (D) Bool
+;   The result of collapsing the update term.
+(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (W Type) (U Type) (s (-> D T)) (t D) (a U) (tr D) (n Int))
+  :signature (D) D
   (
-  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((c ($get_fun t)))
-                                                      (eo::define ((ss ($dt_get_selectors (eo::typeof t) c)))
+  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
                                                       (eo::define ((index (eo::list_find eo::List::cons ss s)))
                                                         (eo::ite (eo::is_neg index)
                                                           t ; unchanged if not correct constructor
-                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1)))))))
+                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1))))))
   (($mk_dt_collapse_updater_rhs (tuple.update n t a)) ($tuple_collapse_updater_rhs t a n))
   )
 )
@@ -366,36 +351,37 @@
 
 ; program: $dt_updater_elim_rhs
 ; args:
-; - s (-> D T): the selector specifying the argument.
-; - D t: The datatype term we are updating.
-; - a T: The value to replace at the s argument of t.
+; - u D: The application of update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; - c U: The result of updating t we have accumulated so far.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
-  ((-> D T) D T eo::List U) D
+(program $dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
+  :signature (D eo::List X) D
   (
-    (($dt_updater_elim_rhs s t a (eo::List::cons s ss) c)   ($dt_updater_elim_rhs s t a ss (c a)))
-    (($dt_updater_elim_rhs s t a (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs s t a ss (c (s1 t))))
-    (($dt_updater_elim_rhs s t a eo::List::nil c)           c)
+    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)   ($dt_updater_elim_rhs (update s t a) ss (c a)))
+    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs (update s t a) ss (c (s1 t))))
+    (($dt_updater_elim_rhs (update s t a) eo::List::nil cd)          cd)
   )
 )
 
 ; program: $tuple_updater_elim_rhs
 ; args:
-; - n Int: the index specifying the argument.
-; - D t: The tuple term we are updating.
-; - a T: The value to replace at the n^th argument of t.
+; - u D: The application of tuple.update for a term t.
 ; - ss eo::List: The remaining selector arguments to process.
 ; return: >
 ;   The result of updating the argument specified by s in t.
-(program $tuple_updater_elim_rhs ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (a T) (ss eo::List :list) (c U))
-  (Int D T eo::List) D
+(program $tuple_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list) (c U))
+  :signature (D eo::List) D
   (
-    (($tuple_updater_elim_rhs n t a (eo::List::cons (tuple.select n) ss))   (eo::cons tuple a ($tuple_updater_elim_rhs n t a ss)))
-    (($tuple_updater_elim_rhs n t a (eo::List::cons s ss))                  (eo::cons tuple (s t) ($tuple_updater_elim_rhs n t a ss)))
-    (($tuple_updater_elim_rhs n t a eo::List::nil)                          tuple.unit)
+    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
+       (eo::cons tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
+       (eo::cons tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+    (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)
+       tuple.unit)
   )
 )
 
@@ -405,11 +391,14 @@
 ; - ss eo::List: The list of selectors for the type of s.
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
-(program $mk_dt_updater_elim_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
-  (D U eo::List) Bool
+(program $mk_dt_updater_elim_rhs
+  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (tr D) (c U) (n Int) (ss eo::List))
+  :signature (D U eo::List) D
   (
-    (($mk_dt_updater_elim_rhs (update s t a) c ss)            ($dt_updater_elim_rhs s t a ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
-    (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)  ($tuple_updater_elim_rhs n t a ss))
+    (($mk_dt_updater_elim_rhs (update s t a) c ss)
+       ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c))) ; ensure the constructor is annotated
+    (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)
+       ($tuple_updater_elim_rhs (tuple.update n t a) ss))
   )
 )
 
@@ -421,7 +410,12 @@
 ;   We require that the right hand side is an ITE where the then branch is
 ;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
 ; conclusion: The given equality.
-(declare-rule dt-updater-elim ((D Type) (S Type) (T Type) (C Type) (s S) (t D) (a T) (u (-> S D T D)) (tu D) (c C))
+; note: The parameter u is expected to be an updater (either update or tuple.update). Its
+;       given type is U here (which is unconstrained). The parameter s is either
+;       a selector or an integer.
+(declare-rule dt-updater-elim
+  ((D Type) (T Type) (C Type) (U1 Type) (U2 Type) (U3 Type) (U4 Type)
+   (S Type) (s S) (t D) (a T) (u (-> U1 U2 U3 U4)) (tu D) (c C))
   :args ((= (u s t a) (ite (is c t) tu t)))
   :requires ((($mk_dt_updater_elim_rhs (u s t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
   :conclusion (= (u s t a) (ite (is c t) tu t))

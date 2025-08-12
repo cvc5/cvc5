@@ -30,6 +30,12 @@ public class Grammar extends AbstractPointer
     super(pointer);
   }
 
+  /**
+   * Constructs a new {@code Grammar} instance by creating a deep copy of
+   * the specified {@code Grammar}.
+   *
+   * @param grammar The {@code Grammar} instance to copy.
+   */
   public Grammar(Grammar grammar)
   {
     super(copyGrammar(grammar.pointer));
@@ -102,7 +108,7 @@ public class Grammar extends AbstractPointer
     addRules(pointer, ntSymbol.getPointer(), pointers);
   }
 
-  public native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
+  private native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
 
   /**
    * Allow {@code ntSymbol} to be an arbitrary constant.

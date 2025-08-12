@@ -71,6 +71,9 @@ public class SynthResult extends AbstractPointer
   private native boolean equals(long pointer1, long pointer2);
 
   /**
+   * Determine if SynthResult is empty, i.e., a nullary SynthResult, and not
+   * an actual result returned from a synthesis query.
+   *
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not
    * an actual result returned from a synthesis query.
    */
@@ -82,6 +85,8 @@ public class SynthResult extends AbstractPointer
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if the synthesis query has a solution.
+   *
    * @return True if the synthesis query has a solution.
    */
   public boolean hasSolution()
@@ -92,6 +97,8 @@ public class SynthResult extends AbstractPointer
   private native boolean hasSolution(long pointer);
 
   /**
+   * Determine if the synthesis query has no solution.
+   *
    * @return True if the synthesis query has no solution. In this case, it was
    * determined there was no solution.
    */
@@ -103,6 +110,8 @@ public class SynthResult extends AbstractPointer
   private native boolean hasNoSolution(long pointer);
 
   /**
+   * Determine if the result of the synthesis query could not be determined.
+   *
    * @return True if the result of the synthesis query could not be determined.
    */
   public boolean isUnknown()

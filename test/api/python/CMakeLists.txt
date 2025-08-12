@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Daniel Larraz, Yoni Zohar, Andres Noetzli
+#   Daniel Larraz, Yoni Zohar, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
@@ -13,6 +13,9 @@
 # The build system configuration.
 ##
 
+add_custom_target(build-pyapitests)
+add_dependencies(build-tests build-pyapitests)
+
 if(WIN32)
   set(CVC5_PYAPI_TEST_DIR ${CMAKE_BINARY_DIR}/cvc5-pyapi-test)
 
@@ -21,7 +24,7 @@ if(WIN32)
 
   # Install the cvc5 Python bindings in the build directory to run tests.
   # On Windows, adding the directory with the Python bindings to PYTHONPATH
-  # is not enought because Python only searches for DLL dependencies for
+  # is not enough because Python only searches for DLL dependencies for
   # extension modules in system paths and the directory containing the PYD file.
   # Specifically, since Python 3.8, PATH and the current working directory are
   # no longer used for this purpose. See:
@@ -41,7 +44,7 @@ if(WIN32)
 
   add_custom_target(setup-cvc5-pyapi DEPENDS ${CVC5_PYAPI_TEST_DIR})
 
-  add_dependencies(build-tests setup-cvc5-pyapi)
+  add_dependencies(build-pyapitests setup-cvc5-pyapi)
 
   # Get path to the python bindings installed in the build directory
   execute_process(COMMAND
@@ -53,6 +56,7 @@ if(WIN32)
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 else()
   set(PYTHON_MODULE_PATH ${CMAKE_BINARY_DIR}/src/api/python)
+  add_dependencies(build-pyapitests cvc5_python_api)
 endif()
 
 # Add Python bindings API tests.
@@ -71,10 +75,13 @@ endmacro()
 
 # add specific test files
 cvc5_add_python_api_test(pyapi_boilerplate boilerplate.py)
-cvc5_add_python_api_test(pyapi_issue4889 issue4889.py)
 cvc5_add_python_api_test(pyapi_issue5074 issue5074.py)
 cvc5_add_python_api_test(pyapi_issue6111 issue6111.py)
 cvc5_add_python_api_test(pyapi_proj-issue306 proj-issue306.py)
 cvc5_add_python_api_test(pyapi_reset_assertions reset_assertions.py)
-cvc5_add_python_api_test(pyapi_sep_log_api sep_log_api.py)
 cvc5_add_python_api_test(pyapi_two_solvers two_solvers.py)
+
+if (NOT ENABLE_SAFE_MODE)
+  cvc5_add_python_api_test(pyapi_issue4889 issue4889.py)
+  cvc5_add_python_api_test(pyapi_sep_log_api sep_log_api.py)
+endif()

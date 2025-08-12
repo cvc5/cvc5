@@ -93,7 +93,6 @@ jobs:
           sed -e 's/^name="cvc5"$/name="cvc5-gpl"/' \
               -e 's/^\(description=".*\)"/\1 (GPL version)"/' \
               -e 's/^\(readme = {text = ".*\)\(", content-type = "text\/plain"\)/\1 (GPL version)\2/' \
-              -e 's/^license = {text = "/license = {text = "GPL-2.0-or-later AND GPL-3.0-or-later AND /' \
               ./src/api/python/pyproject.toml > ./build/src/api/python/pyproject.toml
         else
           sed -e 's/^\(description=".*\)"/\1 (BSD version)"/' \
@@ -109,13 +108,14 @@ jobs:
       run: echo "bin=$(cygpath -m $(dirname $(which gcc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v2.22.0
+      uses: pypa/cibuildwheel@v2.23.3
       with:
         package-dir: ./build/src/api/python/
       env:
         CIBW_ALLOW_EMPTY: True
         CIBW_BUILD: "${{ github.event.inputs.python_versions || '*' }}"
         CIBW_SKIP: "cp36-* pp*-win* *-win32 *-manylinux_i686 *-musllinux_*"
+        CIBW_ENABLE: pypy
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
         CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}
@@ -130,6 +130,7 @@ jobs:
           DYLD_LIBRARY_PATH="$(pwd)/install/lib:$DYLD_LIBRARY_PATH"
           MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
+        CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 
     # - uses: actions/upload-artifact@v4
     #   with:

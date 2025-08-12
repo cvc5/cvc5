@@ -112,7 +112,7 @@ type     = "operator"
 name     = "POW"
 children = 2
 comment  = "arithmetic power"
-typerule = "::cvc5::internal::theory::arith::ArithOperatorTypeRule"
+typerule = "::cvc5::internal::theory::arith::PowTypeRule"
 
 [[kinds]]
 type     = "operator"

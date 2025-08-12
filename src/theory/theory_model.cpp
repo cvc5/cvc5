@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
+#include "expr/subs.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -163,6 +164,25 @@ Node TheoryModel::getValue(TNode n) const
                           << "[model-getvalue] returning " << nn << std::endl;
   Assert(nn.getType() == n.getType());
   return nn;
+}
+
+Node TheoryModel::simplify(TNode n) const
+{
+  std::unordered_set<Node> syms;
+  expr::getSymbols(n, syms);
+  // if there are free symbols
+  if (!syms.empty())
+  {
+    // apply a substitution mapping those symbols to their model values
+    Subs subs;
+    for (const Node& s : syms)
+    {
+      subs.add(s, getValue(s));
+    }
+    // rewrite the result
+    return rewrite(subs.apply(n));
+  }
+  return n;
 }
 
 bool TheoryModel::isModelCoreSymbol(Node s) const
@@ -319,6 +339,22 @@ Node TheoryModel::getModelValue(TNode n) const
     if (d_semi_evaluated_kinds.find(rk) != d_semi_evaluated_kinds.end())
     {
       Node retSev = evaluateSemiEvalTerm(ret);
+      if (retSev.isNull())
+      {
+        // If null, if an argument is not constant, then it *might* be the
+        // same as a constrained application of rk. In this case, we cannot
+        // evaluate to an arbitrary value, and instead we use ret itself
+        // (unevaluated) as the model value.
+        for (const Node& rc : ret)
+        {
+          if (!rc.isConst())
+          {
+            retSev = ret;
+            break;
+          }
+        }
+        
+      }
       // if the result was entailed, return it
       if (!retSev.isNull())
       {
@@ -766,8 +802,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     {
       continue;
     }
-    // should not have been solved for in a substitution
-    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
+    // Note that d_env.getTopLevelSubstitutions().apply(n) may not be n
+    // if we are in incremenal mode.
     if (hasAssignedFunctionDefinition(n))
     {
       continue;
@@ -911,7 +947,9 @@ Node TheoryModel::evaluateSemiEvalTerm(TNode n) const
   {
     std::vector<Node> nargs = getModelValueArgs(n);
     Trace("semi-eval") << "Semi-eval: lookup " << nargs << std::endl;
-    return it->second.existsTerm(nargs);
+    Node result = it->second.existsTerm(nargs);
+    Trace("semi-eval") << "...result is " << result << std::endl;    
+    return result;
   }
   return Node::null();
 }

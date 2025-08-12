@@ -46,12 +46,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The cvc5 source code includes third-party software which has its own copyright
 and licensing terms, as described below.
 
-The following file contains third-party software.
-
-  cmake/CodeCoverage.cmake
-
-The copyright and licensing information of this file is in its header.
-
 cvc5 incorporates MiniSat code (see src/prop/minisat),
 excluded from the above copyright. See licenses/minisat-LICENSE
 for copyright and licensing information.
@@ -88,8 +82,8 @@ for copyright and licensing information.
 
 cvc5 optionally links against the following libraries:
 
-  ABC                (https://bitbucket.org/alanmi/abc)
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
+  Kissat             (https://github.com/arminbiere/kissat)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
 
@@ -119,3 +113,8 @@ cvc5 can be optionally configured to link against glpk-cut-log, a modified
 version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log
+
+cvc5 can be optionally configured to link against CoCoALib, a C++ library for
+doing Computations in Commutative Algebra, available here:
+
+  https://cocoa.altervista.org/cocoalib/index.shtml

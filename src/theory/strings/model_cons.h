@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -22,6 +22,7 @@
 
 namespace cvc5::internal {
 namespace theory {
+class TheoryModel;
 namespace strings {
 
 /**
@@ -61,8 +62,14 @@ class ModelCons : protected EnvObj
    * lts[i] for all elements in col.
    *
    * Must assign lts to *concrete* lengths.
+   * 
+   * @param m Pointer to the theory model.
+   * @param n The list of string terms.
+   * @param cols Populated as a partition of n based on their lengths.
+   * @param lts The list of lengths for each set in the parition cols.
    */
-  virtual void separateByLength(const std::vector<Node>& n,
+  virtual void separateByLength(TheoryModel * m,
+                                const std::vector<Node>& n,
                                 std::vector<std::vector<Node>>& cols,
                                 std::vector<Node>& lts) = 0;
   /**

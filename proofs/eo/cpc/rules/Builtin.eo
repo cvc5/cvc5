@@ -34,7 +34,7 @@
 ;   (=> G1 (=> G2 C)), or true if F is C. Otherwise, it does not evaluate.
 (program $extract_antec_rec
    ((C Bool) (F1 Bool) (F2 Bool))
-   (Bool Bool) Bool
+   :signature (Bool Bool) Bool
    (
    (($extract_antec_rec C C)          true)
    (($extract_antec_rec (=> F1 F2) C) (eo::cons and F1 ($extract_antec_rec F2 C)))
@@ -51,7 +51,7 @@
 ;   single child.
 (program $extract_antec
    ((C Bool) (F Bool))
-   (Bool Bool) Bool
+   :signature (Bool Bool) Bool
    (
    (($extract_antec (=> F C) C) F)
    (($extract_antec F C)        ($extract_antec_rec F C))
@@ -66,7 +66,7 @@
 ;   The expected conclusion of a ProofRule::SCOPE.
 (program $run_process_scope
    ((C Bool) (F Bool))
-   (Bool Bool) Bool
+   :signature (Bool Bool) Bool
    (
    (($run_process_scope F false)  (not ($extract_antec F false)))
    (($run_process_scope F C)      (=> ($extract_antec F C) C))
