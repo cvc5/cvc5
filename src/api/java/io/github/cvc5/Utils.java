@@ -31,16 +31,47 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class Utils
+/**
+ * A utility class containing static helper methods commonly used across the application.
+ * <p>
+ * This class is not meant to be instantiated. All methods are static and stateless.
+ */
+public final class Utils
 {
+  /**
+   * Represent the operating system types supported by cvc5.
+   *
+   * It includes logic to detect the current operating system at runtime.
+   */
   public enum OS {
+    /**
+     * Microsoft Windows operating system.
+     */
     WINDOWS,
+    /**
+     * Apple macOS operating system.
+     */
     MAC,
+    /**
+     * Linux-based operating system.
+     */
     LINUX,
+    /**
+     * Unknown or unsupported operating system.
+     */
     UNKNOWN;
 
+    /**
+     * The detected operating system on which the application is currently running.
+     */
     public static final OS CURRENT = detectOS();
 
+    /**
+     * Detect the current operating system by examining the {@code os.name} system property.
+     *
+     * @return the {@link OS} enum constant that matches the current operating system,
+     *         or {@link #UNKNOWN} if it cannot be determined.
+     */
     private static OS detectOS()
     {
       String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
@@ -54,8 +85,14 @@ public class Utils
     }
   }
 
+  /**
+   * The base path inside the JAR where native libraries are stored.
+   */
   public static final String LIBPATH_IN_JAR = "/cvc5-libs";
 
+  /**
+   * Flag indicating whether the native cvc5 libraries have already been loaded.
+   */
   private static boolean areLibrariesLoaded = false;
 
   static
@@ -64,7 +101,12 @@ public class Utils
   }
 
   /**
-   * Transfers all bytes from the provided {@link InputStream} to the specified
+   * Private constructor to prevent instantiation of this utility class.
+   */
+  private Utils() {}
+
+  /**
+   * Transfer all bytes from the provided {@link InputStream} to the specified
    * {@link FileOutputStream}.
    *
    * <p>Note: This method replicates the functionality of InputStream#transferTo(OutputStream),
@@ -86,8 +128,9 @@ public class Utils
   }
 
   /**
-   * Loads a native library from a specified path within a JAR file and loads it into the JVM.
+   * Load a native library from a specified path within a JAR file and loads it into the JVM.
    *
+   * @param tempDir The temporary directory where the extracted native library will be written.
    * @param path The path inside the JAR where the library is located (e.g., "/cvc5-libs").
    * @param filename The name of the library file (e.g., "libcvc5.so").
    * @throws FileNotFoundException If the library cannot be found
@@ -167,6 +210,8 @@ public class Utils
   }
 
   /**
+   * Construct an array of {@link Sort} objects from an array of native pointers.
+   *
    * @return Sorts array from array of Sort pointers.
    * @param pointers The array of pointers.
    */
@@ -181,6 +226,8 @@ public class Utils
   }
 
   /**
+   * Construct an array of {@link Term} objects from an array of native pointers.
+   *
    * @return Terms array from array of Term pointers.
    * @param pointers The array of pointers.
    */
@@ -195,7 +242,9 @@ public class Utils
   }
 
   /**
-   * @return proofs array from array of pointers
+   * Construct an array of {@link Proof} objects from an array of native pointers.
+   *
+   * @return proofs array from array of Proof pointers
    * @param pointers The array of pointers.
    */
   public static Proof[] getProofs(long[] pointers)
@@ -209,6 +258,8 @@ public class Utils
   }
 
   /**
+   * Extract native pointer values from a one-dimensional array of {@link IPointer} objects.
+   *
    * @return Pointers from one dimensional array.
    * @param objects The one dimensional array of pointers.
    */
@@ -223,6 +274,8 @@ public class Utils
   }
 
   /**
+   * Extract native pointer values from a two-dimensional matrix of {@link IPointer} objects.
+   *
    * @return Pointers from two dimensional matrix.
    * @param objects The two dimensional array of pointers.
    */
@@ -240,6 +293,13 @@ public class Utils
     return pointers;
   }
 
+  /**
+   * Validate that the specified integer is non-negative (unsigned).
+   *
+   * @param integer The integer value to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if the value is negative
+   */
   public static void validateUnsigned(int integer, String name) throws CVC5ApiException
   {
     if (integer < 0)
@@ -248,6 +308,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that the specified long integer is non-negative (unsigned).
+   *
+   * @param integer The long value to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if the value is negative
+   */
   public static void validateUnsigned(long integer, String name) throws CVC5ApiException
   {
     if (integer < 0)
@@ -256,6 +323,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that all elements in the given array are non-negative (unsigned).
+   *
+   * @param integers The array of integers to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if any element in the array is negative
+   */
   public static void validateUnsigned(int[] integers, String name) throws CVC5ApiException
   {
     for (int i = 0; i < integers.length; i++)
@@ -268,6 +342,13 @@ public class Utils
     }
   }
 
+  /**
+   * Validate that all elements in the given array are non-negative (unsigned).
+   *
+   * @param integers The array of long integers to validate
+   * @param name A name to use in the exception message for identification
+   * @throws CVC5ApiException if any element in the array is negative
+   */
   public static void validateUnsigned(long[] integers, String name) throws CVC5ApiException
   {
     for (int i = 0; i < integers.length; i++)
@@ -280,6 +361,17 @@ public class Utils
     }
   }
 
+  /**
+   * Convert an array of {@code Pair} objects, where the second element extends {@link
+   * AbstractPointer}, into an array of {@code Pair} objects with the second element as a {@code
+   * Long} representing the native pointer.
+   *
+   * @param <K> The type of the first element in the pairs.
+   * @param abstractPointers The input array of pairs with {@code AbstractPointer} as the second
+   *     element.
+   * @return An array of pairs where the second element is the native pointer value as a {@code
+   *     Long}.
+   */
   @SuppressWarnings("unchecked")
   public static <K> Pair<K, Long>[] getPairs(Pair<K, ? extends AbstractPointer>[] abstractPointers)
   {

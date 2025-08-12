@@ -103,7 +103,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native long getSelector(long pointer, String name);
 
-  /** @return The name of this Datatype. */
+  /**
+   * Get the name of this Datatype.
+   *
+   * @return The name of this Datatype.
+   */
   public String getName()
   {
     return getName(pointer);
@@ -111,7 +115,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native String getName(long pointer);
 
-  /** @return The number of constructors for this Datatype. */
+  /**
+   * Get the number of constructors for this Datatype.
+   *
+   * @return The number of constructors for this Datatype.
+   */
   public int getNumConstructors()
   {
     return getNumConstructors(pointer);
@@ -120,6 +128,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native int getNumConstructors(long pointer);
 
   /**
+   * Get the parameters of this datatype.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return The parameters of this datatype, if it is parametric. An exception.
@@ -135,6 +145,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native long[] getParameters(long pointer);
 
   /**
+   * Determine if this datatype is parametric.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return True if this datatype is parametric.
@@ -146,7 +158,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isParametric(long pointer);
 
-  /** @return True if this datatype corresponds to a co-datatype */
+  /**
+   * Determine if this datatype corresponds to a co-datatype.
+   *
+   * @return True if this datatype corresponds to a co-datatype.
+   */
   public boolean isCodatatype()
   {
     return isCodatatype(pointer);
@@ -154,7 +170,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isCodatatype(long pointer);
 
-  /** @return True if this datatype corresponds to a tuple */
+  /**
+   * Determine if this datatype corresponds to a tuple.
+   *
+   * @return True if this datatype corresponds to a tuple.
+   */
   public boolean isTuple()
   {
     return isTuple(pointer);
@@ -163,6 +183,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isTuple(long pointer);
 
   /**
+   * Determine if this datatype corresponds to a record.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return True if this datatype corresponds to a record.
@@ -174,7 +196,11 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native boolean isRecord(long pointer);
 
-  /** @return True if this datatype is finite */
+  /**
+   * Determine if this datatype is finite.
+   *
+   * @return True if this datatype is finite
+   */
   public boolean isFinite()
   {
     return isFinite(pointer);
@@ -197,6 +223,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isWellFounded(long pointer);
 
   /**
+   * Determine if this Datatype is a null object.
+   *
    * @return True if this Datatype is a null object.
    */
   public boolean isNull()
@@ -207,15 +235,26 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   private native boolean isNull(long pointer);
 
   /**
+   * Provide a string representation of the native datatype.
+   * 
+   * @param pointer The native memory address pointing to the datatype. 
    * @return A string representation of this datatype.
    */
   protected native String toString(long pointer);
 
+  /**
+   * ConstIterator is an implementation of the {@link Iterator} interface for iterating over
+   * a collection of {@code DatatypeConstructor} objects.
+   * It provides read-only access to the elements.
+   */
   public class ConstIterator implements Iterator<DatatypeConstructor>
   {
     private int currentIndex;
     private int size;
 
+    /**
+     * Constructs a new ConstIterator.
+     */
     public ConstIterator()
     {
       currentIndex = -1;

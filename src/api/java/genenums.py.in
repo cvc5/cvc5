@@ -40,6 +40,9 @@ import io.github.cvc5.CVC5ApiException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Enum representing the set of possible values for {name}.
+ */
 public enum {name}
 {{
 """
@@ -76,6 +79,14 @@ ENUM_JAVA_BOTTOM = \
     }}
   }}
 
+  /**
+   * Converts an integer value to the corresponding enum constant.
+   *
+   * @param value the integer representation of the enum constant.
+   * @return the corresponding enum constant for the given integer value.
+   * @throws CVC5ApiException if the value is outside the valid range,
+   *                          or if no corresponding enum constant exists.
+   */
   public static {name} fromInt(int value) throws CVC5ApiException
   {{
     if (value < minValue || value > maxValue)
@@ -86,6 +97,11 @@ ENUM_JAVA_BOTTOM = \
     return enumMap.get(value);
   }}
 
+  /**
+   * Get the integer value associated with this enum constant.
+   *
+   * @return the integer representation of the enum constant.
+   */
   public int getValue()
   {{
     return value;
@@ -238,7 +254,7 @@ def format_comment(comment):
             i = i + 1
     comment = """  /**\n{}\n   */""".format(
             textwrap.indent(comment, '   * ', lambda line: True))
-    comment = comment.replace("- {@link Solver#mkString(std.wstring)}", "")
+    comment = comment.replace("- {@link TermManager#mkString(std.u32string)}", "")
     comment = format_list(comment)
     return comment
 

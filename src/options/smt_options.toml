@@ -84,6 +84,14 @@ name   = "SMT Layer"
   help       = "allow variable elimination based on unevaluatable terms to variables"
 
 [[option]]
+  name       = "checkModelSubsolver"
+  category   = "common"
+  long       = "check-model-subsolver"
+  type       = "bool"
+  default    = "true"
+  help       = "use subsolver to compute values when applicable in calls to get-value and check-models"
+
+[[option]]
   name       = "modelCoresMode"
   category   = "regular"
   long       = "model-cores=MODE"

@@ -377,7 +377,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
       return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, true));
     }
     NodeManager* nm = nodeManager();
-    return RewriteResponse(REWRITE_AGAIN,
+    return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(Kind::EQUAL,
                                       nm->mkNode(Kind::INTS_MODULUS_TOTAL,
                                                  atom[0],

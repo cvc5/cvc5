@@ -15,24 +15,25 @@ jobs:
         build:
           - name: ubuntu:production
             os: ubuntu-22.04
-            config: production --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
+            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
             java-bindings: true
-            build-documentation: true
             check-examples: true
             package-name: cvc5-Linux-x86_64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:safe-mode
-            os: ubuntu-22.04
-            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            os: ubuntu-24.04
+            config: safe-mode --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
             cache-key: production-safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
+            java-version: 21
+            build-documentation: true
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump

@@ -84,6 +84,8 @@ public class InputParser extends AbstractPointer
   }
 
   /**
+   * Get the underlying solver of this input parser.
+   *
    * @return The underlying solver of this input parser
    */
   public Solver getSolver()
@@ -94,6 +96,8 @@ public class InputParser extends AbstractPointer
   private native long getSolver(long pointer);
 
   /**
+   * Get the underlying symbol manager of this input parser.
+   *
    * @return The underlying symbol manager of this input parser.
    */
   public SymbolManager getSymbolManager()
@@ -183,7 +187,11 @@ public class InputParser extends AbstractPointer
 
   private native long nextTerm(long pointer);
 
-  /** @return True if this parser done reading input. */
+  /**
+   * Determine if this parser done reading input.
+   *
+   * @return True if this parser done reading input.
+   */
   public boolean done()
   {
     return done(pointer);
