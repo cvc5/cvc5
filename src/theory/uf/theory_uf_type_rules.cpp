@@ -55,6 +55,14 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
     // otherwise, application of abstract function is always abstract
     return nodeManager->mkAbstractType(Kind::ABSTRACT_TYPE);
   }
+  if (fType.getNumChildren()<=n.getNumChildren())
+  {
+    if (errOut)
+    {
+      (*errOut) << "too many arguments to operator";
+    }
+    return TypeNode::null();
+  }
   if (check)
   {
     TNode::iterator argument_it = n.begin();
