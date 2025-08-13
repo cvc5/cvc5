@@ -22,6 +22,7 @@ int main(void)
   Solver solver(tm);
   solver.setOption("incremental", "false");
   solver.setOption("produce-models", "true");
+  solver.setOption("sets-exp", "true");
   Sort s0 = tm.getRoundingModeSort();
   Sort s1 = tm.mkFloatingPointSort(5, 11);
   Sort s2 = tm.mkBitVectorSort(1);
