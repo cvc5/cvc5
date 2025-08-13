@@ -6031,13 +6031,12 @@ class CVC5_EXPORT Solver
    *
    * Requires the SAT proof unsat core mode, so to enable option
    * :ref:`unsat-cores-mode=sat-proof <lbl-option-unsat-cores-mode>`.
-   *
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
    *
    * @return A set of terms representing the lemmas used to derive
-   * unsatisfiability.
+   *         unsatisfiability.
    */
   std::vector<Term> getUnsatCoreLemmas() const;
 
@@ -6077,6 +6076,7 @@ class CVC5_EXPORT Solver
    * .. code:: smtlib
    *
    *     (get-timeout-core)
+   *
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.

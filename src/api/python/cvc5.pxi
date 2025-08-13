@@ -2475,9 +2475,6 @@ cdef class Solver:
         """
             Create a record sort
 
-            .. warning::
-
-                This function is experimental and may change in future versions.
             :param fields: The list of fields of the record.
             :return: The record sort.
             :note: This function is deprecated and will be removed in a future
@@ -2918,6 +2915,7 @@ cdef class Solver:
             Create a regular expression none (``re.none``) term.
 
             :return: The none term.
+
             .. warning::
 
                 This function is deprecated and will be removed in a future
@@ -4085,7 +4083,7 @@ cdef class Solver:
                 This function is experimental and may change in future versions.
 
             :return: A set of terms representing the lemmas used to derive
-            unsatisfiability.
+                     unsatisfiability.
         """
         coreLemmas = []
         for a in self.csolver.getUnsatCoreLemmas():
@@ -4122,6 +4120,10 @@ cdef class Solver:
             assertions that cause a timeout. Note it does not require being
             proceeded by a call to checkSat.
 
+            This function may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+
             .. code-block:: smtlib
 
                 (get-timeout-core)
@@ -4131,19 +4133,15 @@ cdef class Solver:
                 This function is experimental and may change in future versions.
 
             :return: The result of the timeout core computation. This is a pair
-            containing a result and a list of formulas. If the result is unknown
-            and the reason is timeout, then the list of formulas correspond to a
-            subset of the current assertions that cause a timeout in the
-            specified time
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-            If the result is unsat, then the list of formulas correspond to an
-            unsat core for the current assertions. Otherwise, the result is sat,
-            indicating that the current assertions are satisfiable, and
-            the list of formulas is empty.
-
-            This function may make multiple checks for satisfiability internally,
-            each limited by the timeout value given by
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     containing a result and a list of formulas. If the result is unknown
+                     and the reason is timeout, then the list of formulas correspond to a
+                     subset of the current assertions that cause a timeout in the
+                     specified time
+                     :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     If the result is unsat, then the list of formulas correspond to an
+                     unsat core for the current assertions. Otherwise, the result is sat,
+                     indicating that the current assertions are satisfiable, and
+                     the list of formulas is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCore()
@@ -4160,6 +4158,10 @@ cdef class Solver:
             that cause a timeout when added to the current assertions. Note it
             does not require being proceeded by a call to checkSat.
 
+            This function may make multiple checks for satisfiability internally,
+            each limited by the timeout value given by
+            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+
             .. code-block:: smtlib
 
                 (get-timeout-core)
@@ -4170,19 +4172,15 @@ cdef class Solver:
 
             :param assumptions: The formulas to assume.
             :return: The result of the timeout core computation. This is a pair
-             containing a result and a list of formulas. If the result is unknown
-             and the reason is timeout, then the list of formulas correspond to a
-             subset of assumptions that cause a timeout when added to the current
-             assertions in the specified time
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
-             If the result is unsat, then the list of formulas plus the current
-             assertions correspond to an unsat core for the current assertions.
-             Otherwise, the result is sat, indicating that the given assumptions plus
-             the current assertions are satisfiable, and the list of formulas is empty.
-
-            This function may make multiple checks for satisfiability internally,
-            each limited by the timeout value given by
-            :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     containing a result and a list of formulas. If the result is unknown
+                     and the reason is timeout, then the list of formulas correspond to a
+                     subset of assumptions that cause a timeout when added to the current
+                     assertions in the specified time
+                     :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+                     If the result is unsat, then the list of formulas plus the current
+                     assertions correspond to an unsat core for the current assertions.
+                     Otherwise, the result is sat, indicating that the given assumptions plus
+                     the current assertions are satisfiable, and the list of formulas is empty.
         """
         cdef vector[c_Term] v
         for a in assumptions:
@@ -5258,11 +5256,12 @@ cdef class Sort:
     def getAbstractedKind(self):
         """
             :return: The sort kind of an abstract sort, which denotes the kind
-            of sorts that this abstract sort denotes.
+                     of sorts that this abstract sort denotes.
 
             .. warning::
 
                 This function is experimental and may change in future versions.
+
         """
         return SortKind(<int> self.csort.getAbstractedKind())
 
@@ -5918,6 +5917,7 @@ cdef class Term:
             .. warning::
 
                 This function is experimental and may change in future versions.
+
             :return: The skolem identifier of this term.
         """
         return SkolemId(<int> self.cterm.getSkolemId())
