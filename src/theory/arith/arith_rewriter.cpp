@@ -462,15 +462,15 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case Kind::ADD: return preRewritePlus(t);
       case Kind::MULT:
       case Kind::NONLINEAR_MULT: return preRewriteMult(t);
-      case Kind::IAND: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::POW2: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::INTS_ISPOW2: return RewriteResponse(REWRITE_DONE, t);
-      case Kind::INTS_LOG2: return RewriteResponse(REWRITE_DONE, t);
       case Kind::INTS_DIVISION:
       case Kind::INTS_MODULUS: return rewriteIntsDivMod(t, true);
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::IAND:
+      case Kind::POW2:
+      case Kind::INTS_ISPOW2:
+      case Kind::INTS_LOG2:
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -522,17 +522,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case Kind::ABS: return rewriteAbs(t);
       case Kind::TO_REAL: return rewriteToReal(t);
       case Kind::TO_INTEGER: return rewriteExtIntegerOp(t);
-      case Kind::POW:
-      {
-        Node tx = expandPowConst(nodeManager(), t);
-        if (!tx.isNull())
-        {
-          return RewriteResponse(REWRITE_AGAIN_FULL, tx);
-        }
-        return RewriteResponse(REWRITE_DONE, t);
-      }
       case Kind::PI: return RewriteResponse(REWRITE_DONE, t);
       // expert cases
+      case Kind::POW:
       case Kind::EXPONENTIAL:
       case Kind::SINE:
       case Kind::COSINE:
@@ -561,6 +553,15 @@ RewriteResponse ArithRewriter::postRewriteExpert(TNode t)
   }
   switch (t.getKind())
   {
+    case Kind::POW:
+    {
+      Node tx = expandPowConst(nodeManager(), t);
+      if (!tx.isNull())
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, tx);
+      }
+      return RewriteResponse(REWRITE_DONE, t);
+    }
     case Kind::EXPONENTIAL:
     case Kind::SINE:
     case Kind::COSINE:

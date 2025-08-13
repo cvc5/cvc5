@@ -111,21 +111,11 @@ void TheoryArith::preRegisterTerm(TNode n)
 {
   // handle logic exceptions
   Kind k = n.getKind();
-  if (k == Kind::POW)
-  {
-    std::stringstream ss;
-    ss << "The exponent of the POW(^) operator can only be a positive "
-          "integral constant below "
-       << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
-    ss << "Exception occurred in:" << std::endl;
-    ss << "  " << n;
-    throw LogicException(ss.str());
-  }
   bool isTransKind = isTranscendentalKind(k);
   // note that we don't throw an exception for non-linear multiplication in
   // linear logics, since this is caught in the linear solver with a more
   // informative error message
-  if (isTransKind || k == Kind::IAND || k == Kind::POW2)
+  if (isTransKind || k == Kind::IAND || k == Kind::POW2 || k==Kind::POW)
   {
     if (!options().arith.arithExp)
     {
@@ -164,6 +154,17 @@ void TheoryArith::preRegisterTerm(TNode n)
             "results.";
       throw LogicException(ss.str());
     }
+  }
+  // if POW is allowed but was not rewritten
+  if (k == Kind::POW)
+  {
+    std::stringstream ss;
+    ss << "The exponent of the POW(^) operator can only be a positive "
+          "integral constant below "
+       << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
+    ss << "Exception occurred in:" << std::endl;
+    ss << "  " << n;
+    throw LogicException(ss.str());
   }
   if (d_nonlinearExtension != nullptr)
   {
