@@ -6,8 +6,7 @@ It is configured via :py:func:`cvc5.Solver.addPlugin()`.
 
 ----
 
-.. doxygenclass:: cvc5::Plugin
-    :project: cvc5
+.. autoclass:: cvc5.Plugin
     :members:
     :undoc-members:
 
