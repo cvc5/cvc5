@@ -2510,7 +2510,6 @@ enum ENUM(ProofRule)
   EVALUE(LAST),
 #endif
 };
-// clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #undef EVALUE
@@ -4767,6 +4766,7 @@ enum ENUM(ProofRewriteRule)
   EVALUE(LAST)
 #endif
 };
+// clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
