@@ -191,26 +191,28 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     {
       continue;
     }
-    uint32_t num = c.second.toUnsignedInt();
     if (nk == Kind::BITVECTOR_ADD)
     {
       if (c.first.isConst())
       {
         // group the constant coefficient
         coeff += c.first.getConst<BitVector>().toInteger() * c.second;
-        continue;
       }
-      else if (num>8)
+      else if (c.second.isOne())
       {
-        // we group addition terms beyond 8
+        nchildren.emplace_back(c.first);
+      }
+      else
+      {
         Node cn = utils::mkConst(nm, utils::getSize(node), c.second);
         Node gc = nm->mkNode(Kind::BITVECTOR_MULT, c.first, cn);
         nchildren.emplace_back(gc);
-        continue;
       }
+      continue;
     }
     // we cannot "group" multiplication, we also don't cancel xor children
     // here for now. Thus, we add num copies of the child.
+    uint32_t num = c.second.toUnsignedInt();
     for (uint32_t i = 0; i < num; i++)
     {
       nchildren.emplace_back(c.first);
