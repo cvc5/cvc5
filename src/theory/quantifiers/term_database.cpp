@@ -439,22 +439,7 @@ void TermDb::computeUfTerms( TNode f ) {
 
       computeArgReps(n);
       std::vector<TNode>& reps = d_arg_reps[n];
-      Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
-      size_t rsize = reps.size();
-      // ensure the relevant domain vector has been allocated
-      frds.resize(rsize);
-      for (size_t i = 0; i < rsize; i++)
-      {
-        TNode r = reps[i];
-        Trace("term-db-debug") << r << " ";
-        std::vector<TNode>& frd = frds[i];
-        if (std::find(frd.begin(), frd.end(), r) == frd.end())
-        {
-          frd.push_back(r);
-        }
-      }
-      Trace("term-db-debug") << std::endl;
+      Trace("term-db-debug") << "Adding term " << n << " with arg reps : " << reps << std::endl;
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
@@ -499,6 +484,20 @@ void TermDb::computeUfTerms( TNode f ) {
                                d_dcproof.get());
         d_qstate.notifyInConflict();
         return;
+      }
+      // also populate relevant domain
+      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
+      size_t rsize = reps.size();
+      // ensure the relevant domain vector has been allocated
+      frds.resize(rsize);
+      for (size_t i = 0; i < rsize; i++)
+      {
+        TNode r = reps[i];
+        std::vector<TNode>& frd = frds[i];
+        if (std::find(frd.begin(), frd.end(), r) == frd.end())
+        {
+          frd.push_back(r);
+        }
       }
       nonCongruentCount++;
       d_op_nonred_count[f]++;
