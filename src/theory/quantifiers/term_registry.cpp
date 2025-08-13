@@ -80,7 +80,7 @@ void TermRegistry::addQuantifierBody(TNode n)
 
 void TermRegistry::eqNotifyNewClass(TNode t)
 {
-  addTermInternal(n, false);
+  addTermInternal(t, false);
 }
 
 void TermRegistry::eqNotifyMerge(TNode t1, TNode t2)

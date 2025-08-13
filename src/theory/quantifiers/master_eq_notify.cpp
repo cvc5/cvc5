@@ -29,7 +29,7 @@ void MasterNotifyClass::eqNotifyNewClass(TNode t)
 }
 void MasterNotifyClass::eqNotifyMerge(TNode t1, TNode t2)
 {
-  d_quantEngine->eqNotifyMerge(t);
+  d_quantEngine->eqNotifyMerge(t1, t2);
 }
 
 

@@ -648,7 +648,8 @@ void TermDb::getOperatorsFor(TNode f, std::vector<TNode>& ops)
   ops.push_back(f);
 }
 
-void TermDb::setHasTerm( Node n ) {
+void TermDb::setHasTerm( Node n ) 
+{
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   std::vector<TNode> visit;
   TNode cur;
@@ -671,8 +672,6 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
-
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
   Assert(ee->consistent());
 

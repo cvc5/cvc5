@@ -648,10 +648,10 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     mdl->assertNode(f);
   }
   // add term to the registry
-  d_treg.addTerm(d_qreg.getInstConstantBody(f), true);
+  d_treg.addQuantifierBody(d_qreg.getInstConstantBody(f));
 }
 
-void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.addTerm(t); }
+void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.eqNotifyNewClass(t); }
 
 void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
 {
