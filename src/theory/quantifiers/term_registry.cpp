@@ -73,15 +73,9 @@ void TermRegistry::finishInit(FirstOrderModel* fm,
   }
 }
 
-void TermRegistry::addQuantifierBody(TNode n)
-{
-  addTermInternal(n, true);
-}
+void TermRegistry::addQuantifierBody(TNode n) { addTermInternal(n, true); }
 
-void TermRegistry::eqNotifyNewClass(TNode t)
-{
-  addTermInternal(t, false);
-}
+void TermRegistry::eqNotifyNewClass(TNode t) { addTermInternal(t, false); }
 
 void TermRegistry::eqNotifyMerge(TNode t1, TNode t2)
 {

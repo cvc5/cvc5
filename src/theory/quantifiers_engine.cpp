@@ -651,7 +651,10 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   d_treg.addQuantifierBody(d_qreg.getInstConstantBody(f));
 }
 
-void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.eqNotifyNewClass(t); }
+void QuantifiersEngine::eqNotifyNewClass(TNode t)
+{
+  d_treg.eqNotifyNewClass(t);
+}
 
 void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
 {

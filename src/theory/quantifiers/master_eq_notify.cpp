@@ -32,7 +32,6 @@ void MasterNotifyClass::eqNotifyMerge(TNode t1, TNode t2)
   d_quantEngine->eqNotifyMerge(t1, t2);
 }
 
-
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

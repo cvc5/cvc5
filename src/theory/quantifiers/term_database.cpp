@@ -648,16 +648,18 @@ void TermDb::getOperatorsFor(TNode f, std::vector<TNode>& ops)
   ops.push_back(f);
 }
 
-void TermDb::setHasTerm( Node n ) 
+void TermDb::setHasTerm(Node n)
 {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (d_has_map.find(cur) == d_has_map.end()) {
+    if (d_has_map.find(cur) == d_has_map.end())
+    {
       d_has_map.insert(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
