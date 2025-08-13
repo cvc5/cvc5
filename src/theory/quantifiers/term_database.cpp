@@ -115,6 +115,7 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_ops(context()),
       d_opMap(context()),
       d_inactive_map(context()),
+      d_has_map(context()),
       d_dcproof(options().smt.produceProofs ? new DeqCongProofGenerator(d_env)
                                             : nullptr)
 {
@@ -280,6 +281,15 @@ Node TermDb::getMatchOperator(TNode n)
 }
 
 bool TermDb::isMatchable(TNode n) { return !getMatchOperator(n).isNull(); }
+
+void TermDb::eqNotifyMerge(TNode t1, TNode t2)
+{
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
+  {
+    setHasTerm(t1);
+    setHasTerm(t2);
+  }
+}
 
 void TermDb::addTerm(Node n)
 {
@@ -640,12 +650,17 @@ void TermDb::getOperatorsFor(TNode f, std::vector<TNode>& ops)
 
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
-  if( d_has_map.find( n )==d_has_map.end() ){
-    d_has_map[n] = true;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      setHasTerm( n[i] );
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_has_map.find(cur) == d_has_map.end()) {
+      d_has_map.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
-  }
+  } while (!visit.empty());
 }
 
 void TermDb::presolve() {}
@@ -664,30 +679,7 @@ bool TermDb::reset( Theory::Effort effort ){
   //compute has map
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
-    d_has_map.clear();
     d_term_elig_eqc.clear();
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-    while( !eqcs_i.isFinished() ){
-      TNode r = (*eqcs_i);
-      bool addedFirst = false;
-      Node first;
-      //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
-      while( !eqc_i.isFinished() ){
-        TNode n = (*eqc_i);
-        if( first.isNull() ){
-          first = n;
-        }else{
-          if( !addedFirst ){
-            addedFirst = true;
-            setHasTerm( first );
-          }
-          setHasTerm( n );
-        }
-        ++eqc_i;
-      }
-      ++eqcs_i;
-    }
     const LogicInfo& logicInfo = d_qstate.getLogicInfo();
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
     {

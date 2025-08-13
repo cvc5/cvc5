@@ -653,6 +653,11 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.addTerm(t); }
 
+void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
+{
+  d_treg.eqNotifyMerge(t1, t2);
+}
+
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
