@@ -20,9 +20,6 @@ the kind.
 
 ----
 
-.. doxygentypedef:: Cvc5OptionInfo
-    :project: cvc5_c
-
 .. doxygenstruct:: Cvc5OptionInfo
     :project: cvc5_c
     :members:
