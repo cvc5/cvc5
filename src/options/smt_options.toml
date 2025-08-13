@@ -38,7 +38,7 @@ name   = "SMT Layer"
   category   = "expert"
   long       = "simplify-infer-rec-fun"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "simplify terms based on recursive function definitions in the simplify command"
 
 [[option]]
