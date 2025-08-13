@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --fmf-bound
+; COMMAND-LINE: --finite-model-find --fmf-bound-sets
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

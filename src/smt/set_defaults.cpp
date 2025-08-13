@@ -1524,6 +1524,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.fmfBoundSets && opts.quantifiers.fmfBoundSetsWasSetByUser)
   {
     SET_AND_NOTIFY_IF_NOT_USER(quantifiers, fmfBound, true, "fmf-bound-sets");
+    SET_AND_NOTIFY_IF_NOT_USER(sets, setsExp, true, "fmf-bound-sets");
   }
   if (logic.hasCardinalityConstraints())
   {
