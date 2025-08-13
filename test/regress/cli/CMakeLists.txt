@@ -1507,6 +1507,7 @@ set(regress_0_tests
   regress0/prop/cadical_bug6.smt2
   regress0/prop/cadical_bug7.smt2
   regress0/prop/issue11867.smt2
+  regress0/prop/red-psyco-134.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
