@@ -26,14 +26,12 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: ubuntu:safe-mode
-            os: ubuntu-24.04
-            config: safe-mode --auto-download --all-bindings --editline --docs --docs-ga -DBUILD_GMP=1
+            os: ubuntu-22.04
+            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
-            java-version: 21
-            build-documentation: true
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
@@ -128,13 +126,18 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-dbg
-            os: ubuntu-22.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa --gpl -DBUILD_GMP=1
+            # Selected job for building the documentation
+          - name: ubuntu:production-dbg-doc
+            os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
+            config: >-
+              production --auto-download --assertions --tracing --unit-testing --editline
+              --cocoa --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
+            python-bindings: true
+            java-version: 21 # Use Javadoc from this Java version
+            build-documentation: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
-            python-bindings: true
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
