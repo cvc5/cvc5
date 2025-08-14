@@ -1,3 +1,4 @@
+; COMMAND-LINE: --fmf-bound-sets
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)
