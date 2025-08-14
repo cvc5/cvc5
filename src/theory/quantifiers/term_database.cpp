@@ -286,6 +286,14 @@ void TermDb::eqNotifyMerge(TNode t1, TNode t2)
 {
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
+    // Since the equivalence class of t1 and t2 merged, we now consider these
+    // two terms to be relevant in the current context. Note technically this
+    // does not mean that these terms are in assertions, e.g. t1 and t2 may be
+    // merge via congruence if a=b is an assertion and f(a) and f(b) are
+    // preregistered terms. Nevertheless this is a close approximation of the
+    // terms we care about. Since we are listening to the master equality
+    // engine notifications, this also includes internally introduced terms
+    // (if any) introduced by theory solvers.
     setHasTerm(t1);
     setHasTerm(t2);
   }
@@ -485,7 +493,8 @@ void TermDb::computeUfTerms( TNode f ) {
         d_qstate.notifyInConflict();
         return;
       }
-      // also populate relevant domain
+      // Also populate relevant domain. Note this only will add if the term is
+      // non-congruent, which is why we wait to compute it here.
       std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
       size_t rsize = reps.size();
       // ensure the relevant domain vector has been allocated
@@ -674,7 +683,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_eqc_trie.clear();
   d_fmapRelDom.clear();
 
-  Assert(ee->consistent());
+  Assert(d_qstate.getEqualityEngine()->consistent());
 
   //compute has map
   if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
@@ -687,6 +696,11 @@ bool TermDb::reset( Theory::Effort effort ){
       {
         continue;
       }
+      // Note that we have already marked all terms that have participated in
+      // equality engine merges as relevant. We go back and ensure all
+      // remaining terms that appear in assertions are marked relevant here
+      // in case there are terms appearing in assertions but not in the master
+      // equality engine.
       for (context::CDList<Assertion>::const_iterator
                it = d_qstate.factsBegin(theoryId),
                it_end = d_qstate.factsEnd(theoryId);
