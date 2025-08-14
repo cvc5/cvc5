@@ -126,8 +126,8 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-            # Selected job for building the documentation
-          - name: ubuntu:production-dbg-doc
+            # Job used to build the documentation
+          - name: ubuntu:production-dbg
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
             config: >-
               production --auto-download --assertions --tracing --unit-testing --editline
