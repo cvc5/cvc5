@@ -167,7 +167,8 @@
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
-(declare-const @re.null RegLan)
+(declare-const @@re.null RegLan)
+(define @re.null () @@re.null)
 
 ; program: $str_eval_str_in_re_rec
 ; args:
