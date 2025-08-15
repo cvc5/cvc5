@@ -150,34 +150,37 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     // in the map may contain subterms that are earlier terms in the map.
     std::map<TNode, Integer>::iterator cur = std::prev(countMap.end());
     TNode tc = cur->first;
-    Kind k = tc.getKind();
+    Assert (tc.getKind()==nk);
     Integer coeff = cur->second;
     countMap.erase(cur);
-    // Additionally collect coefficient, if plus. This is important since
-    // the prerewrite may have already grouped the sum into multiplications
-    // times constants, in which case we should immediately group in the same
-    // way again.
-    if (nk == Kind::BITVECTOR_ADD)
+    for (TNode cc : tc)
     {
-      while (k == Kind::BITVECTOR_MULT && tc.getNumChildren() == 2
-             && tc[1].isConst())
+      Kind ck = cc.getKind();
+      if (ck!=nk)
       {
-        coeff *= tc[1].getConst<BitVector>().toInteger();
-        tc = tc[0];
-        k = tc.getKind();
+        // we add it to children now
+        Integer ccoeff = coeff;
+        if (nk == Kind::BITVECTOR_ADD)
+        {
+          // Additionally collect coefficient, if plus. This is important since
+          // the prerewrite may have already grouped the sum into multiplications
+          // times constants, in which case we should immediately group in the same
+          // way again.
+          while (ck == Kind::BITVECTOR_MULT && cc.getNumChildren() == 2
+                && cc[1].isConst())
+          {
+            ccoeff *= cc[1].getConst<BitVector>().toInteger();
+            cc = cc[0];
+            ck = cc.getKind();
+          }
+        }
+        children.emplace_back(cc, ccoeff);
       }
-    }
-    // recurse into the term if it has the same kind
-    if (k == nk)
-    {
-      for (TNode cc : tc)
+      else
       {
+        // will recurse into it
         countMap[cc] += coeff;
       }
-    }
-    else
-    {
-      children.emplace_back(tc, coeff);
     }
   }
 
@@ -224,9 +227,6 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
   }
   if (nk == Kind::BITVECTOR_ADD || nk == Kind::BITVECTOR_MULT)
   {
-    // since we processed newest to oldest, reversing the vector preserves
-    // the original order.
-    std::reverse(nchildren.begin(), nchildren.end());
     return utils::mkNaryNode(nm, nk, nchildren);
   }
   // otherwise sort
