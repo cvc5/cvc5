@@ -131,39 +131,106 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
 {
   Trace("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
                       << std::endl;
-  std::vector<Node> processingStack;
-  processingStack.push_back(node);
-  std::vector<Node> children;
-  Kind kind = node.getKind();
-
-  while (!processingStack.empty())
+  // This rewrite performs an algorithm that is similar to the rewriter
+  // for rewriting addition in arithmetic flattenAndCollectSum
+  // (src/theory/arith/arith_rewriter.cpp).
+  Kind nk = node.getKind();
+  std::vector<std::pair<TNode, Integer>> children;
+  // Note we use an *ordered* map, where we assume that nodes are ordered by
+  // their id, where nodes constructed later have a larger id. This ensures
+  // we process nodes in the (reverse) order in which they constructed, newest
+  // nodes processed first, thus ensuring we process each node only once while
+  // flattening.
+  std::map<TNode, Integer> countMap;
+  countMap[node] = Integer(1);
+  std::map<TNode, Integer>::iterator it;
+  while (!countMap.empty())
   {
-    TNode current = processingStack.back();
-    processingStack.pop_back();
-
-    // flatten expression
-    if (current.getKind() == kind)
+    // Go off of end first. This is important for efficiency since later terms
+    // in the map may contain subterms that are earlier terms in the map.
+    std::map<TNode, Integer>::iterator cur = std::prev(countMap.end());
+    TNode tc = cur->first;
+    Assert (tc.getKind()==nk);
+    Integer coeff = cur->second;
+    countMap.erase(cur);
+    for (TNode cc : tc)
     {
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      Kind ck = cc.getKind();
+      if (ck!=nk)
       {
-        processingStack.push_back(current[i]);
+        // we add it to children now
+        Integer ccoeff = coeff;
+        if (nk == Kind::BITVECTOR_ADD)
+        {
+          // Additionally collect coefficient, if plus. This is important since
+          // the prerewrite may have already grouped the sum into multiplications
+          // times constants, in which case we should immediately group in the same
+          // way again.
+          while (ck == Kind::BITVECTOR_MULT && cc.getNumChildren() == 2
+                && cc[1].isConst())
+          {
+            ccoeff *= cc[1].getConst<BitVector>().toInteger();
+            cc = cc[0];
+            ck = cc.getKind();
+          }
+        }
+        children.emplace_back(cc, ccoeff);
+      }
+      else
+      {
+        // will recurse into it
+        countMap[cc] += coeff;
       }
     }
-    else
+  }
+
+  NodeManager* nm = node.getNodeManager();
+  Integer coeff(0);
+  // note this may still overflow if MULT or XOR
+  std::vector<Node> nchildren;
+  for (const std::pair<TNode, Integer>& c : children)
+  {
+    if (c.second.isZero())
     {
-      children.push_back(current);
+      continue;
+    }
+    if (nk == Kind::BITVECTOR_ADD)
+    {
+      // do not group constants here
+      if (c.second.isOne())
+      {
+        nchildren.emplace_back(c.first);
+      }
+      else
+      {
+        Node cn = utils::mkConst(nm, utils::getSize(node), c.second);
+        Node gc = nm->mkNode(Kind::BITVECTOR_MULT, c.first, cn);
+        nchildren.emplace_back(gc);
+      }
+      continue;
+    }
+    // we cannot "group" multiplication, we also don't cancel xor children
+    // here for now. Thus, we add num copies of the child.
+    uint32_t num = c.second.toUnsignedInt();
+    for (uint32_t i = 0; i < num; i++)
+    {
+      nchildren.emplace_back(c.first);
     }
   }
-  if (node.getKind() == Kind::BITVECTOR_ADD
-      || node.getKind() == Kind::BITVECTOR_MULT)
+  if (nk == Kind::BITVECTOR_ADD)
   {
-    NodeManager* nm = node.getNodeManager();
-    return utils::mkNaryNode(nm, kind, children);
+    if (!coeff.isZero())
+    {
+      Node cn = utils::mkConst(nm, utils::getSize(node), coeff);
+      nchildren.emplace_back(cn);
+    }
   }
-  else
+  if (nk == Kind::BITVECTOR_ADD || nk == Kind::BITVECTOR_MULT)
   {
-    return utils::mkSortedNode(kind, children);
+    return utils::mkNaryNode(nm, nk, nchildren);
   }
+  // otherwise sort
+  return utils::mkSortedNode(nk, nchildren);
 }
 
 static inline void addToCoefMap(std::map<Node, BitVector>& map,
