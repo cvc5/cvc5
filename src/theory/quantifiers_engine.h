@@ -95,6 +95,8 @@ class QuantifiersEngine : protected EnvObj
   void assertQuantifier( Node q, bool pol );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** mark relevant quantified formula, this will indicate it should be checked
    * before the others */
   void markRelevant(Node q);

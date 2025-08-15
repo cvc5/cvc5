@@ -50,14 +50,12 @@ class TermRegistry : protected EnvObj
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
 
-  /**
-   * Add term n, which notifies the term database that the ground term n
-   * exists in the current context.
-   *
-   * @param n the term to add
-   * @param withinQuant whether n occurs within a quantified formula body
-   */
-  void addTerm(TNode n, bool withinQuant = false);
+  /** Add quantified formula body, which may impact term registration */
+  void addQuantifierBody(TNode n);
+  /** notification when master equality engine is updated */
+  void eqNotifyNewClass(TNode t);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   /** get term for type
    *
@@ -128,6 +126,14 @@ class TermRegistry : protected EnvObj
   FirstOrderModel* getModel() const;
 
  private:
+  /**
+   * Add term n, which notifies the term database that the ground term n
+   * exists in the current context.
+   *
+   * @param n the term to add
+   * @param withinQuant whether n occurs within a quantified formula body
+   */
+  void addTermInternal(TNode n, bool withinQuant = false);
   /** Whether we are using the fmc model */
   bool d_useFmcModel;
   /** term enumeration utility */

@@ -126,6 +126,8 @@ class TermDb : public QuantifiersUtil {
    * matched with via E-matching, and can be used in entailment tests below.
    */
   void addTerm(Node n);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** Get the currently added ground terms of the given type */
   DbList* getOrMkDbListForType(TypeNode tn);
   /** Get the currently added ground terms for the given operator */
@@ -256,7 +258,7 @@ class TermDb : public QuantifiersUtil {
    */
   std::map<Node, std::vector<std::vector<TNode>>> d_fmapRelDom;
   /** has map */
-  std::map< Node, bool > d_has_map;
+  context::CDHashSet<Node> d_has_map;
   /** map from reps to a term in eqc in d_has_map */
   std::map<Node, Node> d_term_elig_eqc;
   /**
