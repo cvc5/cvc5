@@ -82,6 +82,11 @@ enum class BoundVarId
    * axiomatizing the behavior of some term.
    */
   STRINGS_LENGTH,
+  /**
+   * A bound variable quantifying over all strings to reduce a regular
+   * expression equality.
+   */
+  STRINGS_REG_EXP_EQ,
 
   /**
    * A unique (bound variable) which corresponds to
