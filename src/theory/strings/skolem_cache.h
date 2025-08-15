@@ -120,46 +120,46 @@ class SkolemCache
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
     SK_SUFFIX_REM,
     /**
-    * The next three skolems are used to decompose the match of a regular
-    * expression in string.
-    *
-    * For string a and regular expression R, this skolem is the prefix of
-    * string a before the first, shortest match of R in a. Formally, if
-    * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
-    * there exists strings k_pre, k_match, k_post such that:
-    *       ``(= a (str.++ k_pre k_match k_post))`` and
-    *       ``(= (len k_pre) (indexof_re a R 0))`` and
-    *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
-    *         (not (str.in_re (substr k_match 0 l) R))))`` and
-    *       ``(str.in_re k_match R)``
-    * This skolem is k_pre, and the proceeding two skolems are k_match and
-    * k_post.
-    *
-    * - Number of skolem indices: ``2``
-    *   - ``1:`` The string.
-    *   - ``2:`` The regular expression to match.
-    * - Sort: ``String``
-    */
+     * The next three skolems are used to decompose the match of a regular
+     * expression in string.
+     *
+     * For string a and regular expression R, this skolem is the prefix of
+     * string a before the first, shortest match of R in a. Formally, if
+     * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
+     * there exists strings k_pre, k_match, k_post such that:
+     *       ``(= a (str.++ k_pre k_match k_post))`` and
+     *       ``(= (len k_pre) (indexof_re a R 0))`` and
+     *       ``(forall ((l Int)) (=> (< 0 l (len k_match))
+     *         (not (str.in_re (substr k_match 0 l) R))))`` and
+     *       ``(str.in_re k_match R)``
+     * This skolem is k_pre, and the proceeding two skolems are k_match and
+     * k_post.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
     RE_FIRST_MATCH_PRE,
     /**
-    * For string a and regular expression R, this skolem is the string that
-    * the first, shortest match of R was matched to in a.
-    *
-    * - Number of skolem indices: ``2``
-    *   - ``1:`` The string.
-    *   - ``2:`` The regular expression to match.
-    * - Sort: ``String``
-    */
+     * For string a and regular expression R, this skolem is the string that
+     * the first, shortest match of R was matched to in a.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
     RE_FIRST_MATCH,
     /**
-    * For string a and regular expression ``R``, this skolem is the remainder
-    * of a after the first, shortest match of ``R`` in a.
-    *
-    * - Number of skolem indices: ``2``
-    *   - ``1:`` The string.
-    *   - ``2:`` The regular expression to match.
-    * - Sort: ``String``
-    */
+     * For string a and regular expression ``R``, this skolem is the remainder
+     * of a after the first, shortest match of ``R`` in a.
+     *
+     * - Number of skolem indices: ``2``
+     *   - ``1:`` The string.
+     *   - ``2:`` The regular expression to match.
+     * - Sort: ``String``
+     */
     RE_FIRST_MATCH_POST,
   };
   /**

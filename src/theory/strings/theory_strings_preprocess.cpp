@@ -638,7 +638,6 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node rpaw = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
 
-
     Node numOcc = sc->mkSkolemFun(nm, SkolemId::STRINGS_NUM_OCCUR, x, y);
     Node us = sc->mkSkolemFun(nm, SkolemId::STRINGS_REPLACE_ALL_RESULT, t);
     Node uf = sc->mkSkolemFun(nm, SkolemId::STRINGS_OCCUR_INDEX, x, y);
@@ -721,9 +720,11 @@ Node StringsPreprocess::reduce(Node t,
     // k = z ++ x
     Node res1 = k.eqNode(nm->mkNode(Kind::STRING_CONCAT, z, x));
 
-    Node k1 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH_PRE, "kmatch_pre");
+    Node k1 =
+        sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH_PRE, "kmatch_pre");
     Node k2 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH, "kmatch");
-    Node k3 = sc->mkSkolemCached(x, y, SkolemCache::RE_FIRST_MATCH_POST, "kmatch_post");
+    Node k3 = sc->mkSkolemCached(
+        x, y, SkolemCache::RE_FIRST_MATCH_POST, "kmatch_post");
     Node k2Len = nm->mkNode(Kind::STRING_LENGTH, k2);
     // x = k1 ++ k2 ++ k3
     Node split = x.eqNode(nm->mkNode(Kind::STRING_CONCAT, k1, k2, k3));
