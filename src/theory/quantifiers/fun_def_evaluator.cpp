@@ -63,6 +63,7 @@ bool FunDefEvaluator::getDefinitionIndex(const Node& q, size_t& index) const
   if (q[1].getKind() == Kind::EQUAL)
   {
     size_t nvars = q[0].getNumChildren();
+    // check if we are (f x) = t or t = (f x).
     for (size_t i = 0; i < 2; i++)
     {
       size_t nchild = q[1][i].getNumChildren();
@@ -71,6 +72,8 @@ bool FunDefEvaluator::getDefinitionIndex(const Node& q, size_t& index) const
         continue;
       }
       bool isMacro = true;
+      // if this side of the equality is (f x1 ... xn) where the quantified
+      // formula is (forall ((x1 T1) ... (xn Tn)) ...).
       for (size_t j = 0; j < nvars; j++)
       {
         if (q[1][i][j] != q[0][j])
