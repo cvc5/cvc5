@@ -200,9 +200,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     // if an equality between regular expressions was introduced during solving,
     // e.g. by theory combination, we send the equivalance for its quantified
-    // reduction here, e.g. 
+    // reduction here, e.g.
     // (R1 = R2) = (forall s. (s in R1) = (s in R2)).
-    Node res = d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, n);
+    Node res =
+        d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::RE_EQ_ELIM, n);
     Node lem = nodeManager()->mkNode(Kind::EQUAL, n, res);
     d_im->lemma(lem, InferenceId::STRINGS_RE_EQ_ELIM_EQUIV);
   }

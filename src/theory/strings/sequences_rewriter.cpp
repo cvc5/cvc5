@@ -1419,16 +1419,16 @@ Node SequencesRewriter::rewriteViaReLoopElim(const Node& node)
 
 Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
 {
-  if (n.getKind()!=Kind::EQUAL || !n[0].getType().isRegExp())
+  if (n.getKind() != Kind::EQUAL || !n[0].getType().isRegExp())
   {
     return Node::null();
   }
-  NodeManager * nm = nodeManager();
+  NodeManager* nm = nodeManager();
   Node v = SkolemCache::mkRegExpEqVar(nm, n);
   Node mem1 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[0]);
   Node mem2 = nm->mkNode(Kind::STRING_IN_REGEXP, v, n[1]);
-  return nm->mkNode(Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v),
-                        mem1.eqNode(mem2));
+  return nm->mkNode(
+      Kind::FORALL, nm->mkNode(Kind::BOUND_VAR_LIST, v), mem1.eqNode(mem2));
 }
 
 Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)

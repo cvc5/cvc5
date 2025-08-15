@@ -162,7 +162,7 @@ class SkolemCache
    * that could be matched by r.
    */
   static Node mkLengthVar(NodeManager* nm, Node t);
-  
+
   /** Make RE equality variable
    *
    * This returns a string variable that is used for reducing regular
