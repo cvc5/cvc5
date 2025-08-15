@@ -120,11 +120,11 @@ class SkolemCache
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
     SK_SUFFIX_REM,
     /**
-     * The next three skolems are used to decompose the match of a regular
+     * The next three skolems are used to reason about the match of a regular
      * expression in string.
      *
-     * For string a and regular expression R, this skolem is the prefix of
-     * string a before the first, shortest match of R in a. Formally, if
+     * For string a and regular expression ``R``, this skolem is the prefix of
+     * string a before the first, shortest match of ``R`` in ``a``. Formally, if
      * ``(str.in_re a (re.++ (re.* re.allchar) R (re.* re.allchar)))``, then
      * there exists strings k_pre, k_match, k_post such that:
      *       ``(= a (str.++ k_pre k_match k_post))`` and
@@ -142,8 +142,8 @@ class SkolemCache
      */
     RE_FIRST_MATCH_PRE,
     /**
-     * For string a and regular expression R, this skolem is the string that
-     * the first, shortest match of R was matched to in a.
+     * For string a and regular expression ``R``, this skolem is the string that
+     * the first, shortest match of ``R`` was matched to in ``a``.
      *
      * - Number of skolem indices: ``2``
      *   - ``1:`` The string.
@@ -153,7 +153,7 @@ class SkolemCache
     RE_FIRST_MATCH,
     /**
      * For string a and regular expression ``R``, this skolem is the remainder
-     * of a after the first, shortest match of ``R`` in a.
+     * of ``a`` after the first, shortest match of ``R`` in ``a``.
      *
      * - Number of skolem indices: ``2``
      *   - ``1:`` The string.
