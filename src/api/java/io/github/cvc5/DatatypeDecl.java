@@ -109,6 +109,8 @@ public class DatatypeDecl extends AbstractPointer
   private native boolean isParametric(long pointer);
 
   /**
+   * Determine if this DatatypeDecl is a null object.
+   *
    * @return True if this DatatypeDecl is a null object.
    */
   public boolean isNull()
@@ -123,7 +125,11 @@ public class DatatypeDecl extends AbstractPointer
    */
   protected native String toString(long pointer);
 
-  /** @return The name of this datatype declaration. */
+  /**
+   * Get the name of this datatype declaration.
+   *
+   * @return The name of this datatype declaration.
+   */
   public String getName()
   {
     return getName(pointer);
