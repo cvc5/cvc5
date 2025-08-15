@@ -339,7 +339,7 @@
   (str.indexof t1 s n))
 
 (define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
-  (and (= emp (@seq.empty_of_type (@type_of t))) (>= (str.len t) n))
+  (and (= emp (@seq.empty_of_type (@type_of t))) (>= (str.len t) n) (>= n 0))
   (str.indexof t emp n)
   n)
 

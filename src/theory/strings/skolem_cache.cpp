@@ -278,13 +278,13 @@ Node SkolemCache::mkLengthVar(NodeManager* nm, Node t)
 
 Node SkolemCache::mkRegExpEqVar(NodeManager* nm, Node eq)
 {
-  Assert (eq.getKind()==Kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   TypeNode stringType = nm->stringType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar(
       BoundVarId::STRINGS_REG_EXP_EQ, eq, "@var.re_eq", stringType);
 }
-  
+
 Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)
 {
   std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
