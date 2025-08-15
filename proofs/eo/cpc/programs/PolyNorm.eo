@@ -17,12 +17,17 @@
 ; Definitions of monomials and polynomials.
 ; A monomial is a list of terms that are ordered by `$compare_var` and a rational coefficient.
 ; A polynomial is a list of monomials whose monomials are ordered by `$compare_var`.
-(declare-const @Monomial Type)
-(declare-parameterized-const @mon ((T Type :implicit)) (-> T Real @Monomial))
+(declare-const @@Monomial Type)
+(define @Monomial () @@Monomial)
+(declare-parameterized-const @@mon ((T Type :implicit)) (-> T Real @Monomial))
+(define @mon () @@mon)
 
-(declare-const @Polynomial Type)
-(declare-const @poly.zero @Polynomial)
-(declare-const @poly (-> @Monomial @Polynomial @Polynomial) :right-assoc-nil @poly.zero)
+(declare-const @@Polynomial Type)
+(define @Polynomial () @@Polynomial)
+(declare-const @@poly.zero @Polynomial)
+(define @poly.zero () @@Polynomial)
+(declare-const @@poly (-> @Monomial @Polynomial @Polynomial) :right-assoc-nil @poly.zero)
+(define @poly () @@poly)
 
 ; program: $poly_neg
 ; args:
