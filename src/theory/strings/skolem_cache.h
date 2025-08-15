@@ -162,6 +162,13 @@ class SkolemCache
    * that could be matched by r.
    */
   static Node mkLengthVar(NodeManager* nm, Node t);
+
+  /** Make RE equality variable
+   *
+   * This returns a string variable that is used for reducing regular
+   * expression equality.
+   */
+  static Node mkRegExpEqVar(NodeManager* nm, Node eq);
   /**
    * Make skolem function, possibly normalizing based on the rewriter of this
    * class. This method should be used whenever it is not possible to define

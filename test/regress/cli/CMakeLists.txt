@@ -2097,6 +2097,8 @@ set(regress_0_tests
   regress0/strings/re-consume-star.smt2
   regress0/strings/re-consume-sym.smt2
   regress0/strings/re-consume-sym-sigma.smt2
+  regress0/strings/re-eq-simple.smt2
+  regress0/strings/re-eq-simple-sat.smt2
   regress0/strings/re-include-union.smt2
   regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re-inter-all.smt2
