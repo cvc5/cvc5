@@ -4111,6 +4111,8 @@ set(regression_disabled_tests
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  # demonstrates instance where RE inference in necessary, times out
+  regress1/strings/re-uf.smt2
   ###
   regress1/bags/all2.smt2
   regress1/bags/card3.smt2
