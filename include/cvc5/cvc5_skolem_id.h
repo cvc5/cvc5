@@ -121,8 +121,7 @@ enum ENUM(SkolemId)
    */
   EVALUE(BV_EMPTY),
   /**
-   * The function for division by zero. This is semantically equivalent to the
-   * SMT-LIB term ``(lambda ((x Real)) (/ x 0.0))``.
+   * The function for division by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Real Real)``
@@ -131,8 +130,7 @@ enum ENUM(SkolemId)
    */
   EVALUE(DIV_BY_ZERO),
   /**
-   * The function for integer division by zero. This is semantically equivalent
-   * to the SMT-LIB term ``(lambda ((x Int)) (div x 0))``.
+   * The function for integer division by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
@@ -141,8 +139,7 @@ enum ENUM(SkolemId)
    */
   EVALUE(INT_DIV_BY_ZERO),
   /**
-   * The function for integer modulus by zero. This is semantically equivalent
-   * to the SMT-LIB term ``(lambda ((x Int)) (mod x 0))``.
+   * The function for integer modulus by zero.
    *
    * - Number of skolem indices: ``0``
    * - Sort: ``(-> Int Int)``
