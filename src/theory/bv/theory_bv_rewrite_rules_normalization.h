@@ -193,12 +193,8 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
     }
     if (nk == Kind::BITVECTOR_ADD)
     {
-      if (c.first.isConst())
-      {
-        // group the constant coefficient
-        coeff += c.first.getConst<BitVector>().toInteger() * c.second;
-      }
-      else if (c.second.isOne())
+      // do not group constants here
+      if (c.second.isOne())
       {
         nchildren.emplace_back(c.first);
       }
@@ -228,6 +224,9 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
   }
   if (nk == Kind::BITVECTOR_ADD || nk == Kind::BITVECTOR_MULT)
   {
+    // since we processed newest to oldest, reversing the vector preserves
+    // the original order.
+    std::reverse(nchildren.begin(), nchildren.end());
     return utils::mkNaryNode(nm, nk, nchildren);
   }
   // otherwise sort
