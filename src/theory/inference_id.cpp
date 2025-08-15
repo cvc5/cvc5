@@ -545,6 +545,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
     case InferenceId::STRINGS_CONST_SEQ_PURIFY:
       return "STRINGS_CONST_SEQ_PURIFY";
+    case InferenceId::STRINGS_RE_EQ_ELIM_EQUIV:
+      return "STRINGS_RE_EQ_ELIM_EQUIV";
 
     case InferenceId::UF_BREAK_SYMMETRY: return "UF_BREAK_SYMMETRY";
     case InferenceId::UF_CARD_CLIQUE: return "UF_CARD_CLIQUE";

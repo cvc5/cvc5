@@ -397,7 +397,7 @@ Node TheoryModel::getModelValue(TNode n) const
         Unreachable();
       }
     }
-    else if (!t.isFirstClass())
+    else if (!t.isFirstClass() || t.isRegExp())
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
@@ -549,7 +549,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         if (first) {
           rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
-          if (rep.getType().isFirstClass())
+          if (!rep.getType().isRegExp())
           {
             d_equalityEngine->addTerm( rep );
             Trace("model-builder-debug") << "Add term to ee within assertEqualityEngine: " << rep << std::endl;

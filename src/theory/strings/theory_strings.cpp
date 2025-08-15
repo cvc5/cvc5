@@ -1123,8 +1123,10 @@ void TheoryStrings::notifySharedTerm(TNode n)
   {
     d_termReg.registerSubterms(n);
   }
-  if (n.getType().isRegExp())
+  TypeNode tn = n.getType();
+  if (!d_env.isFirstClassType(tn))
   {
+    Assert(tn.isRegExp());
     std::stringstream ss;
     ss << "Regular expression terms are not supported in theory combination";
     throw LogicException(ss.str());

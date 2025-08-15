@@ -237,10 +237,6 @@ TEST_F(TestApiBlackTermManager, mkFunctionSort)
                                      d_tm.getIntegerSort());
   // function arguments are allowed
   ASSERT_NO_THROW(d_tm.mkFunctionSort({funSort}, d_tm.getIntegerSort()));
-  // non-first-class arguments are not allowed
-  Sort reSort = d_tm.getRegExpSort();
-  ASSERT_THROW(d_tm.mkFunctionSort({reSort}, d_tm.getIntegerSort()),
-               CVC5ApiException);
   ASSERT_THROW(d_tm.mkFunctionSort({d_tm.getIntegerSort()}, funSort),
                CVC5ApiException);
   ASSERT_NO_THROW(d_tm.mkFunctionSort(

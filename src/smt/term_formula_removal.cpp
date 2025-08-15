@@ -282,7 +282,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == Kind::ITE && !nodeType.isBoolean())
   {
-    if (!nodeType.isFirstClass())
+    if (!d_env.isFirstClassType(nodeType))
     {
       std::stringstream ss;
       ss << "ITE branches of type " << nodeType

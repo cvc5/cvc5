@@ -323,11 +323,6 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   domain = {nullptr};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
                "invalid sort at index 0");
-  // non-first-class arguments are not allowed
-  Cvc5Sort regexpsort = cvc5_get_regexp_sort(d_tm);
-  domain = {regexpsort};
-  ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
-               "expected first-class sort as domain sort");
   domain = {d_int};
   ASSERT_DEATH(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), funsort),
                "expected non-function sort as codomain sort");
