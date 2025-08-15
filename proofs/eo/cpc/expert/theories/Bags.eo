@@ -6,7 +6,7 @@
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further
 ;   function symbols over this sort are also not part of the SMT-LIB standard.
-(declare-type Bag (Type))
+(declare-const Bag (-> Type Type))
 
 ; NOTE: permits non-set types
 (declare-parameterized-const bag.empty ((T Type :implicit)) (Bag T))
