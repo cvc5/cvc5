@@ -248,6 +248,33 @@ SkolemCache::normalizeStringSkolem(StringSkolemId id, Node a, Node b)
     a = utils::mkSuffix(a, b);
     b = Node::null();
   }
+  else if (id == RE_FIRST_MATCH_PRE)
+  {
+    id = SK_PURIFY;
+    Node idof = d_nm->mkNode(Kind::STRING_INDEXOF_RE, a, b, d_zero);
+    a = utils::mkPrefix(a, idof);
+    b = Node::null();
+  }
+  else if (id == RE_FIRST_MATCH)
+  {
+    id = SK_PURIFY;
+    Node idof = d_nm->mkNode(Kind::STRING_INDEXOF_RE, a, b, d_zero);
+    Node occ = mkSkolemFun(d_nm, SkolemId::STRINGS_OCCUR_INDEX_RE, a, b);
+    Node one = d_nm->mkConstInt(Rational(1));
+    Node occ1 = d_nm->mkNode(Kind::APPLY_UF, occ, one);
+    a = d_nm->mkNode(
+        Kind::STRING_SUBSTR, a, idof, d_nm->mkNode(Kind::SUB, occ1, idof));
+    b = Node::null();
+  }
+  else if (id == RE_FIRST_MATCH_POST)
+  {
+    id = SK_PURIFY;
+    Node occ = mkSkolemFun(d_nm, SkolemId::STRINGS_OCCUR_INDEX_RE, a, b);
+    Node one = d_nm->mkConstInt(Rational(1));
+    Node occ1 = d_nm->mkNode(Kind::APPLY_UF, occ, one);
+    a = utils::mkSuffix(a, occ1);
+    b = Node::null();
+  }
 
   if (d_rr != nullptr)
   {
