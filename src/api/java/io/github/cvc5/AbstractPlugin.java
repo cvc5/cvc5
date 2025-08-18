@@ -15,6 +15,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 plugin abstract class.
+ */
 public abstract class AbstractPlugin
 {
   /**
@@ -26,6 +29,7 @@ public abstract class AbstractPlugin
     this.termManager = tm;
   }
 
+  /** The associated term manager. */
   protected final TermManager termManager;
 
   /**

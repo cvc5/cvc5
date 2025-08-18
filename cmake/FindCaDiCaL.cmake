@@ -18,7 +18,7 @@
 
 include(deps-helper)
 
-find_path(CaDiCaL_INCLUDE_DIR NAMES cadical.hpp)
+find_path(CaDiCaL_INCLUDE_DIR NAMES cadical/cadical.hpp cadical/tracer.hpp)
 find_library(CaDiCaL_LIBRARIES NAMES cadical)
 
 set(CaDiCaL_FOUND_SYSTEM FALSE)
@@ -28,7 +28,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   set(CaDiCaL_version_src "${CMAKE_BINARY_DIR}/CaDiCaL_version.cpp")
   file(WRITE ${CaDiCaL_version_src}
     "
-    #include <cadical.hpp>
+    #include <cadical/cadical.hpp>
     #include <iostream>
 
     int main(void)
@@ -87,8 +87,8 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-2.1.3")
-  set(CaDiCaL_CHECKSUM "abfe890aa4ccda7b8449c7ad41acb113cfb8e7e8fbf5e49369075f9b00d70465")
+  set(CaDiCaL_VERSION "rel-2.1.3-elevate")
+  set(CaDiCaL_CHECKSUM "15e1e82f7f9a9da0e97070cb8ac41d5b32139f65d54f72d2ff84849b0466ef92")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
@@ -148,7 +148,9 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
-            <INSTALL_DIR>/include/cadical.hpp
+            <INSTALL_DIR>/include/cadical/cadical.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/tracer.hpp
+            <INSTALL_DIR>/include/cadical/tracer.hpp
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 

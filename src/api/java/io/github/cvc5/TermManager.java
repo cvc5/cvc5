@@ -119,7 +119,7 @@ public class TermManager extends AbstractPointer
     return new Sort(sortPointer);
   }
 
-  public native long getIntegerSort(long pointer);
+  private native long getIntegerSort(long pointer);
   /**
    * Get the real sort.
    * @return Sort Real.
@@ -1594,7 +1594,7 @@ public class TermManager extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -1610,7 +1610,7 @@ public class TermManager extends AbstractPointer
   /**
    * Create a datatype declaration.
    *
-   * Create sorts parameter with {@link Solver#mkParamSort(String)}.
+   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
    *
    * @param name The name of the datatype.
    * @param params A list of sort parameters.

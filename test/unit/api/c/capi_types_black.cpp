@@ -80,5 +80,21 @@ TEST_F(TestCApiBlackTypes, printEnum)
   ASSERT_EQ(ss.str(), expected);
 }
 
+TEST_F(TestCApiBlackTypes, option_category_to_string)
+{
+  ASSERT_DEATH(
+      cvc5_modes_option_category_to_string(static_cast<Cvc5OptionCategory>(-5)),
+      "invalid option category");
+
+  for (int32_t c = static_cast<int32_t>(CVC5_OPTION_CATEGORY_REGULAR);
+       c < static_cast<int32_t>(CVC5_OPTION_CATEGORY_LAST);
+       ++c)
+  {
+    std::string str = cvc5_modes_option_category_to_string(
+        static_cast<Cvc5OptionCategory>(c));
+    ASSERT_NE(str, "?");
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
