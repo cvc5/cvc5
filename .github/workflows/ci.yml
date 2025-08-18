@@ -311,6 +311,16 @@ jobs:
           ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.wasm
           ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5.js
 
+    - name: Create and add WASM to latest and release
+      if: matrix.build.wasm-build && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/add-wasm
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        wasm-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-wasm
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.build.shell }}
+
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-jar

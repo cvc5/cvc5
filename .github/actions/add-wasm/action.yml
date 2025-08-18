@@ -1,0 +1,47 @@
+name: Add WASM artifacts for cvc5
+description: |
+  Uploads WASM artifacts (cvc5.wasm and cvc5.js) to latest and release
+inputs:
+  build-dir:
+    description: path to the build directory containing WASM files
+    required: true
+  wasm-name:
+    description: base name for the WASM package (without extension)
+    required: true
+  github-token-latest:
+    description: token to upload WASM to latest
+    required: true
+  github-token-release:
+    description: token to upload WASM to release
+    required: true
+  shell:
+    description: shell to use for commands
+    default: bash
+runs:
+  using: composite
+  steps:
+    - name: Prepare WASM artifacts
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Prepare WASM artifacts"
+        mkdir -p wasm-package
+        cp ${{ inputs.build-dir }}/bin/cvc5.wasm wasm-package/
+        cp ${{ inputs.build-dir }}/bin/cvc5.js wasm-package/
+        
+        # Create a tar.gz package containing both files
+        tar -czf ${{ inputs.wasm-name }}.tar.gz -C wasm-package .
+        echo "::endgroup::"
+    
+    - name: Store WASM package to latest
+      if: github.ref == 'refs/heads/main'
+      uses: ./.github/actions/store-to-latest
+      with:
+        asset-filename: ${{ inputs.wasm-name }}.tar.gz
+        github-token: ${{ inputs.github-token-latest }}
+    
+    - name: Store WASM package to release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: ./.github/actions/store-to-release
+      with:
+        asset-filename: ${{ inputs.wasm-name }}.tar.gz
+        github-token: ${{ inputs.github-token-release }}
