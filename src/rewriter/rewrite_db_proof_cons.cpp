@@ -69,8 +69,7 @@ bool RewriteDbProofCons::prove(
   d_tmode = tmode;
   // clear the proof caches
   d_pcache.clear();
-  // clear the evaluate cache
-  d_evalCache.clear();
+  // do not clear evaluation cache
   Node eq = a.eqNode(b);
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;
