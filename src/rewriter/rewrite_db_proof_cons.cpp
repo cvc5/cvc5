@@ -69,8 +69,7 @@ bool RewriteDbProofCons::prove(
   d_tmode = tmode;
   // clear the proof caches
   d_pcache.clear();
-  // clear the evaluate cache
-  d_evalCache.clear();
+  // do not clear evaluation cache
   Node eq = a.eqNode(b);
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;
@@ -1414,17 +1413,6 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 
 Node RewriteDbProofCons::doEvaluate(const Node& n)
 {
-  // Only possible to evaluate if we rewrite to a constant. This is worthwhile
-  // to check since the rewrite of n has likely already been computed, whereas
-  // the evaluator below is not (globally) cached.
-  if (!expr::hasAbstractSubterm(n))
-  {
-    Node nr = rewrite(n);
-    if (!nr.isConst())
-    {
-      return Node::null();
-    }
-  }
   auto [itv, inserted] = d_evalCache.emplace(n, Node());
   if (inserted)
   {
