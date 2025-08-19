@@ -757,6 +757,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "send all instantiations for bounded ranges in a single round"
 
+[[option]]
+  name       = "fmfBoundSets"
+  category   = "expert"
+  long       = "fmf-bound-sets"
+  type       = "bool"
+  default    = "true"
+  help       = "infer bounds for sets based on set memberships"
+
 ### Conflict-based instantiation options
 
 [[option]]

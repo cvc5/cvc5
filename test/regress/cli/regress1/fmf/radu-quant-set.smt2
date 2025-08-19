@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-bound
+; COMMAND-LINE: --fmf-bound-sets
 ; EXPECT: unsat
 (set-logic ALL)
 

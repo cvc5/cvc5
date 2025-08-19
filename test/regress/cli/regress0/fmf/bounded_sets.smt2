@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-bound
+; COMMAND-LINE: --fmf-bound-sets
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
