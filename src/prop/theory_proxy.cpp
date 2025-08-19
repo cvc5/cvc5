@@ -326,16 +326,11 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
 void TheoryProxy::notifySatClause(const SatClause& clause)
 {
+  ProofLogger* pl = d_env.getProofLogger();
   const std::vector<Plugin*>& plugins = d_env.getPlugins();
-  if (plugins.empty())
+  if (pl == nullptr && plugins.empty())
   {
-    // nothing to do if no plugins
-    return;
-  }
-  if (!d_inSolve && options().base.pluginNotifySatClauseInSolve)
-  {
-    // We are not in solving mode. We do not inform plugins of SAT clauses
-    // if pluginNotifySatClauseInSolve is true (default).
+    // nothing to do if no proof logger, or plugins
     return;
   }
   // convert to node
@@ -352,10 +347,18 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
     }
   }
   Node cln = nodeManager()->mkOr(clauseNodes);
+  // notify the prop engine regardless whether sharable or d_inSolve is true
+  d_propEngine->notifySatClause(cln);
   // get the sharable form of cln
   Node clns = d_env.getSharableFormula(cln);
   if (!clns.isNull())
   {
+    if (!d_inSolve && options().base.pluginNotifySatClauseInSolve)
+    {
+      // We are not in solving mode. We do not inform plugins of SAT clauses
+      // if pluginNotifySatClauseInSolve is true (default).
+      return;
+    }
     Trace("theory-proxy")
         << "TheoryProxy::notifySatClause: Clause from SAT solver: " << clns
         << std::endl;

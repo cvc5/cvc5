@@ -173,6 +173,13 @@ class PropPfManager : protected EnvObj
    */
   void notifyExplainedPropagation(TrustNode ttn);
   /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause.
+   *
+   * @param clause The (node representation) of the clause.
+   */
+  void notifySatClause(const Node& clause);
+  /**
    * Get the last explained propagation by the above method. This is required
    * only for Minisat.
    */
