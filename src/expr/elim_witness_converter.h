@@ -69,11 +69,6 @@ class ElimWitnessNodeConverter : protected EnvObj, public NodeConverter
    * Get the axioms
    */
   const std::vector<Node>& getAxioms() const;
-  /**
-   * Get the normal form of a quantified formula for which we are introducing
-   * a skolem variable based on eliminating a witness term.
-   */
-  virtual Node getNormalFormFor(const Node& q);
 
  private:
   /** The list of axioms introduced by eliminating witness */
