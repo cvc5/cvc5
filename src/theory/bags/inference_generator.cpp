@@ -38,8 +38,13 @@ namespace bags {
 
 InferenceGenerator::InferenceGenerator(NodeManager* nm,
                                        SolverState* state,
-                                       InferenceManager* im)
-    : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
+                                       InferenceManager* im,
+                                       Rewriter* r)
+    : d_nm(nm),
+      d_sm(d_nm->getSkolemManager()),
+      d_state(state),
+      d_im(im),
+      d_rewriter(r)
 {
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -480,6 +485,27 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Node f = n[0];
   Node A = n[1];
+  // check if y is already an image of an element x in A
+  bool preimageFound = false;
+  const std::set<Node>& aElements = d_state->getElements(A);
+  for (const Node& x : aElements)
+  {
+    Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+    f_x = d_nm->getSkolemManager()->getOriginalForm(f_x);
+    f_x = d_rewriter->rewrite(f_x);
+    if (d_state->getRepresentative(f_x) == d_state->getRepresentative(y))
+    {
+      preimageFound = true;
+      break;
+    }
+  }
+  if (preimageFound)
+  {
+    // skip, we already have a preimage for y
+    inferInfo.d_conclusion = d_true;
+    return inferInfo;
+  }
+
   // declare a fresh skolem of type T
   Node x =
       d_sm->mkSkolemFunction(SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE, {f, A, y});
@@ -499,6 +525,26 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::mapUpInjective(Node n, Node x)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP_INJECTIVE);
+  Node f = n[0];
+  Node A = n[1];
+
+  Node countA = getMultiplicityTerm(x, A);
+  registerCountTerm(countA);
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countN = getMultiplicityTerm(f_x, mapSkolem);
+  registerCountTerm(countN);
+  inferInfo.d_conclusion = countA.eqNode(countN);
   return inferInfo;
 }
 
