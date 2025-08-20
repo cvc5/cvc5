@@ -56,7 +56,7 @@ bool GenericOp::operator==(const GenericOp& op) const
 
 bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
-  return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP
+  return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP || k == Kind::REGEXP_REPEAT
          || k == Kind::BITVECTOR_EXTRACT || k == Kind::BITVECTOR_REPEAT
          || k == Kind::BITVECTOR_ZERO_EXTEND || k == Kind::BITVECTOR_SIGN_EXTEND
          || k == Kind::BITVECTOR_ROTATE_LEFT
@@ -92,6 +92,12 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
     {
       const Divisible& op = n.getConst<Divisible>();
       indices.push_back(nm->mkConstInt(Rational(op.k)));
+      break;
+    }
+    case Kind::REGEXP_LOOP:
+    {
+      const RegExpLoop& op = n.getConst<RegExpRepeat>();
+      indices.push_back(nm->mkConstInt(Rational(op.d_repeatAmount)));
       break;
     }
     case Kind::REGEXP_LOOP:
