@@ -326,7 +326,7 @@ Node BoolProofRuleChecker::checkInternal(ProofRule id,
     else
     {
       Assert(args.size() == 3);
-      Assert (id==ProofRule::CHAIN_M_RESOLUTION);
+      Assert(id == ProofRule::CHAIN_M_RESOLUTION);
       pols.insert(pols.end(), args[1].begin(), args[1].end());
       lits.insert(lits.end(), args[2].begin(), args[2].end());
     }
