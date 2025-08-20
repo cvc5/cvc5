@@ -105,6 +105,10 @@ class Cvc5CApiAbortStream
   CVC5_API_CHECK((target) >= 0 && (target) < CVC5_FIND_SYNTH_TARGET_LAST) \
       << "invalid find synthesis target"
 
+#define CVC5_CAPI_CHECK_OPTION_CATEGORY(cat)                      \
+  CVC5_API_CHECK((cat) >= 0 && (cat) < CVC5_OPTION_CATEGORY_LAST) \
+      << "invalid option category"
+
 #define CVC5_CAPI_CHECK_INPUT_LANGUAGE(lang)                       \
   CVC5_API_CHECK((lang) >= 0 && (lang) < CVC5_INPUT_LANGUAGE_LAST) \
       << "invalid input language"

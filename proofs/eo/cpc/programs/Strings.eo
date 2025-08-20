@@ -6,7 +6,7 @@
 (include "../programs/Nary.eo")
 (include "../programs/PolyNorm.eo")
 (include "../programs/DistinctValues.eo")
-
+(include "../programs/Nfa.eo")
 
 ; This signature is used for both strings and sequences, where we often
 ; write "string" in the documentation to refer to a string or sequence,
@@ -167,7 +167,8 @@
 ;;-------------------- RE evaluation
 
 ; note: used to represent an invalid regular expression below.
-(declare-const @re.null RegLan)
+(declare-const @@re.null RegLan)
+(define @re.null () @@re.null)
 
 ; program: $str_eval_str_in_re_rec
 ; args:
@@ -229,9 +230,16 @@
 ; return: >
 ;   true if s is in regular expression r. Does not evaluate if s is not a string
 ;   literal.
+; note: This method attempts to use the NFA test whenever possible.
 (define $str_eval_str_in_re ((s String) (r RegLan))
   (eo::ite (eo::is_str s)
-    ($str_eval_str_in_re_rec s 0 r @re.null)
+    (eo::define ((nfa ($build_nfa r (@nfa.list @nfa.accept))))
+    (eo::ite (eo::is_ok nfa)
+      ; if this is supported by the NFA signature, use the faster test
+      ($nfa_match "" s nfa @nfa.decline)
+      ; otherwise, must use the backtracking method above.
+      ($str_eval_str_in_re_rec s 0 r @re.null)))
+    ; otherwise if s is not constant, we are unevaluated
     (str.in_re s r)))
 
 ;;;;; first match utilities
@@ -310,8 +318,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the prefix of term s of fixed length n.
 (define $str_prefix ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s 0 n)
-)
+  (str.substr s 0 n))
 
 ; define: $str_suffix_rem
 ; args:
@@ -320,8 +327,7 @@
 ; return: >
 ;   The term corresponding to the suffix of term s starting from position n.
 (define $str_suffix_rem ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s n (- (str.len s) n))
-)
+  (str.substr s n (- (str.len s) n)))
 
 ; define: $str_prefix_rem
 ; args:
@@ -329,8 +335,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the prefix of term s except for length n.
 (define $str_prefix_rem ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s 0 (- (str.len s) n))
-)
+  (str.substr s 0 (- (str.len s) n)))
 
 ; define: $str_suffix
 ; args:
@@ -338,8 +343,7 @@
 ; - n Int: A position in s.
 ; return: the term corresponding to the suffix of term s of length n.
 (define $str_suffix ((U Type :implicit) (s (Seq U)) (n Int))
-  (str.substr s (- (str.len s) n) n)
-)
+  (str.substr s (- (str.len s) n) n))
 
 ; program: $str_unify_split
 ; args:
@@ -381,6 +385,31 @@
 ;   t in s.
 (define $str_first_ctn_post ((U Type :implicit) (s (Seq U)) (t (Seq U)))
   ($str_suffix_rem s (+ (str.len (@purify ($str_first_ctn_pre s t))) (str.len t))))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s up to the first match of r in s.
+(define $re_first_match_pre ((s String) (r RegLan))
+  ($str_prefix s (str.indexof_re s r 0)))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s that is first shortest match of r in s.
+(define $re_first_match ((s String) (r RegLan))
+  (eo::define ((n (str.indexof_re s r 0)))
+    (str.substr s n (- (@strings_occur_index_re s r 1) n))))
+
+; define: $re_first_match_pre
+; args:
+; - s String: The string term.
+; - r RegLan: The regular expression.
+; return: the substring of s after the first shortest match of r in s.
+(define $re_first_match_post ((s String) (r RegLan))
+  ($str_suffix_rem s (@strings_occur_index_re s r 1)))
 
 ;;-------------------- Utilities
 
@@ -625,9 +654,9 @@
                            (= (occIndex (+ @var.str_index 1)) (+ ii (str.len y)))))))))))))))
     (($str_reduction_pred (str.replace_re s r t))
         (eo::define ((k (@purify (str.replace_re s r t))))
-        (eo::define ((k1 (@re_first_match_pre s r)))
-        (eo::define ((k2 (@re_first_match s r)))
-        (eo::define ((k3 (@re_first_match_post s r)))
+        (eo::define ((k1 (@purify ($re_first_match_pre s r))))
+        (eo::define ((k2 (@purify ($re_first_match s r))))
+        (eo::define ((k3 (@purify ($re_first_match_post s r))))
         (ite (= (str.indexof_re s r 0) -1)
           (= k s)
           (and (= s (str.++ k1 k2 k3))
@@ -644,7 +673,6 @@
         (eo::define ((numOcc (@strings_num_occur_re s r)))
         (eo::define ((result (@strings_replace_all_result (str.replace_re_all s r t))))
         (eo::define ((occIndex (@strings_occur_index_re s r)))
-        (eo::define ((occLen (@strings_occur_len_re s r)))
         (eo::define ((rnemp (re.diff r (str.to_re ""))))
         (eo::define ((ssl (str.substr s (occIndex numOcc) (str.len s))))
         (ite (= (str.indexof_re s rnemp 0) -1)
@@ -659,12 +687,11 @@
                   (or
                     (not (>= @var.str_index 0))
                     (not (< @var.str_index numOcc))
-                    (eo::define ((olen1 (occLen ip1)))
-                    (eo::define ((oindex1 (occIndex ip1)))
                     (eo::define ((oindex (occIndex @var.str_index)))
-                    (eo::define ((ii (- oindex1 olen1)))
+                    (eo::define ((ii (str.indexof_re s rnemp oindex)))
+                    (eo::define ((oindex1 (occIndex ip1)))
+                    (eo::define ((olen1 (- oindex1 ii)))
                       (and (> olen1 0)
-                           (= oindex1 (+ (str.indexof_re s rnemp (occIndex @var.str_index)) olen1))
                            (str.in_re (str.substr s ii olen1) rnemp)
                            (forall ((@var.str_length Int))
                              (or
@@ -673,7 +700,7 @@
                                (not (str.in_re (str.substr s ii @var.str_length) r))))
                            (= (result @var.str_index)
                               (str.++ (str.substr s oindex (- ii oindex)) t (result (+ @var.str_index 1))))
-                      ))))))))))))))))))
+                      )))))))))))))))))
     (($str_reduction_pred (str.indexof_re s r n))
         (eo::define ((k (@purify (str.indexof_re s r n))))
         (ite (or (> n (str.len s)) (> 0 n))
@@ -1883,7 +1910,7 @@
   )
 )
 
-; program: $str_eval_replace_all_rec
+; program: $str_eval_replace_all
 ; args:
 ; - s String: A string.
 ; - t String: A string to find.

@@ -269,3 +269,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Proof logging mode"
+
+[[option]]
+  name       = "proofPreSimpLookahead"
+  category   = "expert"
+  long       = "proof-pre-simp-lookahead=N"
+  type       = "uint64_t"
+  default    = "2"
+  help       = "the lookahead depth for merging proofs at previsit"

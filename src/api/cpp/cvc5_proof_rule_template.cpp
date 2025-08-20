@@ -339,6 +339,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_REPLACE_RE_ALL_EVAL:
       return "str-replace-re-all-eval";
     case ProofRewriteRule::RE_LOOP_ELIM: return "re-loop-elim";
+    case ProofRewriteRule::RE_EQ_ELIM: return "re-eq-elim";
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
       return "macro-re-inter-union-inclusion";
     case ProofRewriteRule::RE_INTER_INCLUSION: return "re-inter-inclusion";

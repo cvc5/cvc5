@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Daniel Larraz, Andrew Reynolds, Aina Niemetz
+#   Daniel Larraz, Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #

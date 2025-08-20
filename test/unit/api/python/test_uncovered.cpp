@@ -120,7 +120,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
   std::wstring s;
-  (void)slv.mkString(s);
+  (void)slv.mkString(s).getStringValue();
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());
   (void)slv.mkBitVector(32, 2);
@@ -245,6 +245,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::ProofComponent::FULL);
   ss << cvc5::modes::FindSynthTarget::ENUM
      << std::to_string(cvc5::modes::FindSynthTarget::ENUM);
+  ss << cvc5::modes::OptionCategory::EXPERT
+     << std::to_string(cvc5::modes::OptionCategory::EXPERT);
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
   ss << cvc5::modes::ProofFormat::LFSC
