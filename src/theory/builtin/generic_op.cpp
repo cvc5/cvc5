@@ -56,10 +56,10 @@ bool GenericOp::operator==(const GenericOp& op) const
 
 bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
-  return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP || k == Kind::REGEXP_REPEAT
-         || k == Kind::BITVECTOR_EXTRACT || k == Kind::BITVECTOR_REPEAT
-         || k == Kind::BITVECTOR_ZERO_EXTEND || k == Kind::BITVECTOR_SIGN_EXTEND
-         || k == Kind::BITVECTOR_ROTATE_LEFT
+  return k == Kind::DIVISIBLE || k == Kind::REGEXP_LOOP
+         || k == Kind::REGEXP_REPEAT || k == Kind::BITVECTOR_EXTRACT
+         || k == Kind::BITVECTOR_REPEAT || k == Kind::BITVECTOR_ZERO_EXTEND
+         || k == Kind::BITVECTOR_SIGN_EXTEND || k == Kind::BITVECTOR_ROTATE_LEFT
          || k == Kind::BITVECTOR_ROTATE_RIGHT || k == Kind::INT_TO_BITVECTOR
          || k == Kind::BITVECTOR_BIT || k == Kind::IAND
          || k == Kind::FLOATINGPOINT_TO_FP_FROM_FP
