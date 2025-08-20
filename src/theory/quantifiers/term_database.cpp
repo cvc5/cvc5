@@ -289,7 +289,7 @@ void TermDb::eqNotifyMerge(TNode t1, TNode t2)
     // Since the equivalence class of t1 and t2 merged, we now consider these
     // two terms to be relevant in the current context. Note technically this
     // does not mean that these terms are in assertions, e.g. t1 and t2 may be
-    // merge via congruence if a=b is an assertion and f(a) and f(b) are
+    // merged via congruence if a=b is an assertion and f(a) and f(b) are
     // preregistered terms. Nevertheless this is a close approximation of the
     // terms we care about. Since we are listening to the master equality
     // engine notifications, this also includes internally introduced terms
