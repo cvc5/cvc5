@@ -204,7 +204,7 @@ class Op(Enum):
     REGEXP_DIFF = ('re.diff', 'REGEXP_DIFF')
     REGEXP_STAR = ('re.*', 'REGEXP_STAR')
     REGEXP_PLUS = ('re.+', 'REGEXP_PLUS')
-    REGEXP_REPEAT = ('re.^', 'REGEXP_REPEAT')
+    REGEXP_REPEAT = ('re.repeat', 'REGEXP_REPEAT')
     REGEXP_OPT = ('re.opt', 'REGEXP_OPT')
     REGEXP_RANGE = ('re.range', 'REGEXP_RANGE')
     REGEXP_COMPLEMENT = ('re.comp', 'REGEXP_COMPLEMENT')

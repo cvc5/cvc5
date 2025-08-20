@@ -4636,6 +4636,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_DIFF_ELIM),
   /** Auto-generated from RARE rule re-plus-elim */
   EVALUE(RE_PLUS_ELIM),
+  /** Auto-generated from RARE rule re-repeat-elim */
+  EVALUE(RE_REPEAT_ELIM),
   /** Auto-generated from RARE rule re-concat-star-swap */
   EVALUE(RE_CONCAT_STAR_SWAP),
   /** Auto-generated from RARE rule re-concat-star-repeat */

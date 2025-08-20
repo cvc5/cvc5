@@ -94,9 +94,9 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(nm->mkConstInt(Rational(op.k)));
       break;
     }
-    case Kind::REGEXP_LOOP:
+    case Kind::REGEXP_REPEAT:
     {
-      const RegExpLoop& op = n.getConst<RegExpRepeat>();
+      const RegExpRepeat& op = n.getConst<RegExpRepeat>();
       indices.push_back(nm->mkConstInt(Rational(op.d_repeatAmount)));
       break;
     }
@@ -300,6 +300,9 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
       case Kind::DIVISIBLE:
         Assert(numerals.size() == 1);
         return nm->mkConst(Divisible(numerals[0]));
+      case Kind::REGEXP_REPEAT:
+        Assert(numerals.size() == 1);
+        return nm->mkConst(RegExpRepeat(numerals[0]));
       case Kind::REGEXP_LOOP:
         Assert(numerals.size() == 2);
         return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));
