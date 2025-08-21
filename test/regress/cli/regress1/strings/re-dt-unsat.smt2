@@ -1,3 +1,4 @@
+; COMMAND-LINE: --re-first-class
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatype List ((cons (head RegLan) (tail List)) (nil)))

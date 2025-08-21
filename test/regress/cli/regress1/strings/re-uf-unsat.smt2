@@ -1,3 +1,4 @@
+; COMMAND-LINE: --re-first-class
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun f (RegLan) Int)
