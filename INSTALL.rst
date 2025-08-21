@@ -124,6 +124,13 @@ code).
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
 
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+environment settings, and memory configuration pre-configured for web deployment.
+
 For example, to generate a HTML page, use:
 
 .. code:: bash
