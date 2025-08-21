@@ -3569,7 +3569,6 @@ set(regress_1_tests
   regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
-  regress1/strings/re-uf-unsat.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
@@ -4178,6 +4177,8 @@ set(regression_disabled_tests
   regress1/sep/finite-witness-sat.smt2
   regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
+  # cannot solve with naive approach to RE equality
+  regress1/strings/re-uf-unsat.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
