@@ -86,14 +86,14 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
 latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
@@ -123,6 +123,13 @@ code).
 `emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
+
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+environment settings, and memory configuration pre-configured for web deployment.
 
 For example, to generate a HTML page, use:
 
