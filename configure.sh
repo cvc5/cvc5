@@ -82,6 +82,7 @@ Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
   --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
   --wasm-web=CONFIG        use predefined web configuration for WASM compilation
+                           (takes precedence over --wasm and --wasm-flags)
                            Available configurations:
                              no-modular-static-page - Configuration for static web pages
 
