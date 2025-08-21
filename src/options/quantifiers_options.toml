@@ -1335,7 +1335,7 @@ name   = "Quantifiers"
   long       = "sygus-rec-fun"
   type       = "bool"
   default    = "true"
-  help       = "enable efficient support for recursive functions in sygus grammars"
+  help       = "enable efficient support for recursive functions in sygus"
 
 [[option]]
   name       = "sygusRecFunEvalLimit"
@@ -1344,6 +1344,14 @@ name   = "Quantifiers"
   type       = "uint64_t"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
+
+[[option]]
+  name       = "sygusRecFunInfer"
+  category   = "expert"
+  long       = "sygus-rec-fun-infer"
+  type       = "bool"
+  default    = "true"
+  help       = "automatically infer recursive definitions for sygus"
 
 [[option]]
   name       = "sygusVerifyInstMaxRounds"
