@@ -86,14 +86,14 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
 latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
