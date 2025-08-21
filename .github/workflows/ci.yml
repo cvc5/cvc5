@@ -113,7 +113,7 @@ jobs:
 
           - name: wasm:production
             os: ubuntu-22.04
-            config: production --static --static-binary --auto-download --wasm=HTML --wasm-flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
             cache-key: productionwasm
             wasm-build: true
             package-name: cvc5-wasm
@@ -308,7 +308,7 @@ jobs:
       uses: ./.github/actions/add-wasm
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
-        wasm-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-wasm
+        wasm-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}
         github-token-latest: ${{ secrets.GITHUB_TOKEN }}
         github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
