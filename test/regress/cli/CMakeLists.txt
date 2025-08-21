@@ -3562,12 +3562,14 @@ set(regress_1_tests
   regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
+  regress1/strings/re-dt-unsat.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-inc-range.smt2
   regress1/strings/re-inter-stack-ovf.smt2
   regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
+  regress1/strings/re-uf-unsat.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
