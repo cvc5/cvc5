@@ -552,7 +552,7 @@
 
 (define-rule re-plus-elim ((x RegLan)) (re.+ x) (re.++ x (re.* x)))
 
-(define-rule re-repeat-elim ((n Int) (x RegLan)) (re.repeat n x) (re.loop n n x))
+(define-rule re-repeat-elim ((n Int) (x RegLan)) (re.^ n x) (re.loop n n x))
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
