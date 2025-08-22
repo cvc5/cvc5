@@ -53,6 +53,7 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
   Assert(ee != nullptr);
   d_equalityEngine = ee;
+#if 0
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(
       Kind::APPLY_UF, false, logicInfo().isHigherOrder());
@@ -63,6 +64,7 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(Kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(Kind::APPLY_TESTER);
   d_equalityEngine->addFunctionKind(Kind::SEQ_NTH);
+#endif
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
