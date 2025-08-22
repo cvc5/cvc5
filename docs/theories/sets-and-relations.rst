@@ -140,6 +140,7 @@ Below is a more extensive example on how to use finite sets:
     <examples>/api/java/Sets.java
     <examples>/api/python/sets.py
     <examples>/api/smtlib/sets.smt2
+    :skip: py-pythonicapi
 
 
 Finite Relations
@@ -205,3 +206,4 @@ Example:
     <examples>/api/java/Relations.java
     <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2
+    :skip: py-pythonicapi

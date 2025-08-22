@@ -87,4 +87,4 @@ Below is a more extensive example on how to use finite bags:
     <examples>/api/java/Bags.java
     <examples>/api/python/bags.py
     <examples>/api/smtlib/bags.smt2
-
+    :skip: py-pythonicapi

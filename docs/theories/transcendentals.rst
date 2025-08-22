@@ -55,3 +55,4 @@ Examples
     <examples>/api/java/Transcendentals.java
     <examples>/api/python/transcendentals.py
     <examples>/api/smtlib/transcendentals.smt2
+    :skip: py-pythonicapi
