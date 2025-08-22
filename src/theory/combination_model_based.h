@@ -34,8 +34,8 @@ class CombinationModelBased : public CombinationEngine
 {
  public:
   CombinationModelBased(Env& env,
-                       TheoryEngine& te,
-                       const std::vector<Theory*>& paraTheories);
+                        TheoryEngine& te,
+                        const std::vector<Theory*>& paraTheories);
   ~CombinationModelBased();
 
   bool buildModel() override;

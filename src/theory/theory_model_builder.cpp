@@ -1355,9 +1355,10 @@ bool TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     Node vp = ntrie.addOrGetTerm(v, children);
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
-    if (vp!=v)
+    if (vp != v)
     {
-      Trace("ajr-temp") << "CONFLICT " << vp << " vs " << v << " for " << simp << std::endl;
+      Trace("ajr-temp") << "CONFLICT " << vp << " vs " << v << " for " << simp
+                        << std::endl;
     }
     ufmt.setValue(m, simp, v);
     if (dfvm == options::DefaultFunctionValueMode::FIRST)
