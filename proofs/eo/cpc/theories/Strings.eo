@@ -115,6 +115,7 @@
 
 (declare-const re.* (-> RegLan RegLan))
 (declare-const re.+ (-> RegLan RegLan))
+(declare-const re.^ (-> Int RegLan RegLan))
 (declare-const re.opt (-> RegLan RegLan))
 (declare-const re.comp (-> RegLan RegLan))
 (declare-const re.range (-> String String RegLan))
