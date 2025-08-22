@@ -1323,22 +1323,23 @@ bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 {
   if (m->areFunctionValuesEnabled())
   {
-    assignFunctions(m);
+    return assignFunctions(m);
   }
   return true;
 }
 
-void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
+bool TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
   Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   options::DefaultFunctionValueMode dfvm =
       options().theory.defaultFunctionValueMode;
   Node default_v;
-  for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
+  std::vector<Node>& uft = m->d_uf_terms[f];
+  TNodeTrie ntrie;
+  for (const Node& un : uft)
   {
-    Node un = m->d_uf_terms[f][i];
-    vector<TNode> children;
+    std::vector<TNode> children;
     children.push_back(f);
     Trace("model-builder-debug") << "  process term : " << un << std::endl;
     for (size_t j = 0; j < un.getNumChildren(); ++j)
@@ -1351,8 +1352,13 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     }
     Node simp = nodeManager()->mkNode(un.getKind(), children);
     Node v = m->getRepresentative(un);
+    Node vp = ntrie.addOrGetTerm(v, children);
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
+    if (vp!=v)
+    {
+      Trace("ajr-temp") << "CONFLICT " << vp << " vs " << v << " for " << simp << std::endl;
+    }
     ufmt.setValue(m, simp, v);
     if (dfvm == options::DefaultFunctionValueMode::FIRST)
     {
@@ -1387,9 +1393,10 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   Trace("model-builder-debug") << "...assign via function" << std::endl;
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );
+  return true;
 }
 
-void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
+bool TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
   Assert(logicInfo().isHigherOrder());
   Trace("model-builder-debug") << "Assign HO function " << f << std::endl;
@@ -1488,13 +1495,14 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
       Kind::LAMBDA, nodeManager()->mkNode(Kind::BOUND_VAR_LIST, args), curr);
   Trace("model-builder-debug") << "...assign via ho function" << std::endl;
   m->assignFunctionDefinition(f, val);
+  return true;
 }
 
-void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
+bool TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 {
   if (!options().theory.assignFunctionValues)
   {
-    return;
+    return true;
   }
   Trace("model-builder") << "Assigning function values..." << std::endl;
   std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
@@ -1519,6 +1527,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     }
   }
 
+  bool allSuccess = true;
   // construct function values
   for (unsigned k = 0; k < funcs_to_assign.size(); k++)
   {
@@ -1528,16 +1537,23 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     {
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on APPLY_UF" << std::endl;
-      assignFunction(m, f);
+      if (!assignFunction(m, f))
+      {
+        allSuccess = false;
+      }
     }
     else
     {
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on curried HO_APPLY" << std::endl;
-      assignHoFunction(m, f);
+      if (!assignHoFunction(m, f))
+      {
+        allSuccess = false;
+      }
     }
   }
   Trace("model-builder") << "Finished assigning function values." << std::endl;
+  return allSuccess;
 }
 
 }  // namespace theory
