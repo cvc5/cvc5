@@ -136,7 +136,7 @@ bool TheoryUF::needsCheckLastEffort()
 {
   // last call effort needed if using finite model finding or
   // arithmetic/bit-vector conversions
-  return d_thss != nullptr || d_csolver != nullptr;
+  return d_thss != nullptr || d_csolver != nullptr || d_ho!=nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)

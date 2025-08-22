@@ -518,6 +518,7 @@ void TheoryEngine::check(Theory::Effort effort) {
             {
               if (!d_tc->buildModel())
               {
+                Trace("ajr-temp") << "Failed at " << theoryId << std::endl;
                 // We don't check if the model building fails, but for
                 // uniformity ask all theories needsCheckLastEffort method.
                 continue;
@@ -527,6 +528,7 @@ void TheoryEngine::check(Theory::Effort effort) {
           }
         }
       }
+                Trace("ajr-temp") << "Now here " << d_inConflict << std::endl;
       if (!d_inConflict)
       {
         if (logicInfo().isQuantified())

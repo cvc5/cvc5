@@ -353,6 +353,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                    && edeq[0].getKind() == Kind::EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
+            bool success = true;
             for (unsigned r = 0; r < 2; r++)
             {
               if (!collectModelInfoHoTerm(edeq[0][r], m))
@@ -369,36 +370,50 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 {
                   TypeEnumerator te(tnk);
                   Node v = *te;
-                  m->assertEquality(hk, v, true);
+                  if (!m->assertEquality(hk, v, true))
+                  {
+                    AlwaysAssert(false);
+                    success = false;
+                    break;
+                  }
                 }
               }
+              if (!success)
+              {
+                break;
+              }
             }
-            bool success = false;
-            TypeNode tn = edeq[0][0].getType();
-            Trace("uf-ho-debug")
-                << "Add extensionality deq to model for : " << edeq
-                << std::endl;
-            if (d_env.isFiniteType(tn))
+            if (success)
             {
-              // We are an infinite function type with a finite range sort.
-              // Model construction assigns the first value for all
-              // unconstrained variables for such sorts, which does not
-              // suffice in this context since we are trying to make the
-              // functions disequal. Thus, for such case we enumerate the first
-              // two values for this sort and set the extensionality index to
-              // be equal to these two distinct values.  There must be at least
-              // two values since this is an infinite function sort.
-              TypeEnumerator te(tn);
-              Node v1 = *te;
-              te++;
-              Node v2 = *te;
-              Assert(!v2.isNull() && v2 != v1);
-              success = m->assertEquality(edeq[0][0], v1, true)
-                        && m->assertEquality(edeq[0][1], v2, true);
-            }
-            else
-            {
-              success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+              TypeNode tn = edeq[0][0].getType();
+              Trace("uf-ho-debug")
+                  << "Add extensionality deq to model for : " << edeq
+                  << std::endl;
+              if (d_env.isFiniteType(tn))
+              {
+                // We are an infinite function type with a finite range sort.
+                // Model construction assigns the first value for all
+                // unconstrained variables for such sorts, which does not
+                // suffice in this context since we are trying to make the
+                // functions disequal. Thus, for such case we enumerate the first
+                // two values for this sort and set the extensionality index to
+                // be equal to these two distinct values.  There must be at least
+                // two values since this is an infinite function sort.
+                TypeEnumerator te(tn);
+                Node v1 = *te;
+                te++;
+                Node v2 = *te;
+                Assert(!v2.isNull() && v2 != v1);
+                success = m->assertEquality(edeq[0][0], v1, true);
+                if (success)
+                {
+                  success = m->assertEquality(edeq[0][1], v2, true);
+                }
+              }
+              else
+              {
+                success = m->assertEquality(edeq[0][0], edeq[0][1], false);
+              }
             }
             if (!success)
             {
