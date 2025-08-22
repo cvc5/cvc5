@@ -136,6 +136,7 @@ Below is a more extensive example on how to use finite sets:
 
 .. api-examples::
     <examples>/api/cpp/sets.cpp
+    <examples>/api/c/sets.c
     <examples>/api/java/Sets.java
     <examples>/api/python/sets.py
     <examples>/api/smtlib/sets.smt2
@@ -200,6 +201,7 @@ Example:
 
 .. api-examples::
     <examples>/api/cpp/relations.cpp
+    <examples>/api/c/relations.c
     <examples>/api/java/Relations.java
     <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2
