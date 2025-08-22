@@ -18,6 +18,7 @@ set(CVC5_EXAMPLES_API_CPP
   bitvectors_and_arrays
   combination
   datatypes
+  exceptions
   extract
   helloworld
   linear_arith
