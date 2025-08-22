@@ -730,6 +730,22 @@ class CVC5_EXPORT GetValueCommand : public Cmd
   void toStream(std::ostream& out) const override;
 }; /* class GetValueCommand */
 
+class CVC5_EXPORT GetSortElementsCommand : public Cmd
+{
+ protected:
+  cvc5::Sort d_sort;
+  std::vector<cvc5::Term> d_result;
+
+ public:
+  GetSortElementsCommand(cvc5::Sort sort);
+  cvc5::Sort getSort() const;
+  const std::vector<cvc5::Term>& getResult() const;
+  void invoke(cvc5::Solver* solver, parser::SymManager* sm) override;
+  void printResult(cvc5::Solver* solver, std::ostream& out) const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out) const override;
+}; /* class GetSortElementsCommand */
+
 class CVC5_EXPORT GetAssignmentCommand : public Cmd
 {
  protected:

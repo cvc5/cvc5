@@ -441,6 +441,11 @@ void Printer::toStreamCmdGetValue(std::ostream& out,
   printUnknownCommand(out, "get-value");
 }
 
+void Printer::toStreamCmdGetSortElements(std::ostream& out, TypeNode type) const
+{
+  printUnknownCommand(out, "get-sort-elements");
+}
+
 void Printer::toStreamCmdGetAssignment(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assignment");

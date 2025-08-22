@@ -206,6 +206,19 @@ void Smt2Printer::toStream(std::ostream& out, Kind k) const
   out << smtKindString(k);
 }
 
+void toStreamUninterpretedSortValue(std::ostream& out,
+                                    const UninterpretedSortValue& v)
+{
+  if (v.getType().isInstantiated())
+  {
+    out << "|" << v << "|";
+  }
+  else
+  {
+    out << v;
+  }
+}
+
 bool Smt2Printer::toStreamBase(std::ostream& out,
                                TNode n,
                                const LetBinding* lbind,
@@ -385,9 +398,9 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
     case Kind::UNINTERPRETED_SORT_VALUE:
     {
       const UninterpretedSortValue& v = n.getConst<UninterpretedSortValue>();
-      std::stringstream ss;
-      ss << "(as " << v << " " << n.getType() << ")";
-      out << ss.str();
+      out << "(as ";
+      toStreamUninterpretedSortValue(out, v);
+      out << " " << n.getType() << ")";
       break;
     }
     case Kind::CARDINALITY_CONSTRAINT_OP:
@@ -1601,7 +1614,9 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
       // prints as raw symbol
       const UninterpretedSortValue& av =
           trn.getConst<UninterpretedSortValue>();
-      out << "(" << av << ")";
+      out << "(";
+      toStreamUninterpretedSortValue(out, av);
+      out << ")";
     }
     out << "))" << std::endl;
     return;
@@ -1625,7 +1640,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         // prints as raw symbol
         const UninterpretedSortValue& av =
             trn.getConst<UninterpretedSortValue>();
-        out << av;
+        toStreamUninterpretedSortValue(out, av);
       }
       else
       {
@@ -1956,6 +1971,12 @@ void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
   out << "(get-value ( ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, " "));
   out << "))";
+}
+
+void Smt2Printer::toStreamCmdGetSortElements(std::ostream& out,
+                                             TypeNode type) const
+{
+  out << "(get-sort-elements " << type << ")";
 }
 
 void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const

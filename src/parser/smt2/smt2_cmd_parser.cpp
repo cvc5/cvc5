@@ -58,6 +58,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
   d_table["get-unsat-core"] = Token::GET_UNSAT_CORE_TOK;
   d_table["get-unsat-core-lemmas"] = Token::GET_UNSAT_CORE_LEMMAS_TOK;
   d_table["get-value"] = Token::GET_VALUE_TOK;
+  d_table["get-sort-elements"] = Token::GET_SORT_ELEMENTS_TOK;
   d_table["pop"] = Token::POP_TOK;
   d_table["push"] = Token::PUSH_TOK;
   d_table["reset-assertions"] = Token::RESET_ASSERTIONS_TOK;
@@ -761,6 +762,14 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       }
       cmd.reset(new GetValueCommand(terms));
       d_state.popScope();
+    }
+    break;
+    // (get-sort-elements <sort>)
+    case Token::GET_SORT_ELEMENTS_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cvc5::Sort sort = d_tparser.parseSort();
+      cmd.reset(new GetSortElementsCommand(sort));
     }
     break;
     // (inv-constraint <symbol> <symbol> <symbol> <symbol>)
