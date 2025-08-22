@@ -35,6 +35,7 @@
 #include "smt/logic_exception.h"
 #include "smt/solver_engine_state.h"
 #include "theory/combination_care_graph.h"
+#include "theory/combination_model_based.h"
 #include "theory/conflict_processor.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_manager_central.h"
@@ -136,6 +137,10 @@ void TheoryEngine::finishInit()
   if (options().theory.tcMode == options::TcMode::CARE_GRAPH)
   {
     d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
+  }
+  else if (options().theory.tcMode == options::TcMode::MODEL_BASED)
+  {
+    d_tc.reset(new CombinationModelBased(d_env, *this, paraTheories));
   }
   else
   {

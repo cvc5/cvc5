@@ -15,12 +15,11 @@
 
 #include "theory/combination_model_based.h"
 
-#include "expr/node_visitor.h"
-#include "prop/prop_engine.h"
-#include "theory/care_graph.h"
 #include "theory/model_manager.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_model.h"
+#include "expr/node_trie.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -35,15 +34,84 @@ CombinationModelBased::~CombinationModelBased() {}
 
 void CombinationModelBased::combineTheories()
 {
-  std::vector<Node> conflicts;
+  Trace("combination-mb") << "CombinationModelBased::combineTheories" << std::endl;
+  // go ahead and build the model now
   if (!d_mmanager->buildModel())
   {
-    for (const Node& c : conflicts)
+    Trace("combination-mb") << "...failed build model" << std::endl;
+    return;
+  }
+  std::map<Kind, NodeTrie> tries;
+  // must double check 
+  TheoryModel* tm = d_mmanager->getModel();
+  eq::EqualityEngine* ee = tm->getEqualityEngine();
+  eq::EqClassesIterator eqsi = eq::EqClassesIterator(ee);
+  std::vector<Node> splits;
+  while (!eqsi.isFinished())
+  {
+    Node r = (*eqsi);
+    eq::EqClassIterator eqi = eq::EqClassIterator(r, ee);
+    while (!eqi.isFinished())
     {
-      TrustNode tc = TrustNode::mkTrustLemma(c, nullptr);
-      d_sharedSolver->sendLemma(
-          tc, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT);
+      Node n = (*eqi);
+      ++eqi;
+      if (n.getNumChildren()==0)
+      {
+        continue;
+      }
+      NodeTrie& nt = tries[n.getKind()];
+      std::vector<Node> reps;
+      if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        reps.push_back(n.getOperator());
+      }
+      for (const Node& nc : n)
+      {
+        reps.emplace_back(tm->getRepresentative(nc));
+      }
+      Node nother = nt.addOrGetTerm(n, reps);
+      if (nother==n)
+      {
+        continue;
+      }
+      Node rother = tm->getRepresentative(nother);
+      if (rother!=r)
+      {
+        Assert (nother.getNumChildren()==n.getNumChildren());
+        Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
+        for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+        {
+          if (!ee->hasTerm(nother[i]) || !ee->hasTerm(n[i]) || !ee->areEqual(nother[i], n[i]))
+          {
+            Node eq = nother[i].eqNode(n[i]);
+            Trace("combination-mb") << "...split on " << eq << std::endl;
+            splits.push_back(eq);
+          }
+        }
+      }
     }
+    ++eqsi;
+  }
+  if (splits.empty())
+  {
+    Trace("combination-mb") << "...success" << std::endl;
+    return;
+  }
+  for (const Node& eq : splits)
+  {
+    TrustNode tsplit;
+    if (isProofEnabled())
+    {
+      // make proof of splitting lemma
+      tsplit = d_cmbsPg->mkTrustNodeSplit(eq);
+    }
+    else
+    {
+      Node split = eq.orNode(eq.notNode());
+      tsplit = TrustNode::mkTrustLemma(split, nullptr);
+    }
+    d_sharedSolver->sendLemma(
+        tsplit, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT);
   }
 }
 
