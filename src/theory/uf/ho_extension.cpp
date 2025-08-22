@@ -372,7 +372,6 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                   Node v = *te;
                   if (!m->assertEquality(hk, v, true))
                   {
-                    AlwaysAssert(false);
                     success = false;
                     break;
                   }
