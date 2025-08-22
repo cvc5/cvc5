@@ -1973,10 +1973,10 @@ void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
   out << "))";
 }
 
-void Smt2Printer::toStreamCmdGetSortElements(std::ostream& out,
-                                             TypeNode type) const
+void Smt2Printer::toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                    TypeNode type) const
 {
-  out << "(get-sort-elements " << type << ")";
+  out << "(get-model-domain-elements " << type << ")";
 }
 
 void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const

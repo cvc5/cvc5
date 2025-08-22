@@ -236,9 +236,9 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdGetValue(std::ostream& out,
                                    const std::vector<Node>& nodes) const;
 
-  /** Print get-sort-elements command */
-  virtual void toStreamCmdGetSortElements(std::ostream& out,
-                                          TypeNode type) const;
+  /** Print get-model-domain-elements command */
+  virtual void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                 TypeNode type) const;
 
   /** Print get-assignment command */
   virtual void toStreamCmdGetAssignment(std::ostream& out) const;

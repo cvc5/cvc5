@@ -1450,16 +1450,17 @@ void GetValueCommand::toStream(std::ostream& out) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class GetSortElementsCommand                                               */
+/* class GetModelDomainElementsCommand                                        */
 /* -------------------------------------------------------------------------- */
 
-GetSortElementsCommand::GetSortElementsCommand(cvc5::Sort sort) : d_sort(sort)
+GetModelDomainElementsCommand::GetModelDomainElementsCommand(cvc5::Sort sort)
+    : d_sort(sort)
 {
 }
 
-cvc5::Sort GetSortElementsCommand::getSort() const { return d_sort; }
+cvc5::Sort GetModelDomainElementsCommand::getSort() const { return d_sort; }
 
-void GetSortElementsCommand::invoke(cvc5::Solver* solver, SymManager* sm)
+void GetModelDomainElementsCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
@@ -1476,13 +1477,13 @@ void GetSortElementsCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   }
 }
 
-const std::vector<cvc5::Term>& GetSortElementsCommand::getResult() const
+const std::vector<cvc5::Term>& GetModelDomainElementsCommand::getResult() const
 {
   return d_result;
 }
 
-void GetSortElementsCommand::printResult(cvc5::Solver* solver,
-                                         std::ostream& out) const
+void GetModelDomainElementsCommand::printResult(cvc5::Solver* solver,
+                                                std::ostream& out) const
 {
   out << "(";
   bool firstTime = true;
@@ -1501,14 +1502,14 @@ void GetSortElementsCommand::printResult(cvc5::Solver* solver,
   out << ")" << std::endl;
 }
 
-std::string GetSortElementsCommand::getCommandName() const
+std::string GetModelDomainElementsCommand::getCommandName() const
 {
-  return "get-sort-elements";
+  return "get-model-domain-elements";
 }
 
-void GetSortElementsCommand::toStream(std::ostream& out) const
+void GetModelDomainElementsCommand::toStream(std::ostream& out) const
 {
-  internal::Printer::getPrinter(out)->toStreamCmdGetSortElements(
+  internal::Printer::getPrinter(out)->toStreamCmdGetModelDomainElements(
       out, sortToTypeNode(d_sort));
 }
 
