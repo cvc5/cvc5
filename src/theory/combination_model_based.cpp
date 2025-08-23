@@ -24,6 +24,13 @@
 namespace cvc5::internal {
 namespace theory {
 
+class RepInfo
+{
+public:
+  Node d_baseRep;
+  std::map<Node, std::vector<Node>> d_congTerms;
+};
+
 CombinationModelBased::CombinationModelBased(
     Env& env, TheoryEngine& te, const std::vector<Theory*>& paraTheories)
     : CombinationEngine(env, te, paraTheories)
@@ -58,10 +65,14 @@ void CombinationModelBased::combineTheories()
   eq::EqualityEngine* ee = tm->getEqualityEngine();
   eq::EqClassesIterator eqsi = eq::EqClassesIterator(ee);
   std::vector<Node> splits;
+  bool hasConflict = false;
+  std::map<Node, RepInfo> d_rinfo;
+  std::unordered_set<Node> eqProcessed;
   while (!eqsi.isFinished())
   {
     Node r = (*eqsi);
     eq::EqClassIterator eqi = eq::EqClassIterator(r, ee);
+    Node rcur = tm->getRepresentative(r);
     while (!eqi.isFinished())
     {
       Node n = (*eqi);
@@ -70,8 +81,12 @@ void CombinationModelBased::combineTheories()
       {
         continue;
       }
+      else if (n.isClosure())
+      {
+        continue;
+      }
       Trace("combination-mb-terms") << "Check term: " << n << std::endl;
-      if (!d_sharedSolver->isPreregistered(n))
+      if (false && !d_sharedSolver->isPreregistered(n))
       {
         Trace("combination-mb-terms") << "Not preregistered: " << n << std::endl;
         continue;
@@ -84,6 +99,7 @@ void CombinationModelBased::combineTheories()
       }
       else if (NodeManager::isNAryKind(k))
       {
+        // don't do on variadic kinds, e.g. +, str.++
         continue;
       }
       NodeTrie& nt = tries[k];
@@ -91,32 +107,63 @@ void CombinationModelBased::combineTheories()
       {
         reps.emplace_back(tm->getRepresentative(nc));
       }
-      Node nother = nt.addOrGetTerm(n, reps);
-      if (nother==n)
+      Node ncrep = nt.addOrGetTerm(n, reps);
+      if (ncrep==n)
       {
         continue;
       }
-      Node rother = tm->getRepresentative(nother);
-      if (rother!=r)
+      RepInfo& ri = d_rinfo[ncrep];
+      // initialize if necessary
+      if (ri.d_congTerms.empty())
       {
-        Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
-        Assert (nother.getNumChildren()==n.getNumChildren());
-        for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
+        Node br = tm->getRepresentative(ncrep);
+        ri.d_congTerms[br].push_back(ncrep);
+      }
+      ri.d_congTerms[rcur].push_back(n);
+      for (const std::pair<const Node, std::vector<Node>>& cts : ri.d_congTerms)
+      {
+        if (cts.first==rcur)
         {
-          if (nother[i]==n[i])
+          continue;
+        }
+        for (const Node& nother : cts.second)
+        {
+          hasConflict = true;
+          Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
+          Trace("combination-mb") << "...reps are " << rcur << " and " << cts.first << std::endl;
+          Assert (nother.getNumChildren()==n.getNumChildren());
+          for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
           {
-            continue;
+            if (nother[i]==n[i])
+            {
+              // reflexive equality, not the issue
+              continue;
+            }
+            // otherwise see if it is a pair of preregistered terms that are neither asserted
+            // to be equal or disequal.
+            Trace("combination-mb") << "Check argument " << nother[i] << " vs " << n[i] << std::endl;
+            if (!d_sharedSolver->isPreregistered(nother[i]) || !d_sharedSolver->isPreregistered(n[i]))
+            {
+              Trace("combination-mb") << "...not preregistered" << std::endl;
+              continue;
+            }
+            Node eq = nother[i].eqNode(n[i]);
+            if (!eqProcessed.insert(eq).second)
+            {
+              // already processed
+              continue;
+            }
+            // if the equality has already been asserted, don't split
+            theory::EqualityStatus es = d_te.getEqualityStatus(nother[i], n[i]);
+            Trace("combination-mb") << "...status is " << es << std::endl;
+            if (es != EQUALITY_FALSE_IN_MODEL && es != EQUALITY_TRUE_IN_MODEL && es != EQUALITY_UNKNOWN)
+            {
+              // already asserted
+              continue;
+            }
+            Trace("combination-mb") << "...split on " << eq << std::endl;
+            splits.push_back(eq);
           }
-          Trace("combination-mb") << "Check equality status " << nother[i] << " vs " << n[i] << std::endl;
-          // if the equality has already been asserted, don't split
-          theory::EqualityStatus es = d_te.getEqualityStatus(nother[i], n[i]);
-          if (es != EQUALITY_FALSE_IN_MODEL && es != EQUALITY_TRUE_IN_MODEL && es != EQUALITY_UNKNOWN)
-          {
-            continue;
-          }
-          Node eq = nother[i].eqNode(n[i]);
-          Trace("combination-mb") << "...split on " << eq << std::endl;
-          splits.push_back(eq);
         }
       }
     }
@@ -124,6 +171,12 @@ void CombinationModelBased::combineTheories()
   }
   if (splits.empty())
   {
+    /*
+    if (hasConflict)
+    {
+      Unhandled() << "Model has conflict but failed to find split";
+    }
+    */
     Trace("combination-mb") << "...success" << std::endl;
     return;
   }
