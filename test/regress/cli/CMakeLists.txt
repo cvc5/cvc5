@@ -2613,6 +2613,7 @@ set(regress_1_tests
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
   regress1/cores/issue6988-arith-sanity.smt2
+  regress1/datatypes/nullables/dd_nullables8-m-add-term.smt2
   regress1/datatypes/nullables/nullables1.smt2
   regress1/datatypes/nullables/nullables2.smt2
   regress1/datatypes/nullables/nullables3.smt2
