@@ -70,6 +70,12 @@ void CombinationModelBased::combineTheories()
       {
         continue;
       }
+      Trace("combination-mb-terms") << "Check term: " << n << std::endl;
+      if (!d_sharedSolver->isPreregistered(n))
+      {
+        Trace("combination-mb-terms") << "Not preregistered: " << n << std::endl;
+        continue;
+      }
       Kind k = n.getKind();
       std::vector<Node> reps;
       if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -97,12 +103,20 @@ void CombinationModelBased::combineTheories()
         Assert (nother.getNumChildren()==n.getNumChildren());
         for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
         {
-          if (!ee->hasTerm(nother[i]) || !ee->hasTerm(n[i]) || !ee->areEqual(nother[i], n[i]))
+          if (nother[i]==n[i])
           {
-            Node eq = nother[i].eqNode(n[i]);
-            Trace("combination-mb") << "...split on " << eq << std::endl;
-            splits.push_back(eq);
+            continue;
           }
+          Trace("combination-mb") << "Check equality status " << nother[i] << " vs " << n[i] << std::endl;
+          // if the equality has already been asserted, don't split
+          theory::EqualityStatus es = d_te.getEqualityStatus(nother[i], n[i]);
+          if (es != EQUALITY_FALSE_IN_MODEL && es != EQUALITY_TRUE_IN_MODEL && es != EQUALITY_UNKNOWN)
+          {
+            continue;
+          }
+          Node eq = nother[i].eqNode(n[i]);
+          Trace("combination-mb") << "...split on " << eq << std::endl;
+          splits.push_back(eq);
         }
       }
     }
@@ -127,7 +141,7 @@ void CombinationModelBased::combineTheories()
       tsplit = TrustNode::mkTrustLemma(split, nullptr);
     }
     d_sharedSolver->sendLemma(
-        tsplit, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT);
+        tsplit, TheoryId::THEORY_BUILTIN, InferenceId::COMBINATION_SPLIT_MB);
   }
 }
 
