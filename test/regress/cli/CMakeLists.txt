@@ -3565,6 +3565,7 @@ set(regress_1_tests
   regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
+  regress1/strings/re-dt-sat.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-inc-range.smt2
   regress1/strings/re-inter-stack-ovf.smt2
@@ -4115,6 +4116,8 @@ set(regression_disabled_tests
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   # previously was an options error, now times out
   regress0/strings/issue7974-incomplete-neg-member.smt2
+  # demonstrates instance where RE inference in necessary, times out
+  regress1/strings/re-uf.smt2
   ###
   regress1/bags/all2.smt2
   regress1/bags/card3.smt2
@@ -4177,6 +4180,8 @@ set(regression_disabled_tests
   regress1/sep/finite-witness-sat.smt2
   regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
+  # cannot solve with naive approach to RE equality
+  regress1/strings/re-uf-unsat.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
