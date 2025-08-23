@@ -7,3 +7,4 @@ Exception Handling
     <examples>/api/java/Exceptions.java
     <examples>/api/python/exceptions.py
     <pythonicapi>/test/pgms/example_exceptions.py
+    :skip: c, smt2
