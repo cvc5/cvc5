@@ -122,13 +122,21 @@ void CombinationModelBased::combineTheories()
       ri.d_congTerms[rcur].push_back(n);
       for (const std::pair<const Node, std::vector<Node>>& cts : ri.d_congTerms)
       {
-        if (cts.first==rcur)
-        {
-          continue;
-        }
         for (const Node& nother : cts.second)
         {
-          hasConflict = true;
+          if (cts.first==rcur)
+          {
+            if (n==nother)
+            {
+              continue;
+            }
+            // even if made equal, we need to check arguments
+            // TODO: could maybe skip if TRUE or TRUE_IN_MODEL
+          }
+          else
+          {
+            hasConflict = true;
+          }
           Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
           Trace("combination-mb") << "...reps are " << rcur << " and " << cts.first << std::endl;
           Assert (nother.getNumChildren()==n.getNumChildren());
@@ -142,9 +150,9 @@ void CombinationModelBased::combineTheories()
             // otherwise see if it is a pair of preregistered terms that are neither asserted
             // to be equal or disequal.
             Trace("combination-mb") << "Check argument " << nother[i] << " vs " << n[i] << std::endl;
-            if (!d_sharedSolver->isPreregistered(nother[i]) || !d_sharedSolver->isPreregistered(n[i]))
+            if (!d_sharedSolver->isShared(nother[i]) || !d_sharedSolver->isShared(n[i]))
             {
-              Trace("combination-mb") << "...not preregistered" << std::endl;
+              Trace("combination-mb") << "...not shared" << std::endl;
               continue;
             }
             Node eq = nother[i].eqNode(n[i]);
