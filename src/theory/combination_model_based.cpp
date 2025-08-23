@@ -32,9 +32,20 @@ CombinationModelBased::CombinationModelBased(
 
 CombinationModelBased::~CombinationModelBased() {}
 
+void CombinationModelBased::resetModel()
+{
+  Trace("combination-mb") << "reset model" << std::endl;
+  // already reset/built
+  if (!logicInfo().isSharingEnabled())
+  {
+    d_mmanager->resetModel();
+  }
+}
+  
 void CombinationModelBased::combineTheories()
 {
   Trace("combination-mb") << "CombinationModelBased::combineTheories" << std::endl;
+  d_mmanager->resetModel();
   // go ahead and build the model now
   if (!d_mmanager->buildModel())
   {
@@ -59,12 +70,17 @@ void CombinationModelBased::combineTheories()
       {
         continue;
       }
-      NodeTrie& nt = tries[n.getKind()];
+      Kind k = n.getKind();
       std::vector<Node> reps;
       if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         reps.push_back(n.getOperator());
       }
+      else if (NodeManager::isNAryKind(k))
+      {
+        continue;
+      }
+      NodeTrie& nt = tries[k];
       for (const Node& nc : n)
       {
         reps.emplace_back(tm->getRepresentative(nc));
@@ -77,8 +93,8 @@ void CombinationModelBased::combineTheories()
       Node rother = tm->getRepresentative(nother);
       if (rother!=r)
       {
-        Assert (nother.getNumChildren()==n.getNumChildren());
         Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
+        Assert (nother.getNumChildren()==n.getNumChildren());
         for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
         {
           if (!ee->hasTerm(nother[i]) || !ee->hasTerm(n[i]) || !ee->areEqual(nother[i], n[i]))

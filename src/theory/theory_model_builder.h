@@ -179,7 +179,7 @@ class TheoryEngineModelBuilder : protected EnvObj
   *                 (ite (and (= x 0) (= y 2)) 2
   *                 (ite (and (= x 1) (= y 1)) 3 ...)))
   */
-  bool assignFunction(TheoryModel* m, Node f);
+  void assignFunction(TheoryModel* m, Node f);
   /** assign function f based on the model m.
   * This construction is based on "dag form". For example:
   * (f 0 1) = 1
@@ -202,7 +202,7 @@ class TheoryEngineModelBuilder : protected EnvObj
   * f = (lambda xy. (ite (= x 0) ((f 0) y)
   *                 (ite (= x 1) ((f 1) y) ...))
   */
-  bool assignHoFunction(TheoryModel* m, Node f);
+  void assignHoFunction(TheoryModel* m, Node f);
   /** assign functions
    *
    * Assign all unassigned functions in the model m (those returned by
@@ -211,7 +211,7 @@ class TheoryEngineModelBuilder : protected EnvObj
    * If HO logic is disabled, we call assignFunction for all functions.
    * If HO logic is enabled, we call assignHoFunction.
    */
-  bool assignFunctions(TheoryModel* m);
+  void assignFunctions(TheoryModel* m);
 
  private:
   /** normalized cache
