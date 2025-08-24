@@ -910,6 +910,8 @@ enum class InferenceId
   STRINGS_CMI_SPLIT,
   // constant sequence purification
   STRINGS_CONST_SEQ_PURIFY,
+  // regular expression equality equivalence
+  STRINGS_RE_EQ_ELIM_EQUIV,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory

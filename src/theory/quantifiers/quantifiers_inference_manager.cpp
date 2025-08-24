@@ -82,7 +82,7 @@ void QuantifiersInferenceManager::endCallDebug()
     // trace and output is not enabled
     return;
   }
-  Assert(numPendingLemmas() > d_debugNumPendingLemmas);
+  Assert(numPendingLemmas() >= d_debugNumPendingLemmas);
   size_t numLemmas = numPendingLemmas() - d_debugNumPendingLemmas;
   clock_t endTimeStamp = clock() - d_debugTimeStamp;
   double time =
