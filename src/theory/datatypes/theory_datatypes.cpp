@@ -1843,13 +1843,18 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     }
     // scan the equivalence class
     bool foundCons = false;
+    bool hasRlv = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
     while (!eqc_i.isFinished())
     {
       TNode n = *eqc_i;
       ++eqc_i;
-      if (n.getKind() == Kind::APPLY_CONSTRUCTOR
-          && termSet.find(n) != termSet.end())
+      if (termSet.find(n) == termSet.end())
+      {
+        continue;
+      }
+      hasRlv = true;
+      if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
       {
         // change the recorded constructor to be a relevant one
         ei->d_constructor = n;
@@ -1857,17 +1862,17 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
         break;
       }
     }
+    // if no relevant terms whatsoever, we skip
+    if (!hasRlv)
+    {
+      continue;
+    }
     // If there are no constructors that are relevant, we consider the
     // recorded constructor to be relevant.
     if (!foundCons)
     {
       Node cons = ei->d_constructor.get();
       termSet.insert(cons);
-      // its arguments are also relevant
-      for (const Node& nc : cons)
-      {
-        termSet.insert(nc);
-      }
     }
   }
 }
