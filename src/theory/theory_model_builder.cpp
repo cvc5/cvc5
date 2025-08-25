@@ -1353,10 +1353,6 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     Node simp = nodeManager()->mkNode(un.getKind(), children);
     Node v = m->getRepresentative(un);
     Node vprev = nt.addOrGetTerm(v, children);
-    if (vprev!=v)
-    {
-      Trace("model-builder") << "WARNING: overwrite " << v << " vs " << vprev << std::endl;
-    }
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
     ufmt.setValue(m, simp, v);
