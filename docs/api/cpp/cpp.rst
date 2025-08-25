@@ -32,7 +32,6 @@ entry point to cvc5.
     classes/optioninfo
     classes/plugin
     classes/proof
-    enums/proofrule
     classes/result
     enums/roundingmode
     classes/solver
@@ -85,8 +84,11 @@ Class hierarchy
   * enum class :doc:`enums/sortkind`
   * enum class :doc:`enums/roundingmode`
   * enum class :doc:`enums/unknownexplanation`
-  * enum class :cpp:enum:`ProofRule <cvc5::ProofRule>`
-  * enum class :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>`
+
+  * enum classes for :doc:`proof rules <enums/proofrule>`
+
+    * enum class :cpp:enum:`ProofRule <cvc5::ProofRule>`
+    * enum class :cpp:enum:`ProofRewriteRule <cvc5::ProofRewriteRule>`
 
 ``namespace modes {``
   * enum classes for :doc:`configuration modes <enums/modes>`

@@ -20,7 +20,7 @@ import java.math.BigInteger;
 /**
  * A cvc5 Proof.
  */
-public class Proof implements IPointer
+public class Proof extends AbstractPointer
 {
   /**
    * Null proof
@@ -30,32 +30,29 @@ public class Proof implements IPointer
     this(getNullProof());
   }
 
-  private static native long getNullProof();
-
+  /**
+   * This is an internal constructor intended to be used only
+   * inside cvc5 package.
+   *
+   * @param pointer the cpp pointer to Proof
+   */
   Proof(long pointer)
   {
-    this.pointer = pointer;
+    super(pointer);
   }
 
-  protected long pointer;
-
-  public void deletePointer()
-  {
-    if (pointer != 0)
-    {
-      deletePointer(pointer);
-    }
-    pointer = 0;
-  }
+  private static native long getNullProof();
 
   protected native void deletePointer(long pointer);
 
-  public long getPointer()
+  protected String toString(long pointer)
   {
-    return pointer;
+    throw new UnsupportedOperationException("Proof.toString() is not supported in the cpp api");
   }
 
   /**
+   * Get the proof rule used by the root step of the proof.
+   *
    * @return The proof rule used by the root step of the proof.
    * @throws CVC5ApiException on error
    */
@@ -68,6 +65,8 @@ public class Proof implements IPointer
   private native int getRule(long pointer);
 
   /**
+   * Get the proof rewrite rule used by the root step of the proof.
+   *
    * @return The proof rewrite rule used by the root step of the proof.
    * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`
    *         or `THEORY_REWRITE`.
@@ -80,7 +79,11 @@ public class Proof implements IPointer
 
   private native int getRewriteRule(long pointer);
 
-  /** @return The conclusion of the root step of the proof. */
+  /**
+   * Get the conclusion of the root step of the proof.
+   *
+   * @return The conclusion of the root step of the proof.
+   */
   public Term getResult()
   {
     long termPointer = getResult(pointer);
@@ -89,7 +92,11 @@ public class Proof implements IPointer
 
   private native long getResult(long pointer);
 
-  /** @return The premises of the root step of the proof. */
+  /**
+   * Get the premises of the root step of the proof.
+   *
+   * @return The premises of the root step of the proof.
+   */
   public Proof[] getChildren()
   {
     long[] proofPointers = getChildren(pointer);
@@ -99,6 +106,8 @@ public class Proof implements IPointer
   private native long[] getChildren(long pointer);
 
   /**
+   * Get the arguments of the root step of the proof as a vector of terms.
+   *
    * @return The arguments of the root step of the proof as a vector of terms.
    *         Some of those terms might be strings.
    */

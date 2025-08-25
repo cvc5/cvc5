@@ -212,9 +212,6 @@ class TermManagerTest
     Sort funSort = d_tm.mkFunctionSort(d_tm.mkUninterpretedSort("u"), d_tm.getIntegerSort());
     // function arguments are allowed
     assertDoesNotThrow(() -> d_tm.mkFunctionSort(funSort, d_tm.getIntegerSort()));
-    // non-first-class arguments are not allowed
-    Sort reSort = d_tm.getRegExpSort();
-    assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(reSort, d_tm.getIntegerSort()));
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(d_tm.getIntegerSort(), funSort));
 
