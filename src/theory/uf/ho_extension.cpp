@@ -843,6 +843,14 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
       d_im.lemma(eq, InferenceId::UF_HO_MODEL_APP_ENCODE);
       return false;
     }
+    // also add all subterms
+    eq::EqualityEngine* ee = m->getEqualityEngine();
+    while (hn.getKind()==Kind::HO_APPLY)
+    {
+      ee->addTerm(hn);
+      ee->addTerm(hn[1]);
+      hn = hn[0];
+    }
   }
   return true;
 }
