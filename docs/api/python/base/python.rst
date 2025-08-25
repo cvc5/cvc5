@@ -31,10 +31,10 @@ For a higher-level, more pythonic programming experience, cvc5 provides the
     grammar
     inputparser
     kind
+    modes
     op
     plugin
     proof
-    proofrule
     result
     roundingmode
     solver
