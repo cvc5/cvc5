@@ -1335,6 +1335,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   options::DefaultFunctionValueMode dfvm =
       options().theory.defaultFunctionValueMode;
   Node default_v;
+  TNodeTrie nt;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
   {
     Node un = m->d_uf_terms[f][i];
@@ -1351,8 +1352,13 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     }
     Node simp = nodeManager()->mkNode(un.getKind(), children);
     Node v = m->getRepresentative(un);
+    Node vprev = nt.addOrGetTerm(v, children);
     Trace("model-builder") << "  Setting (" << simp << ") to (" << v << ")"
                            << endl;
+    if (vprev!=v)
+    {
+      Trace("model-builder") << "WARNING: overwrite " << v << " vs " << vprev << std::endl;
+    }
     ufmt.setValue(m, simp, v);
     if (dfvm == options::DefaultFunctionValueMode::FIRST)
     {
