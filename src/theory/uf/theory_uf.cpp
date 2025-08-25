@@ -612,13 +612,17 @@ void TheoryUF::computeCareGraph() {
           {
             Node happ = nm->mkNode(Kind::HO_APPLY, curr, c);
             Assert(curr.getType().isFunction());
-            typeIndex[curr.getType()].addTerm(happ, {curr, c});
+            //typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
           }
         }
       }
-      else if (k == Kind::HO_APPLY || k == Kind::BITVECTOR_UBV_TO_INT)
+      else if (k == Kind::HO_APPLY)
+      {
+        // skip
+      }
+      else if (k == Kind::BITVECTOR_UBV_TO_INT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
         // bitvector type if bv2nat. The latter ensures that we compute
