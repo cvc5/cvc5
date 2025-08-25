@@ -555,6 +555,15 @@ void TheoryUF::processCarePairArgs(TNode a, TNode b)
   }
 }
 
+
+void TheoryUF::computeRelevantTerms(std::set<Node>& termSet)
+{
+  if (d_ho!=nullptr)
+  {
+    d_ho->computeRelevantTerms(termSet);
+  }
+}
+
 void TheoryUF::computeCareGraph() {
   if (d_state.getSharedTerms().empty())
   {
