@@ -140,6 +140,13 @@ void CombinationModelBased::combineTheories()
           Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
           Trace("combination-mb") << "...reps are " << rcur << " and " << cts.first << std::endl;
           Assert (nother.getNumChildren()==n.getNumChildren());
+          // Get the theory that owns the term. We will add splits based on
+          // the status of its arguments in its equality engine. This handling
+          // is based on Theory::addCarePairArgs.
+          TheoryId tid = Theory::theoryOf(n);
+          Theory * t = d_te.theoryOf(tid);
+          eq::EqualityEngine * eet = t->getEqualityEngine();
+          Assert (eet!=nullptr);
           for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
           {
             if (nother[i]==n[i])
@@ -147,30 +154,22 @@ void CombinationModelBased::combineTheories()
               // reflexive equality, not the issue
               continue;
             }
-            // otherwise see if it is a pair of preregistered terms that are neither asserted
-            // to be equal or disequal.
             Trace("combination-mb") << "Check argument " << nother[i] << " vs " << n[i] << std::endl;
-            if (!d_sharedSolver->isShared(nother[i]) || !d_sharedSolver->isShared(n[i]))
+            if (eet->isTriggerTerm(n[i], tid)
+                && eet->isTriggerTerm(nother[i], tid)
+                && !eet->areEqual(n[i], nother[i]))
             {
-              Trace("combination-mb") << "...not shared" << std::endl;
-              continue;
+              TNode x_shared = eet->getTriggerTermRepresentative(n[i], tid);
+              TNode y_shared = eet->getTriggerTermRepresentative(nother[i], tid);
+              Node eq = x_shared.eqNode(y_shared);
+              if (!eqProcessed.insert(eq).second)
+              {
+                // already processed
+                continue;
+              }
+              Trace("combination-mb") << "...split on " << eq << std::endl;
+              splits.push_back(eq);
             }
-            Node eq = nother[i].eqNode(n[i]);
-            if (!eqProcessed.insert(eq).second)
-            {
-              // already processed
-              continue;
-            }
-            // if the equality has already been asserted, don't split
-            theory::EqualityStatus es = d_te.getEqualityStatus(nother[i], n[i]);
-            Trace("combination-mb") << "...status is " << es << std::endl;
-            if (es != EQUALITY_FALSE_IN_MODEL && es != EQUALITY_TRUE_IN_MODEL && es != EQUALITY_UNKNOWN)
-            {
-              // already asserted
-              continue;
-            }
-            Trace("combination-mb") << "...split on " << eq << std::endl;
-            splits.push_back(eq);
           }
         }
       }
