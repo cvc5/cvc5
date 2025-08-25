@@ -1873,6 +1873,11 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     {
       Node cons = ei->d_constructor.get();
       termSet.insert(cons);
+      // its arguments are also relevant
+      for (const Node& nc : cons)
+      {
+        termSet.insert(nc);
+      }
     }
   }
 }
