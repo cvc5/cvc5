@@ -120,6 +120,12 @@ void CombinationModelBased::combineTheories()
         ri.d_congTerms[br].push_back(ncrep);
       }
       ri.d_congTerms[rcur].push_back(n);
+      // Get the theory that owns the term. We will add splits based on
+      // the status of its arguments in its equality engine. This handling
+      // is based on Theory::addCarePairArgs.
+      TheoryId tid = Theory::theoryOf(n);
+      Theory * t = d_te.theoryOf(tid);
+      eq::EqualityEngine * eet = t->getEqualityEngine();
       for (const std::pair<const Node, std::vector<Node>>& cts : ri.d_congTerms)
       {
         for (const Node& nother : cts.second)
@@ -132,6 +138,12 @@ void CombinationModelBased::combineTheories()
             }
             // even if made equal, we need to check arguments
             // TODO: could maybe skip if TRUE or TRUE_IN_MODEL
+            /*
+            if (!eet->hasTerm(n) || !eet->hasTerm(nother) || !eet->areDisequal(n, nother, false))
+            {
+              continue;
+            }
+            */
           }
           else
           {
@@ -140,12 +152,6 @@ void CombinationModelBased::combineTheories()
           Trace("combination-mb") << "Conflict: " << n << " vs " << nother << std::endl;
           Trace("combination-mb") << "...reps are " << rcur << " and " << cts.first << std::endl;
           Assert (nother.getNumChildren()==n.getNumChildren());
-          // Get the theory that owns the term. We will add splits based on
-          // the status of its arguments in its equality engine. This handling
-          // is based on Theory::addCarePairArgs.
-          TheoryId tid = Theory::theoryOf(n);
-          Theory * t = d_te.theoryOf(tid);
-          eq::EqualityEngine * eet = t->getEqualityEngine();
           Assert (eet!=nullptr);
           for (size_t i=0, nchild=n.getNumChildren(); i<nchild; i++)
           {
