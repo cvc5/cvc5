@@ -357,9 +357,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
               << " " << stp.second[0] << std::endl;
           Node eq = st.eqNode(stp.second[0]);
           Node split = eq.orNode(eq.negate());
-          TrustNode tsplit = TrustNode::mkTrustLemma(split);
-          d_im.trustedLemma(
-              tsplit, InferenceId::ARITH_NL_SHARED_TERM_SPLIT);
+          NlLemma nlem(InferenceId::ARITH_NL_SHARED_TERM_SPLIT, split);
+          d_im.addPendingLemma(nlem);
         }
       }
     }
