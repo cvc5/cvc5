@@ -1861,7 +1861,13 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     // recorded constructor to be relevant.
     if (!foundCons)
     {
-      termSet.insert(ei->d_constructor.get());
+      Node cons = ei->d_constructor.get();
+      termSet.insert(cons);
+      // its arguments are also relevant
+      for (const Node& nc : cons)
+      {
+        termSet.insert(nc);
+      }
     }
   }
 }
