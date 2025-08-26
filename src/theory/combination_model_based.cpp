@@ -136,14 +136,12 @@ void CombinationModelBased::combineTheories()
             {
               continue;
             }
-            // even if made equal, we need to check arguments
-            // TODO: could maybe skip if TRUE or TRUE_IN_MODEL
-            /*
-            if (!eet->hasTerm(n) || !eet->hasTerm(nother) || !eet->areDisequal(n, nother, false))
-            {
-              continue;
-            }
-            */
+            // Even if made equal, we need to check arguments since we may
+            // have merged two terms that a theory cannot make equal.
+            // Note that it may be possible to check if this unintentional merge
+            // of two terms is permissible, e.g if (f a) became equal to (f b)
+            // but no theory has (f a) != (f b). We don't do this optimization
+            // currently.
           }
           else
           {
@@ -184,12 +182,7 @@ void CombinationModelBased::combineTheories()
   }
   if (splits.empty())
   {
-    /*
-    if (hasConflict)
-    {
-      Unhandled() << "Model has conflict but failed to find split";
-    }
-    */
+    Assert(!hasConflict) << "Model has conflict but failed to find split";
     Trace("combination-mb") << "...success" << std::endl;
     return;
   }
